@@ -1,5 +1,4 @@
 import { UserPlan } from "@prisma/client";
-import { Trans } from "next-i18next";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -9,7 +8,6 @@ import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Alert } from "@calcom/ui/Alert";
 import { Badge, Button, ButtonGroup, Dialog, EmptyScreen, showToast, Switch, Tooltip } from "@calcom/ui/v2";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import Dropdown, {
@@ -23,7 +21,6 @@ import Shell from "@calcom/ui/v2/core/Shell";
 import CreateEventTypeButton from "@calcom/ui/v2/modules/event-types/CreateEventType";
 
 import { withQuery } from "@lib/QueryCell";
-import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
@@ -57,10 +54,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
   return (
     <Link href={`/event-types/${type.id}`}>
       <a
-        className={classNames(
-          "flex-grow truncate text-sm ",
-          type.$disabled && "pointer-events-none cursor-not-allowed opacity-30"
-        )}
+        className="flex-grow truncate text-sm"
         title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
         <div>
           <span
@@ -130,7 +124,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
         return {
           eventTypeGroups: [],
           profiles: [],
-          viewer: { canAddEvents: false, plan: UserPlan.FREE },
+          viewer: { canAddEvents: true, plan: UserPlan.PRO },
         };
       return {
         ...data,
@@ -210,42 +204,27 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
           const embedLink = `${group.profile.slug}/${type.slug}`;
           const calLink = `${CAL_URL}/${embedLink}`;
           return (
-            <li
-              key={type.id}
-              className={classNames(type.$disabled && "select-none")}
-              data-disabled={type.$disabled ? 1 : 0}>
-              <div
-                className={classNames(
-                  "flex  items-center justify-between hover:bg-neutral-50",
-                  type.$disabled && "hover:bg-white"
-                )}>
-                <div
-                  className={classNames(
-                    "group flex w-full items-center justify-between px-4 py-4 pr-0 sm:px-6",
-                    type.$disabled && "hover:bg-white"
-                  )}>
-                  {types.length > 1 && !type.$disabled && (
-                    <>
-                      <button
-                        className="invisible absolute left-[5px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
-                        onClick={() => moveEventType(index, -1)}>
-                        <Icon.FiArrowUp className="h-5 w-5" />
-                      </button>
+            <li key={type.id}>
+              <div className="flex items-center justify-between hover:bg-neutral-50">
+                <div className="group flex w-full items-center justify-between px-4 py-4 pr-0 sm:px-6">
+                  <button
+                    className="invisible absolute left-[5px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
+                    onClick={() => moveEventType(index, -1)}>
+                    <Icon.FiArrowUp className="h-5 w-5" />
+                  </button>
 
-                      <button
-                        className="invisible absolute left-[5px] mt-8 -ml-4 hidden h-6 w-6 scale-0  items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
-                        onClick={() => moveEventType(index, 1)}>
-                        <Icon.FiArrowDown className="h-5 w-5" />
-                      </button>
-                    </>
-                  )}
+                  <button
+                    className="invisible absolute left-[5px] mt-8 -ml-4 hidden h-6 w-6 scale-0  items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
+                    onClick={() => moveEventType(index, 1)}>
+                    <Icon.FiArrowDown className="h-5 w-5" />
+                  </button>
                   <MemoizedItem type={type} group={group} readOnly={readOnly} />
                   <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                       {type.users?.length > 1 && (
                         <AvatarGroup
                           border="border-2 border-white"
-                          className={classNames("relative top-1 right-3", type.$disabled && " opacity-30")}
+                          className="relative top-1 right-3"
                           size={8}
                           truncateAfter={4}
                           items={type.users.map((organizer) => ({
@@ -255,11 +234,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                           }))}
                         />
                       )}
-                      <div
-                        className={classNames(
-                          "flex items-center justify-between space-x-2 rtl:space-x-reverse ",
-                          type.$disabled && "pointer-events-none cursor-not-allowed"
-                        )}>
+                      <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
                         {type.hidden && (
                           <Badge variant="gray" size="lg">
                             {t("hidden")}
@@ -285,7 +260,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               size="icon"
                               href={calLink}
                               StartIcon={Icon.FiExternalLink}
-                              disabled={type.$disabled}
                               combined
                             />
                           </Tooltip>
@@ -295,7 +269,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               color="secondary"
                               size="icon"
                               StartIcon={Icon.FiLink}
-                              disabled={type.$disabled}
                               onClick={() => {
                                 showToast(t("link_copied"), "success");
                                 navigator.clipboard.writeText(calLink);
@@ -318,7 +291,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 <DropdownItem
                                   type="button"
                                   href={"/event-types/" + type.id}
-                                  disabled={type.$disabled}
                                   StartIcon={Icon.FiEdit2}>
                                   {t("edit") as string}
                                 </DropdownItem>
@@ -327,7 +299,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 <DropdownItem
                                   type="button"
                                   data-testid={"event-type-duplicate-" + type.id}
-                                  disabled={type.$disabled}
                                   StartIcon={Icon.FiCopy}
                                   onClick={() => openModal(group, type)}>
                                   {t("duplicate") as string}
@@ -338,10 +309,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                   as={DropdownItem}
                                   type="button"
                                   StartIcon={Icon.FiCode}
-                                  className={classNames(
-                                    "w-full rounded-none",
-                                    type.$disabled && " pointer-events-none cursor-not-allowed opacity-30"
-                                  )}
+                                  className="w-full rounded-none"
                                   embedUrl={encodeURIComponent(embedLink)}>
                                   {t("embed")}
                                 </EmbedButton>
@@ -356,7 +324,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                       setDeleteDialogTypeId(type.id);
                                     }}
                                     StartIcon={Icon.FiTrash}
-                                    disabled={type.$disabled}
                                     className="w-full rounded-none">
                                     {t("delete") as string}
                                   </DropdownItem>
@@ -372,13 +339,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                 <div className="mr-5 flex flex-shrink-0 sm:hidden">
                   <Dropdown>
                     <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
-                      <Button
-                        type="button"
-                        size="icon"
-                        color="secondary"
-                        className={classNames(type.$disabled && " opacity-30")}
-                        StartIcon={Icon.FiMoreHorizontal}
-                      />
+                      <Button type="button" size="icon" color="secondary" StartIcon={Icon.FiMoreHorizontal} />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent portalled>
                       <DropdownMenuItem className="outline-none">
@@ -547,9 +508,7 @@ const CTA = () => {
 
   if (!query.data) return null;
 
-  return (
-    <CreateEventTypeButton canAddEvents={query.data.viewer.canAddEvents} options={query.data.profiles} />
-  );
+  return <CreateEventTypeButton canAddEvents={true} options={query.data.profiles} />;
 };
 
 const WithQuery = withQuery(["viewer.eventTypes"]);
@@ -570,22 +529,6 @@ const EventTypesPage = () => {
           customLoader={<SkeletonLoader />}
           success={({ data }) => (
             <>
-              {data.viewer.plan === "FREE" && !data.viewer.canAddEvents && (
-                <Alert
-                  severity="warning"
-                  title={<>{t("plan_upgrade")}</>}
-                  message={
-                    <Trans i18nKey="plan_upgrade_instructions">
-                      You can
-                      <a href="/api/upgrade" className="underline">
-                        upgrade here
-                      </a>
-                      .
-                    </Trans>
-                  }
-                  className="mb-4"
-                />
-              )}
               {data.eventTypeGroups.map((group, index) => (
                 <Fragment key={group.profile.slug}>
                   {/* hide list heading when there is only one (current user) */}

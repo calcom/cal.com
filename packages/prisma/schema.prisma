@@ -163,7 +163,7 @@ model User {
   identityProviderId   String?
   availability         Availability[]
   invitedTo            Int?
-  plan                 UserPlan                @default(TRIAL)
+  plan                 UserPlan                @default(FREE)
   webhooks             Webhook[]
   brandColor           String                  @default("#292929")
   darkBrandColor       String                  @default("#fafafa")

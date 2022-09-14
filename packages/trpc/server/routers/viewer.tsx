@@ -1,7 +1,6 @@
 import { AppCategories, BookingStatus, IdentityProvider, MembershipRole, Prisma } from "@prisma/client";
 import _ from "lodash";
 import { authenticator } from "otplib";
-import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import app_RoutingForms from "@calcom/app-store/ee/routing_forms/trpc-router";
@@ -379,17 +378,11 @@ const loggedInViewerRouter = createProtectedRouter()
           membershipCount: number;
           readOnly: boolean;
         };
-        eventTypes: (typeof user.eventTypes[number] & { $disabled?: boolean })[];
+        eventTypes: typeof user.eventTypes[number][];
       };
 
       let eventTypeGroups: EventTypeGroup[] = [];
-      const eventTypesHashMap = user.eventTypes.concat(typesRaw).reduce((hashMap, newItem, currentIndex) => {
-        const oldItem = hashMap[newItem.id] || {
-          $disabled: user.plan === "FREE" && currentIndex > 0,
-        };
-        hashMap[newItem.id] = { ...oldItem, ...newItem };
-        return hashMap;
-      }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
+      const eventTypesHashMap = user.eventTypes.concat(typesRaw);
       const mergedEventTypes = Object.values(eventTypesHashMap).map((eventType) => eventType);
 
       eventTypeGroups.push({
@@ -422,11 +415,8 @@ const loggedInViewerRouter = createProtectedRouter()
         }))
       );
 
-      const canAddEvents = user.plan !== "FREE" || eventTypeGroups[0].eventTypes.length < 1;
-
       return {
         viewer: {
-          canAddEvents,
           plan: user.plan,
         },
         // don't display event teams without event types,
