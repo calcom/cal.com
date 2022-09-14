@@ -100,12 +100,14 @@ const AddNewTeamMembers = (props: { teamId: number }) => {
           </Button>
         </>
 
-        <MemberInvitationModal
-          isOpen={memberInviteModal}
-          onExit={() => setMemberInviteModal(false)}
-          team={team}
-          currentMember={team?.membership.role}
-        />
+        {team && (
+          <MemberInvitationModal
+            isOpen={memberInviteModal}
+            onExit={() => setMemberInviteModal(false)}
+            team={team}
+            currentMember={team?.membership.role}
+          />
+        )}
 
         <hr className="my-6  border-neutral-200" />
 

@@ -112,7 +112,7 @@ const CreateNewTeamPage = () => {
                 <TeamGeneralSettings teamId={teamId} nextStep={() => goToIndex(2)} />
               )} */}
 
-              {currentStep === "add-team-members" && <AddNewTeamMembers teamId={teamId} />}
+              {currentStep === "add-team-members" && teamId && <AddNewTeamMembers teamId={teamId} />}
             </StepCard>
           </div>
         </div>
