@@ -263,7 +263,7 @@ function BookingListItem(booking: BookingItemProps) {
       </Dialog>
 
       <tr className="flex hover:bg-neutral-50">
-        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-28" onClick={onClick}>
+        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-48" onClick={onClick}>
           <div className="cursor-pointer py-4">
             <div className="text-sm leading-6 text-gray-900">{startTime}</div>
             <div className="text-sm text-gray-500">
@@ -311,12 +311,6 @@ function BookingListItem(booking: BookingItemProps) {
                 {t("pending_payment")}
               </Badge>
             )}
-            <div className="text-sm font-medium text-gray-900">
-              {startTime}:{" "}
-              <small className="text-sm text-gray-500">
-                {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
-              </small>
-            </div>
             <div
               title={booking.title}
               className={classNames(
@@ -338,7 +332,7 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
             {booking.description && (
               <div
-                className="max-w-52 md:max-w-96 truncate text-sm text-gray-500"
+                className="max-w-52 md:max-w-96 truncate text-sm text-gray-600"
                 title={booking.description}>
                 &quot;{booking.description}&quot;
               </div>
