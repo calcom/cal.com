@@ -388,7 +388,6 @@ const loggedInViewerRouter = createProtectedRouter()
         return hashMap;
       }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
       const mergedEventTypes = Object.values(eventTypesHashMap).map((eventType) => eventType);
-      console.log(mergedEventTypes);
       eventTypeGroups.push({
         teamId: null,
         profile: {
