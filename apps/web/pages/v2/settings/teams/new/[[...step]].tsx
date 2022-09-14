@@ -4,9 +4,9 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { z } from "zod";
 
-import CreateNewTeam from "@calcom/features/ee/teams/components/v2/CreateNewTeam";
 // import TeamGeneralSettings from "@calcom/features/teams/createNewTeam/TeamGeneralSettings";
-import AddNewTeamMembers from "@calcom/features/teams/createNewTeam/AddNewTeamMembers";
+import AddNewTeamMembers from "@calcom/features/ee/teams/components/v2/AddNewTeamMembers";
+import CreateNewTeam from "@calcom/features/ee/teams/components/v2/CreateNewTeam";
 import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
