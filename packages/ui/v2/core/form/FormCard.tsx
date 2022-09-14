@@ -46,6 +46,7 @@ export default function FormCard({
         <span className="text-sm font-semibold leading-none">{label}</span>
         {deleteField?.check() ? (
           <button
+            type="button"
             onClick={() => {
               deleteField?.fn();
             }}
