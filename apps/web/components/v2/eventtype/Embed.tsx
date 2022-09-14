@@ -10,7 +10,6 @@ import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
 import { Button, Switch } from "@calcom/ui/v2";
-// import NavTabs from "@components/v2/ui/NavTabs";
 import NavTabs from "@calcom/ui/v2/core/navigation/tabs/HorizontalTabs";
 
 import { EMBED_LIB_URL, WEBAPP_URL } from "@lib/config/constants";
@@ -1043,7 +1042,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
           </div>
         </div>
         <div className="w-2/3 p-6">
-          <NavTabs data-testid="embed-tabs" tabs={tabs} linkProps={{ shallow: true }} />
+          <NavTabs data-testid="embed-tabs" tabs={tabs} />
           {tabs.map((tab) => {
             return (
               <div
