@@ -27,12 +27,12 @@ export default function DisconnectIntegration({
 
   const mutation = trpc.useMutation("viewer.deleteCredential", {
     onSuccess: () => {
-      showToast("Integration deleted successfully", "success");
+      showToast(t("app_removed_successfully"), "success");
       setModalOpen(false);
       onSuccess && onSuccess();
     },
     onError: () => {
-      showToast("Error deleting app", "error");
+      showToast(t("error_removing_app"), "error");
       setModalOpen(false);
     },
   });

@@ -1006,6 +1006,8 @@
   "remove_app": "Remove App",
   "yes_remove_app": "Yes, remove app",
   "are_you_sure_you_want_to_remove_this_app": "Are you sure you want to remove this app?",
+  "app_removed_successfully": "App removed successfully",
+  "error_removing_app": "Error removing app",
   "web_conference": "Web conference",
   "number_for_sms_reminders": "Phone number (for SMS reminders)",
   "requires_confirmation": "Requires confirmation",
