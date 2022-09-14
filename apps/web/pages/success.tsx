@@ -862,6 +862,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     });
   }
 
+  console.log(bookingInfo);
+
   return {
     props: {
       hideBranding: eventType.team ? eventType.team.hideBranding : isBrandingHidden(eventType.users[0]),
