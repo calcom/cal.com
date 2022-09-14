@@ -55,9 +55,15 @@
     "type": "raycast_other"
   },
   {
-    "dirName": "n8n",
+   "dirName": "n8n",
     "categories": ["other"],
     "slug": "n8n",
     "type": "n8n_other"
+  },
+  {
+    "dirName": "exchangecalendar",
+    "categories": ["calendar"],
+    "slug": "exchange",
+    "type": "exchange_calendar"
   }
 ]
