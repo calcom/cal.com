@@ -19,12 +19,12 @@ import { HttpError } from "@calcom/lib/http-error";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import Loader from "@calcom/ui/Loader";
 import { Option } from "@calcom/ui/form/MultiSelectCheckboxes";
 import { Alert, Button, Form, showToast } from "@calcom/ui/v2";
 import Shell from "@calcom/ui/v2/core/Shell";
 
 import LicenseRequired from "../../../common/components/v2/LicenseRequired";
+import SkeletonLoader from "../../components/v2/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../../components/v2/WorkflowDetailsPage";
 import { getTranslatedText } from "../../lib/variableTranslations";
 import { translateVariablesToEnglish } from "../../lib/variableTranslations";
@@ -221,7 +221,7 @@ function WorkflowPage() {
                       />
                     </>
                   ) : (
-                    <Loader />
+                    <SkeletonLoader />
                   )}
                 </>
               ) : (
@@ -233,7 +233,7 @@ function WorkflowPage() {
       </Shell>
     </Form>
   ) : (
-    <Loader />
+    <></>
   );
 }
 
