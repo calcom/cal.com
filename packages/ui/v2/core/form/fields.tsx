@@ -1,6 +1,6 @@
 import { useId } from "@radix-ui/react-id";
-import React, { forwardRef, ReactElement, ReactNode, Ref } from "react";
-import { Check, Circle, Info, X } from "react-feather";
+import React, { forwardRef, ReactElement, ReactNode, Ref, useCallback, useMemo, useState } from "react";
+import { Check, Circle, Info, X, Eye, EyeOff } from "react-feather";
 import {
   FieldErrors,
   FieldValues,
@@ -13,6 +13,7 @@ import {
 import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Tooltip } from "@calcom/ui/v2";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 import { Alert } from "../../../Alert";
@@ -248,7 +249,39 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
   props,
   ref
 ) {
-  return <InputField type="password" placeholder="•••••••••••••" ref={ref} {...props} />;
+  const { t } = useLocale();
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const toggleIsPasswordVisible = useCallback(
+    () => setIsPasswordVisible(!isPasswordVisible),
+    [isPasswordVisible, setIsPasswordVisible]
+  );
+  const textLabel = isPasswordVisible ? t("hide_password") : t("show_password");
+
+  return (
+    <div className="relative">
+      <InputField
+        type={isPasswordVisible ? "text" : "password"}
+        placeholder="•••••••••••••"
+        ref={ref}
+        {...props}
+        className={classNames("pr-10", props.className)}
+      />
+
+      <Tooltip content={textLabel}>
+        <button
+          className="absolute bottom-0 right-3 h-9 text-gray-900"
+          type="button"
+          onClick={() => toggleIsPasswordVisible()}>
+          {isPasswordVisible ? (
+            <EyeOff className="h-4 stroke-[2.5px]" />
+          ) : (
+            <Eye className="h-4 stroke-[2.5px]" />
+          )}
+          <span className="sr-only">{textLabel}</span>
+        </button>
+      </Tooltip>
+    </div>
+  );
 });
 
 export const EmailInput = forwardRef<HTMLInputElement, InputFieldProps>(function EmailInput(props, ref) {
