@@ -28,7 +28,7 @@ const PasswordView = () => {
 
   return (
     <>
-      <Meta title="password" description="password_description" />
+      <Meta title="Password" description="Manage settings for your account passwords" />
       {user && user.identityProvider !== IdentityProvider.CAL ? (
         <div>
           <div className="mt-6">
