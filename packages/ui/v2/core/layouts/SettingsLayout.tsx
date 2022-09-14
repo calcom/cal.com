@@ -1,7 +1,7 @@
 import { UserPermissionRole, MembershipRole } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
-import React, { ComponentProps, useEffect, useState, useRef } from "react";
+import React, { ComponentProps, useEffect, useState } from "react";
 
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -99,7 +99,6 @@ const useTabs = () => {
 const SettingsSidebarContainer = ({ className = "" }) => {
   const { t } = useLocale();
   const tabsWithPermissions = useTabs();
-  const teamsRef = useRef(null);
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
 
@@ -110,7 +109,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
       const teamStates = teams?.map((team) => ({ teamId: team.id, teamMenuOpen: false }));
       setTeamMenuState(teamStates);
     }
-  }, [teamsRef, teams]);
+  }, [teamMenuState, teams]);
 
   return (
     <nav
