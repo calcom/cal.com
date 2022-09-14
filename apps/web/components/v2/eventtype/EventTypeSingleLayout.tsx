@@ -21,6 +21,7 @@ import {
   HorizontalTabs,
   Switch,
   Label,
+  HorizontalTabItemProps,
 } from "@calcom/ui/v2";
 import { Dialog } from "@calcom/ui/v2/core/Dialog";
 import Dropdown, {
@@ -81,7 +82,7 @@ function EventTypeSingleLayout({
 
   // Define tab navigation here
   const EventTypeTabs = useMemo(() => {
-    const navigation = [
+    const navigation: (VerticalTabItemProps & HorizontalTabItemProps)[] = [
       {
         name: "event_setup_tab_title",
         tabName: "setup",
@@ -124,7 +125,7 @@ function EventTypeSingleLayout({
         icon: Icon.FiZap,
         info: `${enabledWorkflowsNumber} ${t("active")}`,
       },
-    ] as VerticalTabItemProps[];
+    ];
 
     // If there is a team put this navigation item within the tabs
     if (team)
@@ -262,7 +263,7 @@ function EventTypeSingleLayout({
             <VerticalTabs tabs={EventTypeTabs} sticky />
           </div>
           <div className="p-2 md:mx-0 md:p-0 xl:hidden">
-            <HorizontalTabs<"tabName"> tabs={EventTypeTabs} />
+            <HorizontalTabs tabNameKey="tabName" tabs={EventTypeTabs} />
           </div>
           <div className="w-full ltr:mr-2 rtl:ml-2">
             <div

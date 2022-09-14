@@ -1,11 +1,11 @@
 import React, { ComponentProps } from "react";
 
 import HorizontalTabs from "@calcom/ui/v2/core/navigation/tabs/HorizontalTabs";
-import type { VerticalTabItemProps } from "@calcom/ui/v2/core/navigation/tabs/VerticalTabItem";
 
 import Shell from "../Shell";
+import { HorizontalTabItemProps } from "../navigation/tabs/HorizontalTabItem";
 
-const tabs: VerticalTabItemProps[] = [
+const tabs: HorizontalTabItemProps[] = [
   {
     name: "app_store",
     href: "/apps",
@@ -24,7 +24,7 @@ export default function AppsLayout({
     <Shell {...rest}>
       <div className="flex flex-col xl:flex-row ">
         <div className="block lg:hidden">
-          <HorizontalTabs<"tabName"> tabs={tabs} />
+          <HorizontalTabs tabs={tabs} />
         </div>
         <main className="w-full">{children}</main>
       </div>

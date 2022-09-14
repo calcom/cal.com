@@ -7,11 +7,7 @@ export interface NavTabProps<T extends string> {
   tabNameKey?: T;
 }
 
-const HorizontalTabs = function <T extends string = "tabName">({
-  tabs,
-  tabNameKey,
-  ...props
-}: NavTabProps<T>) {
+const HorizontalTabs = function <T extends string>({ tabs, tabNameKey, ...props }: NavTabProps<T>) {
   const _tabNameKey = tabNameKey || "tabName";
   return (
     <div className="-mx-6 mb-2 w-[calc(100%+40px)]">
