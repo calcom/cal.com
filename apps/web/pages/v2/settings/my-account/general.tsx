@@ -12,7 +12,7 @@ import Meta from "@calcom/ui/v2/core/Meta";
 import TimezoneSelect from "@calcom/ui/v2/core/TimezoneSelect";
 import Select from "@calcom/ui/v2/core/form/Select";
 import { Form, Label } from "@calcom/ui/v2/core/form/fields";
-import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
+import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 import { withQuery } from "@lib/QueryCell";
@@ -40,6 +40,7 @@ const GeneralQueryView = (props: inferSSRProps<typeof getServerSideProps>) => {
 
 const GeneralView = ({ localeProp, t, user }: GeneralViewProps) => {
   const router = useRouter();
+  const utils = trpc.useContext();
 
   // const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
   const mutation = trpc.useMutation("viewer.updateProfile", {
@@ -49,14 +50,17 @@ const GeneralView = ({ localeProp, t, user }: GeneralViewProps) => {
     onError: () => {
       showToast(t("error_updating_settings"), "error");
     },
+    onSettled: async () => {
+      await utils.invalidateQueries(["viewer.public.i18n"]);
+    },
   });
 
   const localeOptions = useMemo(() => {
     return (router.locales || []).map((locale) => ({
       value: locale,
-      label: new Intl.DisplayNames(localeProp, { type: "language" }).of(locale) || "",
+      label: new Intl.DisplayNames(locale, { type: "language" }).of(locale) || "",
     }));
-  }, [localeProp, router.locales]);
+  }, [router.locales]);
 
   const timeFormatOptions = [
     { value: 12, label: t("12_hour") },
@@ -102,21 +106,19 @@ const GeneralView = ({ localeProp, t, user }: GeneralViewProps) => {
           weekStart: values.weekStart.value,
         });
       }}>
-      <Meta title="general" description="general_description" />
+      <Meta title="General" description="Manage settings for your language and timezone" />
       <Controller
         name="locale"
-        control={formMethods.control}
-        render={({ field: { value } }) => (
+        render={({ field: { value, onChange } }) => (
           <>
-            <Label className="mt-8 text-gray-900">
+            <Label className="text-gray-900">
               <>{t("language")}</>
             </Label>
-            <Select
+            <Select<{ label: string; value: string }>
+              className="capitalize"
               options={localeOptions}
               value={value}
-              onChange={(event) => {
-                if (event) formMethods.setValue("locale", { ...event });
-              }}
+              onChange={onChange}
             />
           </>
         )}

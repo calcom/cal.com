@@ -1,6 +1,7 @@
+import autoAnimate from "@formkit/auto-animate";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
-import { Fragment } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -14,7 +15,7 @@ import BookingLayout from "@calcom/ui/v2/core/layouts/BookingLayout";
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
 import BookingListItem from "@components/booking/BookingListItem";
-import SkeletonLoader from "@components/booking/SkeletonLoader";
+import SkeletonLoader from "@components/v2/bookings/SkeletonLoader";
 
 type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
 type BookingOutput = inferQueryOutput<"viewer.bookings">["bookings"][0];
@@ -43,6 +44,8 @@ export default function Bookings() {
     getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 
+  // Animate page (tab) tranistions to look smoothing
+  const animationParentRef = useRef(null);
   const buttonInView = useInViewObserver(() => {
     if (!query.isFetching && query.hasNextPage && query.status === "success") {
       query.fetchNextPage();
@@ -79,18 +82,23 @@ export default function Bookings() {
     }
     return true;
   };
+
+  useEffect(() => {
+    animationParentRef.current && autoAnimate(animationParentRef.current);
+  }, [animationParentRef]);
+
   return (
     <BookingLayout heading={t("bookings")} subtitle={t("bookings_description")}>
-      <div className="flex w-full flex-1 flex-col">
+      <div className="flex w-full flex-1 flex-col" ref={animationParentRef}>
         {query.status === "error" && (
           <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
         )}
         {(query.status === "loading" || query.status === "idle") && <SkeletonLoader />}
         {query.status === "success" && !isEmpty && (
-          <div className="pt-2 xl:mx-6 xl:pt-0">
+          <div className="pt-2 xl:pt-0">
             <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
             {/* TODO: add today only for the current day
-            <p className="pb-3 text-xs font-medium uppercase leading-4 text-gray-500">{t("today")}</p>
+            <p className="pb-3 text-xs font-medium leading-4 text-gray-500 uppercase">{t("today")}</p>
              */}
 
             <div className="overflow-hidden rounded-md border border-gray-200">

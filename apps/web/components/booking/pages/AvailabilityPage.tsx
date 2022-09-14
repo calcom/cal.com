@@ -169,7 +169,7 @@ const SlotPicker = ({
     timeZone,
   });
 
-  const slots = useMemo(() => ({ ..._1, ..._2 }), [_1, _2]);
+  const slots = useMemo(() => ({ ..._2, ..._1 }), [_1, _2]);
 
   return (
     <>
@@ -178,7 +178,7 @@ const SlotPicker = ({
         className={classNames(
           "mt-8 w-full px-4 sm:mt-0 sm:min-w-[455px] md:px-5",
           selectedDate
-            ? "sm:dark:border-darkgray-200 border-gray-200 sm:w-1/2 sm:border-r sm:p-4 sm:pr-6 md:w-1/3 "
+            ? "sm:dark:border-darkgray-200 border-gray-200 sm:w-1/2 sm:border-r sm:p-4 sm:pr-6 md:w-1/3"
             : "sm:p-4"
         )}
         includedDates={Object.keys(slots).filter((k) => slots[k].length > 0)}
@@ -247,9 +247,9 @@ function TimezoneDropdown({
           <Icon.FiGlobe className="mr-[10px] ml-[2px] -mt-[2px] inline-block h-4 w-4" />
           {timeZone}
           {isTimeOptionsOpen ? (
-            <Icon.FiChevronUp className="ml-1 inline-block h-4 w-4 " />
+            <Icon.FiChevronUp className="ml-1 inline-block h-4 w-4" />
           ) : (
-            <Icon.FiChevronDown className="ml-1 inline-block h-4 w-4 " />
+            <Icon.FiChevronDown className="ml-1 inline-block h-4 w-4" />
           )}
         </p>
       </Collapsible.Trigger>
@@ -425,7 +425,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                         </div>
                       )}
                       {eventType?.requiresConfirmation && (
-                        <p className="dark:text-darkgray-600 dark:text-darkgray-600 text-gray-600">
+                        <p className="dark:text-darkgray-600 text-gray-600">
                           <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                           {t("requires_confirmation")}
                         </p>
@@ -464,7 +464,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                                 setRecurringEventCount(parseInt(event?.target.value));
                               }}
                             />
-                            <p className="dark:text-darkgray-600 inline text-gray-600 ">
+                            <p className="dark:text-darkgray-600 inline text-gray-600">
                               {t("occurrence", {
                                 count: recurringEventCount,
                               })}
@@ -512,12 +512,12 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                 <h2 className="break-words text-sm font-medium text-gray-600 dark:text-gray-300 lg:mt-2">
                   {profile.name}
                 </h2>
-                <h1 className="font-cal dark:text-darkgray-900 mb-6 break-words text-2xl text-gray-900 ">
+                <h1 className="font-cal dark:text-darkgray-900 mb-6 break-words text-2xl text-gray-900">
                   {eventType.title}
                 </h1>
                 <div className="dark:text-darkgray-600 flex flex-col space-y-3 text-sm font-medium text-gray-600">
                   {eventType?.description && (
-                    <div className="flex ">
+                    <div className="flex">
                       <div>
                         <Icon.FiInfo className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                       </div>
@@ -563,7 +563,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </div>
                   )}
                   {eventType.price > 0 && (
-                    <p className="-ml-2 px-2 text-sm font-medium ">
+                    <p className="-ml-2 px-2 text-sm font-medium">
                       <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                       <IntlProvider locale="en">
                         <FormattedNumber
