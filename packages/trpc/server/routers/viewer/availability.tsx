@@ -130,8 +130,7 @@ export const availabilityRouter = createProtectedRouter()
         data,
       });
       const hasDefaultScheduleId = await hasDefaultSchedule(user, prisma);
-
-      if (hasDefaultScheduleId) {
+      if (!hasDefaultScheduleId) {
         await setupDefaultSchedule(user.id, schedule.id, prisma);
       }
 
