@@ -128,35 +128,33 @@ export default function Availability({ schedule }: { schedule: number }) {
             }}
             className="-mx-4 flex flex-col pb-16 sm:mx-0 xl:flex-row xl:space-x-6">
             <div className="flex-1">
-              <div className="rounded-md border-gray-200 bg-white px-4 py-5 sm:border sm:p-6">
+              <div className="rounded-md border-gray-200 bg-white py-5 pr-4 sm:border sm:p-6">
                 <h3 className="mb-5 text-base font-medium leading-6 text-gray-900">
                   {t("change_start_end")}
                 </h3>
                 <Schedule control={control} name="schedule" />
               </div>
             </div>
-            <div className="min-w-40 col-span-3 ml-2 space-y-2 lg:col-span-1">
-              <div className="xl:max-w-80 w-full">
+            <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
+              <div className="xl:max-w-80 w-full pr-4 sm:p-0">
                 <div>
                   <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
                     {t("timezone")}
                   </label>
-                  <div className="mt-1">
-                    <Controller
-                      name="timeZone"
-                      render={({ field: { onChange, value } }) =>
-                        value ? (
-                          <TimezoneSelect
-                            value={value}
-                            className="focus:border-brand mt-1 block w-full rounded-md border-gray-300 text-sm"
-                            onChange={(timezone) => onChange(timezone.value)}
-                          />
-                        ) : (
-                          <SkeletonText className="h-6 w-full" />
-                        )
-                      }
-                    />
-                  </div>
+                  <Controller
+                    name="timeZone"
+                    render={({ field: { onChange, value } }) =>
+                      value ? (
+                        <TimezoneSelect
+                          value={value}
+                          className="focus:border-brand mt-1 block rounded-md border-gray-300 text-sm"
+                          onChange={(timezone) => onChange(timezone.value)}
+                        />
+                      ) : (
+                        <SkeletonText className="h-6 w-full" />
+                      )
+                    }
+                  />
                 </div>
                 <hr className="my-8" />
                 <div className="rounded-md">

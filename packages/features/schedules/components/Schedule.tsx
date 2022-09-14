@@ -62,9 +62,6 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
             <span className="inline-block min-w-[88px] text-sm capitalize">{weekday}</span>
           </label>
         </div>
-        <div className="inline sm:hidden">
-          <div className="flex items-center">{CopyButton}</div>
-        </div>
       </div>
       <>
         {watchDayRange ? (
@@ -173,21 +170,19 @@ const DayRanges = <TFieldValues extends FieldValues>({
           <div className="mb-2 flex first:mt-1">
             <Controller name={`${name}.${index}`} render={({ field }) => <TimeRangeField {...field} />} />
             {index === 0 && (
-              <div className="hidden sm:inline">
-                <Button
-                  tooltip={t("add_time_availability")}
-                  className=" text-neutral-400"
-                  type="button"
-                  color="minimal"
-                  size="icon"
-                  StartIcon={Icon.FiPlus}
-                  onClick={() => {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const nextRange: any = getNextRange(fields[fields.length - 1]);
-                    if (nextRange) append(nextRange);
-                  }}
-                />
-              </div>
+              <Button
+                tooltip={t("add_time_availability")}
+                className=" text-neutral-400"
+                type="button"
+                color="minimal"
+                size="icon"
+                StartIcon={Icon.FiPlus}
+                onClick={() => {
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const nextRange: any = getNextRange(fields[fields.length - 1]);
+                  if (nextRange) append(nextRange);
+                }}
+              />
             )}
             {index !== 0 && <RemoveTimeButton index={index} remove={remove} />}
           </div>
