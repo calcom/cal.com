@@ -52,21 +52,21 @@ const AppearanceView = () => {
           variant="system"
           value={null}
           label={t("theme_system")}
-          defaultChecked={user.theme === null}
+          defaultChecked={user?.theme === null}
           register={formMethods.register}
         />
         <ThemeLabel
           variant="light"
           value="light"
           label={t("theme_light")}
-          defaultChecked={user.theme === "light"}
+          defaultChecked={user?.theme === "light"}
           register={formMethods.register}
         />
         <ThemeLabel
           variant="dark"
           value="dark"
           label={t("theme_dark")}
-          defaultChecked={user.theme === "dark"}
+          defaultChecked={user?.theme === "dark"}
           register={formMethods.register}
         />
       </div>
@@ -152,7 +152,7 @@ const AppearanceView = () => {
 AppearanceView.getLayout = getLayout;
 
 export default AppearanceView;
-¯interface ThemeLabelProps {
+interface ThemeLabelProps {
   variant: "light" | "dark" | "system";
   value?: "light" | "dark" | null;
   label: string;
