@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import { useCallback, useEffect, useMemo, useState, Fragment } from "react";
 import {
   Controller,
@@ -17,6 +16,7 @@ import { GroupBase, Props } from "react-select";
 
 import dayjs, { ConfigType, Dayjs } from "@calcom/dayjs";
 import { defaultDayRange as DEFAULT_DAY_RANGE } from "@calcom/lib/availability";
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -83,20 +83,29 @@ const CopyButton = ({
   weekStart: number;
 }) => {
   const { t } = useLocale();
+  const [open, setOpen] = useState(false);
   const fieldArrayName = getValuesFromDayRange.substring(0, getValuesFromDayRange.lastIndexOf("."));
   const { setValue, getValues } = useFormContext();
   return (
-    <Dropdown>
+    <Dropdown open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <Button type="button" tooltip={t("duplicate")} color="minimal" size="icon" StartIcon={Icon.FiCopy} />
+        <Button
+          className={classNames(open && "ring-brand-500 !bg-gray-100 outline-none ring-2 ring-offset-1")}
+          type="button"
+          tooltip={t("duplicate")}
+          color="minimal"
+          size="icon"
+          StartIcon={Icon.FiCopy}
+        />
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent align="end">
         <CopyTimes
           weekStart={weekStart}
           disabled={parseInt(getValuesFromDayRange.replace(fieldArrayName + ".", ""), 10)}
           onClick={(selected) => {
             selected.forEach((day) => setValue(`${fieldArrayName}.${day}`, getValues(getValuesFromDayRange)));
           }}
+          onCancel={() => setOpen(false)}
         />
       </DropdownMenuContent>
     </Dropdown>
@@ -332,43 +341,54 @@ const getNextRange = (field?: FieldArrayWithId) => {
 const CopyTimes = ({
   disabled,
   onClick,
+  onCancel,
   weekStart,
 }: {
   disabled: number;
   onClick: (selected: number[]) => void;
+  onCancel: () => void;
   weekStart: number;
 }) => {
   const [selected, setSelected] = useState<number[]>([]);
   const { i18n, t } = useLocale();
 
   return (
-    <div className="m-4 space-y-2 py-4">
-      <p className="h6 text-xs font-medium uppercase text-neutral-400">Copy times to</p>
-      <ol className="space-y-2">
-        {weekdayNames(i18n.language, weekStart).map((weekday, num) => (
-          <li key={weekday}>
-            <label className="flex w-full items-center justify-between">
-              <span className="px-1">{weekday}</span>
-              <input
-                value={num}
-                defaultChecked={disabled === num}
-                disabled={disabled === num}
-                onChange={(e) => {
-                  if (e.target.checked && !selected.includes(num)) {
-                    setSelected(selected.concat([num]));
-                  } else if (!e.target.checked && selected.includes(num)) {
-                    setSelected(selected.slice(selected.indexOf(num), 1));
-                  }
-                }}
-                type="checkbox"
-                className="inline-block rounded-[4px] border-gray-300 text-neutral-900 focus:ring-neutral-500 disabled:text-neutral-400"
-              />
-            </label>
-          </li>
-        ))}
-      </ol>
-      <div className="pt-2">
-        <Button className="w-full justify-center" color="primary" onClick={() => onClick(selected)}>
+    <div className="space-y-2 py-2">
+      <div className="p-2">
+        <p className="h6 pb-3 pl-1 text-xs font-medium uppercase text-neutral-400">Copy times to</p>
+        <ol className="space-y-2">
+          {weekdayNames(i18n.language, weekStart).map((weekday, num) => {
+            const weekdayIndex = (num + weekStart) % 7;
+            return (
+              <li key={weekday}>
+                <label className="flex w-full items-center justify-between">
+                  <span className="px-1">{weekday}</span>
+                  <input
+                    value={weekdayIndex}
+                    defaultChecked={disabled === weekdayIndex}
+                    disabled={disabled === weekdayIndex}
+                    onChange={(e) => {
+                      if (e.target.checked && !selected.includes(weekdayIndex)) {
+                        setSelected(selected.concat([weekdayIndex]));
+                      } else if (!e.target.checked && selected.includes(weekdayIndex)) {
+                        setSelected(selected.slice(selected.indexOf(weekdayIndex), 1));
+                      }
+                    }}
+                    type="checkbox"
+                    className="inline-block rounded-[4px] border-gray-300 text-neutral-900 focus:ring-neutral-500 disabled:text-neutral-400"
+                  />
+                </label>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+      <hr />
+      <div className="space-x-2 px-2">
+        <Button color="minimalSecondary" onClick={() => onCancel()}>
+          {t("cancel")}
+        </Button>
+        <Button color="primary" onClick={() => onClick(selected)}>
           {t("apply")}
         </Button>
       </div>
