@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
 import classNames from "@calcom/lib/classNames";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
@@ -338,7 +339,7 @@ function CreateEventTeamsItem(props: {
       onSelect={() => props.openModal(props.option)}>
       <Avatar
         alt={props.option.name || ""}
-        imageSrc={props.option.image}
+        imageSrc={props.option.image || WEBAPP_URL + "/" + props.option.slug + "/avatar.png"}
         size={6}
         className="inline ltr:mr-2 rtl:ml-2"
       />
