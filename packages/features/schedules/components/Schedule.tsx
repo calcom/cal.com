@@ -1,16 +1,14 @@
 import { useCallback, useEffect, useMemo, useState, Fragment } from "react";
-import {
-  Controller,
-  useFieldArray,
+import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import type {
   UseFieldArrayRemove,
-  useFormContext,
   FieldValues,
   FieldPath,
   FieldPathValue,
   FieldArrayWithId,
-  FieldArrayPath,
-  Control,
+  ArrayPath,
   ControllerRenderProps,
+  Control,
 } from "react-hook-form";
 import { GroupBase, Props } from "react-select";
 
@@ -139,7 +137,7 @@ const Schedule = <
       {/* First iterate for each day */}
       {weekdayNames(i18n.language, weekStart, "long").map((weekday, num) => {
         const weekdayIndex = (num + weekStart) % 7;
-        const dayRangeName = `${name}.${weekdayIndex}` as const;
+        const dayRangeName = `${name}.${weekdayIndex}`;
         return (
           <ScheduleDay
             name={dayRangeName}
@@ -154,21 +152,18 @@ const Schedule = <
   );
 };
 
-const DayRanges = <
-  TFieldValues extends FieldValues,
-  TFieldArrayName extends FieldArrayPath<TFieldValues> = FieldArrayPath<TFieldValues>
->({
+const DayRanges = <TFieldValues extends FieldValues>({
   name,
   control,
 }: {
-  name: TFieldArrayName;
+  name: string;
   control: Control<TFieldValues>;
 }) => {
   const { t } = useLocale();
 
   const { remove, fields, append } = useFieldArray({
     control,
-    name,
+    name: name as unknown as ArrayPath<TFieldValues>,
   });
 
   return (
@@ -187,7 +182,8 @@ const DayRanges = <
                   size="icon"
                   StartIcon={Icon.FiPlus}
                   onClick={() => {
-                    const nextRange = getNextRange(fields[fields.length - 1]);
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    const nextRange: any = getNextRange(fields[fields.length - 1]);
                     if (nextRange) append(nextRange);
                   }}
                 />
