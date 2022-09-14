@@ -25,6 +25,7 @@ import { Icon } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Select, Switch } from "@calcom/ui/v2";
 import Button from "@calcom/ui/v2/core/Button";
+import { SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
 export type FieldPathByValue<TFieldValues extends FieldValues, TValue> = {
   [Key in FieldPath<TFieldValues>]: FieldPathValue<TFieldValues, Key> extends TValue ? Key : never;
@@ -52,8 +53,9 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
           <label className="flex flex-row items-center space-x-2">
             <div>
               <Switch
-                defaultChecked={watchDayRange.length > 0}
-                checked={!!watchDayRange.length}
+                disabled={!watchDayRange}
+                defaultChecked={watchDayRange && watchDayRange.length > 0}
+                checked={watchDayRange && !!watchDayRange.length}
                 onCheckedChange={(isChecked) => {
                   setValue(name, isChecked ? [DEFAULT_DAY_RANGE] : []);
                 }}
@@ -66,10 +68,16 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
           <div className="flex items-center">{CopyButton}</div>
         </div>
       </div>
-      <div className="flex sm:ml-2">
-        <DayRanges control={control} name={name} />
-        {!!watchDayRange.length && <div className="mt-1">{CopyButton}</div>}
-      </div>
+      <>
+        {watchDayRange ? (
+          <div className="flex sm:ml-2">
+            <DayRanges control={control} name={name} />
+            {!!watchDayRange.length && <div className="mt-1">{CopyButton}</div>}
+          </div>
+        ) : (
+          <SkeletonText className="mt-2.5 ml-1 h-6 w-48" />
+        )}
+      </>
       <div className="my-2 h-[1px] w-full bg-gray-200 sm:hidden" />
     </div>
   );
