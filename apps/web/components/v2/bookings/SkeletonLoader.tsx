@@ -1,8 +1,7 @@
 import React from "react";
 
-import { SkeletonText } from "@calcom/ui";
+import { SkeletonText } from "@calcom/ui/v2";
 
-/** @deprecated Use `apps/web/components/v2/bookings/SkeletonLoader.tsx` */
 function SkeletonLoader() {
   return (
     <ul className="animate-pulse divide-y divide-neutral-200 rounded-md border border-gray-200 bg-white sm:overflow-hidden">
@@ -21,15 +20,15 @@ function SkeletonItem() {
       <div className="flex-grow truncate text-sm">
         <div className="flex">
           <div className="flex flex-col space-y-2">
-            <SkeletonText width="16" height="5" />
-            <SkeletonText width="32" height="4" />
+            <SkeletonText className="h-5 w-16" />
+            <SkeletonText className="h-4 w-32" />
           </div>
         </div>
       </div>
       <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 lg:flex">
         <div className="flex justify-between space-x-2 rtl:space-x-reverse">
-          <SkeletonText width="16" height="6" />
-          <SkeletonText width="32" height="6" />
+          <SkeletonText className="h-6 w-16" />
+          <SkeletonText className="h-6 w-32" />
         </div>
       </div>
     </li>
