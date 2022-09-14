@@ -31,8 +31,8 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
 
   const availabilityForm = useForm({
     defaultValues: {
-      schedule: queryAvailability?.data?.availability || DEFAULT_SCHEDULE
-     },
+      schedule: queryAvailability?.data?.availability || DEFAULT_SCHEDULE,
+    },
   });
 
   const mutationOptions = {
