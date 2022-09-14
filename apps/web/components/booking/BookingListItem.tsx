@@ -306,11 +306,6 @@ function BookingListItem(booking: BookingItemProps) {
         </td>
         <td className={"flex-1 px-4" + (isRejected ? " line-through" : "")} onClick={onClick}>
           <div className="cursor-pointer py-4">
-            {isPending && (
-              <Badge variant="orange" className="mb-2 ltr:mr-2 rtl:ml-2">
-                {t("unconfirmed")}
-              </Badge>
-            )}
             {!!booking?.eventType?.price && !booking.paid && (
               <Badge variant="orange" className="mb-2 ltr:mr-2 rtl:ml-2">
                 {t("pending_payment")}
@@ -335,7 +330,11 @@ function BookingListItem(booking: BookingItemProps) {
               {!!booking?.eventType?.price && !booking.paid && (
                 <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">Pending payment</Tag>
               )}
-              {isPending && <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">{t("unconfirmed")}</Tag>}
+              {isPending && (
+                <Badge variant="orange" className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">
+                  {t("unconfirmed")}
+                </Badge>
+              )}
             </div>
             {booking.description && (
               <div
