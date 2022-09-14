@@ -10,7 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
-import { Dialog, EmptyScreen, Badge, Button, Tooltip, Switch, showToast, ButtonGroup } from "@calcom/ui/v2";
+import { Badge, Button, ButtonGroup, Dialog, EmptyScreen, showToast, Switch, Tooltip } from "@calcom/ui/v2";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import Dropdown, {
   DropdownItem,
@@ -20,7 +20,6 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/v2/core/Dropdown";
 import Shell from "@calcom/ui/v2/core/Shell";
-import VerticalDivider from "@calcom/ui/v2/core/VerticalDivider";
 import CreateEventTypeButton from "@calcom/ui/v2/modules/event-types/CreateEventType";
 
 import { withQuery } from "@lib/QueryCell";
@@ -29,9 +28,9 @@ import { HttpError } from "@lib/core/http/error";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
-import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
+import SkeletonLoader from "@components/v2/eventtype/SkeletonLoader";
 
 import { TRPCClientError } from "@trpc/react";
 

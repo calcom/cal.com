@@ -81,6 +81,8 @@ export type FormValues = {
   };
   successRedirectUrl: string;
   giphyThankYouPage: string;
+  blockchainId: number;
+  smartContractAddress: string;
 };
 
 const querySchema = z.object({
@@ -192,6 +194,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         setGiphyEnabled={setGiphyEnabled}
         paymentEnabled={paymentEnabled}
         setPaymentEnabled={setPaymentEnabled}
+        hasRainbowIntegration={props.hasRainbowIntegration}
       />
     ),
     workflows: (
@@ -225,6 +228,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             seatsPerTimeSlot,
             recurringEvent,
             locations,
+            blockchainId,
+            smartContractAddress,
             ...input
           } = values;
 
@@ -241,6 +246,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             seatsPerTimeSlot,
             metadata: {
               ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
+              ...(smartContractAddress ? { smartContractAddress } : {}),
+              ...(blockchainId ? { blockchainId } : { blockchainId: 1 }),
             },
           });
         }}>
@@ -434,6 +441,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const hasGiphyIntegration = !!credentials.find((credential) => credential.type === "giphy_other");
 
+  const hasRainbowIntegration = !!credentials.find((credential) => credential.type === "rainbow_web3");
+
   // backwards compat
   if (eventType.users.length === 0 && !eventType.team) {
     const fallbackUser = await prisma.user.findUnique({
@@ -481,6 +490,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       teamMembers,
       hasPaymentIntegration,
       hasGiphyIntegration,
+      hasRainbowIntegration,
       currency,
       currentUserMembership,
     },

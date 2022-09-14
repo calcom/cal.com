@@ -1,10 +1,11 @@
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
-import React from "react";
+import React, { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { SelectGifInput } from "@calcom/app-store/giphy/components";
+import RainbowInstallForm from "@calcom/app-store/rainbow/components/RainbowInstallForm";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui";
@@ -51,13 +52,22 @@ export const EventAppsTab = ({
   setGiphyEnabled,
   paymentEnabled,
   setPaymentEnabled,
-}: Pick<EventTypeSetupInfered, "eventType" | "hasPaymentIntegration" | "hasGiphyIntegration" | "currency"> & {
+  hasRainbowIntegration,
+}: Pick<
+  EventTypeSetupInfered,
+  "eventType" | "hasPaymentIntegration" | "hasGiphyIntegration" | "hasRainbowIntegration" | "currency"
+> & {
   giphyEnabled: boolean;
   setGiphyEnabled: (state: boolean) => void;
   paymentEnabled: boolean;
   setPaymentEnabled: (state: boolean) => void;
 }) => {
   const formMethods = useFormContext<FormValues>();
+  const [showRainbowSection, setShowRainbowSection] = useState(
+    hasRainbowIntegration &&
+      !!eventType.metadata["blockchainId"] &&
+      !!eventType.metadata["smartContractAddress"]
+  );
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
 
   const getCurrencySymbol = (locale: string, currency: string) =>
@@ -172,6 +182,29 @@ export const EventAppsTab = ({
               onChange={(url: string) => {
                 formMethods.setValue("giphyThankYouPage", url);
               }}
+            />
+          )}
+        </AppCard>
+      )}
+      {hasRainbowIntegration && (
+        <AppCard
+          name="Rainbow"
+          description={t("confirmation_page_rainbow")}
+          logo="/api/app-store/rainbow/icon.svg"
+          switchOnClick={(e) => {
+            if (!e) {
+              formMethods.setValue("blockchainId", 1);
+              formMethods.setValue("smartContractAddress", "");
+            }
+
+            setShowRainbowSection(e);
+          }}
+          switchChecked={showRainbowSection}>
+          {showRainbowSection && (
+            <RainbowInstallForm
+              formMethods={formMethods}
+              blockchainId={(eventType.metadata.blockchainId as number) || 1}
+              smartContractAddress={(eventType.metadata.smartContractAddress as string) || ""}
             />
           )}
         </AppCard>
