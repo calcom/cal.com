@@ -1,7 +1,6 @@
 {
   "/*": "Don't modify slug - If required, do it using cli edit command",
-  "name": "riverside",
-  "title": "Riverside",
+  "name": "Riverside",
   "slug": "riverside",
   "type": "riverside_video",
   "imageSrc": "/api/app-store/riverside/icon.svg",
