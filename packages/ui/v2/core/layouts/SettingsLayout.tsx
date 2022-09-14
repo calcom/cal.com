@@ -16,6 +16,7 @@ import { useMeta } from "../Meta";
 import Shell from "../Shell";
 import { VerticalTabItemProps } from "../navigation/tabs/VerticalTabItem";
 import { VerticalTabItem } from "../navigation/tabs/VerticalTabs";
+import { SkeletonContainer, SkeletonText } from "../skeleton";
 
 const tabs: VerticalTabItemProps[] = [
   {
@@ -101,6 +102,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
   const tabsWithPermissions = useTabs();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
+  const [isLoading, setIsLoading] = useState(true);
 
   const { data: teams } = trpc.useQuery(["viewer.teams.list"]);
 
@@ -109,7 +111,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
       const teamStates = teams?.map((team) => ({ teamId: team.id, teamMenuOpen: false }));
       setTeamMenuState(teamStates);
     }
-  }, [teamMenuState, teams]);
+  }, [teams]);
 
   return (
     <nav
@@ -159,23 +161,13 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                 </div>
                 {teams &&
                   teamMenuState &&
-                  teams.map((team, index: number) => (
-                    <Collapsible
-                      key={team.id}
-                      open={teamMenuState[index].teamMenuOpen}
-                      onOpenChange={() =>
-                        setTeamMenuState([
-                          ...teamMenuState,
-                          (teamMenuState[index] = {
-                            ...teamMenuState[index],
-                            teamMenuOpen: !teamMenuState[index].teamMenuOpen,
-                          }),
-                        ])
-                      }>
-                      <CollapsibleTrigger>
-                        <div
-                          className="flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
-                          onClick={() =>
+                  teams.map((team, index: number) => {
+                    if (teamMenuState.some((teamState) => teamState.teamId === team.id))
+                      return (
+                        <Collapsible
+                          key={team.id}
+                          open={teamMenuState[index].teamMenuOpen}
+                          onOpenChange={() =>
                             setTeamMenuState([
                               ...teamMenuState,
                               (teamMenuState[index] = {
@@ -184,70 +176,83 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                               }),
                             ])
                           }>
-                          <div className="mr-[13px]">
-                            {teamMenuState[index].teamMenuOpen ? (
-                              <Icon.FiChevronDown />
-                            ) : (
-                              <Icon.FiChevronRight />
+                          <CollapsibleTrigger>
+                            <div
+                              className="flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
+                              onClick={() =>
+                                setTeamMenuState([
+                                  ...teamMenuState,
+                                  (teamMenuState[index] = {
+                                    ...teamMenuState[index],
+                                    teamMenuOpen: !teamMenuState[index].teamMenuOpen,
+                                  }),
+                                ])
+                              }>
+                              <div className="mr-[13px]">
+                                {teamMenuState[index].teamMenuOpen ? (
+                                  <Icon.FiChevronDown />
+                                ) : (
+                                  <Icon.FiChevronRight />
+                                )}
+                              </div>
+                              {team.logo && (
+                                <img
+                                  src={team.logo}
+                                  className="mt-2 ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
+                                  alt={team.name || "Team logo"}
+                                />
+                              )}
+                              <p>{team.name}</p>
+                              {!team.accepted && (
+                                <Badge className="ml-3" variant="orange">
+                                  Inv.
+                                </Badge>
+                              )}
+                            </div>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            {team.accepted && (
+                              <VerticalTabItem
+                                name={t("profile")}
+                                href={`${WEBAPP_URL}/settings/teams/${team.id}/profile`}
+                                textClassNames="px-3 text-gray-900 font-medium text-sm"
+                                disableChevron
+                              />
                             )}
-                          </div>
-                          {team.logo && (
-                            <img
-                              src={team.logo}
-                              className="mt-2 ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
-                              alt={team.name || "Team logo"}
+                            <VerticalTabItem
+                              name={t("members")}
+                              href={`${WEBAPP_URL}/settings/teams/${team.id}/members`}
+                              textClassNames="px-3 text-gray-900 font-medium text-sm"
+                              disableChevron
                             />
-                          )}
-                          <p>{team.name}</p>
-                          {!team.accepted && (
-                            <Badge className="ml-3" variant="orange">
-                              Inv.
-                            </Badge>
-                          )}
-                        </div>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        {team.accepted && (
-                          <VerticalTabItem
-                            name={t("profile")}
-                            href={`${WEBAPP_URL}/settings/teams/${team.id}/profile`}
-                            textClassNames="px-3 text-gray-900 font-medium text-sm"
-                            disableChevron
-                          />
-                        )}
-                        <VerticalTabItem
-                          name={t("members")}
-                          href={`${WEBAPP_URL}/settings/teams/${team.id}/members`}
-                          textClassNames="px-3 text-gray-900 font-medium text-sm"
-                          disableChevron
-                        />
-                        {(team.role === MembershipRole.OWNER || team.role === MembershipRole.ADMIN) && (
-                          <>
-                            {/* TODO */}
-                            {/* <VerticalTabItem
+                            {(team.role === MembershipRole.OWNER || team.role === MembershipRole.ADMIN) && (
+                              <>
+                                {/* TODO */}
+                                {/* <VerticalTabItem
                               name={t("general")}
                               href={`${WEBAPP_URL}/settings/my-account/appearance`}
                               textClassNames="px-3 text-gray-900 font-medium text-sm"
                               disableChevron
                             /> */}
-                            <VerticalTabItem
-                              name={t("appearance")}
-                              href={`${WEBAPP_URL}/settings/teams/${team.id}/appearance`}
-                              textClassNames="px-3 text-gray-900 font-medium text-sm"
-                              disableChevron
-                            />
-                            {/* TODO: Implement saml configuration page */}
-                            {/* <VerticalTabItem
+                                <VerticalTabItem
+                                  name={t("appearance")}
+                                  href={`${WEBAPP_URL}/settings/teams/${team.id}/appearance`}
+                                  textClassNames="px-3 text-gray-900 font-medium text-sm"
+                                  disableChevron
+                                />
+                                {/* TODO: Implement saml configuration page */}
+                                {/* <VerticalTabItem
                               name={t("saml_config")}
                               href={`${WEBAPP_URL}/settings/teams/${team.id}/samlConfig`}
                               textClassNames="px-3 text-gray-900 font-medium text-sm"
                               disableChevron
                             /> */}
-                          </>
-                        )}
-                      </CollapsibleContent>
-                    </Collapsible>
-                  ))}
+                              </>
+                            )}
+                          </CollapsibleContent>
+                        </Collapsible>
+                      );
+                  })}
                 <VerticalTabItem
                   name={t("add_a_team")}
                   href={`${WEBAPP_URL}/settings/teams/new`}

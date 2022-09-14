@@ -14,9 +14,9 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
 
   const createTeamMutation = trpc.useMutation("viewer.teams.create", {
     onSuccess(data) {
+      utils.invalidateQueries(["viewer.teams.list"]);
       props.setTeamId(data.id);
       props.nextStep();
-      utils.invalidateQueries(["viewer.teams.list"]);
     },
   });
 
