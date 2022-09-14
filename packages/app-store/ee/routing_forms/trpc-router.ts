@@ -2,8 +2,8 @@ import { Prisma, WebhookTriggerEvents } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
+import getWebhooks from "@calcom/features/webhooks/utils/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/lib/webhooks/sendPayload";
-import getWebhooks from "@calcom/lib/webhooks/subscriptions";
 import { TRPCError } from "@calcom/trpc/server";
 import { createProtectedRouter, createRouter } from "@calcom/trpc/server/createRouter";
 
