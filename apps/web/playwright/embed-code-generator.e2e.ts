@@ -60,7 +60,7 @@ async function expectToBeNavigatingToEmbedCodeAndPreviewDialog(
         url.searchParams.get("dialog") === "embed" &&
         url.searchParams.get("embedUrl") === embedUrl &&
         url.searchParams.get("embedType") === embedType &&
-        url.searchParams.get("tabName") === "embed-code"
+        url.searchParams.get("embedTabName") === "embed-code"
       );
     },
   });
