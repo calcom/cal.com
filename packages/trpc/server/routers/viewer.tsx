@@ -382,9 +382,13 @@ const loggedInViewerRouter = createProtectedRouter()
       };
 
       let eventTypeGroups: EventTypeGroup[] = [];
-      const eventTypesHashMap = user.eventTypes.concat(typesRaw);
+      const eventTypesHashMap = user.eventTypes.concat(typesRaw).reduce((hashMap, newItem) => {
+        const oldItem = hashMap[newItem.id];
+        hashMap[newItem.id] = { ...oldItem, ...newItem };
+        return hashMap;
+      }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
       const mergedEventTypes = Object.values(eventTypesHashMap).map((eventType) => eventType);
-
+      console.log(mergedEventTypes);
       eventTypeGroups.push({
         teamId: null,
         profile: {
