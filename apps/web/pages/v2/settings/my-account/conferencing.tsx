@@ -120,11 +120,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     .map((app) => {
       return {
         slug: app.slug,
-        title: app.title,
+        title: app.title || app.name,
         logo: app.logo,
         description: app.description,
         credentialId: app.credentials[0].id,
-        isGlobal: app.isGlobal,
+        isGlobal: app.isGlobal || false,
       };
     });
 
