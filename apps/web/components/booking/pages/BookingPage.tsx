@@ -851,6 +851,7 @@ const BookingPage = ({
                 <div className="flex justify-end space-x-2 rtl:space-x-reverse">
                   {!guestToggle && (
                     <Button
+                      type="button"
                       color="secondary"
                       onClick={() => setGuestToggle(!guestToggle)}
                       className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast mr-auto rounded-md">
