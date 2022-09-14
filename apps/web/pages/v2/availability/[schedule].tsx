@@ -80,7 +80,9 @@ export default function Availability({ schedule }: { schedule: number }) {
     <Shell
       backPath="/availability"
       title={t("availability_title", { availabilityTitle: data?.schedule.name })}
-      heading={<EditableHeading title={data?.schedule.name} onChange={(name) => setValue("name", name)} />}
+      heading={
+        <EditableHeading title={data?.schedule.name || ""} onChange={(name) => setValue("name", name)} />
+      }
       subtitle={data?.schedule.availability.map((availability) => (
         <span key={availability.id}>
           {availabilityAsString(availability, { locale: i18n.language })}
@@ -121,7 +123,6 @@ export default function Availability({ schedule }: { schedule: number }) {
             handleSubmit={async (values) => {
               updateMutation.mutate({
                 scheduleId: schedule,
-                name: "",
                 ...values,
               });
             }}
