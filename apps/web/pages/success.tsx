@@ -259,7 +259,7 @@ export default function Success(props: SuccessProps) {
   );
   const customInputs = bookingInfo?.customInputs;
 
-  const locationToDisplay = getSuccessPageLocationMessage(location, t, props.bookingInfo.status);
+  const locationToDisplay = getSuccessPageLocationMessage(location, t, props?.bookingInfo?.status);
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
