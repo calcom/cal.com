@@ -1,5 +1,4 @@
 import { GetServerSidePropsContext } from "next";
-import { Trans } from "next-i18next";
 import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -10,7 +9,6 @@ import { Button } from "@calcom/ui/v2/core/Button";
 import Meta from "@calcom/ui/v2/core/Meta";
 import Switch from "@calcom/ui/v2/core/Switch";
 import ColorPicker from "@calcom/ui/v2/core/colorpicker";
-import Select from "@calcom/ui/v2/core/form/Select";
 import { Form } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
@@ -31,11 +29,6 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
     },
   });
 
-  const themeOptions = [
-    { value: "light", label: t("light") },
-    { value: "dark", label: t("dark") },
-  ];
-
   const formMethods = useForm();
 
   return (
@@ -44,50 +37,41 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
       handleSubmit={(values) => {
         mutation.mutate({
           ...values,
-          theme: values.theme.value,
+          // Radio values don't support null as values, therefore we convert an empty string
+          // back to null here.
+          theme: values.theme || null,
         });
       }}>
       <Meta title="appearance" description="appearance_description" />
-      <Controller
-        name="theme"
-        control={formMethods.control}
-        defaultValue={user.theme}
-        render={({ field: { value } }) => (
-          <>
-            <div className="flex items-center text-sm ">
-              <div className="mr-1 flex-grow">
-                <p className="font-semibold ">{t("follow_system_preferences")}</p>
-                <p className="mt-0.5 leading-5  text-gray-600">
-                  <Trans i18nKey="system_preference_description">
-                    Automatically adjust theme based on invitee system preferences. Note: This only applies to
-                    the booking pages.
-                  </Trans>
-                </p>
-              </div>
-              <div className="flex-none">
-                <Switch
-                  onCheckedChange={(checked) =>
-                    formMethods.setValue("theme", checked ? null : themeOptions[0])
-                  }
-                  checked={!value}
-                />
-              </div>
-            </div>
-            <div>
-              <Select
-                options={themeOptions}
-                onChange={(event) => {
-                  if (event) formMethods.setValue("theme", { ...event });
-                }}
-                isDisabled={!value}
-                className="mt-2 w-full sm:w-56"
-                defaultValue={value || themeOptions[0]}
-                value={value || themeOptions[0]}
-              />
-            </div>
-          </>
-        )}
-      />
+      <div className="mb-6 flex items-center text-sm">
+        <div>
+          <p className="font-semibold">{t("theme")}</p>
+          <p className="text-gray-600">{t("theme_applies_note")}</p>
+        </div>
+      </div>
+      <div className="flex flex-col justify-between sm:flex-row">
+        <ThemeLabel
+          variant="system"
+          value={null}
+          label={t("theme_system")}
+          defaultChecked={user.theme === null}
+          register={formMethods.register}
+        />
+        <ThemeLabel
+          variant="light"
+          value="light"
+          label={t("theme_light")}
+          defaultChecked={user.theme === "light"}
+          register={formMethods.register}
+        />
+        <ThemeLabel
+          variant="dark"
+          value="dark"
+          label={t("theme_dark")}
+          defaultChecked={user.theme === "dark"}
+          register={formMethods.register}
+        />
+      </div>
 
       <hr className="border-1 my-8 border-neutral-200" />
       <div className="mb-6 flex items-center text-sm">
@@ -127,7 +111,6 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
           )}
         />
       </div>
-
       {/* TODO future PR to preview brandColors */}
       {/* <Button
         color="secondary"
@@ -136,7 +119,6 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
         onClick={() => window.open(`${WEBAPP_URL}/${user.username}/${user.eventTypes[0].title}`, "_blank")}>
         Preview
       </Button> */}
-
       <hr className="border-1 my-8 border-neutral-200" />
       <Controller
         name="hideBranding"
@@ -210,4 +192,38 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       user,
     },
   };
+};
+
+interface ThemeLabelProps {
+  variant: "light" | "dark" | "system";
+  value?: "light" | "dark" | null;
+  label: string;
+  defaultChecked?: boolean;
+  register: any;
+}
+
+const ThemeLabel = ({ variant, label, value, defaultChecked, register }: ThemeLabelProps) => {
+  return (
+    <label
+      className="relative mb-4 flex-1 cursor-pointer text-center last:mb-0 last:mr-0 sm:mr-4 sm:mb-0"
+      htmlFor={`theme-${variant}`}>
+      <input
+        className="peer absolute top-8 left-8"
+        type="radio"
+        value={value}
+        id={`theme-${variant}`}
+        defaultChecked={defaultChecked}
+        {...register("theme")}
+      />
+      <div className="relative z-10 rounded-lg ring-black transition-all peer-checked:ring-2">
+        <img
+          aria-hidden="true"
+          className="cover w-full rounded-lg"
+          src={`/theme-${variant}.svg`}
+          alt={`theme ${variant}`}
+        />
+      </div>
+      <p className="mt-2 text-sm font-medium text-gray-600 peer-checked:text-gray-900">{label}</p>
+    </label>
+  );
 };
