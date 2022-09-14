@@ -6,7 +6,7 @@ import { useFormContext, Controller, useWatch } from "react-hook-form";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PeriodType } from "@calcom/prisma/client";
-import { Select, Switch, Label } from "@calcom/ui/v2";
+import { Select, Switch, Label, Input } from "@calcom/ui/v2";
 import DateRangePicker from "@calcom/ui/v2/core/form/date-range-picker/DateRangePicker";
 
 export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) => {
@@ -196,8 +196,8 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
                         </RadioGroup.Item>
                         {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
                         {period.type === "ROLLING" && (
-                          <div className="flex ">
-                            <input
+                          <div className="flex h-9">
+                            <Input
                               type="number"
                               className="block w-16 rounded-md border-gray-300 py-3 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
                               placeholder="30"
@@ -206,7 +206,7 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
                             />
                             <select
                               id=""
-                              className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm focus:outline-none"
+                              className="block h-9 w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm focus:outline-none"
                               {...formMethods.register("periodCountCalendarDays")}
                               defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
                               <option value="1">{t("calendar_days")}</option>
