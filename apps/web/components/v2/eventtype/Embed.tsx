@@ -10,12 +10,13 @@ import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
 import { Button, Switch } from "@calcom/ui/v2";
+// import NavTabs from "@components/v2/ui/NavTabs";
+import NavTabs from "@calcom/ui/v2/core/navigation/tabs/HorizontalTabs";
 
 import { EMBED_LIB_URL, WEBAPP_URL } from "@lib/config/constants";
 
 import ColorPicker from "@components/ui/colorpicker";
 import Select from "@components/ui/form/Select";
-import NavTabs from "@components/v2/ui/NavTabs";
 
 type EmbedType = "inline" | "floating-popup" | "element-click";
 type EmbedFramework = "react" | "HTML";
