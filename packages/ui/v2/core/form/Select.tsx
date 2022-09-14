@@ -1,9 +1,18 @@
 import { useId } from "@radix-ui/react-id";
 import * as React from "react";
-import ReactSelect, { components, GroupBase, InputProps, Props, SingleValue, MultiValue } from "react-select";
+import ReactSelect, {
+  components,
+  GroupBase,
+  InputProps,
+  Props,
+  SingleValue,
+  MultiValue,
+  OptionProps,
+} from "react-select";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Icon } from "@calcom/ui/Icon";
 
 import { Label } from "./fields";
 
@@ -26,6 +35,17 @@ export const InputComponent = <Option, IsMulti extends boolean, Group extends Gr
   );
 };
 
+const OptionComponent = <Option, IsMulti extends boolean, Group extends GroupBase<Option>>({
+  className,
+  ...props
+}: OptionProps<Option, IsMulti, Group>) => {
+  return (
+    <components.Option className={classNames("!flex justify-between", className)} {...props}>
+      <span>{props.label}</span> {props.isSelected && <Icon.FiCheck className="h-5 w-5" />}
+    </components.Option>
+  );
+};
+
 function Select<
   Option,
   IsMulti extends boolean = false,
@@ -43,7 +63,7 @@ function Select<
         borderRadius: 6,
         colors: {
           ...theme.colors,
-          primary: "var(--brand-color)",
+          primary: "rgba(229, 231, 235, var(--tw-bg-opacity))",
           primary50: "rgba(209 , 213, 219, var(--tw-bg-opacity))",
           primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
         },
@@ -59,8 +79,7 @@ function Select<
         }),
         option: (provided, state) => ({
           ...provided,
-          backgroundColor: state.isSelected ? "var(--brand-color)" : state.isFocused ? "#F3F4F6" : "",
-          color: state.isSelected ? "var(--brand-text-color)" : "black",
+          color: "black",
           ":active": {
             backgroundColor: state.isSelected ? "" : "var(--brand-color)",
             color: "var(--brand-text-color)",
@@ -71,6 +90,7 @@ function Select<
         ...components,
         IndicatorSeparator: () => null,
         Input: InputComponent,
+        Option: OptionComponent,
         ...props.components,
       }}
       {...props}
