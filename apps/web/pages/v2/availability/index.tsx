@@ -11,7 +11,7 @@ import { EmptyScreen, showToast } from "@calcom/ui/v2";
 import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 
-import SkeletonLoader from "@components/availability/SkeletonLoader";
+import SkeletonLoader from "@components/v2/availability/SkeletonLoader";
 
 export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availability.list">) {
   const { t } = useLocale();
