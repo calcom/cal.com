@@ -229,7 +229,7 @@ function UserDropdown({ small }: { small?: boolean }) {
   return (
     <Dropdown open={menuOpen} onOpenChange={() => setHelpOpen(false)}>
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen(true)}>
-        <button className="group flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left hover:bg-gray-100 sm:pl-3 md:rounded-none lg:pl-2">
+        <button className="group flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-100 sm:pl-3 md:rounded-none lg:pl-2">
           <span
             className={classNames(
               small ? "h-8 w-8" : "h-9 w-9 ltr:mr-2 rtl:ml-3",
