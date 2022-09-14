@@ -40,6 +40,7 @@ const GeneralQueryView = (props: inferSSRProps<typeof getServerSideProps>) => {
 
 const GeneralView = ({ localeProp, t, user }: GeneralViewProps) => {
   const router = useRouter();
+  const utils = trpc.useContext();
 
   // const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
   const mutation = trpc.useMutation("viewer.updateProfile", {
@@ -48,6 +49,9 @@ const GeneralView = ({ localeProp, t, user }: GeneralViewProps) => {
     },
     onError: () => {
       showToast(t("error_updating_settings"), "error");
+    },
+    onSettled: async () => {
+      await utils.invalidateQueries(["viewer.public.i18n"]);
     },
   });
 
