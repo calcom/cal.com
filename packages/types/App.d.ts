@@ -54,7 +54,12 @@ export interface App {
     | `${string}_web3`
     | `${string}_other`
     | `${string}_other_calendar`;
-  /** The display name for the app, TODO settle between this or name */
+
+  /**
+   * @deprecated
+   *
+   * Use name instead. Remove this property after ensuring name has the required value everywhere
+   * */
   title?: string;
   /** The display name for the app */
   name: string;
