@@ -65,6 +65,7 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   const isUpcoming = new Date(booking.endTime) >= new Date();
+  const isPast = new Date(booking.endTime) < new Date();
   const isCancelled = booking.status === BookingStatus.CANCELLED;
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
   const isRejected = booking.status === BookingStatus.REJECTED;
@@ -366,6 +367,7 @@ function BookingListItem(booking: BookingItemProps) {
               {isRejected && <div className="text-sm text-gray-500">{t("rejected")}</div>}
             </>
           ) : null}
+          {isPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
           {isCancelled && booking.rescheduled && (
             <div className="hidden h-full items-center md:flex">
               <RequestSentMessage />

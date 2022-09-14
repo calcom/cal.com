@@ -35,6 +35,7 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
   const updateMutation = trpc.useMutation("viewer.availability.schedule.update", {
     onSuccess: async ({ schedule }) => {
       await utils.invalidateQueries(["viewer.availability.schedule"]);
+      await utils.refetchQueries(["viewer.availability.schedule"]);
       await router.push("/availability");
       showToast(
         t("availability_updated_successfully", {
@@ -72,18 +73,13 @@ export function AvailabilityForm(props: inferQueryOutput<"viewer.availability.sc
         </div>
       </div>
       <div className="min-w-40 col-span-3 ml-2 space-y-2 lg:col-span-1">
-        {props.isDefault ? (
-          <span className="flex items-center">
-            <BadgeCheckIcon className="mr-1 h-4 w-4" /> {t("default")}
-          </span>
-        ) : (
-          <Controller
-            name="isDefault"
-            render={({ field: { onChange, value } }) => (
-              <Switch label={t("set_to_default")} onCheckedChange={onChange} checked={value} />
-            )}
-          />
-        )}
+        <Controller
+          name="isDefault"
+          render={({ field: { onChange, value } }) => (
+            <Switch label={t("set_to_default")} onCheckedChange={onChange} checked={value} />
+          )}
+        />
+
         <div className="xl:max-w-80 w-full">
           <div>
             <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">

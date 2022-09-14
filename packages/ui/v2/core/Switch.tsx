@@ -42,7 +42,7 @@ const Switch = (
       {label && (
         <Label.Root
           htmlFor={id}
-          className="ml-2 cursor-pointer align-text-top text-sm font-medium text-neutral-700 ltr:ml-3 rtl:mr-3 dark:text-white">
+          className="ml-2 cursor-pointer align-text-top text-sm font-medium text-gray-900 ltr:ml-3 rtl:mr-3 dark:text-white">
           {label}
         </Label.Root>
       )}
