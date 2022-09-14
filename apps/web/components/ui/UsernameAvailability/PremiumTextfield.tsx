@@ -13,7 +13,7 @@ import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon, StarIconSolid } from "@calcom/ui/Icon";
-import { Input, Label } from "@calcom/ui/form/fields";
+import { Input, Label } from "@calcom/ui/v2";
 
 export enum UsernameChangeStatusEnum {
   NORMAL = "NORMAL",
@@ -210,7 +210,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       <div className="mt-2 flex rounded-md">
         <span
           className={classNames(
-            isInputUsernamePremium ? "border-2 border-orange-400 " : "",
+            isInputUsernamePremium ? "border-1 border-orange-400 " : "",
             "hidden items-center rounded-l-md border border-r-0 border-gray-300 border-r-gray-300 bg-gray-50 px-3 text-sm text-gray-500 md:inline-flex"
           )}>
           {process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/
@@ -225,13 +225,14 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             autoCorrect="none"
             disabled={disabled}
             className={classNames(
-              "mt-0 rounded-md rounded-l-none border-l-2 focus:!ring-0",
+              "border-l-1 mb-0 mt-0 rounded-md rounded-l-none font-sans text-sm leading-4 focus:!ring-0",
               isInputUsernamePremium
-                ? "border-2 border-orange-400 focus:border-2 focus:border-orange-400"
-                : "border-2 focus:border-2",
+                ? "border-1 focus:border-1 border-orange-400 focus:border-orange-400"
+                : "border-1 focus:border-2",
               markAsError
                 ? "focus:shadow-0 focus:ring-shadow-0 border-red-500  focus:border-red-500 focus:outline-none"
-                : "border-l-gray-300 "
+                : "border-l-gray-300",
+              disabled ? "bg-gray-100 text-gray-400 focus:border-0" : ""
             )}
             value={inputUsernameValue}
             onChange={(event) => {
@@ -248,11 +249,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 usernameIsAvailable ? "" : ""
               )}>
               {isInputUsernamePremium ? <StarIconSolid className="mt-[4px] w-6" /> : <></>}
-              {!isInputUsernamePremium && usernameIsAvailable ? (
-                <Icon.FiCheck className="mt-[7px] w-6" />
-              ) : (
-                <></>
-              )}
+              {!isInputUsernamePremium && usernameIsAvailable ? <Icon.FiCheck className="mt-2 w-6" /> : <></>}
             </span>
           </div>
         </div>
