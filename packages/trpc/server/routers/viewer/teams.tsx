@@ -14,7 +14,7 @@ import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { getTeamWithMembers, isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
+import { getTeamWithMembers, isTeamAdmin, isTeamOwner, isTeamMember } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
 import {
   closeComDeleteTeam,
@@ -40,11 +40,13 @@ export const viewerTeamsRouter = createProtectedRouter()
         throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not a member of this team." });
       }
       const membership = team?.members.find((membership) => membership.id === ctx.user.id);
+
       return {
         ...team,
         membership: {
           role: membership?.role as MembershipRole,
           isMissingSeat: membership?.plan === UserPlan.FREE,
+          accepted: membership?.accepted,
         },
         requiresUpgrade: HOSTED_CAL_FEATURES ? !!team.members.find((m) => m.plan !== UserPlan.PRO) : false,
       };
@@ -194,14 +196,15 @@ export const viewerTeamsRouter = createProtectedRouter()
       memberId: z.number(),
     }),
     async resolve({ ctx, input }) {
-      if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+      const isAdmin = await isTeamAdmin(ctx.user?.id, input.teamId);
+      if (!isAdmin && ctx.user?.id !== input.memberId) throw new TRPCError({ code: "UNAUTHORIZED" });
       // Only a team owner can remove another team owner.
       if (
         (await isTeamOwner(input.memberId, input.teamId)) &&
         !(await isTeamOwner(ctx.user?.id, input.teamId))
       )
         throw new TRPCError({ code: "UNAUTHORIZED" });
-      if (ctx.user?.id === input.memberId)
+      if (ctx.user?.id === input.memberId && isAdmin)
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You can not remove yourself from a team you own.",
@@ -449,7 +452,7 @@ export const viewerTeamsRouter = createProtectedRouter()
       dateTo: z.string(),
     }),
     async resolve({ ctx, input }) {
-      const team = await isTeamAdmin(ctx.user?.id, input.teamId);
+      const team = await isTeamMember(ctx.user?.id, input.teamId);
       if (!team) throw new TRPCError({ code: "UNAUTHORIZED" });
 
       // verify member is in team

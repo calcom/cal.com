@@ -9,7 +9,7 @@ import { Maybe } from "@trpc/server";
 
 export type AvatarProps = {
   className?: string;
-  size: "sm" | "md" | "lg";
+  size: "sm" | "md" | "mdLg" | "lg";
   imageSrc?: Maybe<string>;
   title?: string;
   alt: string;
@@ -20,6 +20,7 @@ export type AvatarProps = {
 const sizesPropsBySize = {
   sm: "w-6", // 24px
   md: "w-8", // 32px
+  mdLg: "w-10", //40px
   lg: "w-16", // 64px
 } as const;
 
@@ -31,7 +32,7 @@ export default function Avatar(props: AvatarProps) {
     <AvatarPrimitive.Root
       className={classNames(
         sizeClassname,
-        "dark:bg-darkgray-300 relative inline-block aspect-square overflow-hidden rounded-full bg-gray-300"
+        "dark:bg-darkgray-300 relative inline-block aspect-square overflow-hidden rounded-full"
       )}>
       <AvatarPrimitive.Image src={imageSrc ?? undefined} alt={alt} className={rootClass} />
       <AvatarPrimitive.Fallback delayMs={600}>
@@ -57,7 +58,7 @@ export default function Avatar(props: AvatarProps) {
     <Tooltip.Provider>
       <Tooltip.Tooltip delayDuration={300}>
         <Tooltip.TooltipTrigger className="cursor-default">{avatar}</Tooltip.TooltipTrigger>
-        <Tooltip.Content className="rounded-sm bg-black p-2 text-sm  text-white shadow-sm">
+        <Tooltip.Content className="rounded-sm bg-black p-2 text-sm text-white shadow-sm">
           <Tooltip.Arrow />
           {title}
         </Tooltip.Content>

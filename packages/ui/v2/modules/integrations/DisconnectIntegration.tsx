@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Button } from "@calcom/ui/v2/core/Button";
+import { Button, ButtonProps } from "@calcom/ui/v2/core/Button";
 import { Dialog, DialogTrigger, DialogContent } from "@calcom/ui/v2/core/Dialog";
 import showToast from "@calcom/ui/v2/core/notifications";
 
@@ -12,11 +12,13 @@ export default function DisconnectIntegration({
   label,
   trashIcon,
   isGlobal,
+  buttonProps,
 }: {
   credentialId: number;
-  label: string;
+  label?: string;
   trashIcon?: boolean;
   isGlobal?: boolean;
+  buttonProps?: ButtonProps;
 }) {
   const { t } = useLocale();
   const [modalOpen, setModalOpen] = useState(false);
@@ -36,7 +38,11 @@ export default function DisconnectIntegration({
     <>
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogTrigger asChild>
-          <Button color="destructive" StartIcon={trashIcon ? Icon.FiTrash : undefined} disabled={isGlobal}>
+          <Button
+            color={buttonProps?.color || "destructive"}
+            StartIcon={trashIcon ? Icon.FiTrash : undefined}
+            disabled={isGlobal}
+            {...buttonProps}>
             {label}
           </Button>
         </DialogTrigger>
