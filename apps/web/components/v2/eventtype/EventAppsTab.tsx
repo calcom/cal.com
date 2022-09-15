@@ -33,7 +33,7 @@ const AppCard = ({
           <span className="font-semibold leading-none text-black">{name}</span>
           <p className="pt-2 text-sm font-normal text-gray-600">{description}</p>
         </div>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center">
           <Switch onCheckedChange={switchOnClick} checked={switchChecked} />
         </div>
       </div>
