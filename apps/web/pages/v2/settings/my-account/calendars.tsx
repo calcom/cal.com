@@ -146,9 +146,9 @@ const CalendarsView = () => {
           ) : (
             <EmptyScreen
               Icon={Icon.FiCalendar}
-              headline="No calendar installed"
-              description="You have not yet connected any of your calendars"
-              buttonText="Add a calendar"
+              headline={t("no_calendar_installed")}
+              description={t("no_calendar_installed_description")}
+              buttonText={t("add_a_calendar")}
               buttonOnClick={() => router.push(`${WEBAPP_URL}/apps/categories/calendar`)}
             />
           );
