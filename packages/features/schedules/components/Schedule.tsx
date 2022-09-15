@@ -1,113 +1,194 @@
-import classNames from "classnames";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Controller,
-  useFieldArray,
-  UseFieldArrayAppend,
+import { useCallback, useEffect, useMemo, useState, Fragment } from "react";
+import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import type {
   UseFieldArrayRemove,
-  useFormContext,
+  FieldValues,
+  FieldPath,
+  FieldPathValue,
+  FieldArrayWithId,
+  ArrayPath,
+  ControllerRenderProps,
+  Control,
 } from "react-hook-form";
 import { GroupBase, Props } from "react-select";
 
 import dayjs, { ConfigType, Dayjs } from "@calcom/dayjs";
 import { defaultDayRange as DEFAULT_DAY_RANGE } from "@calcom/lib/availability";
+import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { TimeRange } from "@calcom/types/schedule";
 import { Icon } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
-import { Button, Select, Switch, Tooltip } from "@calcom/ui/v2";
+import { Select, Switch } from "@calcom/ui/v2";
+import Button from "@calcom/ui/v2/core/Button";
+import { SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
-const Schedule = () => {
-  const { i18n } = useLocale();
-  const form = useFormContext();
+export type FieldPathByValue<TFieldValues extends FieldValues, TValue> = {
+  [Key in FieldPath<TFieldValues>]: FieldPathValue<TFieldValues, Key> extends TValue ? Key : never;
+}[FieldPath<TFieldValues>];
 
-  const initialValue = form.watch();
+const ScheduleDay = <TFieldValues extends FieldValues>({
+  name,
+  weekday,
+  control,
+  CopyButton,
+}: {
+  name: string;
+  weekday: string;
+  control: Control<TFieldValues>;
+  CopyButton: JSX.Element;
+}) => {
+  const { watch, setValue } = useFormContext();
+  const watchDayRange = watch(name);
 
-  const copyAllPosition = (initialValue["schedule"] as Array<TimeRange[]>)?.findIndex(
-    (item: TimeRange[]) => item.length > 0
+  return (
+    <div className="mb-1 flex w-full flex-col py-1 sm:flex-row">
+      {/* Label & switch container */}
+      <div className="flex h-11 items-center justify-between">
+        <div>
+          <label className="flex flex-row items-center space-x-2">
+            <div>
+              <Switch
+                disabled={!watchDayRange}
+                defaultChecked={watchDayRange && watchDayRange.length > 0}
+                checked={watchDayRange && !!watchDayRange.length}
+                onCheckedChange={(isChecked) => {
+                  setValue(name, isChecked ? [DEFAULT_DAY_RANGE] : []);
+                }}
+              />
+            </div>
+            <span className="inline-block min-w-[88px] text-sm capitalize">{weekday}</span>
+          </label>
+        </div>
+      </div>
+      <>
+        {watchDayRange ? (
+          <div className="flex sm:ml-2">
+            <DayRanges control={control} name={name} />
+            {!!watchDayRange.length && <div className="mt-1">{CopyButton}</div>}
+          </div>
+        ) : (
+          <SkeletonText className="mt-2.5 ml-1 h-6 w-48" />
+        )}
+      </>
+      <div className="my-2 h-[1px] w-full bg-gray-200 sm:hidden" />
+    </div>
   );
+};
+
+const CopyButton = ({
+  getValuesFromDayRange,
+  weekStart,
+}: {
+  getValuesFromDayRange: string;
+  weekStart: number;
+}) => {
+  const { t } = useLocale();
+  const [open, setOpen] = useState(false);
+  const fieldArrayName = getValuesFromDayRange.substring(0, getValuesFromDayRange.lastIndexOf("."));
+  const { setValue, getValues } = useFormContext();
+  return (
+    <Dropdown open={open} onOpenChange={setOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          className={classNames(open && "ring-brand-500 !bg-gray-100 outline-none ring-2 ring-offset-1")}
+          type="button"
+          tooltip={t("duplicate")}
+          color="minimal"
+          size="icon"
+          StartIcon={Icon.FiCopy}
+        />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <CopyTimes
+          weekStart={weekStart}
+          disabled={parseInt(getValuesFromDayRange.replace(fieldArrayName + ".", ""), 10)}
+          onClick={(selected) => {
+            selected.forEach((day) => setValue(`${fieldArrayName}.${day}`, getValues(getValuesFromDayRange)));
+          }}
+          onCancel={() => setOpen(false)}
+        />
+      </DropdownMenuContent>
+    </Dropdown>
+  );
+};
+
+const Schedule = <
+  TFieldValues extends FieldValues,
+  TPath extends FieldPathByValue<TFieldValues, TimeRange[][]>
+>({
+  name,
+  control,
+  weekStart = 0,
+}: {
+  name: TPath;
+  control: Control<TFieldValues>;
+  weekStart?: number;
+}) => {
+  const { i18n } = useLocale();
 
   return (
     <>
       {/* First iterate for each day */}
-      {weekdayNames(i18n.language, 0, "long").map((weekday, num) => {
-        const name = `schedule.${num}`;
-        const copyAllShouldRender = copyAllPosition === num;
+      {weekdayNames(i18n.language, weekStart, "long").map((weekday, num) => {
+        const weekdayIndex = (num + weekStart) % 7;
+        const dayRangeName = `${name}.${weekdayIndex}`;
         return (
-          <div className="mb-1 flex w-full flex-col py-1 sm:flex-row" key={weekday}>
-            {/* Label & switch container */}
-            <div className="flex h-11 items-center justify-between">
-              <div>
-                <label className="flex flex-row items-center space-x-2">
-                  <div>
-                    <Switch
-                      defaultChecked={initialValue["schedule"][num].length > 0}
-                      checked={!!initialValue["schedule"][num].length}
-                      onCheckedChange={(isChecked) => {
-                        form.setValue(name, isChecked ? [DEFAULT_DAY_RANGE] : []);
-                      }}
-                    />
-                  </div>
-                  <span className="inline-block min-w-[88px] text-sm capitalize">{weekday}</span>
-                </label>
-              </div>
-              <div className="inline sm:hidden">
-                <ActionButtons
-                  name={name}
-                  setValue={form.setValue}
-                  watcher={form.watch(name, initialValue[name])}
-                  copyAllShouldRender={copyAllShouldRender}
-                />
-              </div>
-            </div>
-            <div className="w-full sm:ml-2">
-              <DayRanges name={name} copyAllShouldRender={copyAllShouldRender} />
-            </div>
-            <div className="my-2 h-[1px] w-full bg-gray-200 sm:hidden" />
-          </div>
+          <ScheduleDay
+            name={dayRangeName}
+            key={weekday}
+            weekday={weekday}
+            control={control}
+            CopyButton={<CopyButton weekStart={weekStart} getValuesFromDayRange={dayRangeName} />}
+          />
         );
       })}
     </>
   );
 };
 
-const DayRanges = ({
+const DayRanges = <TFieldValues extends FieldValues>({
   name,
-  copyAllShouldRender,
+  control,
 }: {
   name: string;
-  defaultValue?: TimeRange[];
-  copyAllShouldRender?: boolean;
+  control: Control<TFieldValues>;
 }) => {
-  const form = useFormContext();
+  const { t } = useLocale();
 
-  const fields = form.watch(`${name}` as `schedule.0`);
-
-  const { remove } = useFieldArray({
-    name,
+  const { remove, fields, append } = useFieldArray({
+    control,
+    name: name as unknown as ArrayPath<TFieldValues>,
   });
 
   return (
-    <>
-      {fields.map((field: { id: string }, index: number) => (
-        <div key={field.id + name} className="mt-2 mb-2 flex rtl:space-x-reverse sm:mt-0">
-          <TimeRangeField name={`${name}.${index}`} />
-          {index === 0 && (
-            <div className="hidden sm:inline">
-              <ActionButtons
-                name={name}
-                setValue={form.setValue}
-                watcher={form.watch(name)}
-                copyAllShouldRender={copyAllShouldRender}
+    <div>
+      {fields.map((field, index: number) => (
+        <Fragment key={field.id}>
+          <div className="mb-2 flex first:mt-1">
+            <Controller name={`${name}.${index}`} render={({ field }) => <TimeRangeField {...field} />} />
+            {index === 0 && (
+              <Button
+                tooltip={t("add_time_availability")}
+                className=" text-neutral-400"
+                type="button"
+                color="minimal"
+                size="icon"
+                StartIcon={Icon.FiPlus}
+                onClick={() => {
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const nextRange: any = getNextRange(fields[fields.length - 1]);
+                  if (nextRange) append(nextRange);
+                }}
               />
-            </div>
-          )}
-          {index !== 0 && <RemoveTimeButton index={index} remove={remove} />}
-        </div>
+            )}
+            {index !== 0 && <RemoveTimeButton index={index} remove={remove} />}
+          </div>
+        </Fragment>
       ))}
-    </>
+    </div>
   );
 };
 
@@ -132,48 +213,26 @@ const RemoveTimeButton = ({
   );
 };
 
-interface TimeRangeFieldProps {
-  name: string;
-  className?: string;
-}
-
-const TimeRangeField = ({ name, className }: TimeRangeFieldProps) => {
-  const { watch } = useFormContext();
-
-  const values = watch(name);
-  const minEnd = values["start"];
-  const maxStart = values["end"];
-
+const TimeRangeField = ({ className, value, onChange }: { className?: string } & ControllerRenderProps) => {
+  // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
   return (
-    <div className={classNames("mx-1 flex", className)}>
-      <Controller
-        name={`${name}.start`}
-        render={({ field: { onChange } }) => {
-          return (
-            <LazySelect
-              className="h-9 w-[100px]"
-              value={values["start"]}
-              max={maxStart}
-              onChange={(option) => {
-                onChange(new Date(option?.value as number));
-              }}
-            />
-          );
+    <div className={classNames("mx-1", className)}>
+      <LazySelect
+        className="inline-block h-9 w-[100px]"
+        value={value.start}
+        max={value.end}
+        onChange={(option) => {
+          onChange({ ...value, start: new Date(option?.value as number) });
         }}
       />
       <span className="mx-2 w-2 self-center"> - </span>
-      <Controller
-        name={`${name}.end`}
-        render={({ field: { onChange } }) => (
-          <LazySelect
-            className="w-[100px] rounded-md"
-            value={values["end"]}
-            min={minEnd}
-            onChange={(option) => {
-              onChange(new Date(option?.value as number));
-            }}
-          />
-        )}
+      <LazySelect
+        className="inline-block w-[100px] rounded-md"
+        value={value.end}
+        min={value.start}
+        onChange={(option) => {
+          onChange({ ...value, end: new Date(option?.value as number) });
+        }}
       />
     </div>
   );
@@ -266,136 +325,69 @@ const useOptions = () => {
   return { options: filteredOptions, filter };
 };
 
-const ActionButtons = ({
-  name,
-  watcher,
-  setValue,
-  copyAllShouldRender,
-}: {
-  name: string;
-  watcher: TimeRange[];
-  setValue: (key: string, value: TimeRange[]) => void;
-  copyAllShouldRender?: boolean;
-}) => {
-  const { t } = useLocale();
-  const form = useFormContext();
-
-  const values = form.watch();
-  const { append } = useFieldArray({
-    name,
-  });
-
-  return (
-    <div className="flex items-center">
-      <Tooltip content={t("add_time_availability") as string}>
-        <Button
-          className="text-neutral-400"
-          type="button"
-          color="minimal"
-          size="icon"
-          StartIcon={Icon.FiPlus}
-          onClick={() => {
-            handleAppend({
-              fields: watcher,
-              /* Generics should help with this, but forgive us father as I have sinned */
-              append: append as unknown as UseFieldArrayAppend<TimeRange>,
-            });
-          }}
-        />
-      </Tooltip>
-      <Dropdown>
-        <Tooltip content={t("duplicate") as string}>
-          <DropdownMenuTrigger asChild>
-            <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiCopy} />
-          </DropdownMenuTrigger>
-        </Tooltip>
-        <DropdownMenuContent>
-          <CopyTimes
-            disabled={[parseInt(name.substring(name.lastIndexOf(".") + 1), 10)]}
-            onApply={(selected) =>
-              selected.forEach((day) => {
-                setValue(name.substring(0, name.lastIndexOf(".") + 1) + day, watcher);
-              })
-            }
-          />
-        </DropdownMenuContent>
-      </Dropdown>
-      {/* This only displays on Desktop  */}
-      {copyAllShouldRender && (
-        <Tooltip content={t("add_time_availability") as string}>
-          <Button
-            color="minimal"
-            className="whitespace-nowrap text-sm text-neutral-400"
-            type="button"
-            onClick={() => {
-              values["schedule"].forEach((item: TimeRange[], index: number) => {
-                if (item.length > 0) {
-                  setValue(`schedule.${index}`, watcher);
-                }
-              });
-            }}
-            title={`${t("copy_all")}`}>
-            {t("copy_all")}
-          </Button>
-        </Tooltip>
-      )}
-    </div>
-  );
-};
-
-const handleAppend = ({
-  fields = [],
-  append,
-}: {
-  fields: TimeRange[];
-  append: UseFieldArrayAppend<TimeRange>;
-}) => {
-  if (fields.length === 0) {
-    return append(DEFAULT_DAY_RANGE);
-  }
-  const nextRangeStart = dayjs((fields[fields.length - 1] as unknown as TimeRange).end);
+const getNextRange = (field?: FieldArrayWithId) => {
+  const nextRangeStart = dayjs((field as unknown as TimeRange).end);
   const nextRangeEnd = dayjs(nextRangeStart).add(1, "hour");
 
   if (nextRangeEnd.isBefore(nextRangeStart.endOf("day"))) {
-    return append({
+    return {
       start: nextRangeStart.toDate(),
       end: nextRangeEnd.toDate(),
-    });
+    };
   }
 };
 
-const CopyTimes = ({ disabled, onApply }: { disabled: number[]; onApply: (selected: number[]) => void }) => {
+const CopyTimes = ({
+  disabled,
+  onClick,
+  onCancel,
+  weekStart,
+}: {
+  disabled: number;
+  onClick: (selected: number[]) => void;
+  onCancel: () => void;
+  weekStart: number;
+}) => {
   const [selected, setSelected] = useState<number[]>([]);
   const { i18n, t } = useLocale();
 
   return (
-    <div className="m-4 space-y-2 py-4">
-      <p className="h6 text-xs font-medium uppercase text-neutral-400">Copy times to</p>
-      <ol className="space-y-2">
-        {weekdayNames(i18n.language).map((weekday, num) => (
-          <li key={weekday}>
-            <label className="flex w-full items-center justify-between">
-              <span className="px-1">{weekday}</span>
-              <input
-                value={num}
-                defaultChecked={disabled.includes(num)}
-                disabled={disabled.includes(num)}
-                onChange={(e) => {
-                  if (e.target.checked && !selected.includes(num)) {
-                    setSelected(selected.concat([num]));
-                  } else if (!e.target.checked && selected.includes(num)) {
-                    setSelected(selected.slice(selected.indexOf(num), 1));
-                  }
-                }}
-                type="checkbox"
-                className="inline-block rounded-[4px] border-gray-300 text-neutral-900 focus:ring-neutral-500 disabled:text-neutral-400"
-              />
-            </label>
-          </li>
-        ))}
-      </ol>
-      <div className="pt-2">
-        <Button className="w-full justify-center" color="primary" onClick={() => onApply(selected)}>
+    <div className="space-y-2 py-2">
+      <div className="p-2">
+        <p className="h6 pb-3 pl-1 text-xs font-medium uppercase text-neutral-400">{t("copy_times_to")}</p>
+        <ol className="space-y-2">
+          {weekdayNames(i18n.language, weekStart).map((weekday, num) => {
+            const weekdayIndex = (num + weekStart) % 7;
+            return (
+              <li key={weekday}>
+                <label className="flex w-full items-center justify-between">
+                  <span className="px-1">{weekday}</span>
+                  <input
+                    value={weekdayIndex}
+                    defaultChecked={disabled === weekdayIndex}
+                    disabled={disabled === weekdayIndex}
+                    onChange={(e) => {
+                      if (e.target.checked && !selected.includes(weekdayIndex)) {
+                        setSelected(selected.concat([weekdayIndex]));
+                      } else if (!e.target.checked && selected.includes(weekdayIndex)) {
+                        setSelected(selected.slice(selected.indexOf(weekdayIndex), 1));
+                      }
+                    }}
+                    type="checkbox"
+                    className="inline-block rounded-[4px] border-gray-300 text-neutral-900 focus:ring-neutral-500 disabled:text-neutral-400"
+                  />
+                </label>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+      <hr />
+      <div className="space-x-2 px-2">
+        <Button color="minimalSecondary" onClick={() => onCancel()}>
+          {t("cancel")}
+        </Button>
+        <Button color="primary" onClick={() => onClick(selected)}>
           {t("apply")}
         </Button>
       </div>

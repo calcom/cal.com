@@ -81,8 +81,8 @@ function Select<
           ...provided,
           color: "black",
           ":active": {
-            backgroundColor: state.isSelected ? "" : "var(--brand-color)",
-            color: "var(--brand-text-color)",
+            backgroundColor: state.isSelected ? "" : "rgba(229, 231, 235, var(--tw-bg-opacity))",
+            color: "rgba(51, 15, 51, var(--tw-bg-opacity))",
           },
         }),
       }}
