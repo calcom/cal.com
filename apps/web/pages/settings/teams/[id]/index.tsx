@@ -125,19 +125,6 @@ export function TeamSettingsPage() {
                             className="mb-4 "
                           />
                         )}
-                        {team.membership.role === MembershipRole.OWNER && team.requiresUpgrade && (
-                          <Alert
-                            severity="warning"
-                            title={t("upgrade_to_flexible_pro_title")}
-                            message={
-                              <span>
-                                {t("upgrade_to_flexible_pro_message")} <br />
-                                <UpgradeToFlexibleProModal teamId={team.id} />
-                              </span>
-                            }
-                            className="mb-4"
-                          />
-                        )}
                       </>
                     )}
 

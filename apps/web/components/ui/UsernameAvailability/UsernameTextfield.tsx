@@ -10,7 +10,7 @@ import { AppRouter } from "@calcom/trpc/server/routers/_app";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
-import { Input, Label } from "@calcom/ui/form/fields";
+import { Input, Label } from "@calcom/ui/v2";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
@@ -127,7 +127,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             autoCapitalize="none"
             autoCorrect="none"
             className={classNames(
-              "mt-0 rounded-md rounded-l-none",
+              "mb-0 mt-0 rounded-md rounded-l-none",
               markAsError
                 ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
                 : ""

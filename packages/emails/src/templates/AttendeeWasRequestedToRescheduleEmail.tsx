@@ -1,7 +1,7 @@
 import { CallToAction, CallToActionTable } from "../components";
 import { OrganizerScheduledEmail } from "./OrganizerScheduledEmail";
 
-export const AttendeeRequestRescheduledEmail = (
+export const AttendeeWasRequestedToRescheduleEmail = (
   props: { metadata: { rescheduleLink: string } } & React.ComponentProps<typeof OrganizerScheduledEmail>
 ) => (
   <OrganizerScheduledEmail

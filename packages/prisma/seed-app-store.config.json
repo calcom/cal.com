@@ -59,5 +59,11 @@
     "categories": ["other"],
     "slug": "n8n",
     "type": "n8n_other"
+  },
+  {
+    "dirName": "exchangecalendar",
+    "categories": ["calendar"],
+    "slug": "exchange",
+    "type": "exchange_calendar"
   }
 ]
