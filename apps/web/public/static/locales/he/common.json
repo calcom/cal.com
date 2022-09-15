@@ -73,6 +73,8 @@
   "request_reschedule_subtitle": "{{organizer}} ביטל/ה את ההזמנה וביקש/ה שתבחר/י מועד אחר.",
   "request_reschedule_title_organizer": "ביקשת מ{{attendee}} לקבוע מועד חדש",
   "request_reschedule_subtitle_organizer": "ביטלת את ההזמנה ו-{{attendee}} צריך/ה לתאם איתך מועד חדש.",
+  "rescheduled_event_type_subject": "נשלחה בקשה לקביעת מועד חדש: {{eventType}} עם {{name}} בתאריך {{date}}",
+  "requested_to_reschedule_subject_attendee": "הפעולה חייבה קביעת מועד חדש: יש לקבוע מועד חדש עבור {{eventType}} עם {{name}}",
   "reschedule_reason": "הסיבה לשינוי המועד",
   "hi_user_name": "שלום {{name}}",
   "ics_event_title": "{{eventType}} עם {{name}}",
@@ -92,8 +94,6 @@
   "meeting_password": "סיסמת הפגישה",
   "meeting_url": "כתובת ה-URL של הפגישה",
   "meeting_request_rejected": "בקשת הפגישה שלך נדחתה",
-  "rescheduled_event_type_subject": "נשלחה בקשה לקביעת מועד חדש: {{eventType}} עם {{name}} בתאריך {{date}}",
-  "requested_to_reschedule_subject_attendee": "הפעולה חייבה קביעת מועד חדש: יש לקבוע מועד חדש עבור {{eventType}} עם {{name}}",
   "rejected_event_type_with_organizer": "נדחה: {{eventType}} עם {{organizer}} בתאריך {{date}}",
   "hi": "שלום",
   "join_team": "להצטרף לצוות",
@@ -1022,8 +1022,6 @@
   "navigate": "ניווט",
   "open": "פתיחה",
   "close": "סגירה",
-  "pro_feature_teams": "זוהי תכונה של גרסת Pro. כדאי לשדרג ל-Pro כדי לראות את זמינות חברי הצוות.",
-  "pro_feature_workflows": "זוהי תכונה של גרסת Pro. כדאי לשדרג ל-Pro כדי להפוך את התזכורות והעדכונים לגבי אירועים לאוטומטיים באמצעות תהליכי עבודה.",
   "embed": "הטמעה",
   "new_username": "שם משתמש חדש",
   "current_username": "שם משתמש נוכחי",
@@ -1035,5 +1033,7 @@
   "using_additional_inputs_as_variables": "איך ניתן להשתמש בסוגי קלט נוספים כמשתנים?",
   "download_desktop_app": "הורדת האפליקציה למחשבים שולחניים",
   "set_ping_link": "הגדרת קישור Ping",
-  "organizer_name_info": "שמך"
+  "organizer_name_info": "שמך",
+  "theme_light": "בהיר",
+  "theme_dark": "כהה"
 }

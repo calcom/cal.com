@@ -73,6 +73,8 @@
   "request_reschedule_subtitle": "{{organizer}} a annulé la réservation et vous a demandé de choisir un autre moment.",
   "request_reschedule_title_organizer": "Vous avez demandé à {{attendee}} de reporter",
   "request_reschedule_subtitle_organizer": "Vous avez annulé la réservation et {{attendee}} doit choisir un nouvel horaire de réservation avec vous.",
+  "rescheduled_event_type_subject": "Demande de report envoyée : {{eventType}} avec {{name}} le {{date}}",
+  "requested_to_reschedule_subject_attendee": "Action requise - Report : veuillez réserver une nouvelle heure pour {{eventType}} avec {{name}}",
   "reschedule_reason": "Raison du report",
   "hi_user_name": "Bonjour {{userName}}",
   "ics_event_title": "{{eventType}} avec {{name}}",
@@ -92,8 +94,6 @@
   "meeting_password": "Mot de passe de la réunion",
   "meeting_url": "URL de la réunion",
   "meeting_request_rejected": "Votre demande de réunion a été refusée",
-  "rescheduled_event_type_subject": "Demande de report envoyée : {{eventType}} avec {{name}} le {{date}}",
-  "requested_to_reschedule_subject_attendee": "Action requise - Report : veuillez réserver une nouvelle heure pour {{eventType}} avec {{name}}",
   "rejected_event_type_with_organizer": "Refusé : {{eventType}} avec {{organizer}} le {{date}}",
   "hi": "Bonjour",
   "join_team": "Rejoindre l'équipe",
@@ -1022,8 +1022,6 @@
   "navigate": "Naviguer",
   "open": "Ouvrir",
   "close": "Fermer",
-  "pro_feature_teams": "Cette fonctionnalité est une fonctionnalité Pro. Passez en version Pro pour voir la disponibilité de votre équipe.",
-  "pro_feature_workflows": "Cette fonctionnalité est une fonctionnalité Pro. Passez en version Pro pour automatiser vos notifications et rappels d'événements avec les workflows.",
   "embed": "Intégré",
   "new_username": "Nouveau nom d'utilisateur",
   "current_username": "Nom d'utilisateur actuel",
@@ -1035,5 +1033,7 @@
   "using_additional_inputs_as_variables": "Comment utiliser des entrées supplémentaires en tant que variables ?",
   "download_desktop_app": "Télécharger l'application de bureau",
   "set_ping_link": "Définir le lien Ping",
-  "organizer_name_info": "Votre nom"
+  "organizer_name_info": "Votre nom",
+  "theme_light": "Clair",
+  "theme_dark": "Sombre"
 }

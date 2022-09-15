@@ -73,6 +73,8 @@
   "request_reschedule_subtitle": "{{organizer}}에서 예약을 취소했고 다른 시간을 선택할 것을 요청했습니다.",
   "request_reschedule_title_organizer": "{{attendee}}에게 일정 변경을 요청하셨습니다",
   "request_reschedule_subtitle_organizer": "예약을 취소하셨기 때문에 {{attendee}} 님이 새 예약 시간을 선택해야 합니다.",
+  "rescheduled_event_type_subject": "일정 변경 요청이 보내짐: {{date}}에 {{name}}(으)로 {{eventType}}",
+  "requested_to_reschedule_subject_attendee": "일정 변경 조치 필요: {{name}} 님과 함께 새로운 {{eventType}} 시간을 예약하십시오",
   "reschedule_reason": "일정 변경 사유",
   "hi_user_name": "안녕하세요 {{name}}",
   "ics_event_title": "{{eventType}}과 {{name}}",
@@ -92,8 +94,6 @@
   "meeting_password": "회의 비밀번호",
   "meeting_url": "회의 URL",
   "meeting_request_rejected": "회의 요청이 거절되었습니다.",
-  "rescheduled_event_type_subject": "일정 변경 요청이 보내짐: {{date}}에 {{name}}(으)로 {{eventType}}",
-  "requested_to_reschedule_subject_attendee": "일정 변경 조치 필요: {{name}} 님과 함께 새로운 {{eventType}} 시간을 예약하십시오",
   "rejected_event_type_with_organizer": "거절됨: {{date}} {{organizer}} 의 {{eventType}}",
   "hi": "안녕하세요",
   "join_team": "팀에 합류하세요",
@@ -1022,8 +1022,6 @@
   "navigate": "탐색하기",
   "open": "열기",
   "close": "닫기",
-  "pro_feature_teams": "이것은 Pro 기능입니다. 팀의 가용성을 확인하려면 Pro로 업그레이드하세요.",
-  "pro_feature_workflows": "이것은 Pro 기능입니다. 워크플로로 이벤트 알림 및 미리 알림을 자동화하려면 Pro로 업그레이드하세요.",
   "embed": "내장",
   "new_username": "새 사용자 이름",
   "current_username": "현재 사용자 이름",
@@ -1037,5 +1035,7 @@
   "download_desktop_app": "데스크탑 앱 다운로드",
   "set_ping_link": "Ping 링크 설정",
   "missing_connected_calendar": "연결된 캘린더 없음",
-  "organizer_name_info": "당신의 이름"
+  "organizer_name_info": "당신의 이름",
+  "theme_light": "밝은",
+  "theme_dark": "어두움"
 }
