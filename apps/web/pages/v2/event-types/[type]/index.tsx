@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import autoAnimate from "@formkit/auto-animate";
 import { EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
@@ -206,6 +207,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         workflows={eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow)}
       />
     ),
+    "embed-preview": <></>,
+    "embed-code": <></>,
+    "embed-react": <></>,
   } as const;
 
   return (
