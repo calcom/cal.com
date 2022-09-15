@@ -83,8 +83,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!eventTypes?.length) {
     await prisma.eventType.create({
       data: {
-        title: "45 Min Coaching Session (Recurring)",
-        slug: "coaching-session-recurring",
+        title: "Mento Bi-Weekly Coaching session",
+        slug: "coaching-session",
         eventName: "{HOST} & {ATTENDEE} | Mento coaching",
         description: "",
         locations: [{ type: "integrations:google:meet" }],
@@ -104,8 +104,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     });
     await prisma.eventType.create({
       data: {
-        title: "45 Min Coaching Session",
-        slug: "coaching-session",
+        title: "Mento Single Coaching Session",
+        slug: "single-coaching-session",
         eventName: "{HOST} & {ATTENDEE} | Mento coaching",
         description: "",
         locations: [{ type: "integrations:google:meet" }],
