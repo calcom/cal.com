@@ -1,20 +1,20 @@
 import { createEvent, DateArray, Person } from "ics";
 
 import dayjs from "@calcom/dayjs";
-import { getCancelLink } from "@calcom/lib/CalEventParser";
+import { getRichDescription } from "@calcom/lib/CalEventParser";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { renderEmail } from "../";
+import { renderEmail } from "..";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
-export default class AttendeeRequestRescheduledEmail extends OrganizerScheduledEmail {
+export default class OrganizerRequestedToRescheduleEmail extends OrganizerScheduledEmail {
   private metadata: { rescheduleLink: string };
   constructor(calEvent: CalendarEvent, metadata: { rescheduleLink: string }) {
     super(calEvent);
     this.metadata = metadata;
   }
   protected getNodeMailerPayload(): Record<string, unknown> {
-    const toAddresses = [this.calEvent.attendees[0].email];
+    const toAddresses = [this.calEvent.organizer.email];
 
     return {
       icalEvent: {
@@ -23,16 +23,23 @@ export default class AttendeeRequestRescheduledEmail extends OrganizerScheduledE
       },
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
-      subject: `${this.t("requested_to_reschedule_subject_attendee", {
+      subject: `${this.t("rescheduled_event_type_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
+        date: this.getFormattedDate(),
       })}`,
-      html: renderEmail("AttendeeRequestRescheduledEmail", {
+      html: renderEmail("OrganizerRequestedToRescheduleEmail", {
         calEvent: this.calEvent,
         attendee: this.calEvent.organizer,
-        metadata: this.metadata,
       }),
-      text: this.getTextBody(),
+      text: this.getTextBody(
+        this.t("request_reschedule_title_organizer", {
+          attendee: this.calEvent.attendees[0].name,
+        }),
+        this.t("request_reschedule_subtitle_organizer", {
+          attendee: this.calEvent.attendees[0].name,
+        })
+      ),
     };
   }
 
@@ -50,7 +57,14 @@ export default class AttendeeRequestRescheduledEmail extends OrganizerScheduledE
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
       }),
-      description: this.getTextBody(),
+      description: this.getTextBody(
+        this.t("request_reschedule_title_organizer", {
+          attendee: this.calEvent.attendees[0].name,
+        }),
+        this.t("request_reschedule_subtitle_organizer", {
+          attendee: this.calEvent.attendees[0].name,
+        })
+      ),
       duration: { minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), "minute") },
       organizer: { name: this.calEvent.organizer.name, email: this.calEvent.organizer.email },
       attendees: this.calEvent.attendees.map((attendee: Person) => ({
@@ -65,31 +79,15 @@ export default class AttendeeRequestRescheduledEmail extends OrganizerScheduledE
     }
     return icsEvent.value;
   }
-  // @OVERRIDE
-  protected getWhen(): string {
-    return `
-    <p style="height: 6px"></p>
-    <div style="line-height: 6px;">
-      <p style="color: #494949;">${this.t("when")}</p>
-      <p style="color: #494949; font-weight: 400; line-height: 24px;text-decoration: line-through;">
-      ${this.t(this.getOrganizerStart("dddd").toLowerCase())}, ${this.t(
-      this.getOrganizerStart("MMMM").toLowerCase()
-    )} ${this.getOrganizerStart("D")}, ${this.getOrganizerStart("YYYY")} | ${this.getOrganizerStart(
-      "h:mma"
-    )} - ${this.getOrganizerEnd("h:mma")} <span style="color: #888888">(${this.getTimezone()})</span>
-      </p>
-    </div>`;
-  }
 
-  protected getTextBody(): string {
+  // @OVERRIDE
+  protected getTextBody(title = "", subtitle = "", extraInfo = "", callToAction = ""): string {
     return `
-${this.t("request_reschedule_title_attendee")}
-${this.t("request_reschedule_subtitle", {
-  organizer: this.calEvent.organizer.name,
-})},
-${this.getWhen()}
-${this.t("need_to_reschedule_or_cancel")}
-${getCancelLink(this.calEvent)}
-`.replace(/(<([^>]+)>)/gi, "");
+${this.t(title)}
+${this.t(subtitle)}
+${extraInfo}
+${getRichDescription(this.calEvent)}
+${callToAction}
+`.trim();
   }
 }

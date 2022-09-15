@@ -258,7 +258,7 @@ export default function Success(props: SuccessProps) {
   );
   const customInputs = bookingInfo?.customInputs;
 
-  const locationToDisplay = getSuccessPageLocationMessage(location, t);
+  const locationToDisplay = getSuccessPageLocationMessage(location, t, props?.bookingInfo?.status);
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
@@ -822,6 +822,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     select: {
       title: true,
       uid: true,
+      status: true,
       description: true,
       customInputs: true,
       user: {
