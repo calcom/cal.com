@@ -1,12 +1,10 @@
 import { useRouter } from "next/router";
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
-import { UpgradeToProDialog } from "@calcom/ui/UpgradeToProDialog";
 
 import { InstallAppButtonMap } from "./apps.browser.generated";
 import { InstallAppButtonProps } from "./types";
@@ -31,8 +29,6 @@ export const InstallAppButton = (
   } & InstallAppButtonProps
 ) => {
   const { isLoading, data: user } = trpc.useQuery(["viewer.me"]);
-  const { t } = useLocale();
-  const [modalOpen, setModalOpen] = useState(false);
   const router = useRouter();
   const proProtectionElementRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -50,11 +46,6 @@ export const InstallAppButton = (
           e.stopPropagation();
           return;
         }
-        if (user.plan === "FREE" && props.isProOnly) {
-          setModalOpen(true);
-          e.stopPropagation();
-          return;
-        }
       },
       true
     );
@@ -67,9 +58,6 @@ export const InstallAppButton = (
   return (
     <div ref={proProtectionElementRef} className={props.wrapperClassName}>
       <InstallAppButtonWithoutPlanCheck {...props} />
-      <UpgradeToProDialog modalOpen={modalOpen} setModalOpen={setModalOpen}>
-        {t("app_upgrade_description")}
-      </UpgradeToProDialog>
     </div>
   );
 };

@@ -310,7 +310,7 @@ export default function SettingsLayout({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="mx-auto max-w-4xl justify-center">
+        <div className="mx-auto max-w-xs justify-center md:max-w-3xl">
           <ShellHeader />
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
@@ -325,7 +325,7 @@ function ShellHeader() {
   const { meta } = useMeta();
   const { t, isLocaleReady } = useLocale();
   return (
-    <header className="mx-auto block max-w-4xl justify-between pt-12 sm:flex sm:pt-8">
+    <header className="mx-auto block max-w-xs justify-between pt-12 sm:flex sm:pt-8 md:max-w-3xl">
       <div className="mb-8 flex w-full items-center border-b border-gray-200 pb-8">
         {meta.backButton && (
           <a href="javascript:history.back()">

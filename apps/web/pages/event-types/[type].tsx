@@ -36,14 +36,12 @@ import { Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
 import Switch from "@calcom/ui/Switch";
 import { Tooltip } from "@calcom/ui/Tooltip";
-import { UpgradeToProDialog } from "@calcom/ui/UpgradeToProDialog";
 import { Form } from "@calcom/ui/form/fields";
 
 import { QueryCell } from "@lib/QueryCell";
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
-import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
 import { slugify } from "@lib/slugify";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -132,8 +130,6 @@ const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
   formMethods: T;
 }) => {
   const { t } = useLocale();
-  const proUpgradeRequired = !isSuccessRedirectAvailable(eventType);
-  const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <>
@@ -144,19 +140,12 @@ const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
             htmlFor="successRedirectUrl"
             className="flex h-full items-center text-sm font-medium text-neutral-700">
             {t("redirect_success_booking")}
-            <span className="ml-1">{proUpgradeRequired && <Badge variant="default">PRO</Badge>}</span>
           </label>
         </div>
         <div className="w-full">
           <input
             id="successRedirectUrl"
-            onClick={(e) => {
-              if (proUpgradeRequired) {
-                e.preventDefault();
-                setModalOpen(true);
-              }
-            }}
-            readOnly={proUpgradeRequired}
+            readOnly={eventType.team !== undefined}
             type="url"
             className="block w-full rounded-sm border-gray-300 text-sm"
             placeholder={t("external_redirect_url")}
@@ -164,9 +153,6 @@ const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
             {...formMethods.register("successRedirectUrl")}
           />
         </div>
-        <UpgradeToProDialog modalOpen={modalOpen} setModalOpen={setModalOpen}>
-          {t("redirect_url_upgrade_description")}
-        </UpgradeToProDialog>
       </div>
     </>
   );
