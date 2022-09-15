@@ -2,7 +2,7 @@ import { Availability as AvailabilityModel, Prisma, Schedule as ScheduleModel, U
 import { z } from "zod";
 
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
-import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { PrismaClient } from "@calcom/prisma/client";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { Schedule } from "@calcom/types/schedule";
@@ -114,24 +114,22 @@ export const availabilityRouter = createProtectedRouter()
         },
       };
 
-      if (input.schedule) {
-        const availability = getAvailabilityFromSchedule(input.schedule);
-        data.availability = {
-          createMany: {
-            data: availability.map((schedule) => ({
-              days: schedule.days,
-              startTime: schedule.startTime,
-              endTime: schedule.endTime,
-            })),
-          },
-        };
-      }
+      const availability = getAvailabilityFromSchedule(input.schedule || DEFAULT_SCHEDULE);
+      data.availability = {
+        createMany: {
+          data: availability.map((schedule) => ({
+            days: schedule.days,
+            startTime: schedule.startTime,
+            endTime: schedule.endTime,
+          })),
+        },
+      };
+
       const schedule = await prisma.schedule.create({
         data,
       });
       const hasDefaultScheduleId = await hasDefaultSchedule(user, prisma);
-
-      if (hasDefaultScheduleId) {
+      if (!hasDefaultScheduleId) {
         await setupDefaultSchedule(user.id, schedule.id, prisma);
       }
 
