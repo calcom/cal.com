@@ -73,6 +73,8 @@
   "request_reschedule_subtitle": "{{organizer}} har avbokat bokningen och bett dig att välja en annan tid.",
   "request_reschedule_title_organizer": "Du har begärt att {{attendee}} ska boka om",
   "request_reschedule_subtitle_organizer": "Du har avbokat bokningen och {{attendee}} ska välja en ny bokningstid hos dig.",
+  "rescheduled_event_type_subject": "Begäran om ny schemaläggning har skickats: {{eventType}} med {{name}} {{date}}",
+  "requested_to_reschedule_subject_attendee": "Åtgärd som krävs Tidsschema: Boka en ny tid för {{eventType}} hos {{name}}",
   "reschedule_reason": "Anledning till ombokning",
   "hi_user_name": "Hej {{name}}",
   "ics_event_title": "{{eventType}} med {{name}}",
@@ -92,8 +94,6 @@
   "meeting_password": "Lösenord för möte",
   "meeting_url": "Mötes-URL",
   "meeting_request_rejected": "Din mötesförfrågan har avböjts",
-  "rescheduled_event_type_subject": "Begäran om ny schemaläggning har skickats: {{eventType}} med {{name}} {{date}}",
-  "requested_to_reschedule_subject_attendee": "Åtgärd som krävs Tidsschema: Boka en ny tid för {{eventType}} hos {{name}}",
   "rejected_event_type_with_organizer": "Avvisad: {{eventType}} med {{organizer}} vid {{date}}",
   "hi": "Hej",
   "join_team": "Anslut till team",
@@ -1022,8 +1022,6 @@
   "navigate": "Navigera",
   "open": "Öppna",
   "close": "Stäng",
-  "pro_feature_teams": "Detta är en Pro-funktion. Uppgradera till Pro för att se lagets tillgänglighet.",
-  "pro_feature_workflows": "Detta är en Pro-funktion. Uppgradera till Pro för att automatisera dina händelseaviseringar och påminnelser med arbetsflöden.",
   "embed": "Bädda in",
   "new_username": "Nytt användarnamn",
   "current_username": "Nuvarande användarnamn",
@@ -1037,5 +1035,7 @@
   "download_desktop_app": "Ladda ned skrivbordsappen",
   "set_ping_link": "Ange Ping-länk",
   "missing_connected_calendar": "Ingen standardkalender ansluten",
-  "organizer_name_info": "Ditt namn"
+  "organizer_name_info": "Ditt namn",
+  "theme_light": "Ljus",
+  "theme_dark": "Mörk"
 }

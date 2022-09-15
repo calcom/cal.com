@@ -73,6 +73,8 @@
   "request_reschedule_subtitle": "{{organizer}} 取消了预约并要求您选择其他时间。",
   "request_reschedule_title_organizer": "您已请求 {{attendee}} 重新安排",
   "request_reschedule_subtitle_organizer": "您已取消预约，{{attendee}} 应该与您一起选择新的预约时间。",
+  "rescheduled_event_type_subject": "重新安排请求已发送: 和 {{name}} 在 {{date}} 的 {{eventType}}",
+  "requested_to_reschedule_subject_attendee": "需要重新安排操作: 请为名称为 {{name}} 的 {{eventType}} 预约新的时间",
   "reschedule_reason": "重新安排的原因",
   "hi_user_name": "您好 {{name}}",
   "ics_event_title": "与 {{name}} 的 {{eventType}}",
@@ -92,8 +94,6 @@
   "meeting_password": "会议密码",
   "meeting_url": "会议链接",
   "meeting_request_rejected": "您的会议请求已被拒绝",
-  "rescheduled_event_type_subject": "重新安排请求已发送: 和 {{name}} 在 {{date}} 的 {{eventType}}",
-  "requested_to_reschedule_subject_attendee": "需要重新安排操作: 请为名称为 {{name}} 的 {{eventType}} 预约新的时间",
   "rejected_event_type_with_organizer": "已拒绝: 和 {{organizer}} 在 {{date}} 的 {{eventType}}",
   "hi": "您好",
   "join_team": "加入团队",
@@ -1022,8 +1022,6 @@
   "navigate": "导航",
   "open": "打开",
   "close": "关闭",
-  "pro_feature_teams": "这是专业版功能。升级到专业版可查看您团队的可用性。",
-  "pro_feature_workflows": "这是专业版功能。升级到专业版可以自动发送工作流程的事件通知和提醒。",
   "embed": "嵌入",
   "new_username": "新用户名",
   "current_username": "当前用户名",
@@ -1037,5 +1035,7 @@
   "download_desktop_app": "下载桌面应用",
   "set_ping_link": "设置 Ping 链接",
   "missing_connected_calendar": "未连接默认日历",
-  "organizer_name_info": "您的姓名"
+  "organizer_name_info": "您的姓名",
+  "theme_light": "浅色",
+  "theme_dark": "深色"
 }
