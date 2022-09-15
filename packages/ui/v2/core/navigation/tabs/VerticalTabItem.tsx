@@ -83,6 +83,7 @@ const VerticalTabItem = function <T extends string>({
                 !info ? "h-9" : "h-14",
                 props.className
               )}
+              data-testid={`vertical-tab-${name}`}
               aria-current={isCurrent ? "page" : undefined}>
               {props.icon && (
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment

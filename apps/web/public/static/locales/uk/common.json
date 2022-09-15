@@ -73,6 +73,8 @@
   "request_reschedule_subtitle": "{{organizer}} скасував(-ла) бронювання та попросив(-ла) вас вибрати інший час.",
   "request_reschedule_title_organizer": "Ви попросили учасника {{attendee}} перенести бронювання",
   "request_reschedule_subtitle_organizer": "Ви скасували бронювання. {{attendee}} має забронювати інший час.",
+  "rescheduled_event_type_subject": "Запит на перенесення надіслано: {{eventType}} «{{name}}», {{date}}",
+  "requested_to_reschedule_subject_attendee": "Потрібно перенести бронювання: забронюйте новий час для заходу «{{eventType}}» із користувачем {{name}}",
   "reschedule_reason": "Причина перенесення",
   "hi_user_name": "Привіт, {{name}}!",
   "ics_event_title": "{{eventType}} «{{name}}»",
@@ -92,8 +94,6 @@
   "meeting_password": "Пароль наради",
   "meeting_url": "URL-адреса наради",
   "meeting_request_rejected": "Ваш запит на нараду відхилено",
-  "rescheduled_event_type_subject": "Запит на перенесення надіслано: {{eventType}} «{{name}}», {{date}}",
-  "requested_to_reschedule_subject_attendee": "Потрібно перенести бронювання: забронюйте новий час для заходу «{{eventType}}» із користувачем {{name}}",
   "rejected_event_type_with_organizer": "Відхилено: {{eventType}} «{{organizer}}», {{date}}",
   "hi": "Привіт",
   "join_team": "Увійти в команду",
@@ -1022,8 +1022,6 @@
   "navigate": "Перейти",
   "open": "Відкрити",
   "close": "Закрити",
-  "pro_feature_teams": "Ця функція доступна в плані Pro. Перейдіть на нього, щоб бачити відомості про доступність учасників своєї команди.",
-  "pro_feature_workflows": "Ця функція доступна в плані Pro. Перейдіть на нього, щоб автоматизувати сповіщення та нагадування про заходи за допомогою робочих процесів.",
   "embed": "Вбудувати",
   "new_username": "Нове ім’я користувача",
   "current_username": "Поточне ім’я користувача",
@@ -1035,5 +1033,7 @@
   "using_additional_inputs_as_variables": "Як використовувати додаткові поля введення як змінні?",
   "download_desktop_app": "Завантажити додаток для ПК",
   "set_ping_link": "Установити Ping-посилання",
-  "organizer_name_info": "Ваше ім’я"
+  "organizer_name_info": "Ваше ім’я",
+  "theme_light": "Світла",
+  "theme_dark": "Темна"
 }
