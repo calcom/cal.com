@@ -4,7 +4,7 @@ import { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import { JSONObject } from "superjson/dist/types";
 
@@ -249,7 +249,6 @@ const getEventTypesWithHiddenFromDB = async (userId: number, plan: UserPlan) => 
       metadata: true,
       ...baseEventTypeSelect,
     },
-    take: plan === UserPlan.FREE ? 1 : undefined,
   });
 };
 

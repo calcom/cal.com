@@ -18,6 +18,7 @@ const V2_WHITELIST = [
   "/workflows",
   "/apps",
   "/success",
+  "/auth/login",
 ];
 const V2_BLACKLIST = [
   //
@@ -42,9 +43,8 @@ const middleware: NextMiddleware = async (req) => {
       return NextResponse.redirect(req.nextUrl);
     }
   }
-  /** Display available V2 pages to users who opted-in to early access */
+  /** Display available V2 pages */
   if (
-    req.cookies.has("calcom-v2-early-access") &&
     !V2_BLACKLIST.some((p) => url.pathname.startsWith(p)) &&
     V2_WHITELIST.some((p) => url.pathname.startsWith(p))
   ) {

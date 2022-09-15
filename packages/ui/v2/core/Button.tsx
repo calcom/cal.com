@@ -65,6 +65,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     loading = false,
     color = "primary",
     size = "base",
+    type = "button",
     StartIcon,
     EndIcon,
     shallow,
@@ -82,6 +83,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     {
       ...passThroughProps,
       disabled,
+      type: !isLink ? type : undefined,
       ref: forwardedRef,
       className: classNames(
         // base styles independent what type of button it is
