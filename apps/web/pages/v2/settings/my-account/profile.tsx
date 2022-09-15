@@ -231,6 +231,10 @@ const ProfileView = () => {
             description={t("confirm_delete_account_modal")}
             type="creation"
             actionText={t("delete_my_account")}
+            actionProps={{
+              // @ts-expect-error data attributes aren't typed
+              "data-testid": "delete-account-confirm",
+            }}
             Icon={Icon.FiAlertTriangle}
             actionOnClick={(e) => e && onConfirmButton(e)}>
             <>
