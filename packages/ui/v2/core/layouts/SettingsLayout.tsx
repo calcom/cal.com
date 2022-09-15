@@ -1,4 +1,4 @@
-import { UserPermissionRole, MembershipRole } from "@prisma/client";
+import { MembershipRole, UserPermissionRole } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
 import React, { ComponentProps, useEffect, useState } from "react";
@@ -16,7 +16,6 @@ import { useMeta } from "../Meta";
 import Shell from "../Shell";
 import { VerticalTabItemProps } from "../navigation/tabs/VerticalTabItem";
 import { VerticalTabItem } from "../navigation/tabs/VerticalTabs";
-import { SkeletonContainer, SkeletonText } from "../skeleton";
 
 const tabs: VerticalTabItemProps[] = [
   {
