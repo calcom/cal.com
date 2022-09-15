@@ -5,12 +5,11 @@ import { createRef, forwardRef, MutableRefObject, RefObject, useRef, useState } 
 import { components, ControlProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
+import { HorizontalTabs, showToast } from "@calcom/ui/v2";
 import { Button, Switch } from "@calcom/ui/v2";
-import NavTabs from "@calcom/ui/v2/core/navigation/tabs/HorizontalTabs";
 
 import { EMBED_LIB_URL, WEBAPP_URL } from "@lib/config/constants";
 
@@ -38,7 +37,7 @@ type PreviewState = {
     brandColor: string;
   };
 };
-const queryParamsForDialog = ["embedType", "tabName", "embedUrl"];
+const queryParamsForDialog = ["embedType", "embedTabName", "embedUrl"];
 
 const getDimension = (dimension: string) => {
   if (dimension.match(/^\d+$/)) {
@@ -453,7 +452,7 @@ const embeds: {
 const tabs = [
   {
     name: "HTML",
-    tabName: "embed-code",
+    embedTabName: "embed-code",
     icon: Icon.FiCode,
     type: "code",
     Component: forwardRef<
@@ -504,7 +503,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
   },
   {
     name: "React",
-    tabName: "embed-react",
+    embedTabName: "embed-react",
     icon: Icon.FiCode,
     type: "code",
     Component: forwardRef<
@@ -544,7 +543,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
   },
   {
     name: "Preview",
-    tabName: "embed-preview",
+    embedTabName: "embed-preview",
     icon: Icon.FiEye,
     type: "iframe",
     Component: forwardRef<
@@ -561,7 +560,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
         <iframe
           ref={ref as typeof ref & MutableRefObject<HTMLIFrameElement>}
           data-testid="embed-preview"
-          className="border-1 h-[60vh] border"
+          className="border-1 h-[100vh] border"
           width="100%"
           height="100%"
           src={`${WEBAPP_URL}/embed/preview.html?embedType=${embedType}&calLink=${calLink}`}
@@ -678,8 +677,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   };
 
   // Use embed-code as default tab
-  if (!router.query.tabName) {
-    router.query.tabName = "embed-code";
+  if (!router.query.embedTabName) {
+    router.query.embedTabName = "embed-code";
     router.push({
       query: {
         ...router.query,
@@ -788,7 +787,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
               onClick={() => {
                 const newQuery = { ...router.query };
                 delete newQuery.embedType;
-                delete newQuery.tabName;
+                delete newQuery.embedTabName;
                 router.push({
                   query: {
                     ...newQuery,
@@ -1041,33 +1040,33 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             </Collapsible>
           </div>
         </div>
-        <div className="w-2/3 p-6">
-          <NavTabs data-testid="embed-tabs" tabs={tabs} />
+        <div className="flex w-2/3 flex-col p-6">
+          <HorizontalTabs tabNameKey="embedTabName" data-testid="embed-tabs" tabs={tabs} />
           {tabs.map((tab) => {
             return (
               <div
-                key={tab.tabName}
-                className={classNames(router.query.tabName === tab.tabName ? "block" : "hidden")}>
-                <div className="max-h-[60vh]">
-                  <div className={classNames(tab.type === "code" ? "h-[55vh]" : "")}>
-                    {tab.type === "code" ? (
-                      <tab.Component
-                        embedType={embedType}
-                        calLink={calLink}
-                        previewState={previewState}
-                        ref={refOfEmbedCodesRefs.current[tab.name]}
-                      />
-                    ) : (
-                      <tab.Component
-                        embedType={embedType}
-                        calLink={calLink}
-                        previewState={previewState}
-                        ref={iframeRef}
-                      />
-                    )}
-                  </div>
-                  <div className={router.query.tabName == "embed-preview" ? "block" : "hidden"} />
+                key={tab.embedTabName}
+                className={classNames(
+                  router.query.embedTabName === tab.embedTabName ? "flex flex-grow flex-col" : "hidden"
+                )}>
+                <div className="flex h-[55vh] flex-grow flex-col">
+                  {tab.type === "code" ? (
+                    <tab.Component
+                      embedType={embedType}
+                      calLink={calLink}
+                      previewState={previewState}
+                      ref={refOfEmbedCodesRefs.current[tab.name]}
+                    />
+                  ) : (
+                    <tab.Component
+                      embedType={embedType}
+                      calLink={calLink}
+                      previewState={previewState}
+                      ref={iframeRef}
+                    />
+                  )}
                 </div>
+                <div className={router.query.embedTabName == "embed-preview" ? "block" : "hidden"} />
                 <div className="mt-8 flex flex-row-reverse gap-x-2">
                   {tab.type === "code" ? (
                     <Button

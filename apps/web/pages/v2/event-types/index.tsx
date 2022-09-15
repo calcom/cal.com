@@ -26,10 +26,10 @@ import { withQuery } from "@lib/QueryCell";
 import classNames from "@lib/classNames";
 import { HttpError } from "@lib/core/http/error";
 
+import { EmbedButton, EmbedDialog } from "@components/Embed";
 import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
-import { EmbedButton, EmbedDialog } from "@components/v2/eventtype/Embed";
 import SkeletonLoader from "@components/v2/eventtype/SkeletonLoader";
 
 import { TRPCClientError } from "@trpc/react";

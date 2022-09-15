@@ -26,7 +26,6 @@ import { HttpError } from "@lib/core/http/error";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { AvailabilityTab } from "@components/v2/eventtype/AvailabilityTab";
-import { EmbedDialog } from "@components/v2/eventtype/Embed";
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings
 import { EventAdvancedTab } from "@components/v2/eventtype/EventAdvancedTab";
 import { EventAppsTab } from "@components/v2/eventtype/EventAppsTab";
@@ -87,19 +86,7 @@ export type FormValues = {
 
 const querySchema = z.object({
   tabName: z
-    .enum([
-      "setup",
-      "availability",
-      "apps",
-      "limits",
-      "recurring",
-      "team",
-      "advanced",
-      "workflows",
-      "embed-preview",
-      "embed-code",
-      "embed-react",
-    ])
+    .enum(["setup", "availability", "apps", "limits", "recurring", "team", "advanced", "workflows"])
     .optional()
     .default("setup"),
 });
@@ -207,9 +194,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         workflows={eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow)}
       />
     ),
-    "embed-preview": <></>,
-    "embed-code": <></>,
-    "embed-react": <></>,
   } as const;
 
   return (
@@ -261,7 +245,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
           {tabMap[tabName]}
         </div>
       </Form>
-      <EmbedDialog />
     </EventTypeSingleLayout>
   );
 };
