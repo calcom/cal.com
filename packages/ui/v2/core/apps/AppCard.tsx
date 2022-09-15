@@ -16,7 +16,6 @@ interface AppCardProps {
 
 export default function AppCard({ app, credentials }: AppCardProps) {
   const { t } = useLocale();
-  const { data: user } = trpc.useQuery(["viewer.me"]);
 
   const mutation = useAddAppMutation(null, {
     onSuccess: () => {
@@ -114,12 +113,6 @@ export default function AppCard({ app, credentials }: AppCardProps) {
         {app.isGlobal && (
           <span className="flex items-center rounded-md bg-gray-100 px-2 py-1 text-sm font-normal text-gray-800">
             {t("default")}
-          </span>
-        )}
-        {app.isProOnly && user?.plan === "FREE" && (
-          <span className="flex items-center gap-1 rounded-md bg-orange-100 px-2 py-1 text-sm font-normal text-orange-800">
-            <Icon.FiStar className="h-4 w-4 text-orange-800" />
-            {t("pro")}
           </span>
         )}
       </div>

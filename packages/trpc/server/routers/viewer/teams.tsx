@@ -84,7 +84,7 @@ export const viewerTeamsRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       if (ctx.user.plan === "FREE") {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not a pro user." });
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "You need a team plan." });
       }
 
       const slug = input.slug || slugify(input.name);
