@@ -104,6 +104,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     props.hasGiphyIntegration && !!eventType.metadata["giphyThankYouPage"]
   );
   const [paymentEnabled, setPaymentEnabled] = useState(eventType.price > 0);
+  const [rainbowEnabled, setRainbowEnabled] = useState(
+    props.hasRainbowIntegration &&
+      !!eventType.metadata["blockchainId"] &&
+      !!eventType.metadata["smartContractAddress"]
+  );
 
   useEffect(() => {
     animationParentRef.current && autoAnimate(animationParentRef.current);
@@ -193,6 +198,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         setGiphyEnabled={setGiphyEnabled}
         paymentEnabled={paymentEnabled}
         setPaymentEnabled={setPaymentEnabled}
+        rainbowEnabled={rainbowEnabled}
+        setRainbowEnabled={setRainbowEnabled}
         hasRainbowIntegration={props.hasRainbowIntegration}
       />
     ),

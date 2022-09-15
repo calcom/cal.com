@@ -52,6 +52,8 @@ export const EventAppsTab = ({
   setGiphyEnabled,
   paymentEnabled,
   setPaymentEnabled,
+  rainbowEnabled,
+  setRainbowEnabled,
   hasRainbowIntegration,
 }: Pick<
   EventTypeSetupInfered,
@@ -61,13 +63,10 @@ export const EventAppsTab = ({
   setGiphyEnabled: (state: boolean) => void;
   paymentEnabled: boolean;
   setPaymentEnabled: (state: boolean) => void;
+  rainbowEnabled: boolean;
+  setRainbowEnabled: (state: boolean) => void;
 }) => {
   const formMethods = useFormContext<FormValues>();
-  const [showRainbowSection, setShowRainbowSection] = useState(
-    hasRainbowIntegration &&
-      !!eventType.metadata["blockchainId"] &&
-      !!eventType.metadata["smartContractAddress"]
-  );
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
 
   const getCurrencySymbol = (locale: string, currency: string) =>
@@ -83,7 +82,9 @@ export const EventAppsTab = ({
 
   const { t } = useLocale();
 
-  const installedApps = [hasPaymentIntegration, hasGiphyIntegration].filter(Boolean).length;
+  const installedApps = [hasPaymentIntegration, hasGiphyIntegration, hasRainbowIntegration].filter(
+    Boolean
+  ).length;
 
   if (installedApps === 0) {
     return (
@@ -197,10 +198,10 @@ export const EventAppsTab = ({
               formMethods.setValue("smartContractAddress", "");
             }
 
-            setShowRainbowSection(e);
+            setRainbowEnabled(e);
           }}
-          switchChecked={showRainbowSection}>
-          {showRainbowSection && (
+          switchChecked={rainbowEnabled}>
+          {rainbowEnabled && (
             <RainbowInstallForm
               formMethods={formMethods}
               blockchainId={(eventType.metadata.blockchainId as number) || 1}
