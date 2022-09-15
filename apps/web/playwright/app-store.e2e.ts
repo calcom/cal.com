@@ -10,7 +10,9 @@ test.describe("App Store - Authed", () => {
     await pro.login();
     await page.goto("/apps");
     await page.click('[data-testid="app-store-category-calendar"]');
-    await page.click('[data-testid="app-store-app-card-apple-calendar"]');
+    await page.click(
+      '[data-testid="app-store-app-card-apple-calendar"] [data-testid="app-store-app-card-details"]'
+    );
     await page.waitForResponse((resp) => resp.url().includes("/api/apps") && resp.status() === 200);
     await page.click('[data-testid="install-app-button"]');
     await expect(page.locator(`text=Connect to Apple Server`)).toBeVisible();
@@ -23,7 +25,9 @@ test.describe("App Store - Unauthed", () => {
     await page.goto("/apps");
     await page.waitForSelector("[data-testid=dashboard-shell]");
     await page.click('[data-testid="app-store-category-calendar"]');
-    await page.click('[data-testid="app-store-app-card-apple-calendar"]');
+    await page.click(
+      '[data-testid="app-store-app-card-apple-calendar"] [data-testid="app-store-app-card-details"]'
+    );
     await page.waitForResponse((resp) => resp.url().includes("/api/apps") && resp.status() === 200);
     await page.click('[data-testid="install-app-button"]');
     await expect(page.locator(`[data-testid="login-form"]`)).toBeVisible();
