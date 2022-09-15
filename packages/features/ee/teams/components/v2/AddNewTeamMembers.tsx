@@ -91,8 +91,8 @@ const AddNewTeamMembers = (props: { teamId: number }) => {
           </ul>
 
           <Button
-            type="submit"
             color="secondary"
+            data-testid="new-member-button"
             StartIcon={Icon.FiPlus}
             onClick={() => setMemberInviteModal(true)}
             className="mt-6 w-full justify-center">
