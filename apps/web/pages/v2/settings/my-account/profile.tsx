@@ -59,7 +59,6 @@ const ProfileView = () => {
   });
 
   const [confirmPasswordOpen, setConfirmPasswordOpen] = useState(false);
-  const [passwordConfirmed, setPasswordConfirmed] = useState(false);
   const [confirmPasswordErrorMessage, setConfirmPasswordDeleteErrorMessage] = useState("");
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
@@ -86,7 +85,7 @@ const ProfileView = () => {
 
   const confirmPasswordMutation = trpc.useMutation("viewer.auth.verifyPassword", {
     onSuccess() {
-      setPasswordConfirmed(true);
+      mutation.mutate(formMethods.getValues());
       setConfirmPasswordOpen(false);
     },
     onError() {
@@ -153,7 +152,11 @@ const ProfileView = () => {
       <Form
         form={formMethods}
         handleSubmit={(values) => {
-          mutation.mutate(values);
+          if (values.email !== user?.email) {
+            setConfirmPasswordOpen(true);
+          } else {
+            mutation.mutate(values);
+          }
         }}>
         <Meta title="Profile" description="Manage settings for your cal profile" />
         <div className="flex items-center">
@@ -224,36 +227,7 @@ const ProfileView = () => {
                 onChange={(e) => {
                   formMethods.setValue("email", e?.target.value);
                 }}
-                onClick={() => {
-                  if (!passwordConfirmed) setConfirmPasswordOpen(true);
-                }}
               />
-              <Dialog open={confirmPasswordOpen} onOpenChange={setConfirmPasswordOpen}>
-                <DialogContent
-                  title={t("confirm_password")}
-                  description={t("confirm_password_change_email")}
-                  type="creation"
-                  actionText={t("confirm")}
-                  Icon={Icon.FiAlertTriangle}
-                  actionOnClick={(e) => e && onConfirmPassword(e)}>
-                  <>
-                    <PasswordField
-                      data-testid="password"
-                      name="password"
-                      id="password"
-                      type="password"
-                      autoComplete="current-password"
-                      required
-                      label="Password"
-                      ref={passwordRef}
-                    />
-
-                    {confirmPasswordErrorMessage && (
-                      <Alert severity="error" title={confirmPasswordErrorMessage} />
-                    )}
-                  </>
-                </DialogContent>
-              </Dialog>
             </div>
           )}
         />
@@ -327,6 +301,32 @@ const ProfileView = () => {
           </DialogContent>
         </Dialog>
       </Form>
+
+      {/* If changing email, confirm password */}
+      <Dialog open={confirmPasswordOpen} onOpenChange={setConfirmPasswordOpen}>
+        <DialogContent
+          title={t("confirm_password")}
+          description={t("confirm_password_change_email")}
+          type="creation"
+          actionText={t("confirm")}
+          Icon={Icon.FiAlertTriangle}
+          actionOnClick={(e) => e && onConfirmPassword(e)}>
+          <>
+            <PasswordField
+              data-testid="password"
+              name="password"
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              label="Password"
+              ref={passwordRef}
+            />
+
+            {confirmPasswordErrorMessage && <Alert severity="error" title={confirmPasswordErrorMessage} />}
+          </>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
