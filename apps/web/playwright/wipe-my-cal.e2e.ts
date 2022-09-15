@@ -38,12 +38,22 @@ test.describe("Wipe my Cal App Test", () => {
 
     await expect(page.locator("data-testid=wipe-today-button")).toBeVisible();
 
-    await page.locator('[data-testid="bookings"] > *').count(3);
+    const $openBookingCount = await page.locator('[data-testid="bookings"] > *').count();
+    await expect($openBookingCount).toBe(3);
 
     await page.locator("data-testid=wipe-today-button").click();
     await page.locator("data-testid=send_request").click();
-    // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.locator('[data-testid="bookings"] > *').count(2);
+
+    const $openBookings = await page.locator('[data-testid="bookings"]');
+    await $openBookings.evaluate((ul) => {
+      return new Promise((resolve) =>
+        new window.MutationObserver(() => {
+          if (ul.childElementCount === 2) {
+            resolve();
+          }
+        }).observe(ul, { childList: true })
+      );
+    });
 
     await users.deleteAll();
   });

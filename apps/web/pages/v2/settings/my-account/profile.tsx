@@ -218,7 +218,11 @@ const ProfileView = () => {
         {/* Delete account Dialog */}
         <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
           <DialogTrigger asChild>
-            <Button color="destructive" className="mt-1 border-2" StartIcon={Icon.FiTrash2}>
+            <Button
+              data-testid="delete-account"
+              color="destructive"
+              className="mt-1 border-2"
+              StartIcon={Icon.FiTrash2}>
               {t("delete_account")}
             </Button>
           </DialogTrigger>
