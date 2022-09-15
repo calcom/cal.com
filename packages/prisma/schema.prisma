@@ -137,7 +137,7 @@ model User {
   bio                  String?
   avatar               String?
   timeZone             String                  @default("Europe/London")
-  weekStart            String                  @default("Sunday")
+  weekStart            String                  @default("Monday")
   // DEPRECATED - TO BE REMOVED
   startTime            Int                     @default(0)
   endTime              Int                     @default(1440)
