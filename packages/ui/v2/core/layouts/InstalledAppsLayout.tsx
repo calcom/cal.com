@@ -52,7 +52,7 @@ export default function InstalledAppsLayout({
           <VerticalTabs tabs={actualTabs} sticky />
         </div>
         <div className="block xl:hidden">
-          <HorizontalTabs tabs={actualTabs} />
+          <HorizontalTabs tabNameKey="tabName" tabs={actualTabs} />
         </div>
         <main className="w-full xl:mx-5 xl:w-4/5 xl:pr-5">{children}</main>
       </div>
