@@ -203,6 +203,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     }
   }, []);
 
+  const firstItem = types[0];
+  const lastItem = types[types.length - 1];
   return (
     <div className="mb-16 flex overflow-hidden rounded-md border border-gray-200 bg-white">
       <ul className="w-full divide-y divide-neutral-200" data-testid="event-types">
@@ -226,17 +228,21 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                   )}>
                   {types.length > 1 && !type.$disabled && (
                     <>
-                      <button
-                        className="invisible absolute left-[5px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
-                        onClick={() => moveEventType(index, -1)}>
-                        <Icon.FiArrowUp className="h-5 w-5" />
-                      </button>
+                      {!(firstItem && firstItem.id === type.id) && (
+                        <button
+                          className="invisible absolute left-[5px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
+                          onClick={() => moveEventType(index, -1)}>
+                          <Icon.FiArrowUp className="h-5 w-5" />
+                        </button>
+                      )}
 
-                      <button
-                        className="invisible absolute left-[5px] mt-8 -ml-4 hidden h-6 w-6 scale-0  items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
-                        onClick={() => moveEventType(index, 1)}>
-                        <Icon.FiArrowDown className="h-5 w-5" />
-                      </button>
+                      {!(lastItem && lastItem.id === type.id) && (
+                        <button
+                          className="invisible absolute left-[5px] mt-8 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md  border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
+                          onClick={() => moveEventType(index, 1)}>
+                          <Icon.FiArrowDown className="h-5 w-5" />
+                        </button>
+                      )}
                     </>
                   )}
                   <MemoizedItem type={type} group={group} readOnly={readOnly} />

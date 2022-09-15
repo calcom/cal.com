@@ -1,7 +1,7 @@
 import noop from "lodash/noop";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { FC, Fragment, MouseEventHandler } from "react";
+import { Fragment, MouseEventHandler } from "react";
 
 // import { ChevronRight } from "react-feather";
 import classNames from "@calcom/lib/classNames";
@@ -9,12 +9,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SVGComponent } from "@calcom/types/SVGComponent";
 import { Icon } from "@calcom/ui/Icon";
 
-export type VerticalTabItemProps = {
+export type VerticalTabItemProps<T extends string = "tabName"> = {
   name: string;
   info?: string;
   icon?: SVGComponent;
   disabled?: boolean;
-  children?: VerticalTabItemProps[];
+  children?: VerticalTabItemProps<T>[];
   textClassNames?: string;
   className?: string;
   isChild?: boolean;
@@ -26,32 +26,34 @@ export type VerticalTabItemProps = {
       href: string;
       tabName?: never;
     }
-  | {
+  | ({
       href?: never;
-      /** If you want to change the path as per current tab */
-      tabName: string;
-    }
+    } & Partial<Record<T, string>>)
 );
 
-const VerticalTabItem: FC<VerticalTabItemProps> = ({
+const VerticalTabItem = function <T extends string>({
   name,
   href,
-  tabName,
+  tabNameKey,
   info,
   isChild,
   disableChevron,
   ...props
-}) => {
+}: VerticalTabItemProps<T> & {
+  tabNameKey?: T;
+}) {
   const router = useRouter();
   const { t } = useLocale();
   let newHref = "";
   let isCurrent;
+  const tabName = props[tabNameKey as keyof typeof props] as string;
+  const _tabNameKey = tabNameKey || "tabName";
   if (href) {
     newHref = href;
     isCurrent = router.asPath === href;
   } else if (tabName) {
     newHref = "";
-    isCurrent = router.query.tabName === tabName;
+    isCurrent = router.query[_tabNameKey] === tabName;
   }
 
   const onClick: MouseEventHandler = tabName
@@ -60,7 +62,7 @@ const VerticalTabItem: FC<VerticalTabItemProps> = ({
         router.push({
           query: {
             ...router.query,
-            tabName,
+            [_tabNameKey]: tabName,
           },
         });
       }
@@ -83,6 +85,8 @@ const VerticalTabItem: FC<VerticalTabItemProps> = ({
               )}
               aria-current={isCurrent ? "page" : undefined}>
               {props.icon && (
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                //@ts-ignore
                 <props.icon className="mr-[10px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
               )}
               <div>
@@ -101,7 +105,7 @@ const VerticalTabItem: FC<VerticalTabItemProps> = ({
             </a>
           </Link>
           {props.children?.map((child) => (
-            <VerticalTabItem key={child.name} {...child} isChild />
+            <VerticalTabItem tabNameKey={tabNameKey} key={child.name} {...child} isChild />
           ))}
         </>
       )}
