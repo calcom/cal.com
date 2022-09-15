@@ -282,7 +282,7 @@ function BookingListItem(booking: BookingItemProps) {
                         ))}>
                         <div className="text-gray-600 dark:text-white">
                           <Icon.FiRefreshCcw
-                            stroke-width="3"
+                            strokeWidth="3"
                             className="float-left mr-1 mt-1.5 inline-block h-3 w-3 text-gray-400"
                           />
                           <p className="mt-1 pl-5 text-xs">
