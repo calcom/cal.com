@@ -26,7 +26,7 @@ test.describe("Stripe integration", () => {
       /** If Stripe is added correctly we should see the "Disconnect" button */
       await expect(
         page.locator(`li:has-text("Stripe") >> [data-testid="stripe_payment-integration-disconnect-button"]`)
-      ).toContainText("Disconnect");
+      ).toContainText("");
 
       // Cleanup
       await users.deleteAll();
