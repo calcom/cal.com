@@ -263,8 +263,17 @@ export default function Success(props: SuccessProps) {
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
+      <div className="flex items-center justify-center p-4">
+        <img
+          src="https://mento-space.nyc3.digitaloceanspaces.com/logo.svg"
+          alt="logo"
+          width="100"
+          height="40"
+        />
+      </div>
+
       {userIsOwner && !isEmbed && (
-        <div className="mt-2 ml-4 -mb-4">
+        <div className="-mt-8 ml-4 -mb-4">
           <Link href={eventType.recurringEvent?.count ? "/bookings/recurring" : "/bookings/upcoming"}>
             <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-transparent dark:hover:text-white">
               <Icon.FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
@@ -274,6 +283,7 @@ export default function Success(props: SuccessProps) {
       )}
       <HeadSeo title={title} description={title} />
       <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
+
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
         <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
           {isSuccessRedirectAvailable(eventType) && eventType.successRedirectUrl ? (
@@ -574,9 +584,6 @@ export default function Success(props: SuccessProps) {
                   </div>
                 )}
               </div>
-              <div className="-mt-4 flex justify-center md:-mt-12">
-                <Logo animated />
-              </div>
             </div>
           </div>
         </div>
@@ -854,6 +861,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     });
   }
+
+  console.log(bookingInfo);
 
   return {
     props: {

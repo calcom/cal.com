@@ -14,7 +14,6 @@ import { StepCard } from "@components/getting-started/components/StepCard";
 import { Steps } from "@components/getting-started/components/Steps";
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
 import { SetupAvailability } from "@components/getting-started/steps-views/SetupAvailability";
-import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
 
 interface IOnboardingPageProps {
@@ -22,7 +21,7 @@ interface IOnboardingPageProps {
 }
 
 const INITIAL_STEP = "user-settings";
-const steps = ["user-settings", "connected-calendar", "setup-availability", "user-profile"] as const;
+const steps = ["user-settings", "connected-calendar", "setup-availability"] as const;
 
 const stepTransform = (step: typeof steps[number]) => {
   const stepIndex = steps.indexOf(step);
@@ -48,7 +47,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
   const headers = [
     {
       title: `${t("welcome_to_cal_header")}`,
-      subtitle: [`${t("we_just_need_basic_info")}`, `${t("edit_form_later_subtitle")}`],
+      subtitle: [`${t("we_just_need_basic_info")}`],
     },
     {
       title: `${t("connect_your_calendar")}`,
@@ -61,11 +60,6 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
         `${t("set_availability_getting_started_subtitle_1")}`,
         `${t("set_availability_getting_started_subtitle_2")}`,
       ],
-      skipText: `${t("set_my_availability_later")}`,
-    },
-    {
-      title: `${t("nearly_there")}`,
-      subtitle: [`${t("nearly_there_instructions")}`],
     },
   ];
 
@@ -83,7 +77,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
 
   return (
     <div
-      className="dark:bg-brand dark:text-brand-contrast min-h-screen text-black"
+      className="bg-sunny-100 dark:text-brand-contrast min-h-screen text-black"
       data-testid="onboarding"
       key={router.asPath}>
       <Head>
@@ -91,7 +85,16 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="mx-auto px-4 py-24">
+      <div className="flex items-center justify-center p-4">
+        <img
+          src="https://mento-space.nyc3.digitaloceanspaces.com/logo.svg"
+          alt="logo"
+          width="100"
+          height="40"
+        />
+      </div>
+
+      <div className="mx-auto px-4 py-12">
         <div className="relative">
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]">
             <div className="mx-auto sm:max-w-[520px]">
@@ -114,10 +117,11 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
               {currentStep === "connected-calendar" && <ConnectedCalendars nextStep={() => goToIndex(2)} />}
 
               {currentStep === "setup-availability" && (
-                <SetupAvailability nextStep={() => goToIndex(3)} defaultScheduleId={user.defaultScheduleId} />
+                <SetupAvailability
+                  nextStep={() => router.push("/getting-started/onboarded")}
+                  defaultScheduleId={user.defaultScheduleId}
+                />
               )}
-
-              {currentStep === "user-profile" && <UserProfile user={user} />}
             </StepCard>
             {headers[currentStepIndex]?.skipText && (
               <div className="flex w-full flex-row justify-center">
@@ -148,7 +152,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     return { redirect: { permanent: false, destination: "/auth/login" } };
   }
 
-  const user = await prisma.user.findUnique({
+  let user = await prisma.user.findUnique({
     where: {
       id: session.user.id,
     },
@@ -176,6 +180,28 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   if (!user) {
     throw new Error("User from session not found");
+  }
+
+  // CUSTOM_CODE: Update Properties from App DB
+  if (process.env?.NEXT_PUBLIC_MENTO_COACH_URL && process.env?.NEXT_PUBLIC_CALENDAR_KEY) {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_MENTO_COACH_URL}/api/calendar/coach?email=${user?.email}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: "Bearer " + process.env.NEXT_PUBLIC_CALENDAR_KEY,
+          },
+        }
+      );
+      const data = await response?.json();
+
+      if (data) {
+        user = { ...user, name: data?.name, bio: data?.bio, avatar: data?.profileUrl };
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   return {

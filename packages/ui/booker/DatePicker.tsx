@@ -39,12 +39,8 @@ export const Day = ({
   return (
     <button
       className={classNames(
-        "hover:border-brand disabled:text-bookinglighter absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm border border-transparent text-center text-sm font-medium disabled:cursor-default disabled:border-transparent disabled:font-light dark:hover:border-white disabled:dark:border-transparent",
-        active
-          ? "bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast"
-          : !props.disabled
-          ? " bg-gray-100 dark:bg-gray-600 dark:text-white"
-          : ""
+        "hover:border-sage-500 disabled:text-bookinglighter absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-sm border border-transparent text-center text-sm font-medium disabled:cursor-default disabled:border-transparent disabled:font-light dark:hover:border-white disabled:dark:border-transparent",
+        active ? "bg-sage-500 text-brandcontrast" : !props.disabled ? " bg-sage-100 " : ""
       )}
       data-testid="day"
       data-disabled={props.disabled}

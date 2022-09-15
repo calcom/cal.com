@@ -115,7 +115,14 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
         // avatar={user.avatar || undefined}
       />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
-
+      <div className="flex items-center justify-center p-4">
+        <img
+          src="https://mento-space.nyc3.digitaloceanspaces.com/logo.svg"
+          alt="logo"
+          width="100"
+          height="40"
+        />
+      </div>
       <div
         className={classNames(
           shouldAlignCentrally ? "mx-auto" : "",
@@ -125,10 +132,8 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
         <main
           className={classNames(
             shouldAlignCentrally ? "mx-auto" : "",
-            isEmbed
-              ? " border-bookinglightest  dark:bg-darkgray-50 rounded-md border bg-white sm:dark:border-gray-600"
-              : "",
-            "max-w-3xl py-24 px-4"
+            isEmbed ? " border-bookinglightest rounded-md border bg-white" : "",
+            "max-w-3xl py-12 px-4"
           )}>
           {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">

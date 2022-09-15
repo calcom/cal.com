@@ -440,10 +440,20 @@ const BookingPage = ({
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
+
+      <div className="flex items-center justify-center p-4">
+        <img
+          src="https://mento-space.nyc3.digitaloceanspaces.com/logo.svg"
+          alt="logo"
+          width="100"
+          height="40"
+        />
+      </div>
+
       <main
         className={classNames(
           shouldAlignCentrally ? "mx-auto" : "",
-          isEmbed ? "" : "sm:my-24",
+          isEmbed ? "" : "sm:my-12",
           "my-0 max-w-3xl "
         )}>
         <div

@@ -12,16 +12,16 @@ const tabs = [
     href: "/settings/profile",
     icon: Icon.FiUser,
   },
-  {
-    name: "teams",
-    href: "/settings/teams",
-    icon: Icon.FiUsers,
-  },
-  {
-    name: "security",
-    href: "/settings/security",
-    icon: Icon.FiKey,
-  },
+  // {
+  //   name: "teams",
+  //   href: "/settings/teams",
+  //   icon: Icon.FiUsers,
+  // },
+  // {
+  //   name: "security",
+  //   href: "/settings/security",
+  //   icon: Icon.FiKey,
+  // },
   {
     name: "developer",
     href: "/settings/developer",

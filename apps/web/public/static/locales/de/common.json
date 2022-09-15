@@ -1155,7 +1155,7 @@
   "workflow_example_4": "Eine Erinnerung per SMS an die Teilnehmer verschicken, 24 Stunden bevor das Event startet",
   "workflow_example_5": "Eine Erinnerung per SMS an die Teilnehmer verschicken, eine Stunde bevor das Event startet",
   "workflow_example_6": "Eine SMS an die Teilnehmer verschicken, wenn das Event verschoben wird",
-  "welcome_to_cal_header": "Willkommen bei Cal.com!",
+  "welcome_to_cal_header": "Willkommen!",
   "edit_form_later_subtitle": "Sie können dies später bearbeiten.",
   "connect_calendar_later": "Ich verbinde meinen Kalender später",
   "set_my_availability_later": "Ich werde meine Verfügbarkeit später festlegen",
