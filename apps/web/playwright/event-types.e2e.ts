@@ -116,7 +116,7 @@ test.describe("Event Types tests", () => {
           return !!url.pathname.match(/\/event-types\/.+/);
         },
       });
-      await page.locator("[data-testid=save-eventtype]").click();
+      await page.locator("[data-testid=update-eventtype]").click();
       const toast = await page.waitForSelector("div[class*='data-testid-toast-success']");
       await expect(toast).toBeTruthy();
     });
@@ -146,7 +146,7 @@ test.describe("Event Types tests", () => {
           return !!url.pathname.match(/\/event-types\/.+/);
         },
       });
-      await page.locator("[data-testid=save-eventtype]").click();
+      await page.locator("[data-testid=update-eventtype]").click();
       const toast = await page.waitForSelector("div[class*='data-testid-toast-success']");
       await expect(toast).toBeTruthy();
     });
