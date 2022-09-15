@@ -56,9 +56,9 @@
   },
   {
    "dirName": "n8n",
-    "categories": ["other"],
+    "categories": ["automation"],
     "slug": "n8n",
-    "type": "n8n_other"
+    "type": "n8n_automation"
   },
   {
     "dirName": "exchangecalendar",
