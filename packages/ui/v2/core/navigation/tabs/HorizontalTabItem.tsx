@@ -6,34 +6,40 @@ import { MouseEventHandler } from "react";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-export type HorizontalTabItemProps = {
+export type HorizontalTabItemProps<T extends string = "tabName"> = {
   name: string;
   disabled?: boolean;
   className?: string;
 } & (
   | {
-      /** If you want to change query param tabName as per current tab */
       href: string;
-      tabName?: never;
     }
-  | {
+  | ({
       href?: never;
-      /** If you want to change the path as per current tab */
-      tabName: string;
-    }
+    } & Partial<Record<T, string>>)
 );
 
-const HorizontalTabItem = ({ name, href, tabName, ...props }: HorizontalTabItemProps) => {
+const HorizontalTabItem = function <T extends string>({
+  name,
+  href,
+  tabNameKey,
+  ...props
+}: HorizontalTabItemProps<T> & {
+  tabNameKey?: T;
+}) {
   const router = useRouter();
   const { t } = useLocale();
   let newHref = "";
   let isCurrent;
+  const _tabNameKey = tabNameKey || "tabName";
+  const tabName = props[tabNameKey as keyof typeof props];
+
   if (href) {
     newHref = href;
     isCurrent = router.asPath === href;
   } else if (tabName) {
     newHref = "";
-    isCurrent = router.query.tabName === tabName;
+    isCurrent = router.query[_tabNameKey] === tabName;
   }
 
   const onClick: MouseEventHandler = tabName
@@ -42,7 +48,7 @@ const HorizontalTabItem = ({ name, href, tabName, ...props }: HorizontalTabItemP
         router.push({
           query: {
             ...router.query,
-            tabName,
+            [_tabNameKey]: tabName,
           },
         });
       }

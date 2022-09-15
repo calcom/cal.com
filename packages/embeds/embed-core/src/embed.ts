@@ -276,8 +276,8 @@ export class Cal {
     hideButtonIcon = false,
     attributes,
     buttonPosition = "bottom-right",
-    buttonColor = "rgb(255, 202, 0)",
-    buttonTextColor = "rgb(20, 30, 47)",
+    buttonColor = "rgb(0, 0, 0)",
+    buttonTextColor = "rgb(255, 255, 255)",
   }: {
     calLink: string;
     buttonText?: string;

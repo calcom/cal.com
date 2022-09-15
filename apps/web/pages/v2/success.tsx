@@ -34,8 +34,6 @@ import { Icon } from "@calcom/ui/Icon";
 import { EmailInput } from "@calcom/ui/form/fields";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
-import { isBrandingHidden } from "@lib/isBrandingHidden";
-import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
@@ -275,9 +273,7 @@ export default function Success(props: SuccessProps) {
       <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
         <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
-          {isSuccessRedirectAvailable(eventType) && eventType.successRedirectUrl ? (
-            <RedirectionToast url={eventType.successRedirectUrl} />
-          ) : null}{" "}
+          {eventType.successRedirectUrl ? <RedirectionToast url={eventType.successRedirectUrl} /> : null}{" "}
           <div
             className={classNames(
               shouldAlignCentrally ? "text-center" : "",
@@ -868,7 +864,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     props: {
-      hideBranding: eventType.team ? eventType.team.hideBranding : isBrandingHidden(eventType.users[0]),
+      hideBranding: eventType.team ? eventType.team.hideBranding : eventType.users[0].hideBranding,
       profile,
       eventType,
       recurringBookings: recurringBookings ? recurringBookings.map((obj) => obj.startTime.toString()) : null,
