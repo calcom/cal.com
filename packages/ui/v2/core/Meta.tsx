@@ -51,8 +51,8 @@ export default function Meta({ title, description, backButton }: MetaType) {
 
   return (
     <Head>
-      <title>{t(title)} | Cal.com</title>
-      <meta name="description" content={t(description)} />
+      <title>{title} | Cal.com</title>
+      <meta name="description" content={description} />
     </Head>
   );
 }
