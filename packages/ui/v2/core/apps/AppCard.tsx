@@ -30,9 +30,7 @@ export default function AppCard({ app, credentials }: AppCardProps) {
   const appAdded = (credentials && credentials.length) || 0;
 
   return (
-    <div
-      className="relative flex h-64 flex-col rounded-md border border-gray-300 p-5"
-      data-testid={`app-store-app-card-${app.slug}`}>
+    <div className="relative flex h-64 flex-col rounded-md border border-gray-300 p-5">
       <div className="flex">
         <img src={app.logo} alt={app.name + " Logo"} className="mb-4 h-12 w-12 rounded-sm" />
       </div>
@@ -54,7 +52,11 @@ export default function AppCard({ app, credentials }: AppCardProps) {
         {app.description}
       </p>
       <div className="mt-5 flex max-w-full flex-row flex-wrap justify-between gap-2">
-        <Button color="secondary" className="flex w-32 flex-grow justify-center" href={"/apps/" + app.slug}>
+        <Button
+          color="secondary"
+          className="flex w-32 flex-grow justify-center"
+          href={`/apps/${app.slug}`}
+          data-testid={`app-store-app-card-${app.slug}`}>
           {t("details")}
         </Button>
         {app.isGlobal || (credentials && credentials.length > 0 && allowedMultipleInstalls)
