@@ -11,6 +11,11 @@ const IS_STRIPE_ENABLED = !!(
   process.env.STRIPE_PRIVATE_KEY
 );
 
+// TODO: No longer up to date, rewrite needed.
+
+// eslint-disable-next-line playwright/no-skipped-test
+test.skip();
+
 test.describe("Stripe integration", () => {
   // eslint-disable-next-line playwright/no-skipped-test
   test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
