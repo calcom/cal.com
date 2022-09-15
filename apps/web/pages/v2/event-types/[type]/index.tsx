@@ -17,7 +17,7 @@ import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Form } from "@calcom/ui/form/fields";
-import { Button, showToast } from "@calcom/ui/v2";
+import { showToast } from "@calcom/ui/v2";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
@@ -36,8 +36,6 @@ import { EventTypeSingleLayout } from "@components/v2/eventtype/EventTypeSingleL
 import EventWorkflowsTab from "@components/v2/eventtype/EventWorkfowsTab";
 
 import { getTranslation } from "@server/lib/i18n";
-
-const TABS_WITHOUT_ACTION_BUTTONS = ["workflows", "availability"];
 
 export type FormValues = {
   title: string;
@@ -245,16 +243,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         <div ref={animationParentRef} className="space-y-6">
           {tabMap[tabName]}
         </div>
-        {!TABS_WITHOUT_ACTION_BUTTONS.includes(tabName) && (
-          <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-            <Button href="/event-types" color="secondary" tabIndex={-1}>
-              {t("cancel")}
-            </Button>
-            <Button type="submit" data-testid="update-eventtype" disabled={updateMutation.isLoading}>
-              {t("update")}
-            </Button>
-          </div>
-        )}
       </Form>
     </EventTypeSingleLayout>
   );
