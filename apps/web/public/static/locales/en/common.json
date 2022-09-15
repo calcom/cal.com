@@ -1239,5 +1239,8 @@
   "password_reset_leading":"If you did not receive the email soon, check that the email address you entered is correct, check your spam folder or reach out to support if the issue persists.",
   "password_updated":"Password updated!",
   "pending_payment": "Pending payment",
-  "confirmation_page_rainbow": "Token gate your event with tokens or NFTs on Ethereum, Polygon, and more."
+  "confirmation_page_rainbow": "Token gate your event with tokens or NFTs on Ethereum, Polygon, and more.",
+  "no_calendar_installed": "No calendar installed",
+  "no_calendar_installed_description": "You have not yet connected any of your calendars",
+  "add_a_calendar": "Add a calendar"
 }
