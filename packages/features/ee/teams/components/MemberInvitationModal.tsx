@@ -66,20 +66,19 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
   return (
     <Dialog open={props.isOpen} onOpenChange={props.onExit}>
-      <DialogContent type="creation" useOwnActionButtons>
-        <div className="mb-4 sm:flex sm:items-start">
-          <div className="bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-opacity-5 sm:mx-0 sm:h-10 sm:w-10">
-            <Icon.FiUser className="text-brandcontrast h-6 w-6" />
-          </div>
-          <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-            <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
-              {t("invite_new_member")}
-            </h3>
-            <div>
-              <p className="text-sm text-gray-400">{t("invite_new_team_member")}</p>
-            </div>
-          </div>
-        </div>
+      <DialogContent
+        type="creation"
+        useOwnActionButtons
+        title={t("invite_new_member")}
+        description={
+          <span className=" text-sm leading-tight text-gray-500">
+            Note: This will <span className="font-medium text-gray-900">cost an extra seat ($12/m)</span> on
+            your subscription if this invitee does not have a pro account.{" "}
+            <a href="#" className="underline">
+              Learn More
+            </a>
+          </span>
+        }>
         <form onSubmit={inviteMember}>
           <div className="space-y-4">
             <TextField
@@ -116,16 +115,6 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   {t("send_invite_email")}
                 </label>
               </div>
-            </div>
-            <div className="flex flex-row rounded-md bg-gray-50 px-3 py-2">
-              <Icon.FiInfo className="h-5 w-5 flex-shrink-0 fill-gray-400" aria-hidden="true" />
-              <span className="ml-2 text-sm leading-tight text-gray-500">
-                Note: This will cost an extra seat ($12/m) on your subscription if this invitee does not have
-                a pro account.{" "}
-                {/* <a href="#" className="underline">
-                  Learn More
-                </a> */}
-              </span>
             </div>
           </div>
           {errorMessage && (
