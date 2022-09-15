@@ -39,13 +39,13 @@ export const availabilityRouter = createProtectedRouter()
   })
   .query("schedule", {
     input: z.object({
-      scheduleId: z.number(),
+      scheduleId: z.optional(z.number()),
     }),
     async resolve({ ctx, input }) {
       const { prisma, user } = ctx;
       const schedule = await prisma.schedule.findUnique({
         where: {
-          id: input.scheduleId,
+          id: input.scheduleId || (await getDefaultScheduleId(user.id, prisma)),
         },
         select: {
           id: true,
@@ -72,7 +72,7 @@ export const availabilityRouter = createProtectedRouter()
         schedule,
         availability,
         timeZone: schedule.timeZone || user.timeZone,
-        isDefault: !user.defaultScheduleId || user.defaultScheduleId === schedule.id,
+        isDefault: !input.scheduleId || user.defaultScheduleId === schedule.id,
       };
     },
   })
@@ -290,6 +290,32 @@ const setupDefaultSchedule = async (userId: number, scheduleId: number, prisma: 
 
 const isDefaultSchedule = (scheduleId: number, user: Partial<User>) => {
   return !user.defaultScheduleId || user.defaultScheduleId === scheduleId;
+};
+
+const getDefaultScheduleId = async (userId: number, prisma: PrismaClient) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      defaultScheduleId: true,
+    },
+  });
+
+  if (user?.defaultScheduleId) {
+    return user.defaultScheduleId;
+  }
+
+  const defaultSchedule = await prisma.schedule.findFirst({
+    where: {
+      userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  return defaultSchedule?.id; // TODO: Handle no schedules AT ALL
 };
 
 const hasDefaultSchedule = async (user: Partial<User>, prisma: PrismaClient) => {
