@@ -27,7 +27,7 @@ const AppCard = ({
 }) => {
   return (
     <div className="mb-4 rounded-md border border-gray-200 p-8">
-      <div className="mb-6 flex w-full">
+      <div className="flex w-full">
         <img src={logo} alt={name} className="mr-3 h-auto w-[42px] rounded-sm" />
         <div className="flex flex-col">
           <span className="font-semibold leading-none text-black">{name}</span>
