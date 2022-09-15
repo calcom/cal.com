@@ -16,7 +16,6 @@ interface AppCardProps {
 
 export default function AppCard({ app, credentials }: AppCardProps) {
   const { t } = useLocale();
-  const { data: user } = trpc.useQuery(["viewer.me"]);
 
   const mutation = useAddAppMutation(null, {
     onSuccess: () => {
