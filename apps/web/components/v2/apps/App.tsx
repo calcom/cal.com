@@ -114,11 +114,6 @@ const Component = ({
               <div className="mb-4 flex items-center">
                 <img className="min-h-16 min-w-16 h-16 w-16" src={logo} alt={name} />
                 <h1 className="font-cal ml-4 text-3xl text-gray-900">{name}</h1>
-                {isProOnly && user?.plan === "FREE" ? (
-                  <Badge className="ml-2" variant="default">
-                    PRO
-                  </Badge>
-                ) : null}
               </div>
               <h2 className="text-sm font-medium text-gray-600">
                 <Link href={`categories/${categories[0]}`}>

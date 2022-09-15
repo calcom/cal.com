@@ -23,10 +23,6 @@ test.describe("Event Types tests", () => {
       const $eventTypes = page.locator("[data-testid=event-types] > *");
       const count = await $eventTypes.count();
       expect(count).toBeGreaterThanOrEqual(2);
-
-      for (let i = 0; i < count; i++) {
-        expect(await $eventTypes.nth(i).getAttribute("data-disabled")).toBe("0");
-      }
     });
 
     test("can add new event type", async ({ page }) => {
@@ -145,15 +141,6 @@ test.describe("Event Types tests", () => {
       const $eventTypes = page.locator("[data-testid=event-types] > *");
       const count = await $eventTypes.count();
       expect(count).toBeGreaterThanOrEqual(2);
-
-      const $first = $eventTypes.first();
-      const $last = $eventTypes.last()!;
-      expect(await $first.getAttribute("data-disabled")).toBe("0");
-      expect(await $last.getAttribute("data-disabled")).toBe("1");
-    });
-
-    test("can not add new event type", async ({ page }) => {
-      await expect(page.locator("[data-testid=new-event-type]")).toBeDisabled();
     });
 
     test("edit first event", async ({ page }) => {

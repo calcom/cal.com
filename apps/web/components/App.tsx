@@ -92,11 +92,6 @@ const Component = ({
             <header className="px-4 py-2">
               <div className="flex items-center">
                 <h1 className="font-cal text-xl text-gray-900">{name}</h1>
-                {isProOnly && user?.plan === "FREE" ? (
-                  <Badge className="ml-2" variant="default">
-                    PRO
-                  </Badge>
-                ) : null}
               </div>
               <h2 className="text-sm text-gray-500">
                 <span className="capitalize">{categories[0]}</span> • {t("published_by", { author })}

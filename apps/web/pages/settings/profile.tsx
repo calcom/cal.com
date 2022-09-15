@@ -29,7 +29,6 @@ import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { UpgradeToProDialog } from "@calcom/ui/UpgradeToProDialog";
 import { Form, PasswordField } from "@calcom/ui/form/fields";
-import { Label } from "@calcom/ui/form/fields";
 
 import { withQuery } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
@@ -508,7 +507,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   <div className="text-sm ltr:ml-3 rtl:mr-3">
                     <label htmlFor="hide-branding" className="font-medium text-gray-700">
                       {t("disable_cal_branding")}{" "}
-                      {user.plan !== "PRO" && <Badge variant="default">PRO</Badge>}
+                      {user.plan !== "PRO" && <Badge variant="default">TEAM</Badge>}
                     </label>
                     <p className="text-gray-500">{t("disable_cal_branding_description")}</p>
                   </div>
