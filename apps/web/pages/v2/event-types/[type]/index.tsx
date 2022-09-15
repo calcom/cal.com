@@ -96,6 +96,8 @@ const querySchema = z.object({
       "advanced",
       "workflows",
       "embed-preview",
+      "embed-code",
+      "embed-react",
     ])
     .optional()
     .default("setup"),
