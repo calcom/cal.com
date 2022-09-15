@@ -210,6 +210,7 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
         { label: "Payment", value: "payment" },
         { label: "Messaging", value: "messaging" },
         { label: "Web3", value: "web3" },
+        { label: "Automation", value: "automation" },
         { label: "Other", value: "other" },
       ],
       explainer: "This is how apps are categorized in App Store.",

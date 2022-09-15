@@ -1,19 +1,26 @@
-import { FC } from "react";
-
 import { classNames } from "@calcom/lib";
 
 import VerticalTabItem, { VerticalTabItemProps } from "./VerticalTabItem";
 
 export { VerticalTabItem };
 
-export interface NavTabProps {
-  tabs: VerticalTabItemProps[];
+export interface NavTabProps<T extends string> {
+  tabs: VerticalTabItemProps<T>[];
   children?: React.ReactNode;
   className?: string;
   sticky?: boolean;
+  tabNameKey?: T;
 }
 
-const NavTabs: FC<NavTabProps> = ({ tabs, className = "", sticky, ...props }) => {
+const NavTabs = function <T extends string>({
+  tabs,
+  tabNameKey,
+  className = "",
+  sticky,
+  ...props
+}: NavTabProps<T>) {
+  const _tabNameKey = tabNameKey || "tabName";
+
   return (
     <nav
       className={classNames(
@@ -26,7 +33,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, className = "", sticky, ...props }) =>
       {sticky && <div className="pt-6" />}
       {props.children}
       {tabs.map((tab, idx) => (
-        <VerticalTabItem {...tab} key={idx} />
+        <VerticalTabItem tabNameKey={_tabNameKey} {...tab} key={idx} />
       ))}
     </nav>
   );

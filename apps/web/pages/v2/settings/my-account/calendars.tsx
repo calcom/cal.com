@@ -11,6 +11,7 @@ import Badge from "@calcom/ui/v2/core/Badge";
 import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
+import { SkeletonContainer, SkeletonText, SkeletonButton } from "@calcom/ui/v2/core/skeleton";
 import { List, ListItem, ListItemText, ListItemTitle } from "@calcom/ui/v2/modules/List";
 import DestinationCalendarSelector from "@calcom/ui/v2/modules/event-types/DestinationCalendarSelector";
 import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
@@ -18,6 +19,21 @@ import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/Disconnect
 import { QueryCell } from "@lib/QueryCell";
 
 import { CalendarSwitch } from "@components/v2/settings/CalendarSwitch";
+
+const SkeletonLoader = () => {
+  return (
+    <SkeletonContainer>
+      <div className="mt-6 mb-8 space-y-6 divide-y">
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+
+        <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
+      </div>
+    </SkeletonContainer>
+  );
+};
 
 const CalendarsView = () => {
   const { t } = useLocale();
@@ -37,6 +53,7 @@ const CalendarsView = () => {
       <Meta title="Calendars" description="Configure how your event types interact with your calendars" />
       <QueryCell
         query={query}
+        customLoader={<SkeletonLoader />}
         success={({ data }) => {
           return data.connectedCalendars.length ? (
             <div>
@@ -65,7 +82,6 @@ const CalendarsView = () => {
                   />
                 </div>
               </div>
-
               <h4 className="mt-12 text-base font-semibold leading-5 text-black">
                 {t("check_for_conflicts")}
               </h4>
@@ -130,9 +146,9 @@ const CalendarsView = () => {
           ) : (
             <EmptyScreen
               Icon={Icon.FiCalendar}
-              headline="No calendar installed"
-              description="You have not yet connected any of your calendars"
-              buttonText="Add a calendar"
+              headline={t("no_calendar_installed")}
+              description={t("no_calendar_installed_description")}
+              buttonText={t("add_a_calendar")}
               buttonOnClick={() => router.push(`${WEBAPP_URL}/apps/categories/calendar`)}
             />
           );

@@ -5,9 +5,9 @@ import AttendeeCancelledEmail from "./templates/attendee-cancelled-email";
 import AttendeeDeclinedEmail from "./templates/attendee-declined-email";
 import AttendeeLocationChangeEmail from "./templates/attendee-location-change-email";
 import AttendeeRequestEmail from "./templates/attendee-request-email";
-import AttendeeRequestRescheduledEmail from "./templates/attendee-request-reschedule-email";
 import AttendeeRescheduledEmail from "./templates/attendee-rescheduled-email";
 import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
+import AttendeeWasRequestedToRescheduleEmail from "./templates/attendee-was-requested-to-reschedule-email";
 import BrokenIntegrationEmail from "./templates/broken-integration-email";
 import FeedbackEmail, { Feedback } from "./templates/feedback-email";
 import ForgotPasswordEmail, { PasswordReset } from "./templates/forgot-password-email";
@@ -16,7 +16,7 @@ import OrganizerLocationChangeEmail from "./templates/organizer-location-change-
 import OrganizerPaymentRefundFailedEmail from "./templates/organizer-payment-refund-failed-email";
 import OrganizerRequestEmail from "./templates/organizer-request-email";
 import OrganizerRequestReminderEmail from "./templates/organizer-request-reminder-email";
-import OrganizerRequestRescheduleEmail from "./templates/organizer-request-reschedule-email";
+import OrganizerRequestedToRescheduleEmail from "./templates/organizer-requested-to-reschedule-email";
 import OrganizerRescheduledEmail from "./templates/organizer-rescheduled-email";
 import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
 import TeamInviteEmail, { TeamInvite } from "./templates/team-invite-email";
@@ -53,7 +53,7 @@ export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
 
 export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
   const emailsToSend: Promise<unknown>[] = [];
-
+  // @TODO: we should obtain who is rescheduling the event and send them a different email
   emailsToSend.push(
     ...calEvent.attendees.map((attendee) => {
       return new Promise((resolve, reject) => {
@@ -73,7 +73,7 @@ export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
         const scheduledEmail = new OrganizerRescheduledEmail(calEvent);
         resolve(scheduledEmail.sendEmail());
       } catch (e) {
-        reject(console.error("OrganizerScheduledEmail.sendEmail failed", e));
+        reject(console.error("OrganizerRescheduledEmail.sendEmail failed", e));
       }
     })
   );
@@ -255,10 +255,10 @@ export const sendRequestRescheduleEmail = async (
   emailsToSend.push(
     new Promise((resolve, reject) => {
       try {
-        const requestRescheduleEmail = new AttendeeRequestRescheduledEmail(calEvent, metadata);
+        const requestRescheduleEmail = new AttendeeWasRequestedToRescheduleEmail(calEvent, metadata);
         resolve(requestRescheduleEmail.sendEmail());
       } catch (e) {
-        reject(console.error("AttendeeRequestRescheduledEmail.sendEmail failed", e));
+        reject(console.error("AttendeeWasRequestedToRescheduleEmail.sendEmail failed", e));
       }
     })
   );
@@ -266,10 +266,10 @@ export const sendRequestRescheduleEmail = async (
   emailsToSend.push(
     new Promise((resolve, reject) => {
       try {
-        const requestRescheduleEmail = new OrganizerRequestRescheduleEmail(calEvent, metadata);
+        const requestRescheduleEmail = new OrganizerRequestedToRescheduleEmail(calEvent, metadata);
         resolve(requestRescheduleEmail.sendEmail());
       } catch (e) {
-        reject(console.error("OrganizerRequestRescheduledEmail.sendEmail failed", e));
+        reject(console.error("OrganizerRequestedToRescheduleEmail.sendEmail failed", e));
       }
     })
   );

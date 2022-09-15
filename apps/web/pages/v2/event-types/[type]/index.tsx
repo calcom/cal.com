@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import autoAnimate from "@formkit/auto-animate";
 import { EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
