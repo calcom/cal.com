@@ -3,23 +3,16 @@ import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
 
 import { Schedule } from "@calcom/features/schedules";
+import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc, TRPCClientErrorLike } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Form } from "@calcom/ui/form/fields";
 import { Button } from "@calcom/ui/v2";
 
-import { DEFAULT_SCHEDULE } from "@lib/availability";
-import type { Schedule as ScheduleType } from "@lib/types/schedule";
-
 interface ISetupAvailabilityProps {
   nextStep: () => void;
   defaultScheduleId?: number | null;
-  defaultAvailability?: { schedule?: TimeRanges[][] };
-}
-
-interface ScheduleFormValues {
-  schedule: ScheduleType;
 }
 
 const SetupAvailability = (props: ISetupAvailabilityProps) => {
@@ -37,7 +30,9 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
   }
 
   const availabilityForm = useForm({
-    defaultValues: { schedule: queryAvailability?.data?.availability || DEFAULT_SCHEDULE },
+    defaultValues: {
+      schedule: queryAvailability?.data?.availability || DEFAULT_SCHEDULE,
+    },
   });
 
   const mutationOptions = {
@@ -51,7 +46,7 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
   const createSchedule = trpc.useMutation("viewer.availability.schedule.create", mutationOptions);
   const updateSchedule = trpc.useMutation("viewer.availability.schedule.update", mutationOptions);
   return (
-    <Form<ScheduleFormValues>
+    <Form
       className="w-full bg-white text-black dark:bg-opacity-5 dark:text-white"
       form={availabilityForm}
       handleSubmit={async (values) => {
@@ -75,7 +70,7 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
           }
         }
       }}>
-      <Schedule />
+      <Schedule control={availabilityForm.control} name="schedule" weekStart={1} />
 
       <div>
         <Button
