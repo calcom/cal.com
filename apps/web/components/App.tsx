@@ -1,5 +1,6 @@
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import React, { useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
@@ -12,6 +13,8 @@ import { Button, SkeletonButton } from "@calcom/ui";
 import { Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
 import Badge from "@calcom/ui/v2/core/Badge";
+
+import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 
 const Component = ({
   name,
@@ -32,7 +35,14 @@ const Component = ({
   isProOnly,
 }: Parameters<typeof App>[0]) => {
   const { t } = useLocale();
+  const router = useRouter();
   const { data: user } = trpc.useQuery(["viewer.me"]);
+
+  const utils = trpc.useContext();
+  const handleOpenChange = () => {
+    utils.invalidateQueries(["viewer.integrations"]);
+    router.replace("/apps/installed");
+  };
 
   const mutation = useAddAppMutation(null, {
     onSuccess: () => {
@@ -48,34 +58,14 @@ const Component = ({
     currency: "USD",
     useGrouping: false,
   }).format(price);
-  const [installedAppCount, setInstalledAppCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  useEffect(() => {
-    async function getInstalledApp(appCredentialType: string) {
-      const queryParam = new URLSearchParams();
-      queryParam.set("app-credential-type", appCredentialType);
-      try {
-        const result = await fetch(`/api/app-store/installed?${queryParam.toString()}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }).then((data) => {
-          setIsLoading(false);
-          return data;
-        });
-        if (result.status === 200) {
-          const res = await result.json();
-          setInstalledAppCount(res.count);
-        }
-      } catch (error) {
-        if (error instanceof Error) {
-          console.log(error.message);
-        }
-      }
-    }
-    getInstalledApp(type);
-  }, [type]);
+
+  const [existingCredentials, setExistingCredentials] = useState<number[]>([]);
+  const appCredentials = trpc.useQuery(["viewer.appCredentialsByType", { appType: type }], {
+    onSuccess(data) {
+      setExistingCredentials(data);
+    },
+  });
+
   const allowedMultipleInstalls = categories.indexOf("calendar") > -1;
 
   return (
@@ -100,12 +90,13 @@ const Component = ({
           </div>
 
           <div className="mt-4 sm:mt-0 sm:text-right">
-            {!isLoading ? (
-              isGlobal || (installedAppCount > 0 && allowedMultipleInstalls) ? (
+            {!appCredentials.isLoading ? (
+              isGlobal ||
+              (existingCredentials.length > 0 && allowedMultipleInstalls ? (
                 <div className="flex space-x-3">
                   <Button StartIcon={Icon.FiCheck} color="secondary" disabled>
-                    {installedAppCount > 0
-                      ? t("active_install", { count: installedAppCount })
+                    {existingCredentials.length > 0
+                      ? t("active_install", { count: existingCredentials.length })
                       : t("globally_install")}
                   </Button>
                   {!isGlobal && (
@@ -130,10 +121,16 @@ const Component = ({
                     />
                   )}
                 </div>
-              ) : installedAppCount > 0 ? (
-                <Button color="secondary" disabled title="App already installed">
-                  {t("installed")}
-                </Button>
+              ) : existingCredentials.length > 0 ? (
+                <DisconnectIntegration
+                  id={existingCredentials[0]}
+                  render={(btnProps) => (
+                    <Button {...btnProps} color="warn" data-testid={type + "-integration-disconnect-button"}>
+                      {t("disconnect")}
+                    </Button>
+                  )}
+                  onOpenChange={handleOpenChange}
+                />
               ) : (
                 <InstallAppButton
                   type={type}
@@ -154,7 +151,7 @@ const Component = ({
                     );
                   }}
                 />
-              )
+              ))
             ) : (
               <SkeletonButton width="24" height="10" />
             )}
