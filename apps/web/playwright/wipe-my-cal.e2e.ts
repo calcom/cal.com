@@ -46,7 +46,7 @@ test.describe("Wipe my Cal App Test", () => {
 
     const $openBookings = await page.locator('[data-testid="bookings"]');
     await $openBookings.evaluate((ul) => {
-      return new Promise((resolve) =>
+      return new Promise<void>((resolve) =>
         new window.MutationObserver(() => {
           if (ul.childElementCount === 2) {
             resolve();

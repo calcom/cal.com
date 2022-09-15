@@ -164,6 +164,7 @@ const ProfileView = () => {
           render={({ field: { value } }) => (
             <div className="mt-8">
               <TextField
+                data-testid="username-input"
                 name="username"
                 label={t("personal_cal_url")}
                 addOnLeading="https://cal.com/"
@@ -178,14 +179,13 @@ const ProfileView = () => {
         <Controller
           control={formMethods.control}
           name="name"
-          render={({ field: { value } }) => (
+          render={({ field: { value, onChange } }) => (
             <div className="mt-8">
               <TextField
-                name="username"
                 label={t("full_name")}
                 value={value}
                 onChange={(e) => {
-                  formMethods.setValue("name", e?.target.value);
+                  onChange(e?.target.value);
                 }}
               />
             </div>
