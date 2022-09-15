@@ -177,14 +177,14 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       keywords: "api keys",
       perform: () => router.push("/settings/developer"),
     },
-    {
-      id: "billing",
-      name: "View and Manage Billing",
-      section: "Billing",
-      shortcut: ["m", "b"],
-      keywords: "billing view manage",
-      perform: () => router.push("/settings/billing"),
-    },
+    // {
+    //   id: "billing",
+    //   name: "View and Manage Billing",
+    //   section: "Billing",
+    //   shortcut: ["m", "b"],
+    //   keywords: "billing view manage",
+    //   perform: () => router.push("/settings/billing"),
+    // },
   ];
 
   return <KBarProvider actions={actions}>{children}</KBarProvider>;

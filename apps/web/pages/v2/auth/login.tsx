@@ -76,12 +76,6 @@ export default function Login({
 
   callbackUrl = safeCallbackUrl || "";
 
-  const LoginFooter = (
-    <a href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
-      {t("i_dont_have_an_account")}
-    </a>
-  );
-
   const TwoFactorFooter = (
     <Button
       onClick={() => {
@@ -101,73 +95,9 @@ export default function Login({
         description={t("login")}
         showLogo
         heading={twoFactorRequired ? t("2fa_code") : t("welcome_back")}
-        footerText={twoFactorRequired ? TwoFactorFooter : LoginFooter}>
-        <Form
-          form={form}
-          handleSubmit={async (values) => {
-            setErrorMessage(null);
-            telemetry.event(telemetryEventTypes.login, collectPageParameters());
-            const res = await signIn<"credentials">("credentials", {
-              ...values,
-              callbackUrl,
-              redirect: false,
-            });
-            if (!res) setErrorMessage(errorMessages[ErrorCode.InternalServerError]);
-            // we're logged in! let's do a hard refresh to the desired url
-            else if (!res.error) router.push(callbackUrl);
-            // reveal two factor input if required
-            else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
-            // fallback if error not found
-            else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
-          }}
-          data-testid="login-form">
-          <div>
-            <input
-              defaultValue={csrfToken || undefined}
-              type="hidden"
-              hidden
-              {...form.register("csrfToken")}
-            />
-          </div>
-          <div className="space-y-6">
-            <div className={classNames("space-y-6", { hidden: twoFactorRequired })}>
-              <EmailField
-                id="email"
-                label={t("email_address")}
-                defaultValue={router.query.email as string}
-                placeholder="john.doe@example.com"
-                required
-                {...form.register("email")}
-              />
-              <div className="relative">
-                <div className="absolute right-0 -top-[6px]">
-                  <Link href="/auth/forgot-password">
-                    <a tabIndex={-1} className="text-sm font-medium text-gray-600">
-                      {t("forgot")}
-                    </a>
-                  </Link>
-                </div>
-                <PasswordField
-                  id="password"
-                  autoComplete="current-password"
-                  required
-                  className="mb-0"
-                  {...form.register("password")}
-                />
-              </div>
-            </div>
-
-            {twoFactorRequired && <TwoFactor center />}
-
-            {errorMessage && <Alert severity="error" title={errorMessage} />}
-            <Button type="submit" color="primary" disabled={isSubmitting} className="w-full justify-center">
-              {twoFactorRequired ? t("submit") : t("sign_in")}
-            </Button>
-          </div>
-        </Form>
+        footerText={twoFactorRequired ? TwoFactorFooter : null}>
         {!twoFactorRequired && (
           <>
-            {(isGoogleLoginEnabled || isSAMLLoginEnabled) && <hr className="my-8" />}
             <div className="space-y-3">
               {isGoogleLoginEnabled && (
                 <Button

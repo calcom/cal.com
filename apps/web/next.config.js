@@ -165,11 +165,11 @@ const nextConfig = {
         destination: "/settings/my-account/profile",
         permanent: false,
       },
-      {
-        source: "/settings/security",
-        destination: "/settings/security/password",
-        permanent: false,
-      },
+      // {
+      //   source: "/settings/security",
+      //   destination: "/settings/security/password",
+      //   permanent: false,
+      // },
       {
         source: "/bookings",
         destination: "/bookings/upcoming",

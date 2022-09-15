@@ -27,30 +27,30 @@ const tabs: VerticalTabItemProps[] = [
       { name: "general", href: "/settings/my-account/general" },
       { name: "calendars", href: "/settings/my-account/calendars" },
       { name: "conferencing", href: "/settings/my-account/conferencing" },
-      { name: "appearance", href: "/settings/my-account/appearance" },
+      // { name: "appearance", href: "/settings/my-account/appearance" },
       // TODO
       // { name: "referrals", href: "/settings/my-account/referrals" },
     ],
   },
-  {
-    name: "security",
-    href: "/settings/security",
-    icon: Icon.FiKey,
-    children: [
-      //
-      { name: "password", href: "/settings/security/password" },
-      { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
-    ],
-  },
-  {
-    name: "billing",
-    href: "/settings/billing",
-    icon: Icon.FiCreditCard,
-    children: [
-      //
-      { name: "invoices", href: "/settings/billing" },
-    ],
-  },
+  // {
+  //   name: "security",
+  //   href: "/settings/security",
+  //   icon: Icon.FiKey,
+  //   children: [
+  //     //
+  //     { name: "password", href: "/settings/security/password" },
+  //     { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
+  //   ],
+  // },
+  // {
+  //   name: "billing",
+  //   href: "/settings/billing",
+  //   icon: Icon.FiCreditCard,
+  //   children: [
+  //     //
+  //     { name: "invoices", href: "/settings/billing" },
+  //   ],
+  // },
   {
     name: "developer",
     href: "/settings/developer",
@@ -233,12 +233,12 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                               textClassNames="px-3 text-gray-900 font-medium text-sm"
                               disableChevron
                             /> */}
-                                <VerticalTabItem
-                                  name={t("appearance")}
-                                  href={`${WEBAPP_URL}/settings/teams/${team.id}/appearance`}
-                                  textClassNames="px-3 text-gray-900 font-medium text-sm"
-                                  disableChevron
-                                />
+                                {/*<VerticalTabItem*/}
+                                {/*  name={t("appearance")}*/}
+                                {/*  href={`${WEBAPP_URL}/settings/teams/${team.id}/appearance`}*/}
+                                {/*  textClassNames="px-3 text-gray-900 font-medium text-sm"*/}
+                                {/*  disableChevron*/}
+                                {/*/>*/}
                                 {/* TODO: Implement saml configuration page */}
                                 {/* <VerticalTabItem
                               name={t("saml_config")}

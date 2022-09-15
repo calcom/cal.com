@@ -136,33 +136,11 @@ const ProfileView = () => {
           mutation.mutate(values);
         }}>
         <Meta title="Profile" description="Manage settings for your cal profile" />
-        <div className="flex items-center">
-          <Controller
-            control={formMethods.control}
-            name="avatar"
-            render={({ field: { value } }) => (
-              <>
-                <Avatar alt="" imageSrc={value} gravatarFallbackMd5={emailMd5} size="lg" />
-                <div className="ml-4">
-                  <ImageUploader
-                    target="avatar"
-                    id="avatar-upload"
-                    buttonMsg={t("change_avatar")}
-                    handleAvatarChange={(newAvatar) => {
-                      formMethods.setValue("avatar", newAvatar);
-                    }}
-                    imageSrc={value}
-                  />
-                </div>
-              </>
-            )}
-          />
-        </div>
         <Controller
           control={formMethods.control}
           name="username"
           render={({ field: { value } }) => (
-            <div className="mt-8">
+            <div className="">
               <TextField
                 name="username"
                 label={t("personal_cal_url")}
@@ -170,39 +148,6 @@ const ProfileView = () => {
                 value={value}
                 onChange={(e) => {
                   formMethods.setValue("username", e?.target.value);
-                }}
-              />
-            </div>
-          )}
-        />
-        <Controller
-          control={formMethods.control}
-          name="name"
-          render={({ field: { value } }) => (
-            <div className="mt-8">
-              <TextField
-                name="username"
-                label={t("full_name")}
-                value={value}
-                onChange={(e) => {
-                  formMethods.setValue("name", e?.target.value);
-                }}
-              />
-            </div>
-          )}
-        />
-        <Controller
-          control={formMethods.control}
-          name="bio"
-          render={({ field: { value } }) => (
-            <div className="mt-8">
-              <TextField
-                name="bio"
-                label={t("about")}
-                hint={t("bio_hint")}
-                value={value}
-                onChange={(e) => {
-                  formMethods.setValue("bio", e?.target.value);
                 }}
               />
             </div>

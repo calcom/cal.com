@@ -17,12 +17,13 @@ interface Props {
 
 export default function AuthContainer(props: React.PropsWithChildren<Props>) {
   return (
-    <div className="flex min-h-screen flex-col justify-center bg-[#f3f4f6] py-12 sm:px-6 lg:px-8">
+    <div className="bg-sunny-100 flex min-h-screen flex-col justify-center py-12 sm:px-6 lg:px-8">
       <HeadSeo title={props.title} description={props.description} />
-      {props.showLogo && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img className="mb-auto h-4" src={LOGO} alt="Cal.com Logo" />
-      )}
+      <img
+        src="https://mento-space.nyc3.digitaloceanspaces.com/logo.svg"
+        alt="logo"
+        className="mb-auto h-8"
+      />
       <div className={classNames(props.showLogo ? "text-center" : "", "sm:mx-auto sm:w-full sm:max-w-md")}>
         {props.heading && <h2 className="font-cal text-center text-3xl text-neutral-900">{props.heading}</h2>}
       </div>
