@@ -1243,5 +1243,6 @@
   "or_continue_with": "Or continue with",
   "create_account_for_free": "Create account for free",
   "signup_links_create_account": "By signing up, you agree to our <1>Terms of Service</1> and <3>Privacy Policy</3>. Need any help? <6>Get in touch</6>.",
-  "create_calcom_account": "Create your Cal.com account"
+  "create_calcom_account": "Create your Cal.com account",
+  "create_account_premium_name": "Create your Cal.com account with premium username"
 }

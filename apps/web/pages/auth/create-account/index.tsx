@@ -1,10 +1,13 @@
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 
+import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
 import { Icon } from "@calcom/ui";
 import { Button, Input, PasswordField } from "@calcom/ui/v2";
 import Divider from "@calcom/ui/v2/core/Divider";
@@ -16,10 +19,11 @@ const CreateAccount = () => {
   const { t } = useLocale();
   const router = useRouter();
   const [currentUsername, setCurrentUsername] = useState<string | undefined>();
+  const [isPremium, setIsPremium] = useState<boolean>(false);
   const [inputUsernameValue, setInputUsernameValue] = useState(currentUsername);
   const usernameRef = useRef<HTMLInputElement>(null!);
 
-  const { handleSubmit, control, setValue, trigger } = useForm<{
+  const { handleSubmit, control, setValue, trigger, register, formState } = useForm<{
     username: string;
     email: string;
     password: string;
@@ -28,8 +32,55 @@ const CreateAccount = () => {
       username: currentUsername,
     },
   });
-  const onSubmit = handleSubmit((data) => {
-    console.log({ data });
+
+  const onSubmit = handleSubmit(async (data) => {
+    if (data.email && data.password && currentUsername) {
+      try {
+        if (!isPremium) {
+          const response = await fetch("/api/auth/signup", {
+            method: "POST",
+            body: JSON.stringify({
+              email: data.email,
+              password: data.password,
+              username: currentUsername,
+            }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+          if (response.ok && response.status === 201) {
+            showToast(t("account_created"), "success");
+            router.push("/auth/login");
+            return;
+          }
+          if (response.status === 409) {
+            response.json().then((data) => {
+              console.error(data?.message);
+              showToast(data?.message, "error");
+            });
+          }
+        } else {
+          const response = await fetch(`http://localhost:3001/api/signup`, {
+            method: "POST",
+            body: JSON.stringify({
+              email: data.email,
+              password: data.password,
+              username: currentUsername,
+            }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+            mode: "cors",
+          });
+          console.log(response);
+        }
+      } catch (error) {
+        showToast(t("error_creating_account"), "error");
+      }
+    } else {
+      console.error("Missing form data");
+      await trigger();
+    }
   });
   return (
     <div className="flex h-[100vh] flex-row bg-white p-8 sm:p-0">
@@ -43,33 +94,51 @@ const CreateAccount = () => {
             usernameRef={usernameRef}
             setInputUsernameValue={setInputUsernameValue}
             blockUpdate
+            setIsPremium={!IS_SELF_HOSTED ? setIsPremium : undefined}
           />
+          {formState.isSubmitted && currentUsername === undefined && (
+            <p className="font-sans text-xs font-light leading-5 text-red-500">{t("required")}</p>
+          )}
           <label htmlFor="email" className="mb-2 mt-6 block text-sm font-medium text-gray-700">
             {t("email")}
           </label>
-          <Input type="email" name="email" className="mb-6" />
+          <div className="mb-6">
+            <Input className="mb-0" type="email" {...register("email", { required: true })} />
+            {formState.errors.email && (
+              <p className="font-sans text-xs font-light leading-5 text-red-500">{t("required")}</p>
+            )}
+          </div>
           <Controller
             name="password"
             control={control}
             render={({ field: { onBlur, onChange, value } }) => (
-              <PasswordField
-                t={t}
-                value={value || ""}
-                onBlur={onBlur}
-                onChange={async (e) => {
-                  onChange(e.target.value);
-                  setValue("password", e.target.value);
-                  await trigger("password");
-                }}
-                hintErrors={["caplow", "min", "num"]}
-                name="new-password"
-                label={t("password")}
-                className="mt-1 mb-6"
-                autoComplete="new-password"
-              />
+              <div className="mt-1 mb-6">
+                <PasswordField
+                  t={t}
+                  value={value || ""}
+                  onBlur={onBlur}
+                  onChange={async (e) => {
+                    onChange(e.target.value);
+                    setValue("password", e.target.value);
+                    await trigger("password");
+                  }}
+                  hintErrors={["caplow", "min", "num"]}
+                  name="new-password"
+                  label={t("password")}
+                  autoComplete="new-password"
+                  className="mb-0"
+                />
+                {formState.isSubmitted && !formState.touchedFields["password"] && (
+                  <p className="font-sans text-xs font-light leading-5 text-red-500">{t("required")}</p>
+                )}
+              </div>
             )}
           />
-          <Button className="my-8 w-full justify-center">{t("create_account_for_free")}</Button>
+
+          <Button type="submit" className="my-8 w-full justify-center">
+            {!isPremium ? t("create_account_for_free") : t("create_account_premium_name")}
+          </Button>
+
           <div className="flex w-full flex-row text-center">
             <Divider className="my-[auto] mr-1 w-full" />
             <p className="whitespace-nowrap px-2 font-sans text-sm leading-4 text-gray-500">

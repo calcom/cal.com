@@ -49,6 +49,7 @@ interface ICustomUsernameProps {
   >;
   readonly?: boolean;
   blockUpdate?: boolean;
+  setIsPremium?: (isPremium: boolean) => void;
 }
 
 const obtainNewUsernameChangeCondition = ({
@@ -93,6 +94,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     onErrorMutation,
     readonly: disabled,
     blockUpdate,
+
+    setIsPremium,
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
@@ -109,6 +112,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       setMarkAsError(!data.available && username !== currentUsername);
       setIsInputUsernamePremium(data.premium);
       setUsernameIsAvailable(data.available);
+      setCurrentUsername(data.available ? username : inputUsernameValue);
+      setIsPremium && setIsPremium(data.premium);
     }, 150),
     []
   );
@@ -277,7 +282,9 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
           </span>
         )
       ) : null}
-      {markAsError && <p className="mt-1 text-xs text-red-500">Username is already taken</p>}
+      {markAsError && (
+        <p className="mt-1 font-sans text-xs font-light text-red-500">Username is already taken</p>
+      )}
 
       {usernameIsAvailable && (
         <p className={classNames("mt-1 text-xs text-gray-900")}>

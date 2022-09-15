@@ -44,6 +44,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
       const { data } = await fetchUsername(username);
       setMarkAsError(!data.available);
       setUsernameIsAvailable(data.available);
+      setCurrentUsername(data.available ? username : undefined);
     }, 150),
     []
   );
@@ -151,7 +152,9 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           <ActionButtons index="desktop" blockUpdate={blockUpdate} />
         </div>
       </div>
-      {markAsError && <p className="mt-1 text-xs text-red-500">Username is already taken</p>}
+      {markAsError && (
+        <p className="mt-1 font-sans text-xs font-light text-red-500">Username is already taken</p>
+      )}
 
       {usernameIsAvailable && currentUsername !== inputUsernameValue && (
         <div className="mt-2 flex justify-end sm:hidden">
