@@ -73,6 +73,8 @@
   "request_reschedule_subtitle": "{{organizer}} đã huỷ đặt chỗ đó và yêu cầu bạn chọn thời gian khác.",
   "request_reschedule_title_organizer": "Bạn đã yêu cầu {{attendee}} xếp lại lịch",
   "request_reschedule_subtitle_organizer": "Bạn đã huỷ mục đặt chỗ này và {{attendee}} nên chọn thời gian đặt chỗ mới với bạn.",
+  "rescheduled_event_type_subject": "Đã gửi yêu cầu xếp lại lịch: {{eventType}} với {{name}} lúc {{date}}",
+  "requested_to_reschedule_subject_attendee": "Thao tác cần làm để xếp lại lịch: Vui lòng đặt thời gian mới cho {{eventType}} với {{name}}",
   "reschedule_reason": "Lý do xếp lại lịch",
   "hi_user_name": "Xin chào {{name}}",
   "ics_event_title": "{{eventType}} với {{name}}",
@@ -92,8 +94,6 @@
   "meeting_password": "Mật khẩu cuộc họp",
   "meeting_url": "URL cuộc họp",
   "meeting_request_rejected": "Yêu cầu lên cuộc họp của bạn đã bị từ chối",
-  "rescheduled_event_type_subject": "Đã gửi yêu cầu xếp lại lịch: {{eventType}} với {{name}} lúc {{date}}",
-  "requested_to_reschedule_subject_attendee": "Thao tác cần làm để xếp lại lịch: Vui lòng đặt thời gian mới cho {{eventType}} với {{name}}",
   "rejected_event_type_with_organizer": "Bị từ chối: {{eventType}} với {{organizer}} vào {{date}}",
   "hi": "Chào",
   "join_team": "Tham gia nhóm",
@@ -1022,8 +1022,6 @@
   "navigate": "Điều hướng",
   "open": "Mở",
   "close": "Đóng",
-  "pro_feature_teams": "Đây là tính năng Chuyên nghiệp. Nâng cấp lên Chuyên nghiệp để xem trạng thái sẵn sàng của nhóm bạn.",
-  "pro_feature_workflows": "Đây là tính năng Chuyên nghiệp. Nâng cấp lên Chuyên nghiệp để tự động hoá thông báo và lời nhắc sự kiện với Tiến độ công việc.",
   "embed": "Được nhúng",
   "new_username": "Tên người dùng mới",
   "current_username": "Tên người dùng hiện tại",
@@ -1037,5 +1035,7 @@
   "download_desktop_app": "Tải ứng dụng trên máy tính bàn",
   "set_ping_link": "Đặt liên kết Ping",
   "missing_connected_calendar": "Không có lịch được kết nối",
-  "organizer_name_info": "Tên của bạn"
+  "organizer_name_info": "Tên của bạn",
+  "theme_light": "Sáng",
+  "theme_dark": "Tối"
 }

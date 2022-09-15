@@ -253,7 +253,11 @@ function EventTypeSingleLayout({
             </DropdownMenuContent>
           </Dropdown>
           <div className="border-l-2 border-gray-300" />
-          <Button className="ml-4 lg:ml-0" type="submit" form="event-type-form">
+          <Button
+            className="ml-4 lg:ml-0"
+            type="submit"
+            data-testid="update-eventtype"
+            form="event-type-form">
             {t("save")}
           </Button>
         </div>
@@ -261,7 +265,7 @@ function EventTypeSingleLayout({
       <ClientSuspense fallback={<Loader />}>
         <div className="-mt-2 flex flex-col xl:flex-row xl:space-x-8">
           <div className="hidden xl:block">
-            <VerticalTabs tabs={EventTypeTabs} sticky />
+            <VerticalTabs className="primary-navigation" tabs={EventTypeTabs} sticky />
           </div>
           <div className="p-2 md:mx-0 md:p-0 xl:hidden">
             <HorizontalTabs tabNameKey="tabName" tabs={EventTypeTabs} />
