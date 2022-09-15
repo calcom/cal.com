@@ -25,6 +25,7 @@ export const InstallAppButton = (
   props: {
     isProOnly?: App["isProOnly"];
     type: App["type"];
+    wrapperClassName?: string;
   } & InstallAppButtonProps
 ) => {
   const { isLoading, data: user } = trpc.useQuery(["viewer.me"]);
@@ -55,7 +56,7 @@ export const InstallAppButton = (
   }
 
   return (
-    <div ref={proProtectionElementRef}>
+    <div ref={proProtectionElementRef} className={props.wrapperClassName}>
       <InstallAppButtonWithoutPlanCheck {...props} />
     </div>
   );

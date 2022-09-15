@@ -6,6 +6,7 @@ import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
+import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { CalendarService } from "../lib";
 
 const bodySchema = z
@@ -49,7 +50,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(500).json({ message: "Could not add this exchange account" });
   }
 
-  return { url: "/apps/installed" };
+  return { url: getInstalledAppPath({ variant: "calendar", slug: "exchange2013-calendar" }) };
 }
 
 async function getHandler() {
