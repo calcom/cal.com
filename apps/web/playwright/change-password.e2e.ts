@@ -18,7 +18,7 @@ test.describe("Change Password Test", () => {
     await page.locator('[name="oldPassword"]').fill(pro.username);
 
     const $newPasswordField = page.locator('[name="newPassword"]');
-    $newPasswordField.fill(`${pro.username}1111`);
+    $newPasswordField.fill(`${pro.username}Aa1111`);
 
     await page.locator("text=Update").click();
 
