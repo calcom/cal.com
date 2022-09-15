@@ -56,7 +56,11 @@ export default function AppCard({ app, credentials }: AppCardProps) {
         {app.description}
       </p>
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2 [@media(max-width:260px)]:flex-wrap">
-        <Button color="secondary" className="flex w-32 flex-grow justify-center" href={"/apps/" + app.slug}>
+        <Button
+          color="secondary"
+          className="flex w-32 flex-grow justify-center"
+          href={"/apps/" + app.slug}
+          data-testid="app-store-app-card-details">
           {isLocaleReady ? t("details") : <SkeletonText className="h-4 w-24" />}
         </Button>
         {app.isGlobal || (credentials && credentials.length > 0 && allowedMultipleInstalls)
