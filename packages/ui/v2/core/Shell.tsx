@@ -695,9 +695,10 @@ function SideBar() {
       {/* TODO @Peer_Rich: reintroduce in 2.1
       <Tips />
       */}
-      <div className="mb-4 hidden lg:block">
+      {/* Save it for next preview version
+       <div className="mb-4 hidden lg:block">
         <UserV2OptInBanner />
-      </div>
+      </div> */}
 
       <div data-testid="user-dropdown-trigger">
         <span className="hidden lg:inline">
