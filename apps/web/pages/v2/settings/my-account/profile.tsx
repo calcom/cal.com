@@ -166,7 +166,7 @@ const ProfileView = () => {
               <TextField
                 name="username"
                 label={t("personal_cal_url")}
-                addOnLeading="https://"
+                addOnLeading="https://cal.com/"
                 value={value}
                 onChange={(e) => {
                   formMethods.setValue("username", e?.target.value);
