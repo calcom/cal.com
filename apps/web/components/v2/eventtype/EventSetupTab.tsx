@@ -191,7 +191,6 @@ export const EventSetupTab = (
           {...formMethods.register("title")}
         />
         <TextField
-          required
           label={t("description")}
           placeholder={t("quick_video_meeting")}
           defaultValue={eventType.description ?? ""}

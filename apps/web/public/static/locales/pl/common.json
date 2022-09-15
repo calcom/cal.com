@@ -73,6 +73,8 @@
   "request_reschedule_subtitle": "{{organizer}} anulował(a) rezerwację i prosi Cię o wybranie innego terminu.",
   "request_reschedule_title_organizer": "{{attendee}} poproszono o zmianę harmonogramu",
   "request_reschedule_subtitle_organizer": "Rezerwacja została przez Ciebie anulowana i {{attendee}} musi wybrać z Tobą nowy czas rezerwacji.",
+  "rescheduled_event_type_subject": "Wysłano prośbę o zmianę terminu: {{eventType}} o nazwie {{name}}, z {{date}}",
+  "requested_to_reschedule_subject_attendee": "Działanie wymagało zmiany harmonogramu: Zarezerwuj nową godzinę na wydarzenie {{eventType}} z {{name}}",
   "reschedule_reason": "Powód zmiany harmonogramu",
   "hi_user_name": "Cześć {{name}}",
   "ics_event_title": "{{eventType}} z {{name}}",
@@ -92,8 +94,6 @@
   "meeting_password": "Hasło Spotkania",
   "meeting_url": "URL Spotkania",
   "meeting_request_rejected": "Twoja prośba o spotkanie została odrzucona",
-  "rescheduled_event_type_subject": "Wysłano prośbę o zmianę terminu: {{eventType}} o nazwie {{name}}, z {{date}}",
-  "requested_to_reschedule_subject_attendee": "Działanie wymagało zmiany harmonogramu: Zarezerwuj nową godzinę na wydarzenie {{eventType}} z {{name}}",
   "rejected_event_type_with_organizer": "Odrzucono: {{eventType}} z {{organizer}} w {{date}}",
   "hi": "Cześć",
   "join_team": "Dołącz do zespołu",
@@ -1022,8 +1022,6 @@
   "navigate": "Nawigacja",
   "open": "Otwórz",
   "close": "Zamknij",
-  "pro_feature_teams": "To jest funkcja Pro. Ulepsz do wersji Pro, aby zobaczyć dostępność Twojego zespołu.",
-  "pro_feature_workflows": "To jest funkcja Pro. Ulepsz do wersji Pro, aby za pomocą funkcji Przepływy pracy zautomatyzować powiadomienia o wydarzeniach i przypomnienia.",
   "embed": "Osadź",
   "new_username": "Nowa nazwa użytkownika",
   "current_username": "Bieżąca nazwa użytkownika",
@@ -1037,5 +1035,7 @@
   "download_desktop_app": "Pobierz aplikację komputerową",
   "set_ping_link": "Ustaw link do aplikacji Ping",
   "missing_connected_calendar": "Nie podłączono kalendarza domyślnego",
-  "organizer_name_info": "Twoje imię"
+  "organizer_name_info": "Twoje imię",
+  "theme_light": "Jasny",
+  "theme_dark": "Ciemny"
 }

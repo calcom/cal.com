@@ -73,6 +73,8 @@
   "request_reschedule_subtitle": "{{organizer}} heeft de boeking geannuleerd en u verzocht een andere tijd te kiezen.",
   "request_reschedule_title_organizer": "U heeft {{attendee}} gevraagd om te verplaatsen",
   "request_reschedule_subtitle_organizer": "U heeft de boeking geannuleerd en {{attendee}} moet samen met u een nieuwe boekingstijd kiezen.",
+  "rescheduled_event_type_subject": "Verplaatst: {{eventType}} met {{name}} op {{date}}",
+  "requested_to_reschedule_subject_attendee": "Actie vereist voor verplaatsing: boek een nieuwe tijd voor {{eventType}} met {{name}}",
   "reschedule_reason": "Reden voor verplaatsen",
   "hi_user_name": "Hallo {{name}}",
   "ics_event_title": "{{eventType}} met {{name}}",
@@ -92,8 +94,6 @@
   "meeting_password": "Deelneming wachtwoord",
   "meeting_url": "URL afspraak",
   "meeting_request_rejected": "Uw afspraak is helaas afgewezen",
-  "rescheduled_event_type_subject": "Verplaatst: {{eventType}} met {{name}} op {{date}}",
-  "requested_to_reschedule_subject_attendee": "Actie vereist voor verplaatsing: boek een nieuwe tijd voor {{eventType}} met {{name}}",
   "rejected_event_type_with_organizer": "Afgewezen: {{eventType}} met {{organizer}} op {{date}}",
   "hi": "Hallo",
   "join_team": "Lidverzoek accepteren",
@@ -1022,8 +1022,6 @@
   "navigate": "Navigeren",
   "open": "Openen",
   "close": "Sluiten",
-  "pro_feature_teams": "Dit is een Pro-functie. Upgrade naar Pro om de beschikbaarheid van uw team te zien.",
-  "pro_feature_workflows": "Dit is een Pro-functie. Upgrade naar Pro om uw meldingen en herinneringen van gebeurtenissen te automatiseren met werkstromen.",
   "embed": "Insluiten",
   "new_username": "Nieuwe gebruikersnaam",
   "current_username": "Huidige gebruikersnaam",
@@ -1037,5 +1035,7 @@
   "download_desktop_app": "Desktop-app downloaden",
   "set_ping_link": "Ping-link instellen",
   "missing_connected_calendar": "Geen standaard agenda verbonden",
-  "organizer_name_info": "Uw naam"
+  "organizer_name_info": "Uw naam",
+  "theme_light": "Licht",
+  "theme_dark": "Donker"
 }

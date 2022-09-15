@@ -73,6 +73,8 @@
   "request_reschedule_subtitle": "{{organizer}} cancelou a reserva e pediu para que escolhesse outro horário.",
   "request_reschedule_title_organizer": "Solicitou um reagendamento a {{attendee}}",
   "request_reschedule_subtitle_organizer": "Cancelou a reserva e {{attendee}} deve escolher um novo horário para a reserva consigo.",
+  "rescheduled_event_type_subject": "Pedido de reagendamento enviado: {{eventType}} com {{name}} em {{date}}",
+  "requested_to_reschedule_subject_attendee": "Acção necessária para reagendamento: Por favor reserve uma nova hora para {{eventType}} com {{name}}",
   "reschedule_reason": "Motivo do reagendamento",
   "hi_user_name": "Olá {{userName}}",
   "ics_event_title": "{{eventType}} com {{name}}",
@@ -92,8 +94,6 @@
   "meeting_password": "Senha da reunião",
   "meeting_url": "URL da reunião",
   "meeting_request_rejected": "O seu pedido de reunião foi rejeitado",
-  "rescheduled_event_type_subject": "Pedido de reagendamento enviado: {{eventType}} com {{name}} em {{date}}",
-  "requested_to_reschedule_subject_attendee": "Acção necessária para reagendamento: Por favor reserve uma nova hora para {{eventType}} com {{name}}",
   "rejected_event_type_with_organizer": "Rejeitado: {{eventType}} com {{organizer}} em {{date}}",
   "hi": "Olá",
   "join_team": "Junte-se à equipa",
@@ -1022,8 +1022,6 @@
   "navigate": "Navegar",
   "open": "Abrir",
   "close": "Fechar",
-  "pro_feature_teams": "Esta é uma funcionalidade Pro. Actualize para o Pro para ver a disponibilidade da sua equipa.",
-  "pro_feature_workflows": "Esta é uma funcionalidade Pro. Actualize para o Pro para automatizar as suas notificações de eventos e lembretes com os fluxos de trabalho.",
   "embed": "Incorporar",
   "new_username": "Novo nome de utilizador",
   "current_username": "Nome de utilizador atual",
@@ -1037,5 +1035,7 @@
   "download_desktop_app": "Descarregar a aplicação para o computador",
   "set_ping_link": "Definir ligação do Ping",
   "missing_connected_calendar": "Nenhum calendário padrão associado",
-  "organizer_name_info": "O seu nome"
+  "organizer_name_info": "O seu nome",
+  "theme_light": "Claro",
+  "theme_dark": "Escuro"
 }

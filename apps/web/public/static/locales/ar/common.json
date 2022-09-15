@@ -73,6 +73,8 @@
   "request_reschedule_subtitle": "ألغى {{organizer}} الحجز وطلب منك اختيار حجز في وقت آخر.",
   "request_reschedule_title_organizer": "لقد طلبت من {{attendee}} إعادة جدولة موعد",
   "request_reschedule_subtitle_organizer": "لقد ألغيت الحجز ويجب أن يختار {{attendee}} وقتًا جديداً للحجز معك.",
+  "rescheduled_event_type_subject": "تم إرسال طلب لإعادة الجدولة: {{eventType}} مع {{name}} في {{date}}",
+  "requested_to_reschedule_subject_attendee": "الإجراء المطلوب إعادة الجدولة: يُرجى حجز وقت جديد لمدة {{eventType}} مع {{name}}",
   "reschedule_reason": "سبب إعادة الجدولة",
   "hi_user_name": "مرحبا {{name}}",
   "ics_event_title": "{{eventType}} مع {{name}}",
@@ -92,8 +94,6 @@
   "meeting_password": "كلمة سر الاجتماع",
   "meeting_url": "رابط الاجتماع",
   "meeting_request_rejected": "تم رفض طلبك للاجتماع",
-  "rescheduled_event_type_subject": "تم إرسال طلب لإعادة الجدولة: {{eventType}} مع {{name}} في {{date}}",
-  "requested_to_reschedule_subject_attendee": "الإجراء المطلوب إعادة الجدولة: يُرجى حجز وقت جديد لمدة {{eventType}} مع {{name}}",
   "rejected_event_type_with_organizer": "تم الرفض: {{eventType}} مع {{organizer}} في {{date}}",
   "hi": "مرحبا",
   "join_team": "انضم إلى للفريق",
@@ -1022,8 +1022,6 @@
   "navigate": "تنقّل",
   "open": "فتح",
   "close": "إغلاق",
-  "pro_feature_teams": "هذه ميزة في Pro. قم بالترقية إلى Pro لرؤية وجود فريقك.",
-  "pro_feature_workflows": "هذه ميزة في Pro. قم بالترقية إلى Pro لأتمتة إشعارات الحدث والتذكير مع سير العمل.",
   "embed": "مُضمَن",
   "new_username": "اسم مستخدم جديد",
   "current_username": "اسم المستخدم الحالي",
@@ -1037,5 +1035,7 @@
   "download_desktop_app": "تحميل تطبيق سطح المكتب",
   "set_ping_link": "تعيين رابط Ping",
   "missing_connected_calendar": "لا يوجد تقويم افتراضي متصل",
-  "organizer_name_info": "اسمك"
+  "organizer_name_info": "اسمك",
+  "theme_light": "فاتح",
+  "theme_dark": "داكن"
 }
