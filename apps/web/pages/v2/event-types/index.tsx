@@ -103,10 +103,43 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   });
 
   const setHiddenMutation = trpc.useMutation("viewer.eventTypes.update", {
-    onError: async (err) => {
-      console.error(err.message);
+    onMutate: async (values) => {
       await utils.cancelQuery(["viewer.eventTypes"]);
-      await utils.invalidateQueries(["viewer.eventTypes"]);
+      let previousTypes;
+
+      utils.setQueryData(["viewer.eventTypes"], (data) => {
+        if (!data)
+          return {
+            eventTypeGroups: [],
+            profiles: [],
+            viewer: { canAddEvents: false, plan: UserPlan.FREE },
+          };
+        previousTypes = data;
+        const newEventTypes = [...data.eventTypeGroups[groupIndex].eventTypes].map((type) => {
+          if (type.id === values.id) {
+            const newType = { ...type };
+            newType.hidden = values.hidden as boolean;
+            return newType;
+          }
+          return type;
+        });
+
+        return {
+          ...data,
+          eventTypeGroups: [
+            ...data.eventTypeGroups.slice(0, groupIndex),
+            { ...group, eventTypes: newEventTypes },
+            ...data.eventTypeGroups.slice(groupIndex + 1),
+          ],
+        };
+      });
+
+      return { previousTypes };
+    },
+    onError: async (err, variables, context) => {
+      if (context?.previousTypes) {
+        utils.setQueryData(["viewer.eventTypes"], context?.previousTypes);
+      }
     },
     onSettled: async () => {
       await utils.invalidateQueries(["viewer.eventTypes"]);
