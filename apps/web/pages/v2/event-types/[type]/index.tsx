@@ -34,7 +34,6 @@ import { EventRecurringTab } from "@components/v2/eventtype/EventRecurringTab";
 import { EventSetupTab } from "@components/v2/eventtype/EventSetupTab";
 import { EventTeamTab } from "@components/v2/eventtype/EventTeamTab";
 import { EventTypeSingleLayout } from "@components/v2/eventtype/EventTypeSingleLayout";
-import EventWorkflowsTab from "@components/v2/eventtype/EventWorkfowsTab";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -86,7 +85,7 @@ export type FormValues = {
 
 const querySchema = z.object({
   tabName: z
-    .enum(["setup", "availability", "apps", "limits", "recurring", "team", "advanced", "workflows"])
+    .enum(["setup", "availability", "apps", "limits", "recurring", "team", "advanced"])
     .optional()
     .default("setup"),
 });
@@ -188,12 +187,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         hasRainbowIntegration={props.hasRainbowIntegration}
       />
     ),
-    workflows: (
-      <EventWorkflowsTab
-        eventType={eventType}
-        workflows={eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow)}
-      />
-    ),
   } as const;
 
   return (
@@ -203,7 +196,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       eventType={eventType}
       team={team}
       formMethods={formMethods}
-      disableBorder={tabName === "apps" || tabName === "workflows"}
+      disableBorder={tabName === "apps"}
       currentUserMembership={props.currentUserMembership}>
       <Form
         form={formMethods}

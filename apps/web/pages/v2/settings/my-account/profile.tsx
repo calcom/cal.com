@@ -10,10 +10,8 @@ import { trpc } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Icon } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
-import Avatar from "@calcom/ui/v2/core/Avatar";
 import { Button } from "@calcom/ui/v2/core/Button";
 import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
-import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { Form, Label, TextField, PasswordField } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
@@ -110,6 +108,7 @@ const ProfileView = () => {
       avatar: user?.avatar || "",
       username: user?.username || "",
       name: user?.name || "",
+      email: user?.email || "",
       bio: user?.bio || "",
     },
   });
@@ -140,8 +139,9 @@ const ProfileView = () => {
           control={formMethods.control}
           name="username"
           render={({ field: { value } }) => (
-            <div className="">
+            <div>
               <TextField
+                data-testid="username-input"
                 name="username"
                 label={t("personal_cal_url")}
                 addOnLeading="https://cal.com/"
@@ -164,10 +164,10 @@ const ProfileView = () => {
         <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
           <DialogTrigger asChild>
             <Button
+              data-testid="delete-account"
               color="destructive"
               className="mt-1 border-2"
-              StartIcon={Icon.FiTrash2}
-              data-testid="delete-account">
+              StartIcon={Icon.FiTrash2}>
               {t("delete_account")}
             </Button>
           </DialogTrigger>

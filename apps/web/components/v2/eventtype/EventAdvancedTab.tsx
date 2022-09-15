@@ -243,6 +243,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
           <>
             <div className="flex space-x-3 ">
               <Switch
+                data-testid="hashedLinkCheck"
                 name="hashedLinkCheck"
                 fitToHeight={true}
                 defaultChecked={!!value}

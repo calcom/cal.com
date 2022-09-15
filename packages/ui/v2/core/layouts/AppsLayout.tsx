@@ -1,9 +1,8 @@
 import React, { ComponentProps } from "react";
 
-import HorizontalTabs from "@calcom/ui/v2/core/navigation/tabs/HorizontalTabs";
-
 import Shell from "../Shell";
-import { HorizontalTabItemProps } from "../navigation/tabs/HorizontalTabItem";
+import type { HorizontalTabItemProps } from "../navigation/tabs/HorizontalTabItem";
+import HorizontalTabs from "../navigation/tabs/HorizontalTabs";
 
 const tabs: HorizontalTabItemProps[] = [
   {
