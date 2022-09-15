@@ -151,7 +151,23 @@ function EventTypeSingleLayout({
   const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
     eventType.slug
   }`;
+  const embedLink = `${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
 
+  const openEmbedModal = () => {
+    const query = {
+      ...router.query,
+      dialog: "embed",
+      embedUrl: encodeURIComponent(embedLink),
+    };
+    router.push(
+      {
+        pathname: router.pathname,
+        query,
+      },
+      undefined,
+      { shallow: true }
+    );
+  };
   return (
     <Shell
       title={t("event_type_title", { eventTypeTitle: eventType.title })}
@@ -199,7 +215,7 @@ function EventTypeSingleLayout({
               }}
             />
             {/* TODO: Implement embed here @hariom */}
-            {/* <Button color="secondary" size="icon" StartIcon={Icon.FiCode} /> */}
+            <Button color="secondary" onClick={() => openEmbedModal()} size="icon" StartIcon={Icon.FiCode} />
             <Button
               color="secondary"
               size="icon"
