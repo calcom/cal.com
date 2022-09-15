@@ -1,16 +1,10 @@
-import { useEffect, useState } from "react";
-
 function UserV2OptInBanner() {
-  const [v2OptInCookie, setV2OptInCookie] = useState<boolean | null>(null);
   // Only show on client-side
-  useEffect(() => {
-    setV2OptInCookie(document.cookie.includes("calcom-v2-early-access=1"));
-  }, []);
+  if (typeof document === "undefined") return null;
 
-  if (!v2OptInCookie) {
-    return null;
-  }
-  if (v2OptInCookie)
+  const hasV2OptInCookie = document.cookie.includes("calcom-v2-early-access=1");
+
+  if (hasV2OptInCookie)
     return (
       <p className="text-xs text-gray-400">
         You&apos;re using the new version of Cal.com.{" "}
