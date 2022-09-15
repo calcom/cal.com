@@ -2,6 +2,7 @@ import React from "react";
 
 import { SkeletonText } from "@calcom/ui";
 
+/** @deprecated Use `apps/web/components/v2/availability/SkeletonLoader.tsx` */
 function SkeletonLoader() {
   return (
     <ul className="animate-pulse divide-y divide-neutral-200 rounded-md border border-gray-200 bg-white sm:mx-0 sm:overflow-hidden">

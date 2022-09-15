@@ -1159,5 +1159,10 @@
   "connect_calendar_later": "Ich verbinde meinen Kalender später",
   "set_my_availability_later": "Ich werde meine Verfügbarkeit später festlegen",
   "problem_saving_user_profile": "Beim Speichern Ihrer Daten ist ein Problem aufgetreten. Bitte versuchen Sie es erneut oder wenden Sie sich an den Support.",
+  "exchange_add": "Mit Microsoft Exchange verbinden",
+  "exchange_authentication": "Authentifizierungsmethode",
+  "exchange_authentication_standard": "Basisauthentifizierung",
+  "exchange_authentication_ntlm": "NTLM-Authentifizierung",
+  "exchange_compression": "GZip-Kompression",
   "token_invalid_expired": "Token ist entweder ungültig oder abgelaufen."
 }

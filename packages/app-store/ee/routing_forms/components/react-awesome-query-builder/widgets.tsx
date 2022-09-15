@@ -65,7 +65,6 @@ const TextWidget = (props: TextWidgetProps & { type?: string }) => {
 function NumberWidget({ value, setValue, ...remainingProps }: NumberWidgetProps) {
   return (
     <TextField
-      name="query-builder"
       type="number"
       className="dark:border-darkgray-300 mt-0 border-gray-300 text-sm dark:bg-transparent dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500"
       value={value}

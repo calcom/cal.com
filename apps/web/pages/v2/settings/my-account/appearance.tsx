@@ -42,7 +42,7 @@ const AppearanceView = (props: inferSSRProps<typeof getServerSideProps>) => {
           theme: values.theme || null,
         });
       }}>
-      <Meta title="appearance" description="appearance_description" />
+      <Meta title="Appearance" description="Manage settings for your booking appearance" />
       <div className="mb-6 flex items-center text-sm">
         <div>
           <p className="font-semibold">{t("theme")}</p>

@@ -24,7 +24,7 @@ const TwoFactorAuthView = () => {
 
   return (
     <>
-      <Meta title="2fa" description="2fa_description" />
+      <Meta title="Two-Factor Authentication" description="Manage settings for your account passwords" />
       <div className="mt-6 flex items-start space-x-4">
         <Switch
           checked={user?.twoFactorEnabled}
