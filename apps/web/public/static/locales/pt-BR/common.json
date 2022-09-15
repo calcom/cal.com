@@ -73,6 +73,8 @@
   "request_reschedule_subtitle": "{{organizer}} cancelou a reserva e solicitou que você escolhesse outro horário.",
   "request_reschedule_title_organizer": "Você solicitou que {{attendee}} reagendasse",
   "request_reschedule_subtitle_organizer": "Você cancelou a reserva e {{attendee}} deve escolher outro horário de reserva com você.",
+  "rescheduled_event_type_subject": "Solicitação de reagendamento enviado: {{eventType}} com {{name}} às {{date}}",
+  "requested_to_reschedule_subject_attendee": "Ação de reagendamento necessária: reserve outro horário para {{eventType}} com {{name}}",
   "reschedule_reason": "Motivo do reagendamento",
   "hi_user_name": "Olá {{name}}",
   "ics_event_title": "{{eventType}} com {{name}}",
@@ -92,8 +94,6 @@
   "meeting_password": "Senha da reunião",
   "meeting_url": "URL da reunião",
   "meeting_request_rejected": "A sua solicitação de reunião foi rejeitada",
-  "rescheduled_event_type_subject": "Solicitação de reagendamento enviado: {{eventType}} com {{name}} às {{date}}",
-  "requested_to_reschedule_subject_attendee": "Ação de reagendamento necessária: reserve outro horário para {{eventType}} com {{name}}",
   "rejected_event_type_with_organizer": "Rejeitado: {{eventType}} com {{organizer}} em {{date}}",
   "hi": "Olá",
   "join_team": "Entrar no time",
@@ -1022,8 +1022,6 @@
   "navigate": "Navegar",
   "open": "Abrir",
   "close": "Fechar",
-  "pro_feature_teams": "Este é um recurso Pro. Atualize para o Pro para ver a disponibilidade da sua equipe.",
-  "pro_feature_workflows": "Este é um recurso Pro. Atualize para o Pro para automatizar suas notificações de eventos e lembretes com fluxos de trabalho.",
   "embed": "Inserir",
   "new_username": "Novo nome de usuário",
   "current_username": "Nome de usuário atual",
@@ -1037,5 +1035,7 @@
   "download_desktop_app": "Baixar app para desktop",
   "set_ping_link": "Definir link do Ping",
   "missing_connected_calendar": "Nenhum calendário padrão conectado",
-  "organizer_name_info": "Seu nome"
+  "organizer_name_info": "Seu nome",
+  "theme_light": "Claro",
+  "theme_dark": "Escuro"
 }

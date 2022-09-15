@@ -1,15 +1,20 @@
 import { IdentityProvider } from "@prisma/client";
 import { Trans } from "next-i18next";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 
 import { identityProviderNameMap } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/v2/core/Button";
+import Button from "@calcom/ui/v2/core/Button";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { Form, TextField } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
+
+type ChangePasswordFormValues = {
+  oldPassword: string;
+  newPassword: string;
+};
 
 const PasswordView = () => {
   const { t } = useLocale();
@@ -24,7 +29,22 @@ const PasswordView = () => {
     },
   });
 
-  const formMethods = useForm();
+  const formMethods = useForm<ChangePasswordFormValues>({
+    defaultValues: {
+      oldPassword: "",
+      newPassword: "",
+    },
+  });
+
+  const {
+    register,
+    formState: { isSubmitting },
+  } = formMethods;
+
+  const handleSubmit = (values: ChangePasswordFormValues) => {
+    const { oldPassword, newPassword } = values;
+    mutation.mutate({ oldPassword, newPassword });
+  };
 
   return (
     <>
@@ -45,46 +65,17 @@ const PasswordView = () => {
           </p>
         </div>
       ) : (
-        <Form
-          form={formMethods}
-          handleSubmit={async (values) => {
-            const { oldPassword, newPassword } = values;
-            mutation.mutate({ oldPassword, newPassword });
-          }}>
+        <Form<ChangePasswordFormValues> form={formMethods} handleSubmit={handleSubmit}>
           <div className="max-w-[38rem] sm:flex sm:space-x-4">
             <div className="flex-grow">
-              <Controller
-                name="oldPassword"
-                control={formMethods.control}
-                render={({ field: { value } }) => (
-                  <TextField
-                    name="oldPassword"
-                    label={t("old_password")}
-                    value={value}
-                    type="password"
-                    onChange={(e) => {
-                      formMethods.setValue("oldPassword", e?.target.value);
-                    }}
-                  />
-                )}
-              />
+              <TextField {...register("oldPassword")} label={t("old_password")} type="password" />
             </div>
             <div className="flex-grow">
-              <Controller
-                name="newPassword"
-                control={formMethods.control}
-                render={({ field: { value } }) => (
-                  <TextField
-                    name="newPassword"
-                    label={t("new_password")}
-                    value={value}
-                    type="password"
-                    placeholder={t("secure_password")}
-                    onChange={(e) => {
-                      formMethods.setValue("newPassword", e?.target.value);
-                    }}
-                  />
-                )}
+              <TextField
+                {...register("newPassword")}
+                label={t("new_password")}
+                type="password"
+                placeholder={t("secure_password")}
               />
             </div>
           </div>
@@ -94,7 +85,12 @@ const PasswordView = () => {
               contain at least 1 number
             </Trans>
           </p>
-          <Button color="primary" className="mt-8" disabled={formMethods.formState.isSubmitting}>
+          {/* TODO: Why is this Form not submitting? Hacky fix but works */}
+          <Button
+            color="primary"
+            className="mt-8"
+            disabled={isSubmitting || mutation.isLoading}
+            onClick={() => handleSubmit(formMethods.getValues())}>
             {t("update")}
           </Button>
         </Form>
