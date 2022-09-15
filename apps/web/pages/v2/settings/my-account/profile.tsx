@@ -110,6 +110,7 @@ const ProfileView = () => {
       avatar: user?.avatar || "",
       username: user?.username || "",
       name: user?.name || "",
+      email: user?.email || "",
       bio: user?.bio || "",
     },
   });
@@ -186,6 +187,23 @@ const ProfileView = () => {
                 value={value}
                 onChange={(e) => {
                   onChange(e?.target.value);
+                }}
+              />
+            </div>
+          )}
+        />
+        <Controller
+          control={formMethods.control}
+          name="email"
+          render={({ field: { value } }) => (
+            <div className="mt-8">
+              <TextField
+                name="email"
+                label={t("email")}
+                value={value}
+                hint={t("change_email_hint")}
+                onChange={(e) => {
+                  formMethods.setValue("email", e?.target.value);
                 }}
               />
             </div>

@@ -1246,5 +1246,6 @@
   "not_on_cal": "Not on Cal.com",
   "no_calendar_installed": "No calendar installed",
   "no_calendar_installed_description": "You have not yet connected any of your calendars",
-  "add_a_calendar": "Add a calendar"
+  "add_a_calendar": "Add a calendar",
+  "change_email_hint": "You may need to log out and back in to see any change take effect"
 }
