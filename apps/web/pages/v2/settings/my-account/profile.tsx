@@ -218,7 +218,11 @@ const ProfileView = () => {
         {/* Delete account Dialog */}
         <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
           <DialogTrigger asChild>
-            <Button color="destructive" className="mt-1 border-2" StartIcon={Icon.FiTrash2}>
+            <Button
+              color="destructive"
+              className="mt-1 border-2"
+              StartIcon={Icon.FiTrash2}
+              data-testid="delete-account">
               {t("delete_account")}
             </Button>
           </DialogTrigger>
@@ -227,6 +231,10 @@ const ProfileView = () => {
             description={t("confirm_delete_account_modal")}
             type="creation"
             actionText={t("delete_my_account")}
+            actionProps={{
+              // @ts-expect-error data attributes aren't typed
+              "data-testid": "delete-account-confirm",
+            }}
             Icon={Icon.FiAlertTriangle}
             actionOnClick={(e) => e && onConfirmButton(e)}>
             <>
