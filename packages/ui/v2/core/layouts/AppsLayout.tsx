@@ -4,7 +4,6 @@ import type { HorizontalTabItemProps } from "@calcom/ui/v2/core/navigation/tabs/
 import HorizontalTabs from "@calcom/ui/v2/core/navigation/tabs/HorizontalTabs";
 
 import Shell from "../Shell";
-import { HorizontalTabItemProps } from "../navigation/tabs/HorizontalTabItem";
 
 const tabs: HorizontalTabItemProps[] = [
   {
