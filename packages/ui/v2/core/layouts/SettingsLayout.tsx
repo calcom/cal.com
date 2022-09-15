@@ -27,30 +27,10 @@ const tabs: VerticalTabItemProps[] = [
       { name: "general", href: "/settings/my-account/general" },
       { name: "calendars", href: "/settings/my-account/calendars" },
       { name: "conferencing", href: "/settings/my-account/conferencing" },
-      // { name: "appearance", href: "/settings/my-account/appearance" },
       // TODO
       // { name: "referrals", href: "/settings/my-account/referrals" },
     ],
   },
-  // {
-  //   name: "security",
-  //   href: "/settings/security",
-  //   icon: Icon.FiKey,
-  //   children: [
-  //     //
-  //     { name: "password", href: "/settings/security/password" },
-  //     { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
-  //   ],
-  // },
-  // {
-  //   name: "billing",
-  //   href: "/settings/billing",
-  //   icon: Icon.FiCreditCard,
-  //   children: [
-  //     //
-  //     { name: "invoices", href: "/settings/billing" },
-  //   ],
-  // },
   {
     name: "developer",
     href: "/settings/developer",
@@ -62,12 +42,6 @@ const tabs: VerticalTabItemProps[] = [
       // TODO: Add profile level for embeds
       // { name: "embeds", href: "/v2/settings/developer/embeds" },
     ],
-  },
-  {
-    name: "teams",
-    href: "/settings/teams",
-    icon: Icon.FiUsers,
-    children: [],
   },
   {
     name: "admin",

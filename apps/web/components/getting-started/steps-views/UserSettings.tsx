@@ -45,7 +45,6 @@ const UserSettings = (props: IUserSettingsProps) => {
     if (paymentRequired) {
       return;
     }
-    console.log("submit", user);
 
     mutation.mutate({
       name: user?.name || "",

@@ -33,15 +33,6 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
     //   keywords: "set yourself away bookings",
     //   perform: () => alert("Hello World"),
     // },
-
-    {
-      id: "workflows",
-      name: "Workflows",
-      section: "Workflows",
-      shortcut: ["w", "f"],
-      keywords: "workflows automation",
-      perform: () => router.push("/workflows"),
-    },
     {
       id: "event-types",
       name: "Event Types",

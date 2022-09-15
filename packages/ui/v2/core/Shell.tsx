@@ -276,26 +276,6 @@ function UserDropdown({ small }: { small?: boolean }) {
           <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
         ) : (
           <>
-            <DropdownMenuItem>
-              <button
-                onClick={() => {
-                  mutation.mutate({ away: !user?.away });
-                  utils.invalidateQueries("viewer.me");
-                }}
-                className="flex min-w-max cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
-                <Icon.FiMoon
-                  className={classNames(
-                    user.away
-                      ? "text-purple-500 group-hover:text-purple-700"
-                      : "text-gray-500 group-hover:text-gray-700",
-                    "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-3"
-                  )}
-                  aria-hidden="true"
-                />
-                {user.away ? t("set_as_free") : t("set_as_away")}
-              </button>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator className="h-px bg-gray-200" />
             {user.username && (
               <DropdownMenuItem>
                 <a
@@ -308,21 +288,6 @@ function UserDropdown({ small }: { small?: boolean }) {
                 </a>
               </DropdownMenuItem>
             )}
-            <DropdownMenuSeparator className="h-px bg-gray-200" />
-            <button
-              className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-              onClick={() => setHelpOpen(true)}>
-              <Icon.FiHelpCircle
-                className={classNames(
-                  "text-gray-500 group-hover:text-neutral-500",
-                  "h-4 w-4 flex-shrink-0 ltr:mr-2"
-                )}
-                aria-hidden="true"
-              />
-
-              {t("help")}
-            </button>
-
             <DropdownMenuSeparator className="h-px bg-gray-200" />
             <DropdownMenuItem>
               <a
@@ -411,11 +376,6 @@ const navigation: NavigationItemType[] = [
     isCurrent: ({ router }) => {
       return router.asPath.startsWith("/apps/routing_forms/");
     },
-  },
-  {
-    name: "workflows",
-    href: "/workflows",
-    icon: Icon.FiZap,
   },
   {
     name: "settings",

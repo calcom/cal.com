@@ -25,11 +25,11 @@ const VerticalTabsPropsDefault = [
     icon: RefreshCw,
     href: "/cal-sync",
   },
-  {
-    name: "Teams",
-    icon: Users,
-    href: "/Teams",
-  },
+  // {
+  //   name: "Teams",
+  //   icon: Users,
+  //   href: "/Teams",
+  // },
 ];
 
 export const Default = () => (
