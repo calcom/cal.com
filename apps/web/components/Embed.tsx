@@ -10,10 +10,10 @@ import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
 import { Button, Switch } from "@calcom/ui/v2";
+import NavTabs from "@calcom/ui/v2/core/navigation/tabs/HorizontalTabs";
 
 import { EMBED_LIB_URL, WEBAPP_URL } from "@lib/config/constants";
 
-import NavTabs from "@components/NavTabs";
 import ColorPicker from "@components/ui/colorpicker";
 import Select from "@components/ui/form/Select";
 
@@ -561,7 +561,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
         <iframe
           ref={ref as typeof ref & MutableRefObject<HTMLIFrameElement>}
           data-testid="embed-preview"
-          className="border-1 h-[75vh] border"
+          className="border-1 h-[60vh] border"
           width="100%"
           height="100%"
           src={`${WEBAPP_URL}/embed/preview.html?embedType=${embedType}&calLink=${calLink}`}
@@ -780,7 +780,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   ];
 
   return (
-    <DialogContent size="xl">
+    <DialogContent size="lg">
       <div className="flex">
         <div className="flex w-1/3 flex-col bg-white p-6">
           <h3 className="mb-2 flex text-xl font-bold leading-6 text-gray-900" id="modal-title">
@@ -871,9 +871,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 <div
                   className={classNames(
                     "mt-4 items-center justify-between",
-                    embedType === "floating-popup" ? "flex" : "hidden"
+                    embedType === "floating-popup" ? "" : "hidden"
                   )}>
-                  <div className="text-sm">Button Text</div>
+                  <div className="mb-2 text-sm">Button Text</div>
                   {/* Default Values should come from preview iframe */}
                   <TextField
                     name="buttonText"
@@ -895,10 +895,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 </div>
                 <div
                   className={classNames(
-                    "mt-4 flex items-center justify-between",
-                    embedType === "floating-popup" ? "flex" : "hidden"
+                    "mt-4 flex items-center justify-start",
+                    embedType === "floating-popup" ? "space-x-2" : "hidden"
                   )}>
-                  <div className="text-sm">Display Calendar Icon Button</div>
                   <Switch
                     defaultChecked={true}
                     onCheckedChange={(checked) => {
@@ -913,13 +912,14 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       });
                     }}
                   />
+                  <div className="text-sm">Display Calendar Icon Button</div>
                 </div>
                 <div
                   className={classNames(
-                    "mt-4 flex items-center justify-between",
-                    embedType === "floating-popup" ? "flex" : "hidden"
+                    "mt-4 items-center justify-between",
+                    embedType === "floating-popup" ? "" : "hidden"
                   )}>
-                  <div>Position of Button</div>
+                  <div className="mb-2">Position of Button</div>
                   <Select
                     onChange={(position) => {
                       setPreviewState((previewState) => {
@@ -936,13 +936,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     options={FloatingPopupPositionOptions}
                   />
                 </div>
-                <div
-                  className={classNames(
-                    "mt-4 flex items-center justify-between",
-                    embedType === "floating-popup" ? "flex" : "hidden"
-                  )}>
+                <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
                   <div>Button Color</div>
-                  <div className="w-36">
+                  <div className="w-full">
                     <ColorPicker
                       defaultValue="#000000"
                       onChange={(color) => {
@@ -959,13 +955,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     />
                   </div>
                 </div>
-                <div
-                  className={classNames(
-                    "mt-4 flex items-center justify-between",
-                    embedType === "floating-popup" ? "flex" : "hidden"
-                  )}>
+                <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
                   <div>Text Color</div>
-                  <div className="w-36">
+                  <div className="w-full">
                     <ColorPicker
                       defaultValue="#000000"
                       onChange={(color) => {
@@ -1000,10 +992,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <div className="mt-6 text-sm">
-                  <Label className="flex items-center justify-between">
-                    <div>Theme</div>
+                  <Label className="">
+                    <div className="mb-2">Theme</div>
                     <Select
-                      className="w-36"
+                      className="w-full"
                       defaultValue={ThemeOptions[0]}
                       components={{
                         Control: ThemeSelectControl,
@@ -1030,9 +1022,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     // { name: "highlightColor", title: "Highlight Color" },
                     // { name: "medianColor", title: "Median Color" },
                   ].map((palette) => (
-                    <Label key={palette.name} className="flex items-center justify-between">
-                      <div>{palette.title}</div>
-                      <div className="w-36">
+                    <Label key={palette.name} className="pb-4">
+                      <div className="mb-2 pt-2">{palette.title}</div>
+                      <div className="w-full">
                         <ColorPicker
                           defaultValue="#000000"
                           onChange={(color) => {
@@ -1049,15 +1041,15 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             </Collapsible>
           </div>
         </div>
-        <div className="w-2/3 bg-gray-50 p-6">
-          <NavTabs data-testid="embed-tabs" tabs={tabs} linkProps={{ shallow: true }} />
+        <div className="w-2/3 p-6">
+          <NavTabs data-testid="embed-tabs" tabs={tabs} />
           {tabs.map((tab) => {
             return (
               <div
                 key={tab.tabName}
                 className={classNames(router.query.tabName === tab.tabName ? "block" : "hidden")}>
-                <div>
-                  <div className={classNames(tab.type === "code" ? "h-[75vh]" : "")}>
+                <div className="max-h-[60vh]">
+                  <div className={classNames(tab.type === "code" ? "h-[55vh]" : "")}>
                     {tab.type === "code" ? (
                       <tab.Component
                         embedType={embedType}
