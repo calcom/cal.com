@@ -38,11 +38,21 @@ function ConnectOrDisconnectIntegrationButton(props: {
   if (credentialId) {
     if (type === "stripe_payment") {
       return (
-        <DisconnectIntegration credentialId={credentialId} label={t("remove")} onSuccess={handleOpenChange} />
+        <DisconnectIntegration
+          credentialId={credentialId}
+          trashIcon
+          onSuccess={handleOpenChange}
+          buttonProps={{ className: "border border-gray-300" }}
+        />
       );
     }
     return (
-      <DisconnectIntegration credentialId={credentialId} label={t("remove")} onSuccess={handleOpenChange} />
+      <DisconnectIntegration
+        credentialId={credentialId}
+        trashIcon
+        onSuccess={handleOpenChange}
+        buttonProps={{ className: "border border-gray-300" }}
+      />
     );
   }
   if (!props.installed) {

@@ -166,8 +166,9 @@ function ConnectedCalendarsList(props: Props) {
                       <div className="w-32">
                         <DisconnectIntegration
                           credentialId={item.credentialId}
-                          label={t("remove")}
+                          trashIcon
                           onSuccess={props.onChanged}
+                          buttonProps={{ className: "border border-gray-300" }}
                         />
                       </div>
                     }>
@@ -198,8 +199,9 @@ function ConnectedCalendarsList(props: Props) {
                       <div className="w-32">
                         <DisconnectIntegration
                           credentialId={item.credentialId}
-                          label={t("remove")}
+                          trashIcon
                           onSuccess={props.onChanged}
+                          buttonProps={{ className: "border border-gray-300" }}
                         />
                       </div>
                     }
