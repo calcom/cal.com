@@ -38,8 +38,8 @@ const CreateNewTeamPage = () => {
 
   const headers = [
     {
-      title: `${t("create_a_new_team")}`,
-      subtitle: [`${t("create_a_new_team_description")}`],
+      title: `${t("create_new_team")}`,
+      subtitle: [`${t("create_new_team_description")}`],
     },
     // {
     //   title: `${t("general_settings")}`,
@@ -69,7 +69,7 @@ const CreateNewTeamPage = () => {
       data-testid="onboarding"
       key={router.asPath}>
       <Head>
-        <title>{t("create_a_new_team")}</title>
+        <title>{t("create_new_team")}</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
