@@ -110,6 +110,8 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
             }}
           />
         </div>
+      </div>
+      <div className="flex flex-col space-y-4 pt-4 lg:flex-row lg:space-y-0 lg:space-x-4">
         <div className="w-full">
           <Label htmlFor="minimumBookingNotice">{t("minimum_booking_notice")} </Label>
           <Controller
@@ -142,9 +144,41 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
             }}
           />
         </div>
+        <div className="w-full">
+          <Label htmlFor="slotInterval">{t("slot_interval")} </Label>
+          <Controller
+            name="slotInterval"
+            control={formMethods.control}
+            render={() => {
+              const slotIntervalOptions = [
+                {
+                  label: t("slot_interval_default"),
+                  value: -1,
+                },
+                ...[5, 10, 15, 20, 30, 45, 60].map((minutes) => ({
+                  label: minutes + " " + t("minutes"),
+                  value: minutes,
+                })),
+              ];
+              return (
+                <Select
+                  isSearchable={false}
+                  onChange={(val) => {
+                    formMethods.setValue("slotInterval", val && (val.value || 0) > 0 ? val.value : null);
+                  }}
+                  defaultValue={
+                    slotIntervalOptions.find((option) => option.value === eventType.slotInterval) ||
+                    slotIntervalOptions[0]
+                  }
+                  options={slotIntervalOptions}
+                />
+              );
+            }}
+          />
+        </div>
       </div>
       <hr className="my-8" />
-      <div className="">
+      <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
         <fieldset className="block flex-col sm:flex">
           <div className="flex space-x-3">
             <Controller
