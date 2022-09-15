@@ -1,12 +1,10 @@
 import crypto from "crypto";
-import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
 import { useRef, useState, BaseSyntheticEvent } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { ErrorCode, getSession } from "@calcom/lib/auth";
+import { ErrorCode } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import prisma from "@calcom/prisma";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
@@ -20,21 +18,37 @@ import Meta from "@calcom/ui/v2/core/Meta";
 import { Form, Label, TextField, PasswordField } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
-
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { SkeletonContainer, SkeletonText, SkeletonButton, SkeletonAvatar } from "@calcom/ui/v2/core/skeleton";
 
 import TwoFactor from "@components/auth/TwoFactor";
+
+const SkeletonLoader = () => {
+  return (
+    <SkeletonContainer>
+      <div className="mt-6 mb-8 space-y-6 divide-y">
+        <div className="flex items-center">
+          <SkeletonAvatar className=" h-12 w-12 px-4" />
+          <SkeletonButton className=" h-6 w-32 rounded-md p-5" />
+        </div>
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+
+        <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
+      </div>
+    </SkeletonContainer>
+  );
+};
 
 interface DeleteAccountValues {
   totpCode: string;
 }
 
-const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
+const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const { user } = props;
-  // const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
+  const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: () => {
       showToast(t("settings_updated_successfully"), "success");
@@ -49,6 +63,11 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
 
   const form = useForm<DeleteAccountValues>();
+
+  const emailMd5 = crypto
+    .createHash("md5")
+    .update(user?.email || "example@example.com")
+    .digest("hex");
 
   const onDeleteMeSuccessMutation = async () => {
     await utils.invalidateQueries(["viewer.me"]);
@@ -88,7 +107,7 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const formMethods = useForm({
     defaultValues: {
-      avatar: user.avatar || "",
+      avatar: user?.avatar || "",
       username: user?.username || "",
       name: user?.name || "",
       bio: user?.bio || "",
@@ -107,6 +126,8 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
+  if (isLoading) return <SkeletonLoader />;
+
   return (
     <>
       <Form
@@ -116,13 +137,12 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
         }}>
         <Meta title="Profile" description="Manage settings for your cal profile" />
         <div className="flex items-center">
-          {/* TODO upload new avatar */}
           <Controller
             control={formMethods.control}
             name="avatar"
             render={({ field: { value } }) => (
               <>
-                <Avatar alt="" imageSrc={value} gravatarFallbackMd5={user.emailMd5} size="lg" />
+                <Avatar alt="" imageSrc={value} gravatarFallbackMd5={emailMd5} size="lg" />
                 <div className="ml-4">
                   <ImageUploader
                     target="avatar"
@@ -222,7 +242,7 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
                 ref={passwordRef}
               />
 
-              {user.twoFactorEnabled && (
+              {user?.twoFactorEnabled && (
                 <Form handleSubmit={onConfirm} className="pb-4" form={form}>
                   <TwoFactor center={false} />
                 </Form>
@@ -240,39 +260,3 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
 ProfileView.getLayout = getLayout;
 
 export default ProfileView;
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const session = await getSession(context);
-
-  if (!session?.user?.id) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
-  }
-
-  const user = await prisma.user.findUnique({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      id: true,
-      username: true,
-      email: true,
-      name: true,
-      bio: true,
-      avatar: true,
-      twoFactorEnabled: true,
-    },
-  });
-
-  if (!user) {
-    throw new Error("User seems logged in but cannot be found in the db");
-  }
-
-  return {
-    props: {
-      user: {
-        ...user,
-        emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
-      },
-    },
-  };
-};
