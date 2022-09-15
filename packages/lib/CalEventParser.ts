@@ -93,7 +93,10 @@ export const getLocation = (calEvent: CalendarEvent) => {
 export const getProviderName = (calEvent: CalendarEvent): string => {
   // TODO: use getAppName from @calcom/app-store
   if (calEvent.location && calEvent.location.includes("integrations:")) {
-    const location = calEvent.location.split(":")[1];
+    let location = calEvent.location.split(":")[1];
+    if (location === "daily") {
+      location = "Cal Video";
+    }
     return location[0].toUpperCase() + location.slice(1);
   }
   // If location its a url, probably we should be validating it with a custom library

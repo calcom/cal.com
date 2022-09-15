@@ -154,6 +154,7 @@ function EventTypeSingleLayout({
 
   return (
     <Shell
+      backPath="/event-types"
       title={t("event_type_title", { eventTypeTitle: eventType.title })}
       heading={eventType.title}
       subtitle={eventType.description || ""}
