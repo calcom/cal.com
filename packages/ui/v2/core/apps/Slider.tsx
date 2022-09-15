@@ -3,7 +3,10 @@ import "@glidejs/glide/dist/css/glide.core.min.css";
 import "@glidejs/glide/dist/css/glide.theme.min.css";
 import { useEffect, useRef } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/Icon";
+
+import { SkeletonText } from "../skeleton";
 
 const Slider = <T extends string | unknown>({
   title = "",
@@ -22,7 +25,7 @@ const Slider = <T extends string | unknown>({
 }) => {
   const glide = useRef(null);
   const slider = useRef<Glide.Properties | null>(null);
-
+  const { isLocaleReady } = useLocale();
   useEffect(() => {
     if (glide.current) {
       slider.current = new Glide(glide.current, {
@@ -45,10 +48,14 @@ const Slider = <T extends string | unknown>({
       </style>
       <div className="glide" ref={glide}>
         <div className="flex cursor-default">
-          {title && (
-            <div>
-              <h2 className="mt-0 mb-2 text-lg font-semibold text-gray-900">{title}</h2>
-            </div>
+          {isLocaleReady ? (
+            title && (
+              <div>
+                <h2 className="mt-0 mb-2 text-lg font-semibold text-gray-900">{title}</h2>
+              </div>
+            )
+          ) : (
+            <SkeletonText className="h-4 w-24" />
           )}
           <div className="glide__arrows ml-auto" data-glide-el="controls">
             <button data-glide-dir="<" className="mr-4">

@@ -1,5 +1,5 @@
 import Head from "next/head";
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
@@ -42,12 +42,15 @@ export function MetaProvider({ children }: { children: React.ReactNode }) {
  * @example <Meta title="Password" description="Manage settings for your account passwords" />
  */
 export default function Meta({ title, description, backButton }: MetaType) {
-  const { t } = useLocale();
   const { setMeta, meta } = useMeta();
+
   /* @TODO: maybe find a way to have this data on first render to prevent flicker */
-  if (meta.title !== title || meta.description !== description) {
-    setMeta({ title, description, backButton });
-  }
+  useEffect(() => {
+    if (meta.title !== title || meta.description !== description) {
+      setMeta({ title, description, backButton });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title, description, backButton]);
 
   return (
     <Head>

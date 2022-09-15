@@ -721,19 +721,23 @@ const loggedInViewerRouter = createProtectedRouter()
   .query("integrations", {
     input: z.object({
       variant: z.string().optional(),
+      exclude: z.array(z.string()).optional(),
       onlyInstalled: z.boolean().optional(),
     }),
     async resolve({ ctx, input }) {
       const { user } = ctx;
-      const { variant, onlyInstalled } = input;
+      const { variant, exclude, onlyInstalled } = input;
       const { credentials } = user;
-
       let apps = getApps(credentials).map(
         ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => ({
           ...app,
           credentialIds: credentials.filter((c) => c.type === app.type).map((c) => c.id),
         })
       );
+      if (exclude) {
+        // exclusion filter
+        apps = apps.filter((item) => (exclude ? !exclude.includes(item.variant) : true));
+      }
       if (variant) {
         // `flatMap()` these work like `.filter()` but infers the types correctly
         apps = apps
@@ -764,6 +768,15 @@ const loggedInViewerRouter = createProtectedRouter()
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { credential: _, credentials: _1, ...app } = appFromDb;
       return app;
+    },
+  })
+  .query("appCredentialsByType", {
+    input: z.object({
+      appType: z.string(),
+    }),
+    async resolve({ ctx, input }) {
+      const { user } = ctx;
+      return user.credentials.filter((app) => app.type == input.appType).map((credential) => credential.id);
     },
   })
   .query("stripeCustomer", {

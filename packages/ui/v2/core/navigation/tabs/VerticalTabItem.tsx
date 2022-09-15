@@ -50,7 +50,7 @@ const VerticalTabItem = function <T extends string>({
   const _tabNameKey = tabNameKey || "tabName";
   if (href) {
     newHref = href;
-    isCurrent = router.asPath === href;
+    isCurrent = router.asPath.startsWith(href);
   } else if (tabName) {
     newHref = "";
     isCurrent = router.query[_tabNameKey] === tabName;
@@ -83,6 +83,7 @@ const VerticalTabItem = function <T extends string>({
                 !info ? "h-9" : "h-14",
                 props.className
               )}
+              data-testid={`vertical-tab-${name}`}
               aria-current={isCurrent ? "page" : undefined}>
               {props.icon && (
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
