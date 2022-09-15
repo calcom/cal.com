@@ -54,43 +54,45 @@ const ConferencingLayout = () => {
       <Meta title="conferencing" description="conferencing_description" />
       <List roundContainer={true}>
         {apps?.items &&
-          apps.items.map((app) => (
-            <ListItem rounded={false} className="flex-col border-0" key={app.title}>
-              <div className="flex w-full flex-1 items-center space-x-3 pl-1 pt-1 rtl:space-x-reverse">
-                {
-                  // eslint-disable-next-line @next/next/no-img-element
-                  app.logo && <img className="h-10 w-10" src={app.logo} alt={app.title} />
-                }
-                <div className="flex-grow truncate pl-2">
-                  <ListItemTitle component="h3" className="mb-1 space-x-2">
-                    <h3 className="truncate text-sm font-medium text-neutral-900">{app.title}</h3>
-                  </ListItemTitle>
-                  <ListItemText component="p">{app.description}</ListItemText>
+          apps.items
+            .map((app) => ({ ...app, title: app.title || app.name }))
+            .map((app) => (
+              <ListItem rounded={false} className="flex-col border-0" key={app.title}>
+                <div className="flex w-full flex-1 items-center space-x-3 pl-1 pt-1 rtl:space-x-reverse">
+                  {
+                    // eslint-disable-next-line @next/next/no-img-element
+                    app.logo && <img className="h-10 w-10" src={app.logo} alt={app.title} />
+                  }
+                  <div className="flex-grow truncate pl-2">
+                    <ListItemTitle component="h3" className="mb-1 space-x-2">
+                      <h3 className="truncate text-sm font-medium text-neutral-900">{app.title}</h3>
+                    </ListItemTitle>
+                    <ListItemText component="p">{app.description}</ListItemText>
+                  </div>
+                  <div>
+                    <Dropdown>
+                      <DropdownMenuTrigger asChild>
+                        <Button StartIcon={Icon.FiMoreHorizontal} size="icon" color="secondary" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem>
+                          <Button
+                            color="destructive"
+                            StartIcon={Icon.FiTrash}
+                            disabled={app.isGlobal}
+                            onClick={() => {
+                              setDeleteCredentialId(app.credentialIds[0]);
+                              setDeleteAppModal(true);
+                            }}>
+                            {t("remove_app")}
+                          </Button>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </Dropdown>
+                  </div>
                 </div>
-                <div>
-                  <Dropdown>
-                    <DropdownMenuTrigger asChild>
-                      <Button StartIcon={Icon.FiMoreHorizontal} size="icon" color="secondary" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem>
-                        <Button
-                          color="destructive"
-                          StartIcon={Icon.FiTrash}
-                          disabled={app.isGlobal}
-                          onClick={() => {
-                            setDeleteCredentialId(app.credentialIds[0]);
-                            setDeleteAppModal(true);
-                          }}>
-                          {t("remove_app")}
-                        </Button>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </Dropdown>
-                </div>
-              </div>
-            </ListItem>
-          ))}
+              </ListItem>
+            ))}
       </List>
 
       <Dialog open={deleteAppModal} onOpenChange={setDeleteAppModal}>

@@ -48,7 +48,6 @@ const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  // const { user } = props;
   const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: () => {
@@ -261,39 +260,3 @@ const ProfileView = () => {
 ProfileView.getLayout = getLayout;
 
 export default ProfileView;
-
-// export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-//   const session = await getSession(context);
-
-//   if (!session?.user?.id) {
-//     return { redirect: { permanent: false, destination: "/auth/login" } };
-//   }
-
-//   const user = await prisma.user.findUnique({
-//     where: {
-//       id: session.user.id,
-//     },
-//     select: {
-//       id: true,
-//       username: true,
-//       email: true,
-//       name: true,
-//       bio: true,
-//       avatar: true,
-//       twoFactorEnabled: true,
-//     },
-//   });
-
-//   if (!user) {
-//     throw new Error("User seems logged in but cannot be found in the db");
-//   }
-
-//   return {
-//     props: {
-//       user: {
-//         ...user,
-//         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
-//       },
-//     },
-//   };
-// };

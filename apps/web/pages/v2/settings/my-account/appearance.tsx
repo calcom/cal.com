@@ -107,7 +107,7 @@ const AppearanceView = () => {
             name="brandColor"
             control={formMethods.control}
             defaultValue={user.brandColor}
-            render={({ field: { value } }) => (
+            render={() => (
               <div>
                 <p className="mb-2 block text-sm font-medium text-gray-900">{t("light_brand_color")}</p>
                 <ColorPicker
@@ -121,7 +121,7 @@ const AppearanceView = () => {
             name="darkBrandColor"
             control={formMethods.control}
             defaultValue={user.darkBrandColor}
-            render={({ field: { value } }) => (
+            render={() => (
               <div className="mt-6 sm:mt-0">
                 <p className="mb-2 block text-sm font-medium text-gray-900">{t("dark_brand_color")}</p>
                 <ColorPicker
