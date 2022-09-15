@@ -259,7 +259,7 @@ export default async function main() {
   }
 
   if (process.env.ZAPIER_INVITE_LINK) {
-    await createApp("zapier", "zapier", ["other"], "zapier_other", {
+    await createApp("zapier", "zapier", ["automation"], "zapier_automation", {
       invite_link: process.env.ZAPIER_INVITE_LINK,
     });
   }

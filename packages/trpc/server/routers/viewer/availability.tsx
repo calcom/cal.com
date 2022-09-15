@@ -155,13 +155,25 @@ export const availabilityRouter = createProtectedRouter()
       if (scheduleToDelete?.userId !== user.id) throw new TRPCError({ code: "UNAUTHORIZED" });
 
       if (user.defaultScheduleId === input.scheduleId) {
-        // unset default
+        // set a new default or unset default if no other schedule
+        const scheduleToSetAsDefault = await prisma.schedule.findFirst({
+          where: {
+            userId: user.id,
+            NOT: {
+              id: input.scheduleId,
+            },
+          },
+          select: {
+            id: true,
+          },
+        });
+
         await prisma.user.update({
           where: {
             id: user.id,
           },
           data: {
-            defaultScheduleId: undefined,
+            defaultScheduleId: scheduleToSetAsDefault?.id,
           },
         });
       }
