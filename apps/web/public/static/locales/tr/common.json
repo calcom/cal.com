@@ -73,6 +73,8 @@
   "request_reschedule_subtitle": "{{organizer}} rezervasyonu iptal etti ve sizden başka bir saat seçmenizi istiyor.",
   "request_reschedule_title_organizer": "{{attendee}} adlı kişiye yeniden planlama talebinde bulundunuz",
   "request_reschedule_subtitle_organizer": "Rezervasyonu iptal ettiniz ve {{attendee}} isimli kişinin sizinle yeni bir rezervasyon saati belirlemesi gerekiyor.",
+  "rescheduled_event_type_subject": "Yeniden planlama isteği gönderildi: {{date}} tarihinde {{name}} ile {{eventType}}",
+  "requested_to_reschedule_subject_attendee": "Yeniden Planlama İşlemi Gerekiyor: Lütfen {{name}} ile {{eventType}} için yeni bir saat belirleyin",
   "reschedule_reason": "Yeniden planlama nedeni",
   "hi_user_name": "Merhaba {{name}}",
   "ics_event_title": "{{name}} ile {{eventType}}",
@@ -92,8 +94,6 @@
   "meeting_password": "Toplantı Şifresi",
   "meeting_url": "Toplantı URL'si",
   "meeting_request_rejected": "Toplantı isteğiniz reddedildi",
-  "rescheduled_event_type_subject": "Yeniden planlama isteği gönderildi: {{date}} tarihinde {{name}} ile {{eventType}}",
-  "requested_to_reschedule_subject_attendee": "Yeniden Planlama İşlemi Gerekiyor: Lütfen {{name}} ile {{eventType}} için yeni bir saat belirleyin",
   "rejected_event_type_with_organizer": "Reddedildi: {{date}} tarihinde {{organizer}} ile {{eventType}}",
   "hi": "Merhaba",
   "join_team": "Ekibe katıl",
@@ -1022,8 +1022,6 @@
   "navigate": "Gezin",
   "open": "Aç",
   "close": "Kapat",
-  "pro_feature_teams": "Bu bir Pro sürüm özelliğidir. Ekibinizin müsaitlik durumunu görebilmek için Pro sürüme geçin.",
-  "pro_feature_workflows": "Bu bir Pro sürüm özelliğidir. İş Akışlarıyla ilgili etkinlik bildirimlerinizi ve hatırlatıcılarınızı otomatikleştirmek için Pro sürüme geçin.",
   "embed": "Gömülü",
   "new_username": "Yeni kullanıcı adı",
   "current_username": "Mevcut kullanıcı adı",
@@ -1037,5 +1035,7 @@
   "download_desktop_app": "Masaüstü uygulamasını indirin",
   "set_ping_link": "Ping bağlantısını ayarla",
   "missing_connected_calendar": "Bağlı takvim yok",
-  "organizer_name_info": "Adınız"
+  "organizer_name_info": "Adınız",
+  "theme_light": "Açık",
+  "theme_dark": "Koyu"
 }
