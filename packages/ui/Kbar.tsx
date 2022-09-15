@@ -13,7 +13,7 @@ import { useRouter } from "next/router";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { Icon } from "@calcom/ui/Icon";
-import { Tooltip } from "@calcom/ui/v2/core";
+import Tooltip from "@calcom/ui/v2/core/Tooltip";
 
 type shortcutArrayType = {
   shortcuts?: string[];

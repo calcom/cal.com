@@ -193,17 +193,10 @@ const Route = ({
       label={route.isFallback ? "Fallback Route" : `Route ${index + 1}`}
       deleteField={{
         check: () => routes.length !== 1 && !route.isFallback,
-        fn: () => (
-          <button className="ml-5" type="button">
-            <Icon.FiTrash
-              className="m-0 h-4 w-4 text-neutral-500"
-              onClick={() => {
-                const newRoutes = routes.filter((r) => r.id !== route.id);
-                setRoutes(newRoutes);
-              }}
-            />
-          </button>
-        ),
+        fn: () => {
+          const newRoutes = routes.filter((r) => r.id !== route.id);
+          setRoutes(newRoutes);
+        },
       }}>
       <div className="-mx-4 mb-4 flex w-full items-center sm:mx-0">
         <div className="cal-query-builder w-full ">
