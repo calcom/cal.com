@@ -498,7 +498,7 @@
   "lets_create_first_administrator_user": "Let's create the first administrator user.",
   "new_member": "New Member",
   "invite": "Invite",
-  "invite_new_member": "Invite a new member",
+  "invite_new_member": "Invite a new team member",
   "invite_new_team_member": "Invite someone to your team.",
   "change_member_role": "Change team member role",
   "disable_cal_branding": "Disable Cal branding",
@@ -1240,6 +1240,7 @@
   "password_updated":"Password updated!",
   "pending_payment": "Pending payment",
   "confirmation_page_rainbow": "Token gate your event with tokens or NFTs on Ethereum, Polygon, and more.",
+  "not_on_cal": "Not on Cal.com",
   "no_calendar_installed": "No calendar installed",
   "no_calendar_installed_description": "You have not yet connected any of your calendars",
   "add_a_calendar": "Add a calendar"
