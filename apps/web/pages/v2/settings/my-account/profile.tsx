@@ -201,6 +201,7 @@ const ProfileView = () => {
                 name="email"
                 label={t("email")}
                 value={value}
+                hint={t("change_email_hint")}
                 onChange={(e) => {
                   formMethods.setValue("email", e?.target.value);
                 }}
