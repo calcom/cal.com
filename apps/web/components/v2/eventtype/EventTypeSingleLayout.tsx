@@ -253,7 +253,7 @@ function EventTypeSingleLayout({
             </DropdownMenuContent>
           </Dropdown>
           <div className="border-l-2 border-gray-300" />
-          <Button className="ml-4 lg:ml-0" type="submit" form="event-type-form">
+          <Button className="ml-4 lg:ml-0" type="submit" form="event-type-form" data-testid="save-eventtype">
             {t("save")}
           </Button>
         </div>

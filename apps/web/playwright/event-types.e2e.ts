@@ -116,15 +116,9 @@ test.describe("Event Types tests", () => {
           return !!url.pathname.match(/\/event-types\/.+/);
         },
       });
-      await expect(page.locator("[data-testid=advanced-settings-content]")).not.toBeVisible();
-      await page.locator("[data-testid=show-advanced-settings]").click();
-      await expect(page.locator("[data-testid=advanced-settings-content]")).toBeVisible();
-      await page.locator("[data-testid=update-eventtype]").click();
-      await page.waitForNavigation({
-        url: (url) => {
-          return url.pathname.endsWith("/event-types");
-        },
-      });
+      await page.locator("[data-testid=save-eventtype]").click();
+      const toast = await page.waitForSelector("div[class*='data-testid-toast-success']");
+      await expect(toast).toBeTruthy();
     });
   });
 
@@ -152,15 +146,9 @@ test.describe("Event Types tests", () => {
           return !!url.pathname.match(/\/event-types\/.+/);
         },
       });
-      await expect(page.locator("[data-testid=advanced-settings-content]")).not.toBeVisible();
-      await page.locator("[data-testid=show-advanced-settings]").click();
-      await expect(page.locator("[data-testid=advanced-settings-content]")).toBeVisible();
-      await page.locator("[data-testid=update-eventtype]").click();
-      await page.waitForNavigation({
-        url: (url) => {
-          return url.pathname.endsWith("/event-types");
-        },
-      });
+      await page.locator("[data-testid=save-eventtype]").click();
+      const toast = await page.waitForSelector("div[class*='data-testid-toast-success']");
+      await expect(toast).toBeTruthy();
     });
   });
 });
