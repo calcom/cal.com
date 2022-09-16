@@ -20,7 +20,10 @@ import Divider from "@calcom/ui/v2/core/Divider";
 
 import { LinkText } from "@components/ui/LinkText";
 
-function makeSignupSchema(callback: (bool: boolean) => void, tFunc: TFunction) {
+function makeSignupSchema(
+  callback: (response: { available: boolean; premium: boolean }) => void,
+  tFunc: TFunction
+) {
   return z.object({
     username: z
       .string()
@@ -34,7 +37,7 @@ function makeSignupSchema(callback: (bool: boolean) => void, tFunc: TFunction) {
               message: tFunc("already_in_use_error"),
             });
           }
-          callback(data.premium);
+          callback(data);
         }
       }),
     email: z.string().email({ message: tFunc("enter_valid_email") }),
@@ -58,8 +61,16 @@ const CreateAccount = () => {
   const router = useRouter();
   const [currentUsername, setCurrentUsername] = useState<string | undefined>();
   const [isPremium, setIsPremium] = useState<boolean>(false);
+  const [isAvailable, setIsAvailable] = useState<boolean>(false);
 
-  const signupSchema = useMemo(() => makeSignupSchema(setIsPremium, t), []);
+  const signupSchema = useMemo(
+    () =>
+      makeSignupSchema((data) => {
+        setIsAvailable(data.available);
+        setIsPremium(data.premium);
+      }, t),
+    []
+  );
   const formMethods = useForm<{
     username: string;
     email: string;
@@ -75,8 +86,8 @@ const CreateAccount = () => {
 
   useEffect(() => {
     if (currentUsername) {
-      debounce(() => {
-        trigger("username");
+      debounce(async () => {
+        await trigger("username");
       }, 200);
     } else if (currentUsername === "") {
       setIsPremium(false);
@@ -110,7 +121,7 @@ const CreateAccount = () => {
             });
           }
         } else {
-          const response = await fetch(`http://localhost:3001/api/signup`, {
+          const response = await fetch(`${WEBSITE_URL}/api/signup`, {
             method: "POST",
             body: JSON.stringify({
               email: data.email,
@@ -146,7 +157,7 @@ const CreateAccount = () => {
                   <TextField
                     t={t}
                     addOnLeading={
-                      <span className="items-centerpx-3 inline-flex rounded-none text-sm text-gray-500">
+                      <span className="inline-flex items-center rounded-none px-3 text-sm text-gray-500">
                         {WEBSITE_URL}/
                       </span>
                     }
@@ -165,8 +176,15 @@ const CreateAccount = () => {
                       }
                     }}
                   />
-                  {isPremium && (
-                    <p className="ml-2 mt-2 flex items-center text-sm text-blue-700">
+
+                  {isAvailable && !isPremium && (
+                    <p className="ml-2 mt-2 flex items-center text-sm text-green-700">
+                      <Icon.FiCheck className="-ml-1 mr-1 inline-block h-4 w-4" />
+                      {t("username_available")}
+                    </p>
+                  )}
+                  {isPremium && isAvailable && (
+                    <p className="ml-2 mt-2 flex items-center text-sm text-orange-400">
                       <Icon.FiStar className="-ml-1 mr-1 inline-block h-4 w-4" />{" "}
                       {t("premium_username", {
                         price: getPremiumPlanPriceValue(),
@@ -209,7 +227,7 @@ const CreateAccount = () => {
                   }}
                   hintErrors={["caplow", "min", "num"]}
                   name="password"
-                  autoComplete="off"
+                  autoComplete="new-password"
                 />
               )}
             />
@@ -232,7 +250,15 @@ const CreateAccount = () => {
                 type="button"
                 className="w-[48%] justify-center rounded-md border border-gray-200 py-[10px] font-sans text-sm leading-4"
                 onClick={async () => {
-                  const googleAuthUrl = "/auth/sso/google";
+                  let username = formMethods.getValues("username") || currentUsername;
+                  if (!username) {
+                    username = `user-${Math.floor(Math.random() * 100000)}`;
+                  }
+                  const searchQueryParams = new URLSearchParams();
+                  searchQueryParams.set("username", username);
+                  const baseUrl = process.env.NEXT_PUBLIC_WEBAPP_URL;
+                  // @NOTE: don't remove username query param as it's required right now for stripe payment page
+                  const googleAuthUrl = `${baseUrl}/auth/sso/google?${searchQueryParams.toString()}`;
                   router.push(googleAuthUrl);
                 }}>
                 <img
