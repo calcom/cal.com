@@ -38,7 +38,6 @@ const auditAndReturnNextUser = async (
     impersonatedByUID,
   };
 
-  console.log(obj);
 
   return obj;
 };
