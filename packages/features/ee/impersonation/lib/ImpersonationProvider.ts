@@ -38,7 +38,6 @@ const auditAndReturnNextUser = async (
     impersonatedByUID,
   };
 
-
   return obj;
 };
 
@@ -54,7 +53,8 @@ const ImpersonationProvider = CredentialsProvider({
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore need to figure out how to correctly type this
     const session = await getSession({ req });
-    const teamId = creds?.teamId ? teamIdschema.parse(creds?.teamId).teamId : undefined;
+    // If teamId is present -> parse the teamId and throw error itn ot number. If not present teamId is set to undefined
+    const teamId = creds?.teamId ? teamIdschema.parse(creds).teamId : undefined;
 
     if (session?.user.username === creds?.username) {
       throw new Error("You cannot impersonate yourself.");
