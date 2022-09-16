@@ -22,6 +22,7 @@ import {
   Switch,
   Label,
   HorizontalTabItemProps,
+  Skeleton,
 } from "@calcom/ui/v2";
 import { Dialog } from "@calcom/ui/v2/core/Dialog";
 import Dropdown, {
@@ -58,7 +59,7 @@ function EventTypeSingleLayout({
 }: Props) {
   const utils = trpc.useContext();
   const router = useRouter();
-  const { t } = useLocale();
+  const { t, isReady } = useLocale();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const hasPermsToDelete = currentUserMembership?.role !== "MEMBER" || !currentUserMembership;
@@ -165,9 +166,12 @@ function EventTypeSingleLayout({
       CTA={
         <div className="flex items-center justify-end">
           <div className="flex items-center rounded-md px-2 sm:hover:bg-gray-100">
-            <Label htmlFor="hiddenSwitch" className="mt-2 hidden cursor-pointer self-center pr-2 sm:inline">
+            <Skeleton
+              as={Label}
+              htmlFor="hiddenSwitch"
+              className="mt-2 hidden cursor-pointer self-center pr-2 sm:inline">
               {t("hide_from_profile")}
-            </Label>
+            </Skeleton>
             <Switch
               id="hiddenSwitch"
               defaultChecked={formMethods.getValues("hidden")}

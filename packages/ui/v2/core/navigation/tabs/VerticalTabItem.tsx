@@ -9,6 +9,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SVGComponent } from "@calcom/types/SVGComponent";
 import { Icon } from "@calcom/ui/Icon";
 
+import { Skeleton } from "../../skeleton";
+
 export type VerticalTabItemProps<T extends string = "tabName"> = {
   name: string;
   info?: string;
@@ -43,7 +45,7 @@ const VerticalTabItem = function <T extends string>({
   tabNameKey?: T;
 }) {
   const router = useRouter();
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
   let newHref = "";
   let isCurrent;
   const tabName = props[tabNameKey as keyof typeof props] as string;
@@ -91,8 +93,12 @@ const VerticalTabItem = function <T extends string>({
                 <props.icon className="mr-[10px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
               )}
               <div>
-                <p>{t(name)}</p>
-                {info && <p className="pt-1 text-xs font-normal">{t(info)}</p>}
+                <Skeleton as="p">{t(name)}</Skeleton>
+                {info && (
+                  <Skeleton as="p" className="mt-1 text-xs font-normal">
+                    {t(info)}
+                  </Skeleton>
+                )}
               </div>
               {!disableChevron && isCurrent && (
                 <div className="ml-auto self-center">
