@@ -5,7 +5,7 @@
   "scripts": {
     "build": "yarn prisma migrate deploy && yarn seed-app-store",
     "clean": "rm -rf .turbo && rm -rf node_modules",
-    "db-deploy": "DATABASE_URL=\"$MIGRATE_DATABASE_URL\" prisma migrate deploy",
+    "db-deploy": "yarn prisma migrate deploy",
     "db-migrate": "yarn prisma migrate dev",
     "db-nuke": "docker-compose down --volumes --remove-orphans",
     "db-reset": "run-s db-nuke db-setup",
