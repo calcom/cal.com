@@ -118,7 +118,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           <svg
             className={classNames(
               "mx-4 h-5 w-5 animate-spin",
-              color === "primary" ? "text-white dark:text-black" : "text-black"
+              color === "primary" ? "radix-state-open:text-black text-white dark:text-black" : "text-black"
             )}
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
