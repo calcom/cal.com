@@ -1,22 +1,26 @@
 import Link from "next/link";
+import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
 import Badge from "@calcom/ui/Badge";
 import { Icon } from "@calcom/ui/Icon";
+import { showToast } from "@calcom/ui/v2";
 import { Button, SkeletonButton, Shell } from "@calcom/ui/v2";
+import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
 
 const Component = ({
   name,
   type,
   logo,
+  slug,
+  variant,
   body,
   categories,
   author,
@@ -35,13 +39,14 @@ const Component = ({
   const { t } = useLocale();
   const { data: user } = trpc.useQuery(["viewer.me"]);
   const hasImages = images && images.length > 0;
+  const router = useRouter();
 
   const mutation = useAddAppMutation(null, {
     onSuccess: () => {
-      showToast("App successfully installed", "success");
+      showToast(t("app_successfully_installed"), "success");
     },
     onError: (error) => {
-      if (error instanceof Error) showToast(error.message || "App could not be installed", "error");
+      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
     },
   });
 
@@ -50,34 +55,14 @@ const Component = ({
     currency: "USD",
     useGrouping: false,
   }).format(price);
-  const [installedAppCount, setInstalledAppCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  useEffect(() => {
-    async function getInstalledApp(appCredentialType: string) {
-      const queryParam = new URLSearchParams();
-      queryParam.set("app-credential-type", appCredentialType);
-      try {
-        const result = await fetch(`/api/app-store/installed?${queryParam.toString()}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }).then((data) => {
-          setIsLoading(false);
-          return data;
-        });
-        if (result.status === 200) {
-          const res = await result.json();
-          setInstalledAppCount(res.count);
-        }
-      } catch (error) {
-        if (error instanceof Error) {
-          console.log(error.message);
-        }
-      }
-    }
-    getInstalledApp(type);
-  }, [type]);
+
+  const [existingCredentials, setExistingCredentials] = useState<number[]>([]);
+  const appCredentials = trpc.useQuery(["viewer.appCredentialsByType", { appType: type }], {
+    onSuccess(data) {
+      setExistingCredentials(data);
+    },
+  });
+
   const allowedMultipleInstalls = categories.indexOf("calendar") > -1;
 
   return (
@@ -106,33 +91,33 @@ const Component = ({
         )}
         <div
           className={classNames(
-            "sticky top-0 max-w-xl flex-1 pb-12 text-sm lg:pb-0",
+            "sticky top-0 -mt-4 max-w-xl flex-1 pb-12 text-sm lg:pb-0",
             hasImages && "lg:ml-8"
           )}>
-          <div className="mb-8 flex">
+          <div className="mb-8 flex pt-4">
             <header>
               <div className="mb-4 flex items-center">
                 <img className="min-h-16 min-w-16 h-16 w-16" src={logo} alt={name} />
                 <h1 className="font-cal ml-4 text-3xl text-gray-900">{name}</h1>
-                {isProOnly && user?.plan === "FREE" ? (
-                  <Badge className="ml-2" variant="default">
-                    PRO
-                  </Badge>
-                ) : null}
               </div>
               <h2 className="text-sm font-medium text-gray-600">
-                <span className="rounded-md bg-gray-100 p-1 text-xs capitalize text-gray-800">
-                  {categories[0]}
-                </span>{" "}
+                <Link href={`categories/${categories[0]}`}>
+                  <a className="rounded-md bg-gray-100 p-1 text-xs capitalize text-gray-800">
+                    {categories[0]}
+                  </a>
+                </Link>{" "}
                 • {t("published_by", { author })}
               </h2>
             </header>
           </div>
-          {!isLoading ? (
-            isGlobal || (installedAppCount > 0 && allowedMultipleInstalls) ? (
+          {!appCredentials.isLoading ? (
+            isGlobal ||
+            (existingCredentials.length > 0 && allowedMultipleInstalls ? (
               <div className="flex space-x-3">
                 <Button StartIcon={Icon.FiCheck} color="secondary" disabled>
-                  {installedAppCount > 0 ? t("active_install", { count: installedAppCount }) : t("default")}
+                  {existingCredentials.length > 0
+                    ? t("active_install", { count: existingCredentials.length })
+                    : t("default")}
                 </Button>
                 {!isGlobal && (
                   <InstallAppButton
@@ -142,7 +127,7 @@ const Component = ({
                       if (useDefaultComponent) {
                         props = {
                           onClick: () => {
-                            mutation.mutate({ type });
+                            mutation.mutate({ type, variant, slug });
                           },
                           loading: mutation.isLoading,
                         };
@@ -163,10 +148,14 @@ const Component = ({
                   />
                 )}
               </div>
-            ) : installedAppCount > 0 ? (
-              <Button color="secondary" disabled title="App already installed">
-                {t("installed")}
-              </Button>
+            ) : existingCredentials.length > 0 ? (
+              <DisconnectIntegration
+                label={t("disconnect")}
+                credentialId={existingCredentials[0]}
+                onSuccess={() => {
+                  router.replace("/apps/installed");
+                }}
+              />
             ) : (
               <InstallAppButton
                 type={type}
@@ -175,7 +164,7 @@ const Component = ({
                   if (useDefaultComponent) {
                     props = {
                       onClick: () => {
-                        mutation.mutate({ type });
+                        mutation.mutate({ type, variant, slug });
                       },
                       loading: mutation.isLoading,
                     };
@@ -193,9 +182,9 @@ const Component = ({
                   );
                 }}
               />
-            )
+            ))
           ) : (
-            <SkeletonButton width="24" height="10" />
+            <SkeletonButton className="h-10 w-24" />
           )}
           {price !== 0 && (
             <span className="block text-right">
@@ -204,7 +193,7 @@ const Component = ({
             </span>
           )}
 
-          <div className="mt-8 space-x-2">{body}</div>
+          <div className="prose prose-sm mt-8 space-x-2">{body}</div>
           <h4 className="mt-8 font-semibold text-gray-900 ">{t("pricing")}</h4>
           <span>
             {price === 0 ? (
@@ -305,6 +294,8 @@ export default function App(props: {
   type: AppType["type"];
   isGlobal?: AppType["isGlobal"];
   logo: string;
+  slug: string;
+  variant: string;
   body: React.ReactNode;
   categories: string[];
   author: string;

@@ -80,7 +80,7 @@ function Select<
     <ReactSelect
       theme={(theme) => ({
         ...theme,
-        borderRadius: 2,
+        borderRadius: 6,
         colors: {
           ...theme.colors,
           ...(hasDarkTheme
@@ -88,7 +88,6 @@ function Select<
             : {
                 /** Light Theme starts */
                 primary: "var(--brand-color)",
-
                 primary50: "rgba(209 , 213, 219, var(--tw-bg-opacity))",
                 primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
                 /** Light Theme Ends */

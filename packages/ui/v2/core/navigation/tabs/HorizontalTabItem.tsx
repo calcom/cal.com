@@ -6,34 +6,42 @@ import { MouseEventHandler } from "react";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-export type HorizontalTabItemProps = {
+import { SkeletonText } from "../../skeleton";
+
+export type HorizontalTabItemProps<T extends string = "tabName"> = {
   name: string;
   disabled?: boolean;
   className?: string;
 } & (
   | {
-      /** If you want to change query param tabName as per current tab */
       href: string;
-      tabName?: never;
     }
-  | {
+  | ({
       href?: never;
-      /** If you want to change the path as per current tab */
-      tabName: string;
-    }
+    } & Partial<Record<T, string>>)
 );
 
-const HorizontalTabItem = ({ name, href, tabName, ...props }: HorizontalTabItemProps) => {
+const HorizontalTabItem = function <T extends string>({
+  name,
+  href,
+  tabNameKey,
+  ...props
+}: HorizontalTabItemProps<T> & {
+  tabNameKey?: T;
+}) {
   const router = useRouter();
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
   let newHref = "";
   let isCurrent;
+  const _tabNameKey = tabNameKey || "tabName";
+  const tabName = props[tabNameKey as keyof typeof props];
+
   if (href) {
     newHref = href;
-    isCurrent = router.asPath === href;
+    isCurrent = router.asPath.startsWith(href);
   } else if (tabName) {
     newHref = "";
-    isCurrent = router.query.tabName === tabName;
+    isCurrent = router.query[_tabNameKey] === tabName;
   }
 
   const onClick: MouseEventHandler = tabName
@@ -42,7 +50,7 @@ const HorizontalTabItem = ({ name, href, tabName, ...props }: HorizontalTabItemP
         router.push({
           query: {
             ...router.query,
-            tabName,
+            [_tabNameKey]: tabName,
           },
         });
       }
@@ -53,13 +61,13 @@ const HorizontalTabItem = ({ name, href, tabName, ...props }: HorizontalTabItemP
       <a
         onClick={onClick}
         className={classNames(
-          isCurrent ? "bg-gray-200 text-gray-900" : " text-gray-600 hover:bg-gray-100 hover:text-gray-900 ",
+          isCurrent ? "bg-gray-200 text-gray-900" : "  text-gray-600 hover:bg-gray-100 hover:text-gray-900 ",
           "mb-2 inline-flex items-center justify-center whitespace-nowrap rounded-md py-[10px] px-4 text-sm font-medium leading-4 md:mb-0",
           props.disabled && "pointer-events-none !opacity-30",
           props.className
         )}
         aria-current={isCurrent ? "page" : undefined}>
-        {t(name)}
+        {isLocaleReady ? t(name) : <SkeletonText className="h-4 w-24" />}
       </a>
     </Link>
   );

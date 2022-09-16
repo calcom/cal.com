@@ -2600,6 +2600,24 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
+"@ewsjs/ntlm-client@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@ewsjs/ntlm-client/-/ntlm-client-1.0.0.tgz#992698347f6cebe7b41e1de7234ab8df81880af7"
+  integrity sha512-UVH0fRaOBO4qiAtJ33pp5aVEf5lIYT0aTCfhy4Rq+1AsCGv7krvx5DTp7dee5dMCvUk4HQXrS946u6RBHZbOkQ==
+  dependencies:
+    extend "^3.0.0"
+    request "^2.66.0"
+
+"@ewsjs/xhr@^1.4.4":
+  version "1.4.4"
+  resolved "https://registry.yarnpkg.com/@ewsjs/xhr/-/xhr-1.4.4.tgz#ff6c6d1c824505d59f0759d37c10c93198622795"
+  integrity sha512-fGJQHu9rVppSlcthU643onZ4T7Sloxd09Hw/aYkJUEf7Smr/dJW5O46ERcru2be3ecSh2SDT+8AI3J4Yfh9C3A==
+  dependencies:
+    "@ewsjs/ntlm-client" "^1.0.0"
+    bluebird "^3.4.6"
+    fetch "^1.0.1"
+    request "^2.88.0"
+
 "@faker-js/faker@^6.2.0":
   version "6.3.1"
   resolved "https://registry.yarnpkg.com/@faker-js/faker/-/faker-6.3.1.tgz#1ae963dd40405450a2945408cba553e1afa3e0fb"
@@ -3401,10 +3419,18 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@jridgewell/trace-mapping@^0.3.12", "@jridgewell/trace-mapping@^0.3.13", "@jridgewell/trace-mapping@^0.3.7", "@jridgewell/trace-mapping@^0.3.9":
+"@jridgewell/trace-mapping@^0.3.12", "@jridgewell/trace-mapping@^0.3.7", "@jridgewell/trace-mapping@^0.3.9":
   version "0.3.14"
   resolved "https://registry.yarnpkg.com/@jridgewell/trace-mapping/-/trace-mapping-0.3.14.tgz#b231a081d8f66796e475ad588a1ef473112701ed"
   integrity sha512-bJWEfQ9lPTvm3SneWwRFVLzrh6nhjwqw7TUFFBEMzwvg7t7PCDenf2lDwqo4NQXzdpgBXyFgDWnQA+2vkruksQ==
+  dependencies:
+    "@jridgewell/resolve-uri" "^3.0.3"
+    "@jridgewell/sourcemap-codec" "^1.4.10"
+
+"@jridgewell/trace-mapping@^0.3.13":
+  version "0.3.15"
+  resolved "https://registry.npmjs.org/@jridgewell/trace-mapping/-/trace-mapping-0.3.15.tgz"
+  integrity sha512-oWZNOULl+UbhsgB51uuZzglikfIKSUBO/M9W2OfEjn7cmqoAiCgmv9lyACTUacZwBz0ITnJ2NqjU8Tx0DHL88g==
   dependencies:
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
@@ -8625,7 +8651,7 @@ blakejs@^1.1.0:
   resolved "https://registry.yarnpkg.com/blakejs/-/blakejs-1.2.1.tgz#5057e4206eadb4a97f7c0b6e197a505042fc3814"
   integrity sha512-QXUSXI3QVc/gJME0dBpXrag1kbzOqCjCX8/b54ntNyW6sjtoqxqRk3LTmXzaJoh71zMsDCjM+47jS7XiwN/+fQ==
 
-bluebird@^3.5.0, bluebird@^3.5.5, bluebird@^3.7.2:
+bluebird@^3.4.6, bluebird@^3.5.0, bluebird@^3.5.5, bluebird@^3.7.2:
   version "3.7.2"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.7.2.tgz#9f229c15be272454ffa973ace0dbee79a1b0c36f"
   integrity sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==
@@ -12562,7 +12588,7 @@ fetch-retry@^5.0.2:
   resolved "https://registry.yarnpkg.com/fetch-retry/-/fetch-retry-5.0.3.tgz#edfa3641892995f9afee94f25b168827aa97fe3d"
   integrity sha512-uJQyMrX5IJZkhoEUBQ3EjxkeiZkppBd5jS/fMTJmfZxLSiaQjv2zD0kTvuvkSH89uFvgSlB6ueGpjD3HWN7Bxw==
 
-fetch@^1.1.0:
+fetch@^1.0.1, fetch@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/fetch/-/fetch-1.1.0.tgz#0a8279f06be37f9f0ebb567560a30a480da59a2e"
   integrity sha512-5O8TwrGzoNblBG/jtK4NFuZwNCkZX6s5GfRNOaGtm+QGJEuNakSC/i2RW0R93KX6E0jVjNXm6O3CRN4Ql3K+yA==
@@ -20801,7 +20827,7 @@ repeating@^2.0.0:
   dependencies:
     is-finite "^1.0.0"
 
-request@^2.79.0:
+request@^2.66.0, request@^2.79.0, request@^2.88.0:
   version "2.88.2"
   resolved "https://registry.yarnpkg.com/request/-/request-2.88.2.tgz#d73c918731cb5a87da047e207234146f664d12b3"
   integrity sha512-MsvtOrfG9ZcrOwAW+Qi+F6HbD0CWXEh9ou77uOb7FM2WPhwT7smM833PzanhJLsgXjN89Ir6V2PczXNnMpwKhw==
@@ -22488,6 +22514,11 @@ synchronous-promise@^2.0.15:
   version "2.0.15"
   resolved "https://registry.yarnpkg.com/synchronous-promise/-/synchronous-promise-2.0.15.tgz#07ca1822b9de0001f5ff73595f3d08c4f720eb8e"
   integrity sha512-k8uzYIkIVwmT+TcglpdN50pS2y1BDcUnBPK9iJeGu0Pl1lOI8pD6wtzgw91Pjpe+RxtTncw32tLxs/R0yNL2Mg==
+
+tailwindcss-radix@^2.6.0:
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/tailwindcss-radix/-/tailwindcss-radix-2.6.0.tgz#4948f477454b4441b4411c436f897c3f305c915b"
+  integrity sha512-32gv65ommaEMPKRS9yPmbvc6QcV+LsAqtSe1RFindBctVpS6+SbmkfcdecW/zgRvHW7KeAgl3iyzq2ZmRqsdZQ==
 
 tailwindcss@^3.1.8:
   version "3.1.8"

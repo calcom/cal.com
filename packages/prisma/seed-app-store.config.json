@@ -47,5 +47,23 @@
     "categories": ["web3"],
     "slug": "rainbow",
     "type": "rainbow_web3"
+  },
+  {
+    "dirName": "raycast",
+    "categories": ["other"],
+    "slug": "raycast",
+    "type": "raycast_other"
+  },
+  {
+    "dirName": "n8n",
+    "categories": ["automation"],
+    "slug": "n8n",
+    "type": "n8n_automation"
+  },
+  {
+    "dirName": "exchangecalendar",
+    "categories": ["calendar"],
+    "slug": "exchange",
+    "type": "exchange_calendar"
   }
 ]

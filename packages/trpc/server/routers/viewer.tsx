@@ -1,12 +1,12 @@
 import { AppCategories, BookingStatus, IdentityProvider, MembershipRole, Prisma } from "@prisma/client";
 import _ from "lodash";
 import { authenticator } from "otplib";
-import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import app_RoutingForms from "@calcom/app-store/ee/routing_forms/trpc-router";
 import ethRouter from "@calcom/app-store/rainbow/trpc/router";
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
+import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
 import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
@@ -37,6 +37,7 @@ import {
   updateWebUser as syncServicesUpdateWebUser,
 } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 
 import { TRPCError } from "@trpc/server";
@@ -79,6 +80,71 @@ const publicViewerRouter = createRouter()
       return await samlTenantProduct(prisma, email);
     },
   })
+  .query("stripeCheckoutSession", {
+    input: z.object({
+      stripeCustomerId: z.string().optional(),
+      checkoutSessionId: z.string().optional(),
+    }),
+    async resolve({ input }) {
+      const { checkoutSessionId, stripeCustomerId } = input;
+
+      // TODO: Move the following data checks to superRefine
+      if (!checkoutSessionId && !stripeCustomerId) {
+        throw new Error("Missing checkoutSessionId or stripeCustomerId");
+      }
+
+      if (checkoutSessionId && stripeCustomerId) {
+        throw new Error("Both checkoutSessionId and stripeCustomerId provided");
+      }
+      let customerId: string;
+      let isPremiumUsername = false;
+      let hasPaymentFailed = false;
+      if (checkoutSessionId) {
+        try {
+          const session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+          if (typeof session.customer !== "string") {
+            return {
+              valid: false,
+            };
+          }
+          customerId = session.customer;
+          isPremiumUsername = true;
+          hasPaymentFailed = session.payment_status !== "paid";
+        } catch (e) {
+          return {
+            valid: false,
+          };
+        }
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        customerId = stripeCustomerId!;
+      }
+
+      try {
+        const customer = await stripe.customers.retrieve(customerId);
+        if (customer.deleted) {
+          return {
+            valid: false,
+          };
+        }
+
+        return {
+          valid: true,
+          hasPaymentFailed,
+          isPremiumUsername,
+          customer: {
+            username: customer.metadata.username,
+            email: customer.metadata.email,
+            stripeCustomerId: customerId,
+          },
+        };
+      } catch (e) {
+        return {
+          valid: false,
+        };
+      }
+    },
+  })
   .merge("slots.", slotsRouter);
 
 // routes only available to authenticated users
@@ -109,6 +175,10 @@ const loggedInViewerRouter = createProtectedRouter()
         darkBrandColor: user.darkBrandColor,
         plan: user.plan,
         away: user.away,
+        bio: user.bio,
+        weekStart: user.weekStart,
+        theme: user.theme,
+        hideBranding: user.hideBranding,
       };
     },
   })
@@ -312,19 +382,16 @@ const loggedInViewerRouter = createProtectedRouter()
           membershipCount: number;
           readOnly: boolean;
         };
-        eventTypes: (typeof user.eventTypes[number] & { $disabled?: boolean })[];
+        eventTypes: typeof user.eventTypes[number][];
       };
 
       let eventTypeGroups: EventTypeGroup[] = [];
-      const eventTypesHashMap = user.eventTypes.concat(typesRaw).reduce((hashMap, newItem, currentIndex) => {
-        const oldItem = hashMap[newItem.id] || {
-          $disabled: user.plan === "FREE" && currentIndex > 0,
-        };
+      const eventTypesHashMap = user.eventTypes.concat(typesRaw).reduce((hashMap, newItem) => {
+        const oldItem = hashMap[newItem.id];
         hashMap[newItem.id] = { ...oldItem, ...newItem };
         return hashMap;
       }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
       const mergedEventTypes = Object.values(eventTypesHashMap).map((eventType) => eventType);
-
       eventTypeGroups.push({
         teamId: null,
         profile: {
@@ -355,11 +422,8 @@ const loggedInViewerRouter = createProtectedRouter()
         }))
       );
 
-      const canAddEvents = user.plan !== "FREE" || eventTypeGroups[0].eventTypes.length < 1;
-
       return {
         viewer: {
-          canAddEvents,
           plan: user.plan,
         },
         // don't display event teams without event types,
@@ -443,6 +507,7 @@ const loggedInViewerRouter = createProtectedRouter()
       };
       const passedBookingsFilter = bookingListingFilters[bookingListingByStatus];
       const orderBy = bookingListingOrderby[bookingListingByStatus];
+
       const bookingsQuery = await prisma.booking.findMany({
         where: {
           OR: [
@@ -453,6 +518,18 @@ const loggedInViewerRouter = createProtectedRouter()
               attendees: {
                 some: {
                   email: user.email,
+                },
+              },
+            },
+            {
+              eventType: {
+                team: {
+                  members: {
+                    some: {
+                      userId: user.id,
+                      role: "OWNER",
+                    },
+                  },
                 },
               },
             },
@@ -483,6 +560,8 @@ const loggedInViewerRouter = createProtectedRouter()
           user: {
             select: {
               id: true,
+              name: true,
+              email: true,
             },
           },
           rescheduled: true,
@@ -600,8 +679,8 @@ const loggedInViewerRouter = createProtectedRouter()
     input: z.object({
       integration: z.string(),
       externalId: z.string(),
-      eventTypeId: z.number().optional(),
-      bookingId: z.number().optional(),
+      eventTypeId: z.number().nullish(),
+      bookingId: z.number().nullish(),
     }),
     async resolve({ ctx, input }) {
       const { user } = ctx;
@@ -642,19 +721,23 @@ const loggedInViewerRouter = createProtectedRouter()
   .query("integrations", {
     input: z.object({
       variant: z.string().optional(),
+      exclude: z.array(z.string()).optional(),
       onlyInstalled: z.boolean().optional(),
     }),
     async resolve({ ctx, input }) {
       const { user } = ctx;
-      const { variant, onlyInstalled } = input;
+      const { variant, exclude, onlyInstalled } = input;
       const { credentials } = user;
-
       let apps = getApps(credentials).map(
         ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => ({
           ...app,
           credentialIds: credentials.filter((c) => c.type === app.type).map((c) => c.id),
         })
       );
+      if (exclude) {
+        // exclusion filter
+        apps = apps.filter((item) => (exclude ? !exclude.includes(item.variant) : true));
+      }
       if (variant) {
         // `flatMap()` these work like `.filter()` but infers the types correctly
         apps = apps
@@ -687,6 +770,52 @@ const loggedInViewerRouter = createProtectedRouter()
       return app;
     },
   })
+  .query("appCredentialsByType", {
+    input: z.object({
+      appType: z.string(),
+    }),
+    async resolve({ ctx, input }) {
+      const { user } = ctx;
+      return user.credentials.filter((app) => app.type == input.appType).map((credential) => credential.id);
+    },
+  })
+  .query("stripeCustomer", {
+    async resolve({ ctx }) {
+      const {
+        user: { id: userId },
+        prisma,
+      } = ctx;
+
+      const user = await prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+        select: {
+          metadata: true,
+        },
+      });
+
+      if (!user) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "User not found" });
+      }
+
+      const metadata = userMetadata.parse(user.metadata);
+      const checkoutSessionId = metadata?.checkoutSessionId;
+      //TODO: Rename checkoutSessionId to premiumUsernameCheckoutSessionId
+      if (!checkoutSessionId) return { isPremium: false };
+
+      const { stripeCustomer, checkoutSession } = await getCustomerAndCheckoutSession(checkoutSessionId);
+      if (!stripeCustomer) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Stripe User not found" });
+      }
+
+      return {
+        isPremium: true,
+        paidForPremium: checkoutSession.payment_status === "paid",
+        username: stripeCustomer.metadata.username,
+      };
+    },
+  })
   .mutation("updateProfile", {
     input: z.object({
       username: z.string().optional(),
@@ -711,12 +840,14 @@ const loggedInViewerRouter = createProtectedRouter()
       const data: Prisma.UserUpdateInput = {
         ...input,
       };
+      let isPremiumUsername = false;
       if (input.username) {
         const username = slugify(input.username);
         // Only validate if we're changing usernames
         if (username !== user.username) {
           data.username = username;
           const response = await checkUsername(username);
+          isPremiumUsername = response.premium;
           if (!response.available) {
             throw new TRPCError({ code: "BAD_REQUEST", message: response.message });
           }
@@ -724,6 +855,30 @@ const loggedInViewerRouter = createProtectedRouter()
       }
       if (input.avatar) {
         data.avatar = await resizeBase64Image(input.avatar);
+      }
+      const userToUpdate = await prisma.user.findUnique({
+        where: {
+          id: user.id,
+        },
+      });
+
+      if (!userToUpdate) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      }
+      const metadata = userMetadata.parse(userToUpdate.metadata);
+      // Checking the status of payment directly from stripe allows to avoid the situation where the user has got the refund or maybe something else happened asyncly at stripe but our DB thinks it's still paid for
+      // TODO: Test the case where one time payment is refunded.
+      const premiumUsernameCheckoutSessionId = metadata?.checkoutSessionId;
+      if (premiumUsernameCheckoutSessionId) {
+        const checkoutSession = await stripe.checkout.sessions.retrieve(premiumUsernameCheckoutSessionId);
+        const canUserHavePremiumUsername = checkoutSession.payment_status == "paid";
+
+        if (isPremiumUsername && !canUserHavePremiumUsername) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "You need to pay for premium username",
+          });
+        }
       }
 
       const updatedUser = await prisma.user.update({

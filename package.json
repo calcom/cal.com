@@ -52,7 +52,7 @@
     "e2e:app-store": "QUICK=true yarn playwright test --project=@calcom/app-store",
     "test-e2e": "yarn db-seed && yarn build && yarn e2e",
     "test-e2e:app-store": "yarn db-seed && yarn build && yarn e2e:app-store",
-    "test-playwright": "yarn playwright test --config=tests/config/playwright.config.ts",
+    "test-playwright": "yarn playwright test --config=playwright.config.ts",
     "test": "jest",
     "type-check": "turbo run type-check",
     "web": "yarn workspace @calcom/web"

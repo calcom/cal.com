@@ -6,7 +6,7 @@ import Badge from "@calcom/ui/v2/core/Badge";
 import Loader from "@calcom/ui/v2/core/Loader";
 import Meta from "@calcom/ui/v2/core/Meta";
 import Switch from "@calcom/ui/v2/core/Switch";
-import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
+import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 
 import DisableTwoFactorModal from "@components/v2/settings/DisableTwoFactorModal";
 import EnableTwoFactorModal from "@components/v2/settings/EnableTwoFactorModal";
@@ -24,7 +24,7 @@ const TwoFactorAuthView = () => {
 
   return (
     <>
-      <Meta title="2fa" description="2fa_description" />
+      <Meta title="Two-Factor Authentication" description="Manage settings for your account passwords" />
       <div className="mt-6 flex items-start space-x-4">
         <Switch
           checked={user?.twoFactorEnabled}

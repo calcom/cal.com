@@ -252,10 +252,6 @@ export const methods = {
   ui: function style(uiConfig: UiConfig) {
     // TODO: Create automatic logger for all methods. Useful for debugging.
     log("Method: ui called", uiConfig);
-    if (window.CalComPlan && window.CalComPlan !== "PRO") {
-      log(`Upgrade to PRO for "ui" instruction to work`, window.CalComPlan);
-      return;
-    }
     const stylesConfig = uiConfig.styles;
 
     // In case where parent gives instructions before CalComPlan is set.

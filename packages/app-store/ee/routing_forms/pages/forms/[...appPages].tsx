@@ -2,7 +2,7 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { Icon } from "@calcom/ui/Icon";
-import { DropdownMenuSeparator, Tooltip } from "@calcom/ui/v2";
+import { ButtonGroup, DropdownMenuSeparator, Tooltip } from "@calcom/ui/v2";
 import { EmptyScreen } from "@calcom/ui/v2";
 import { Badge } from "@calcom/ui/v2";
 import { List, ListLinkItem } from "@calcom/ui/v2/core/List";
@@ -22,28 +22,25 @@ export default function RoutingForms({
   function NewFormButton() {
     return (
       <FormAction routingForm={null} data-testid="new-routing-form" StartIcon={Icon.FiPlus} action="create">
-        New Form
+        {t("new")}
       </FormAction>
     );
   }
   return (
-    <ShellMain
-      heading="Routing Forms"
-      CTA={<NewFormButton />}
-      subtitle="You can see all routing forms and create one here.">
+    <ShellMain heading="Routing Forms" CTA={<NewFormButton />} subtitle={t("routing_forms_description")}>
       <FormActionsProvider appUrl={appUrl}>
         <div className="-mx-4 md:-mx-8">
           <div className="mb-10 w-full px-4 pb-2 sm:px-6 md:px-8">
             {!forms.length ? (
               <EmptyScreen
                 Icon={Icon.FiGitMerge}
-                headline="Create your first form"
-                description="Forms enable you to allow a booker to connect with the right person or choose the right event, faster. It would work by taking inputs from the booker and using that data to route to the correct booker/event as configured by Cal user"
+                headline={t("create_your_first_form")}
+                description={t("create_your_first_form_description")}
                 buttonRaw={<NewFormButton />}
               />
             ) : null}
             {forms.length ? (
-              <div className="-mx-4 mb-16 overflow-hidden bg-white sm:mx-0">
+              <div className="mb-16 overflow-hidden bg-white">
                 <List data-testid="routing-forms-list">
                   {forms.map((form, index) => {
                     if (!form) {
@@ -63,74 +60,72 @@ export default function RoutingForms({
                         subHeading={description}
                         actions={
                           <>
-                            <FormAction
-                              className="self-center border-r-2 border-gray-300 pr-5 "
-                              action="toggle"
-                              routingForm={form}
-                            />
-                            <Tooltip content={t("preview")}>
+                            <FormAction className="self-center" action="toggle" routingForm={form} />
+                            <ButtonGroup combined>
+                              <Tooltip content={t("preview")}>
+                                <FormAction
+                                  action="preview"
+                                  routingForm={form}
+                                  target="_blank"
+                                  StartIcon={Icon.FiExternalLink}
+                                  color="secondary"
+                                  combined
+                                  size="icon"
+                                  disabled={disabled}
+                                />
+                              </Tooltip>
                               <FormAction
-                                action="preview"
-                                className="ml-3"
                                 routingForm={form}
-                                target="_blank"
-                                StartIcon={Icon.FiExternalLink}
-                                color="minimal"
+                                action="copyLink"
+                                color="secondary"
+                                combined
                                 size="icon"
+                                StartIcon={Icon.FiLink}
                                 disabled={disabled}
+                                tooltip={t("copy_link_to_form")}
                               />
-                            </Tooltip>
-                            <FormAction
-                              routingForm={form}
-                              action="copyLink"
-                              color="minimal"
-                              size="icon"
-                              StartIcon={Icon.FiLink}
-                              disabled={disabled}
-                              tooltip={t("copy_link")}
-                            />
-
-                            <FormActionsDropdown form={form}>
-                              <FormAction
-                                action="edit"
-                                routingForm={form}
-                                color="minimal"
-                                StartIcon={Icon.FiEdit}>
-                                {t("edit")}
-                              </FormAction>
-                              <FormAction
-                                action="download"
-                                routingForm={form}
-                                color="minimal"
-                                StartIcon={Icon.FiDownload}>
-                                Download Responses
-                              </FormAction>
-                              <FormAction
-                                action="embed"
-                                routingForm={form}
-                                color="minimal"
-                                className="w-full"
-                                StartIcon={Icon.FiCode}>
-                                {t("embed")}
-                              </FormAction>
-                              <FormAction
-                                action="duplicate"
-                                routingForm={form}
-                                color="minimal"
-                                className="w-full"
-                                StartIcon={Icon.FiCopy}>
-                                {t("duplicate")}
-                              </FormAction>
-                              <DropdownMenuSeparator className="h-px bg-gray-200" />
-                              <FormAction
-                                action="_delete"
-                                routingForm={form}
-                                color="destructive"
-                                className="w-full"
-                                StartIcon={Icon.FiTrash}>
-                                {t("delete")}
-                              </FormAction>
-                            </FormActionsDropdown>
+                              <FormActionsDropdown form={form}>
+                                <FormAction
+                                  action="edit"
+                                  routingForm={form}
+                                  color="minimal"
+                                  StartIcon={Icon.FiEdit}>
+                                  {t("edit")}
+                                </FormAction>
+                                <FormAction
+                                  action="download"
+                                  routingForm={form}
+                                  color="minimal"
+                                  StartIcon={Icon.FiDownload}>
+                                  {t("download_responses")}
+                                </FormAction>
+                                <FormAction
+                                  action="embed"
+                                  routingForm={form}
+                                  color="minimal"
+                                  className="w-full"
+                                  StartIcon={Icon.FiCode}>
+                                  {t("embed")}
+                                </FormAction>
+                                <FormAction
+                                  action="duplicate"
+                                  routingForm={form}
+                                  color="minimal"
+                                  className="w-full"
+                                  StartIcon={Icon.FiCopy}>
+                                  {t("duplicate")}
+                                </FormAction>
+                                <DropdownMenuSeparator className="h-px bg-gray-200" />
+                                <FormAction
+                                  action="_delete"
+                                  routingForm={form}
+                                  color="destructive"
+                                  className="w-full"
+                                  StartIcon={Icon.FiTrash}>
+                                  {t("delete")}
+                                </FormAction>
+                              </FormActionsDropdown>
+                            </ButtonGroup>
                           </>
                         }>
                         <div className="flex flex-wrap gap-1">

@@ -237,7 +237,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
   };
 };
 
-type CustomUserOptsKeys = "username" | "password" | "plan" | "completedOnboarding" | "locale";
+type CustomUserOptsKeys = "username" | "password" | "plan" | "completedOnboarding" | "locale" | "name";
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & { timeZone?: TimeZoneEnum };
 
 // creates the actual user in the db.
@@ -251,7 +251,7 @@ const createUser = async (
   }-${Date.now()}`;
   return {
     username: uname,
-    name: (opts?.username ?? opts?.plan ?? UserPlan.PRO).toUpperCase(),
+    name: opts?.name === undefined ? (opts?.plan ?? UserPlan.PRO).toUpperCase() : opts?.name,
     plan: opts?.plan ?? UserPlan.PRO,
     email: `${uname}@example.com`,
     password: await hashPassword(uname),
@@ -315,7 +315,7 @@ export async function getPaymentCredential(page: Page) {
   ]);
 
   await Promise.all([
-    page.waitForNavigation({ url: "/apps/installed" }),
+    page.waitForNavigation({ url: "/apps/installed/payment?hl=stripe" }),
     /** We skip filling Stripe forms (testing mode only) */
     page.click('[id="skip-account-app"]'),
   ]);
