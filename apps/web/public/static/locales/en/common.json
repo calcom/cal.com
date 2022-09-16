@@ -1003,6 +1003,7 @@
   "premium": "premium",
   "standard": "standard",
   "confirm_username_change_dialog_title": "Confirm username change",
+  "already_in_use_error": "Username already in use",
   "change_username_standard_to_premium": "As you are changing from a standard to a premium username, you will be taken to the checkout to upgrade.",
   "change_username_premium_to_standard": "As you are changing from a premium to a standard username, you will be taken to the checkout to downgrade.",
   "go_to_stripe_billing": "Go to billing",
