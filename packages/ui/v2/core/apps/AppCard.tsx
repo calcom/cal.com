@@ -9,6 +9,8 @@ import { App } from "@calcom/types/App";
 import { Icon } from "@calcom/ui/Icon";
 import Button from "@calcom/ui/v2/core/Button";
 
+import { SkeletonText } from "../skeleton";
+
 interface AppCardProps {
   app: App;
   credentials?: Credential[];
@@ -16,8 +18,7 @@ interface AppCardProps {
 
 export default function AppCard({ app, credentials }: AppCardProps) {
   const { t } = useLocale();
-  const { data: user } = trpc.useQuery(["viewer.me"]);
-
+  const { isLocaleReady } = useLocale();
   const mutation = useAddAppMutation(null, {
     onSuccess: () => {
       showToast(t("app_successfully_installed"), "success");
@@ -31,9 +32,7 @@ export default function AppCard({ app, credentials }: AppCardProps) {
   const appAdded = (credentials && credentials.length) || 0;
 
   return (
-    <div
-      className="relative flex h-64 flex-col rounded-md border border-gray-300 p-5"
-      data-testid={`app-store-app-card-${app.slug}`}>
+    <div className="relative flex h-64 flex-col rounded-md border border-gray-300 p-5">
       <div className="flex">
         <img src={app.logo} alt={app.name + " Logo"} className="mb-4 h-12 w-12 rounded-sm" />
       </div>
@@ -55,7 +54,11 @@ export default function AppCard({ app, credentials }: AppCardProps) {
         {app.description}
       </p>
       <div className="mt-5 flex max-w-full flex-row flex-wrap justify-between gap-2">
-        <Button color="secondary" className="flex w-32 flex-grow justify-center" href={"/apps/" + app.slug}>
+        <Button
+          color="secondary"
+          className="flex w-32 flex-grow justify-center"
+          href={`/apps/${app.slug}`}
+          data-testid={`app-store-app-card-${app.slug}`}>
           {t("details")}
         </Button>
         {app.isGlobal || (credentials && credentials.length > 0 && allowedMultipleInstalls)
@@ -63,16 +66,21 @@ export default function AppCard({ app, credentials }: AppCardProps) {
               <InstallAppButton
                 type={app.type}
                 isProOnly={app.isProOnly}
+                wrapperClassName="[@media(max-width:260px)]:w-full"
                 render={({ useDefaultComponent, ...props }) => {
                   if (useDefaultComponent) {
                     props = {
                       onClick: () => {
-                        mutation.mutate({ type: app.type });
+                        mutation.mutate({ type: app.type, variant: app.variant, slug: app.slug });
                       },
                     };
                   }
                   return (
-                    <Button color="secondary" StartIcon={Icon.FiPlus} {...props}>
+                    <Button
+                      color="secondary"
+                      className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
+                      StartIcon={Icon.FiPlus}
+                      {...props}>
                       {t("install")}
                     </Button>
                   );
@@ -84,11 +92,12 @@ export default function AppCard({ app, credentials }: AppCardProps) {
               <InstallAppButton
                 type={app.type}
                 isProOnly={app.isProOnly}
+                wrapperClassName="[@media(max-width:260px)]:w-full"
                 render={({ useDefaultComponent, ...props }) => {
                   if (useDefaultComponent) {
                     props = {
                       onClick: () => {
-                        mutation.mutate({ type: app.type });
+                        mutation.mutate({ type: app.type, variant: app.variant, slug: app.slug });
                       },
                     };
                   }
@@ -96,6 +105,7 @@ export default function AppCard({ app, credentials }: AppCardProps) {
                     <Button
                       StartIcon={Icon.FiPlus}
                       color="secondary"
+                      className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
                       data-testid="install-app-button"
                       {...props}>
                       {t("install")}
@@ -114,12 +124,6 @@ export default function AppCard({ app, credentials }: AppCardProps) {
         {app.isGlobal && (
           <span className="flex items-center rounded-md bg-gray-100 px-2 py-1 text-sm font-normal text-gray-800">
             {t("default")}
-          </span>
-        )}
-        {app.isProOnly && user?.plan === "FREE" && (
-          <span className="flex items-center gap-1 rounded-md bg-orange-100 px-2 py-1 text-sm font-normal text-orange-800">
-            <Icon.FiStar className="h-4 w-4 text-orange-800" />
-            {t("pro")}
           </span>
         )}
       </div>

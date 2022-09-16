@@ -52,7 +52,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
             </List>
             {/* Create event on selected calendar */}
             <CreateEventsOnCalendarSelect calendar={destinationCalendar} />
-            <p className="mt-7 text-sm text-gray-500">{t("connect_calendars_from_app_store")}</p>
+            <p className="mt-4 text-sm text-gray-500">{t("connect_calendars_from_app_store")}</p>
           </>
         )}
 

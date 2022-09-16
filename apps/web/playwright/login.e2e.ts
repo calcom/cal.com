@@ -29,8 +29,6 @@ test.describe("user can login & logout succesfully", async () => {
       const planLocator = shellLocator.locator(`[data-testid=plan-trial]`);
       await expect(planLocator).toBeVisible();
       await expect(planLocator).toHaveText("-TRIAL");
-
-      await expect(page.locator(`[data-testid=trial-banner]`)).toBeVisible();
     });
 
     //

@@ -73,6 +73,8 @@
   "request_reschedule_subtitle": "Organizátor {{organizer}} zrušil rezervaci a požádal vás, abyste si vybrali jiný čas.",
   "request_reschedule_title_organizer": "Požádali jste uživatele {{attendee}} o změnu časového plánu",
   "request_reschedule_subtitle_organizer": "Zrušili jste rezervaci a uživatel {{attendee}} by si s vámi měl zarezervovat nový čas.",
+  "rescheduled_event_type_subject": "Žádost o přesunutí schůzky: {{eventType}} s {{name}} dne {{date}}",
+  "requested_to_reschedule_subject_attendee": "Akce vyžadovaná k přeplánování: zarezervujte si nový čas pro událost {{eventType}} s osobou {{name}}",
   "reschedule_reason": "Důvod přeplánování",
   "hi_user_name": "Hezký den, {{name}}",
   "ics_event_title": "{{eventType}} s {{name}}",
@@ -92,8 +94,6 @@
   "meeting_password": "Heslo ke schůzce",
   "meeting_url": "URL ke schůzce",
   "meeting_request_rejected": "Vaše žádost o schůzku byla zamítnuta",
-  "rescheduled_event_type_subject": "Žádost o přesunutí schůzky: {{eventType}} s {{name}} dne {{date}}",
-  "requested_to_reschedule_subject_attendee": "Akce vyžadovaná k přeplánování: zarezervujte si nový čas pro událost {{eventType}} s osobou {{name}}",
   "rejected_event_type_with_organizer": "Zamítnuto: {{eventType}} s {{organizer}} během {{date}}",
   "hi": "Zdravíme",
   "join_team": "Připojit se k týmu",
@@ -1022,8 +1022,6 @@
   "navigate": "Navigace",
   "open": "Otevřít",
   "close": "Zavřít",
-  "pro_feature_teams": "Toto je funkce Pro. Pokud chcete zobrazit dostupnost svého týmu, upgradujte na verzi Pro.",
-  "pro_feature_workflows": "Toto je funkce Pro. Upgradujte na verzi Pro, abyste mohli automatizovat upozornění na události a upomínky pomocí pracovních postupů.",
   "embed": "Vložit",
   "new_username": "Nové uživatelské jméno",
   "current_username": "Současné uživatelské jméno",
@@ -1035,5 +1033,7 @@
   "using_additional_inputs_as_variables": "Jak používat doplňkové vstupy jako proměnné?",
   "download_desktop_app": "Stáhněte si aplikaci pro stolní počítače",
   "set_ping_link": "Nastavení odkazu Ping",
-  "organizer_name_info": "Vaše jméno"
+  "organizer_name_info": "Vaše jméno",
+  "theme_light": "Světlý",
+  "theme_dark": "Tmavý"
 }

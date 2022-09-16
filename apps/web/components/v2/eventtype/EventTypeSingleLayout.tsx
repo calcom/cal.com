@@ -21,6 +21,7 @@ import {
   HorizontalTabs,
   Switch,
   Label,
+  HorizontalTabItemProps,
 } from "@calcom/ui/v2";
 import { Dialog } from "@calcom/ui/v2/core/Dialog";
 import Dropdown, {
@@ -32,6 +33,7 @@ import Shell from "@calcom/ui/v2/core/Shell";
 import VerticalDivider from "@calcom/ui/v2/core/VerticalDivider";
 
 import { ClientSuspense } from "@components/ClientSuspense";
+import { EmbedButton, EmbedDialog } from "@components/Embed";
 
 type Props = {
   children: React.ReactNode;
@@ -80,7 +82,7 @@ function EventTypeSingleLayout({
 
   // Define tab navigation here
   const EventTypeTabs = useMemo(() => {
-    const navigation = [
+    const navigation: (VerticalTabItemProps & HorizontalTabItemProps)[] = [
       {
         name: "event_setup_tab_title",
         tabName: "setup",
@@ -123,7 +125,7 @@ function EventTypeSingleLayout({
         icon: Icon.FiZap,
         info: `${enabledWorkflowsNumber} ${t("active")}`,
       },
-    ] as VerticalTabItemProps[];
+    ];
 
     // If there is a team put this navigation item within the tabs
     if (team)
@@ -152,8 +154,11 @@ function EventTypeSingleLayout({
     eventType.slug
   }`;
 
+  const embedLink = `${team ? `team/${team.slug}` : eventType.users[0].username}/${eventType.slug}`;
+
   return (
     <Shell
+      backPath="/event-types"
       title={t("event_type_title", { eventTypeTitle: eventType.title })}
       heading={eventType.title}
       subtitle={eventType.description || ""}
@@ -198,8 +203,12 @@ function EventTypeSingleLayout({
                 showToast("Link copied!", "success");
               }}
             />
-            {/* TODO: Implement embed here @hariom */}
-            {/* <Button color="secondary" size="icon" StartIcon={Icon.FiCode} /> */}
+            <EmbedButton
+              embedUrl={encodeURIComponent(embedLink)}
+              StartIcon={Icon.FiCode}
+              color="secondary"
+              size="icon"
+            />
             <Button
               color="secondary"
               size="icon"
@@ -244,7 +253,11 @@ function EventTypeSingleLayout({
             </DropdownMenuContent>
           </Dropdown>
           <div className="border-l-2 border-gray-300" />
-          <Button className="ml-4 lg:ml-0" type="submit" form="event-type-form">
+          <Button
+            className="ml-4 lg:ml-0"
+            type="submit"
+            data-testid="update-eventtype"
+            form="event-type-form">
             {t("save")}
           </Button>
         </div>
@@ -252,10 +265,10 @@ function EventTypeSingleLayout({
       <ClientSuspense fallback={<Loader />}>
         <div className="-mt-2 flex flex-col xl:flex-row xl:space-x-8">
           <div className="hidden xl:block">
-            <VerticalTabs tabs={EventTypeTabs} sticky />
+            <VerticalTabs className="primary-navigation" tabs={EventTypeTabs} sticky />
           </div>
           <div className="p-2 md:mx-0 md:p-0 xl:hidden">
-            <HorizontalTabs tabs={EventTypeTabs} />
+            <HorizontalTabs tabNameKey="tabName" tabs={EventTypeTabs} />
           </div>
           <div className="w-full ltr:mr-2 rtl:ml-2">
             <div
@@ -282,6 +295,7 @@ function EventTypeSingleLayout({
           {t("delete_event_type_description") as string}
         </ConfirmationDialogContent>
       </Dialog>
+      <EmbedDialog />
     </Shell>
   );
 }

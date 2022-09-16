@@ -65,6 +65,7 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   const isUpcoming = new Date(booking.endTime) >= new Date();
+  const isPast = new Date(booking.endTime) < new Date();
   const isCancelled = booking.status === BookingStatus.CANCELLED;
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
   const isRejected = booking.status === BookingStatus.REJECTED;
@@ -262,7 +263,7 @@ function BookingListItem(booking: BookingItemProps) {
       </Dialog>
 
       <tr className="flex hover:bg-neutral-50">
-        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-28" onClick={onClick}>
+        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-48" onClick={onClick}>
           <div className="cursor-pointer py-4">
             <div className="text-sm leading-6 text-gray-900">{startTime}</div>
             <div className="text-sm text-gray-500">
@@ -281,7 +282,7 @@ function BookingListItem(booking: BookingItemProps) {
                         ))}>
                         <div className="text-gray-600 dark:text-white">
                           <Icon.FiRefreshCcw
-                            stroke-width="3"
+                            strokeWidth="3"
                             className="float-left mr-1 mt-1.5 inline-block h-3 w-3 text-gray-400"
                           />
                           <p className="mt-1 pl-5 text-xs">
@@ -305,22 +306,11 @@ function BookingListItem(booking: BookingItemProps) {
         </td>
         <td className={"flex-1 px-4" + (isRejected ? " line-through" : "")} onClick={onClick}>
           <div className="cursor-pointer py-4">
-            {isPending && (
-              <Badge variant="orange" className="mb-2 ltr:mr-2 rtl:ml-2">
-                {t("unconfirmed")}
-              </Badge>
-            )}
             {!!booking?.eventType?.price && !booking.paid && (
               <Badge variant="orange" className="mb-2 ltr:mr-2 rtl:ml-2">
                 {t("pending_payment")}
               </Badge>
             )}
-            <div className="text-sm font-medium text-gray-900">
-              {startTime}:{" "}
-              <small className="text-sm text-gray-500">
-                {dayjs(booking.startTime).format("HH:mm")} - {dayjs(booking.endTime).format("HH:mm")}
-              </small>
-            </div>
             <div
               title={booking.title}
               className={classNames(
@@ -334,11 +324,15 @@ function BookingListItem(booking: BookingItemProps) {
               {!!booking?.eventType?.price && !booking.paid && (
                 <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">Pending payment</Tag>
               )}
-              {isPending && <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">{t("unconfirmed")}</Tag>}
+              {isPending && (
+                <Badge variant="orange" className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">
+                  {t("unconfirmed")}
+                </Badge>
+              )}
             </div>
             {booking.description && (
               <div
-                className="max-w-52 md:max-w-96 truncate text-sm text-gray-500"
+                className="max-w-52 md:max-w-96 truncate text-sm text-gray-600"
                 title={booking.description}>
                 &quot;{booking.description}&quot;
               </div>
@@ -366,6 +360,7 @@ function BookingListItem(booking: BookingItemProps) {
               {isRejected && <div className="text-sm text-gray-500">{t("rejected")}</div>}
             </>
           ) : null}
+          {isPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
           {isCancelled && booking.rescheduled && (
             <div className="hidden h-full items-center md:flex">
               <RequestSentMessage />

@@ -73,6 +73,8 @@
   "request_reschedule_subtitle": "{{organizer}} je otkazao/la rezervaciju i tražio/la je da odaberete drugo vreme.",
   "request_reschedule_title_organizer": "Zatražili ste da {{attendee}} promeni vreme rezervacije",
   "request_reschedule_subtitle_organizer": "Otkazali ste rezervaciju i {{attendee}} treba da odabere novo vreme rezervacije sa vama.",
+  "rescheduled_event_type_subject": "Odloženo: {{eventType}} sa {{name}} datuma {{date}}",
+  "requested_to_reschedule_subject_attendee": "Promena vremena zahteva radnju: zakažite novo vreme za {{eventType}} sa {{name}}",
   "reschedule_reason": "Razlog za promenu vremena",
   "hi_user_name": "Zdravo {{name}}",
   "ics_event_title": "{{eventType}} sa {{name}}",
@@ -92,8 +94,6 @@
   "meeting_password": "Lozinka Sastanka",
   "meeting_url": "URL Sastanka",
   "meeting_request_rejected": "Vaš zahtev za sastanak je odbijen",
-  "rescheduled_event_type_subject": "Odloženo: {{eventType}} sa {{name}} datuma {{date}}",
-  "requested_to_reschedule_subject_attendee": "Promena vremena zahteva radnju: zakažite novo vreme za {{eventType}} sa {{name}}",
   "rejected_event_type_with_organizer": "Odbijeno: {{eventType}} sa {{organizer}} datuma {{date}}",
   "hi": "Zdravo",
   "join_team": "Pridruži se timu",
@@ -1022,8 +1022,6 @@
   "navigate": "Navigacija",
   "open": "Otvori",
   "close": "Zatvori",
-  "pro_feature_teams": "Ovo je Pro funkcija. Nadogradite na Pro verziju da biste videli dostupnost vašeg tima.",
-  "pro_feature_workflows": "Ovo je Pro funkcija. Nadogradite na Pro verziju da biste automatizovali notifikacije svojih događaja i podsetnike sa radnim tokovima.",
   "embed": "Ugradi",
   "new_username": "Novo korisničko ime",
   "current_username": "Trenutno korisničko ime",
@@ -1037,5 +1035,7 @@
   "download_desktop_app": "Preuzmite aplikaciju za stoni računar",
   "set_ping_link": "Podesi Ping vezu",
   "missing_connected_calendar": "Nije povezan podrazumevani kalendar",
-  "organizer_name_info": "Vaše ime"
+  "organizer_name_info": "Vaše ime",
+  "theme_light": "Svetla",
+  "theme_dark": "Tamna"
 }

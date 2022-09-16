@@ -64,7 +64,7 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
   size?: "xl" | "lg" | "md";
   type: "creation" | "confirmation";
   title?: string;
-  description?: string | undefined;
+  description?: string | JSX.Element | undefined;
   closeText?: string;
   actionDisabled?: boolean;
   actionText?: string;
@@ -73,10 +73,11 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
   useOwnActionButtons?: boolean;
   actionOnClick?: (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => void;
   actionOnClose?: () => void;
+  actionProps?: React.ComponentProps<typeof Button>;
 };
 
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
-  ({ children, Icon, ...props }, forwardedRef) => (
+  ({ children, Icon, actionProps, ...props }, forwardedRef) => (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-40 bg-gray-500 bg-opacity-75 transition-opacity" />
       {/*zIndex one less than Toast */}
@@ -111,7 +112,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
             )}
             <div>
               {props.title && <DialogHeader title={props.title} />}
-              {props.description && <p className="mb-6 text-sm text-gray-500">Optional Description</p>}
+              {props.description && <p className="mb-6 text-sm text-gray-500">{props.description}</p>}
             </div>
           </div>
         )}
@@ -125,11 +126,15 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
                 </Button>
               </DialogClose>
               {props.actionOnClick ? (
-                <Button color="primary" disabled={props.actionDisabled} onClick={props.actionOnClick}>
+                <Button
+                  color="primary"
+                  disabled={props.actionDisabled}
+                  onClick={props.actionOnClick}
+                  {...actionProps}>
                   {props.actionText}
                 </Button>
               ) : (
-                <Button color="primary" type="submit" disabled={props.actionDisabled}>
+                <Button color="primary" type="submit" disabled={props.actionDisabled} {...actionProps}>
                   {props.actionText}
                 </Button>
               )}

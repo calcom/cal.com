@@ -20,11 +20,10 @@ const V2_WHITELIST = [
   "/success",
   "/auth/login",
 ];
-const V2_BLACKLIST = [
-  //
-  "/apps/routing_forms",
-  "/apps/installed",
-];
+
+// For pages
+// - which has V1 versions being modified as V2
+const V2_BLACKLIST = ["/apps/routing_forms/"];
 
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
@@ -43,11 +42,8 @@ const middleware: NextMiddleware = async (req) => {
       return NextResponse.redirect(req.nextUrl);
     }
   }
-  /** Display available V2 pages to users who opted-in to early access */
+  /** Display available V2 pages */
   if (
-    // ⬇ TODO: Remove this line for V2 launch
-    req.cookies.has("calcom-v2-early-access") &&
-    // ⬆ TODO: Remove this line for V2 launch
     !V2_BLACKLIST.some((p) => url.pathname.startsWith(p)) &&
     V2_WHITELIST.some((p) => url.pathname.startsWith(p))
   ) {
