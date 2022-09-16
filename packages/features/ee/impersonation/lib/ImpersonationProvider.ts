@@ -1,10 +1,13 @@
 import { User } from "@prisma/client";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { getSession } from "next-auth/react";
+import { z } from "zod";
 
 import prisma from "@calcom/prisma";
 
-import { asNumberOrThrow } from "@lib/asStringOrNull";
+const teamIdschema = z.object({
+  teamId: z.number(),
+});
 
 const auditAndReturnNextUser = async (
   impersonatedUser: Pick<User, "id" | "username" | "email" | "name" | "role">,
@@ -35,6 +38,8 @@ const auditAndReturnNextUser = async (
     impersonatedByUID,
   };
 
+  console.log(obj);
+
   return obj;
 };
 
@@ -50,7 +55,7 @@ const ImpersonationProvider = CredentialsProvider({
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore need to figure out how to correctly type this
     const session = await getSession({ req });
-    const teamId = creds?.teamId ? asNumberOrThrow(creds.teamId) : undefined;
+    const teamId = creds?.teamId ? teamIdschema.parse(creds?.teamId).teamId : undefined;
 
     if (session?.user.username === creds?.username) {
       throw new Error("You cannot impersonate yourself.");
@@ -103,35 +108,39 @@ const ImpersonationProvider = CredentialsProvider({
     }
 
     // Check session
-    const sessionUserFromDb = await prisma.user.findUnique({
-      where: {
-        id: session?.user.id,
-      },
-      include: {
-        teams: {
-          where: {
-            AND: [
-              {
-                role: {
-                  in: ["ADMIN", "OWNER"],
+    if (teamId) {
+      const sessionUserFromDb = await prisma.user.findUnique({
+        where: {
+          id: session?.user.id,
+        },
+        include: {
+          teams: {
+            where: {
+              AND: [
+                {
+                  role: {
+                    in: ["ADMIN", "OWNER"],
+                  },
                 },
-              },
-              {
-                team: {
-                  id: teamId,
+                {
+                  team: {
+                    id: teamId,
+                  },
                 },
-              },
-            ],
+              ],
+            },
           },
         },
-      },
-    });
+      });
 
-    if (sessionUserFromDb?.teams.length === 0 || impersonatedUser.teams.length === 0) {
+      if (sessionUserFromDb?.teams.length === 0 || impersonatedUser.teams.length === 0) {
+        throw new Error("You do not have permission to do this.");
+      }
+
+      return auditAndReturnNextUser(impersonatedUser, session?.user.id as number);
+    } else {
       throw new Error("You do not have permission to do this.");
     }
-
-    return auditAndReturnNextUser(impersonatedUser, session?.user.id as number);
   },
 });
 
