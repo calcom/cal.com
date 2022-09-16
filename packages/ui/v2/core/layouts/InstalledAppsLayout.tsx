@@ -47,7 +47,7 @@ export default function InstalledAppsLayout({
   }
   return (
     <Shell {...rest}>
-      <div className="mt-10 flex flex-col p-2 md:p-0 xl:flex-row">
+      <div className="flex flex-col p-2 md:p-0 xl:flex-row">
         <div className="hidden xl:block">
           <VerticalTabs tabs={actualTabs} sticky />
         </div>
