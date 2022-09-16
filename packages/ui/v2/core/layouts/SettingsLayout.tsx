@@ -213,14 +213,14 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                             {team.accepted && (
                               <VerticalTabItem
                                 name={t("profile")}
-                                href={`${WEBAPP_URL}/settings/teams/${team.id}/profile`}
+                                href={`/settings/teams/${team.id}/profile`}
                                 textClassNames="px-3 text-gray-900 font-medium text-sm"
                                 disableChevron
                               />
                             )}
                             <VerticalTabItem
                               name={t("members")}
-                              href={`${WEBAPP_URL}/settings/teams/${team.id}/members`}
+                              href={`/settings/teams/${team.id}/members`}
                               textClassNames="px-3 text-gray-900 font-medium text-sm"
                               disableChevron
                             />
@@ -235,7 +235,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                             /> */}
                                 <VerticalTabItem
                                   name={t("appearance")}
-                                  href={`${WEBAPP_URL}/settings/teams/${team.id}/appearance`}
+                                  href={`/settings/teams/${team.id}/appearance`}
                                   textClassNames="px-3 text-gray-900 font-medium text-sm"
                                   disableChevron
                                 />
