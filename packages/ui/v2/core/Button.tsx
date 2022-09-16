@@ -40,7 +40,7 @@ export type ButtonProps = ButtonBaseProps &
 
 const variantClassName = {
   primary:
-    "border border-transparent text-white bg-brand-500 hover:bg-brand-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500",
+    "border border-transparent text-white radix-state-open:text-black bg-brand-500 hover:bg-brand-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500",
   secondary: "border border-gray-200 text-brand-900 bg-white hover:bg-gray-100",
   minimal:
     "text-gray-700 bg-transparent hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-gray-100 focus:ring-brand-900 dark:text-darkgray-900 hover:dark:text-gray-50",
@@ -118,7 +118,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           <svg
             className={classNames(
               "mx-4 h-5 w-5 animate-spin",
-              color === "primary" ? "radix-state-open:text-black text-white dark:text-black" : "text-black"
+              color === "primary" ? "text-white dark:text-black" : "text-black"
             )}
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
