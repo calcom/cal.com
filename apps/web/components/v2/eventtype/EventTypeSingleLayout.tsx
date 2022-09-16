@@ -143,6 +143,9 @@ function EventTypeSingleLayout({
     // Default to the first in the list
     if (!router.query.tabName) {
       router.push({
+        // pathname by default would be the /v2 path and what we want is without /v2 because middleware rewrite would take care of it.
+        // See https://github.com/vercel/next.js/issues/32313#issuecomment-994696421
+        pathname: window.location.pathname,
         query: {
           ...router.query,
           tabName: EventTypeTabs[0].tabName,
