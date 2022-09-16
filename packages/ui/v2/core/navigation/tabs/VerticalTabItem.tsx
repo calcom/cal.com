@@ -50,7 +50,7 @@ const VerticalTabItem = function <T extends string>({
   const _tabNameKey = tabNameKey || "tabName";
   if (href) {
     newHref = href;
-    isCurrent = router.asPath === href;
+    isCurrent = router.asPath.startsWith(href);
   } else if (tabName) {
     newHref = "";
     isCurrent = router.query[_tabNameKey] === tabName;

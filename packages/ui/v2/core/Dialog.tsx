@@ -112,7 +112,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
             )}
             <div>
               {props.title && <DialogHeader title={props.title} />}
-              {props.description && <p className="mb-6 text-sm text-gray-500">Optional Description</p>}
+              {props.description && <p className="mb-6 text-sm text-gray-500">{props.description}</p>}
             </div>
           </div>
         )}
