@@ -6,6 +6,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
+import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { getSlackAppKeys } from "../lib/utils";
 
 const callbackQuerySchema = z.object({
@@ -52,7 +53,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     },
   });
 
-  res.redirect("/apps/installed");
+  res.redirect(getInstalledAppPath({ variant: "conferencing", slug: "slack" }));
 }
 
 export default defaultHandler({

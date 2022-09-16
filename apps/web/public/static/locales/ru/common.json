@@ -73,6 +73,8 @@
   "request_reschedule_subtitle": "{{organizer}} отменил(-а) бронирование и попросил(-а) вас выбрать другое время.",
   "request_reschedule_title_organizer": "Вы запросили у {{attendee}} изменение расписания",
   "request_reschedule_subtitle_organizer": "Вы отменили бронирование, и {{attendee}} теперь должен(-на) выбрать новое время бронирования.",
+  "rescheduled_event_type_subject": "Запрос на перенос отправлен: {{eventType}} с {{name}}, {{date}}",
+  "requested_to_reschedule_subject_attendee": "Требуется перенести бронирование: забронируйте новое время для {{eventType}} с {{name}}",
   "reschedule_reason": "Причина переноса",
   "hi_user_name": "Привет {{userName}}",
   "ics_event_title": "{{eventType}} с {{name}}",
@@ -92,8 +94,6 @@
   "meeting_password": "Пароль встречи",
   "meeting_url": "URL встречи",
   "meeting_request_rejected": "Ваш запрос на встречу отклонен",
-  "rescheduled_event_type_subject": "Запрос на перенос отправлен: {{eventType}} с {{name}}, {{date}}",
-  "requested_to_reschedule_subject_attendee": "Требуется перенести бронирование: забронируйте новое время для {{eventType}} с {{name}}",
   "rejected_event_type_with_organizer": "Отклонено: {{eventType}} с {{organizer}} на {{date}}",
   "hi": "Привет",
   "join_team": "Вступить в команду",
@@ -1022,8 +1022,6 @@
   "navigate": "Перейти",
   "open": "Открыть",
   "close": "Закрыть",
-  "pro_feature_teams": "Эта функция доступна в тарифном плане Pro. Перейдите на тариф Pro, чтобы увидеть доступность команды.",
-  "pro_feature_workflows": "Эта функция доступна в тарифном плане Pro. Перейдите на тариф Pro, чтобы автоматизировать уведомления и напоминания о событиях с помощью рабочих процессов.",
   "embed": "Встроить",
   "new_username": "Новое имя пользователя",
   "current_username": "Текущее имя пользователя",
@@ -1035,5 +1033,7 @@
   "using_additional_inputs_as_variables": "Как использовать ответы на дополнительные вопросы в качестве переменных?",
   "download_desktop_app": "Скачать приложение для компьютера",
   "set_ping_link": "Ссылка на Ping",
-  "organizer_name_info": "Ваше имя"
+  "organizer_name_info": "Ваше имя",
+  "theme_light": "Светлая",
+  "theme_dark": "Тёмная"
 }

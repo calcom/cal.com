@@ -23,10 +23,6 @@ test.describe("Event Types tests", () => {
       const $eventTypes = page.locator("[data-testid=event-types] > *");
       const count = await $eventTypes.count();
       expect(count).toBeGreaterThanOrEqual(2);
-
-      for (let i = 0; i < count; i++) {
-        expect(await $eventTypes.nth(i).getAttribute("data-disabled")).toBe("0");
-      }
     });
 
     test("can add new event type", async ({ page }) => {
@@ -63,7 +59,7 @@ test.describe("Event Types tests", () => {
         },
       });
 
-      await page.click("[data-testid=show-advanced-settings]");
+      await page.click("[data-testid=vertical-tab-recurring]");
       await expect(page.locator("[data-testid=recurring-event-collapsible]")).not.toBeVisible();
       await page.click("[data-testid=recurring-event-check]");
       await expect(page.locator("[data-testid=recurring-event-collapsible]")).toBeVisible();
@@ -120,15 +116,9 @@ test.describe("Event Types tests", () => {
           return !!url.pathname.match(/\/event-types\/.+/);
         },
       });
-      await expect(page.locator("[data-testid=advanced-settings-content]")).not.toBeVisible();
-      await page.locator("[data-testid=show-advanced-settings]").click();
-      await expect(page.locator("[data-testid=advanced-settings-content]")).toBeVisible();
       await page.locator("[data-testid=update-eventtype]").click();
-      await page.waitForNavigation({
-        url: (url) => {
-          return url.pathname.endsWith("/event-types");
-        },
-      });
+      const toast = await page.waitForSelector("div[class*='data-testid-toast-success']");
+      await expect(toast).toBeTruthy();
     });
   });
 
@@ -145,15 +135,6 @@ test.describe("Event Types tests", () => {
       const $eventTypes = page.locator("[data-testid=event-types] > *");
       const count = await $eventTypes.count();
       expect(count).toBeGreaterThanOrEqual(2);
-
-      const $first = $eventTypes.first();
-      const $last = $eventTypes.last()!;
-      expect(await $first.getAttribute("data-disabled")).toBe("0");
-      expect(await $last.getAttribute("data-disabled")).toBe("1");
-    });
-
-    test("can not add new event type", async ({ page }) => {
-      await expect(page.locator("[data-testid=new-event-type]")).toBeDisabled();
     });
 
     test("edit first event", async ({ page }) => {
@@ -165,15 +146,9 @@ test.describe("Event Types tests", () => {
           return !!url.pathname.match(/\/event-types\/.+/);
         },
       });
-      await expect(page.locator("[data-testid=advanced-settings-content]")).not.toBeVisible();
-      await page.locator("[data-testid=show-advanced-settings]").click();
-      await expect(page.locator("[data-testid=advanced-settings-content]")).toBeVisible();
       await page.locator("[data-testid=update-eventtype]").click();
-      await page.waitForNavigation({
-        url: (url) => {
-          return url.pathname.endsWith("/event-types");
-        },
-      });
+      const toast = await page.waitForSelector("div[class*='data-testid-toast-success']");
+      await expect(toast).toBeTruthy();
     });
   });
 });

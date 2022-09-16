@@ -17,7 +17,7 @@ export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTri
         props.asChild
           ? classNames(
               className,
-              "radix-state-open:bg-gray-100 radix-state-open:ring-brand-800 radix-state-open:ring-1"
+              "radix-state-open:bg-gray-100 radix-state-open:ring-brand-800 radix-state-open:ring-1 focus:ring-brand-800 focus:ring-1 focus-visible:outline-none"
             )
           : `inline-flex items-center rounded-md bg-transparent px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-1 group-hover:text-black ${className}`
       }
@@ -127,7 +127,7 @@ export const DropdownItem = (props: DropdownItemProps) => {
     <ButtonOrLink
       {...props}
       className={classNames(
-        "inline-flex items-center px-3 py-2 text-gray-700 hover:text-gray-900",
+        "focus:ring-brand-800 f inline-flex items-center px-3 py-2 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-1",
         props.color === "destructive" ? "hover:bg-red-100 hover:text-red-700" : " hover:bg-gray-100"
       )}>
       <>

@@ -315,7 +315,7 @@ export async function getPaymentCredential(page: Page) {
   ]);
 
   await Promise.all([
-    page.waitForNavigation({ url: "/apps/installed" }),
+    page.waitForNavigation({ url: "/apps/installed/payment?hl=stripe" }),
     /** We skip filling Stripe forms (testing mode only) */
     page.click('[id="skip-account-app"]'),
   ]);

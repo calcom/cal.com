@@ -73,6 +73,8 @@
   "request_reschedule_subtitle": "{{organizer}} 已取消預約，並要求您選擇其他時間。",
   "request_reschedule_title_organizer": "您已要求 {{attendee}} 重新預約",
   "request_reschedule_subtitle_organizer": "您已取消預約，{{attendee}} 應和您重新挑選新的預約時間。",
+  "rescheduled_event_type_subject": "已送出重新預定的申請：在 {{date}} 與 {{name}} 的 {{eventType}}",
+  "requested_to_reschedule_subject_attendee": "需進行重新預約操作：請為與 {{name}} 的 {{eventType}} 預訂新時間",
   "reschedule_reason": "重新預約的原因",
   "hi_user_name": "哈囉 {{name}}",
   "ics_event_title": "與 {{name}} 的 {{eventType}}",
@@ -92,8 +94,6 @@
   "meeting_password": "會議密碼",
   "meeting_url": "會議網址",
   "meeting_request_rejected": "會議請求遭到拒絕",
-  "rescheduled_event_type_subject": "已送出重新預定的申請：在 {{date}} 與 {{name}} 的 {{eventType}}",
-  "requested_to_reschedule_subject_attendee": "需進行重新預約操作：請為與 {{name}} 的 {{eventType}} 預訂新時間",
   "rejected_event_type_with_organizer": "遭到拒絕：{{date}} 與 {{organizer}} 的 {{eventType}}",
   "hi": "嗨",
   "join_team": "加入團隊",
@@ -1022,8 +1022,6 @@
   "navigate": "導覽",
   "open": "開啟",
   "close": "關閉",
-  "pro_feature_teams": "此為 Pro 功能。升級至 Pro 即可查看團隊出席情形。",
-  "pro_feature_workflows": "此為 Pro 功能。升級至 Pro 即可透過工作流程自動處理活動通知與提醒。",
   "embed": "內嵌",
   "new_username": "新使用者名稱",
   "current_username": "目前使用者名稱",
@@ -1037,5 +1035,7 @@
   "download_desktop_app": "下載桌面版應用程式",
   "set_ping_link": "設定 Ping 連結",
   "missing_connected_calendar": "無已連接的預設行事曆",
-  "organizer_name_info": "名字"
+  "organizer_name_info": "名字",
+  "theme_light": "亮色",
+  "theme_dark": "暗色"
 }

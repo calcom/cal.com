@@ -1,7 +1,6 @@
 import { AppCategories, BookingStatus, IdentityProvider, MembershipRole, Prisma } from "@prisma/client";
 import _ from "lodash";
 import { authenticator } from "otplib";
-import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import app_RoutingForms from "@calcom/app-store/ee/routing_forms/trpc-router";
@@ -176,6 +175,10 @@ const loggedInViewerRouter = createProtectedRouter()
         darkBrandColor: user.darkBrandColor,
         plan: user.plan,
         away: user.away,
+        bio: user.bio,
+        weekStart: user.weekStart,
+        theme: user.theme,
+        hideBranding: user.hideBranding,
       };
     },
   })
@@ -379,19 +382,16 @@ const loggedInViewerRouter = createProtectedRouter()
           membershipCount: number;
           readOnly: boolean;
         };
-        eventTypes: (typeof user.eventTypes[number] & { $disabled?: boolean })[];
+        eventTypes: typeof user.eventTypes[number][];
       };
 
       let eventTypeGroups: EventTypeGroup[] = [];
-      const eventTypesHashMap = user.eventTypes.concat(typesRaw).reduce((hashMap, newItem, currentIndex) => {
-        const oldItem = hashMap[newItem.id] || {
-          $disabled: user.plan === "FREE" && currentIndex > 0,
-        };
+      const eventTypesHashMap = user.eventTypes.concat(typesRaw).reduce((hashMap, newItem) => {
+        const oldItem = hashMap[newItem.id];
         hashMap[newItem.id] = { ...oldItem, ...newItem };
         return hashMap;
       }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
       const mergedEventTypes = Object.values(eventTypesHashMap).map((eventType) => eventType);
-
       eventTypeGroups.push({
         teamId: null,
         profile: {
@@ -422,11 +422,8 @@ const loggedInViewerRouter = createProtectedRouter()
         }))
       );
 
-      const canAddEvents = user.plan !== "FREE" || eventTypeGroups[0].eventTypes.length < 1;
-
       return {
         viewer: {
-          canAddEvents,
           plan: user.plan,
         },
         // don't display event teams without event types,
@@ -724,19 +721,23 @@ const loggedInViewerRouter = createProtectedRouter()
   .query("integrations", {
     input: z.object({
       variant: z.string().optional(),
+      exclude: z.array(z.string()).optional(),
       onlyInstalled: z.boolean().optional(),
     }),
     async resolve({ ctx, input }) {
       const { user } = ctx;
-      const { variant, onlyInstalled } = input;
+      const { variant, exclude, onlyInstalled } = input;
       const { credentials } = user;
-
       let apps = getApps(credentials).map(
         ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => ({
           ...app,
           credentialIds: credentials.filter((c) => c.type === app.type).map((c) => c.id),
         })
       );
+      if (exclude) {
+        // exclusion filter
+        apps = apps.filter((item) => (exclude ? !exclude.includes(item.variant) : true));
+      }
       if (variant) {
         // `flatMap()` these work like `.filter()` but infers the types correctly
         apps = apps
@@ -767,6 +768,15 @@ const loggedInViewerRouter = createProtectedRouter()
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { credential: _, credentials: _1, ...app } = appFromDb;
       return app;
+    },
+  })
+  .query("appCredentialsByType", {
+    input: z.object({
+      appType: z.string(),
+    }),
+    async resolve({ ctx, input }) {
+      const { user } = ctx;
+      return user.credentials.filter((app) => app.type == input.appType).map((credential) => credential.id);
     },
   })
   .query("stripeCustomer", {

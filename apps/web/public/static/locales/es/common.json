@@ -73,6 +73,8 @@
   "request_reschedule_subtitle": "{{organizer}} ha cancelado la reserva y le ha solicitado que elija otra hora.",
   "request_reschedule_title_organizer": "Le ha solicitado a {{attendee}} que reprograme",
   "request_reschedule_subtitle_organizer": "Ha cancelado la reserva y {{attendee}} deberá seleccionar una nueva hora de reserva con usted.",
+  "rescheduled_event_type_subject": "Solicitud de reprogramación enviada: {{eventType}} con {{name}} el {{date}}",
+  "requested_to_reschedule_subject_attendee": "Reprogramar acción requerida: reserva una nueva hora para {{eventType}} con {{name}}",
   "reschedule_reason": "Motivo de la reprogramación",
   "hi_user_name": "Hola {{userName}}",
   "ics_event_title": "{{eventType}} con {{name}}",
@@ -92,8 +94,6 @@
   "meeting_password": "Contraseña de la reunión",
   "meeting_url": "URL de la reunión",
   "meeting_request_rejected": "Su solicitud de reunión ha sido rechazada",
-  "rescheduled_event_type_subject": "Solicitud de reprogramación enviada: {{eventType}} con {{name}} el {{date}}",
-  "requested_to_reschedule_subject_attendee": "Reprogramar acción requerida: reserva una nueva hora para {{eventType}} con {{name}}",
   "rejected_event_type_with_organizer": "Rechazado: {{eventType}} con {{organizer}} en {{date}}",
   "hi": "Hola",
   "join_team": "Unirse al Equipo",
@@ -1022,8 +1022,6 @@
   "navigate": "Navegar",
   "open": "Abrir",
   "close": "Cerrar",
-  "pro_feature_teams": "Esta es una característica Pro. Actualice a Pro para ver la disponibilidad de su equipo.",
-  "pro_feature_workflows": "Esta es una característica profesional. Actualice a Pro para automatizar sus notificaciones de eventos y recordatorios con flujos de trabajo.",
   "embed": "Insertar",
   "new_username": "Nombre de usuario nuevo",
   "current_username": "Nombre de usuario actual",
@@ -1035,5 +1033,7 @@
   "using_additional_inputs_as_variables": "¿Cómo usar entradas adicionales como variables?",
   "download_desktop_app": "Descargar la aplicación de escritorio",
   "set_ping_link": "Establecer enlace Ping",
-  "organizer_name_info": "Tu Nombre"
+  "organizer_name_info": "Tu Nombre",
+  "theme_light": "Claro",
+  "theme_dark": "Oscuro"
 }

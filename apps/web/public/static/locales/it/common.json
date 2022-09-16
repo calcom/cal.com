@@ -73,6 +73,8 @@
   "request_reschedule_subtitle": "{{organizer}} ha annullato la prenotazione e ti ha chiesto di scegliere un altro orario.",
   "request_reschedule_title_organizer": "Hai richiesto a {{attendee}} di riprogrammare",
   "request_reschedule_subtitle_organizer": "Hai annullato la prenotazione e {{attendee}} deve selezionare un nuovo orario per la prenotazione.",
+  "rescheduled_event_type_subject": "Richiesta di riprogrammazione inviata: {{eventType}} con {{name}} il {{date}}",
+  "requested_to_reschedule_subject_attendee": "Azione richiesta per la riprogrammazione: prenota un nuovo orario per {{eventType}} con {{name}}",
   "reschedule_reason": "Motivo della riprogrammazione",
   "hi_user_name": "Ciao {{name}}",
   "ics_event_title": "{{eventType}} con {{name}}",
@@ -92,8 +94,6 @@
   "meeting_password": "Password del meeting",
   "meeting_url": "URL del Meeting",
   "meeting_request_rejected": "La tua richiesta di riunione è stata rifiutata",
-  "rescheduled_event_type_subject": "Richiesta di riprogrammazione inviata: {{eventType}} con {{name}} il {{date}}",
-  "requested_to_reschedule_subject_attendee": "Azione richiesta per la riprogrammazione: prenota un nuovo orario per {{eventType}} con {{name}}",
   "rejected_event_type_with_organizer": "Rifiutato: {{eventType}} con {{organizer}} il {{date}}",
   "hi": "Ciao",
   "join_team": "Unisciti al team",
@@ -1022,8 +1022,6 @@
   "navigate": "Esplora",
   "open": "Apri",
   "close": "Chiudi",
-  "pro_feature_teams": "Questa è una funzionalità Pro. Effettua l'upgrade a Pro per vedere la disponibilità del team.",
-  "pro_feature_workflows": "Questa è una funzionalità Pro. Effettua l'upgrade a Pro per automatizzare le notifiche e i promemoria degli eventi per i flussi di lavoro.",
   "embed": "Incorpora",
   "new_username": "Nuovo nome utente",
   "current_username": "Nome utente corrente",
@@ -1037,5 +1035,7 @@
   "download_desktop_app": "Scarica app desktop",
   "set_ping_link": "Imposta link di Ping",
   "missing_connected_calendar": "Nessun calendario predefinito collegato",
-  "organizer_name_info": "Il tuo nome"
+  "organizer_name_info": "Il tuo nome",
+  "theme_light": "Chiaro",
+  "theme_dark": "Scuro"
 }
