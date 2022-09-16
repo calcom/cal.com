@@ -8,7 +8,6 @@ import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import TrialBanner from "@calcom/features/ee/common/components/TrialBanner";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import UserV2OptInBanner from "@calcom/features/users/components/UserV2OptInBanner";
@@ -377,7 +376,7 @@ function UserDropdown({ small }: { small?: boolean }) {
   );
 }
 
-type NavigationItemType = {
+export type NavigationItemType = {
   name: string;
   href: string;
   icon?: SVGComponent;
@@ -418,16 +417,32 @@ const navigation: NavigationItemType[] = [
     icon: Icon.FiGrid,
     isCurrent: ({ router, item }) => {
       const path = router.asPath.split("?")[0];
-      return !!item.child?.some((child) => path === child.href);
+      // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
+      return (
+        (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) && !path.includes("routing_forms/")
+      );
     },
     child: [
       {
         name: "app_store",
         href: "/apps",
+        isCurrent: ({ router, item }) => {
+          const path = router.asPath.split("?")[0];
+          // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
+          return (
+            (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) &&
+            !path.includes("routing_forms/") &&
+            !path.includes("/installed")
+          );
+        },
       },
       {
         name: "installed_apps",
-        href: "/apps/installed",
+        href: "/apps/installed/calendar",
+        isCurrent: ({ router }) => {
+          const path = router.asPath;
+          return path.startsWith("/apps/installed/") || path.startsWith("/v2/apps/installed/");
+        },
       },
     ],
   },
@@ -539,7 +554,6 @@ const NavigationItem: React.FC<{
       </Link>
       {item.child &&
         isCurrent({ router, isChild, item }) &&
-        router.asPath.startsWith(item.href) &&
         item.child.map((item) => <NavigationItem key={item.name} item={item} isChild />)}
     </Fragment>
   );
@@ -649,14 +663,15 @@ function DeploymentInfo() {
 function SideBarContainer() {
   const { status } = useSession();
   const router = useRouter();
-  if (status !== "authenticated") return null;
+  // Make sure that Sidebar is rendered optimistically so that a refresh of pages when logged in have SideBar from the beginning.
+  // This improves the experience of refresh on app store pages(when logged in) which are SSG.
+  // Though when logged out, app store pages would temporarily show SideBar until session status is confirmed.
+  if (status !== "loading" && status !== "authenticated") return null;
   if (router.route.startsWith("/v2/settings/")) return null;
   return <SideBar />;
 }
 
 function SideBar() {
-  const { isLocaleReady } = useLocale();
-
   return (
     <aside className="desktop-transparent hidden w-14 flex-col border-r border-gray-100 bg-gray-50 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
       <div className="flex h-0 flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
@@ -698,11 +713,11 @@ function SideBar() {
       {/* TODO @Peer_Rich: reintroduce in 2.1
       <Tips />
       */}
-      <div className="mb-4 hidden lg:block">
+      {/* Save it for next preview version
+       <div className="mb-4 hidden lg:block">
         <UserV2OptInBanner />
-      </div>
+      </div> */}
 
-      {!isLocaleReady ? null : <TrialBanner />}
       <div data-testid="user-dropdown-trigger">
         <span className="hidden lg:inline">
           <UserDropdown />
@@ -738,12 +753,12 @@ export function ShellMain(props: LayoutProps) {
             <div className="hidden w-full ltr:mr-4 rtl:ml-4 sm:block">
               {props.heading && (
                 <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
-                  {!isLocaleReady ? null : props.heading}
+                  {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
               )}
               {props.subtitle && (
                 <p className="hidden text-sm text-neutral-500 sm:block">
-                  {!isLocaleReady ? null : props.subtitle}
+                  {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
                 </p>
               )}
             </div>

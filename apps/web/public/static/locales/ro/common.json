@@ -73,6 +73,8 @@
   "request_reschedule_subtitle": "{{organizer}} a anulat rezervarea și v-a cerut să alegeți o altă dată.",
   "request_reschedule_title_organizer": "I-ați cerut lui {{attendee}} să reprogrameze",
   "request_reschedule_subtitle_organizer": "Ați anulat rezervarea și {{attendee}} trebuie să aleagă o nouă dată pentru rezervarea cu dvs.",
+  "rescheduled_event_type_subject": "Cerere de reprogramare trimisă: {{eventType}} cu {{name}} în {{date}}",
+  "requested_to_reschedule_subject_attendee": "Acțiunea necesită reprogramare: rezervați o nouă dată pentru {{eventType}} cu {{name}}",
   "reschedule_reason": "Motivul reprogramării",
   "hi_user_name": "Salut {{userName}}",
   "ics_event_title": "{{eventType}} cu {{name}}",
@@ -92,8 +94,6 @@
   "meeting_password": "Parolă ședință",
   "meeting_url": "URL ședință",
   "meeting_request_rejected": "Solicitarea dvs. în şedinţă a fost respinsă",
-  "rescheduled_event_type_subject": "Cerere de reprogramare trimisă: {{eventType}} cu {{name}} în {{date}}",
-  "requested_to_reschedule_subject_attendee": "Acțiunea necesită reprogramare: rezervați o nouă dată pentru {{eventType}} cu {{name}}",
   "rejected_event_type_with_organizer": "Respins: {{eventType}} cu {{organizer}} pe {{date}}",
   "hi": "Salut",
   "join_team": "Alătură-te echipei",
@@ -1022,8 +1022,6 @@
   "navigate": "Navigare",
   "open": "Deschidere",
   "close": "Închidere",
-  "pro_feature_teams": "Aceasta este o caracteristică Pro. Faceți upgrade la Pro pentru a vedea disponibilitatea echipei dvs.",
-  "pro_feature_workflows": "Aceasta este o caracteristică Pro. Faceți upgrade la Pro pentru a automatiza notificările și mementourile evenimentului cu Fluxurile de lucru.",
   "embed": "Încorporare",
   "new_username": "Nume de utilizator nou",
   "current_username": "Nume de utilizator actual",
@@ -1037,5 +1035,7 @@
   "download_desktop_app": "Descărcați aplicația pentru desktop",
   "set_ping_link": "Setare link Ping",
   "missing_connected_calendar": "Nu este conectat niciun calendar implicit",
-  "organizer_name_info": "Numele tău"
+  "organizer_name_info": "Numele tău",
+  "theme_light": "Lumină",
+  "theme_dark": "Întunecat"
 }

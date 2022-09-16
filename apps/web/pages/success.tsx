@@ -36,7 +36,6 @@ import { EmailInput } from "@calcom/ui/form/fields";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
-import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
@@ -259,7 +258,7 @@ export default function Success(props: SuccessProps) {
   );
   const customInputs = bookingInfo?.customInputs;
 
-  const locationToDisplay = getSuccessPageLocationMessage(location, t);
+  const locationToDisplay = getSuccessPageLocationMessage(location, t, props?.bookingInfo?.status);
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
@@ -276,9 +275,7 @@ export default function Success(props: SuccessProps) {
       <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
         <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
-          {isSuccessRedirectAvailable(eventType) && eventType.successRedirectUrl ? (
-            <RedirectionToast url={eventType.successRedirectUrl} />
-          ) : null}{" "}
+          {eventType.successRedirectUrl ? <RedirectionToast url={eventType.successRedirectUrl} /> : null}{" "}
           <div
             className={classNames(
               shouldAlignCentrally ? "text-center" : "",
@@ -825,6 +822,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     select: {
       title: true,
       uid: true,
+      status: true,
       description: true,
       customInputs: true,
       user: {

@@ -12,12 +12,14 @@ export default function DisconnectIntegration({
   label,
   trashIcon,
   isGlobal,
+  onSuccess,
   buttonProps,
 }: {
   credentialId: number;
   label?: string;
   trashIcon?: boolean;
   isGlobal?: boolean;
+  onSuccess?: () => void;
   buttonProps?: ButtonProps;
 }) {
   const { t } = useLocale();
@@ -25,11 +27,12 @@ export default function DisconnectIntegration({
 
   const mutation = trpc.useMutation("viewer.deleteCredential", {
     onSuccess: () => {
-      showToast("Integration deleted successfully", "success");
+      showToast(t("app_removed_successfully"), "success");
       setModalOpen(false);
+      onSuccess && onSuccess();
     },
     onError: () => {
-      showToast("Error deleting app", "error");
+      showToast(t("error_removing_app"), "error");
       setModalOpen(false);
     },
   });
@@ -41,16 +44,17 @@ export default function DisconnectIntegration({
           <Button
             color={buttonProps?.color || "destructive"}
             StartIcon={trashIcon ? Icon.FiTrash : undefined}
+            size={trashIcon && !label ? "icon" : "base"}
             disabled={isGlobal}
             {...buttonProps}>
-            {label}
+            {label && label}
           </Button>
         </DialogTrigger>
         <DialogContent
-          title="Remove app"
-          description="Are you sure you want to remove this app?"
+          title={t("remove_app")}
+          description={t("are_you_sure_you_want_to_remove_this_app")}
           type="confirmation"
-          actionText="Yes, remove app"
+          actionText={t("yes_remove_app")}
           Icon={Icon.FiAlertCircle}
           actionOnClick={() => mutation.mutate({ id: credentialId })}
         />
