@@ -843,7 +843,7 @@
   "redirect_url_upgrade_description": "In order to use this feature, you need to upgrade to a Pro account.",
   "duplicate": "Duplicate",
   "offer_seats": "Offer seats",
-  "offer_seats_description": "Offer seats to bookings (This disables guests & opt in bookings)",
+  "offer_seats_description": "Offer seats for booking. This automatically disables guest & opt-in bookings.",
   "seats_available": "Seats available",
   "number_of_seats": "Number of seats per booking",
   "enter_number_of_seats": "Enter number of seats",
@@ -1265,5 +1265,6 @@
   "no_calendar_installed": "No calendar installed",
   "no_calendar_installed_description": "You have not yet connected any of your calendars",
   "add_a_calendar": "Add a calendar",
-  "change_email_hint": "You may need to log out and back in to see any change take effect"
+  "change_email_hint": "You may need to log out and back in to see any change take effect",
+  "seats": "seats"
 }
