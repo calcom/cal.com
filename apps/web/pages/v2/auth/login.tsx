@@ -140,7 +140,7 @@ export default function Login({
                 {...form.register("email")}
               />
               <div className="relative">
-                <div className="absolute right-0 -top-[6px]">
+                <div className="absolute right-0 -top-[6px] z-10">
                   <Link href="/auth/forgot-password">
                     <a tabIndex={-1} className="text-sm font-medium text-gray-600">
                       {t("forgot")}
