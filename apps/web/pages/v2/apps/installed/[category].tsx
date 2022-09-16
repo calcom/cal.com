@@ -100,7 +100,7 @@ const IntegrationsList = ({ data }: { data: inferQueryOutput<"viewer.integration
           logo={item.logo}
           description={item.description}
           actions={
-            <div className="flex w-32 justify-center">
+            <div className="flex w-32 justify-end">
               <ConnectOrDisconnectIntegrationButton
                 credentialIds={item.credentialIds}
                 type={item.type}
