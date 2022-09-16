@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 16.x
           cache: "yarn"
-      - name: Setting more heap space size
-        run: export NODE_OPTIONS="--max_old_space_size=20480"
       - run: yarn --frozen-lockfile
       - run: yarn type-check
+        env:
+          NODE_OPTIONS: --max_old_space_size=4096
