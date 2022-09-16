@@ -195,7 +195,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
         <Skeleton
           as={Label}
           htmlFor={id}
-          skeletonClassName="w-16"
+          loadingClassName="w-16"
           {...labelProps}
           className={classNames(labelClassName, labelSrOnly && "sr-only", props.error && "text-red-900")}>
           {label}

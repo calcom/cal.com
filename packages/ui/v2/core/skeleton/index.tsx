@@ -22,8 +22,14 @@ export const Skeleton = ({
   className = "",
   children,
   loading = false,
+  /**
+   * Assumes that the text needs translation by default and wait for it.
+   */
   waitForTranslation = true,
-  skeletonClassName = "",
+  /**
+   * Classes that you need only in loading state
+   */
+  loadingClassName = "",
   ...rest
 }: {
   as: keyof JSX.IntrinsicElements | React.FC<{ className: string; children: React.ReactNode }>;
@@ -31,7 +37,7 @@ export const Skeleton = ({
   children: React.ReactNode;
   loading?: boolean;
   waitForTranslation?: boolean;
-  skeletonClassName?: string;
+  loadingClassName?: string;
 }) => {
   const { isLocaleReady } = useLocale();
   loading = (waitForTranslation ? !isLocaleReady : false) || loading;
@@ -42,7 +48,7 @@ export const Skeleton = ({
         loading
           ? classNames(
               "font-size-0 dark:white-300 animate-pulse rounded-md bg-gray-300 text-transparent",
-              skeletonClassName
+              loadingClassName
             )
           : "",
         className

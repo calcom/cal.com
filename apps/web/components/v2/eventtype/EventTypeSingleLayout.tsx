@@ -59,7 +59,7 @@ function EventTypeSingleLayout({
 }: Props) {
   const utils = trpc.useContext();
   const router = useRouter();
-  const { t, isReady } = useLocale();
+  const { t } = useLocale();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const hasPermsToDelete = currentUserMembership?.role !== "MEMBER" || !currentUserMembership;

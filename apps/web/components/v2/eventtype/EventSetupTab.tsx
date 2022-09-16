@@ -222,7 +222,7 @@ export const EventSetupTab = (
           }}
         />
         <div>
-          <Skeleton as={Label} skeletonClassName="w-16">
+          <Skeleton as={Label} loadingClassName="w-16">
             {t("location")}
           </Skeleton>
           <Controller
