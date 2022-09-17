@@ -110,7 +110,6 @@ const GeneralView = ({ localeProp }: GeneralViewProps) => {
     <Form
       form={formMethods}
       handleSubmit={(values) => {
-        console.log("values", values);
         mutation.mutate({
           ...values,
           locale: values.locale.value,
