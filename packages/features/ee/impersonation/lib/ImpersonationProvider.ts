@@ -106,40 +106,38 @@ const ImpersonationProvider = CredentialsProvider({
       return auditAndReturnNextUser(impersonatedUser, session?.user.id as number);
     }
 
+    if (!teamId) throw new Error("You do not have permission to do this.");
+
     // Check session
-    if (teamId) {
-      const sessionUserFromDb = await prisma.user.findUnique({
-        where: {
-          id: session?.user.id,
-        },
-        include: {
-          teams: {
-            where: {
-              AND: [
-                {
-                  role: {
-                    in: ["ADMIN", "OWNER"],
-                  },
+    const sessionUserFromDb = await prisma.user.findUnique({
+      where: {
+        id: session?.user.id,
+      },
+      include: {
+        teams: {
+          where: {
+            AND: [
+              {
+                role: {
+                  in: ["ADMIN", "OWNER"],
                 },
-                {
-                  team: {
-                    id: teamId,
-                  },
+              },
+              {
+                team: {
+                  id: teamId,
                 },
-              ],
-            },
+              },
+            ],
           },
         },
-      });
+      },
+    });
 
-      if (sessionUserFromDb?.teams.length === 0 || impersonatedUser.teams.length === 0) {
-        throw new Error("You do not have permission to do this.");
-      }
-
-      return auditAndReturnNextUser(impersonatedUser, session?.user.id as number);
-    } else {
+    if (sessionUserFromDb?.teams.length === 0 || impersonatedUser.teams.length === 0) {
       throw new Error("You do not have permission to do this.");
     }
+
+    return auditAndReturnNextUser(impersonatedUser, session?.user.id as number);
   },
 });
 
