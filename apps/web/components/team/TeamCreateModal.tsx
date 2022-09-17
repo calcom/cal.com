@@ -3,9 +3,9 @@ import { useRef, useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
-import { Alert } from "@calcom/ui/Alert";
-import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
+import { Alert } from "@calcom/ui/v2/core/Alert";
+import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/v2/core/Dialog";
 
 interface Props {
   isOpen: boolean;
@@ -28,15 +28,14 @@ export default function TeamCreate(props: Props) {
     },
   });
 
-  const createTeam = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const createTeam = () => {
     createTeamMutation.mutate({ name: nameRef?.current?.value });
   };
 
   return (
     <>
       <Dialog open={props.isOpen} onOpenChange={props.onClose}>
-        <DialogContent>
+        <DialogContent type="creation" actionText={t("create_new_team")} actionOnClick={createTeam}>
           <div className="mb-4 sm:flex sm:items-start">
             <div className="bg-brand text-brandcontrast dark:bg-darkmodebrand dark:text-darkmodebrandcontrast mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-opacity-5 sm:mx-0 sm:h-10 sm:w-10">
               <Icon.FiUsers className="text-brandcontrast h-6 w-6" />
@@ -50,7 +49,7 @@ export default function TeamCreate(props: Props) {
               </div>
             </div>
           </div>
-          <form onSubmit={createTeam}>
+          <form>
             <div className="mb-4">
               <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                 {t("name")}
@@ -66,18 +65,6 @@ export default function TeamCreate(props: Props) {
               />
             </div>
             {errorMessage && <Alert severity="error" title={errorMessage} />}
-            <DialogFooter>
-              <Button type="button" color="secondary" onClick={props.onClose}>
-                {t("cancel")}
-              </Button>
-              <Button
-                type="submit"
-                color="primary"
-                className="ltr:ml-2 rtl:mr-2"
-                data-testid="create-new-team-button">
-                {t("create_team")}
-              </Button>
-            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
