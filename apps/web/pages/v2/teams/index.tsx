@@ -33,7 +33,7 @@ function Teams() {
       CTA={
         <Button type="button" onClick={() => setShowCreateTeamModal(true)}>
           <Icon.FiPlus className="inline-block h-3.5 w-3.5 text-white group-hover:text-black ltr:mr-2 rtl:ml-2" />
-          {t("new_team")}
+          {t("new")}
         </Button>
       }>
       <>
@@ -49,7 +49,17 @@ function Teams() {
         )}
         {isLoading && <SkeletonLoaderTeamList />}
         {!teams.length && !isLoading && (
-          <EmptyScreen Icon={Icon.FiUsers} headline={t("no_teams")} description={t("no_teams_description")} />
+          <EmptyScreen
+            Icon={Icon.FiUsers}
+            headline={t("no_teams")}
+            description={t("no_teams_description")}
+            buttonRaw={
+              <Button color="secondary" onClick={() => setShowCreateTeamModal(true)}>
+                {t("create_team")}
+              </Button>
+            }
+            buttonOnClick={() => setShowCreateTeamModal(true)}
+          />
         )}
         {teams.length > 0 && <TeamList teams={teams} />}
       </>
