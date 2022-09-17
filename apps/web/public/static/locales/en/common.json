@@ -1266,5 +1266,6 @@
   "no_calendar_installed_description": "You have not yet connected any of your calendars",
   "add_a_calendar": "Add a calendar",
   "change_email_hint": "You may need to log out and back in to see any change take effect",
+  "confirm_password_change_email": "Please confirm your password before changing your email address",
   "seats": "seats"
 }
