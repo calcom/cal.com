@@ -110,6 +110,7 @@ const GeneralView = ({ localeProp }: GeneralViewProps) => {
     <Form
       form={formMethods}
       handleSubmit={(values) => {
+        console.log("values", values);
         mutation.mutate({
           ...values,
           locale: values.locale.value,
@@ -188,7 +189,7 @@ const GeneralView = ({ localeProp }: GeneralViewProps) => {
           </>
         )}
       />
-      <Button color="primary" className="mt-8">
+      <Button color="primary" type="submit" className="mt-8">
         <>{t("update")}</>
       </Button>
     </Form>
