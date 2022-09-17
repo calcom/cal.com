@@ -5,11 +5,11 @@ import { createRef, forwardRef, MutableRefObject, RefObject, useRef, useState } 
 import { components, ControlProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
 import { HorizontalTabs, showToast } from "@calcom/ui/v2";
 import { Button, Switch } from "@calcom/ui/v2";
+import { Dialog, DialogClose, DialogContent } from "@calcom/ui/v2/core/Dialog";
 
 import { EMBED_LIB_URL, WEBAPP_URL } from "@lib/config/constants";
 
@@ -544,7 +544,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
   {
     name: "Preview",
     embedTabName: "embed-preview",
-    icon: Icon.FiEye,
+    icon: Icon.FiTrello,
     type: "iframe",
     Component: forwardRef<
       HTMLIFrameElement | HTMLTextAreaElement | null,
@@ -590,7 +590,7 @@ const ChooseEmbedTypesDialogContent = () => {
   const { t } = useLocale();
   const router = useRouter();
   return (
-    <DialogContent size="lg">
+    <DialogContent type="creation" useOwnActionButtons size="lg">
       <div className="mb-4">
         <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
           {t("how_you_want_add_cal_site")}
@@ -779,9 +779,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   ];
 
   return (
-    <DialogContent size="lg">
+    <DialogContent size="xl" className="p-0.5" type="creation" useOwnActionButtons>
       <div className="flex">
-        <div className="flex w-1/3 flex-col bg-white p-6">
+        <div className="flex w-1/3 flex-col bg-gray-50 p-8">
           <h3 className="mb-2 flex text-xl font-bold leading-6 text-gray-900" id="modal-title">
             <button
               onClick={() => {
@@ -1040,7 +1040,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             </Collapsible>
           </div>
         </div>
-        <div className="flex w-2/3 flex-col p-6">
+        <div className="flex w-2/3 flex-col p-8">
           <HorizontalTabs tabNameKey="embedTabName" data-testid="embed-tabs" tabs={tabs} />
           {tabs.map((tab) => {
             return (

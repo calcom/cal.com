@@ -5,6 +5,7 @@ import { MouseEventHandler } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { SVGComponent } from "@calcom/types/SVGComponent";
 
 import { SkeletonText } from "../../skeleton";
 
@@ -12,6 +13,7 @@ export type HorizontalTabItemProps<T extends string = "tabName"> = {
   name: string;
   disabled?: boolean;
   className?: string;
+  icon?: SVGComponent;
 } & (
   | {
       href: string;
@@ -34,7 +36,7 @@ const HorizontalTabItem = function <T extends string>({
   let newHref = "";
   let isCurrent;
   const _tabNameKey = tabNameKey || "tabName";
-  const tabName = props[tabNameKey as keyof typeof props];
+  const tabName = props[tabNameKey as keyof typeof props] as string;
 
   if (href) {
     newHref = href;
@@ -67,6 +69,17 @@ const HorizontalTabItem = function <T extends string>({
           props.className
         )}
         aria-current={isCurrent ? "page" : undefined}>
+        {props.icon && (
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
+          <props.icon
+            className={classNames(
+              isCurrent ? "text-neutral-900" : "text-gray-400 group-hover:text-gray-500",
+              "-ml-0.5 hidden h-4 w-4 ltr:mr-2 rtl:ml-2 sm:inline-block"
+            )}
+            aria-hidden="true"
+          />
+        )}
         {isLocaleReady ? t(name) : <SkeletonText className="h-4 w-24" />}
       </a>
     </Link>
