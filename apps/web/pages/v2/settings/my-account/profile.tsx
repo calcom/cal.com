@@ -59,6 +59,8 @@ const ProfileView = () => {
     },
   });
 
+  const [confirmPasswordOpen, setConfirmPasswordOpen] = useState(false);
+  const [confirmPasswordErrorMessage, setConfirmPasswordDeleteErrorMessage] = useState("");
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
@@ -82,6 +84,16 @@ const ProfileView = () => {
     }
   };
 
+  const confirmPasswordMutation = trpc.useMutation("viewer.auth.verifyPassword", {
+    onSuccess() {
+      mutation.mutate(formMethods.getValues());
+      setConfirmPasswordOpen(false);
+    },
+    onError() {
+      setConfirmPasswordDeleteErrorMessage(t("incorrect_password"));
+    },
+  });
+
   const onDeleteMeErrorMutation = (error: TRPCClientErrorLike<AppRouter>) => {
     setHasDeleteErrors(true);
     setDeleteErrorMessage(errorMessages[error.message]);
@@ -93,6 +105,12 @@ const ProfileView = () => {
       await utils.invalidateQueries(["viewer.me"]);
     },
   });
+
+  const onConfirmPassword = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
+    e.preventDefault();
+    const password = passwordRef.current.value;
+    confirmPasswordMutation.mutate({ passwordInput: password });
+  };
 
   const onConfirmButton = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
     e.preventDefault();
@@ -135,7 +153,11 @@ const ProfileView = () => {
       <Form
         form={formMethods}
         handleSubmit={(values) => {
-          mutation.mutate(values);
+          if (values.email !== user?.email) {
+            setConfirmPasswordOpen(true);
+          } else {
+            mutation.mutate(values);
+          }
         }}>
         <Meta title="Profile" description="Manage settings for your cal profile" />
         <div className="flex items-center">
@@ -231,6 +253,32 @@ const ProfileView = () => {
           </DialogContent>
         </Dialog>
       </Form>
+
+      {/* If changing email, confirm password */}
+      <Dialog open={confirmPasswordOpen} onOpenChange={setConfirmPasswordOpen}>
+        <DialogContent
+          title={t("confirm_password")}
+          description={t("confirm_password_change_email")}
+          type="creation"
+          actionText={t("confirm")}
+          Icon={Icon.FiAlertTriangle}
+          actionOnClick={(e) => e && onConfirmPassword(e)}>
+          <>
+            <PasswordField
+              data-testid="password"
+              name="password"
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              label="Password"
+              ref={passwordRef}
+            />
+
+            {confirmPasswordErrorMessage && <Alert severity="error" title={confirmPasswordErrorMessage} />}
+          </>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
