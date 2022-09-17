@@ -141,7 +141,7 @@ function EventTypeSingleLayout({
   useEffect(() => {
     // Default to the first in the list
     if (!router.query.tabName) {
-      router.push({
+      router.replace({
         query: {
           ...router.query,
           tabName: EventTypeTabs[0].tabName,
