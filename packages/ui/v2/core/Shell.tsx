@@ -10,7 +10,6 @@ import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
-import UserV2OptInBanner from "@calcom/features/users/components/UserV2OptInBanner";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { JOIN_SLACK, ROADMAP, DESKTOP_APP_LINK, WEBAPP_URL } from "@calcom/lib/constants";
@@ -450,6 +449,11 @@ const navigation: NavigationItemType[] = [
     name: MORE_SEPARATOR_NAME,
     href: "/more",
     icon: Icon.FiMoreHorizontal,
+  },
+  {
+    name: "teams",
+    href: "/teams",
+    icon: Icon.FiUsers,
   },
   {
     name: "Routing Forms",
