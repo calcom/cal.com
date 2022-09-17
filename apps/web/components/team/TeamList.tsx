@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 import TeamListItem from "./TeamListItem";
 

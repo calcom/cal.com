@@ -382,6 +382,7 @@ export type NavigationItemType = {
   icon?: SVGComponent;
   child?: NavigationItemType[];
   pro?: true;
+  onlyMobile?: boolean;
   isCurrent?: ({
     item,
     isChild,
@@ -410,6 +411,11 @@ const navigation: NavigationItemType[] = [
     name: "availability",
     href: "/availability",
     icon: Icon.FiClock,
+  },
+  {
+    name: "teams",
+    href: "/teams",
+    icon: Icon.FiUsers,
   },
   {
     name: "apps",
@@ -460,6 +466,12 @@ const navigation: NavigationItemType[] = [
     },
   },
   {
+    name: "teams",
+    href: "/teams",
+    icon: Icon.FiUsers,
+    onlyMobile: true,
+  },
+  {
     name: "workflows",
     href: "/workflows",
     icon: Icon.FiZap,
@@ -478,7 +490,7 @@ const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMor
 >(
   (items, item, index) => {
     // We filter out the "more" separator in desktop navigation
-    if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
+    if (item.name !== MORE_SEPARATOR_NAME && !item.onlyMobile) items.desktopNavigationItems.push(item);
     // Items for mobile bottom navigation
     if (index < moreSeparatorIndex + 1) items.mobileNavigationBottomItems.push(item);
     // Items for the "more" menu in mobile navigation
