@@ -383,6 +383,7 @@ export type NavigationItemType = {
   child?: NavigationItemType[];
   pro?: true;
   onlyMobile?: boolean;
+  onlyDesktop?: boolean;
   isCurrent?: ({
     item,
     isChild,
@@ -416,6 +417,7 @@ const navigation: NavigationItemType[] = [
     name: "teams",
     href: "/teams",
     icon: Icon.FiUsers,
+    onlyDesktop: true,
   },
   {
     name: "apps",
@@ -466,12 +468,6 @@ const navigation: NavigationItemType[] = [
     },
   },
   {
-    name: "teams",
-    href: "/teams",
-    icon: Icon.FiUsers,
-    onlyMobile: true,
-  },
-  {
     name: "workflows",
     href: "/workflows",
     icon: Icon.FiZap,
@@ -490,9 +486,9 @@ const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMor
 >(
   (items, item, index) => {
     // We filter out the "more" separator in desktop navigation
-    if (item.name !== MORE_SEPARATOR_NAME && !item.onlyMobile) items.desktopNavigationItems.push(item);
+    if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
     // Items for mobile bottom navigation
-    if (index < moreSeparatorIndex + 1) items.mobileNavigationBottomItems.push(item);
+    if (index < moreSeparatorIndex + 1 && !item.onlyDesktop) items.mobileNavigationBottomItems.push(item);
     // Items for the "more" menu in mobile navigation
     else items.mobileNavigationMoreItems.push(item);
     return items;
