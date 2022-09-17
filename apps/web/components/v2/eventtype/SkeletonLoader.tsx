@@ -6,7 +6,7 @@ function SkeletonLoader() {
     <SkeletonContainer>
       <div className="mb-4 flex items-center">
         <SkeletonAvatar className="h-8 w-8" />
-        <div className="space-y-1">
+        <div className="flex flex-col space-y-1">
           <SkeletonText className="h-4 w-16" />
           <SkeletonText className="h-4 w-24" />
         </div>
