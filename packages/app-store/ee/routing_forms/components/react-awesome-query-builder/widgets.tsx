@@ -49,7 +49,7 @@ const TextWidget = (props: TextWidgetProps & { type?: string }) => {
   const textValue = value || "";
   return (
     <TextField
-      containerClassName="w-full"
+      containerClassName="w-full mt-2"
       type={type}
       className="dark:border-darkgray-300 flex flex-grow border-gray-300 text-sm dark:bg-transparent dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500"
       value={textValue}

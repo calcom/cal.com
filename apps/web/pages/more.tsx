@@ -1,4 +1,3 @@
-import UserV2OptInBanner from "@calcom/features/users/components/UserV2OptInBanner";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MobileNavigationMoreItems } from "@calcom/ui/Shell";
 import { Shell } from "@calcom/ui/v2";

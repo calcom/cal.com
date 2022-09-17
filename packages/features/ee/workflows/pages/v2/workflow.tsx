@@ -69,8 +69,6 @@ function WorkflowPage() {
   const { t, i18n } = useLocale();
   const session = useSession();
   const router = useRouter();
-  const me = useMeQuery();
-  const isFreeUser = me.data?.plan === "FREE";
 
   const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
@@ -189,45 +187,36 @@ function WorkflowPage() {
       <Shell
         title={workflow && workflow.name ? workflow.name : "Untitled"}
         CTA={
-          !isFreeUser && (
-            <div>
-              <Button type="submit">{t("save")}</Button>
-            </div>
-          )
+          <div>
+            <Button type="submit">{t("save")}</Button>
+          </div>
         }
         heading={
           session.data?.hasValidLicense &&
-          isAllDataLoaded &&
-          !isFreeUser && (
+          isAllDataLoaded && (
             <div className={classNames(workflow && !workflow.name ? "text-gray-400" : "")}>
               {workflow && workflow.name ? workflow.name : "untitled"}
             </div>
           )
         }>
         <LicenseRequired>
-          {isFreeUser ? (
-            <Alert className="border " severity="warning" title={t("pro_feature_workflows")} />
-          ) : (
+          {!isError ? (
             <>
-              {!isError ? (
+              {isAllDataLoaded ? (
                 <>
-                  {isAllDataLoaded ? (
-                    <>
-                      <WorkflowDetailsPage
-                        form={form}
-                        workflowId={+workflowId}
-                        selectedEventTypes={selectedEventTypes}
-                        setSelectedEventTypes={setSelectedEventTypes}
-                      />
-                    </>
-                  ) : (
-                    <SkeletonLoader />
-                  )}
+                  <WorkflowDetailsPage
+                    form={form}
+                    workflowId={+workflowId}
+                    selectedEventTypes={selectedEventTypes}
+                    setSelectedEventTypes={setSelectedEventTypes}
+                  />
                 </>
               ) : (
-                <Alert severity="error" title="Something went wrong" message={error.message} />
+                <SkeletonLoader />
               )}
             </>
+          ) : (
+            <Alert severity="error" title="Something went wrong" message={error.message} />
           )}
         </LicenseRequired>
       </Shell>

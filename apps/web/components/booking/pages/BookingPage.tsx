@@ -34,11 +34,11 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { Button } from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { EmailInput, Form } from "@calcom/ui/form/fields";
+import { Button } from "@calcom/ui/v2";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -595,9 +595,7 @@ const BookingPage = ({
                       required
                       className={classNames(
                         inputClassName,
-                        bookingForm.formState.errors.email
-                          ? "border-red-700 focus:ring-red-700"
-                          : " border-gray-300  dark:border-gray-900"
+                        bookingForm.formState.errors.email && "!focus:ring-red-700 !border-red-700"
                       )}
                       placeholder="you@example.com"
                       type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
@@ -756,7 +754,9 @@ const BookingPage = ({
                             render={({ field: { onChange, value } }) => (
                               <ReactMultiEmail
                                 className="relative"
-                                placeholder="guest@example.com"
+                                placeholder={
+                                  <span className="dark:text-darkgray-600">guest@example.com</span>
+                                }
                                 emails={value}
                                 onChange={onChange}
                                 getLabel={(
@@ -854,7 +854,7 @@ const BookingPage = ({
                       type="button"
                       color="secondary"
                       onClick={() => setGuestToggle(!guestToggle)}
-                      className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast mr-auto rounded-md">
+                      className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast dark:hover:border-darkmodebrandcontrast mr-auto dark:border-transparent">
                       <Icon.FiUserPlus className="mr-2" />
                       {t("additional_guests")}
                     </Button>
@@ -864,12 +864,12 @@ const BookingPage = ({
                     type="button"
                     onClick={() => router.back()}
                     // We override this for this component only for now - as we don't support darkmode everywhere in the app
-                    className="dark:border-none">
+                    className="dark:hover:bg-darkgray-200 dark:border-none dark:text-white">
                     {t("cancel")}
                   </Button>
                   <Button
                     type="submit"
-                    className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast rounded-md"
+                    className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast dark:hover:border-darkmodebrandcontrast mr-auto dark:border-transparent"
                     data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
                     loading={mutation.isLoading || recurringMutation.isLoading}>
                     {rescheduleUid ? t("reschedule") : t("confirm")}
