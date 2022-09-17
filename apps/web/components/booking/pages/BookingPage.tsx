@@ -199,16 +199,12 @@ const BookingPage = ({
 
   // There should only exists one default userData variable for primaryAttendee.
   const defaultUserValues = {
-    email: booking?.attendees[0].email
-      ? booking.attendees[0].email
+    email: rescheduleUid
+      ? booking?.attendees[0].email
       : router.query.email
       ? (router.query.email as string)
       : "",
-    name: booking?.attendees[0].name
-      ? booking.attendees[0].name
-      : router.query.name
-      ? (router.query.name as string)
-      : "",
+    name: rescheduleUid ? booking?.attendees[0].name : router.query.name ? (router.query.name as string) : "",
   };
 
   const defaultValues = () => {
