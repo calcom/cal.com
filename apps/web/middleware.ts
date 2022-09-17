@@ -17,6 +17,7 @@ const V2_WHITELIST = [
   "/event-types",
   "/workflows",
   "/apps",
+  "/teams",
   "/success",
   "/auth/login",
 ];
