@@ -330,7 +330,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       href: `${appUrl}/form-edit/${routingForm?.id}`,
     },
     download: {
-      href: `/api/integrations/routing_forms/responses/${routingForm?.id}`,
+      href: `/api/integrations/routing-forms/responses/${routingForm?.id}`,
     },
     _delete: {
       onClick: () => _delete.onAction({ routingForm }),

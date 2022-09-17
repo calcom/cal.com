@@ -1,5 +1,5 @@
-import getFieldIdentifier from "@calcom/app-store/ee/routing_forms/lib/getFieldIdentifier";
-import { SerializableForm } from "@calcom/app-store/ee/routing_forms/types/types";
+import getFieldIdentifier from "@calcom/app-store/ee/routing-forms/lib/getFieldIdentifier";
+import { SerializableForm } from "@calcom/app-store/ee/routing-forms/types/types";
 import { CAL_URL } from "@calcom/lib/constants";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
