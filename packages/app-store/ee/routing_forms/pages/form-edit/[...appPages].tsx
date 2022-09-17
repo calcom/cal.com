@@ -1,5 +1,6 @@
+import autoAnimate from "@formkit/auto-animate";
 import { App_RoutingForms_Form } from "@prisma/client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Controller, useFieldArray } from "react-hook-form";
 import { UseFormReturn } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
@@ -196,6 +197,12 @@ const FormEdit = ({
     name: fieldsNamespace,
   });
 
+  const animationRef = useRef(null);
+
+  useEffect(() => {
+    animationRef.current && autoAnimate(animationRef.current);
+  }, [animationRef]);
+
   const addField = () => {
     appendHookFormField({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -214,7 +221,7 @@ const FormEdit = ({
   return hookFormFields.length ? (
     <div className="flex flex-col-reverse lg:flex-row">
       <div className="w-full ltr:mr-2 rtl:ml-2">
-        <div className="flex w-full flex-col">
+        <div ref={animationRef} className="flex w-full flex-col">
           {hookFormFields.map((field, key) => {
             return (
               <Field
