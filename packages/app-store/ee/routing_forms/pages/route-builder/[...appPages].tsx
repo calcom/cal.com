@@ -243,7 +243,7 @@ const Route = ({
                   <TextField
                     name="externalRedirectUrl"
                     className="flex w-full flex-grow border-gray-300 text-sm"
-                    containerClassName="mt-2"
+                    containerClassName="w-full mt-2"
                     type="text"
                     required
                     labelSrOnly
