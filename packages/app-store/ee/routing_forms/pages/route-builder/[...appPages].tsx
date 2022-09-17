@@ -8,7 +8,7 @@ import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Icon } from "@calcom/ui";
-import { Button, TextField, SelectWithValidation as Select, TextArea, Shell } from "@calcom/ui/v2";
+import { Button, SelectWithValidation as Select, TextArea, Shell, Input } from "@calcom/ui/v2";
 import FormCard from "@calcom/ui/v2/core/form/FormCard";
 
 import SingleForm from "../../components/SingleForm";
@@ -240,9 +240,10 @@ const Route = ({
                     }}
                   />
                 ) : route.action.type === "externalRedirectUrl" ? (
-                  <TextField
+                  <Input
                     name="externalRedirectUrl"
-                    className="flex w-full flex-grow border-gray-300 text-sm"
+                    // !mb-0 because routes don't have standard input fields like other places right now and we need to remove that margin
+                    className="!mb-0 flex w-full flex-grow border-gray-300 text-sm"
                     type="text"
                     required
                     value={route.action.value}
