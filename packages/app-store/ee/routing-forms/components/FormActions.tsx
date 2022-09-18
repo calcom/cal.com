@@ -85,7 +85,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
             {t("add_new_form")}
           </h3>
           <div>
-            <p className="text-sm text-gray-500">{t("forms_description")}</p>
+            <p className="text-sm text-gray-500">{t("form_description")}</p>
           </div>
         </div>
         <Form
