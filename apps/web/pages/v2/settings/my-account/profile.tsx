@@ -49,7 +49,7 @@ interface DeleteAccountValues {
 const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const usernameRef = useRef<HTMLInputElement>(null!);
+  const usernameRef = useRef<HTMLInputElement>(null);
 
   const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
   const mutation = trpc.useMutation("viewer.updateProfile", {
