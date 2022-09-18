@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import Select from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import htmlEscapeJsonString from "@calcom/lib/server/htmlescape";
 import { DestinationCalendar } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 
@@ -84,7 +85,7 @@ const DestinationCalendarSelector = ({
       <Select
         name="primarySelectedCalendar"
         formatOptionLabel={function (data) {
-          return <span dangerouslySetInnerHTML={{ __html: data.label }} />;
+          return <span dangerouslySetInnerHTML={{ __html: htmlEscapeJsonString(data.label) }} />;
         }}
         placeholder={
           !hidePlaceholder ? (
