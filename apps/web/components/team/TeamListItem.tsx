@@ -7,6 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import Button from "@calcom/ui/v2/core/Button";
+import ButtonGroup from "@calcom/ui/v2/core/ButtonGroup";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
 import Dropdown, {
@@ -14,6 +15,7 @@ import Dropdown, {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownItem,
 } from "@calcom/ui/v2/core/Dropdown";
 import { Tooltip } from "@calcom/ui/v2/core/Tooltip";
 import showToast from "@calcom/ui/v2/core/notifications";
@@ -135,108 +137,103 @@ export default function TeamListItem(props: Props) {
           {!isInvitee && (
             <div className="flex space-x-2 rtl:space-x-reverse">
               <TeamRole role={team.role} />
-
-              <Tooltip side="top" content={t("copy_link_team")}>
-                <Button
-                  onClick={() => {
-                    navigator.clipboard.writeText(process.env.NEXT_PUBLIC_WEBSITE_URL + "/team/" + team.slug);
-                    showToast(t("link_copied"), "success");
-                  }}
-                  className="h-10 w-10 transition-none"
-                  size="icon"
-                  color="minimal"
-                  type="button">
-                  <Icon.FiLink className="h-5 w-5 group-hover:text-gray-600" />
-                </Button>
-              </Tooltip>
-              <Dropdown>
-                <DropdownMenuTrigger asChild>
-                  <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent hidden={hideDropdown}>
-                  {isAdmin && (
+              <ButtonGroup combined>
+                <Tooltip content={t("copy_link_team")}>
+                  <Button
+                    color="secondary"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        process.env.NEXT_PUBLIC_WEBSITE_URL + "/team/" + team.slug
+                      );
+                      showToast(t("link_copied"), "success");
+                    }}
+                    size="icon"
+                    StartIcon={Icon.FiLink}
+                    combined
+                  />
+                </Tooltip>
+                <Dropdown>
+                  <DropdownMenuTrigger asChild>
+                    <Button type="button" color="secondary" size="icon" StartIcon={Icon.FiMoreHorizontal} />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent hidden={hideDropdown}>
+                    {isAdmin && (
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          type="button"
+                          href={"/settings/teams/" + team.id + "/profile"}
+                          StartIcon={Icon.FiEdit2}>
+                          {t("edit_team") as string}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem>
-                      <Link href={"/settings/teams/" + team.id + "/profile"}>
-                        <a>
-                          <Button
-                            color="minimal"
-                            className="w-full rounded-none font-medium"
-                            StartIcon={Icon.FiEdit2}>
-                            {t("edit_team")}
-                          </Button>
-                        </a>
-                      </Link>
+                      <DropdownItem
+                        type="button"
+                        target="_blank"
+                        href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`}
+                        StartIcon={Icon.FiExternalLink}>
+                        {t("preview_team") as string}
+                      </DropdownItem>
                     </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem>
-                    <Link href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`} passHref={true}>
-                      <a target="_blank">
-                        <Button
-                          color="minimal"
-                          className="w-full rounded-none font-medium"
-                          StartIcon={Icon.FiExternalLink}>
-                          {t("preview_team")}
-                        </Button>
-                      </a>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="h-px bg-gray-200" />
-                  {isOwner && (
-                    <DropdownMenuItem>
-                      <Dialog open={hideDropdown} onOpenChange={setHideDropdown}>
-                        <DialogTrigger asChild>
-                          <Button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
-                            color="destructive"
-                            className="w-full rounded-none font-medium"
-                            StartIcon={Icon.FiTrash}>
-                            {t("disband_team")}
-                          </Button>
-                        </DialogTrigger>
-                        <ConfirmationDialogContent
-                          variety="danger"
-                          title={t("disband_team")}
-                          confirmBtnText={t("confirm_disband_team")}
-                          isLoading={props.isLoading}
-                          onConfirm={() => {
-                            props.onActionSelect("disband");
-                          }}>
-                          {t("disband_team_confirmation_message")}
-                        </ConfirmationDialogContent>
-                      </Dialog>
-                    </DropdownMenuItem>
-                  )}
-
-                  {!isOwner && (
-                    <DropdownMenuItem>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            type="button"
-                            color="destructive"
-                            size="lg"
-                            StartIcon={Icon.FiLogOut}
-                            className="w-full rounded-none"
-                            onClick={(e) => {
-                              e.stopPropagation();
+                    <DropdownMenuSeparator className="h-px bg-gray-200" />
+                    {isOwner && (
+                      <DropdownMenuItem>
+                        <Dialog open={hideDropdown} onOpenChange={setHideDropdown}>
+                          <DialogTrigger asChild>
+                            <Button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}
+                              color="destructive"
+                              className="rounded-none px-3 font-normal"
+                              StartIcon={Icon.FiTrash}>
+                              {t("disband_team")}
+                            </Button>
+                          </DialogTrigger>
+                          <ConfirmationDialogContent
+                            variety="danger"
+                            title={t("disband_team")}
+                            confirmBtnText={t("confirm_disband_team")}
+                            isLoading={props.isLoading}
+                            onConfirm={() => {
+                              props.onActionSelect("disband");
                             }}>
-                            {t("leave_team")}
-                          </Button>
-                        </DialogTrigger>
-                        <ConfirmationDialogContent
-                          variety="danger"
-                          title={t("leave_team")}
-                          confirmBtnText={t("confirm_leave_team")}
-                          onConfirm={declineInvite}>
-                          {t("leave_team_confirmation_message")}
-                        </ConfirmationDialogContent>
-                      </Dialog>
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </Dropdown>
+                            {t("disband_team_confirmation_message")}
+                          </ConfirmationDialogContent>
+                        </Dialog>
+                      </DropdownMenuItem>
+                    )}
+
+                    {!isOwner && (
+                      <DropdownMenuItem>
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              type="button"
+                              color="destructive"
+                              size="lg"
+                              StartIcon={Icon.FiLogOut}
+                              className="w-full rounded-none"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                              }}>
+                              {t("leave_team")}
+                            </Button>
+                          </DialogTrigger>
+                          <ConfirmationDialogContent
+                            variety="danger"
+                            title={t("leave_team")}
+                            confirmBtnText={t("confirm_leave_team")}
+                            onConfirm={declineInvite}>
+                            {t("leave_team_confirmation_message")}
+                          </ConfirmationDialogContent>
+                        </Dialog>
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </Dropdown>
+              </ButtonGroup>
             </div>
           )}
         </div>
