@@ -24,7 +24,7 @@ const V2_WHITELIST = [
 
 // For pages
 // - which has V1 versions being modified as V2
-const V2_BLACKLIST = ["/apps/routing_forms/"];
+const V2_BLACKLIST = ["/apps/routing_forms/", "/apps/typeform/"];
 
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
