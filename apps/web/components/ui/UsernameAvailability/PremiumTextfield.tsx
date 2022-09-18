@@ -10,9 +10,9 @@ import { User } from "@calcom/prisma/client";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon, StarIconSolid } from "@calcom/ui/Icon";
+import { Button } from "@calcom/ui/v2";
 import { Input, Label } from "@calcom/ui/v2";
 
 export enum UsernameChangeStatusEnum {
@@ -43,9 +43,7 @@ interface ICustomUsernameProps {
     | "plan"
     | "brandColor"
     | "darkBrandColor"
-    | "metadata"
     | "timeFormat"
-    | "allowDynamicBooking"
   >;
   readonly?: boolean;
 }
@@ -62,6 +60,13 @@ const obtainNewUsernameChangeCondition = ({
   if (!userIsPremium && isNewUsernamePremium && !stripeCustomer?.paidForPremium) {
     return UsernameChangeStatusEnum.UPGRADE;
   }
+
+  // This code requires payment from already premium usernames(if they don't have payment info in stripe under paidForPremium)
+  // If we are sure that metadata.isPremium is set to true for all existing premium users we can uncomment this code with an additional check of `&& !metadata.isPremium`
+  // if (userIsPremium && isNewUsernamePremium && !stripeCustomer?.paidForPremium) {
+  //   return UsernameChangeStatusEnum.UPGRADE;
+  // }
+
   if (userIsPremium && !isNewUsernamePremium && getPremiumPlanMode() === "subscription") {
     return UsernameChangeStatusEnum.DOWNGRADE;
   }
@@ -211,7 +216,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
         <span
           className={classNames(
             isInputUsernamePremium ? "border-1 border-orange-400 " : "",
-            "hidden items-center rounded-l-md border border-r-0 border-gray-300 border-r-gray-300 bg-gray-50 px-3 text-sm text-gray-500 md:inline-flex"
+            "hidden h-9 items-center rounded-l-md border border-r-0 border-gray-300 border-r-gray-300 bg-gray-50 px-3 text-sm text-gray-500 md:inline-flex"
           )}>
           {process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/
         </span>
