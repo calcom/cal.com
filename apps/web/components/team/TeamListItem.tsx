@@ -10,8 +10,7 @@ import Button from "@calcom/ui/v2/core/Button";
 import ButtonGroup from "@calcom/ui/v2/core/ButtonGroup";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
-import {
-  Dropdown,
+import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
