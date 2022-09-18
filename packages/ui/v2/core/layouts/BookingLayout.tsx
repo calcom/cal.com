@@ -45,10 +45,10 @@ export default function BookingLayout({
     <Shell {...rest}>
       <div className="flex flex-col sm:space-x-2 xl:flex-row">
         <div className="hidden xl:block">
-          <VerticalTabs tabNameKey="tabName" tabs={tabs} sticky />
+          <VerticalTabs tabs={tabs} sticky />
         </div>
         <div className="block xl:hidden">
-          <HorizontalTabs tabNameKey="tabName" tabs={tabs} />
+          <HorizontalTabs tabs={tabs} />
         </div>
         <main className="w-full max-w-6xl">{children}</main>
       </div>
