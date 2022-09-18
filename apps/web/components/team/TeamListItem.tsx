@@ -4,19 +4,19 @@ import Link from "next/link";
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
-import Button from "@calcom/ui/Button";
-import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
-import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
+import { Icon } from "@calcom/ui/Icon";
+import Button from "@calcom/ui/v2/core/Button";
+import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
+import { Dialog, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@calcom/ui/Dropdown";
-import { Icon } from "@calcom/ui/Icon";
-import { Tooltip } from "@calcom/ui/Tooltip";
+} from "@calcom/ui/v2/core/Dropdown";
+import { Tooltip } from "@calcom/ui/v2/core/Tooltip";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 import Avatar from "@components/ui/Avatar";
 
@@ -84,7 +84,7 @@ export default function TeamListItem(props: Props) {
           !isInvitee && "group hover:bg-neutral-50"
         )}>
         {!isInvitee ? (
-          <Link href={"/settings/teams/" + team.id}>
+          <Link href={"/settings/teams/" + team.id + "/profile"}>
             <a className="flex-grow cursor-pointer truncate text-sm" title={`${team.name}`}>
               {teamInfo}
             </a>
@@ -112,7 +112,6 @@ export default function TeamListItem(props: Props) {
                     <DropdownMenuItem>
                       <Button
                         color="minimal"
-                        size="sm"
                         className="w-full rounded-none font-medium"
                         StartIcon={Icon.FiCheck}
                         onClick={acceptInvite}>
@@ -121,8 +120,7 @@ export default function TeamListItem(props: Props) {
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <Button
-                        color="warn"
-                        size="sm"
+                        color="destructive"
                         className="w-full rounded-none font-medium"
                         StartIcon={Icon.FiX}
                         onClick={declineInvite}>
@@ -158,11 +156,10 @@ export default function TeamListItem(props: Props) {
                 <DropdownMenuContent hidden={hideDropdown}>
                   {isAdmin && (
                     <DropdownMenuItem>
-                      <Link href={"/settings/teams/" + team.id}>
+                      <Link href={"/settings/teams/" + team.id + "/profile"}>
                         <a>
                           <Button
                             color="minimal"
-                            size="sm"
                             className="w-full rounded-none font-medium"
                             StartIcon={Icon.FiEdit2}>
                             {t("edit_team")}
@@ -176,7 +173,6 @@ export default function TeamListItem(props: Props) {
                       <a target="_blank">
                         <Button
                           color="minimal"
-                          size="sm"
                           className="w-full rounded-none font-medium"
                           StartIcon={Icon.FiExternalLink}>
                           {t("preview_team")}
@@ -193,8 +189,7 @@ export default function TeamListItem(props: Props) {
                             onClick={(e) => {
                               e.stopPropagation();
                             }}
-                            color="warn"
-                            size="sm"
+                            color="destructive"
                             className="w-full rounded-none font-medium"
                             StartIcon={Icon.FiTrash}>
                             {t("disband_team")}
@@ -220,7 +215,7 @@ export default function TeamListItem(props: Props) {
                         <DialogTrigger asChild>
                           <Button
                             type="button"
-                            color="warn"
+                            color="destructive"
                             size="lg"
                             StartIcon={Icon.FiLogOut}
                             className="w-full rounded-none"

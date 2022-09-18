@@ -17,13 +17,15 @@ const V2_WHITELIST = [
   "/event-types",
   "/workflows",
   "/apps",
+  "/teams",
   "/success",
   "/auth/login",
 ];
 
 // For pages
 // - which has V1 versions being modified as V2
-const V2_BLACKLIST = ["/apps/routing_forms/", "/apps/routing-forms/"];
+// - Add routing_forms to keep old links working
+const V2_BLACKLIST = ["/apps/routing_forms/", "/apps/routing-forms/", "/apps/typeform/"];
 
 const middleware: NextMiddleware = async (req) => {
   const url = req.nextUrl;
