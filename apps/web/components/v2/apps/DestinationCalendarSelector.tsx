@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Select from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import htmlEscapeJsonString from "@calcom/lib/server/htmlescape";
+import { htmlEscapeJsonString } from "@calcom/lib/server/htmlescape";
 import { DestinationCalendar } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 
