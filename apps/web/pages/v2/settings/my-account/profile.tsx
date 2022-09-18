@@ -156,7 +156,7 @@ const ProfileView = () => {
     await utils.invalidateQueries(["viewer.me"]);
   };
 
-  const onErrorInUsernameUpdate = (error: TRPCClientErrorLike<AppRouter>) => {
+  const onErrorInUsernameUpdate = () => {
     showToast(t("error_updating_settings"), "error");
   };
 
