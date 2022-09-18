@@ -1,4 +1,5 @@
 // TODO: i18n
+import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { Icon } from "@calcom/ui/Icon";
@@ -18,6 +19,7 @@ export default function RoutingForms({
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   const { t } = useLocale();
+  const { data: typeformApp } = useApp("typeform");
 
   function NewFormButton() {
     return (
@@ -115,6 +117,16 @@ export default function RoutingForms({
                                   StartIcon={Icon.FiCopy}>
                                   {t("duplicate")}
                                 </FormAction>
+                                {typeformApp ? (
+                                  <FormAction
+                                    routingForm={form}
+                                    action="copyRedirectUrl"
+                                    color="minimal"
+                                    type="button"
+                                    StartIcon={Icon.FiLink}>
+                                    {t("Copy Typeform Redirect Url")}
+                                  </FormAction>
+                                ) : null}
                                 <DropdownMenuSeparator className="h-px bg-gray-200" />
                                 <FormAction
                                   action="_delete"
