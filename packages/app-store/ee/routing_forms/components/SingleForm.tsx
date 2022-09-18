@@ -2,20 +2,13 @@ import { App_RoutingForms_Form } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useForm, UseFormReturn } from "react-hook-form";
 
+import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Form } from "@calcom/ui/form/fields";
 import { showToast } from "@calcom/ui/v2";
-import {
-  ButtonGroup,
-  TextAreaField,
-  TextField,
-  Tooltip,
-  DropdownMenuSeparator,
-  Button,
-  VerticalDivider,
-} from "@calcom/ui/v2";
+import { ButtonGroup, TextAreaField, TextField, Tooltip, Button, VerticalDivider } from "@calcom/ui/v2";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { ShellMain } from "@calcom/ui/v2/core/Shell";
 import Banner from "@calcom/ui/v2/core/banner";
@@ -41,6 +34,8 @@ const Actions = ({
   };
 }) => {
   const { t } = useLocale();
+  const { data: typeformApp } = useApp("typeform");
+
   return (
     <div className="flex items-center">
       <FormAction className="self-center" data-testid="toggle-form" action="toggle" routingForm={form} />
@@ -65,8 +60,9 @@ const Actions = ({
           size="icon"
           type="button"
           StartIcon={Icon.FiLink}
-          tooltip={t("copy_link")}
+          tooltip={t("copy_link_to_form")}
         />
+
         <Tooltip content="Download Responses">
           <FormAction
             data-testid="download-responses"
@@ -96,7 +92,20 @@ const Actions = ({
           type="button"
           tooltip={t("delete")}
         />
+        {typeformApp ? (
+          <FormActionsDropdown form={form}>
+            <FormAction
+              routingForm={form}
+              action="copyRedirectUrl"
+              color="minimal"
+              type="button"
+              StartIcon={Icon.FiLink}>
+              {t("Copy Typeform Redirect Url")}
+            </FormAction>
+          </FormActionsDropdown>
+        ) : null}
       </ButtonGroup>
+
       <div className="flex md:hidden">
         <FormActionsDropdown form={form}>
           <FormAction
@@ -115,8 +124,8 @@ const Actions = ({
             routingForm={form}
             color="minimal"
             type="button"
-            StartIcon={Icon.FiCopy}>
-            {t("copy")}
+            StartIcon={Icon.FiLink}>
+            {t("copy_link_to_form")}
           </FormAction>
           <FormAction
             action="download"
@@ -136,6 +145,16 @@ const Actions = ({
             StartIcon={Icon.FiCode}>
             {t("embed")}
           </FormAction>
+          {typeformApp ? (
+            <FormAction
+              routingForm={form}
+              action="copyRedirectUrl"
+              color="minimal"
+              type="button"
+              StartIcon={Icon.FiLink}>
+              {t("Copy Typeform Redirect Url")}
+            </FormAction>
+          ) : null}
           <FormAction
             action="_delete"
             routingForm={form}
