@@ -1,6 +1,6 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
-import { useRouter } from "next/router";
+import { NextRouter, useRouter } from "next/router";
 import { createRef, forwardRef, MutableRefObject, RefObject, useRef, useState } from "react";
 import { components, ControlProps } from "react-select";
 
@@ -43,6 +43,23 @@ const getDimension = (dimension: string) => {
     dimension = `${dimension}%`;
   }
   return dimension;
+};
+
+const goto = (router: NextRouter, searchParams: Record<string, string>) => {
+  const newQuery = new URLSearchParams(router.asPath.split("?")[1]);
+  Object.keys(searchParams).forEach((key) => {
+    newQuery.set(key, searchParams[key]);
+  });
+  router.push(`${router.asPath.split("?")[0]}?${newQuery.toString()}`, undefined, {
+    shallow: true,
+  });
+};
+
+const removeQueryParams = (router: NextRouter, queryParams: string[]) => {
+  queryParams.forEach((param) => {
+    delete router.query[param];
+  });
+  router.push(`${router.asPath.split("?")[0]}?${router.query.toString()}`);
 };
 
 /**
@@ -605,9 +622,9 @@ const ChooseEmbedTypesDialogContent = () => {
             key={index}
             data-testid={embed.type}
             onClick={() => {
-              const newQuery = new URLSearchParams(router.asPath);
-              newQuery.set("embedType", embed.type);
-              router.push(`${router.asPath.split("?")[0]}?${newQuery.toString()}`);
+              goto(router, {
+                embedType: embed.type,
+              });
             }}>
             <div className="order-none box-border flex-none rounded-sm border border-solid bg-white">
               {embed.illustration}
@@ -632,7 +649,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const s = (href: string) => {
-    const searchParams = new URLSearchParams(router.asPath);
+    const searchParams = new URLSearchParams(router.asPath.split("?")[1] || "");
     const [a, b] = href.split("=");
     searchParams.set(a, b);
     return `${router.asPath.split("?")[0]}?${searchParams.toString()}`;
@@ -664,20 +681,15 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   });
 
   const close = () => {
-    const noPopupQuery = {
-      ...router.query,
-    };
-
-    delete noPopupQuery.dialog;
-
-    queryParamsForDialog.forEach((queryParam) => {
-      delete noPopupQuery[queryParam];
-    });
-
-    router.push({
-      query: noPopupQuery,
-    });
+    removeQueryParams(router, ["dialog", ...queryParamsForDialog]);
   };
+
+  // Use embed-code as default tab
+  if (!router.query.embedTabName) {
+    goto(router, {
+      embedTabName: "embed-code",
+    });
+  }
 
   if (!embed || !embedUrl) {
     close();
@@ -778,10 +790,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
           <h3 className="mb-2 flex text-xl font-bold leading-6 text-gray-900" id="modal-title">
             <button
               onClick={() => {
-                const newQuery = new URLSearchParams(router.asPath);
-                newQuery.delete("embedType");
-                newQuery.delete("embedTabName");
-                router.push(`${router.asPath.split("?")[0]}?${newQuery.toString()}`);
+                removeQueryParams(router, ["embedType", "embedTabName"]);
               }}>
               <Icon.FiArrowLeft className="mr-4 w-4" />
             </button>
@@ -1035,7 +1044,9 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             return (
               <div
                 key={tab.href}
-                className={classNames(router.asPath === tab.href ? "flex flex-grow flex-col" : "hidden")}>
+                className={classNames(
+                  router.query.embedTabName === tab.href.split("=")[1] ? "flex flex-grow flex-col" : "hidden"
+                )}>
                 <div className="flex h-[55vh] flex-grow flex-col">
                   {tab.type === "code" ? (
                     <tab.Component
@@ -1120,10 +1131,10 @@ export const EmbedButton = <T extends React.ElementType>({
   const router = useRouter();
   className = classNames(className, "hidden lg:inline-flex");
   const openEmbedModal = () => {
-    const searchParams = new URLSearchParams(router.asPath);
-    searchParams.set("dialog", "embed");
-    searchParams.set("embedUrl", embedUrl);
-    router.push(`${router.asPath.split("?")[0]}?${searchParams.toString()}`, undefined, { shallow: true });
+    goto(router, {
+      dialog: "embed",
+      embedUrl,
+    });
   };
   const Component = as ?? Button;
 
