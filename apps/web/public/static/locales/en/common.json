@@ -1201,7 +1201,7 @@
   "delete_team": "Delete Team",
   "team_members": "Team members",
   "more": "More",
-  "more_page_footer": "We view the mobile application as an extension of the web application. If you are performing any complication actions, please refer back to the web application.",
+  "more_page_footer": "We view the mobile application as an extension of the web application. If you are performing any complicated actions, please refer back to the web application.",
   "workflow_example_1": "Send SMS reminder 24 hours before event starts to attendee",
   "workflow_example_2": "Send custom SMS when event is rescheduled to attendee",
   "workflow_example_3": "Send custom email when new event is booked to host",
