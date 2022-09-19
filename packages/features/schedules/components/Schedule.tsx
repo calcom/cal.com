@@ -180,6 +180,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 onClick={() => {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   const nextRange: any = getNextRange(fields[fields.length - 1]);
+                  console.log(nextRange);
                   if (nextRange) append(nextRange);
                 }}
               />
@@ -215,6 +216,7 @@ const RemoveTimeButton = ({
 
 const TimeRangeField = ({ className, value, onChange }: { className?: string } & ControllerRenderProps) => {
   // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
+  console.log(value);
   return (
     <div className={classNames("mx-1", className)}>
       <LazySelect
