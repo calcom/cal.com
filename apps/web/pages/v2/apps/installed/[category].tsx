@@ -1,4 +1,4 @@
-import { useRouter } from "next/router";
+import { GetStaticPaths, GetStaticProps, InferGetStaticPropsType } from "next";
 import z from "zod";
 
 import { InstallAppButton } from "@calcom/app-store/components";
@@ -177,12 +177,8 @@ const querySchema = z.object({
   category: z.nativeEnum(InstalledAppVariants),
 });
 
-export default function InstalledApps() {
+export default function InstalledApps({ category }: InferGetStaticPropsType<typeof getStaticProps>) {
   const { t } = useLocale();
-  const router = useRouter();
-  const { category } = router.isReady
-    ? querySchema.parse(router.query)
-    : { category: InstalledAppVariants.calendar as const };
 
   return (
     <InstalledAppsLayout heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
@@ -202,3 +198,25 @@ export default function InstalledApps() {
     </InstalledAppsLayout>
   );
 }
+
+export const getStaticProps: GetStaticProps = (ctx) => {
+  const params = querySchema.safeParse(ctx.params);
+
+  if (!params.success) return { notFound: true };
+
+  return {
+    props: {
+      category: params.data.category,
+    },
+  };
+};
+
+export const getStaticPaths: GetStaticPaths = () => {
+  return {
+    paths: Object.values(InstalledAppVariants).map((category) => ({
+      params: { category },
+      locale: "en",
+    })),
+    fallback: "blocking",
+  };
+};
