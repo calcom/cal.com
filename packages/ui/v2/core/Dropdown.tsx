@@ -55,7 +55,7 @@ type DropdownMenuItemProps = ComponentProps<typeof DropdownMenuPrimitive["Checkb
 export const DropdownMenuItem = forwardRef<HTMLDivElement, DropdownMenuItemProps>(
   ({ className = "", ...props }, forwardedRef) => (
     <DropdownMenuPrimitive.Item
-      className={`text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 ${className}`}
+      className={`focus:ring-brand-800 text-sm text-gray-700 ring-inset first-of-type:rounded-t-[inherit] last-of-type:rounded-b-[inherit] hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-1 ${className}`}
       {...props}
       ref={forwardedRef}
     />
@@ -127,7 +127,7 @@ export const DropdownItem = (props: DropdownItemProps) => {
     <ButtonOrLink
       {...props}
       className={classNames(
-        "focus:ring-brand-800 f inline-flex items-center px-3 py-2 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-1",
+        "inline-flex w-full items-center px-3 py-2 text-gray-700 hover:text-gray-900",
         props.color === "destructive" ? "hover:bg-red-100 hover:text-red-700" : " hover:bg-gray-100"
       )}>
       <>
