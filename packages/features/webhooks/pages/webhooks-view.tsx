@@ -28,10 +28,7 @@ const WebhooksView = () => {
 const NewWebhookButton = () => {
   const { t, isLocaleReady } = useLocale();
   return (
-    <Button
-      color="secondary"
-      StartIcon={Icon.FiPlus}
-      href={`${WEBAPP_URL}/v2/settings/developer/webhooks/new`}>
+    <Button color="secondary" StartIcon={Icon.FiPlus} href={`${WEBAPP_URL}/settings/developer/webhooks/new`}>
       {isLocaleReady ? t("new_webhook") : <SkeletonText className="h-4 w-24" />}
     </Button>
   );
@@ -56,9 +53,7 @@ const WebhooksList = () => {
                 key={webhook.id}
                 webhook={webhook}
                 lastItem={webhooks.length === index + 1}
-                onEditWebhook={() =>
-                  router.push(`${WEBAPP_URL}/v2/settings/developer/webhooks/${webhook.id} `)
-                }
+                onEditWebhook={() => router.push(`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id} `)}
               />
             ))}
           </div>

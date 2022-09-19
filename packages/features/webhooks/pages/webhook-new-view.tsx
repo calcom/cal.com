@@ -13,7 +13,6 @@ const NewWebhookView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
-  //   const appId = props.app;
   const { data: installedApps, isLoading } = trpc.useQuery(
     ["viewer.integrations", { variant: "other", onlyInstalled: true }],
     {
