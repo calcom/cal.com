@@ -7,10 +7,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
-import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
-import { Input, Label } from "@calcom/ui/v2";
+import { Input, Label, Button } from "@calcom/ui/v2";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
@@ -122,7 +121,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             autoCapitalize="none"
             autoCorrect="none"
             className={classNames(
-              "mb-0 mt-0 rounded-md rounded-l-none",
+              "mb-0 mt-0 h-6 rounded-md rounded-l-none",
               markAsError
                 ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
                 : ""
@@ -137,7 +136,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           {currentUsername !== inputUsernameValue && (
             <div className="absolute right-[2px] top-0 flex flex-row">
               <span className={classNames("mx-2 py-2")}>
-                {usernameIsAvailable ? <Icon.FiCheck className="mt-[4px] w-6" /> : <></>}
+                {usernameIsAvailable ? <Icon.FiCheck className="mt-[2px] w-6" /> : <></>}
               </span>
             </div>
           )}
