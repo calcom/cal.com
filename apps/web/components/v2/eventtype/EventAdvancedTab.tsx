@@ -41,6 +41,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
   const [showEventNameTip, setShowEventNameTip] = useState(false);
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
+  const [seatsInputVisible, setSeatsInputVisible] = useState(!!eventType.seatsPerTimeSlot);
+  const [seatsPerTimeSlot, setSeatsPerTimeSlot] = useState(eventType.seatsPerTimeSlot);
   const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
@@ -287,6 +289,46 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                       </Button>
                     </Tooltip>
                   }
+                />
+              </div>
+            )}
+          </>
+        )}
+      />
+      <hr />
+      <Controller
+        name="seatsPerTimeSlot"
+        control={formMethods.control}
+        defaultValue={seatsPerTimeSlot}
+        render={({ field: { value, onChange } }) => (
+          <>
+            <div className="flex space-x-3">
+              <Switch
+                name="seatsPerTimeSlot"
+                checked={seatsInputVisible}
+                onCheckedChange={(e) => {
+                  setSeatsInputVisible(e);
+                  onChange(e ? seatsPerTimeSlot : null);
+                }}
+                fitToHeight={true}
+              />
+              <div className="flex flex-col">
+                <Label className="text-sm font-semibold leading-none text-black">{t("offer_seats")}</Label>
+                <p className="-mt-2 text-sm leading-normal text-gray-600">{t("offer_seats_description")}</p>
+              </div>
+            </div>
+            {seatsInputVisible && (
+              <div className="">
+                <TextField
+                  required
+                  name="seatsPerTimeSlot"
+                  label={t("number_of_seats")}
+                  type="number"
+                  defaultValue={seatsPerTimeSlot || 2}
+                  addOnSuffix={<>{t("seats")}</>}
+                  onChange={(e) => {
+                    formMethods.setValue("seatsPerTimeSlot", Number(e.target.value));
+                  }}
                 />
               </div>
             )}

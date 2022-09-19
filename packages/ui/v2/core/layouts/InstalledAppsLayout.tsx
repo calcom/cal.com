@@ -49,10 +49,10 @@ export default function InstalledAppsLayout({
     <Shell {...rest}>
       <div className="flex flex-col p-2 md:p-0 xl:flex-row">
         <div className="hidden xl:block">
-          <VerticalTabs tabs={actualTabs} sticky />
+          <VerticalTabs tabs={actualTabs} sticky linkProps={{ shallow: true }} />
         </div>
         <div className="block xl:hidden">
-          <HorizontalTabs tabNameKey="tabName" tabs={actualTabs} />
+          <HorizontalTabs tabs={actualTabs} linkProps={{ shallow: true }} />
         </div>
         <main className="w-full xl:mx-5 xl:w-4/5 xl:pr-5">{children}</main>
       </div>

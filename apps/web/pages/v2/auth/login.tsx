@@ -78,7 +78,7 @@ export default function Login({
 
   const LoginFooter = (
     <a href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
-      {t("i_dont_have_an_account")}
+      {t("dont_have_an_account")}
     </a>
   );
 

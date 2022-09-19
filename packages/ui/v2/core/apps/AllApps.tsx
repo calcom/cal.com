@@ -70,7 +70,7 @@ export default function AllApps({ apps }: AllAppsPropsType) {
           })}
         </h2>
         {leftVisible && (
-          <div className="absolute top-[34px] flex lg:left-1/2 lg:top-0">
+          <div className="absolute top-9 flex md:left-1/2 md:-top-1">
             <div className="flex h-12 w-5 items-center justify-end bg-white">
               <ChevronLeft className="h-4 w-4 text-gray-500" />
             </div>
@@ -112,7 +112,7 @@ export default function AllApps({ apps }: AllAppsPropsType) {
           ))}
         </ul>
         {rightVisible && (
-          <div className="absolute right-0 top-[34px] flex lg:right-12 lg:top-0">
+          <div className="absolute top-9 right-0 flex md:-top-1">
             <div className="flex h-12 w-5 bg-gradient-to-r from-transparent to-white" />
             <div className="flex h-12 w-5 items-center justify-end bg-white">
               <ChevronRight className="h-4 w-4 text-gray-500" />
