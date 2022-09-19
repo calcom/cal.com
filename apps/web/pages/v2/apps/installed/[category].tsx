@@ -6,6 +6,7 @@ import { InstalledAppVariants } from "@calcom/app-store/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { App } from "@calcom/types/App";
+import { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
 import { Icon } from "@calcom/ui/Icon";
 import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
 import { Alert } from "@calcom/ui/v2/core/Alert";
@@ -201,4 +202,25 @@ export default function InstalledApps() {
       {category === InstalledAppVariants.calendar && <CalendarListContainer />}
     </InstalledAppsLayout>
   );
+}
+
+// Server side rendering
+export async function getServerSideProps(ctx: AppGetServerSidePropsContext) {
+  // get return-to cookie and redirect if needed
+  const { cookies } = ctx.req;
+  if (cookies && cookies["return-to"]) {
+    const returnTo = cookies["return-to"];
+    if (returnTo) {
+      ctx.res.setHeader("Set-Cookie", "return-to=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
+      return {
+        redirect: {
+          destination: `${returnTo}`,
+          permanent: false,
+        },
+      };
+    }
+  }
+  return {
+    props: {},
+  };
 }
