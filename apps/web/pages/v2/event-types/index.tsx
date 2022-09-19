@@ -1,3 +1,4 @@
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { UserPlan } from "@prisma/client";
 import Head from "next/head";
 import Link from "next/link";
@@ -82,6 +83,7 @@ const MemoizedItem = React.memo(Item);
 export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
+  const [parent] = useAutoAnimate<HTMLUListElement>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
   const utils = trpc.useContext();
@@ -201,7 +203,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const lastItem = types[types.length - 1];
   return (
     <div className="mb-16 flex overflow-hidden rounded-md border border-gray-200 bg-white">
-      <ul className="w-full divide-y divide-neutral-200" data-testid="event-types">
+      <ul ref={parent} className="!static w-full divide-y divide-neutral-200" data-testid="event-types">
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
           const calLink = `${CAL_URL}/${embedLink}`;
