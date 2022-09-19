@@ -2,13 +2,8 @@ import { expect, Page } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
 
-// these tests need rewrite
-// eslint-disable-next-line playwright/no-skipped-test
-test.skip();
-
-async function chooseEmbedType(page: Page, embedType: string) {
-  const $embedTypeSelector = await page.locator(`[data-testid=${embedType}]`);
-  $embedTypeSelector.click();
+function chooseEmbedType(page: Page, embedType: string) {
+  page.locator(`[data-testid=${embedType}]`).click();
 }
 
 async function gotToPreviewTab(page: Page) {
@@ -111,7 +106,7 @@ test.describe("Embed Code Generator Tests", () => {
         basePage: "/event-types",
       });
 
-      await chooseEmbedType(page, "inline");
+      chooseEmbedType(page, "inline");
 
       await expectToBeNavigatingToEmbedCodeAndPreviewDialog(page, {
         embedUrl,
@@ -119,19 +114,18 @@ test.describe("Embed Code Generator Tests", () => {
         basePage: "/event-types",
       });
 
-      /*await expectToContainValidCode(page, { embedType: "inline" });
+      await expectToContainValidCode(page, { embedType: "inline" });
 
       await gotToPreviewTab(page);
 
       await expectToContainValidPreviewIframe(page, {
         embedType: "inline",
         calLink: `${pro.username}/30-min`,
-      });*/
+      });
     });
 
     test("open Embed Dialog and choose floating-popup for First Event Type", async ({ page, users }) => {
       const [pro] = users.get();
-
       const embedUrl = await clickFirstEventTypeEmbedButton(page);
 
       await expectToBeNavigatingToEmbedTypesDialog(page, {
@@ -139,20 +133,20 @@ test.describe("Embed Code Generator Tests", () => {
         basePage: "/event-types",
       });
 
-      await chooseEmbedType(page, "floating-popup");
+      chooseEmbedType(page, "floating-popup");
 
       await expectToBeNavigatingToEmbedCodeAndPreviewDialog(page, {
         embedUrl,
         embedType: "floating-popup",
         basePage: "/event-types",
       });
-      /*await expectToContainValidCode(page, { embedType: "floating-popup" });
+      await expectToContainValidCode(page, { embedType: "floating-popup" });
 
       await gotToPreviewTab(page);
       await expectToContainValidPreviewIframe(page, {
         embedType: "floating-popup",
         calLink: `${pro.username}/30-min`,
-      });*/
+      });
     });
 
     test("open Embed Dialog and choose element-click for First Event Type", async ({ page, users }) => {
@@ -164,20 +158,20 @@ test.describe("Embed Code Generator Tests", () => {
         basePage: "/event-types",
       });
 
-      await chooseEmbedType(page, "element-click");
+      chooseEmbedType(page, "element-click");
 
       await expectToBeNavigatingToEmbedCodeAndPreviewDialog(page, {
         embedUrl,
         embedType: "element-click",
         basePage: "/event-types",
       });
-      /*await expectToContainValidCode(page, { embedType: "element-click" });
+      await expectToContainValidCode(page, { embedType: "element-click" });
 
       await gotToPreviewTab(page);
       await expectToContainValidPreviewIframe(page, {
         embedType: "element-click",
         calLink: `${pro.username}/30-min`,
-      });*/
+      });
     });
   });
 
@@ -200,7 +194,7 @@ test.describe("Embed Code Generator Tests", () => {
         basePage,
       });
 
-      await chooseEmbedType(page, "inline");
+      chooseEmbedType(page, "inline");
 
       await expectToBeNavigatingToEmbedCodeAndPreviewDialog(page, {
         embedUrl,
@@ -208,7 +202,7 @@ test.describe("Embed Code Generator Tests", () => {
         embedType: "inline",
       });
 
-      /*await expectToContainValidCode(page, {
+      await expectToContainValidCode(page, {
         embedType: "inline",
       });
 
@@ -217,7 +211,7 @@ test.describe("Embed Code Generator Tests", () => {
       await expectToContainValidPreviewIframe(page, {
         embedType: "inline",
         calLink: decodeURIComponent(embedUrl),
-      });*/
+      });
     });
   });
 });

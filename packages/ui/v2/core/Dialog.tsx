@@ -33,7 +33,9 @@ export function Dialog(props: DialogProps) {
       }
       router.push(
         {
-          pathname: router.pathname,
+          // This is temporary till we are doing rewrites to /v2.
+          // If not done, opening/closing a modalbox can take the user to /v2 paths.
+          pathname: router.asPath.replace("/v2", ""),
           query: {
             ...router.query,
           },
