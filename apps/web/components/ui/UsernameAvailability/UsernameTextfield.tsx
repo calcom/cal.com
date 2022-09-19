@@ -72,15 +72,14 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
     },
   });
 
-  const ActionButtons = (props: { index: string }) => {
-    const { index } = props;
+  const ActionButtons = () => {
     return usernameIsAvailable && currentUsername !== inputUsernameValue ? (
       <div className="flex flex-row">
         <Button
           type="button"
           className="mx-2"
           onClick={() => setOpenDialogSaveUsername(true)}
-          data-testid={`update-username-btn-${index}`}>
+          data-testid="update-username-btn">
           {t("update")}
         </Button>
         <Button
@@ -144,14 +143,14 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           )}
         </div>
         <div className="hidden  md:inline">
-          <ActionButtons index="desktop" />
+          <ActionButtons />
         </div>
       </div>
       {markAsError && <p className="mt-1 text-xs text-red-500">Username is already taken</p>}
 
       {usernameIsAvailable && currentUsername !== inputUsernameValue && (
-        <div className="mt-2 flex justify-end sm:hidden">
-          <ActionButtons index="mobile" />
+        <div className="mt-2 flex justify-end md:hidden">
+          <ActionButtons />
         </div>
       )}
       <Dialog open={openDialogSaveUsername}>
