@@ -1,12 +1,8 @@
 import { ComponentMeta } from "@storybook/react";
 import { useState } from "react";
 
-import { Dayjs } from "@calcom/dayjs";
-
+import type { Dayjs } from "@calcom/dayjs";
 import DatePicker from "@calcom/ui/v2/modules/booker/DatePicker";
-
-
-
 
 export default {
   title: "Datepicker",
@@ -19,16 +15,10 @@ export default {
 } as ComponentMeta<typeof DatePicker>;
 
 export const Default = ({ ...args }) => {
-  const [selected, setSelected] = useState<Dayjs | readonly Dayjs[]>();
+  const [selected, setSelected] = useState<Dayjs>();
   return (
     <div style={{ width: "455px" }}>
-      <DatePicker
-        isMulti={args.isMulti}
-        weekStart={0}
-        selected={selected}
-        onChange={setSelected}
-        locale="en"
-      />
+      <DatePicker selected={selected} onChange={setSelected} locale="en" />
     </div>
   );
 };

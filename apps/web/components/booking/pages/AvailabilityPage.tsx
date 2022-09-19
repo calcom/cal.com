@@ -4,7 +4,8 @@ import { SchedulingType } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState } from "react";
+import { useReducer, useEffect, useMemo, useState } from "react";
+import { Toaster } from "react-hot-toast";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
@@ -15,7 +16,6 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
-import { useContracts } from "@calcom/features/ee/web3/contexts/contractsContext";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { WEBSITE_URL } from "@calcom/lib/constants";
@@ -35,6 +35,7 @@ import { timeZone as localStorageTimeZone } from "@lib/clock";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 
+import Gates, { Gate, GateState } from "@components/Gates";
 import AvailableTimes from "@components/booking/AvailableTimes";
 import TimeOptions from "@components/booking/TimeOptions";
 import { UserAvatars } from "@components/booking/UserAvatars";
@@ -46,8 +47,6 @@ import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 import { AvailableEventLocations } from "../AvailableEventLocations";
-
-export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
 
 const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
   const router = useRouter();
@@ -114,6 +113,7 @@ const SlotPicker = ({
   users,
   seatsPerTimeSlot,
   weekStart = 0,
+  ethSignature,
 }: {
   eventType: Pick<EventType, "id" | "schedulingType" | "slug">;
   timeFormat: string;
@@ -122,6 +122,7 @@ const SlotPicker = ({
   recurringEventCount?: number;
   users: string[];
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  ethSignature?: string;
 }) => {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
@@ -168,7 +169,7 @@ const SlotPicker = ({
     timeZone,
   });
 
-  const slots = useMemo(() => ({ ..._1, ..._2 }), [_1, _2]);
+  const slots = useMemo(() => ({ ..._2, ..._1 }), [_1, _2]);
 
   return (
     <>
@@ -177,7 +178,7 @@ const SlotPicker = ({
         className={classNames(
           "mt-8 w-full px-4 sm:mt-0 sm:min-w-[455px] md:px-5",
           selectedDate
-            ? "sm:dark:border-darkgray-200 border-gray-200 sm:w-1/2 sm:border-r sm:p-4 sm:pr-6 md:w-1/3 "
+            ? "sm:dark:border-darkgray-200 border-gray-200 sm:w-1/2 sm:border-r sm:p-4 sm:pr-6 md:w-1/3"
             : "sm:p-4"
         )}
         includedDates={Object.keys(slots).filter((k) => slots[k].length > 0)}
@@ -203,6 +204,7 @@ const SlotPicker = ({
           eventTypeSlug={eventType.slug}
           seatsPerTimeSlot={seatsPerTimeSlot}
           recurringCount={recurringEventCount}
+          ethSignature={ethSignature}
         />
       )}
     </>
@@ -240,14 +242,14 @@ function TimezoneDropdown({
 
   return (
     <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen} className="flex">
-      <Collapsible.Trigger className="min-w-32 mb-2 -ml-2 px-2 text-left text-gray-600 dark:text-white">
+      <Collapsible.Trigger className="min-w-32 dark:text-darkgray-600 mb-2 -ml-2 px-2 text-left text-gray-600">
         <p className="text-sm font-medium">
           <Icon.FiGlobe className="mr-[10px] ml-[2px] -mt-[2px] inline-block h-4 w-4" />
           {timeZone}
           {isTimeOptionsOpen ? (
-            <Icon.FiChevronUp className="ml-1 inline-block h-4 w-4 " />
+            <Icon.FiChevronUp className="ml-1 inline-block h-4 w-4" />
           ) : (
-            <Icon.FiChevronDown className="ml-1 inline-block h-4 w-4 " />
+            <Icon.FiChevronDown className="ml-1 inline-block h-4 w-4" />
           )}
         </p>
       </Collapsible.Trigger>
@@ -285,6 +287,8 @@ const useRouterQuery = <T extends string>(name: T) => {
   } & { setQuery: typeof setQuery };
 };
 
+export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
+
 const AvailabilityPage = ({ profile, eventType }: Props) => {
   const router = useRouter();
   const isEmbed = useIsEmbed();
@@ -292,7 +296,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const { rescheduleUid } = query;
   useTheme(profile.theme);
   const { t } = useLocale();
-  const { contracts } = useContracts();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
@@ -301,6 +304,13 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const [timeZone, setTimeZone] = useState<string>();
   const [timeFormat, setTimeFormat] = useState(detectBrowserTimeFormat);
   const [isAvailableTimesVisible, setIsAvailableTimesVisible] = useState<boolean>();
+  const [gateState, gateDispatcher] = useReducer(
+    (state: GateState, newState: Partial<GateState>) => ({
+      ...state,
+      ...newState,
+    }),
+    {}
+  );
 
   useEffect(() => {
     setTimeZone(localStorageTimeZone() || dayjs.tz.guess());
@@ -312,15 +322,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
 
   // TODO: Improve this;
   useExposePlanGlobally(eventType.users.length === 1 ? eventType.users[0].plan : "PRO");
-
-  // TODO: this needs to be extracted elsewhere
-  useEffect(() => {
-    if (eventType.metadata.smartContractAddress) {
-      const eventOwner = eventType.users[0];
-      if (!contracts[(eventType.metadata.smartContractAddress || null) as number])
-        router.replace(`/${eventOwner.username}`);
-    }
-  }, [contracts, eventType.metadata.smartContractAddress, eventType.users, router]);
 
   const [recurringEventCount, setRecurringEventCount] = useState(eventType.recurringEvent?.count);
 
@@ -336,7 +337,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   }, [telemetry]);
 
   // get dynamic user list here
-  const userList = eventType.users.map((user) => user.username).filter(notEmpty);
+  const userList = eventType.users ? eventType.users.map((user) => user.username).filter(notEmpty) : [];
   // Recurring event sidebar requires more space
   const maxWidth = isAvailableTimesVisible
     ? recurringEventCount
@@ -360,8 +361,16 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
   const slug = rawSlug.join("/");
 
+  // Define conditional gates here
+  const gates = [
+    // Rainbow gate is only added if the event has both a `blockchainId` and a `smartContractAddress`
+    eventType.metadata && eventType.metadata.blockchainId && eventType.metadata.smartContractAddress
+      ? ("rainbow" as Gate)
+      : undefined,
+  ];
+
   return (
-    <>
+    <Gates gates={gates} metadata={eventType.metadata} dispatch={gateDispatcher}>
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
@@ -385,7 +394,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
             style={availabilityDatePickerEmbedStyles}
             className={classNames(
               isBackgroundTransparent ? "" : "dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-white",
-              "border-bookinglightest rounded-md md:border",
+              "border-bookinglightest overflow-hidden rounded-md md:border",
               isEmbed ? "mx-auto" : maxWidth
             )}>
             {/* mobile: details */}
@@ -408,7 +417,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </h1>
                     <div className="flex flex-col space-y-3">
                       {eventType?.description && (
-                        <div className="flex py-1 text-sm font-medium text-gray-600 dark:text-white">
+                        <div className="dark:text-darkgray-600 flex py-1 text-sm font-medium text-gray-600">
                           <div>
                             <Icon.FiInfo className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                           </div>
@@ -416,18 +425,18 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                         </div>
                       )}
                       {eventType?.requiresConfirmation && (
-                        <p className="dark:text-darkgray-600 text-gray-600 dark:text-white">
+                        <p className="dark:text-darkgray-600 text-gray-600">
                           <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                           {t("requires_confirmation")}
                         </p>
                       )}
                       <AvailableEventLocations locations={eventType.locations} />
-                      <p className="text-gray-600 dark:text-white">
+                      <p className="dark:text-darkgray-600 text-gray-600">
                         <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
                         {eventType.length} {t("minutes")}
                       </p>
                       {eventType.price > 0 && (
-                        <div className="text-gray-600 dark:text-white">
+                        <div className="dark:text-darkgray-600 text-gray-600">
                           <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                           <IntlProvider locale="en">
                             <FormattedNumber
@@ -455,7 +464,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                                 setRecurringEventCount(parseInt(event?.target.value));
                               }}
                             />
-                            <p className="dark:text-darkgray-600 inline text-gray-600 ">
+                            <p className="dark:text-darkgray-600 inline text-gray-600">
                               {t("occurrence", {
                                 count: recurringEventCount,
                               })}
@@ -503,12 +512,12 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                 <h2 className="break-words text-sm font-medium text-gray-600 dark:text-gray-300 lg:mt-2">
                   {profile.name}
                 </h2>
-                <h1 className="font-cal dark:text-darkgray-900 mb-6 break-words text-2xl text-gray-900 ">
+                <h1 className="font-cal dark:text-darkgray-900 mb-6 break-words text-2xl text-gray-900">
                   {eventType.title}
                 </h1>
-                <div className="flex flex-col space-y-3 text-sm font-medium text-gray-600 dark:text-white">
+                <div className="dark:text-darkgray-600 flex flex-col space-y-3 text-sm font-medium text-gray-600">
                   {eventType?.description && (
-                    <div className="flex ">
+                    <div className="flex">
                       <div>
                         <Icon.FiInfo className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
                       </div>
@@ -554,7 +563,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     </div>
                   )}
                   {eventType.price > 0 && (
-                    <p className="-ml-2 px-2 text-sm font-medium ">
+                    <p className="-ml-2 px-2 text-sm font-medium">
                       <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                       <IntlProvider locale="en">
                         <FormattedNumber
@@ -598,13 +607,15 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                 users={userList}
                 seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
                 recurringEventCount={recurringEventCount}
+                ethSignature={gateState.rainbowToken}
               />
             </div>
           </div>
           {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && !isEmbed && <PoweredByCal />}
         </main>
       </div>
-    </>
+      <Toaster position="bottom-right" />
+    </Gates>
   );
 };
 

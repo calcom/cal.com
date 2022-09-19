@@ -1,11 +1,14 @@
 import React, { ComponentProps } from "react";
 
 import { Icon } from "@calcom/ui";
-import { VerticalTabs, VerticalTabItemProps, HorizontalTabs } from "@calcom/ui/v2/core/navigation/tabs";
+import HorizontalTabs from "@calcom/ui/v2/core/navigation/tabs/HorizontalTabs";
+import type { VerticalTabItemProps } from "@calcom/ui/v2/core/navigation/tabs/VerticalTabItem";
+import VerticalTabs from "@calcom/ui/v2/core/navigation/tabs/VerticalTabs";
 
 import Shell from "../Shell";
+import type { HorizontalTabItemProps } from "../navigation/tabs/HorizontalTabItem";
 
-const tabs: VerticalTabItemProps[] = [
+const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
   {
     name: "upcoming",
     href: "/bookings/upcoming",
@@ -40,14 +43,14 @@ export default function BookingLayout({
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   return (
     <Shell {...rest}>
-      <div className="flex flex-col p-2 md:p-0 xl:flex-row ">
+      <div className="flex flex-col sm:space-x-2 xl:flex-row">
         <div className="hidden xl:block">
-          <VerticalTabs tabs={tabs} />
+          <VerticalTabs tabs={tabs} sticky />
         </div>
         <div className="block xl:hidden">
           <HorizontalTabs tabs={tabs} />
         </div>
-        <main className="w-full">{children}</main>
+        <main className="w-full max-w-6xl">{children}</main>
       </div>
     </Shell>
   );

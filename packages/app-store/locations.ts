@@ -17,7 +17,7 @@ export type DefaultEventLocationType = {
 
   // HACK: `variable` and `defaultValueVariable` are required due to legacy reason where different locations were stored in different places.
   variable: "locationType" | "locationAddress" | "locationLink" | "locationPhoneNumber" | "phone";
-  defaultValueVariable: "address" | "link" | "hostPhoneNumber";
+  defaultValueVariable: "address" | "link" | "hostPhoneNumber" | "phone";
 } & (
   | {
       organizerInputType: "phone" | "text" | null;
@@ -310,13 +310,17 @@ export const getEventLocationValue = (eventLocations: LocationObject[], bookingL
   );
 };
 
-export function getSuccessPageLocationMessage(location: EventLocationType["type"], t: TFunction) {
+export function getSuccessPageLocationMessage(
+  location: EventLocationType["type"],
+  t: TFunction,
+  bookingStatus?: BookingStatus
+) {
   const eventLocationType = getEventLocationType(location);
   let locationToDisplay = location;
   if (eventLocationType && !eventLocationType.default && eventLocationType.linkType === "dynamic") {
-    const isConfirmed = status === BookingStatus.ACCEPTED;
+    const isConfirmed = bookingStatus === BookingStatus.ACCEPTED;
 
-    if (status === BookingStatus.CANCELLED || status === BookingStatus.REJECTED) {
+    if (bookingStatus === BookingStatus.CANCELLED || bookingStatus === BookingStatus.REJECTED) {
       locationToDisplay == t("web_conference");
     } else if (isConfirmed) {
       locationToDisplay =

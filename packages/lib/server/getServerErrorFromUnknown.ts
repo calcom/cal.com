@@ -1,4 +1,4 @@
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+import { PrismaClientKnownRequestError, NotFoundError } from "@prisma/client/runtime";
 import Stripe from "stripe";
 import { ZodError, ZodIssue } from "zod";
 
@@ -41,6 +41,9 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
   }
   if (cause instanceof PrismaClientKnownRequestError) {
     return new HttpError({ statusCode: 400, message: cause.message, cause });
+  }
+  if (cause instanceof NotFoundError) {
+    return new HttpError({ statusCode: 404, message: cause.message, cause });
   }
   if (cause instanceof Stripe.errors.StripeInvalidRequestError) {
     return new HttpError({ statusCode: 400, message: cause.message, cause });

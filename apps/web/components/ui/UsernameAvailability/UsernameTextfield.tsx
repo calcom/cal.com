@@ -10,7 +10,7 @@ import { AppRouter } from "@calcom/trpc/server/routers/_app";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
-import { Input, Label } from "@calcom/ui/form/fields";
+import { Input, Label } from "@calcom/ui/v2";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
@@ -103,16 +103,16 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
   };
 
   return (
-    <>
+    <div>
       <div>
         <Label htmlFor="username">{t("username")}</Label>
       </div>
-      <div className="mt-1 flex rounded-md">
+      <div className="mt-2 flex rounded-md">
         <span
           className={classNames(
-            "inline-flex items-center rounded-l-sm border border-gray-300 bg-gray-50 px-3 text-sm text-gray-500"
+            "inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500"
           )}>
-          {process.env.NEXT_PUBLIC_WEBSITE_URL}/
+          {process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/
         </span>
         <div className="relative w-full">
           <Input
@@ -122,7 +122,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             autoCapitalize="none"
             autoCorrect="none"
             className={classNames(
-              "mt-0 rounded-l-none",
+              "mb-0 mt-0 rounded-md rounded-l-none",
               markAsError
                 ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
                 : ""
@@ -136,7 +136,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           />
           {currentUsername !== inputUsernameValue && (
             <div className="absolute right-[2px] top-0 flex flex-row">
-              <span className={classNames("mx-2 py-1")}>
+              <span className={classNames("mx-2 py-2")}>
                 {usernameIsAvailable ? <Icon.FiCheck className="mt-[4px] w-6" /> : <></>}
               </span>
             </div>
@@ -200,7 +200,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           </div>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 };
 

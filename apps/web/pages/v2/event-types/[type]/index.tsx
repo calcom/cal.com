@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
+import autoAnimate from "@formkit/auto-animate";
 import { EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
@@ -16,13 +18,14 @@ import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Form } from "@calcom/ui/form/fields";
-import { Button, showToast } from "@calcom/ui/v2";
+import { showToast } from "@calcom/ui/v2";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
+import { AvailabilityTab } from "@components/v2/eventtype/AvailabilityTab";
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings
 import { EventAdvancedTab } from "@components/v2/eventtype/EventAdvancedTab";
 import { EventAppsTab } from "@components/v2/eventtype/EventAppsTab";
@@ -31,13 +34,13 @@ import { EventRecurringTab } from "@components/v2/eventtype/EventRecurringTab";
 import { EventSetupTab } from "@components/v2/eventtype/EventSetupTab";
 import { EventTeamTab } from "@components/v2/eventtype/EventTeamTab";
 import { EventTypeSingleLayout } from "@components/v2/eventtype/EventTypeSingleLayout";
+import EventWorkflowsTab from "@components/v2/eventtype/EventWorkfowsTab";
 
 import { getTranslation } from "@server/lib/i18n";
 
 export type FormValues = {
   title: string;
   eventTitle: string;
-  smartContractAddress: string;
   eventName: string;
   slug: string;
   length: number;
@@ -57,6 +60,7 @@ export type FormValues = {
     link?: string;
     hostPhoneNumber?: string;
     displayLocationPublicly?: boolean;
+    phone?: string;
   }[];
   customInputs: EventTypeCustomInput[];
   users: string[];
@@ -76,11 +80,13 @@ export type FormValues = {
   };
   successRedirectUrl: string;
   giphyThankYouPage: string;
+  blockchainId: number;
+  smartContractAddress: string;
 };
 
 const querySchema = z.object({
   tabName: z
-    .enum(["setup", "availability", "apps", "limits", "recurring", "team", "advanced"])
+    .enum(["setup", "availability", "apps", "limits", "recurring", "team", "advanced", "workflows"])
     .optional()
     .default("setup"),
 });
@@ -91,9 +97,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
 
   const { eventType, locationOptions, team, teamMembers } = props;
-
+  const animationParentRef = useRef(null);
   const router = useRouter();
   const { tabName } = querySchema.parse(router.query);
+
+  useEffect(() => {
+    animationParentRef.current && autoAnimate(animationParentRef.current);
+  }, [animationParentRef]);
+
   const updateMutation = trpc.useMutation("viewer.eventTypes.update", {
     onSuccess: async ({ eventType }) => {
       showToast(
@@ -135,7 +146,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       locations: eventType.locations || [],
       recurringEvent: eventType.recurringEvent || null,
       description: eventType.description ?? undefined,
-      schedule: eventType.schedule?.id,
+      schedule: eventType.schedule || undefined,
       hidden: eventType.hidden,
       periodDates: {
         startDate: periodDates.startDate,
@@ -154,8 +165,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         teamMembers={teamMembers}
       />
     ),
-    /* TODO: Actually make this tab */
-    availability: null,
+    availability: <AvailabilityTab />,
     team: (
       <EventTeamTab
         eventType={eventType}
@@ -175,6 +185,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         eventType={eventType}
         hasPaymentIntegration={props.hasPaymentIntegration}
         hasGiphyIntegration={props.hasGiphyIntegration}
+        hasRainbowIntegration={props.hasRainbowIntegration}
+      />
+    ),
+    workflows: (
+      <EventWorkflowsTab
+        eventType={eventType}
+        workflows={eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow)}
       />
     ),
   } as const;
@@ -182,10 +199,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   return (
     <EventTypeSingleLayout
       enabledAppsNumber={[props.hasGiphyIntegration, props.hasPaymentIntegration].filter(Boolean).length}
+      enabledWorkflowsNumber={eventType.workflows.length}
       eventType={eventType}
       team={team}
       formMethods={formMethods}
-      disableBorder={tabName === "apps"}
+      disableBorder={tabName === "apps" || tabName === "workflows"}
       currentUserMembership={props.currentUserMembership}>
       <Form
         form={formMethods}
@@ -194,13 +212,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
           const {
             periodDates,
             periodCountCalendarDays,
-            smartContractAddress,
             giphyThankYouPage,
             beforeBufferTime,
             afterBufferTime,
             seatsPerTimeSlot,
             recurringEvent,
             locations,
+            blockchainId,
+            smartContractAddress,
             ...input
           } = values;
 
@@ -216,13 +235,15 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             afterEventBuffer: afterBufferTime,
             seatsPerTimeSlot,
             metadata: {
-              ...(smartContractAddress ? { smartContractAddress } : {}),
               ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
+              ...(smartContractAddress ? { smartContractAddress } : {}),
+              ...(blockchainId ? { blockchainId } : { blockchainId: 1 }),
             },
           });
-        }}
-        className="space-y-6">
-        {tabMap[tabName]}
+        }}>
+        <div ref={animationParentRef} className="space-y-6">
+          {tabMap[tabName]}
+        </div>
       </Form>
     </EventTypeSingleLayout>
   );
@@ -256,6 +277,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     email: true,
     plan: true,
     locale: true,
+    defaultScheduleId: true,
   });
 
   const rawEventType = await prisma.eventType.findFirst({
@@ -298,7 +320,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hidden: true,
       locations: true,
       eventName: true,
-      availability: true,
       customInputs: true,
       timeZone: true,
       periodType: true,
@@ -348,6 +369,25 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       currency: true,
       destinationCalendar: true,
       seatsPerTimeSlot: true,
+      workflows: {
+        include: {
+          workflow: {
+            include: {
+              activeOn: {
+                select: {
+                  eventType: {
+                    select: {
+                      id: true,
+                      title: true,
+                    },
+                  },
+                },
+              },
+              steps: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -370,20 +410,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
   const { locations, metadata, ...restEventType } = rawEventType;
   const eventType = {
     ...restEventType,
+    schedule: rawEventType.schedule?.id || rawEventType.users[0].defaultScheduleId,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
     locations: locations as unknown as LocationObject[],
     metadata: (metadata || {}) as JSONObject,
-    isWeb3Active:
-      web3Credentials && web3Credentials.key
-        ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
-        : false,
   };
 
   const hasGiphyIntegration = !!credentials.find((credential) => credential.type === "giphy_other");
+
+  const hasRainbowIntegration = !!credentials.find((credential) => credential.type === "rainbow_web3");
 
   // backwards compat
   if (eventType.users.length === 0 && !eventType.team) {
@@ -405,23 +443,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     (credentials.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)
       ?.default_currency || "usd";
 
-  type Availability = typeof eventType["availability"];
-  const getAvailability = (availability: Availability) =>
-    availability?.length
-      ? availability.map((schedule) => ({
-          ...schedule,
-          startTime: new Date(new Date().toDateString() + " " + schedule.startTime.toTimeString()).valueOf(),
-          endTime: new Date(new Date().toDateString() + " " + schedule.endTime.toTimeString()).valueOf(),
-        }))
-      : null;
-
-  const availability = getAvailability(eventType.availability) || [];
-  availability.sort((a, b) => a.startTime - b.startTime);
-
   const eventTypeObject = Object.assign({}, eventType, {
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
-    availability,
   });
 
   const teamMembers = eventTypeObject.team
@@ -442,11 +466,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       session,
       eventType: eventTypeObject,
       locationOptions,
-      availability,
       team: eventTypeObject.team || null,
       teamMembers,
       hasPaymentIntegration,
       hasGiphyIntegration,
+      hasRainbowIntegration,
       currency,
       currentUserMembership,
     },

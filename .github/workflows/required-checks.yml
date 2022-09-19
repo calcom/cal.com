@@ -1,8 +1,13 @@
 name: "Meta Workflow: Require Conditional Status Checks"
 on:
+  push:
+    branches: [fixes/e2e-consolidation] # TODO: Remove this after merged in main
   pull_request:
     branches:
       - main
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   required-checks:
     runs-on: ubuntu-latest
@@ -34,3 +39,7 @@ jobs:
               paths:
                 - /apps/web/**
                 - /packages/embeds/**
+            - job: test
+              paths:
+                - /apps/web/**
+                - /packages/**

@@ -1,22 +1,26 @@
 import Link from "next/link";
+import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
 import Badge from "@calcom/ui/Badge";
 import { Icon } from "@calcom/ui/Icon";
+import { showToast } from "@calcom/ui/v2";
 import { Button, SkeletonButton, Shell } from "@calcom/ui/v2";
+import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
 
 const Component = ({
   name,
   type,
   logo,
+  slug,
+  variant,
   body,
   categories,
   author,
@@ -35,13 +39,14 @@ const Component = ({
   const { t } = useLocale();
   const { data: user } = trpc.useQuery(["viewer.me"]);
   const hasImages = images && images.length > 0;
+  const router = useRouter();
 
   const mutation = useAddAppMutation(null, {
     onSuccess: () => {
-      showToast("App successfully installed", "success");
+      showToast(t("app_successfully_installed"), "success");
     },
     onError: (error) => {
-      if (error instanceof Error) showToast(error.message || "App could not be installed", "error");
+      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
     },
   });
 
@@ -50,34 +55,14 @@ const Component = ({
     currency: "USD",
     useGrouping: false,
   }).format(price);
-  const [installedAppCount, setInstalledAppCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  useEffect(() => {
-    async function getInstalledApp(appCredentialType: string) {
-      const queryParam = new URLSearchParams();
-      queryParam.set("app-credential-type", appCredentialType);
-      try {
-        const result = await fetch(`/api/app-store/installed?${queryParam.toString()}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }).then((data) => {
-          setIsLoading(false);
-          return data;
-        });
-        if (result.status === 200) {
-          const res = await result.json();
-          setInstalledAppCount(res.count);
-        }
-      } catch (error) {
-        if (error instanceof Error) {
-          console.log(error.message);
-        }
-      }
-    }
-    getInstalledApp(type);
-  }, [type]);
+
+  const [existingCredentials, setExistingCredentials] = useState<number[]>([]);
+  const appCredentials = trpc.useQuery(["viewer.appCredentialsByType", { appType: type }], {
+    onSuccess(data) {
+      setExistingCredentials(data);
+    },
+  });
+
   const allowedMultipleInstalls = categories.indexOf("calendar") > -1;
 
   return (
@@ -99,42 +84,40 @@ const Component = ({
                   key={img}
                   src={img}
                   alt={`Screenshot of app ${name}`}
-                  className="mr-4 max-h-80 max-w-[90%] snap-center rounded-md last:mb-0 lg:mb-4 lg:mr-0  lg:max-w-full"
+                  className="mr-4 h-auto max-h-80 max-w-[90%] snap-center rounded-md object-contain last:mb-0 md:max-h-min lg:mb-4 lg:mr-0  lg:max-w-full"
                 />
               ))}
           </div>
         )}
         <div
           className={classNames(
-            "sticky top-0 max-w-xl flex-1 pb-12 text-sm lg:pb-0",
+            "sticky top-0 -mt-4 max-w-xl flex-1 pb-12 text-sm lg:pb-0",
             hasImages && "lg:ml-8"
           )}>
-          <div className="mb-8 flex">
+          <div className="mb-8 flex pt-4">
             <header>
               <div className="mb-4 flex items-center">
-                <span className="block rounded-sm bg-gray-100 p-2">
-                  <img className="min-h-16 min-w-16 h-16 w-16" src={logo} alt={name} />
-                </span>
+                <img className="min-h-16 min-w-16 h-16 w-16" src={logo} alt={name} />
                 <h1 className="font-cal ml-4 text-3xl text-gray-900">{name}</h1>
-                {isProOnly && user?.plan === "FREE" ? (
-                  <Badge className="ml-2" variant="default">
-                    PRO
-                  </Badge>
-                ) : null}
               </div>
-              <h2 className="text-sm text-gray-600">
-                <span className="bg-gray-100 p-1 text-xs capitalize text-gray-800">{categories[0]}</span> •{" "}
-                {t("published_by", { author })}
+              <h2 className="text-sm font-medium text-gray-600">
+                <Link href={`categories/${categories[0]}`}>
+                  <a className="rounded-md bg-gray-100 p-1 text-xs capitalize text-gray-800">
+                    {categories[0]}
+                  </a>
+                </Link>{" "}
+                • {t("published_by", { author })}
               </h2>
             </header>
           </div>
-          {!isLoading ? (
-            isGlobal || (installedAppCount > 0 && allowedMultipleInstalls) ? (
+          {!appCredentials.isLoading ? (
+            isGlobal ||
+            (existingCredentials.length > 0 && allowedMultipleInstalls ? (
               <div className="flex space-x-3">
                 <Button StartIcon={Icon.FiCheck} color="secondary" disabled>
-                  {installedAppCount > 0
-                    ? t("active_install", { count: installedAppCount })
-                    : t("globally_install")}
+                  {existingCredentials.length > 0
+                    ? t("active_install", { count: existingCredentials.length })
+                    : t("default")}
                 </Button>
                 {!isGlobal && (
                   <InstallAppButton
@@ -144,7 +127,7 @@ const Component = ({
                       if (useDefaultComponent) {
                         props = {
                           onClick: () => {
-                            mutation.mutate({ type });
+                            mutation.mutate({ type, variant, slug });
                           },
                           loading: mutation.isLoading,
                         };
@@ -158,17 +141,21 @@ const Component = ({
                           color="primary"
                           size="base"
                           data-testid="install-app-button">
-                          {t("add_another")}
+                          {t("install_another")}
                         </Button>
                       );
                     }}
                   />
                 )}
               </div>
-            ) : installedAppCount > 0 ? (
-              <Button color="secondary" disabled title="App already installed">
-                {t("installed")}
-              </Button>
+            ) : existingCredentials.length > 0 ? (
+              <DisconnectIntegration
+                label={t("disconnect")}
+                credentialId={existingCredentials[0]}
+                onSuccess={() => {
+                  router.replace("/apps/installed");
+                }}
+              />
             ) : (
               <InstallAppButton
                 type={type}
@@ -177,7 +164,7 @@ const Component = ({
                   if (useDefaultComponent) {
                     props = {
                       onClick: () => {
-                        mutation.mutate({ type });
+                        mutation.mutate({ type, variant, slug });
                       },
                       loading: mutation.isLoading,
                     };
@@ -195,9 +182,9 @@ const Component = ({
                   );
                 }}
               />
-            )
+            ))
           ) : (
-            <SkeletonButton width="24" height="10" />
+            <SkeletonButton className="h-10 w-24" />
           )}
           {price !== 0 && (
             <span className="block text-right">
@@ -206,7 +193,7 @@ const Component = ({
             </span>
           )}
 
-          <div className="mt-8 space-x-2">{body}</div>
+          <div className="prose prose-sm mt-8 space-x-2">{body}</div>
           <h4 className="mt-8 font-semibold text-gray-900 ">{t("pricing")}</h4>
           <span>
             {price === 0 ? (
@@ -230,9 +217,9 @@ const Component = ({
                 <a
                   target="_blank"
                   rel="noreferrer"
-                  className="font-normal text-black no-underline hover:underline"
+                  className="text-sm font-normal text-black no-underline hover:underline"
                   href={docs}>
-                  <Icon.FiBookOpen className="mr-1 -mt-1 inline h-4 w-4" />
+                  <Icon.FiBookOpen className="mr-1 -mt-1 inline h-4 w-4 text-gray-500" />
                   {t("documentation")}
                 </a>
               </li>
@@ -244,7 +231,7 @@ const Component = ({
                   rel="noreferrer"
                   className="font-normal text-black no-underline hover:underline"
                   href={website}>
-                  <Icon.FiExternalLink className="mr-1 -mt-px inline h-4 w-4" />
+                  <Icon.FiExternalLink className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
                   {website.replace("https://", "")}
                 </a>
               </li>
@@ -256,7 +243,7 @@ const Component = ({
                   rel="noreferrer"
                   className="font-normal text-black no-underline hover:underline"
                   href={"mailto:" + email}>
-                  <Icon.FiMail className="mr-1 -mt-px inline h-4 w-4" />
+                  <Icon.FiMail className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
 
                   {email}
                 </a>
@@ -269,7 +256,7 @@ const Component = ({
                   rel="noreferrer"
                   className="font-normal text-black no-underline hover:underline"
                   href={tos}>
-                  <Icon.FiFile className="mr-1 -mt-px inline h-4 w-4" />
+                  <Icon.FiFile className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
                   {t("terms_of_service")}
                 </a>
               </li>
@@ -281,7 +268,7 @@ const Component = ({
                   rel="noreferrer"
                   className="font-normal text-black no-underline hover:underline"
                   href={privacy}>
-                  <Icon.FiShield className="mr-1 -mt-px inline h-4 w-4" />
+                  <Icon.FiShield className="mr-1 -mt-px inline h-4 w-4 text-gray-500" />
                   {t("privacy_policy")}
                 </a>
               </li>
@@ -307,6 +294,8 @@ export default function App(props: {
   type: AppType["type"];
   isGlobal?: AppType["isGlobal"];
   logo: string;
+  slug: string;
+  variant: string;
   body: React.ReactNode;
   categories: string[];
   author: string;

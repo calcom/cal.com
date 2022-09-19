@@ -27,7 +27,7 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { getSession } from "@lib/auth";
-import sendPayload from "@lib/webhooks/sendPayload";
+import sendPayload, { EventTypeInfo } from "@lib/webhooks/sendPayload";
 import getWebhooks from "@lib/webhooks/subscriptions";
 
 import { getTranslation } from "@server/lib/i18n";
@@ -75,6 +75,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         select: {
           recurringEvent: true,
           title: true,
+          description: true,
+          requiresConfirmation: true,
+          price: true,
+          currency: true,
+          length: true,
           workflows: {
             include: {
               workflow: {
@@ -107,7 +112,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     throw new HttpError({ statusCode: 404, message: "User not found" });
   }
 
-  const organizer = await prisma.user.findFirst({
+  const organizer = await prisma.user.findFirstOrThrow({
     where: {
       id: bookingToDelete.userId,
     },
@@ -117,7 +122,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       timeZone: true,
       locale: true,
     },
-    rejectOnNotFound: true,
   });
 
   const attendeesListPromises = bookingToDelete.attendees.map(async (attendee) => {
@@ -166,9 +170,23 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     eventTypeId: (bookingToDelete.eventTypeId as number) || 0,
     triggerEvent: eventTrigger,
   };
+
+  const eventTypeInfo: EventTypeInfo = {
+    eventTitle: bookingToDelete?.eventType?.title || null,
+    eventDescription: bookingToDelete?.eventType?.description || null,
+    requiresConfirmation: bookingToDelete?.eventType?.requiresConfirmation || null,
+    price: bookingToDelete?.eventType?.price || null,
+    currency: bookingToDelete?.eventType?.currency || null,
+    length: bookingToDelete?.eventType?.length || null,
+  };
+
   const webhooks = await getWebhooks(subscriberOptions);
   const promises = webhooks.map((webhook) =>
-    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, evt).catch((e) => {
+    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
+      ...evt,
+      ...eventTypeInfo,
+      status: "CANCELLED",
+    }).catch((e) => {
       console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}`, e);
     })
   );

@@ -2,9 +2,10 @@ import React from "react";
 
 import { SkeletonText } from "@calcom/ui";
 
+/** @deprecated Use `apps/web/components/v2/bookings/SkeletonLoader.tsx` */
 function SkeletonLoader() {
   return (
-    <ul className="mt-6 animate-pulse divide-y divide-neutral-200 border border-gray-200 bg-white sm:mx-0 sm:overflow-hidden">
+    <ul className="animate-pulse divide-y divide-neutral-200 rounded-md border border-gray-200 bg-white sm:overflow-hidden">
       <SkeletonItem />
       <SkeletonItem />
       <SkeletonItem />
@@ -16,7 +17,7 @@ export default SkeletonLoader;
 
 function SkeletonItem() {
   return (
-    <li className="group flex w-full items-center justify-between px-2 py-4 sm:px-6">
+    <li className="group flex w-full items-center justify-between px-4 py-4 sm:px-6">
       <div className="flex-grow truncate text-sm">
         <div className="flex">
           <div className="flex flex-col space-y-2">

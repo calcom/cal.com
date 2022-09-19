@@ -1,9 +1,12 @@
-import { AppCategories, BookingStatus, MembershipRole, Prisma } from "@prisma/client";
+import { AppCategories, BookingStatus, IdentityProvider, MembershipRole, Prisma } from "@prisma/client";
 import _ from "lodash";
-import { JSONObject } from "superjson/dist/types";
+import { authenticator } from "otplib";
 import { z } from "zod";
 
 import app_RoutingForms from "@calcom/app-store/ee/routing_forms/trpc-router";
+import ethRouter from "@calcom/app-store/rainbow/trpc/router";
+import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
+import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
 import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
@@ -12,6 +15,8 @@ import { DailyLocationType } from "@calcom/core/location";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
+import { symmetricDecrypt } from "@calcom/lib/crypto";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import jackson from "@calcom/lib/jackson";
 import {
@@ -28,10 +33,11 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { isTeamOwner } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
 import {
-  updateWebUser as syncServicesUpdateWebUser,
   deleteWebUser as syncServicesDeleteWebUser,
+  updateWebUser as syncServicesUpdateWebUser,
 } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 
 import { TRPCError } from "@trpc/server";
@@ -74,6 +80,71 @@ const publicViewerRouter = createRouter()
       return await samlTenantProduct(prisma, email);
     },
   })
+  .query("stripeCheckoutSession", {
+    input: z.object({
+      stripeCustomerId: z.string().optional(),
+      checkoutSessionId: z.string().optional(),
+    }),
+    async resolve({ input }) {
+      const { checkoutSessionId, stripeCustomerId } = input;
+
+      // TODO: Move the following data checks to superRefine
+      if (!checkoutSessionId && !stripeCustomerId) {
+        throw new Error("Missing checkoutSessionId or stripeCustomerId");
+      }
+
+      if (checkoutSessionId && stripeCustomerId) {
+        throw new Error("Both checkoutSessionId and stripeCustomerId provided");
+      }
+      let customerId: string;
+      let isPremiumUsername = false;
+      let hasPaymentFailed = false;
+      if (checkoutSessionId) {
+        try {
+          const session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+          if (typeof session.customer !== "string") {
+            return {
+              valid: false,
+            };
+          }
+          customerId = session.customer;
+          isPremiumUsername = true;
+          hasPaymentFailed = session.payment_status !== "paid";
+        } catch (e) {
+          return {
+            valid: false,
+          };
+        }
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        customerId = stripeCustomerId!;
+      }
+
+      try {
+        const customer = await stripe.customers.retrieve(customerId);
+        if (customer.deleted) {
+          return {
+            valid: false,
+          };
+        }
+
+        return {
+          valid: true,
+          hasPaymentFailed,
+          isPremiumUsername,
+          customer: {
+            username: customer.metadata.username,
+            email: customer.metadata.email,
+            stripeCustomerId: customerId,
+          },
+        };
+      } catch (e) {
+        return {
+          valid: false,
+        };
+      }
+    },
+  })
   .merge("slots.", slotsRouter);
 
 // routes only available to authenticated users
@@ -104,22 +175,84 @@ const loggedInViewerRouter = createProtectedRouter()
         darkBrandColor: user.darkBrandColor,
         plan: user.plan,
         away: user.away,
+        bio: user.bio,
+        weekStart: user.weekStart,
+        theme: user.theme,
+        hideBranding: user.hideBranding,
       };
     },
   })
   .mutation("deleteMe", {
-    async resolve({ ctx }) {
-      // Remove me from Stripe
-
-      // Remove my account
-      const deletedUser = await ctx.prisma.user.delete({
+    input: z.object({
+      password: z.string(),
+      totpCode: z.string().optional(),
+    }),
+    async resolve({ input, ctx }) {
+      // Check if input.password is correct
+      const user = await prisma.user.findUnique({
         where: {
-          id: ctx.user.id,
+          email: ctx.user.email.toLowerCase(),
         },
       });
+      if (!user) {
+        throw new Error(ErrorCode.UserNotFound);
+      }
 
-      // Sync Services
-      syncServicesDeleteWebUser(deletedUser);
+      if (user.identityProvider !== IdentityProvider.CAL) {
+        throw new Error(ErrorCode.ThirdPartyIdentityProviderEnabled);
+      }
+
+      if (!user.password) {
+        throw new Error(ErrorCode.UserMissingPassword);
+      }
+
+      const isCorrectPassword = await verifyPassword(input.password, user.password);
+      if (!isCorrectPassword) {
+        throw new Error(ErrorCode.IncorrectPassword);
+      }
+
+      if (user.twoFactorEnabled) {
+        if (!input.totpCode) {
+          throw new Error(ErrorCode.SecondFactorRequired);
+        }
+
+        if (!user.twoFactorSecret) {
+          console.error(`Two factor is enabled for user ${user.id} but they have no secret`);
+          throw new Error(ErrorCode.InternalServerError);
+        }
+
+        if (!process.env.CALENDSO_ENCRYPTION_KEY) {
+          console.error(`"Missing encryption key; cannot proceed with two factor login."`);
+          throw new Error(ErrorCode.InternalServerError);
+        }
+
+        const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
+        if (secret.length !== 32) {
+          console.error(
+            `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`
+          );
+          throw new Error(ErrorCode.InternalServerError);
+        }
+
+        const isValidToken = authenticator.check(input.totpCode, secret);
+        if (!isValidToken) {
+          throw new Error(ErrorCode.IncorrectTwoFactorCode);
+        }
+        // If user has 2fa enabled, check if input.totpCode is correct
+        // If it is, delete the user from stripe and database
+
+        // Remove me from Stripe
+        await deleteStripeCustomer(user).catch(console.warn);
+
+        // Remove my account
+        const deletedUser = await ctx.prisma.user.delete({
+          where: {
+            id: ctx.user.id,
+          },
+        });
+        // Sync Services
+        syncServicesDeleteWebUser(deletedUser);
+      }
 
       return;
     },
@@ -249,19 +382,16 @@ const loggedInViewerRouter = createProtectedRouter()
           membershipCount: number;
           readOnly: boolean;
         };
-        eventTypes: (typeof user.eventTypes[number] & { $disabled?: boolean })[];
+        eventTypes: typeof user.eventTypes[number][];
       };
 
       let eventTypeGroups: EventTypeGroup[] = [];
-      const eventTypesHashMap = user.eventTypes.concat(typesRaw).reduce((hashMap, newItem, currentIndex) => {
-        const oldItem = hashMap[newItem.id] || {
-          $disabled: user.plan === "FREE" && currentIndex > 0,
-        };
+      const eventTypesHashMap = user.eventTypes.concat(typesRaw).reduce((hashMap, newItem) => {
+        const oldItem = hashMap[newItem.id];
         hashMap[newItem.id] = { ...oldItem, ...newItem };
         return hashMap;
       }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
       const mergedEventTypes = Object.values(eventTypesHashMap).map((eventType) => eventType);
-
       eventTypeGroups.push({
         teamId: null,
         profile: {
@@ -292,11 +422,8 @@ const loggedInViewerRouter = createProtectedRouter()
         }))
       );
 
-      const canAddEvents = user.plan !== "FREE" || eventTypeGroups[0].eventTypes.length < 1;
-
       return {
         viewer: {
-          canAddEvents,
           plan: user.plan,
         },
         // don't display event teams without event types,
@@ -380,6 +507,7 @@ const loggedInViewerRouter = createProtectedRouter()
       };
       const passedBookingsFilter = bookingListingFilters[bookingListingByStatus];
       const orderBy = bookingListingOrderby[bookingListingByStatus];
+
       const bookingsQuery = await prisma.booking.findMany({
         where: {
           OR: [
@@ -390,6 +518,18 @@ const loggedInViewerRouter = createProtectedRouter()
               attendees: {
                 some: {
                   email: user.email,
+                },
+              },
+            },
+            {
+              eventType: {
+                team: {
+                  members: {
+                    some: {
+                      userId: user.id,
+                      role: "OWNER",
+                    },
+                  },
                 },
               },
             },
@@ -420,6 +560,8 @@ const loggedInViewerRouter = createProtectedRouter()
           user: {
             select: {
               id: true,
+              name: true,
+              email: true,
             },
           },
           rescheduled: true,
@@ -537,8 +679,8 @@ const loggedInViewerRouter = createProtectedRouter()
     input: z.object({
       integration: z.string(),
       externalId: z.string(),
-      eventTypeId: z.number().optional(),
-      bookingId: z.number().optional(),
+      eventTypeId: z.number().nullish(),
+      bookingId: z.number().nullish(),
     }),
     async resolve({ ctx, input }) {
       const { user } = ctx;
@@ -576,62 +718,26 @@ const loggedInViewerRouter = createProtectedRouter()
       });
     },
   })
-  .mutation("enableOrDisableWeb3", {
-    input: z.object({}),
-    async resolve({ ctx }) {
-      const { user } = ctx;
-      const where = { userId: user.id, type: "metamask_web3" };
-
-      const web3Credential = await ctx.prisma.credential.findFirst({
-        where,
-        select: {
-          id: true,
-          key: true,
-        },
-      });
-
-      if (web3Credential) {
-        const deleted = await ctx.prisma.credential.delete({
-          where: {
-            id: web3Credential.id,
-          },
-        });
-        return {
-          ...deleted,
-          key: {
-            ...(deleted.key as JSONObject),
-            isWeb3Active: false,
-          },
-        };
-      } else {
-        return ctx.prisma.credential.create({
-          data: {
-            type: "metamask_web3",
-            key: {
-              isWeb3Active: true,
-            } as unknown as Prisma.InputJsonObject,
-            userId: user.id,
-          },
-        });
-      }
-    },
-  })
   .query("integrations", {
     input: z.object({
       variant: z.string().optional(),
+      exclude: z.array(z.string()).optional(),
       onlyInstalled: z.boolean().optional(),
     }),
     async resolve({ ctx, input }) {
       const { user } = ctx;
-      const { variant, onlyInstalled } = input;
+      const { variant, exclude, onlyInstalled } = input;
       const { credentials } = user;
-
       let apps = getApps(credentials).map(
         ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => ({
           ...app,
           credentialIds: credentials.filter((c) => c.type === app.type).map((c) => c.id),
         })
       );
+      if (exclude) {
+        // exclusion filter
+        apps = apps.filter((item) => (exclude ? !exclude.includes(item.variant) : true));
+      }
       if (variant) {
         // `flatMap()` these work like `.filter()` but infers the types correctly
         apps = apps
@@ -664,21 +770,49 @@ const loggedInViewerRouter = createProtectedRouter()
       return app;
     },
   })
-  .query("web3Integration", {
-    async resolve({ ctx }) {
+  .query("appCredentialsByType", {
+    input: z.object({
+      appType: z.string(),
+    }),
+    async resolve({ ctx, input }) {
       const { user } = ctx;
+      return user.credentials.filter((app) => app.type == input.appType).map((credential) => credential.id);
+    },
+  })
+  .query("stripeCustomer", {
+    async resolve({ ctx }) {
+      const {
+        user: { id: userId },
+        prisma,
+      } = ctx;
 
-      const where = { userId: user.id, type: "metamask_web3" };
-
-      const web3Credential = await ctx.prisma.credential.findFirst({
-        where,
+      const user = await prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
         select: {
-          key: true,
+          metadata: true,
         },
       });
 
+      if (!user) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "User not found" });
+      }
+
+      const metadata = userMetadata.parse(user.metadata);
+      const checkoutSessionId = metadata?.checkoutSessionId;
+      //TODO: Rename checkoutSessionId to premiumUsernameCheckoutSessionId
+      if (!checkoutSessionId) return { isPremium: false };
+
+      const { stripeCustomer, checkoutSession } = await getCustomerAndCheckoutSession(checkoutSessionId);
+      if (!stripeCustomer) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Stripe User not found" });
+      }
+
       return {
-        isWeb3Active: web3Credential ? (web3Credential.key as JSONObject).isWeb3Active : false,
+        isPremium: true,
+        paidForPremium: checkoutSession.payment_status === "paid",
+        username: stripeCustomer.metadata.username,
       };
     },
   })
@@ -706,12 +840,14 @@ const loggedInViewerRouter = createProtectedRouter()
       const data: Prisma.UserUpdateInput = {
         ...input,
       };
+      let isPremiumUsername = false;
       if (input.username) {
         const username = slugify(input.username);
         // Only validate if we're changing usernames
         if (username !== user.username) {
           data.username = username;
           const response = await checkUsername(username);
+          isPremiumUsername = response.premium;
           if (!response.available) {
             throw new TRPCError({ code: "BAD_REQUEST", message: response.message });
           }
@@ -719,6 +855,30 @@ const loggedInViewerRouter = createProtectedRouter()
       }
       if (input.avatar) {
         data.avatar = await resizeBase64Image(input.avatar);
+      }
+      const userToUpdate = await prisma.user.findUnique({
+        where: {
+          id: user.id,
+        },
+      });
+
+      if (!userToUpdate) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      }
+      const metadata = userMetadata.parse(userToUpdate.metadata);
+      // Checking the status of payment directly from stripe allows to avoid the situation where the user has got the refund or maybe something else happened asyncly at stripe but our DB thinks it's still paid for
+      // TODO: Test the case where one time payment is refunded.
+      const premiumUsernameCheckoutSessionId = metadata?.checkoutSessionId;
+      if (premiumUsernameCheckoutSessionId) {
+        const checkoutSession = await stripe.checkout.sessions.retrieve(premiumUsernameCheckoutSessionId);
+        const canUserHavePremiumUsername = checkoutSession.payment_status == "paid";
+
+        if (isPremiumUsername && !canUserHavePremiumUsername) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "You need to pay for premium username",
+          });
+        }
       }
 
       const updatedUser = await prisma.user.update({
@@ -1280,6 +1440,7 @@ const loggedInViewerRouter = createProtectedRouter()
 export const viewerRouter = createRouter()
   .merge("public.", publicViewerRouter)
   .merge(loggedInViewerRouter)
+  .merge("auth.", authRouter)
   .merge("bookings.", bookingsRouter)
   .merge("eventTypes.", eventTypesRouter)
   .merge("availability.", availabilityRouter)
@@ -1288,8 +1449,8 @@ export const viewerRouter = createRouter()
   .merge("apiKeys.", apiKeysRouter)
   .merge("slots.", slotsRouter)
   .merge("workflows.", workflowsRouter)
-  .merge("auth.", authRouter)
 
   // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
   // After that there would just one merge call here for all the apps.
-  .merge("app_routing_forms.", app_RoutingForms);
+  .merge("app_routing_forms.", app_RoutingForms)
+  .merge("eth.", ethRouter);

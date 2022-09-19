@@ -6,9 +6,8 @@ import { useFormContext, Controller, useWatch } from "react-hook-form";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PeriodType } from "@calcom/prisma/client";
-import { Select, Switch, Label } from "@calcom/ui/v2";
-
-import { DateRangePicker } from "@components/ui/form/DateRangePicker";
+import { Select, Switch, Label, Input } from "@calcom/ui/v2";
+import DateRangePicker from "@calcom/ui/v2/core/form/date-range-picker/DateRangePicker";
 
 export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) => {
   const { t } = useLocale();
@@ -111,8 +110,10 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
             }}
           />
         </div>
+      </div>
+      <div className="flex flex-col space-y-4 pt-4 lg:flex-row lg:space-y-0 lg:space-x-4">
         <div className="w-full">
-          <Label htmlFor="minimumBookingNotice">{t("after_event")} </Label>
+          <Label htmlFor="minimumBookingNotice">{t("minimum_booking_notice")} </Label>
           <Controller
             name="minimumBookingNotice"
             control={formMethods.control}
@@ -143,9 +144,41 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
             }}
           />
         </div>
+        <div className="w-full">
+          <Label htmlFor="slotInterval">{t("slot_interval")} </Label>
+          <Controller
+            name="slotInterval"
+            control={formMethods.control}
+            render={() => {
+              const slotIntervalOptions = [
+                {
+                  label: t("slot_interval_default"),
+                  value: -1,
+                },
+                ...[5, 10, 15, 20, 30, 45, 60].map((minutes) => ({
+                  label: minutes + " " + t("minutes"),
+                  value: minutes,
+                })),
+              ];
+              return (
+                <Select
+                  isSearchable={false}
+                  onChange={(val) => {
+                    formMethods.setValue("slotInterval", val && (val.value || 0) > 0 ? val.value : null);
+                  }}
+                  defaultValue={
+                    slotIntervalOptions.find((option) => option.value === eventType.slotInterval) ||
+                    slotIntervalOptions[0]
+                  }
+                  options={slotIntervalOptions}
+                />
+              );
+            }}
+          />
+        </div>
       </div>
       <hr className="my-8" />
-      <div className="">
+      <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
         <fieldset className="block flex-col sm:flex">
           <div className="flex space-x-3">
             <Controller
@@ -154,6 +187,7 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
               defaultValue={periodType?.type !== "UNLIMITED" ? "ROLLING" : "UNLIMITED"}
               render={({ field: { value } }) => (
                 <Switch
+                  fitToHeight={true}
                   checked={value !== "UNLIMITED"}
                   onCheckedChange={(bool) =>
                     formMethods.setValue("periodType", bool ? "ROLLING" : "UNLIMITED")
@@ -196,8 +230,8 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
                         </RadioGroup.Item>
                         {period.prefix ? <span>{period.prefix}&nbsp;</span> : null}
                         {period.type === "ROLLING" && (
-                          <div className="flex ">
-                            <input
+                          <div className="flex h-9">
+                            <Input
                               type="number"
                               className="block w-16 rounded-md border-gray-300 py-3 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
                               placeholder="30"
@@ -206,7 +240,7 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
                             />
                             <select
                               id=""
-                              className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm focus:outline-none"
+                              className="block h-9 w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm focus:outline-none"
                               {...formMethods.register("periodCountCalendarDays")}
                               defaultValue={eventType.periodCountCalendarDays ? "1" : "0"}>
                               <option value="1">{t("calendar_days")}</option>

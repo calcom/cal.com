@@ -259,14 +259,13 @@ export default async function main() {
   }
 
   if (process.env.ZAPIER_INVITE_LINK) {
-    await createApp("zapier", "zapier", ["other"], "zapier_other", {
+    await createApp("zapier", "zapier", ["automation"], "zapier_automation", {
       invite_link: process.env.ZAPIER_INVITE_LINK,
     });
   }
 
   // Web3 apps
   await createApp("huddle01", "huddle01video", ["web3", "video"], "huddle01_video");
-  await createApp("metamask", "metamask", ["web3"], "metamask_web3");
   // Messaging apps
   if (process.env.SLACK_CLIENT_ID && process.env.SLACK_CLIENT_SECRET && process.env.SLACK_SIGNING_SECRET) {
     await createApp("slack", "slackmessaging", ["messaging"], "slack_messaging", {

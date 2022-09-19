@@ -12,6 +12,7 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
     id: true,
     plan: true,
     bio: true,
+    avatar: true,
   });
 
   const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
@@ -85,6 +86,15 @@ export async function isTeamOwner(userId: number, teamId: number) {
       userId,
       teamId,
       role: "OWNER",
+    },
+  }));
+}
+
+export async function isTeamMember(userId: number, teamId: number) {
+  return !!(await prisma.membership.findFirst({
+    where: {
+      userId,
+      teamId,
     },
   }));
 }

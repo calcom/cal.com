@@ -5,6 +5,7 @@ import * as RadioGroup from "@radix-ui/react-radio-group";
 import classNames from "classnames";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { GetServerSidePropsContext } from "next";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Controller, Noop, useForm, UseFormReturn } from "react-hook-form";
@@ -15,10 +16,10 @@ import { v5 as uuidv5 } from "uuid";
 import { z } from "zod";
 
 import { SelectGifInput } from "@calcom/app-store/giphy/components";
-import { getEventLocationType, EventLocationType } from "@calcom/app-store/locations";
+import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
-import { LocationObject, LocationType } from "@calcom/core/location";
+import { LocationObject } from "@calcom/core/location";
 import { parseRecurringEvent } from "@calcom/lib";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -41,7 +42,6 @@ import { QueryCell } from "@lib/QueryCell";
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
-import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
 import { slugify } from "@lib/slugify";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -49,7 +49,6 @@ import { ClientSuspense } from "@components/ClientSuspense";
 import DestinationCalendarSelector from "@components/DestinationCalendarSelector";
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 import Loader from "@components/Loader";
-import { UpgradeToProDialog } from "@components/UpgradeToProDialog";
 import { AvailabilitySelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import RecurringEventController from "@components/eventtype/RecurringEventController";
@@ -67,6 +66,10 @@ import WebhookListContainer from "@components/webhook/WebhookListContainer";
 import { getTranslation } from "@server/lib/i18n";
 import { TRPCClientError } from "@trpc/client";
 
+const RainbowInstallForm = dynamic(() => import("@calcom/rainbow/components/RainbowInstallForm"), {
+  suspense: true,
+});
+
 type OptionTypeBase = {
   label: string;
   value: EventLocationType["type"];
@@ -76,7 +79,6 @@ type OptionTypeBase = {
 export type FormValues = {
   title: string;
   eventTitle: string;
-  smartContractAddress: string;
   eventName: string;
   slug: string;
   length: number;
@@ -116,6 +118,8 @@ export type FormValues = {
   };
   successRedirectUrl: string;
   giphyThankYouPage: string;
+  blockchainId: number;
+  smartContractAddress: string;
 };
 
 const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
@@ -126,8 +130,6 @@ const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
   formMethods: T;
 }) => {
   const { t } = useLocale();
-  const proUpgradeRequired = !isSuccessRedirectAvailable(eventType);
-  const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <>
@@ -138,19 +140,12 @@ const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
             htmlFor="successRedirectUrl"
             className="flex h-full items-center text-sm font-medium text-neutral-700">
             {t("redirect_success_booking")}
-            <span className="ml-1">{proUpgradeRequired && <Badge variant="default">PRO</Badge>}</span>
           </label>
         </div>
         <div className="w-full">
           <input
             id="successRedirectUrl"
-            onClick={(e) => {
-              if (proUpgradeRequired) {
-                e.preventDefault();
-                setModalOpen(true);
-              }
-            }}
-            readOnly={proUpgradeRequired}
+            readOnly={eventType.team !== undefined}
             type="url"
             className="block w-full rounded-sm border-gray-300 text-sm"
             placeholder={t("external_redirect_url")}
@@ -158,9 +153,6 @@ const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
             {...formMethods.register("successRedirectUrl")}
           />
         </div>
-        <UpgradeToProDialog modalOpen={modalOpen} setModalOpen={setModalOpen}>
-          {t("redirect_url_upgrade_description")}
-        </UpgradeToProDialog>
       </div>
     </>
   );
@@ -237,8 +229,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     hasPaymentIntegration,
     currency,
     hasGiphyIntegration,
+    hasRainbowIntegration,
   } = props;
-
   const router = useRouter();
 
   const updateMutation = trpc.useMutation("viewer.eventTypes.update", {
@@ -269,7 +261,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       if (message) {
         showToast(message, "error");
       }
-      showToast("Some error occured", "error");
+      showToast("Some error occurred", "error");
     },
   });
 
@@ -492,7 +484,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                         className="h-6 w-6"
                         alt={`${eventLocation.label} logo`}
                       />
-                      <span className="text-sm ltr:ml-2 rtl:mr-2">
+                      <span className="break-all text-sm ltr:ml-2 rtl:mr-2">
                         {location[eventLocation.defaultValueVariable] || eventLocation.label}
                       </span>
                     </div>
@@ -560,6 +552,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       periodDates,
                       periodCountCalendarDays,
                       smartContractAddress,
+                      blockchainId,
                       giphyThankYouPage,
                       beforeBufferTime,
                       afterBufferTime,
@@ -579,9 +572,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                       id: eventType.id,
                       beforeEventBuffer: beforeBufferTime,
                       afterEventBuffer: afterBufferTime,
-                      seatsPerTimeSlot,
+                      seatsPerTimeSlot: Number.isNaN(seatsPerTimeSlot) ? null : seatsPerTimeSlot,
                       metadata: {
                         ...(smartContractAddress ? { smartContractAddress } : {}),
+                        ...(blockchainId ? { blockchainId } : { blockchainId: 1 }),
                         ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
                       },
                     });
@@ -802,7 +796,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                               <label
                                 htmlFor="createEventsOn"
                                 className="flex text-sm font-medium text-neutral-700">
-                                {t("create_events_on")}
+                                {t("create_events_on")}:
                               </label>
                             </div>
                             <div className="w-full">
@@ -853,28 +847,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </div>
                           </div>
                         </div>
-                        {eventType.isWeb3Active && (
-                          <div className="block items-center sm:flex">
-                            <div className="min-w-48 mb-4 sm:mb-0">
-                              <label
-                                htmlFor="smartContractAddress"
-                                className="flex text-sm font-medium text-neutral-700">
-                                {t("Smart Contract Address")}
-                              </label>
-                            </div>
-                            <div className="w-full">
-                              <div className="relative mt-1 rounded-sm">
-                                <input
-                                  type="text"
-                                  className="block w-full rounded-sm border-gray-300 text-sm "
-                                  placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
-                                  defaultValue={(eventType.metadata.smartContractAddress || "") as string}
-                                  {...formMethods.register("smartContractAddress")}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        )}
                         <div className="block items-center sm:flex">
                           <div className="min-w-48 mb-4 sm:mb-0">
                             <label
@@ -1080,6 +1052,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                             </>
                           )}
                         />
+
+                        {hasRainbowIntegration && (
+                          <RainbowInstallForm
+                            formMethods={formMethods}
+                            blockchainId={(eventType.metadata.blockchainId as number) || 1}
+                            smartContractAddress={(eventType.metadata.smartContractAddress as string) || ""}
+                          />
+                        )}
 
                         <hr className="my-2 border-neutral-200" />
                         <Controller
@@ -1900,20 +1880,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
   });
 
-  const web3Credentials = credentials.find((credential) => credential.type.includes("_web3"));
   const { locations, metadata, ...restEventType } = rawEventType;
   const eventType = {
     ...restEventType,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
     locations: locations as unknown as LocationObject[],
     metadata: (metadata || {}) as JSONObject,
-    isWeb3Active:
-      web3Credentials && web3Credentials.key
-        ? (((web3Credentials.key as JSONObject).isWeb3Active || false) as boolean)
-        : false,
   };
 
   const hasGiphyIntegration = !!credentials.find((credential) => credential.type === "giphy_other");
+  const hasRainbowIntegration = !!credentials.find((credential) => credential.type === "rainbow_web3");
 
   // backwards compat
   if (eventType.users.length === 0 && !eventType.team) {
@@ -1977,6 +1953,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       teamMembers,
       hasPaymentIntegration,
       hasGiphyIntegration,
+      hasRainbowIntegration,
       currency,
       currentUserMembership,
     },

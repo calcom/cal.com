@@ -1,24 +1,19 @@
 import autoAnimate from "@formkit/auto-animate";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SchedulingType } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
 import { useEffect, useRef, useState } from "react";
-import { Controller, useForm, useFormContext, useWatch } from "react-hook-form";
+import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
 import { getEventLocationType, EventLocationType } from "@calcom/app-store/locations";
-import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
-import { Select, Label, TextField, Portal, Switch } from "@calcom/ui/v2";
-import * as RadioArea from "@calcom/ui/v2/core/form/radio-area";
+import { Select, Label, TextField, Button } from "@calcom/ui/v2";
 
-import { asStringOrUndefined } from "@lib/asStringOrNull";
 import { slugify } from "@lib/slugify";
 
-import CheckedSelect from "@components/ui/form/CheckedSelect";
 import { EditLocationDialog } from "@components/v2/eventtype/EditLocationDialog";
 
 type OptionTypeBase = {
@@ -32,8 +27,7 @@ export const EventSetupTab = (
 ) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
-  const { eventType, locationOptions, team, teamMembers } = props;
-  const utils = trpc.useContext();
+  const { eventType, locationOptions, team } = props;
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
 
@@ -41,17 +35,6 @@ export const EventSetupTab = (
     setSelectedLocation(locationOptions.find((option) => option.value === type));
     setShowLocationModal(true);
   };
-
-  const setHiddenMutation = trpc.useMutation("viewer.eventTypes.update", {
-    onError: async (err) => {
-      console.error(err.message);
-      await utils.cancelQuery(["viewer.eventTypes"]);
-      await utils.invalidateQueries(["viewer.eventTypes"]);
-    },
-    onSettled: async () => {
-      await utils.invalidateQueries(["viewer.eventTypes"]);
-    },
-  });
 
   const removeLocation = (selectedLocation: typeof eventType.locations[number]) => {
     formMethods.setValue(
@@ -78,37 +61,6 @@ export const EventSetupTab = (
     }
     setShowLocationModal(false);
   };
-
-  const schedulingTypeOptions: {
-    value: SchedulingType;
-    label: string;
-    description: string;
-  }[] = [
-    {
-      value: SchedulingType.COLLECTIVE,
-      label: t("collective"),
-      description: t("collective_description"),
-    },
-    {
-      value: SchedulingType.ROUND_ROBIN,
-      label: t("round_robin"),
-      description: t("round_robin_description"),
-    },
-  ];
-
-  const mapUserToValue = ({
-    id,
-    name,
-    username,
-  }: {
-    id: number | null;
-    name: string | null;
-    username: string | null;
-  }) => ({
-    value: `${id || ""}`,
-    label: `${name || ""}`,
-    avatar: `${WEBAPP_URL}/${username}/avatar.png`,
-  });
 
   const locationFormSchema = z.object({
     locationType: z.string(),
@@ -182,7 +134,7 @@ export const EventSetupTab = (
                 return null;
               }
               return (
-                <li key={location.type} className="mb-2 rounded-sm border border-neutral-300 py-1.5 px-2">
+                <li key={location.type} className="mb-2 rounded-md border border-neutral-300 py-1.5 px-2">
                   <div className="flex justify-between">
                     <div key={index} className="flex flex-grow items-center">
                       <img
@@ -218,13 +170,9 @@ export const EventSetupTab = (
             })}
             {validLocations.length > 0 && validLocations.length !== locationOptions.length && (
               <li>
-                <button
-                  type="button"
-                  className="flex rounded-sm py-2 hover:bg-gray-100"
-                  onClick={() => setShowLocationModal(true)}>
-                  <Icon.FiPlus className="mt-0.5 h-4 w-4 text-neutral-900" />
-                  <span className="ml-1 text-sm font-medium text-neutral-700">{t("add_location")}</span>
-                </button>
+                <Button StartIcon={Icon.FiPlus} color="minimal" onClick={() => setShowLocationModal(true)}>
+                  {t("add_location")}
+                </Button>
               </li>
             )}
           </ul>
@@ -243,7 +191,6 @@ export const EventSetupTab = (
           {...formMethods.register("title")}
         />
         <TextField
-          required
           label={t("description")}
           placeholder={t("quick_video_meeting")}
           defaultValue={eventType.description ?? ""}

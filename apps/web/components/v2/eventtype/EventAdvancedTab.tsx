@@ -1,5 +1,6 @@
 import autoAnimate from "@formkit/auto-animate";
 import { EventTypeCustomInput } from "@prisma/client/";
+import Link from "next/link";
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
 import { useEffect, useRef, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -40,6 +41,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
   const [showEventNameTip, setShowEventNameTip] = useState(false);
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
+  const [seatsInputVisible, setSeatsInputVisible] = useState(!!eventType.seatsPerTimeSlot);
+  const [seatsPerTimeSlot, setSeatsPerTimeSlot] = useState(eventType.seatsPerTimeSlot);
   const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
@@ -48,6 +51,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
 
   const animationRef = useRef(null);
+  const seatsEnabled = !!eventType.seatsPerTimeSlot;
 
   useEffect(() => {
     animationRef.current && autoAnimate(animationRef.current);
@@ -72,8 +76,15 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
        */}
       {!!connectedCalendarsQuery.data?.connectedCalendars.length && !team && (
         <div className="flex flex-col">
-          <Label>{t("add_to_calendar")}</Label>
-          <div className="w-full">
+          <div className="flex justify-between">
+            <Label>{t("add_to_calendar")}</Label>
+            <Link href="/apps/categories/calendar">
+              <a target="_blank" className="text-sm text-gray-600 hover:text-gray-900">
+                {t("add_another_calendar")}
+              </a>
+            </Link>
+          </div>
+          <div className="-mt-1 w-full">
             <Controller
               control={formMethods.control}
               name="destinationCalendar"
@@ -114,6 +125,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
         <div className="flex space-x-3 ">
           <Switch
             checked={customInputs.length > 0}
+            fitToHeight={true}
             onCheckedChange={(e) => {
               if (e && customInputs.length === 0) {
                 // Push a placeholders
@@ -163,8 +175,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
         name="requiresConfirmation"
         defaultValue={eventType.requiresConfirmation}
         render={({ field: { value, onChange } }) => (
-          <div className="flex space-x-3 ">
-            <Switch name="requireConfirmation" checked={value} onCheckedChange={(e) => onChange(e)} />
+          <div className="flex space-x-3">
+            <Switch
+              name="requireConfirmation"
+              checked={value}
+              onCheckedChange={(e) => onChange(e)}
+              disabled={seatsEnabled}
+              fitToHeight={true}
+            />
             <div className="flex flex-col">
               <Label className="text-sm font-semibold leading-none text-black">
                 {t("requires_confirmation")}
@@ -178,12 +196,39 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
       />
       <hr />
       <Controller
+        name="disableGuests"
+        control={formMethods.control}
+        defaultValue={eventType.disableGuests}
+        render={({ field: { value, onChange } }) => (
+          <div className="flex space-x-3 ">
+            <Switch
+              name="disableGuests"
+              fitToHeight={true}
+              checked={value}
+              onCheckedChange={(e) => onChange(e)}
+              disabled={seatsEnabled}
+            />
+            <div className="flex flex-col">
+              <Label className="text-sm font-semibold leading-none text-black">{t("disable_guests")}</Label>
+              <p className="-mt-2 text-sm leading-normal text-gray-600">{t("disable_guests_description")}</p>
+            </div>
+          </div>
+        )}
+      />
+
+      <hr />
+      <Controller
         name="hideCalendarNotes"
         control={formMethods.control}
         defaultValue={eventType.hideCalendarNotes}
         render={({ field: { value, onChange } }) => (
           <div className="flex space-x-3 ">
-            <Switch name="hideCalendarNotes" checked={value} onCheckedChange={(e) => onChange(e)} />
+            <Switch
+              name="hideCalendarNotes"
+              fitToHeight={true}
+              checked={value}
+              onCheckedChange={(e) => onChange(e)}
+            />
             <div className="flex flex-col">
               <Label className="text-sm font-semibold leading-none text-black">{t("disable_notes")}</Label>
               <p className="-mt-2 text-sm leading-normal text-gray-600">{t("disable_notes_description")}</p>
@@ -200,7 +245,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
           <>
             <div className="flex space-x-3 ">
               <Switch
+                data-testid="hashedLinkCheck"
                 name="hashedLinkCheck"
+                fitToHeight={true}
                 defaultChecked={!!value}
                 onCheckedChange={(e) => {
                   setHashedLinkVisible(e);
@@ -242,6 +289,46 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                       </Button>
                     </Tooltip>
                   }
+                />
+              </div>
+            )}
+          </>
+        )}
+      />
+      <hr />
+      <Controller
+        name="seatsPerTimeSlot"
+        control={formMethods.control}
+        defaultValue={seatsPerTimeSlot}
+        render={({ field: { value, onChange } }) => (
+          <>
+            <div className="flex space-x-3">
+              <Switch
+                name="seatsPerTimeSlot"
+                checked={seatsInputVisible}
+                onCheckedChange={(e) => {
+                  setSeatsInputVisible(e);
+                  onChange(e ? seatsPerTimeSlot : null);
+                }}
+                fitToHeight={true}
+              />
+              <div className="flex flex-col">
+                <Label className="text-sm font-semibold leading-none text-black">{t("offer_seats")}</Label>
+                <p className="-mt-2 text-sm leading-normal text-gray-600">{t("offer_seats_description")}</p>
+              </div>
+            </div>
+            {seatsInputVisible && (
+              <div className="">
+                <TextField
+                  required
+                  name="seatsPerTimeSlot"
+                  label={t("number_of_seats")}
+                  type="number"
+                  defaultValue={seatsPerTimeSlot || 2}
+                  addOnSuffix={<>{t("seats")}</>}
+                  onChange={(e) => {
+                    formMethods.setValue("seatsPerTimeSlot", Number(e.target.value));
+                  }}
                 />
               </div>
             )}

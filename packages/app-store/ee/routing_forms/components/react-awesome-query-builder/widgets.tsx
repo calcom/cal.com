@@ -1,4 +1,3 @@
-import { TrashIcon } from "@heroicons/react/solid";
 import { ChangeEvent } from "react";
 import {
   FieldProps,
@@ -11,11 +10,10 @@ import {
   TextWidgetProps,
 } from "react-awesome-query-builder";
 
-import { Button as CalButton } from "@calcom/ui";
-import { Input } from "@calcom/ui/form/fields";
+import { Icon } from "@calcom/ui/Icon";
+import { Button as CalButton, TextArea, TextField, SelectWithValidation as Select } from "@calcom/ui/v2";
 
 // import { mapListValues } from "../../../../utils/stuff";
-import { SelectWithValidation as Select } from "@components/ui/form/Select";
 
 const TextAreaWidget = (props: TextWidgetProps) => {
   const { value, setValue, readonly, placeholder, maxLength, customProps, ...remainingProps } = props;
@@ -27,13 +25,13 @@ const TextAreaWidget = (props: TextWidgetProps) => {
 
   const textValue = value || "";
   return (
-    <textarea
+    <TextArea
       value={textValue}
       placeholder={placeholder}
       disabled={readonly}
       onChange={onChange}
       maxLength={maxLength}
-      className="flex flex-grow border-gray-300 text-sm dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500"
+      className="dark:border-darkgray-300 flex flex-grow border-gray-300 text-sm dark:bg-transparent dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500"
       {...customProps}
       {...remainingProps}
     />
@@ -50,9 +48,10 @@ const TextWidget = (props: TextWidgetProps & { type?: string }) => {
   };
   const textValue = value || "";
   return (
-    <input
+    <TextField
+      containerClassName="w-full mt-2"
       type={type}
-      className="flex flex-grow border-gray-300 text-sm dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500"
+      className="dark:border-darkgray-300 flex flex-grow border-gray-300 text-sm dark:bg-transparent dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500"
       value={textValue}
       placeholder={placeholder}
       disabled={readonly}
@@ -65,10 +64,9 @@ const TextWidget = (props: TextWidgetProps & { type?: string }) => {
 
 function NumberWidget({ value, setValue, ...remainingProps }: NumberWidgetProps) {
   return (
-    <Input
-      name="query-builder"
+    <TextField
       type="number"
-      className="mt-0 border-gray-300 text-sm dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500"
+      className="dark:border-darkgray-300 mt-0 border-gray-300 text-sm dark:bg-transparent dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500"
       value={value}
       onChange={(e) => {
         setValue(e.target.value);
@@ -103,7 +101,7 @@ const MultiSelectWidget = ({
 
   return (
     <Select
-      className="block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 sm:text-sm"
+      className="dark:border-darkgray-300 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 dark:bg-transparent dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 sm:text-sm"
       menuPosition="fixed"
       onChange={(items) => {
         setValue(items?.map((item) => item.value));
@@ -137,7 +135,7 @@ function SelectWidget({
 
   return (
     <Select
-      className="data-testid-select block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 sm:text-sm"
+      className="data-testid-select dark:border-darkgray-300 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 dark:bg-transparent dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 sm:text-sm"
       menuPosition="fixed"
       onChange={(item) => {
         if (!item) {
@@ -156,7 +154,7 @@ function Button({ type, label, onClick, readonly }: ButtonProps) {
   if (type === "delRule" || type == "delGroup") {
     return (
       <button className="ml-5">
-        <TrashIcon className="m-0 h-4 w-4 text-neutral-500" onClick={onClick} />
+        <Icon.FiTrash className="m-0 h-4 w-4 text-neutral-500" onClick={onClick} />
       </button>
     );
   }
@@ -170,10 +168,10 @@ function Button({ type, label, onClick, readonly }: ButtonProps) {
   }
   return (
     <CalButton
+      StartIcon={Icon.FiPlus}
       data-testid={dataTestId}
       type="button"
       color="secondary"
-      size="sm"
       disabled={readonly}
       onClick={onClick}>
       {label}

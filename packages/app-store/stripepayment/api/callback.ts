@@ -4,6 +4,7 @@ import { stringify } from "querystring";
 
 import prisma from "@calcom/prisma";
 
+import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import stripe, { StripeData } from "../lib/server";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -39,5 +40,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  res.redirect("/apps/installed");
+  res.redirect(getInstalledAppPath({ variant: "payment", slug: "stripe" }));
 }
