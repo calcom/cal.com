@@ -251,7 +251,7 @@ const WebhookForm = (props: {
         </div>
 
         <div className="mt-12 flex place-content-end space-x-4">
-          <Button type="button" color="minimal" href={`${WEBAPP_URL}/v2/settings/developer/webhooks`}>
+          <Button type="button" color="minimal" href={`${WEBAPP_URL}/settings/developer/webhooks`}>
             {t("cancel")}
           </Button>
           <Button type="submit" loading={formMethods.formState.isSubmitting}>
