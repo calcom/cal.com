@@ -5,6 +5,7 @@ import { MutableRefObject, useCallback, useEffect, useState } from "react";
 
 import { getPremiumPlanMode, getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
+import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
@@ -44,6 +45,7 @@ interface ICustomUsernameProps {
     | "brandColor"
     | "darkBrandColor"
     | "timeFormat"
+    | "metadata"
   >;
   readonly?: boolean;
 }
@@ -61,28 +63,10 @@ const obtainNewUsernameChangeCondition = ({
     return UsernameChangeStatusEnum.UPGRADE;
   }
 
-  // This code requires payment from already premium usernames(if they don't have payment info in stripe under paidForPremium)
-  // If we are sure that metadata.isPremium is set to true for all existing premium users we can uncomment this code with an additional check of `&& !metadata.isPremium`
-  // if (userIsPremium && isNewUsernamePremium && !stripeCustomer?.paidForPremium) {
-  //   return UsernameChangeStatusEnum.UPGRADE;
-  // }
-
   if (userIsPremium && !isNewUsernamePremium && getPremiumPlanMode() === "subscription") {
     return UsernameChangeStatusEnum.DOWNGRADE;
   }
   return UsernameChangeStatusEnum.NORMAL;
-};
-
-const useIsUsernamePremium = (username: string) => {
-  const [isCurrentUsernamePremium, setIsCurrentUsernamePremium] = useState(false);
-  useEffect(() => {
-    (async () => {
-      if (!username) return;
-      const { data } = await fetchUsername(username);
-      setIsCurrentUsernamePremium(data.premium);
-    })();
-  }, [username]);
-  return isCurrentUsernamePremium;
 };
 
 const PremiumTextfield = (props: ICustomUsernameProps) => {
@@ -96,6 +80,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     onSuccessMutation,
     onErrorMutation,
     readonly: disabled,
+    user,
   } = props;
   const [usernameIsAvailable, setUsernameIsAvailable] = useState(false);
   const [markAsError, setMarkAsError] = useState(false);
@@ -103,13 +88,14 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const { paymentStatus: recentAttemptPaymentStatus } = router.query;
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
   const { data: stripeCustomer } = trpc.useQuery(["viewer.stripeCustomer"]);
-  const isCurrentUsernamePremium = useIsUsernamePremium(currentUsername || "");
+  const isCurrentUsernamePremium =
+    user && user.metadata && hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
   const [isInputUsernamePremium, setIsInputUsernamePremium] = useState(false);
 
   const debouncedApiCall = useCallback(
     debounce(async (username) => {
       const { data } = await fetchUsername(username);
-      setMarkAsError(!data.available && username !== currentUsername);
+      setMarkAsError(!data.available && username && username !== currentUsername);
       setIsInputUsernamePremium(data.premium);
       setUsernameIsAvailable(data.available);
     }, 150),
@@ -207,6 +193,20 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
     }
   };
 
+  let paymentMsg = !currentUsername ? (
+    <span className="text-xs text-orange-400">
+      You need to reserve your premium username for {getPremiumPlanPriceValue()}
+    </span>
+  ) : null;
+
+  if (recentAttemptPaymentStatus && recentAttemptPaymentStatus !== "paid") {
+    paymentMsg = (
+      <span className="text-sm text-red-500">
+        Your payment could not be completed. Your username is still not reserved
+      </span>
+    );
+  }
+
   return (
     <div>
       <div className="flex justify-items-center">
@@ -242,6 +242,8 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             value={inputUsernameValue}
             onChange={(event) => {
               event.preventDefault();
+              // Reset payment status
+              delete router.query.paymentStatus;
               setInputUsernameValue(event.target.value);
             }}
             data-testid="username-input"
@@ -253,7 +255,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
                 isInputUsernamePremium ? "text-orange-400" : "",
                 usernameIsAvailable ? "" : ""
               )}>
-              {isInputUsernamePremium ? <StarIconSolid className="mt-[4px] w-6" /> : <></>}
+              {isInputUsernamePremium ? <StarIconSolid className="mt-[2px] w-6" /> : <></>}
               {!isInputUsernamePremium && usernameIsAvailable ? <Icon.FiCheck className="mt-2 w-6" /> : <></>}
             </span>
           </div>
@@ -265,17 +267,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
           </div>
         )}
       </div>
-      {paymentRequired ? (
-        recentAttemptPaymentStatus && recentAttemptPaymentStatus !== "paid" ? (
-          <span className="text-sm text-red-500">
-            Your payment could not be completed. Your username is still not reserved
-          </span>
-        ) : (
-          <span className="text-xs text-orange-400">
-            You need to reserve your premium username for {getPremiumPlanPriceValue()}
-          </span>
-        )
-      ) : null}
+      {paymentMsg}
       {markAsError && <p className="mt-1 text-xs text-red-500">Username is already taken</p>}
 
       {usernameIsAvailable && (

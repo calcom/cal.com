@@ -179,6 +179,7 @@ const loggedInViewerRouter = createProtectedRouter()
         weekStart: user.weekStart,
         theme: user.theme,
         hideBranding: user.hideBranding,
+        metadata: user.metadata,
       };
     },
   })
