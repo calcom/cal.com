@@ -91,8 +91,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       await utils.cancelQuery(["viewer.eventTypes"]);
       await utils.invalidateQueries(["viewer.eventTypes"]);
     },
-    onSettled: async () => {
-      await utils.invalidateQueries(["viewer.eventTypes"]);
+    onSettled: () => {
+      utils.invalidateQueries(["viewer.eventTypes"]);
     },
   });
 
