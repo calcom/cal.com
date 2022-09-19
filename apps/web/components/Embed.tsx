@@ -1,15 +1,14 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
-import { useRouter } from "next/router";
+import { NextRouter, useRouter } from "next/router";
 import { createRef, forwardRef, MutableRefObject, RefObject, useRef, useState } from "react";
 import { components, ControlProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
-import { HorizontalTabs, showToast } from "@calcom/ui/v2";
-import { Button, Switch } from "@calcom/ui/v2";
+import { Button, HorizontalTabs, showToast, Switch } from "@calcom/ui/v2";
+import { Dialog, DialogClose, DialogContent } from "@calcom/ui/v2/core/Dialog";
 
 import { EMBED_LIB_URL, WEBAPP_URL } from "@lib/config/constants";
 
@@ -44,6 +43,23 @@ const getDimension = (dimension: string) => {
     dimension = `${dimension}%`;
   }
   return dimension;
+};
+
+const goto = (router: NextRouter, searchParams: Record<string, string>) => {
+  const newQuery = new URLSearchParams(router.asPath.split("?")[1]);
+  Object.keys(searchParams).forEach((key) => {
+    newQuery.set(key, searchParams[key]);
+  });
+  router.push(`${router.asPath.split("?")[0]}?${newQuery.toString()}`, undefined, {
+    shallow: true,
+  });
+};
+
+const removeQueryParams = (router: NextRouter, queryParams: string[]) => {
+  queryParams.forEach((param) => {
+    delete router.query[param];
+  });
+  router.push(`${router.asPath.split("?")[0]}?${router.query.toString()}`);
 };
 
 /**
@@ -452,7 +468,7 @@ const embeds: {
 const tabs = [
   {
     name: "HTML",
-    embedTabName: "embed-code",
+    href: "embedTabName=embed-code",
     icon: Icon.FiCode,
     type: "code",
     Component: forwardRef<
@@ -503,7 +519,7 @@ ${getEmbedTypeSpecificString({ embedFramework: "HTML", embedType, calLink, previ
   },
   {
     name: "React",
-    embedTabName: "embed-react",
+    href: "embedTabName=embed-react",
     icon: Icon.FiCode,
     type: "code",
     Component: forwardRef<
@@ -543,8 +559,8 @@ ${getEmbedTypeSpecificString({ embedFramework: "react", embedType, calLink, prev
   },
   {
     name: "Preview",
-    embedTabName: "embed-preview",
-    icon: Icon.FiEye,
+    href: "embedTabName=embed-preview",
+    icon: Icon.FiTrello,
     type: "iframe",
     Component: forwardRef<
       HTMLIFrameElement | HTMLTextAreaElement | null,
@@ -590,7 +606,7 @@ const ChooseEmbedTypesDialogContent = () => {
   const { t } = useLocale();
   const router = useRouter();
   return (
-    <DialogContent size="lg">
+    <DialogContent type="creation" useOwnActionButtons size="lg">
       <div className="mb-4">
         <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
           {t("how_you_want_add_cal_site")}
@@ -606,11 +622,8 @@ const ChooseEmbedTypesDialogContent = () => {
             key={index}
             data-testid={embed.type}
             onClick={() => {
-              router.push({
-                query: {
-                  ...router.query,
-                  embedType: embed.type,
-                },
+              goto(router, {
+                embedType: embed.type,
               });
             }}>
             <div className="order-none box-border flex-none rounded-sm border border-solid bg-white">
@@ -635,6 +648,13 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   const { t } = useLocale();
   const router = useRouter();
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const s = (href: string) => {
+    const searchParams = new URLSearchParams(router.asPath.split("?")[1] || "");
+    const [a, b] = href.split("=");
+    searchParams.set(a, b);
+    return `${router.asPath.split("?")[0]}?${searchParams.toString()}`;
+  };
+  const parsedTabs = tabs.map((t) => ({ ...t, href: s(t.href) }));
   const embedCodeRefs: Record<typeof tabs[0]["name"], RefObject<HTMLTextAreaElement>> = {};
   tabs
     .filter((tab) => tab.type === "code")
@@ -661,28 +681,13 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   });
 
   const close = () => {
-    const noPopupQuery = {
-      ...router.query,
-    };
-
-    delete noPopupQuery.dialog;
-
-    queryParamsForDialog.forEach((queryParam) => {
-      delete noPopupQuery[queryParam];
-    });
-
-    router.push({
-      query: noPopupQuery,
-    });
+    removeQueryParams(router, ["dialog", ...queryParamsForDialog]);
   };
 
   // Use embed-code as default tab
   if (!router.query.embedTabName) {
-    router.query.embedTabName = "embed-code";
-    router.push({
-      query: {
-        ...router.query,
-      },
+    goto(router, {
+      embedTabName: "embed-code",
     });
   }
 
@@ -779,20 +784,13 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   ];
 
   return (
-    <DialogContent size="lg">
+    <DialogContent size="xl" className="p-0.5" type="creation" useOwnActionButtons>
       <div className="flex">
-        <div className="flex w-1/3 flex-col bg-white p-6">
+        <div className="flex w-1/3 flex-col bg-gray-50 p-8">
           <h3 className="mb-2 flex text-xl font-bold leading-6 text-gray-900" id="modal-title">
             <button
               onClick={() => {
-                const newQuery = { ...router.query };
-                delete newQuery.embedType;
-                delete newQuery.embedTabName;
-                router.push({
-                  query: {
-                    ...newQuery,
-                  },
-                });
+                removeQueryParams(router, ["embedType", "embedTabName"]);
               }}>
               <Icon.FiArrowLeft className="mr-4 w-4" />
             </button>
@@ -1040,14 +1038,14 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             </Collapsible>
           </div>
         </div>
-        <div className="flex w-2/3 flex-col p-6">
-          <HorizontalTabs tabNameKey="embedTabName" data-testid="embed-tabs" tabs={tabs} />
+        <div className="flex w-2/3 flex-col p-8">
+          <HorizontalTabs data-testid="embed-tabs" tabs={parsedTabs} linkProps={{ shallow: true }} />
           {tabs.map((tab) => {
             return (
               <div
-                key={tab.embedTabName}
+                key={tab.href}
                 className={classNames(
-                  router.query.embedTabName === tab.embedTabName ? "flex flex-grow flex-col" : "hidden"
+                  router.query.embedTabName === tab.href.split("=")[1] ? "flex flex-grow flex-col" : "hidden"
                 )}>
                 <div className="flex h-[55vh] flex-grow flex-col">
                   {tab.type === "code" ? (
@@ -1133,19 +1131,10 @@ export const EmbedButton = <T extends React.ElementType>({
   const router = useRouter();
   className = classNames(className, "hidden lg:inline-flex");
   const openEmbedModal = () => {
-    const query = {
-      ...router.query,
+    goto(router, {
       dialog: "embed",
       embedUrl,
-    };
-    router.push(
-      {
-        pathname: router.pathname,
-        query,
-      },
-      undefined,
-      { shallow: true }
-    );
+    });
   };
   const Component = as ?? Button;
 

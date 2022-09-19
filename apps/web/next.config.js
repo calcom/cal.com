@@ -159,6 +159,11 @@ const nextConfig = {
         destination: "/settings/my-account/profile",
         permanent: true,
       },
+      {
+        source: "/settings/teams",
+        destination: "/teams",
+        permanent: true,
+      },
       /* V2 testers get redirected to the new settings */
       {
         source: "/settings/profile",

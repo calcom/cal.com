@@ -26,7 +26,7 @@ const tabs: VerticalTabItemProps[] = [
       { name: "profile", href: "/settings/my-account/profile" },
       { name: "general", href: "/settings/my-account/general" },
       { name: "calendars", href: "/settings/my-account/calendars" },
-      { name: "conferencing", href: "/settings/my-account/conferencing" },
+      // { name: "conferencing", href: "/settings/my-account/conferencing" },
       // TODO
       // { name: "referrals", href: "/settings/my-account/referrals" },
     ],
@@ -187,14 +187,14 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                             {team.accepted && (
                               <VerticalTabItem
                                 name={t("profile")}
-                                href={`${WEBAPP_URL}/settings/teams/${team.id}/profile`}
+                                href={`/settings/teams/${team.id}/profile`}
                                 textClassNames="px-3 text-gray-900 font-medium text-sm"
                                 disableChevron
                               />
                             )}
                             <VerticalTabItem
                               name={t("members")}
-                              href={`${WEBAPP_URL}/settings/teams/${team.id}/members`}
+                              href={`/settings/teams/${team.id}/members`}
                               textClassNames="px-3 text-gray-900 font-medium text-sm"
                               disableChevron
                             />
