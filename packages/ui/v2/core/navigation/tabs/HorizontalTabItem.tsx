@@ -14,6 +14,7 @@ export type HorizontalTabItemProps = {
   className?: string;
   href: string;
   linkProps?: Omit<ComponentProps<typeof Link>, "href">;
+  icon?: SVGComponent;
 };
 
 const HorizontalTabItem = function ({ name, href, linkProps, ...props }: HorizontalTabItemProps) {
