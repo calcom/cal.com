@@ -15,7 +15,7 @@ interface ICustomUsernameProps {
   currentUsername: string | undefined;
   setCurrentUsername: (value: string | undefined) => void;
   inputUsernameValue: string | undefined;
-  usernameRef: MutableRefObject<HTMLInputElement>;
+  usernameRef: MutableRefObject<HTMLInputElement | null>;
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
@@ -90,7 +90,9 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           onClick={() => {
             if (currentUsername) {
               setInputUsernameValue(currentUsername);
-              usernameRef.current.value = currentUsername;
+              if (usernameRef.current) {
+                usernameRef.current.value = currentUsername;
+              }
             }
           }}>
           {t("cancel")}
