@@ -1166,5 +1166,7 @@
   "theme_dark": "Dunkel",
   "back_to_signin": "Zurück zur Anmeldung",
   "password_updated": "Passwort aktualisiert!",
-  "pending_payment": "Zahlung ausstehend"
+  "pending_payment": "Zahlung ausstehend",
+  "add_a_team": "Team hinzufügen",
+  "add_a_team": "Team löschen",
 }
