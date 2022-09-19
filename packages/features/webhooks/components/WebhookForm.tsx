@@ -1,5 +1,5 @@
 import { WebhookTriggerEvents } from "@prisma/client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
@@ -47,14 +47,18 @@ const WebhookForm = (props: {
   apps?: (keyof typeof WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2)[];
   onSubmit: (event: WebhookFormSubmitData) => void;
 }) => {
+  const { apps = [] } = props;
   const { t } = useLocale();
+  const triggerOptions = useMemo(
+    () =>
+      apps.reduce((acc, app) => {
+        if (!WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2[app]) return acc;
+        acc.push(...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2[app]);
+        return acc;
+      }, WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["core"]),
+    [apps]
+  );
 
-  const triggerOptions: WebhookTriggerEventOptions = WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["core"];
-  if (props.apps) {
-    for (const app of props.apps) {
-      triggerOptions.push(...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2[app]);
-    }
-  }
   const translatedTriggerOptions = triggerOptions.map((option) => ({ ...option, label: t(option.label) }));
 
   const formMethods = useForm({
