@@ -202,6 +202,7 @@ function EventTypeSingleLayout({
               StartIcon={Icon.FiCode}
               color="secondary"
               size="icon"
+              tooltip={t("embed")}
             />
             <Button
               color="secondary"
