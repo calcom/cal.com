@@ -845,11 +845,11 @@ const BookingPage = ({
                     <Button
                       type="button"
                       color="secondary"
+                      size="icon"
+                      StartIcon={Icon.FiUserPlus}
                       onClick={() => setGuestToggle(!guestToggle)}
-                      className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast dark:hover:border-darkmodebrandcontrast mr-auto dark:border-transparent">
-                      <Icon.FiUserPlus className="mr-2" />
-                      {t("additional_guests")}
-                    </Button>
+                      className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast dark:hover:border-darkmodebrandcontrast mr-auto dark:border-transparent"
+                    />
                   )}
                   <Button
                     color="minimal"
