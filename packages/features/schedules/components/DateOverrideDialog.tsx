@@ -4,11 +4,11 @@ import { useMutation } from "react-query";
 
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui";
-import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogFooter } from "@calcom/ui/Dialog";
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogClose } from "@calcom/ui/Dialog";
 import DatePicker from "@calcom/ui/booker/DatePicker";
-import { Form } from "@calcom/ui/form/fields";
-import { DialogClose, Switch } from "@calcom/ui/v2";
+import { Switch } from "@calcom/ui/v2";
+import Button from "@calcom/ui/v2/core/Button";
+import { Form } from "@calcom/ui/v2/core/form/fields";
 
 import { DayRanges } from "./Schedule";
 
@@ -29,11 +29,17 @@ const DateOverrideDialog = ({ Trigger }: { Trigger: React.ReactNode }) => {
 
   const [datesUnavailable, setDatesUnavailable] = useState(false);
   const [dates, setDates] = useState<Dayjs[]>([]);
+  const [open, setOpen] = useState(false);
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
       <DialogContent size="xl">
-        <Form form={form} handleSubmit={() => mutation.mutate()}>
+        <Form
+          form={form}
+          handleSubmit={() => {
+            setOpen(false);
+            mutation.mutate();
+          }}>
           <div className="flex space-x-4">
             <div className="border-r p-6">
               <DialogHeader title="Select the dates you want to override" />
@@ -60,10 +66,11 @@ const DateOverrideDialog = ({ Trigger }: { Trigger: React.ReactNode }) => {
                   checked={datesUnavailable}
                   onCheckedChange={setDatesUnavailable}
                 />
-                <div className="absolute bottom-5 right-5">
+                <div className="absolute bottom-5 right-5 space-x-2">
                   <DialogClose asChild>
-                    <Button color="secondary">{t("cancel")}</Button>
+                    <Button color="minimalSecondary">{t("cancel")}</Button>
                   </DialogClose>
+                  <Button type="submit">{t("override_add_btn")}</Button>
                 </div>
               </div>
             </div>

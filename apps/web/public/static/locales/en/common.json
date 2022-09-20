@@ -1098,6 +1098,7 @@
   "default_calendar_selected": "Default calendar",
   "mark_all_day_unavailable_one": "Mark unavailable on selected date",
   "mark_all_day_unavailable_other": "Mark unavailable on selected dates",
+  "override_add_btn": "Add Override",
   "hide_from_profile": "Hide from profile",
   "event_setup_tab_title": "Event Setup",
   "event_limit_tab_title": "Limits",
