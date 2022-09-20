@@ -193,7 +193,7 @@ const Component = ({
             </span>
           )}
 
-          <div className="prose prose-sm mt-8 space-x-2">{body}</div>
+          <div className="prose prose-sm mt-8">{body}</div>
           <h4 className="mt-8 font-semibold text-gray-900 ">{t("pricing")}</h4>
           <span>
             {price === 0 ? (

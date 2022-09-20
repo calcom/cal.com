@@ -883,7 +883,7 @@
   "zapier_setup_instructions": "<0>Inicie sesión en su cuenta de Zapier y cree un nuevo Zap.</0><1>Seleccione Cal.com cómo su aplicación Trigger. También elija su evento Trigger.</1><2>Seleccione su cuenta e ingrese su Clave API única.</2><3>Pruebe su Trigger.</3><4>¡Listo!</4>",
   "install_zapier_app": "Instale primero la aplicación Zapier desde la App Store.",
   "connect_apple_server": "Conectar con Apple Server",
-  "connect_caldav_server": "Conectar con CalDav Server",
+  "connect_caldav_server": "Conectar con CalDav (Beta)",
   "calendar_url": "URL del calendario",
   "apple_server_generate_password": "Genere una contraseña específica de la aplicación para utilizarla con Cal.com en",
   "credentials_stored_encrypted": "Sus credenciales serán almacenadas y cifradas.",
