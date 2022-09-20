@@ -11,7 +11,7 @@ import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
 import Badge from "@calcom/ui/Badge";
 import { Icon } from "@calcom/ui/Icon";
-import { showToast } from "@calcom/ui/v2";
+import { showToast, SkeletonText } from "@calcom/ui/v2";
 import { Button, SkeletonButton, Shell } from "@calcom/ui/v2";
 import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
 
@@ -67,7 +67,7 @@ const Component = ({
 
   return (
     <>
-      <div className="px-4 pb-3 pt-3 md:px-8 lg:px-0 lg:pt-0">
+      <div className="px-4 pb-3 pt-8 sm:pt-2 md:px-8 lg:px-0 lg:pt-0">
         <Link href="/apps">
           <a className="text-md hover:text-brand-400 inline-flex rounded-sm py-2 font-semibold  text-gray-900">
             <Icon.FiArrowLeft className="mr-2 h-6 w-6" /> {t("app_store")}
@@ -78,7 +78,7 @@ const Component = ({
       <div className="relative flex-1 flex-col items-start justify-start px-4 md:flex md:px-8 lg:flex-row lg:px-0">
         {hasImages && (
           <div className="flex-2 mb-4 -ml-4 -mr-4 flex w-auto snap-x snap-mandatory flex-row overflow-auto whitespace-nowrap bg-gray-100  p-4 md:mb-8 md:-ml-8 md:-mr-8 md:p-8 lg:mx-0 lg:mb-0 lg:max-w-2xl lg:flex-col lg:rounded-md">
-            {images &&
+            {images ? (
               images.map((img) => (
                 <img
                   key={img}
@@ -86,7 +86,12 @@ const Component = ({
                   alt={`Screenshot of app ${name}`}
                   className="mr-4 h-auto max-h-80 max-w-[90%] snap-center rounded-md object-contain last:mb-0 md:max-h-min lg:mb-4 lg:mr-0  lg:max-w-full"
                 />
-              ))}
+              ))
+            ) : (
+              <div className="min-h-[450px] min-w-[667px]">
+                <SkeletonText />
+              </div>
+            )}
           </div>
         )}
         <div
@@ -193,7 +198,7 @@ const Component = ({
             </span>
           )}
 
-          <div className="prose prose-sm mt-8 space-x-2">{body}</div>
+          <div className="prose prose-sm mt-8">{body}</div>
           <h4 className="mt-8 font-semibold text-gray-900 ">{t("pricing")}</h4>
           <span>
             {price === 0 ? (
@@ -275,13 +280,9 @@ const Component = ({
             )}
           </ul>
           <hr className="my-8" />
-          <span className="leading-1 block text-xs text-gray-500">
-            Every app published on the Cal.com App Store is open source and thoroughly tested via peer
-            reviews. Nevertheless, Cal.com, Inc. does not endorse or certify these apps unless they are
-            published by Cal.com. If you encounter inappropriate content or behaviour please report it.
-          </span>
+          <span className="leading-1 block text-xs text-gray-500">{t("every_app_published")}</span>
           <a className="mt-2 block text-xs text-red-500" href="mailto:help@cal.com">
-            <Icon.FiFlag className="inline h-3 w-3" /> Report App
+            <Icon.FiFlag className="inline h-3 w-3" /> {t("report_app")}
           </a>
         </div>
       </div>

@@ -234,7 +234,7 @@
   "welcome_back": "Welcome back",
   "welcome_to_calcom": "Welcome to Cal.com",
   "welcome_instructions": "Tell us what to call you and let us know what timezone you’re in. You’ll be able to edit this later.",
-  "connect_caldav": "Connect to CalDav Server",
+  "connect_caldav": "Connect to CalDav (Beta)",
   "credentials_stored_and_encrypted": "Your credentials will be stored and encrypted.",
   "connect": "Connect",
   "try_for_free": "Try it for free",
@@ -924,7 +924,7 @@
   "zapier_setup_instructions": "<0>Log into your Zapier account and create a new Zap.</0><1>Select Cal.com as your Trigger app. Also choose a Trigger event.</1><2>Choose your account and then enter your Unique API Key.</2><3>Test your Trigger.</3><4>You're set!</4>",
   "install_zapier_app": "Please first install the Zapier App in the app store.",
   "connect_apple_server": "Connect to Apple Server",
-  "connect_caldav_server": "Connect to CalDav Server",
+  "connect_caldav_server": "Connect to CalDav (Beta)",
   "calendar_url": "Calendar URL",
   "apple_server_generate_password": "Generate an app specific password to use with Cal.com at",
   "credentials_stored_encrypted": "Your credentials will be stored and encrypted.",
@@ -1266,5 +1266,7 @@
   "add_a_calendar": "Add a calendar",
   "change_email_hint": "You may need to log out and back in to see any change take effect",
   "confirm_password_change_email": "Please confirm your password before changing your email address",
-  "seats": "seats"
+  "seats": "seats",
+  "every_app_published": "Every app published on the Cal.com App Store is open source and thoroughly tested via peer reviews. Nevertheless, Cal.com, Inc. does not endorse or certify these apps unless they are published by Cal.com. If you encounter inappropriate content or behaviour please report it.",
+  "report_app": "Report app"
 }
