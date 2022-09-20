@@ -120,23 +120,18 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     }
 
     await utils.cancelQuery(["viewer.eventTypes"]);
-    utils.setQueryData(["viewer.eventTypes"], (data) => {
-      // tRPC is very strict with the return signature...
-      if (!data)
-        return {
-          eventTypeGroups: [],
-          profiles: [],
-          viewer: { canAddEvents: true, plan: UserPlan.PRO },
-        };
-      return {
-        ...data,
-        eventTypesGroups: [
-          ...data.eventTypeGroups.slice(0, groupIndex),
+
+    const previousValue = utils.getQueryData(["viewer.eventTypes"]);
+    if (previousValue) {
+      utils.setQueryData(["viewer.eventTypes"], {
+        ...previousValue,
+        eventTypeGroups: [
+          ...previousValue.eventTypeGroups.slice(0, groupIndex),
           { ...group, eventTypes: newList },
-          ...data.eventTypeGroups.slice(groupIndex + 1),
+          ...previousValue.eventTypeGroups.slice(groupIndex + 1),
         ],
-      };
-    });
+      });
+    }
 
     mutation.mutate({
       ids: newList.map((type) => type.id),
