@@ -1,3 +1,4 @@
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { UserPlan } from "@prisma/client";
 import Head from "next/head";
 import Link from "next/link";
@@ -85,6 +86,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
   const utils = trpc.useContext();
+  const [eventTypeList, setEventTypeList] = useState<EventType[]>(types);
   const mutation = trpc.useMutation("viewer.eventTypeOrder", {
     onError: async (err) => {
       console.error(err.message);
@@ -108,15 +110,16 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   });
 
   function moveEventType(index: number, increment: 1 | -1) {
-    const newList = [...types];
+    const newList = [...eventTypeList];
 
-    const type = types[index];
-    const tmp = types[index + increment];
+    const type = eventTypeList[index];
+    const tmp = eventTypeList[index + increment];
     if (tmp) {
       newList[index] = tmp;
       newList[index + increment] = type;
     }
 
+    setEventTypeList(newList);
     utils.cancelQuery(["viewer.eventTypes"]);
     utils.setQueryData(["viewer.eventTypes"], (data) => {
       // tRPC is very strict with the return signature...
@@ -197,12 +200,24 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     }
   }, []);
 
-  const firstItem = types[0];
-  const lastItem = types[types.length - 1];
+  const [elementList] = useAutoAnimate<HTMLUListElement>();
+  const firstItem = eventTypeList[0];
+  const lastItem = eventTypeList[eventTypeList.length - 1];
+
+  function handleSwitchUpdate(index: number) {
+    setEventTypeList((types) =>
+      types.map((type, typeIndex) => {
+        if (typeIndex === index) {
+          return { ...type, hidden: !type.hidden };
+        }
+        return type;
+      })
+    );
+  }
   return (
     <div className="mb-16 flex overflow-hidden rounded-md border border-gray-200 bg-white">
-      <ul className="w-full divide-y divide-neutral-200" data-testid="event-types">
-        {types.map((type, index) => {
+      <ul ref={elementList} className="!static w-full divide-y divide-neutral-200" data-testid="event-types">
+        {eventTypeList.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
           const calLink = `${CAL_URL}/${embedLink}`;
           return (
@@ -253,6 +268,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               checked={!type.hidden}
                               onCheckedChange={() => {
                                 setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
+                                handleSwitchUpdate(index);
                               }}
                             />
                           </div>
