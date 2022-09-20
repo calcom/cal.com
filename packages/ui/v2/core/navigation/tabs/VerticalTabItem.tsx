@@ -1,9 +1,7 @@
-import noop from "lodash/noop";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { Fragment, MouseEventHandler } from "react";
+import { ComponentProps, Fragment } from "react";
 
-// import { ChevronRight } from "react-feather";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SVGComponent } from "@calcom/types/SVGComponent";
@@ -11,75 +9,40 @@ import { Icon } from "@calcom/ui/Icon";
 
 import { Skeleton } from "../../skeleton";
 
-export type VerticalTabItemProps<T extends string = "tabName"> = {
+export type VerticalTabItemProps = {
   name: string;
   info?: string;
   icon?: SVGComponent;
   disabled?: boolean;
-  children?: VerticalTabItemProps<T>[];
+  children?: VerticalTabItemProps[];
   textClassNames?: string;
   className?: string;
   isChild?: boolean;
   hidden?: boolean;
   disableChevron?: boolean;
-} & (
-  | {
-      /** If you want to change query param tabName as per current tab */
-      href: string;
-      tabName?: never;
-    }
-  | ({
-      href?: never;
-    } & Partial<Record<T, string>>)
-);
+  href: string;
+  linkProps?: Omit<ComponentProps<typeof Link>, "href">;
+};
 
-const VerticalTabItem = function <T extends string>({
+const VerticalTabItem = function ({
   name,
   href,
-  tabNameKey,
   info,
   isChild,
   disableChevron,
+  linkProps,
   ...props
-}: VerticalTabItemProps<T> & {
-  tabNameKey?: T;
-}) {
-  const router = useRouter();
-  const { t, isLocaleReady } = useLocale();
-  let newHref = "";
-  let isCurrent;
-  const tabName = props[tabNameKey as keyof typeof props] as string;
-  const _tabNameKey = tabNameKey || "tabName";
-  if (href) {
-    newHref = href;
-    isCurrent = router.asPath.startsWith(href);
-  } else if (tabName) {
-    newHref = "";
-    isCurrent = router.query[_tabNameKey] === tabName;
-  }
-
-  const onClick: MouseEventHandler = tabName
-    ? (e) => {
-        e.preventDefault();
-        router.push({
-          // pathname by default would be the /v2 path and what we want is without /v2 because middleware rewrite would take care of it.
-          // See https://github.com/vercel/next.js/issues/32313#issuecomment-994696421
-          pathname: window.location.pathname,
-          query: {
-            ...router.query,
-            [_tabNameKey]: tabName,
-          },
-        });
-      }
-    : noop;
+}: VerticalTabItemProps) {
+  const { t } = useLocale();
+  const { asPath } = useRouter();
+  const isCurrent = asPath.startsWith(href);
 
   return (
     <Fragment key={name}>
       {!props.hidden && (
         <>
-          <Link key={name} href={props.disabled ? "#" : newHref}>
+          <Link key={name} href={href} {...linkProps}>
             <a
-              onClick={onClick}
               className={classNames(
                 props.textClassNames || "text-sm font-medium leading-none text-gray-600",
                 "group flex w-64 flex-row items-center rounded-md px-3 py-[10px] hover:bg-gray-100 group-hover:text-gray-700  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900",
@@ -91,8 +54,6 @@ const VerticalTabItem = function <T extends string>({
               data-testid={`vertical-tab-${name}`}
               aria-current={isCurrent ? "page" : undefined}>
               {props.icon && (
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                //@ts-ignore
                 <props.icon className="mr-[10px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
               )}
               <div>
@@ -115,7 +76,7 @@ const VerticalTabItem = function <T extends string>({
             </a>
           </Link>
           {props.children?.map((child) => (
-            <VerticalTabItem tabNameKey={tabNameKey} key={child.name} {...child} isChild />
+            <VerticalTabItem key={child.name} {...child} isChild />
           ))}
         </>
       )}

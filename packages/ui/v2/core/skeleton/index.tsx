@@ -30,7 +30,7 @@ type SkeletonProps<T> = {
   ? JSX.IntrinsicElements[T]
   : never);
 
-export const Skeleton = <T extends keyof JSX.IntrinsicElements | React.FC>({
+const Skeleton = <T extends keyof JSX.IntrinsicElements | React.FC>({
   as,
   className = "",
   children,
@@ -93,4 +93,4 @@ const SkeletonContainer: React.FC<SkeletonContainer> = ({ children, as, classNam
   return <Component className={classNames("animate-pulse", className)}>{children}</Component>;
 };
 
-export { SkeletonAvatar, SkeletonText, SkeletonButton, SkeletonContainer };
+export { Skeleton, SkeletonAvatar, SkeletonText, SkeletonButton, SkeletonContainer };

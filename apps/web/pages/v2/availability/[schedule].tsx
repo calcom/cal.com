@@ -9,6 +9,7 @@ import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Schedule as ScheduleType } from "@calcom/types/schedule";
 import { Icon } from "@calcom/ui";
 import TimezoneSelect from "@calcom/ui/form/TimezoneSelect";
@@ -39,6 +40,7 @@ export default function Availability({ schedule }: { schedule: number }) {
   const { t, i18n } = useLocale();
   const router = useRouter();
   const utils = trpc.useContext();
+  const me = useMeQuery();
 
   const { data, isLoading } = trpc.useQuery(["viewer.availability.schedule", { scheduleId: schedule }]);
 
@@ -132,7 +134,17 @@ export default function Availability({ schedule }: { schedule: number }) {
                 <h3 className="mb-5 text-base font-medium leading-6 text-gray-900">
                   {t("change_start_end")}
                 </h3>
-                <Schedule control={control} name="schedule" />
+                {typeof me.data?.weekStart === "string" && (
+                  <Schedule
+                    control={control}
+                    name="schedule"
+                    weekStart={
+                      ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+                        me.data?.weekStart
+                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
+                    }
+                  />
+                )}
               </div>
             </div>
             <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">

@@ -1,6 +1,6 @@
-import { useRouter } from "next/router";
+import { TFunction } from "next-i18next";
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Loader } from "react-feather";
 import { UseFormReturn } from "react-hook-form";
 
@@ -9,21 +9,18 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
-import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Icon } from "@calcom/ui/Icon";
 import {
   Button,
   ButtonGroup,
-  Tooltip,
-  showToast,
-  VerticalTabItemProps,
-  VerticalTabs,
   HorizontalTabs,
-  Switch,
   Label,
-  HorizontalTabItemProps,
-  Skeleton,
+  showToast,
+  Switch,
+  Tooltip,
+  VerticalTabs,
 } from "@calcom/ui/v2";
+import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import { Dialog } from "@calcom/ui/v2/core/Dialog";
 import Dropdown, {
   DropdownMenuContent,
@@ -32,6 +29,7 @@ import Dropdown, {
 } from "@calcom/ui/v2/core/Dropdown";
 import Shell from "@calcom/ui/v2/core/Shell";
 import VerticalDivider from "@calcom/ui/v2/core/VerticalDivider";
+import { Skeleton } from "@calcom/ui/v2/core/skeleton";
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import { EmbedButton, EmbedDialog } from "@components/Embed";
@@ -47,6 +45,59 @@ type Props = {
   formMethods: UseFormReturn<FormValues>;
 };
 
+function getNavigation(props: {
+  t: TFunction;
+  eventType: Props["eventType"];
+  enabledAppsNumber: number;
+  enabledWorkflowsNumber: number;
+}) {
+  const { eventType, t, enabledAppsNumber, enabledWorkflowsNumber } = props;
+  return [
+    {
+      name: "event_setup_tab_title",
+      href: `/event-types/${eventType.id}?tabName=setup`,
+      icon: Icon.FiLink,
+      info: `${eventType.length} Mins`, // TODO: Get this from props
+    },
+    {
+      name: "availability",
+      href: `/event-types/${eventType.id}?tabName=availability`,
+      icon: Icon.FiCalendar,
+      info: `Working Hours`, // TODO: Get this from props
+    },
+    {
+      name: "event_limit_tab_title",
+      href: `/event-types/${eventType.id}?tabName=limits`,
+      icon: Icon.FiClock,
+      info: `event_limit_tab_description`,
+    },
+    {
+      name: "event_advanced_tab_title",
+      href: `/event-types/${eventType.id}?tabName=advanced`,
+      icon: Icon.FiSliders,
+      info: `event_advanced_tab_description`,
+    },
+    {
+      name: "recurring",
+      href: `/event-types/${eventType.id}?tabName=recurring`,
+      icon: Icon.FiRepeat,
+      info: `recurring_event_tab_description`,
+    },
+    {
+      name: "apps",
+      href: `/event-types/${eventType.id}?tabName=apps`,
+      icon: Icon.FiGrid,
+      info: `${enabledAppsNumber} ${t("active")}`,
+    },
+    {
+      name: "workflows",
+      href: `/event-types/${eventType.id}?tabName=workflows`,
+      icon: Icon.FiZap,
+      info: `${enabledWorkflowsNumber} ${t("active")}`,
+    },
+  ];
+}
+
 function EventTypeSingleLayout({
   children,
   eventType,
@@ -58,7 +109,6 @@ function EventTypeSingleLayout({
   formMethods,
 }: Props) {
   const utils = trpc.useContext();
-  const router = useRouter();
   const { t } = useLocale();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
@@ -83,76 +133,17 @@ function EventTypeSingleLayout({
 
   // Define tab navigation here
   const EventTypeTabs = useMemo(() => {
-    const navigation: (VerticalTabItemProps & HorizontalTabItemProps)[] = [
-      {
-        name: "event_setup_tab_title",
-        tabName: "setup",
-        icon: Icon.FiLink,
-        info: `${eventType.length} Mins`, // TODO: Get this from props
-      },
-      {
-        name: "availability",
-        tabName: "availability",
-        icon: Icon.FiCalendar,
-        info: `Working Hours`, // TODO: Get this from props
-      },
-      {
-        name: "event_limit_tab_title",
-        tabName: "limits",
-        icon: Icon.FiClock,
-        info: `event_limit_tab_description`,
-      },
-      {
-        name: "event_advanced_tab_title",
-        tabName: "advanced",
-        icon: Icon.FiSliders,
-        info: `event_advanced_tab_description`,
-      },
-      {
-        name: "recurring",
-        tabName: "recurring",
-        icon: Icon.FiRepeat,
-        info: `recurring_event_tab_description`,
-      },
-      {
-        name: "apps",
-        tabName: "apps",
-        icon: Icon.FiGrid,
-        info: `${enabledAppsNumber} ${t("active")}`,
-      },
-      {
-        name: "workflows",
-        tabName: "workflows",
-        icon: Icon.FiZap,
-        info: `${enabledWorkflowsNumber} ${t("active")}`,
-      },
-    ];
-
+    const navigation = getNavigation({ t, eventType, enabledAppsNumber, enabledWorkflowsNumber });
     // If there is a team put this navigation item within the tabs
     if (team)
       navigation.splice(2, 0, {
         name: "scheduling_type",
-        tabName: "team",
+        href: `/event-types/${eventType.id}?tabName=team`,
         icon: Icon.FiUsers,
         info: eventType.schedulingType === "COLLECTIVE" ? "collective" : "round_robin",
       });
     return navigation;
-  }, [eventType, enabledAppsNumber, team]);
-
-  useEffect(() => {
-    // Default to the first in the list
-    if (!router.query.tabName) {
-      router.push({
-        // pathname by default would be the /v2 path and what we want is without /v2 because middleware rewrite would take care of it.
-        // See https://github.com/vercel/next.js/issues/32313#issuecomment-994696421
-        pathname: window.location.pathname,
-        query: {
-          ...router.query,
-          tabName: EventTypeTabs[0].tabName,
-        },
-      });
-    }
-  }, [EventTypeTabs, router]);
+  }, [t, eventType, enabledAppsNumber, enabledWorkflowsNumber, team]);
 
   const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
     eventType.slug
@@ -215,6 +206,7 @@ function EventTypeSingleLayout({
               StartIcon={Icon.FiCode}
               color="secondary"
               size="icon"
+              tooltip={t("embed")}
             />
             <Button
               color="secondary"
@@ -272,10 +264,15 @@ function EventTypeSingleLayout({
       <ClientSuspense fallback={<Loader />}>
         <div className="-mt-2 flex flex-col xl:flex-row xl:space-x-8">
           <div className="hidden xl:block">
-            <VerticalTabs className="primary-navigation" tabs={EventTypeTabs} sticky />
+            <VerticalTabs
+              className="primary-navigation"
+              tabs={EventTypeTabs}
+              sticky
+              linkProps={{ shallow: true }}
+            />
           </div>
           <div className="p-2 md:mx-0 md:p-0 xl:hidden">
-            <HorizontalTabs tabNameKey="tabName" tabs={EventTypeTabs} />
+            <HorizontalTabs tabs={EventTypeTabs} linkProps={{ shallow: true }} />
           </div>
           <div className="w-full ltr:mr-2 rtl:ml-2">
             <div
@@ -299,7 +296,7 @@ function EventTypeSingleLayout({
             e.preventDefault();
             deleteMutation.mutate({ id: eventType.id });
           }}>
-          {t("delete_event_type_description") as string}
+          {t("delete_event_type_description")}
         </ConfirmationDialogContent>
       </Dialog>
       <EmbedDialog />

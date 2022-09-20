@@ -1,5 +1,5 @@
 import { useId } from "@radix-ui/react-id";
-import React, { forwardRef, ReactElement, ReactNode, Ref, useCallback, useMemo, useState } from "react";
+import React, { forwardRef, ReactElement, ReactNode, Ref, useCallback, useState } from "react";
 import { Check, Circle, Info, X, Eye, EyeOff } from "react-feather";
 import {
   FieldErrors,
@@ -267,7 +267,7 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
         placeholder="•••••••••••••"
         ref={ref}
         {...props}
-        className={classNames("pr-10", props.className)}
+        className={classNames("mb-0 pr-10", props.className)}
       />
 
       <Tooltip content={textLabel}>

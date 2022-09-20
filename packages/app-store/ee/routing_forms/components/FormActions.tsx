@@ -28,6 +28,7 @@ import {
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 
+import getFieldIdentifier from "../lib/getFieldIdentifier";
 import { SerializableForm } from "../types/types";
 import { App_RoutingForms_Form } from ".prisma/client";
 
@@ -280,6 +281,7 @@ type FormActionType =
   | "embed"
   | "duplicate"
   | "download"
+  | "copyRedirectUrl"
   | "create";
 
 type FormActionProps<T> = {
@@ -302,6 +304,12 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   const dropdown = dropdownCtxValue?.dropdown;
   const embedLink = `forms/${routingForm?.id}`;
   const formLink = `${CAL_URL}/${embedLink}`;
+  let redirectUrl = `${CAL_URL}/router?form=${routingForm?.id}`;
+
+  routingForm?.fields?.forEach((field) => {
+    redirectUrl += `&${getFieldIdentifier(field)}={Recalled_Response_For_This_Field}`;
+  });
+
   const { t } = useLocale();
   const router = useRouter();
   const actionData: Record<
@@ -338,6 +346,12 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
     },
     create: {
       onClick: () => openModal(router, { action: "new" }),
+    },
+    copyRedirectUrl: {
+      onClick: () => {
+        navigator.clipboard.writeText(redirectUrl);
+        showToast("Typeform Redirect URL copied! You can go and set the URL in Typeform form.", "success");
+      },
     },
     toggle: {
       render: ({ routingForm, label = "", ...restProps }) => {
