@@ -61,7 +61,7 @@ export default function AllApps({ apps }: AllAppsPropsType) {
 
   return (
     <div className="mb-16">
-      <div className="mb-4 flex flex-col justify-between lg:flex-row lg:items-center">
+      <div className="relative mb-4 flex flex-col justify-between lg:flex-row lg:items-center">
         <h2 className="text-lg font-semibold text-gray-900 ">
           {t("explore_apps", {
             category:
@@ -70,7 +70,7 @@ export default function AllApps({ apps }: AllAppsPropsType) {
           })}
         </h2>
         {leftVisible && (
-          <div className="absolute left-1/2 flex">
+          <div className="absolute top-9 flex md:left-1/2 md:-top-1">
             <div className="flex h-12 w-5 items-center justify-end bg-white">
               <ChevronLeft className="h-4 w-4 text-gray-500" />
             </div>
@@ -86,8 +86,8 @@ export default function AllApps({ apps }: AllAppsPropsType) {
               router.replace(router.asPath.split("?")[0], undefined, { shallow: true });
             }}
             className={classNames(
-              selectedCategory === null ? "bg-gray-200" : "bg-gray-50",
-              "rounded-md px-4 py-2.5 text-sm font-medium text-gray-900 hover:cursor-pointer hover:bg-gray-200"
+              selectedCategory === null ? "bg-gray-900 text-gray-50" : "bg-gray-50 text-gray-900",
+              "rounded-md px-4 py-2.5 text-sm font-medium hover:cursor-pointer hover:bg-gray-900 hover:text-gray-50"
             )}>
             {t("all_apps")}
           </li>
@@ -104,15 +104,15 @@ export default function AllApps({ apps }: AllAppsPropsType) {
                 }
               }}
               className={classNames(
-                selectedCategory === cat ? "bg-gray-200" : "bg-gray-50",
-                "rounded-md px-4 py-2.5 text-sm font-medium text-gray-900 hover:cursor-pointer hover:bg-gray-200"
+                selectedCategory === cat ? "bg-gray-900 text-gray-50" : "bg-gray-50 text-gray-900",
+                "rounded-md px-4 py-2.5 text-sm font-medium hover:cursor-pointer hover:bg-gray-900 hover:text-gray-50"
               )}>
               {cat[0].toUpperCase() + cat.slice(1)}
             </li>
           ))}
         </ul>
         {rightVisible && (
-          <div className="absolute right-12 flex">
+          <div className="absolute top-9 right-0 flex md:-top-1">
             <div className="flex h-12 w-5 bg-gradient-to-r from-transparent to-white" />
             <div className="flex h-12 w-5 items-center justify-end bg-white">
               <ChevronRight className="h-4 w-4 text-gray-500" />
@@ -120,9 +120,17 @@ export default function AllApps({ apps }: AllAppsPropsType) {
           </div>
         )}
       </div>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4" ref={appsContainerRef}>
+      <div
+        className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:730px)]:grid-cols-2 [@media(max-width:500px)]:grid-cols-1"
+        ref={appsContainerRef}>
         {apps
-          .filter((app) => (selectedCategory !== null ? app.category === selectedCategory : true))
+          .filter((app) =>
+            selectedCategory !== null
+              ? app.categories
+                ? app.categories.includes(selectedCategory)
+                : app.category === selectedCategory
+              : true
+          )
           .map((app) => (
             <AppCard key={app.name} app={app} credentials={app.credentials} />
           ))}

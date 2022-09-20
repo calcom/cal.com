@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@calcom/prisma";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 
 let client_id = "";
 let client_secret = "";
@@ -74,5 +75,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
   }
 
-  res.redirect("/apps/installed");
+  res.redirect(getInstalledAppPath({ variant: "conferencing", slug: "tandem" }));
 }

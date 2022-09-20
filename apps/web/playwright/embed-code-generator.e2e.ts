@@ -126,7 +126,6 @@ test.describe("Embed Code Generator Tests", () => {
 
     test("open Embed Dialog and choose floating-popup for First Event Type", async ({ page, users }) => {
       const [pro] = users.get();
-
       const embedUrl = await clickFirstEventTypeEmbedButton(page);
 
       await expectToBeNavigatingToEmbedTypesDialog(page, {

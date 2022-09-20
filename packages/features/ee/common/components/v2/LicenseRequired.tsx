@@ -19,9 +19,10 @@ type LicenseRequiredProps = {
 const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) => {
   const session = useSession();
   const Component = as || Fragment;
+  const hasValidLicense = session.data ? session.data.hasValidLicense : null;
   return (
     <Component {...rest}>
-      {session.data?.hasValidLicense ? (
+      {hasValidLicense === null || hasValidLicense ? (
         children
       ) : (
         <EmptyScreen

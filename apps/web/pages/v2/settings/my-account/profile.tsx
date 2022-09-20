@@ -4,6 +4,7 @@ import { useRef, useState, BaseSyntheticEvent } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/lib/auth";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
@@ -58,6 +59,8 @@ const ProfileView = () => {
     },
   });
 
+  const [confirmPasswordOpen, setConfirmPasswordOpen] = useState(false);
+  const [confirmPasswordErrorMessage, setConfirmPasswordDeleteErrorMessage] = useState("");
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
@@ -81,6 +84,16 @@ const ProfileView = () => {
     }
   };
 
+  const confirmPasswordMutation = trpc.useMutation("viewer.auth.verifyPassword", {
+    onSuccess() {
+      mutation.mutate(formMethods.getValues());
+      setConfirmPasswordOpen(false);
+    },
+    onError() {
+      setConfirmPasswordDeleteErrorMessage(t("incorrect_password"));
+    },
+  });
+
   const onDeleteMeErrorMutation = (error: TRPCClientErrorLike<AppRouter>) => {
     setHasDeleteErrors(true);
     setDeleteErrorMessage(errorMessages[error.message]);
@@ -92,6 +105,12 @@ const ProfileView = () => {
       await utils.invalidateQueries(["viewer.me"]);
     },
   });
+
+  const onConfirmPassword = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
+    e.preventDefault();
+    const password = passwordRef.current.value;
+    confirmPasswordMutation.mutate({ passwordInput: password });
+  };
 
   const onConfirmButton = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
     e.preventDefault();
@@ -110,6 +129,7 @@ const ProfileView = () => {
       avatar: user?.avatar || "",
       username: user?.username || "",
       name: user?.name || "",
+      email: user?.email || "",
       bio: user?.bio || "",
     },
   });
@@ -133,7 +153,11 @@ const ProfileView = () => {
       <Form
         form={formMethods}
         handleSubmit={(values) => {
-          mutation.mutate(values);
+          if (values.email !== user?.email) {
+            setConfirmPasswordOpen(true);
+          } else {
+            mutation.mutate(values);
+          }
         }}>
         <Meta title="Profile" description="Manage settings for your cal profile" />
         <div className="flex items-center">
@@ -158,56 +182,24 @@ const ProfileView = () => {
             )}
           />
         </div>
-        <Controller
-          control={formMethods.control}
-          name="username"
-          render={({ field: { value } }) => (
-            <div className="mt-8">
-              <TextField
-                name="username"
-                label={t("personal_cal_url")}
-                addOnLeading="https://cal.com/"
-                value={value}
-                onChange={(e) => {
-                  formMethods.setValue("username", e?.target.value);
-                }}
-              />
-            </div>
-          )}
-        />
-        <Controller
-          control={formMethods.control}
-          name="name"
-          render={({ field: { value } }) => (
-            <div className="mt-8">
-              <TextField
-                name="username"
-                label={t("full_name")}
-                value={value}
-                onChange={(e) => {
-                  formMethods.setValue("name", e?.target.value);
-                }}
-              />
-            </div>
-          )}
-        />
-        <Controller
-          control={formMethods.control}
-          name="bio"
-          render={({ field: { value } }) => (
-            <div className="mt-8">
-              <TextField
-                name="bio"
-                label={t("about")}
-                hint={t("bio_hint")}
-                value={value}
-                onChange={(e) => {
-                  formMethods.setValue("bio", e?.target.value);
-                }}
-              />
-            </div>
-          )}
-        />
+        <div className="mt-8">
+          <TextField
+            data-testid="username-input"
+            label={t("personal_cal_url")}
+            addOnLeading={WEBSITE_URL + "/"}
+            {...formMethods.register("username")}
+          />
+        </div>
+        <div className="mt-8">
+          <TextField label={t("full_name")} {...formMethods.register("name")} />
+        </div>
+        <div className="mt-8">
+          <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />
+        </div>
+        <div className="mt-8">
+          <TextField label={t("about")} hint={t("bio_hint")} {...formMethods.register("bio")} />
+        </div>
+
         <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
           {t("update")}
         </Button>
@@ -219,10 +211,10 @@ const ProfileView = () => {
         <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
           <DialogTrigger asChild>
             <Button
+              data-testid="delete-account"
               color="destructive"
               className="mt-1 border-2"
-              StartIcon={Icon.FiTrash2}
-              data-testid="delete-account">
+              StartIcon={Icon.FiTrash2}>
               {t("delete_account")}
             </Button>
           </DialogTrigger>
@@ -261,6 +253,32 @@ const ProfileView = () => {
           </DialogContent>
         </Dialog>
       </Form>
+
+      {/* If changing email, confirm password */}
+      <Dialog open={confirmPasswordOpen} onOpenChange={setConfirmPasswordOpen}>
+        <DialogContent
+          title={t("confirm_password")}
+          description={t("confirm_password_change_email")}
+          type="creation"
+          actionText={t("confirm")}
+          Icon={Icon.FiAlertTriangle}
+          actionOnClick={(e) => e && onConfirmPassword(e)}>
+          <>
+            <PasswordField
+              data-testid="password"
+              name="password"
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              label="Password"
+              ref={passwordRef}
+            />
+
+            {confirmPasswordErrorMessage && <Alert severity="error" title={confirmPasswordErrorMessage} />}
+          </>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

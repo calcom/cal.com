@@ -376,12 +376,14 @@ function UserDropdown({ small }: { small?: boolean }) {
   );
 }
 
-type NavigationItemType = {
+export type NavigationItemType = {
   name: string;
   href: string;
   icon?: SVGComponent;
   child?: NavigationItemType[];
   pro?: true;
+  onlyMobile?: boolean;
+  onlyDesktop?: boolean;
   isCurrent?: ({
     item,
     isChild,
@@ -412,21 +414,43 @@ const navigation: NavigationItemType[] = [
     icon: Icon.FiClock,
   },
   {
+    name: "teams",
+    href: "/teams",
+    icon: Icon.FiUsers,
+    onlyDesktop: true,
+  },
+  {
     name: "apps",
     href: "/apps",
     icon: Icon.FiGrid,
     isCurrent: ({ router, item }) => {
       const path = router.asPath.split("?")[0];
-      return !!item.child?.some((child) => path === child.href);
+      // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
+      return (
+        (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) && !path.includes("routing_forms/")
+      );
     },
     child: [
       {
         name: "app_store",
         href: "/apps",
+        isCurrent: ({ router, item }) => {
+          const path = router.asPath.split("?")[0];
+          // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
+          return (
+            (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) &&
+            !path.includes("routing_forms/") &&
+            !path.includes("/installed")
+          );
+        },
       },
       {
         name: "installed_apps",
-        href: "/apps/installed",
+        href: "/apps/installed/calendar",
+        isCurrent: ({ router }) => {
+          const path = router.asPath;
+          return path.startsWith("/apps/installed/") || path.startsWith("/v2/apps/installed/");
+        },
       },
     ],
   },
@@ -464,7 +488,7 @@ const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMor
     // We filter out the "more" separator in desktop navigation
     if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
     // Items for mobile bottom navigation
-    if (index < moreSeparatorIndex + 1) items.mobileNavigationBottomItems.push(item);
+    if (index < moreSeparatorIndex + 1 && !item.onlyDesktop) items.mobileNavigationBottomItems.push(item);
     // Items for the "more" menu in mobile navigation
     else items.mobileNavigationMoreItems.push(item);
     return items;
@@ -538,7 +562,6 @@ const NavigationItem: React.FC<{
       </Link>
       {item.child &&
         isCurrent({ router, isChild, item }) &&
-        router.asPath.startsWith(item.href) &&
         item.child.map((item) => <NavigationItem key={item.name} item={item} isChild />)}
     </Fragment>
   );
@@ -648,7 +671,10 @@ function DeploymentInfo() {
 function SideBarContainer() {
   const { status } = useSession();
   const router = useRouter();
-  if (status !== "authenticated") return null;
+  // Make sure that Sidebar is rendered optimistically so that a refresh of pages when logged in have SideBar from the beginning.
+  // This improves the experience of refresh on app store pages(when logged in) which are SSG.
+  // Though when logged out, app store pages would temporarily show SideBar until session status is confirmed.
+  if (status !== "loading" && status !== "authenticated") return null;
   if (router.route.startsWith("/v2/settings/")) return null;
   return <SideBar />;
 }
@@ -695,9 +721,10 @@ function SideBar() {
       {/* TODO @Peer_Rich: reintroduce in 2.1
       <Tips />
       */}
-      <div className="mb-4 hidden lg:block">
+      {/* Save it for next preview version
+       <div className="mb-4 hidden lg:block">
         <UserV2OptInBanner />
-      </div>
+      </div> */}
 
       <div data-testid="user-dropdown-trigger">
         <span className="hidden lg:inline">
@@ -734,12 +761,12 @@ export function ShellMain(props: LayoutProps) {
             <div className="hidden w-full ltr:mr-4 rtl:ml-4 sm:block">
               {props.heading && (
                 <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
-                  {!isLocaleReady ? null : props.heading}
+                  {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
               )}
               {props.subtitle && (
                 <p className="hidden text-sm text-neutral-500 sm:block">
-                  {!isLocaleReady ? null : props.subtitle}
+                  {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
                 </p>
               )}
             </div>
