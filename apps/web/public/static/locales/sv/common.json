@@ -230,7 +230,7 @@
   "welcome": "Välkommen",
   "welcome_to_calcom": "Välkommen till Cal.com",
   "welcome_instructions": "Berätta för oss vad du ska kalla dig och låt oss veta vilken tidszon du befinner dig i. Du kommer att kunna redigera detta senare.",
-  "connect_caldav": "Anslut till CalDav server",
+  "connect_caldav": "Anslut till CalDav (Beta)",
   "credentials_stored_and_encrypted": "Dina uppgifter kommer att lagras och krypteras.",
   "connect": "Anslut",
   "try_for_free": "Prova gratis",
