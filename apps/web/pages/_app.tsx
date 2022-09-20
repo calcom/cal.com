@@ -62,7 +62,7 @@ export default withTRPC<AppRouter>({
         : process.env.VERCEL_URL
         ? `https://${process.env.VERCEL_URL}/api/trpc`
         : `http://${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
-    const slotsProxyUrl = process.env.NEXT_PUBLIC_SLOTS_PROXY_URL;
+    const slotsProxyUrl = process.env.NEXT_PUBLIC_SLOTS_PROXY_URL!;
 
     /**
      * If you want to use SSR, you need to use the server's full URL
