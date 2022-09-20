@@ -154,6 +154,21 @@ module.exports = {
           900: "#f3f4f6",
         },
       },
+      keyframes: {
+        "fade-in-up": {
+          "0%": {
+            opacity: "0",
+            transform: "translateY(10px)",
+          },
+          "100%": {
+            opacity: "1",
+            transform: "translateY(0)",
+          },
+        },
+      },
+      animation: {
+        "fade-in-up": "fade-in-up 0.5s cubic-bezier(.21,1.02,.73,1)",
+      },
       boxShadow: {
         dropdown: "0px 2px 6px -1px rgba(0, 0, 0, 0.08)",
       },
