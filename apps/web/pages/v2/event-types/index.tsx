@@ -109,7 +109,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     },
   });
 
-  function moveEventType(index: number, increment: 1 | -1) {
+  async function moveEventType(index: number, increment: 1 | -1) {
     const newList = [...types];
 
     const type = types[index];
@@ -119,7 +119,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       newList[index + increment] = type;
     }
 
-    utils.cancelQuery(["viewer.eventTypes"]);
+    await utils.cancelQuery(["viewer.eventTypes"]);
     utils.setQueryData(["viewer.eventTypes"], (data) => {
       // tRPC is very strict with the return signature...
       if (!data)
