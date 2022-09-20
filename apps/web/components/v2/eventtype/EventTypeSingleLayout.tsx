@@ -137,7 +137,7 @@ function EventTypeSingleLayout({
     if (team)
       navigation.splice(2, 0, {
         name: "scheduling_type",
-        href: `team`,
+        href: `/event-types/${eventType.id}?tabName=team`,
         icon: Icon.FiUsers,
         info: eventType.schedulingType === "COLLECTIVE" ? "collective" : "round_robin",
       });
