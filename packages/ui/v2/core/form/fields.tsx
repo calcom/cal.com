@@ -208,15 +208,15 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
             className={classNames(
               "h-9 border border-gray-300",
               addOnFilled && "bg-gray-100",
-              addOnLeading && "rounded-l-md border-r-0 px-3",
-              addOnSuffix && "border-l-0 px-3"
+              addOnLeading && "rounded-l-md border-r-0 bg-gray-100 px-3",
+              addOnSuffix && "rounded-r-md border-l-0 px-3"
             )}>
             <div
               className={classNames(
                 "flex h-full flex-col justify-center px-1 text-sm",
                 props.error && "text-red-900"
               )}>
-              <span className="whitespace-nowrap py-2.5 px-3">{addOnLeading || addOnSuffix}</span>
+              <span className="whitespace-nowrap py-2.5">{addOnLeading || addOnSuffix}</span>
             </div>
           </div>
           <Input
