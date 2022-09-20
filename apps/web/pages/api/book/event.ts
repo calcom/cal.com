@@ -338,15 +338,18 @@ async function handler(req: NextApiRequest) {
     }
   );
 
+  // Add an if conditional if there are no seats on the event type
   // Assign to only one user when ROUND_ROBIN
-  if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-    users = [await getLuckyUser("MAXIMIZE_AVAILABILITY", { availableUsers, eventTypeId: eventType.id })];
-  } else {
-    // excluding ROUND_ROBIN, all users have availability required.
-    if (availableUsers.length !== users.length) {
-      throw new Error("Some users are unavailable for booking.");
+  if (!eventType.seatsPerTimeSlot) {
+    if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+      users = [await getLuckyUser("MAXIMIZE_AVAILABILITY", { availableUsers, eventTypeId: eventType.id })];
+    } else {
+      // excluding ROUND_ROBIN, all users have availability required.
+      if (availableUsers.length !== users.length) {
+        throw new Error("Some users are unavailable for booking.");
+      }
+      users = availableUsers;
     }
-    users = availableUsers;
   }
 
   console.log("available users", users);

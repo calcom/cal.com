@@ -188,7 +188,7 @@ const GeneralView = ({ localeProp }: GeneralViewProps) => {
           </>
         )}
       />
-      <Button color="primary" className="mt-8">
+      <Button color="primary" type="submit" className="mt-8">
         <>{t("update")}</>
       </Button>
     </Form>
