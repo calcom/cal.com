@@ -734,62 +734,58 @@ const BookingPage = ({
                       )}
                     </div>
                   ))}
-                {!eventType.disableGuests && (
+                {!eventType.disableGuests && guestToggle && (
                   <div className="mb-4">
-                    {guestToggle && (
-                      <div>
-                        <label
-                          htmlFor="guests"
-                          className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                          {t("guests")}
-                        </label>
-                        {!disableInput && (
-                          <Controller
-                            control={bookingForm.control}
-                            name="guests"
-                            render={({ field: { onChange, value } }) => (
-                              <ReactMultiEmail
-                                className="relative"
-                                placeholder={
-                                  <span className="dark:text-darkgray-600">guest@example.com</span>
-                                }
-                                emails={value}
-                                onChange={onChange}
-                                getLabel={(
-                                  email: string,
-                                  index: number,
-                                  removeEmail: (index: number) => void
-                                ) => {
-                                  return (
-                                    <div data-tag key={index} className="cursor-pointer">
-                                      {email}
-                                      {!disableInput && (
-                                        <span data-tag-handle onClick={() => removeEmail(index)}>
-                                          ×
-                                        </span>
-                                      )}
-                                    </div>
-                                  );
-                                }}
-                              />
-                            )}
-                          />
-                        )}
-                        {/* Custom code when guest emails should not be editable */}
-                        {disableInput && guestListEmails && guestListEmails.length > 0 && (
-                          <div data-tag className="react-multi-email">
-                            {/* // @TODO: user owners are appearing as guest here when should be only user input */}
-                            {guestListEmails.map((email, index) => {
-                              return (
-                                <div key={index} className="cursor-pointer">
-                                  <span data-tag>{email}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    <div>
+                      <label
+                        htmlFor="guests"
+                        className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
+                        {t("guests")}
+                      </label>
+                      {!disableInput && (
+                        <Controller
+                          control={bookingForm.control}
+                          name="guests"
+                          render={({ field: { onChange, value } }) => (
+                            <ReactMultiEmail
+                              className="relative"
+                              placeholder={<span className="dark:text-darkgray-600">guest@example.com</span>}
+                              emails={value}
+                              onChange={onChange}
+                              getLabel={(
+                                email: string,
+                                index: number,
+                                removeEmail: (index: number) => void
+                              ) => {
+                                return (
+                                  <div data-tag key={index} className="cursor-pointer">
+                                    {email}
+                                    {!disableInput && (
+                                      <span data-tag-handle onClick={() => removeEmail(index)}>
+                                        ×
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              }}
+                            />
+                          )}
+                        />
+                      )}
+                      {/* Custom code when guest emails should not be editable */}
+                      {disableInput && guestListEmails && guestListEmails.length > 0 && (
+                        <div data-tag className="react-multi-email">
+                          {/* // @TODO: user owners are appearing as guest here when should be only user input */}
+                          {guestListEmails.map((email, index) => {
+                            return (
+                              <div key={index} className="cursor-pointer">
+                                <span data-tag>{email}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
                 {isSmsReminderNumberNeeded && selectedLocationType !== LocationType.Phone && (
@@ -845,7 +841,7 @@ const BookingPage = ({
                 </div>
 
                 <div className="flex justify-end space-x-2 rtl:space-x-reverse">
-                  {!guestToggle && (
+                  {!eventType.disableGuests && !guestToggle && (
                     <Button
                       type="button"
                       color="secondary"
