@@ -19,9 +19,6 @@ function WorkflowsPage() {
   const session = useSession();
   const router = useRouter();
 
-  const me = useMeQuery();
-  const isFreeUser = me.data?.plan === "FREE";
-
   const { data, isLoading } = trpc.useQuery(["viewer.workflows.list"]);
 
   const createMutation = trpc.useMutation("viewer.workflows.createV2", {
@@ -47,7 +44,7 @@ function WorkflowsPage() {
       title={t("workflows")}
       subtitle={data?.workflows.length ? t("workflows_to_automate_notifications") : ""}
       CTA={
-        session.data?.hasValidLicense && !isFreeUser && data?.workflows && data?.workflows.length > 0 ? (
+        session.data?.hasValidLicense && data?.workflows && data?.workflows.length > 0 ? (
           <Button
             StartIcon={Icon.FiPlus}
             onClick={() => createMutation.mutate()}
@@ -63,11 +60,7 @@ function WorkflowsPage() {
           <SkeletonLoader />
         ) : (
           <>
-            {isFreeUser ? (
-              <Alert className="border " severity="warning" title={t("pro_feature_workflows")} />
-            ) : (
-              <WorkflowList workflows={data?.workflows} />
-            )}
+            <WorkflowList workflows={data?.workflows} />
           </>
         )}
       </LicenseRequired>

@@ -243,8 +243,10 @@ const Route = ({
                   <TextField
                     name="externalRedirectUrl"
                     className="flex w-full flex-grow border-gray-300 text-sm"
+                    containerClassName="w-full mt-2"
                     type="text"
                     required
+                    labelSrOnly
                     value={route.action.value}
                     onChange={(e) => {
                       setRoute(route.id, { action: { ...route.action, value: e.target.value } });

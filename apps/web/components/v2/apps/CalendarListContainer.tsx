@@ -163,7 +163,7 @@ function ConnectedCalendarsList(props: Props) {
                     logo={item.integration.logo}
                     description={item.primary?.externalId || "No external Id"}
                     actions={
-                      <div className="w-32">
+                      <div className="flex w-32 justify-end">
                         <DisconnectIntegration
                           credentialId={item.credentialId}
                           trashIcon

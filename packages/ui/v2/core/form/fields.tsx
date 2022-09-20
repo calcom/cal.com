@@ -264,7 +264,7 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
         placeholder="•••••••••••••"
         ref={ref}
         {...props}
-        className={classNames("pr-10", props.className)}
+        className={classNames("mb-0 pr-10", props.className)}
       />
 
       <Tooltip content={textLabel}>
