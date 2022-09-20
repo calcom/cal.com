@@ -280,13 +280,9 @@ const Component = ({
             )}
           </ul>
           <hr className="my-8" />
-          <span className="leading-1 block text-xs text-gray-500">
-            Every app published on the Cal.com App Store is open source and thoroughly tested via peer
-            reviews. Nevertheless, Cal.com, Inc. does not endorse or certify these apps unless they are
-            published by Cal.com. If you encounter inappropriate content or behaviour please report it.
-          </span>
+          <span className="leading-1 block text-xs text-gray-500">{t("every_app_published")}</span>
           <a className="mt-2 block text-xs text-red-500" href="mailto:help@cal.com">
-            <Icon.FiFlag className="inline h-3 w-3" /> Report App
+            <Icon.FiFlag className="inline h-3 w-3" /> {t("report_app")}
           </a>
         </div>
       </div>
