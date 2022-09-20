@@ -679,7 +679,7 @@
   "add_new_event_type": "新增活动类型",
   "new_event_type_to_book_description": "新建一个活动类型以让他人预约。",
   "length": "时长",
-  "minimum_booking_notice": "最小预约通知",
+  "minimum_booking_notice": "最小预约通知提前时间",
   "slot_interval": "时间段间隔",
   "slot_interval_default": "使用活动时长 (默认)",
   "delete_event_type_description": "您确定要删除此活动类型吗？ 任何曾使用该链接的人都将无法再使用它和您预约。",
