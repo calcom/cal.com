@@ -778,7 +778,13 @@ async function handler(req: NextApiRequest) {
         metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
+
+        // CUSTOM_CODE: Hack to force hangout link
+        if (metadata?.hangoutLink) {
+          evt.location = metadata?.hangoutLink;
+        }
       }
+
       if (noEmail !== true) {
         await sendScheduledEmails({
           ...evt,

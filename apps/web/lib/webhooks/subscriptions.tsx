@@ -10,17 +10,19 @@ export type GetSubscriberOptions = {
 
 /** @deprecated use `packages/lib/webhooks/subscriptions.tsx` */
 const getWebhooks = async (options: GetSubscriberOptions) => {
-  const { userId, eventTypeId } = options;
+  // const { userId, eventTypeId } = options;
+
   const allWebhooks = await prisma.webhook.findMany({
     where: {
-      OR: [
-        {
-          userId,
-        },
-        {
-          eventTypeId,
-        },
-      ],
+      // We should only Allow Webhook on Mento Account, not per user
+      // OR: [
+      //   {
+      //     userId,
+      //   },
+      //   {
+      //     eventTypeId,
+      //   },
+      // ],
       AND: {
         eventTriggers: {
           has: options.triggerEvent,

@@ -122,13 +122,6 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       perform: () => router.push("/settings/profile"),
     },
     {
-      id: "teams",
-      name: "Teams",
-      shortcut: ["t", "s"],
-      keywords: "add manage modify team",
-      perform: () => router.push("/settings/teams"),
-    },
-    {
       id: "password",
       name: "Change Password",
       section: "Security Settings",

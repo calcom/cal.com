@@ -88,12 +88,6 @@ function getNavigation(props: {
       icon: Icon.FiGrid,
       info: `${enabledAppsNumber} ${t("active")}`,
     },
-    {
-      name: "workflows",
-      href: `/event-types/${eventType.id}?tabName=workflows`,
-      icon: Icon.FiZap,
-      info: `${enabledWorkflowsNumber} ${t("active")}`,
-    },
   ];
 }
 
