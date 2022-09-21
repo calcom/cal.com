@@ -19,6 +19,7 @@ import {
   DialogContent,
   Label,
   showToast,
+  Skeleton,
   Switch,
   TextField,
   Tooltip,
@@ -37,7 +38,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
   const connectedCalendarsQuery = trpc.useQuery(["viewer.connectedCalendars"]);
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
-  const utils = trpc.useContext();
   const [showEventNameTip, setShowEventNameTip] = useState(false);
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
@@ -138,8 +138,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
             }}
           />
           <div className="flex flex-col">
-            <Label className="text-sm font-semibold leading-none text-black">{t("additional_inputs")}</Label>
-            <p className="-mt-2 text-sm leading-normal text-gray-600">{t("additional_input_description")}</p>
+            <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
+              {t("additional_inputs")}
+            </Skeleton>
+            <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
+              {t("additional_input_description")}
+            </Skeleton>
           </div>
         </div>
         <ul className="my-4" ref={animationRef}>
@@ -184,12 +188,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               fitToHeight={true}
             />
             <div className="flex flex-col">
-              <Label className="text-sm font-semibold leading-none text-black">
+              <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
                 {t("requires_confirmation")}
-              </Label>
-              <p className="-mt-2 text-sm leading-normal text-gray-600">
+              </Skeleton>
+              <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
                 {t("requires_confirmation_description")}
-              </p>
+              </Skeleton>
             </div>
           </div>
         )}
@@ -209,8 +213,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               disabled={seatsEnabled}
             />
             <div className="flex flex-col">
-              <Label className="text-sm font-semibold leading-none text-black">{t("disable_guests")}</Label>
-              <p className="-mt-2 text-sm leading-normal text-gray-600">{t("disable_guests_description")}</p>
+              <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
+                {t("disable_guests")}
+              </Skeleton>
+              <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
+                {t("disable_guests_description")}
+              </Skeleton>
             </div>
           </div>
         )}
@@ -230,8 +238,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               onCheckedChange={(e) => onChange(e)}
             />
             <div className="flex flex-col">
-              <Label className="text-sm font-semibold leading-none text-black">{t("disable_notes")}</Label>
-              <p className="-mt-2 text-sm leading-normal text-gray-600">{t("disable_notes_description")}</p>
+              <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
+                {t("disable_notes")}
+              </Skeleton>
+              <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
+                {t("disable_notes_description")}
+              </Skeleton>
             </div>
           </div>
         )}
@@ -255,8 +267,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                 }}
               />
               <div className="flex flex-col">
-                <Label className="text-sm font-semibold leading-none text-black">{t("private_link")}</Label>
-                <p className="-mt-2 text-sm leading-normal text-gray-600">{t("private_link_description")}</p>
+                <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
+                  {t("private_link")}
+                </Skeleton>
+                <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
+                  {t("private_link_description")}
+                </Skeleton>
               </div>
             </div>
 

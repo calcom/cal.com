@@ -1,5 +1,5 @@
 import { useId } from "@radix-ui/react-id";
-import React, { forwardRef, ReactElement, ReactNode, Ref, useCallback, useMemo, useState } from "react";
+import React, { forwardRef, ReactElement, ReactNode, Ref, useCallback, useState } from "react";
 import { Check, Circle, Info, X, Eye, EyeOff } from "react-feather";
 import {
   FieldErrors,
@@ -13,7 +13,7 @@ import {
 import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Tooltip } from "@calcom/ui/v2";
+import { Skeleton, Tooltip } from "@calcom/ui/v2";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 import { Alert } from "../../../Alert";
@@ -37,7 +37,7 @@ export function Label(props: JSX.IntrinsicElements["label"]) {
   return (
     <label
       {...props}
-      className={classNames("block pb-2 text-sm font-medium leading-none text-gray-700", props.className)}>
+      className={classNames("mb-2 block text-sm font-medium leading-none text-gray-700", props.className)}>
       {props.children}
     </label>
   );
@@ -166,15 +166,14 @@ type InputFieldProps = {
 
 const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(props, ref) {
   const id = useId();
-  const { t: _t } = useLocale();
+  const { t: _t, isLocaleReady } = useLocale();
   const t = props.t || _t;
   const name = props.name || "";
   const {
     label = t(name),
     labelProps,
     labelClassName,
-    /** Prevents displaying untranslated placeholder keys */
-    placeholder = t(name + "_placeholder") !== name + "_placeholder" ? t(name + "_placeholder") : "",
+    placeholder = isLocaleReady ? t(name + "_placeholder") : "",
     className,
     addOnLeading,
     addOnSuffix,
@@ -188,15 +187,19 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
     ...passThrough
   } = props;
 
+  const translatedPlaceholder = isLocaleReady ? placeholder : "";
+
   return (
     <div className={classNames(containerClassName)}>
       {!!name && (
-        <Label
+        <Skeleton
+          as={Label}
           htmlFor={id}
+          loadingClassName="w-16"
           {...labelProps}
           className={classNames(labelClassName, labelSrOnly && "sr-only", props.error && "text-red-900")}>
           {label}
-        </Label>
+        </Skeleton>
       )}
       {addOnLeading || addOnSuffix ? (
         <div
@@ -221,7 +224,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
           </div>
           <Input
             id={id}
-            placeholder={placeholder}
+            placeholder={translatedPlaceholder}
             className={classNames(
               className,
               addOnLeading && "rounded-l-none",
@@ -233,7 +236,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
           />
         </div>
       ) : (
-        <Input id={id} placeholder={placeholder} className={className} {...passThrough} ref={ref} />
+        <Input id={id} placeholder={translatedPlaceholder} className={className} {...passThrough} ref={ref} />
       )}
       <HintsOrErrors hintErrors={hintErrors} fieldName={name} t={t} />
       {hint && <div className="text-gray mt-2 flex items-center text-sm text-gray-700">{hint}</div>}
