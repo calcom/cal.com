@@ -35,7 +35,7 @@ export function Dialog(props: DialogProps) {
         {
           // This is temporary till we are doing rewrites to /v2.
           // If not done, opening/closing a modalbox can take the user to /v2 paths.
-          pathname: router.asPath.replace("/v2", ""),
+          pathname: router.pathname.replace("/v2", ""),
           query: {
             ...router.query,
           },
@@ -88,7 +88,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
         className={classNames(
           "fadeIn fixed left-1/2 top-1/2 z-[9998] min-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded bg-white text-left shadow-xl focus-visible:outline-none sm:w-full sm:align-middle",
           props.size == "xl"
-            ? "p-0.5 sm:max-w-[98vw]"
+            ? "p-8 sm:max-w-[90rem]"
             : props.size == "lg"
             ? "p-8 sm:max-w-[70rem]"
             : props.size == "md"

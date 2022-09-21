@@ -679,7 +679,7 @@
   "add_new_event_type": "Adicionar um novo tipo de evento",
   "new_event_type_to_book_description": "Crie um novo tipo de evento para as pessoas agendarem horários.",
   "length": "Comprimento",
-  "minimum_booking_notice": "Aviso de reserva mínima",
+  "minimum_booking_notice": "Aviso mínimo",
   "slot_interval": "Intervalos de tempo",
   "slot_interval_default": "Usar a duração do evento (padrão)",
   "delete_event_type_description": "Você tem certeza que deseja apagar este evento? Qualquer pessoa que você tenha compartilhado o link não conseguirá mais utilizá-lo para novos agendamentos.",

@@ -185,8 +185,8 @@ function ConnectedCalendarsList(props: Props) {
                 ) : (
                   <Alert
                     severity="warning"
-                    title={t("calendar_error")}
-                    message={item.error?.message}
+                    title={t("something_went_wrong")}
+                    message={t("calendar_error")}
                     actions={
                       <DisconnectIntegration
                         id={item.credentialId}
