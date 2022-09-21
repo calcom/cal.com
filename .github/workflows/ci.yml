@@ -1,0 +1,30 @@
+name: CI
+
+on: [push]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    services:
+       db:
+         image: postgres:14
+         ports: ["5432:5432"]
+         env:
+           POSTGRES_USER: cal
+           POSTGRES_HOST_AUTH_METHOD: trust
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
+    concurrency:
+      group: ${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Deploy
+        uses: ./.github/actions/deploy
+        with:
+          database_url: postgresql://cal@localhost:5432/cal
+          webapp_url: ${{ github.ref == 'refs/heads/main' && 'TODO' || secrets.PUBLIC_WEBAPP_URL_STAGING }}
+          ecr_url: ${{ secrets.AWS_ECR_URL }}
+          ecr_username: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          ecr_password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
