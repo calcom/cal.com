@@ -1,0 +1,33 @@
+# Use postgres/example user/password credentials
+version: '3.8'
+
+volumes:
+  pg-data:
+
+services:
+  db:
+    image: postgres
+    restart: always
+    volumes:
+      - pg-data:/var/lib/postgresql/data/
+    env_file: .env
+    ports:
+      - 5432:5432
+
+  calcom:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_WEBAPP_URL: ${NEXT_PUBLIC_WEBAPP_URL}
+        NEXT_PUBLIC_LICENSE_CONSENT: ${NEXT_PUBLIC_LICENSE_CONSENT}
+        CALCOM_TELEMETRY_DISABLED: ${CALCOM_TELEMETRY_DISABLED}
+        NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+        CALENDSO_ENCRYPTION_KEY: ${CALENDSO_ENCRYPTION_KEY}
+        DATABASE_URL: ${DATABASE_URL}
+    restart: always
+    ports:
+      - 3000:3000
+    env_file: .env
+    depends_on:
+      - db
