@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Fragment } from "react";
 import { useMutation } from "react-query";
 
@@ -194,7 +195,12 @@ function ConnectedCalendarsList(props: Props) {
                   <Alert
                     severity="warning"
                     title={t("something_went_wrong")}
-                    message={t("calendar_error")}
+                    message={
+                      <span>
+                        <Link href={"/apps/" + item.integration.slug}>{item.integration.name}</Link>:{" "}
+                        {t("calendar_error")}
+                      </span>
+                    }
                     iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
                     actions={
                       <div className="flex w-32 justify-end md:pr-1">
