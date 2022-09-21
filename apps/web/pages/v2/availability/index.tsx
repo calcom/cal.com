@@ -21,15 +21,31 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
   const meQuery = trpc.useQuery(["viewer.me"]);
 
   const deleteMutation = trpc.useMutation("viewer.availability.schedule.delete", {
-    onSuccess: async () => {
-      await utils.invalidateQueries(["viewer.availability.list"]);
-      showToast(t("schedule_deleted_successfully"), "success");
+    onMutate: async ({ scheduleId }) => {
+      await utils.cancelQuery(["viewer.availability.list"]);
+      const previousValue = utils.getQueryData(["viewer.availability.list"]);
+      if (previousValue) {
+        const filteredValue = previousValue.schedules.filter(({ id }) => id !== scheduleId);
+        utils.setQueryData(["viewer.availability.list"], { ...previousValue, schedules: filteredValue });
+      }
+
+      return { previousValue };
     },
-    onError: (err) => {
+
+    onError: (err, variables, context) => {
+      if (context?.previousValue) {
+        utils.setQueryData(["viewer.availability.list"], context.previousValue);
+      }
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
       }
+    },
+    onSettled: () => {
+      utils.invalidateQueries(["viewer.availability.list"]);
+    },
+    onSuccess: () => {
+      showToast(t("schedule_deleted_successfully"), "success");
     },
   });
 
@@ -61,7 +77,6 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
                 key={schedule.id}
                 schedule={schedule}
                 deleteFunction={deleteMutation.mutate}
-                isDeleting={deleteMutation.isLoading}
               />
             ))}
           </ul>
