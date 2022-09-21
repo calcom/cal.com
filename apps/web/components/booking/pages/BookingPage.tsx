@@ -844,12 +844,13 @@ const BookingPage = ({
                   {!eventType.disableGuests && !guestToggle && (
                     <Button
                       type="button"
-                      color="secondary"
+                      color="minimalSecondary"
+                      size="icon"
+                      tooltip={t("additional_guests")}
+                      StartIcon={Icon.FiUserPlus}
                       onClick={() => setGuestToggle(!guestToggle)}
-                      className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast dark:hover:border-darkmodebrandcontrast mr-auto dark:border-transparent">
-                      <Icon.FiUserPlus className="mr-2" />
-                      {t("additional_guests")}
-                    </Button>
+                      className="mr-auto"
+                    />
                   )}
                   <Button
                     color="minimal"
