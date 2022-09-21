@@ -22,7 +22,7 @@ jobs:
            POSTGRES_USER: cal
            POSTGRES_DB: cal
            POSTGRES_PASSWORD: secret
-         options: |
+         options: >-
            --health-cmd pg_isready
            --health-interval 10s
            --health-timeout 5s
