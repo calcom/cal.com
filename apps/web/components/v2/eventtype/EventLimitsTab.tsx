@@ -6,7 +6,7 @@ import { useFormContext, Controller, useWatch } from "react-hook-form";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PeriodType } from "@calcom/prisma/client";
-import { Select, Switch, Label, Input } from "@calcom/ui/v2";
+import { Select, Switch, Label, Input, TextField } from "@calcom/ui/v2";
 import DateRangePicker from "@calcom/ui/v2/core/form/date-range-picker/DateRangePicker";
 
 export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) => {
@@ -113,35 +113,12 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
       </div>
       <div className="flex flex-col space-y-4 pt-4 lg:flex-row lg:space-y-0 lg:space-x-4">
         <div className="w-full">
-          <Label htmlFor="minimumBookingNotice">{t("minimum_booking_notice")} </Label>
-          <Controller
-            name="minimumBookingNotice"
-            control={formMethods.control}
-            defaultValue={eventType.minimumBookingNotice || 0}
-            render={({ field: { onChange, value } }) => {
-              const minimumBookingOptions = [
-                {
-                  label: t("event_buffer_default"),
-                  value: 0,
-                },
-                ...[5, 10, 15, 20, 30, 45, 60, 90, 120].map((minutes) => ({
-                  label: minutes + " " + t("minutes"),
-                  value: minutes,
-                })),
-              ];
-              return (
-                <Select
-                  isSearchable={false}
-                  onChange={(val) => {
-                    if (val) onChange(val.value);
-                  }}
-                  defaultValue={
-                    minimumBookingOptions.find((option) => option.value === value) || minimumBookingOptions[0]
-                  }
-                  options={minimumBookingOptions}
-                />
-              );
-            }}
+          <TextField
+            required
+            label={t("minimum_booking_notice")}
+            type="number"
+            placeholder="120"
+            {...formMethods.register("minimumBookingNotice", { valueAsNumber: true })}
           />
         </div>
         <div className="w-full">
