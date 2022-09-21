@@ -10,16 +10,23 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_ECR_URL: ${{ secrets.AWS_ECR_URL }}
       WEBAPP_URL: ${{ github.ref == 'refs/heads/main' && 'TODO' || secrets.PUBLIC_WEBAPP_URL_STAGING }}
-      DATABASE_URL: postgresql://cal@localhost:5432/cal
+      DATABASE_URL: postgresql://cal:secret@postgres:5432/cal
       ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     runs-on: ubuntu-latest
     services:
        db:
          image: postgres:14
-         ports: ["5432:5432"]
+         ports:
+           - 5432:5432
          env:
            POSTGRES_USER: cal
-           POSTGRES_HOST_AUTH_METHOD: trust
+           POSTGRES_DB: cal
+           POSTGRES_PASSWORD: secret
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     concurrency:
       group: ${{ github.ref }}
       cancel-in-progress: true
