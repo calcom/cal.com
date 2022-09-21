@@ -45,7 +45,7 @@ const ApiKeysView = () => {
         <>
           {isLoading && <SkeletonLoader />}
           <div>
-            {isLoading && data === undefined ? null : !isLoading && data && data.length > 0 ? (
+            {isLoading ? null : data?.length ? (
               <>
                 <div className="mt-6 mb-8 rounded-md border">
                   {data.map((apiKey, index) => (
