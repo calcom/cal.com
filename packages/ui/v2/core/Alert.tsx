@@ -23,7 +23,7 @@ export function Alert(props: AlertProps) {
         severity === "info" && "border-sky-700 bg-sky-50 text-sky-700",
         severity === "success" && "bg-gray-900 text-white"
       )}>
-      <div className="flex">
+      <div className="relative flex flex-col md:flex-row">
         <div className="flex-shrink-0">
           {severity === "error" && (
             <XCircleIcon className={classNames("h-5 w-5 text-red-400", iconClassName)} aria-hidden="true" />
@@ -51,7 +51,7 @@ export function Alert(props: AlertProps) {
           <h3 className="text-sm font-medium">{props.title}</h3>
           <div className="text-sm">{props.message}</div>
         </div>
-        {props.actions && <div className="text-sm">{props.actions}</div>}
+        {props.actions && <div className="absolute top-1 right-1 text-sm md:relative">{props.actions}</div>}
       </div>
     </div>
   );

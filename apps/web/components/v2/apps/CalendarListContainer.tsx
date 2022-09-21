@@ -197,7 +197,7 @@ function ConnectedCalendarsList(props: Props) {
                     message={t("calendar_error")}
                     iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
                     actions={
-                      <div className="flex w-32 justify-end">
+                      <div className="flex w-32 justify-end md:pr-1">
                         <DisconnectIntegration
                           credentialId={item.credentialId}
                           trashIcon
@@ -252,7 +252,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                     <ShellSubHeading
                       title={t("calendar")}
                       subtitle={t("installed_app_calendar_description")}
-                      className="flex items-center"
+                      className="mb-0 flex flex-wrap items-center gap-4 md:mb-3 md:gap-0"
                       actions={
                         <div className="flex flex-col xl:flex-row xl:space-x-5">
                           {!!data.connectedCalendars.length && (
@@ -264,7 +264,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                       }
                     />
                     <div className="flex justify-between rounded-md border border-gray-200 bg-gray-50 p-4">
-                      <div className="flex w-full items-center gap-4">
+                      <div className="flex w-full flex-col items-start gap-4 md:flex-row md:items-center">
                         <div className="relative rounded-md border border-gray-200 bg-white p-1.5">
                           <Icon.FiCalendar className="h-8 w-8" strokeWidth="1" />
                           <Icon.FiPlus
@@ -272,11 +272,11 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                             strokeWidth="4"
                           />
                         </div>
-                        <div className="w-6/12">
+                        <div className="md:w-6/12">
                           <h1 className="text-sm font-semibold">{t("create_events_on")}</h1>
                           <p className="text-sm font-normal">{t("set_calendar")}</p>
                         </div>
-                        <div className="flex w-6/12 justify-end">
+                        <div className="flex justify-end md:w-6/12">
                           <DestinationCalendarSelector
                             onChange={mutation.mutate}
                             hidePlaceholder
