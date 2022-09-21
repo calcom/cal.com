@@ -1,5 +1,9 @@
 name: Deploy
 inputs:
+  database_url:
+    required: true
+  webapp_url:
+    required: true
   ecr_username:
     required: true
   ecr_password:
