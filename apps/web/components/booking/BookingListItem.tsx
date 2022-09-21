@@ -270,6 +270,26 @@ function BookingListItem(booking: BookingItemProps) {
               {dayjs(booking.startTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")} -{" "}
               {dayjs(booking.endTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
             </div>
+
+            {isPending && (
+              <>
+                <Badge variant="orange">{t("unconfirmed")}</Badge>
+                <br />
+              </>
+            )}
+            {booking.eventType?.team && (
+              <>
+                <Badge variant="gray">{booking.eventType.team.name}</Badge>
+                <br />
+              </>
+            )}
+            {!!booking?.eventType?.price && !booking.paid && (
+              <>
+                <Badge variant="orange">{t("pending_payment")}</Badge>
+                <br />
+              </>
+            )}
+
             <div className="text-sm text-gray-400">
               {booking.recurringBookings &&
                 booking.eventType?.recurringEvent?.freq &&
@@ -306,11 +326,6 @@ function BookingListItem(booking: BookingItemProps) {
         </td>
         <td className={"flex-1 px-4" + (isRejected ? " line-through" : "")} onClick={onClick}>
           <div className="cursor-pointer py-4">
-            {!!booking?.eventType?.price && !booking.paid && (
-              <Badge variant="orange" className="mb-2 ltr:mr-2 rtl:ml-2">
-                {t("pending_payment")}
-              </Badge>
-            )}
             <div
               title={booking.title}
               className={classNames(
@@ -319,15 +334,9 @@ function BookingListItem(booking: BookingItemProps) {
               )}>
               {booking.title}
               <span> </span>
-              {booking.eventType?.team && <Badge variant="gray">{booking.eventType.team.name}</Badge>}
 
               {!!booking?.eventType?.price && !booking.paid && (
                 <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">Pending payment</Tag>
-              )}
-              {isPending && (
-                <Badge variant="orange" className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">
-                  {t("unconfirmed")}
-                </Badge>
               )}
             </div>
             {booking.description && (
