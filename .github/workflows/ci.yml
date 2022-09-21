@@ -4,6 +4,14 @@ on: [push]
 
 jobs:
   deploy:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_ECR_URL=${{ secrets.AWS_ECR_URL }}
+      WEBAPP_URL: ${{ github.ref == 'refs/heads/main' && 'TODO' || secrets.PUBLIC_WEBAPP_URL_STAGING }}
+      DATABASE_URL: postgresql://cal@localhost:5432/cal
+      ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     runs-on: ubuntu-latest
     services:
        db:
@@ -12,19 +20,68 @@ jobs:
          env:
            POSTGRES_USER: cal
            POSTGRES_HOST_AUTH_METHOD: trust
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
     concurrency:
       group: ${{ github.ref }}
       cancel-in-progress: true
     steps:
       - uses: actions/checkout@v3
 
-      - name: Deploy
-        uses: ./.github/actions/deploy
+      - uses: docker/setup-buildx-action@v1
+
+      - uses: actions/cache@v2.1.7
         with:
-          database_url: 'postgresql://cal@localhost:5432/cal'
-          webapp_url: ${{ github.ref == 'refs/heads/main' && 'TODO' || secrets.PUBLIC_WEBAPP_URL_STAGING }}
-          ecr_url: ${{ secrets.AWS_ECR_URL }}
-          ecr_username: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          ecr_password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-v2-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-buildx-v2
+
+      - name: Login to ECR
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.AWS_ECR_URL }}
+          username: ${{ env.AWS_ACCESS_KEY_ID }}
+          password: ${{ env.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Docker build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          build-args: |
+            DATABASE_URL=${{ env.DATABASE_URL }}
+            NEXT_PUBLIC_WEBAPP_URL=${{ env.WEBAPP_URL }}
+          tags: ${{ env.AWS_ECR_URL }}/tourlane/cal:${{ github.sha }}
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+
+        # Temp fix
+        # https://github.com/docker/build-push-action/issues/252
+        # https://github.com/moby/buildkit/issues/1896
+      - name: Move cache
+        shell: bash
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - name: Run deploy command
+        run: make deploy_to_${{ env.ENVIRONMENT }}
+        env:
+          NEXT_PUBLIC_WEBAPP_URL: ${{ env.WEBAPP_URL }}
+          AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
+          AWS_ECR_URL: ${{ env.AWS_ECR_URL }}
+        shell: bash
+
+      #- id: git_message
+        #shell: bash
+        #run: echo "::set-output name=short::$(echo "${{ github.event.head_commit.message }}" | head -1)"
+
+      #- name: Slack Notification
+        #uses: rtCamp/action-slack-notify@v2
+        #env:
+          #SLACK_CHANNEL: ${{ inputs.environment == 'staging' && 'deploys-staging' || 'deploys' }}
+          #SLACK_ICON_EMOJI: ':family:'
+          #SLACK_FOOTER: ${{ inputs.environment == 'staging' && 'TODO' || 'TODO' }}
+          #SLACK_USERNAME: cal
+          #MSG_MINIMAL: commit
+          #SLACK_WEBHOOK: ${{ secrets.SLACK_URL }}
+          #SLACK_MESSAGE: ${{ steps.git_message.outputs.short }}
