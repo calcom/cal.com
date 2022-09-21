@@ -7,10 +7,11 @@ export interface AlertProps {
   message?: ReactNode;
   actions?: ReactNode;
   className?: string;
+  iconClassName?: string;
   severity: "success" | "warning" | "error" | "info";
 }
 export function Alert(props: AlertProps) {
-  const { severity } = props;
+  const { severity, iconClassName } = props;
 
   return (
     <div
@@ -25,16 +26,25 @@ export function Alert(props: AlertProps) {
       <div className="flex">
         <div className="flex-shrink-0">
           {severity === "error" && (
-            <XCircleIcon className={classNames("h-5 w-5 text-red-400")} aria-hidden="true" />
+            <XCircleIcon className={classNames("h-5 w-5 text-red-400", iconClassName)} aria-hidden="true" />
           )}
           {severity === "warning" && (
-            <ExclamationIcon className={classNames("h-5 w-5 text-yellow-400")} aria-hidden="true" />
+            <ExclamationIcon
+              className={classNames("h-5 w-5 text-yellow-400", iconClassName)}
+              aria-hidden="true"
+            />
           )}
           {severity === "info" && (
-            <InformationCircleIcon className={classNames("h-5 w-5 text-sky-400")} aria-hidden="true" />
+            <InformationCircleIcon
+              className={classNames("h-5 w-5 text-sky-400", iconClassName)}
+              aria-hidden="true"
+            />
           )}
           {severity === "success" && (
-            <CheckCircleIcon className={classNames("h-5 w-5 text-gray-400")} aria-hidden="true" />
+            <CheckCircleIcon
+              className={classNames("h-5 w-5 text-gray-400", iconClassName)}
+              aria-hidden="true"
+            />
           )}
         </div>
         <div className="ml-3 flex-grow">

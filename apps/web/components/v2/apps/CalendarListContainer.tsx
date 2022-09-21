@@ -153,7 +153,7 @@ function ConnectedCalendarsList(props: Props) {
           return null;
         }
         return (
-          <List className="flex flex-col gap-6">
+          <List className="flex flex-col gap-6" noBorderTreatment>
             {data.connectedCalendars.map((item) => (
               <Fragment key={item.credentialId}>
                 {item.calendars ? (
@@ -193,10 +193,11 @@ function ConnectedCalendarsList(props: Props) {
                 ) : (
                   <Alert
                     severity="warning"
-                    title={t("calendar_error")}
-                    message={item.error?.message}
+                    title={t("something_went_wrong")}
+                    message={t("calendar_error")}
+                    iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
                     actions={
-                      <div className="w-32">
+                      <div className="flex w-32 justify-end">
                         <DisconnectIntegration
                           credentialId={item.credentialId}
                           trashIcon
