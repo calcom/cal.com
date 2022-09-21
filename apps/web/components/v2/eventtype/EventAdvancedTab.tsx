@@ -42,7 +42,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
   const [seatsInputVisible, setSeatsInputVisible] = useState(!!eventType.seatsPerTimeSlot);
-  const [seatsPerTimeSlot, setSeatsPerTimeSlot] = useState(eventType.seatsPerTimeSlot);
+  const [seatsPerTimeSlot, setSeatsPerTimeSlot] = useState(eventType.seatsPerTimeSlot || 2);
   const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
@@ -324,6 +324,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                 checked={seatsInputVisible}
                 onCheckedChange={(e) => {
                   setSeatsInputVisible(e);
+                  formMethods.setValue("seatsPerTimeSlot", seatsPerTimeSlot);
                   onChange(e ? seatsPerTimeSlot : null);
                 }}
                 fitToHeight={true}
