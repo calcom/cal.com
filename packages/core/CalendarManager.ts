@@ -21,9 +21,7 @@ export const getCalendarCredentials = (credentials: Array<Credential>, userId: n
     .flatMap((app) => {
       const credentials = app.credentials.flatMap((credential) => {
         const calendar = getCalendar(credential);
-        return app && calendar && app.variant === "calendar"
-          ? [{ integration: app, credential, calendar }]
-          : [];
+        return [{ integration: app, credential, calendar }];
       });
       return credentials.length ? credentials : [];
     });
@@ -38,40 +36,34 @@ export const getConnectedCalendars = async (
   const connectedCalendars = await Promise.all(
     calendarCredentials.map(async (item) => {
       const { calendar, integration, credential } = item;
-
       const credentialId = credential.id;
-      try {
-        const cals = await calendar.listCalendars();
-        const calendars = _(cals)
-          .map((cal) => ({
-            ...cal,
-            readOnly: cal.readOnly || false,
-            primary: cal.primary || null,
-            isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
-            credentialId,
-          }))
-          .sortBy(["primary"])
-          .value();
-        const primary = calendars.find((item) => item.primary) ?? calendars[0];
-        if (!primary) {
-          throw new Error("No primary calendar found");
-        }
+      if (!calendar) {
         return {
           integration,
           credentialId,
-          primary,
-          calendars,
-        };
-      } catch (_error) {
-        const error = getErrorFromUnknown(_error);
-        return {
-          integration,
-          credentialId,
-          error: {
-            message: error.message,
-          },
         };
       }
+      const cals = await calendar.listCalendars();
+      const calendars = _(cals)
+        .map((cal) => ({
+          ...cal,
+          readOnly: cal.readOnly || false,
+          primary: cal.primary || null,
+          isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
+          credentialId,
+        }))
+        .sortBy(["primary"])
+        .value();
+      const primary = calendars.find((item) => item.primary) ?? calendars[0];
+      if (!primary) {
+        throw new Error("No primary calendar found");
+      }
+      return {
+        integration,
+        credentialId,
+        primary,
+        calendars,
+      };
     })
   );
 

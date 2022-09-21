@@ -130,15 +130,26 @@ const ProfileView = () => {
     deleteMeMutation.mutate({ password, totpCode });
   };
 
-  const formMethods = useForm({
-    defaultValues: {
-      avatar: user?.avatar || "",
-      username: user?.username || "",
-      name: user?.name || "",
-      email: user?.email || "",
-      bio: user?.bio || "",
-    },
-  });
+  const formMethods = useForm<{
+    avatar?: string;
+    username?: string;
+    name?: string;
+    email?: string;
+    bio?: string;
+  }>();
+
+  const { reset } = formMethods;
+
+  useEffect(() => {
+    if (user)
+      reset({
+        avatar: user?.avatar || "",
+        username: user?.username || "",
+        name: user?.name || "",
+        email: user?.email || "",
+        bio: user?.bio || "",
+      });
+  }, [reset, user]);
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const passwordRef = useRef<HTMLInputElement>(null!);

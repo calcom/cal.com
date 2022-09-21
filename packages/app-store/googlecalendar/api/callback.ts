@@ -36,10 +36,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (code) {
     const token = await oAuth2Client.getToken(code);
-
     key = token.res?.data;
-
-    if (!key) res.status(401).json({ message: "Permissions not granted" });
   }
 
   await prisma.credential.create({
