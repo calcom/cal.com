@@ -739,6 +739,11 @@ async function handler(req: NextApiRequest) {
           metadata.hangoutLink = updatedEvent.hangoutLink;
           metadata.conferenceData = updatedEvent.conferenceData;
           metadata.entryPoints = updatedEvent.entryPoints;
+
+          // CUSTOM_CODE: Hack to force hangout link
+          if (metadata?.hangoutLink) {
+            evt.location = metadata?.hangoutLink;
+          }
         }
       }
 
