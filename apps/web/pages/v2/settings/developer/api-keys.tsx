@@ -39,7 +39,12 @@ const ApiKeysView = () => {
 
   return (
     <>
-      <Meta title="api_keys" description="webhooks_description" />
+      <Meta
+        title="API Keys"
+        description="API keys allow other apps to communicate with Cal.com
+
+"
+      />
 
       <LicenseRequired>
         <>
