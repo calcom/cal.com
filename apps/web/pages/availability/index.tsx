@@ -51,7 +51,6 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
                 key={schedule.id}
                 schedule={schedule}
                 deleteFunction={deleteMutation.mutate}
-                isDeleting={deleteMutation.isLoading}
               />
             ))}
           </ul>
