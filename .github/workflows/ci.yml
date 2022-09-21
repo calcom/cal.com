@@ -22,7 +22,7 @@ jobs:
       - name: Deploy
         uses: ./.github/actions/deploy
         with:
-          database_url: postgresql://cal@localhost:5432/cal
+          database_url: 'postgresql://cal@localhost:5432/cal'
           webapp_url: ${{ github.ref == 'refs/heads/main' && 'TODO' || secrets.PUBLIC_WEBAPP_URL_STAGING }}
           ecr_url: ${{ secrets.AWS_ECR_URL }}
           ecr_username: ${{ secrets.AWS_ACCESS_KEY_ID }}

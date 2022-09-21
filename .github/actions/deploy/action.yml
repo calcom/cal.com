@@ -36,7 +36,9 @@ runs:
       with:
         context: .
         push: true
-        build-args: DATABASE_URL=${{ inputs.database_url }},NEXT_PUBLIC_WEBAPP_URL=${{ inputs.webapp_url }}
+        build-args: |
+          DATABASE_URL=${{ inputs.database_url }}
+          NEXT_PUBLIC_WEBAPP_URL=${{ inputs.webapp_url }}
         tags: ${{ inputs.ecr_url }}/tourlane/cal:${{ github.sha }}
         cache-from: type=local,src=/tmp/.buildx-cache
         cache-to: type=local,dest=/tmp/.buildx-cache-new
