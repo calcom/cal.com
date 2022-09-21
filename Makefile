@@ -10,6 +10,14 @@ FUJI=docker run --rm -t \
 		 -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
 		 ${AWS_ECR_URL}/fuji:2.0.1
 
+.PHONY: docker_build
+docker_build:
+	docker build \
+	       --network host \
+	       --build-arg DATABASE_URL=${DATABASE_URL} \
+	       --build-arg NEXT_PUBLIC_WEBAPP_URL=${WEBAPP_URL} \
+	       -t ${IMAGE} .
+
 .PHONY: docker_push
 docker_push:
 	docker push ${IMAGE}
@@ -21,7 +29,7 @@ deploy_web_staging:
 		--service ${SERVICE} \
 		--branch staging \
 		--cluster staging \
-		--environment NEXT_PUBLIC_WEBAPP_URL=${PUBLIC_WEBAPP_URL} \
+		--environment NEXT_PUBLIC_WEBAPP_URL=${WEBAPP_URL} \
 		--secrets DATABASE_URL=${SSM_STAGING}/DATABASE_URL,NEXTAUTH_SECRET=${SSM_STAGING}/NEXTAUTH_SECRET,CALENDSO_ENCRYPTION_KEY=${SSM_STAGING}/CALENDSO_ENCRYPTION_KEY \
 		--image ${IMAGE} \
 		--command "sh /calcom/scripts/start.sh" \
