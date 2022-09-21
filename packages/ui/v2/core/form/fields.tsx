@@ -208,7 +208,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
             className={classNames(
               "h-9 border border-gray-300",
               addOnFilled && "bg-gray-100",
-              addOnLeading && "rounded-l-md border-r-0 bg-gray-100 px-3",
+              addOnLeading && "rounded-l-md border-r-0 px-3",
               addOnSuffix && "rounded-r-md border-l-0 px-3"
             )}>
             <div
