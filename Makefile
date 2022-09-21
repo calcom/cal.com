@@ -23,7 +23,7 @@ docker_push:
 	docker push ${IMAGE}
 
 .PHONY: deploy_to_staging
-deploy_web_staging:
+deploy_to_staging:
 	@echo "\033[94m## Deploying ${COMMIT_SHA} to staging \033[0m"
 	@${FUJI} deploy \
 		--service ${SERVICE} \
