@@ -230,7 +230,7 @@
   "welcome": "ようこそ",
   "welcome_to_calcom": "Cal.com へようこそ",
   "welcome_instructions": "Cal.com でご使用になるお名前とタイムゾーンを教えてください。これらは後から編集できます。",
-  "connect_caldav": "CalDav Serverに接続",
+  "connect_caldav": "CalDav (Beta)に接続",
   "credentials_stored_and_encrypted": "認証情報は保存され暗号化されます。",
   "connect": "接続",
   "try_for_free": "無料で試す",

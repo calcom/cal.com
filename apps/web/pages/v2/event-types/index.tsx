@@ -1,3 +1,4 @@
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { UserPlan } from "@prisma/client";
 import Head from "next/head";
 import Link from "next/link";
@@ -82,6 +83,7 @@ const MemoizedItem = React.memo(Item);
 export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
+  const [parent] = useAutoAnimate<HTMLUListElement>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
   const utils = trpc.useContext();
@@ -91,8 +93,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       await utils.cancelQuery(["viewer.eventTypes"]);
       await utils.invalidateQueries(["viewer.eventTypes"]);
     },
-    onSettled: async () => {
-      await utils.invalidateQueries(["viewer.eventTypes"]);
+    onSettled: () => {
+      utils.invalidateQueries(["viewer.eventTypes"]);
     },
   });
 
@@ -107,7 +109,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     },
   });
 
-  function moveEventType(index: number, increment: 1 | -1) {
+  async function moveEventType(index: number, increment: 1 | -1) {
     const newList = [...types];
 
     const type = types[index];
@@ -117,24 +119,19 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       newList[index + increment] = type;
     }
 
-    utils.cancelQuery(["viewer.eventTypes"]);
-    utils.setQueryData(["viewer.eventTypes"], (data) => {
-      // tRPC is very strict with the return signature...
-      if (!data)
-        return {
-          eventTypeGroups: [],
-          profiles: [],
-          viewer: { canAddEvents: true, plan: UserPlan.PRO },
-        };
-      return {
-        ...data,
-        eventTypesGroups: [
-          ...data.eventTypeGroups.slice(0, groupIndex),
+    await utils.cancelQuery(["viewer.eventTypes"]);
+
+    const previousValue = utils.getQueryData(["viewer.eventTypes"]);
+    if (previousValue) {
+      utils.setQueryData(["viewer.eventTypes"], {
+        ...previousValue,
+        eventTypeGroups: [
+          ...previousValue.eventTypeGroups.slice(0, groupIndex),
           { ...group, eventTypes: newList },
-          ...data.eventTypeGroups.slice(groupIndex + 1),
+          ...previousValue.eventTypeGroups.slice(groupIndex + 1),
         ],
-      };
-    });
+      });
+    }
 
     mutation.mutate({
       ids: newList.map((type) => type.id),
@@ -201,7 +198,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const lastItem = types[types.length - 1];
   return (
     <div className="mb-16 flex overflow-hidden rounded-md border border-gray-200 bg-white">
-      <ul className="w-full divide-y divide-neutral-200" data-testid="event-types">
+      <ul ref={parent} className="!static w-full divide-y divide-neutral-200" data-testid="event-types">
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
           const calLink = `${CAL_URL}/${embedLink}`;
