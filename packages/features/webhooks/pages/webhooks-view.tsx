@@ -15,7 +15,10 @@ import { WebhookListItem, WebhookListSkeleton } from "../components";
 const WebhooksView = () => {
   return (
     <>
-      <Meta title="webhooks" description="webhooks_description" />
+      <Meta
+        title="Webhooks"
+        description="Receive meeting data in real-time when something happens in Cal.com"
+      />
       <div>
         <Suspense fallback={<WebhookListSkeleton />}>
           <WebhooksList />
