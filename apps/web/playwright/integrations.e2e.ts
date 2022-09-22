@@ -41,7 +41,7 @@ const addOauthBasedIntegration = async function ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     verify: (config: { requestHeaders: any; params: URLSearchParams; code: string }) => {
       status: number;
-      body: unknown;
+      body: any;
     };
   };
 }) {
