@@ -22,8 +22,8 @@ test.only("add webhook & test that creating an event triggers a webhook call", a
 
   await Promise.all([
     page.click("[type=submit]"),
-    page.waitForNavigation(() => {
-      url: "settings/developer/webhooks/";
+    page.waitForNavigation({
+      url: (url) => url.pathname.endsWith("/settings/developer/webhooks"),
     }),
   ]);
 
