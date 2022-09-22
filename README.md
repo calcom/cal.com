@@ -131,20 +131,6 @@ Here is what you need to be able to run Cal.
 yarn dx
 ```
 
-### Development
-
-The above command seeds the data everytime so after running first time use
-```sh
-  yarn dev:all
-```
-
-Restarting Docker 
-
-```sh
-   cd packages/prisma
-   docker-compose up -d
-```   
-
 #### Development tip
 
 > Add `NEXT_PUBLIC_DEBUG=1` anywhere in your `.env` to get logging information for all the queries and mutations driven by **trpc**.
