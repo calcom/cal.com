@@ -30,7 +30,7 @@ export type WebhookFormSubmitData = WebhookFormData & {
   newSecret: string;
 };
 
-type WebhookTriggerEventOptions = { value: WebhookTriggerEvents; label: string }[];
+type WebhookTriggerEventOptions = readonly { value: WebhookTriggerEvents; label: string }[];
 
 const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEventOptions> = {
   core: [
@@ -39,8 +39,8 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
     { value: WebhookTriggerEvents.BOOKING_RESCHEDULED, label: "booking_rescheduled" },
     { value: WebhookTriggerEvents.MEETING_ENDED, label: "meeting_ended" },
   ],
-  routing_forms: [{ value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" }],
-};
+  "routing-forms": [{ value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" }],
+} as const;
 
 const WebhookForm = (props: {
   webhook?: WebhookFormData;
@@ -49,7 +49,7 @@ const WebhookForm = (props: {
 }) => {
   const { t } = useLocale();
 
-  const triggerOptions: WebhookTriggerEventOptions = WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["core"];
+  const triggerOptions = [...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["core"]];
   if (props.apps) {
     for (const app of props.apps) {
       triggerOptions.push(...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2[app]);

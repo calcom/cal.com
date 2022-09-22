@@ -10,7 +10,7 @@ export default function Settings() {
   const { data: routingForms } = trpc.useQuery([
     "viewer.appById",
     {
-      appId: "routing_forms",
+      appId: "routing-forms",
     },
   ]);
 
@@ -19,7 +19,7 @@ export default function Settings() {
       <WebhookListContainer title="Event Webhooks" subtitle={t("receive_cal_meeting_data")} />
       {routingForms && (
         <WebhookListContainer
-          appId="routing_forms"
+          appId="routing-forms"
           title="Routing Webhooks"
           subtitle="Receive Routing Form responses at a specified URL, in real-time, when a Routing Form is submitted"
         />
