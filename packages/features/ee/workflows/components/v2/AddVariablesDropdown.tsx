@@ -28,11 +28,11 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
 
   return (
     <Dropdown>
-      <DropdownMenuTrigger className="px-0 py-0 focus:bg-transparent focus:ring-transparent focus:ring-offset-0 ">
-        <Label>
-          <div className="flex">
+      <DropdownMenuTrigger className="focus:bg-transparent focus:ring-transparent focus:ring-offset-0 ">
+        <Label className="mb-0">
+          <div className="flex items-center">
             {t("add_variable")}
-            <Icon.FiChevronDown className="mt-[1.8px] ml-1 h-4 w-4" />
+            <Icon.FiChevronDown className="ml-1 h-4 w-4" />
           </div>
         </Label>
       </DropdownMenuTrigger>
