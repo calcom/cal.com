@@ -14,7 +14,6 @@ const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
     href: "/bookings/upcoming",
     icon: Icon.FiCalendar,
   },
-  // TODO: Add filter for unconfimred bookings in a future PR - Out of scope
   {
     name: "unconfirmed",
     href: "/bookings/unconfirmed",
