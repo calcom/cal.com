@@ -67,7 +67,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           "Content-Type": "application/json",
           Authorization: "Bearer " + process.env.NEXT_PUBLIC_CALENDAR_KEY,
         },
-        body: JSON.stringify({ onboarded: true }),
+        body: JSON.stringify({ onboarded: true, username: user?.username }),
       });
     } catch (e) {
       console.error(e);
