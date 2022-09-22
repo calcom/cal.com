@@ -60,9 +60,11 @@ const WebhookForm = (props: {
 
   const formMethods = useForm({
     defaultValues: {
-      subscriberUrl: props?.webhook?.subscriberUrl || "",
-      active: props?.webhook?.active || false,
-      eventTriggers: props?.webhook?.eventTriggers || [],
+      subscriberUrl: props.webhook?.subscriberUrl || "",
+      active: props.webhook ? props.webhook.active : true,
+      eventTriggers: !props.webhook
+        ? translatedTriggerOptions.map((option) => option.value)
+        : props.webhook.eventTriggers,
       secret: props?.webhook?.secret || "",
       payloadTemplate: props?.webhook?.payloadTemplate || undefined,
     },
@@ -125,11 +127,8 @@ const WebhookForm = (props: {
         <Controller
           name="eventTriggers"
           control={formMethods.control}
-          render={({ field: { onChange } }) => {
-            const defaultValue = translatedTriggerOptions.filter((option) => {
-              return formMethods.getValues("eventTriggers").find((trigger) => trigger === option.value);
-            });
-            console.log(defaultValue);
+          render={({ field: { onChange, value } }) => {
+            const selectValue = translatedTriggerOptions.filter((option) => value.includes(option.value));
             return (
               <div className="mt-8">
                 <Label className="font-sm mt-8 font-medium text-gray-900">
@@ -138,7 +137,7 @@ const WebhookForm = (props: {
                 <Select
                   options={translatedTriggerOptions}
                   isMulti
-                  defaultValue={defaultValue}
+                  value={selectValue}
                   onChange={(event) => {
                     onChange(event.map((selection) => selection.value));
                   }}

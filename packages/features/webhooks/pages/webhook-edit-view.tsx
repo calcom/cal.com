@@ -36,6 +36,8 @@ const EditWebhook = () => {
     const editWebhookMutation = trpc.useMutation("viewer.webhook.edit", {
       async onSuccess() {
         await utils.invalidateQueries(["viewer.webhook.list"]);
+        showToast(t("webhook_updated_successfully"), "success");
+        router.back();
       },
       onError(error) {
         showToast(`${error.message}`, "error");
@@ -79,8 +81,6 @@ const EditWebhook = () => {
               payloadTemplate: values.payloadTemplate,
               secret: values.secret,
             });
-            showToast(t("webhook_updated_successfully"), "success");
-            router.back();
           }}
           apps={installedApps?.items.map((app) => app.slug)}
         />

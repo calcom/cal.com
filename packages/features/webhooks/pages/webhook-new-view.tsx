@@ -27,7 +27,9 @@ const NewWebhookView = () => {
 
   const createWebhookMutation = trpc.useMutation("viewer.webhook.create", {
     async onSuccess() {
+      showToast(t("webhook_created_successfully"), "success");
       await utils.invalidateQueries(["viewer.webhook.list"]);
+      router.back();
     },
     onError(error) {
       showToast(`${error.message}`, "error");
@@ -55,8 +57,6 @@ const NewWebhookView = () => {
       payloadTemplate: values.payloadTemplate,
       secret: values.secret,
     });
-    showToast(t("webhook_created_successfully"), "success");
-    router.back();
   };
 
   if (isLoading) return <SkeletonContainer />;
