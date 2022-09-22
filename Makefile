@@ -15,7 +15,7 @@ docker_build:
 	docker build \
 	       --network host \
 	       --build-arg DATABASE_URL=${DATABASE_URL} \
-	       --build-arg NEXT_PUBLIC_WEBAPP_URL=${WEBAPP_URL} \
+	       --build-arg NEXT_PUBLIC_WEBAPP_URL=${NEXT_PUBLIC_WEBAPP_URL} \
 	       -t ${IMAGE} .
 
 .PHONY: docker_push
