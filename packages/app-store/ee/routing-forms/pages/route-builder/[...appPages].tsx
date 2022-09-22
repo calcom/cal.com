@@ -1,5 +1,6 @@
+import autoAnimate from "@formkit/auto-animate";
 import { App_RoutingForms_Form } from "@prisma/client";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { Query, Config, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
 import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
@@ -325,6 +326,11 @@ const Routes = ({
 
     return transformRoutes().map((route) => deserializeRoute(route, config));
   });
+  const animationRef = useRef(null);
+
+  useEffect(() => {
+    animationRef.current && autoAnimate(animationRef.current);
+  }, [animationRef]);
 
   const mainRoutes = routes.filter((route) => !route.isFallback);
   let fallbackRoute = routes.find((route) => route.isFallback);
@@ -370,7 +376,7 @@ const Routes = ({
   hookForm.setValue("routes", routesToSave);
   return (
     <div className="flex flex-col-reverse md:flex-row">
-      <div className="w-full ltr:mr-2 rtl:ml-2">
+      <div ref={animationRef} className="w-full ltr:mr-2 rtl:ml-2">
         {mainRoutes.map((route, key) => {
           return (
             <Route

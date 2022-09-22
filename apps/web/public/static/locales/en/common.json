@@ -1196,7 +1196,7 @@
   "event_one": "event",
   "event_other": "events",
   "profile_team_description": "Manage settings for your team profile",
-  "members_team_description": "Users that are in the group. Apes together strong!",
+  "members_team_description": "Users that are in the group",
   "team_url": "Team URL",
   "delete_team": "Delete Team",
   "team_members": "Team members",

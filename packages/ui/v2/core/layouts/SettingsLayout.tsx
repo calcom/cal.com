@@ -48,8 +48,7 @@ const tabs: VerticalTabItemProps[] = [
     href: "/settings/billing",
     icon: Icon.FiCreditCard,
     children: [
-      //
-      { name: "invoices", href: "/settings/billing" },
+      { name: "Manage Billing", href: "/api/integrations/stripepayment/portal", isExternalLink: true },
     ],
   },
   {
@@ -143,6 +142,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                   <VerticalTabItem
                     key={child.href}
                     name={t(child.name)}
+                    isExternalLink={child.isExternalLink}
                     href={child.href || "/"}
                     textClassNames="px-3 text-gray-900 font-medium text-sm"
                     disableChevron
