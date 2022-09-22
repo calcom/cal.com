@@ -1,5 +1,5 @@
 import { WebhookTriggerEvents } from "@prisma/client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
@@ -51,8 +51,8 @@ const WebhookForm = (props: {
   const { t } = useLocale();
 
   const triggerOptions = [...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["core"]];
-  if (props.apps) {
-    for (const app of props.apps) {
+  if (apps) {
+    for (const app of apps) {
       triggerOptions.push(...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2[app]);
     }
   }
@@ -125,20 +125,27 @@ const WebhookForm = (props: {
         <Controller
           name="eventTriggers"
           control={formMethods.control}
-          render={({ field: { onChange } }) => (
-            <div className="mt-8">
-              <Label className="font-sm mt-8 font-medium text-gray-900">
-                <>{t("event_triggers")}</>
-              </Label>
-              <Select
-                options={translatedTriggerOptions}
-                isMulti
-                onChange={(event) => {
-                  onChange(event.map((selection) => selection.value));
-                }}
-              />
-            </div>
-          )}
+          render={({ field: { onChange } }) => {
+            const defaultValue = translatedTriggerOptions.filter((option) => {
+              return formMethods.getValues("eventTriggers").find((trigger) => trigger === option.value);
+            });
+            console.log(defaultValue);
+            return (
+              <div className="mt-8">
+                <Label className="font-sm mt-8 font-medium text-gray-900">
+                  <>{t("event_triggers")}</>
+                </Label>
+                <Select
+                  options={translatedTriggerOptions}
+                  isMulti
+                  defaultValue={defaultValue}
+                  onChange={(event) => {
+                    onChange(event.map((selection) => selection.value));
+                  }}
+                />
+              </div>
+            );
+          }}
         />
         <Controller
           name="secret"

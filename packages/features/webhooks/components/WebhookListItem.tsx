@@ -38,14 +38,13 @@ export default function WebhookListItem(props: {
     <div className={classNames("flex w-full justify-between p-4", props.lastItem ? "" : "border-b")}>
       <div>
         <p className="text-sm font-medium text-gray-900">{webhook.subscriberUrl}</p>
-        <Tooltip
-          content={webhook.eventTriggers.map((trigger) => (
-            <p key={trigger}>{t(`${trigger.toLowerCase()}`)}</p>
-          ))}>
+        <Tooltip content={t("triggers_when")}>
           <div className="mt-2.5 w-max">
-            <Badge variant="gray" bold StartIcon={Icon.FiAlertCircle}>
-              {t("triggers_when")}
-            </Badge>
+            {webhook.eventTriggers.map((trigger) => (
+              <Badge key={trigger} className="mr-2" variant="gray" bold StartIcon={Icon.FiAlertCircle}>
+                {t(`${trigger.toLowerCase()}`)}
+              </Badge>
+            ))}
           </div>
         </Tooltip>
       </div>
