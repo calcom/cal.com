@@ -1,4 +1,4 @@
-import { GetStaticPaths, GetStaticProps, InferGetStaticPropsType } from "next";
+import { InferGetServerSidePropsType } from "next";
 import z from "zod";
 
 import { InstallAppButton } from "@calcom/app-store/components";
@@ -178,7 +178,7 @@ const querySchema = z.object({
   category: z.nativeEnum(InstalledAppVariants),
 });
 
-export default function InstalledApps({ category }: InferGetStaticPropsType<typeof getStaticProps>) {
+export default function InstalledApps({ category }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { t } = useLocale();
 
   return (
