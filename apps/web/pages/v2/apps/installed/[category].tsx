@@ -216,12 +216,6 @@ export async function getServerSideProps(ctx: AppGetServerSidePropsContext) {
       };
     }
   }
-  return {
-    props: {},
-  };
-}
-
-export const getStaticProps: GetStaticProps = (ctx) => {
   const params = querySchema.safeParse(ctx.params);
 
   if (!params.success) return { notFound: true };
@@ -231,14 +225,4 @@ export const getStaticProps: GetStaticProps = (ctx) => {
       category: params.data.category,
     },
   };
-};
-
-export const getStaticPaths: GetStaticPaths = () => {
-  return {
-    paths: Object.values(InstalledAppVariants).map((category) => ({
-      params: { category },
-      locale: "en",
-    })),
-    fallback: "blocking",
-  };
-};
+}
