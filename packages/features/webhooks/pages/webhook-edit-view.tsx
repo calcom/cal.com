@@ -50,7 +50,11 @@ const EditWebhook = () => {
 
   return (
     <>
-      <Meta title="edit_webhook" description="add_webhook_description" backButton />
+      <Meta
+        title="Edit Webhook"
+        description="Receive meeting data in real-time when something happens in Cal.com"
+        backButton
+      />
       <WebhookForm
         webhook={webhook}
         onSubmit={(values: WebhookFormSubmitData) => {

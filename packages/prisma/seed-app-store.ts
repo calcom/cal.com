@@ -172,8 +172,6 @@ export default async function main() {
   // Calendar apps
   await createApp("apple-calendar", "applecalendar", ["calendar"], "apple_calendar");
   await createApp("caldav-calendar", "caldavcalendar", ["calendar"], "caldav_calendar");
-  await createApp("exchange2013-calendar", "exchange2013calendar", ["calendar"], "exchange2013_calendar");
-  await createApp("exchange2016-calendar", "exchange2016calendar", ["calendar"], "exchange2016_calendar");
   try {
     const { client_secret, client_id, redirect_uris } = JSON.parse(
       process.env.GOOGLE_API_CREDENTIALS || ""
