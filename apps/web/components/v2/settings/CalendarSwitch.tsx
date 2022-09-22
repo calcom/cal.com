@@ -12,6 +12,7 @@ export function CalendarSwitch(props: {
   externalId: string;
   title: string;
   defaultSelected: boolean;
+  isSelected: boolean;
 }) {
   const { t } = useLocale();
 
@@ -69,7 +70,7 @@ export function CalendarSwitch(props: {
         key={props.externalId}
         name="enabled"
         label={props.title}
-        defaultChecked={props.defaultSelected}
+        defaultChecked={props.isSelected}
         onCheckedChange={(isOn: boolean) => {
           mutation.mutate({ isOn });
         }}

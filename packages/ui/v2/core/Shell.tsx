@@ -575,11 +575,16 @@ function MobileNavigationContainer() {
 
 const MobileNavigation = () => {
   const isEmbed = useIsEmbed();
+  const router = useRouter();
+  const isSubNav = router.pathname.split("/").length > 3;
+
   return (
     <>
       <nav
         className={classNames(
-          "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-gray-200 bg-gray-50 bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
+          isSubNav
+            ? "hidden"
+            : "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-gray-200 bg-gray-50 bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (

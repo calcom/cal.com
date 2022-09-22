@@ -4,23 +4,15 @@ import VerticalTabItem, { VerticalTabItemProps } from "./VerticalTabItem";
 
 export { VerticalTabItem };
 
-export interface NavTabProps<T extends string> {
-  tabs: VerticalTabItemProps<T>[];
+export interface NavTabProps {
+  tabs: VerticalTabItemProps[];
   children?: React.ReactNode;
   className?: string;
   sticky?: boolean;
-  tabNameKey?: T;
+  linkProps?: VerticalTabItemProps["linkProps"];
 }
 
-const NavTabs = function <T extends string>({
-  tabs,
-  tabNameKey,
-  className = "",
-  sticky,
-  ...props
-}: NavTabProps<T>) {
-  const _tabNameKey = tabNameKey || "tabName";
-
+const NavTabs = function ({ tabs, className = "", sticky, linkProps, ...props }: NavTabProps) {
   return (
     <nav
       className={classNames(
@@ -33,7 +25,7 @@ const NavTabs = function <T extends string>({
       {sticky && <div className="pt-6" />}
       {props.children}
       {tabs.map((tab, idx) => (
-        <VerticalTabItem tabNameKey={_tabNameKey} {...tab} key={idx} />
+        <VerticalTabItem {...tab} key={idx} linkProps={linkProps} />
       ))}
     </nav>
   );

@@ -1,5 +1,5 @@
 import { WebhookTriggerEvents } from "@prisma/client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
@@ -47,6 +47,7 @@ const WebhookForm = (props: {
   apps?: (keyof typeof WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2)[];
   onSubmit: (event: WebhookFormSubmitData) => void;
 }) => {
+  const { apps = [] } = props;
   const { t } = useLocale();
 
   const triggerOptions = [...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["core"]];
@@ -251,7 +252,7 @@ const WebhookForm = (props: {
         </div>
 
         <div className="mt-12 flex place-content-end space-x-4">
-          <Button type="button" color="minimal" href={`${WEBAPP_URL}/v2/settings/developer/webhooks`}>
+          <Button type="button" color="minimal" href={`${WEBAPP_URL}/settings/developer/webhooks`}>
             {t("cancel")}
           </Button>
           <Button type="submit" loading={formMethods.formState.isSubmitting}>

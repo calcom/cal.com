@@ -13,7 +13,6 @@ const NewWebhookView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
-  //   const appId = props.app;
   const { data: installedApps, isLoading } = trpc.useQuery(
     ["viewer.integrations", { variant: "other", onlyInstalled: true }],
     {
@@ -64,7 +63,11 @@ const NewWebhookView = () => {
 
   return (
     <>
-      <Meta title="add_webhook" description="add_webhook_description" backButton />
+      <Meta
+        title="Add Webhook"
+        description="Receive meeting data in real-time when something happens in Cal.com"
+        backButton
+      />
 
       <WebhookForm onSubmit={onCreateWebhook} apps={installedApps?.items.map((app) => app.slug)} />
     </>

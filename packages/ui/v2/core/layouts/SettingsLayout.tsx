@@ -5,6 +5,7 @@ import React, { ComponentProps, useEffect, useState } from "react";
 
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/v2/core/Button";
@@ -194,13 +195,11 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                                   <Icon.FiChevronRight />
                                 )}
                               </div>
-                              {team.logo && (
-                                <img
-                                  src={team.logo}
-                                  className="mt-2 ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
-                                  alt={team.name || "Team logo"}
-                                />
-                              )}
+                              <img
+                                src={getPlaceholderAvatar(team.logo, team?.name as string)}
+                                className="mt-2 ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
+                                alt={team.name || "Team logo"}
+                              />
                               <p>{team.name}</p>
                               {!team.accepted && (
                                 <Badge className="ml-3" variant="orange">
