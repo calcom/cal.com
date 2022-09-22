@@ -21,6 +21,7 @@ ENV NEXT_PUBLIC_WEBAPP_URL=$NEXT_PUBLIC_WEBAPP_URL \
     NEXTAUTH_SECRET=${NEXTAUTH_SECRET} \
     CALENDSO_ENCRYPTION_KEY=${CALENDSO_ENCRYPTION_KEY} \
     NODE_OPTIONS=--max-old-space-size=${MAX_OLD_SPACE_SIZE}
+    GOOGLE_LOGIN_ENABLED=true
 
 COPY package.json yarn.lock turbo.json ./
 COPY apps/web ./apps/web
@@ -37,7 +38,7 @@ WORKDIR /calcom
 ENV NODE_ENV production
 
 RUN apt-get update && \
-    apt-get -y install netcat && \
+    apt-get -y install netcat sendmail && \
     rm -rf /var/lib/apt/lists/* && \
     npm install --global prisma
 
