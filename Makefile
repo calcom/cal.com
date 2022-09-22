@@ -15,6 +15,7 @@ docker_build:
 	docker build \
 	       --network host \
 	       --build-arg DATABASE_URL=${DATABASE_URL} \
+	       --build-arg 'GOOGLE_API_CREDENTIALS=${GOOGLE_API_CREDENTIALS}' \
 	       --build-arg NEXT_PUBLIC_WEBAPP_URL=${NEXT_PUBLIC_WEBAPP_URL} \
 	       -t ${IMAGE} .
 
@@ -29,7 +30,7 @@ deploy_to_staging:
 		--service ${SERVICE} \
 		--branch staging \
 		--cluster staging \
-		--environment NEXT_PUBLIC_WEBAPP_URL=${NEXT_PUBLIC_WEBAPP_URL},GOOGLE_API_CREDENTIALS=${GOOGLE_API_CREDENTIALS} \
+		--environment NEXT_PUBLIC_WEBAPP_URL=${NEXT_PUBLIC_WEBAPP_URL},'GOOGLE_API_CREDENTIALS=${GOOGLE_API_CREDENTIALS}' \
 		--secrets DATABASE_URL=${SSM_STAGING}/DATABASE_URL,NEXTAUTH_SECRET=${SSM_STAGING}/NEXTAUTH_SECRET,CALENDSO_ENCRYPTION_KEY=${SSM_STAGING}/CALENDSO_ENCRYPTION_KEY \
 		--image ${IMAGE} \
 		--command "sh /calcom/scripts/start.sh" \
