@@ -3,7 +3,7 @@ import _ from "lodash";
 import { authenticator } from "otplib";
 import { z } from "zod";
 
-import app_RoutingForms from "@calcom/app-store/ee/routing_forms/trpc-router";
+import app_RoutingForms from "@calcom/app-store/ee/routing-forms/trpc-router";
 import ethRouter from "@calcom/app-store/rainbow/trpc/router";
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
 import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
