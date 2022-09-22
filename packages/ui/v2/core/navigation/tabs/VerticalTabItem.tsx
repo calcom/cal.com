@@ -21,6 +21,7 @@ export type VerticalTabItemProps = {
   hidden?: boolean;
   disableChevron?: boolean;
   href: string;
+  isExternalLink?: boolean;
   linkProps?: Omit<ComponentProps<typeof Link>, "href">;
 };
 
@@ -43,6 +44,7 @@ const VerticalTabItem = function ({
         <>
           <Link key={name} href={href} {...linkProps}>
             <a
+              target={props.isExternalLink ? "_blank" : "_self"}
               className={classNames(
                 props.textClassNames || "text-sm font-medium leading-none text-gray-600",
                 "group flex w-64 flex-row items-center rounded-md px-3 py-[10px] hover:bg-gray-100 group-hover:text-gray-700  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900",
@@ -57,7 +59,10 @@ const VerticalTabItem = function ({
                 <props.icon className="mr-[10px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
               )}
               <div>
-                <Skeleton as="p">{t(name)}</Skeleton>
+                <span className="flex items-center space-x-2">
+                  <Skeleton as="p">{t(name)}</Skeleton>
+                  {props.isExternalLink ? <Icon.FiExternalLink /> : null}
+                </span>
                 {info && (
                   <Skeleton as="p" className="mt-1 text-xs font-normal">
                     {t(info)}
