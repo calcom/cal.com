@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { prisma } from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
-import { createHttpServer, selectFirstAvailableTimeSlotNextMonth, todo, waitFor } from "./lib/testUtils";
+import { todo } from "./lib/testUtils";
 
 declare let global: {
   E2E_EMAILS?: ({ text: string } | Record<string, unknown>)[];
@@ -41,7 +41,7 @@ const addOauthBasedIntegration = async function ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     verify: (config: { requestHeaders: any; params: URLSearchParams; code: string }) => {
       status: number;
-      body: any;
+      body: unknown;
     };
   };
 }) {
@@ -182,7 +182,7 @@ test.fixme("Integrations", () => {
       },
       token: {
         url: "https://zoom.us/oauth/token",
-        verify({ requestHeaders, code }) {
+        verify({ requestHeaders }) {
           const authorization = requestHeaders.get("authorization").replace("Basic ", "");
           const clientPair = Buffer.from(authorization, "base64").toString();
           const [clientId, clientSecret] = clientPair.split(":");
