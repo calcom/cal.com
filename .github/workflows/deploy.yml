@@ -12,6 +12,11 @@ jobs:
       WEBAPP_URL: ${{ github.ref == 'refs/heads/main' && 'TODO' || secrets.PUBLIC_WEBAPP_URL_STAGING }}
       DATABASE_URL: postgresql://cal:secret@localhost:5432/cal
       ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+      NEXT_PUBLIC_WEBAPP_URL: ${{ github.ref == 'refs/heads/main' && 'TODO' || secrets.PUBLIC_WEBAPP_URL_STAGING }}
+      NEXT_PUBLIC_WEBSITE_URL: ${{ github.ref == 'refs/heads/main' && 'TODO' || secrets.PUBLIC_WEBAPP_URL_STAGING }}
+      NEXTAUTH_SECRET: secret
+      CALENDSO_ENCRYPTION_KEY: secret
+      GOOGLE_API_CREDENTIALS: ${{ secrets.GOOGLE_API_CREDENTIALS }}
     runs-on: ubuntu-latest
     services:
        db:

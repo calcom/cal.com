@@ -29,7 +29,7 @@ deploy_to_staging:
 		--service ${SERVICE} \
 		--branch staging \
 		--cluster staging \
-		--environment NEXT_PUBLIC_WEBAPP_URL=${WEBAPP_URL} \
+		--environment NEXT_PUBLIC_WEBAPP_URL=${NEXT_PUBLIC_WEBAPP_URL},GOOGLE_API_CREDENTIALS=${GOOGLE_API_CREDENTIALS} \
 		--secrets DATABASE_URL=${SSM_STAGING}/DATABASE_URL,NEXTAUTH_SECRET=${SSM_STAGING}/NEXTAUTH_SECRET,CALENDSO_ENCRYPTION_KEY=${SSM_STAGING}/CALENDSO_ENCRYPTION_KEY \
 		--image ${IMAGE} \
 		--command "sh /calcom/scripts/start.sh" \
