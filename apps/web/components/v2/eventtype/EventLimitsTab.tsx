@@ -113,22 +113,12 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
       </div>
       <div className="flex flex-col space-y-4 pt-4 lg:flex-row lg:space-y-0 lg:space-x-4">
         <div className="w-full">
-          <Label>{t("minimum_booking_notice")}</Label>
-          <Controller
-            name="minimumBookingNotice"
-            control={formMethods.control}
-            defaultValue={eventType.minimumBookingNotice}
-            render={() => (
-              <MinutesField
-                required
-                min="0"
-                placeholder="120"
-                defaultValue={eventType.minimumBookingNotice}
-                onChange={(e) => {
-                  formMethods.setValue("minimumBookingNotice", Number(e.target.value));
-                }}
-              />
-            )}
+          <MinutesField
+            required
+            label={t("minimum_booking_notice")}
+            type="number"
+            placeholder="120"
+            {...formMethods.register("minimumBookingNotice", { valueAsNumber: true })}
           />
         </div>
         <div className="w-full">

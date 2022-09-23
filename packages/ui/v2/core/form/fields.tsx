@@ -208,7 +208,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       {addOnLeading || addOnSuffix ? (
         <div
           className={classNames(
-            " mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-2",
+            " mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1",
             addOnSuffix && "group flex-row-reverse"
           )}>
           <div
@@ -446,6 +446,6 @@ export function InputGroupBox(props: JSX.IntrinsicElements["div"]) {
   );
 }
 
-export const MinutesField = forwardRef<HTMLInputElement, InputFieldProps>(function EmailField(props, ref) {
+export const MinutesField = forwardRef<HTMLInputElement, InputFieldProps>(function MinutesField(props, ref) {
   return <InputField ref={ref} type="number" min={0} {...props} addOnSuffix="mins" />;
 });
