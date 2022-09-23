@@ -72,6 +72,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 /** Treat as recurring only when a count exist and it's not a rescheduling workflow */
                 count: recurringCount && !rescheduleUid ? recurringCount : undefined,
                 ethSignature,
+                user: slot.users[0],
               },
             };
 
