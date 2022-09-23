@@ -4,7 +4,6 @@ import { useMutation } from "react-query";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
@@ -13,6 +12,7 @@ import { Alert, EmptyScreen } from "@calcom/ui/v2";
 import { List } from "@calcom/ui/v2/core/List";
 import { ShellSubHeading } from "@calcom/ui/v2/core/Shell";
 import Switch from "@calcom/ui/v2/core/Switch";
+import showToast from "@calcom/ui/v2/core/notifications";
 import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -77,6 +77,7 @@ function CalendarSwitch(props: {
     },
     {
       async onSettled() {
+        showToast(`Checking conflicts on "${props.title}"`, "success");
         await utils.invalidateQueries(["viewer.integrations"]);
       },
       onError() {
