@@ -1,4 +1,6 @@
 // TODO: i18n
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -204,6 +206,7 @@ export const getServerSideProps = async function getServerSideProps(
 
   return {
     props: {
+      ...(await serverSideTranslations(context.locale ?? "", ["common"])),
       forms: serializableForms,
     },
   };
