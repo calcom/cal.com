@@ -62,11 +62,13 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
 
   const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
     onSuccess: (_data, variables) => {
-      utils.invalidateQueries("viewer.app_routing_forms.forms");
       router.push(`${appUrl}/form-edit/${variables.id}`);
     },
     onError: () => {
       showToast(`Something went wrong`, "error");
+    },
+    onSettled: () => {
+      utils.invalidateQueries("viewer.app_routing_forms.forms");
     },
   });
 
