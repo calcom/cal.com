@@ -194,7 +194,7 @@ export default function SingleForm({
   const utils = trpc.useContext();
   const router = useRouter();
 
-  const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
+  const mutation = trpc.useMutation("viewer.app_routing_forms.form.create", {
     onSuccess() {
       router.replace(router.asPath);
       showToast("Form updated successfully.", "success");

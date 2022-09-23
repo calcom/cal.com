@@ -169,7 +169,7 @@ const app_RoutingForms = createRouter()
           return form;
         },
       })
-      .mutation("form", {
+      .mutation("form.create", {
         input: z.object({
           id: z.string(),
           name: z.string(),
