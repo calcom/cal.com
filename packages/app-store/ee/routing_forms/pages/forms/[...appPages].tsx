@@ -36,7 +36,7 @@ export default function RoutingForms({
       <FormActionsProvider appUrl={appUrl}>
         <div className="-mx-4 md:-mx-8">
           <div className="mb-10 w-full px-4 pb-2 sm:px-6 md:px-8">
-            {!forms.length ? (
+            {!forms?.length ? (
               <EmptyScreen
                 Icon={Icon.FiGitMerge}
                 headline={t("create_your_first_form")}
@@ -44,7 +44,7 @@ export default function RoutingForms({
                 buttonRaw={<NewFormButton />}
               />
             ) : null}
-            {forms.length ? (
+            {forms?.length ? (
               <div className="mb-16 overflow-hidden bg-white">
                 <List data-testid="routing-forms-list">
                   {forms.map((form, index) => {
