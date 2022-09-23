@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "使用下面的链接重置您的密码",
   "hey_there": "嘿，您好！",
   "forgot_your_password_calcom": "忘记密码？- Cal.com",
-  "event_type_title": "{{eventTypeTitle}} | 活动类型",
   "delete_webhook_confirmation_message": "您确定要删除此Webhook吗？当活动被安排或取消时，您将不再会在指定的链接收到 Cal.com 实时提供的会议数据。",
   "confirm_delete_webhook": "是，删除 Webhook",
   "edit_webhook": "编辑 Webhook",

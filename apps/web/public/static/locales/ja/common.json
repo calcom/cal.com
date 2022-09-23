@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "以下のリンクを使用してパスワードをリセットしてください",
   "hey_there": "こんにちは！",
   "forgot_your_password_calcom": "パスワードをお忘れですか? - Cal.com",
-  "event_type_title": "{{eventTypeTitle}} | イベントタイプ",
   "delete_webhook_confirmation_message": "このウェブフックを削除してもよろしいですか？ イベントがスケジュールまたはキャンセルされたときに、指定された URL でのミーティングデータをリアルタイムには受け取れなくなります。",
   "confirm_delete_webhook": "はい、ウェブフックを削除します",
   "edit_webhook": "ウェブフックを編集",

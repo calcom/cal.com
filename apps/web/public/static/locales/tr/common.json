@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "Şifrenizi sıfırlamak için aşağıdaki bağlantıyı kullanın",
   "hey_there": "Selam,",
   "forgot_your_password_calcom": "Şifrenizi mi unuttunuz? - Cal.com",
-  "event_type_title": "{{eventTypeTitle}} | Etkinlik Türü",
   "delete_webhook_confirmation_message": "Bu web kancasını silmek istediğinizden emin misiniz? Bir etkinlik planlandığında veya iptal edildiğinde, Cal.com toplantı verilerini gerçek zamanlı olarak belirli bir URL'de almazsınız.",
   "confirm_delete_webhook": "Evet, web kancasını sil",
   "edit_webhook": "Web kancasını düzenle",

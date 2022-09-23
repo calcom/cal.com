@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "Resetujte lozinku koristeći link ispod",
   "hey_there": "Zdravo,",
   "forgot_your_password_calcom": "Zaboravili ste lozinku? - Cal.com",
-  "event_type_title": "{{eventTypeTitle}} | Tip Dogadjaja",
   "delete_webhook_confirmation_message": "Da li ste sigurni da želite da obrišete ovaj webhook? Nećete više dobijati Cal.com podatke o sastancima preko naznačenog URL, istovremeno kad je dogadjaj zakazan ili otkazan.",
   "confirm_delete_webhook": "Da, obriši webhook",
   "edit_webhook": "Uredi Webhook",

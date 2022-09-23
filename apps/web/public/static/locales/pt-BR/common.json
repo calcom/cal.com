@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "Use o link abaixo para redefinir a sua senha",
   "hey_there": "Olá,",
   "forgot_your_password_calcom": "Esqueceu sua senha? - Cal.com",
-  "event_type_title": "{{eventTypeTitle}} | Tipo de evento",
   "delete_webhook_confirmation_message": "Você tem certeza que quer remover este Webhook? Você não receberá mais dados de reuniões de Cal.com na URL especificada, em tempo real, quando um evento for agendado ou cancelado.",
   "confirm_delete_webhook": "Sim, remover o Webhook",
   "edit_webhook": "Editar Webhook",
