@@ -165,6 +165,15 @@ function Dialogs({
   const utils = trpc.useContext();
   const router = useRouter();
   const deleteMutation = trpc.useMutation("viewer.app_routing_forms.deleteForm", {
+    onMutate: async ({ id: formId }) => {
+      await utils.cancelQuery(["viewer.app_routing_forms.forms"]);
+      const previousValue = utils.getQueryData(["viewer.app_routing_forms.forms"]);
+      if (previousValue) {
+        const filtered = previousValue.filter(({ id }) => id !== formId);
+        utils.setQueryData(["viewer.app_routing_forms.forms"], filtered);
+      }
+      return { previousValue };
+    },
     onSuccess: () => {
       showToast("Form deleted", "success");
       setDeleteDialogOpen(false);
@@ -174,7 +183,10 @@ function Dialogs({
       utils.invalidateQueries(["viewer.app_routing_forms.forms"]);
       setDeleteDialogOpen(false);
     },
-    onError: () => {
+    onError: (err, newTodo, context) => {
+      if (context?.previousValue) {
+        utils.setQueryData(["viewer.app_routing_forms.forms"], context.previousValue);
+      }
       showToast("Something went wrong", "error");
     },
   });
