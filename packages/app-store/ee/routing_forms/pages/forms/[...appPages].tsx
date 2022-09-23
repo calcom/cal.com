@@ -1,6 +1,7 @@
 // TODO: i18n
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { Icon } from "@calcom/ui/Icon";
 import { ButtonGroup, DropdownMenuSeparator, Tooltip } from "@calcom/ui/v2";
@@ -15,10 +16,12 @@ import { FormAction, FormActionsDropdown, FormActionsProvider } from "../../comp
 import { getSerializableForm } from "../../lib/getSerializableForm";
 
 export default function RoutingForms({
-  forms,
+  forms: forms_,
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   const { t } = useLocale();
+  const { data: forms } = trpc.useQuery(["viewer.app_routing_forms.forms"], { initialData: forms_ });
+
   const { data: typeformApp } = useApp("typeform");
 
   function NewFormButton() {
