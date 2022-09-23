@@ -6,7 +6,7 @@ import { useFormContext, Controller, useWatch } from "react-hook-form";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PeriodType } from "@calcom/prisma/client";
-import { Select, Switch, Label, Input, TextField } from "@calcom/ui/v2";
+import { Select, Switch, Label, Input, MinutesField } from "@calcom/ui/v2";
 import DateRangePicker from "@calcom/ui/v2/core/form/date-range-picker/DateRangePicker";
 
 export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) => {
@@ -113,7 +113,7 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
       </div>
       <div className="flex flex-col space-y-4 pt-4 lg:flex-row lg:space-y-0 lg:space-x-4">
         <div className="w-full">
-          <TextField
+          <MinutesField
             required
             label={t("minimum_booking_notice")}
             type="number"
