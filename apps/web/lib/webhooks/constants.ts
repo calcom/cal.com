@@ -9,10 +9,10 @@ export const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP = {
     WebhookTriggerEvents.BOOKING_RESCHEDULED,
     WebhookTriggerEvents.MEETING_ENDED,
   ] as const,
-  routing_forms: [WebhookTriggerEvents.FORM_SUBMITTED] as ["FORM_SUBMITTED"],
+  "routing-forms": [WebhookTriggerEvents.FORM_SUBMITTED] as ["FORM_SUBMITTED"],
 };
 
 export const WEBHOOK_TRIGGER_EVENTS = [
   ...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP.core,
-  ...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP.routing_forms,
+  ...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP["routing-forms"],
 ] as const;

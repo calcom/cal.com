@@ -187,7 +187,11 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
     ...passThrough
   } = props;
 
-  const translatedPlaceholder = isLocaleReady ? placeholder : "";
+  const translatedPlaceholder = isLocaleReady
+    ? !placeholder?.endsWith("_placeholder")
+      ? placeholder
+      : ""
+    : "";
 
   return (
     <div className={classNames(containerClassName)}>

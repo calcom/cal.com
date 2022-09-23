@@ -427,7 +427,7 @@ const navigation: NavigationItemType[] = [
       const path = router.asPath.split("?")[0];
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
       return (
-        (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) && !path.includes("routing_forms/")
+        (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) && !path.includes("routing-forms/")
       );
     },
     child: [
@@ -439,7 +439,7 @@ const navigation: NavigationItemType[] = [
           // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
           return (
             (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) &&
-            !path.includes("routing_forms/") &&
+            !path.includes("routing-forms/") &&
             !path.includes("/installed")
           );
         },
@@ -461,10 +461,10 @@ const navigation: NavigationItemType[] = [
   },
   {
     name: "Routing Forms",
-    href: "/apps/routing_forms/forms",
+    href: "/apps/routing-forms/forms",
     icon: Icon.FiFileText,
     isCurrent: ({ router }) => {
-      return router.asPath.startsWith("/apps/routing_forms/");
+      return router.asPath.startsWith("/apps/routing-forms/");
     },
   },
   {
@@ -511,7 +511,7 @@ const Navigation = () => {
 
 function useShouldDisplayNavigationItem(item: NavigationItemType) {
   const { status } = useSession();
-  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing_forms" }], {
+  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing-forms" }], {
     enabled: status === "authenticated" && requiredCredentialNavigationItems.includes(item.name),
   });
   return !requiredCredentialNavigationItems.includes(item.name) || !!routingForms;
