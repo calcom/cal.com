@@ -1,5 +1,5 @@
+import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
-import { useMutation } from "react-query";
 
 import showToast from "@calcom/lib/notification";
 import { ButtonBaseProps } from "@calcom/ui/Button";

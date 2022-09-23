@@ -1,6 +1,6 @@
+import { useMutation } from "@tanstack/react-query";
 import Link from "next/link";
 import { Fragment } from "react";
-import { useMutation } from "react-query";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

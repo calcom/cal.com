@@ -1,5 +1,5 @@
+import { useQuery } from "@tanstack/react-query";
 import React from "react";
-import { useQuery } from "react-query";
 
 import { HttpError } from "@lib/core/http/error";
 

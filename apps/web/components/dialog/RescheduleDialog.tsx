@@ -1,6 +1,6 @@
+import { useMutation } from "@tanstack/react-query";
 import { RescheduleResponse } from "pages/api/book/request-reschedule";
 import React, { useState, Dispatch, SetStateAction } from "react";
-import { useMutation } from "react-query";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
