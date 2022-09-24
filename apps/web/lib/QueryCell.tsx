@@ -1,5 +1,4 @@
 import {
-  QueryObserverIdleResult,
   QueryObserverLoadingErrorResult,
   QueryObserverLoadingResult,
   QueryObserverRefetchErrorResult,
@@ -10,8 +9,8 @@ import { ReactNode } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
-import type { UseTRPCQueryOptions } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
+import type { UseTRPCQueryOptions } from "@calcom/trpc/react/shared";
 import type {
   inferHandlerInput,
   inferProcedureInput,
@@ -34,7 +33,6 @@ interface QueryCellOptionsBase<TData, TError extends ErrorLike> {
     query: QueryObserverLoadingErrorResult<TData, TError> | QueryObserverRefetchErrorResult<TData, TError>
   ) => JSXElementOrNull;
   loading?: (query: QueryObserverLoadingResult<TData, TError> | null) => JSXElementOrNull;
-  idle?: (query: QueryObserverIdleResult<TData, TError>) => JSXElementOrNull;
 }
 
 interface QueryCellOptionsNoEmpty<TData, TError extends ErrorLike>
@@ -84,14 +82,11 @@ export function QueryCell<TData, TError extends ErrorLike>(
     );
   }
 
-  if (query.status === "idle") {
-    return opts.idle?.(query) ?? StatusLoader;
-  }
   // impossible state
   return null;
 }
 
-type inferProcedures<TObj extends ProcedureRecord<any, any, any, any, any, any>> = {
+type inferProcedures<TObj extends ProcedureRecord> = {
   [TPath in keyof TObj]: {
     input: inferProcedureInput<TObj[TPath]>;
     output: inferProcedureOutput<TObj[TPath]>;
