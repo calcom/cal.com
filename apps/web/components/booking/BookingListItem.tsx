@@ -271,26 +271,23 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
 
             {isPending && (
-              <>
-                <Badge variant="orange">{t("unconfirmed")}</Badge>
-                <br />
-              </>
+              <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
+                {t("unconfirmed")}
+              </Badge>
             )}
 
             {booking.eventType?.team && (
-              <>
-                <Badge variant="gray">{booking.eventType.team.name}</Badge>
-                <br />
-              </>
+              <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
+                {booking.eventType.team.name}
+              </Badge>
             )}
             {!!booking?.eventType?.price && !booking.paid && (
-              <>
-                <Badge variant="orange">{t("pending_payment")}</Badge>
-                <br />
-              </>
+              <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
+                {t("pending_payment")}
+              </Badge>
             )}
 
-            <div className="text-sm text-gray-400">
+            <div className="mt-2 text-sm text-gray-400">
               <RecurringBookingsTooltip
                 booking={booking}
                 recurringStrings={recurringStrings}
@@ -302,9 +299,9 @@ function BookingListItem(booking: BookingItemProps) {
         <td className={"flex-1 px-4" + (isRejected ? " line-through" : "")} onClick={onClick}>
           {/* Time and Badges for mobile */}
           <div className="w-full pt-4 pb-2 sm:hidden">
-            <div className="flex w-full items-center justify-between  sm:hidden">
+            <div className="flex w-full items-center justify-between sm:hidden">
               <div className="text-sm leading-6 text-gray-900">{startTime}</div>
-              <div className="text-sm text-gray-500">
+              <div className="pr-2 text-sm text-gray-500">
                 {dayjs(booking.startTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")} -{" "}
                 {dayjs(booking.endTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
               </div>
@@ -368,6 +365,18 @@ function BookingListItem(booking: BookingItemProps) {
               </div>
             )}
           </div>
+          <div className="flex justify-end sm:hidden">
+            <div className="whitespace-nowrap pt-2 pb-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4">
+              {isUpcoming && !isCancelled ? (
+                <>
+                  {isPending && user?.id === booking.user?.id && <TableActions actions={pendingActions} />}
+                  {isConfirmed && <TableActions actions={bookedActions} />}
+                  {isRejected && <div className="text-sm text-gray-500">{t("rejected")}</div>}
+                </>
+              ) : null}
+              {isPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
+            </div>
+          </div>
         </td>
         <td className="hidden whitespace-nowrap py-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:block">
           {isUpcoming && !isCancelled ? (
@@ -384,18 +393,6 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
           )}
         </td>
-        <div className="flex justify-end sm:hidden">
-          <div className="whitespace-nowrap pt-2 pb-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4">
-            {isUpcoming && !isCancelled ? (
-              <>
-                {isPending && user?.id === booking.user?.id && <TableActions actions={pendingActions} />}
-                {isConfirmed && <TableActions actions={bookedActions} />}
-                {isRejected && <div className="text-sm text-gray-500">{t("rejected")}</div>}
-              </>
-            ) : null}
-            {isPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
-          </div>
-        </div>
       </tr>
     </>
   );
