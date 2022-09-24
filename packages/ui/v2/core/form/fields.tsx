@@ -26,7 +26,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
       {...props}
       ref={ref}
       className={classNames(
-        "mb-2 block h-9 w-full rounded-md border border-gray-300 py-2 px-3 text-sm hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
+        "mb-2 block h-9 w-full rounded-md border border-gray-300 py-2 px-3 text-sm placeholder:text-gray-400 hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
         props.className
       )}
     />
@@ -208,7 +208,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       {addOnLeading || addOnSuffix ? (
         <div
           className={classNames(
-            " mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-2",
+            " mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1",
             addOnSuffix && "group flex-row-reverse"
           )}>
           <div
@@ -445,3 +445,7 @@ export function InputGroupBox(props: JSX.IntrinsicElements["div"]) {
     </div>
   );
 }
+
+export const MinutesField = forwardRef<HTMLInputElement, InputFieldProps>(function MinutesField(props, ref) {
+  return <InputField ref={ref} type="number" min={0} {...props} addOnSuffix="mins" />;
+});
