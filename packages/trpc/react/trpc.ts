@@ -1,6 +1,7 @@
 import superjson from "superjson";
 
-import { createReactQueryHooks } from "../react";
+import { createReactQueryHooks } from "@trpc/react";
+
 // ℹ️ Type-only import:
 // https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-8.html#type-only-imports-and-export
 import type { inferProcedureInput, inferProcedureOutput } from "../server";
