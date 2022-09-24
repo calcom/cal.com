@@ -13,6 +13,8 @@ import type { AppRouter } from "../server/routers/_app";
  */
 export const trpc = createReactQueryHooks<AppRouter>();
 
+export const proxy = trpc.proxy;
+
 export const transformer = superjson;
 /**
  * This is a helper method to infer the output of a query resolver

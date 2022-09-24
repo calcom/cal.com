@@ -55,11 +55,6 @@ import { workflowsRouter } from "./viewer/workflows";
 
 // things that unauthenticated users can query about themselves
 const publicViewerRouter = createRouter()
-  .query("session", {
-    resolve({ ctx }) {
-      return ctx.session;
-    },
-  })
   .query("i18n", {
     async resolve({ ctx }) {
       const { locale, i18n } = ctx;

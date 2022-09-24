@@ -9,7 +9,7 @@ import { ComponentProps, ReactNode } from "react";
 
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
-import { trpc } from "@calcom/trpc/react";
+import { trpc, proxy } from "@calcom/trpc/react";
 import { MetaProvider } from "@calcom/ui/v2/core/Meta";
 
 import usePublicPage from "@lib/hooks/usePublicPage";
@@ -55,7 +55,7 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
 };
 
 const AppProviders = (props: AppPropsWithChildren) => {
-  const session = trpc.useQuery(["viewer.public.session"]).data;
+  const session = proxy.public.session.useQuery().data;
   // No need to have intercom on public pages - Good for Page Performance
   const isPublicPage = usePublicPage();
   const isThemeSupported =
