@@ -2,6 +2,8 @@
  * @deprecated modifications to this file should be v2 only
  * Use `/apps/web/pages/v2/availability/[schedule].tsx` instead
  */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";

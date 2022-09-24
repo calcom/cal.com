@@ -1,3 +1,9 @@
+/**
+ * @deprecated modifications to this file should be v2 only
+ * Use `apps/web/pages/v2/event-types/[type].tsx` instead
+ */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInput, MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
