@@ -55,7 +55,7 @@
     "type": "raycast_other"
   },
   {
-   "dirName": "n8n",
+    "dirName": "n8n",
     "categories": ["automation"],
     "slug": "n8n",
     "type": "n8n_automation"
@@ -65,5 +65,11 @@
     "categories": ["calendar"],
     "slug": "exchange",
     "type": "exchange_calendar"
+  },
+  {
+    "dirName": "qr_code",
+    "categories": ["other"],
+    "slug": "qr_code",
+    "type": "qr_code_other"
   }
 ]

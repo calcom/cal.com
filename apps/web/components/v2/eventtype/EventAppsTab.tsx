@@ -97,7 +97,16 @@ export const EventAppsTab = ({
   }
   return (
     <div className="pt-4 before:border-0">
-      {/* TODO:Strip isnt fully setup yet  */}
+      {/* TODO: Stripe isnt fully setup yet  */}
+
+      {/* TODO: Extract all apps into /packages/app-store
+         <AppCard
+        name="QR Code"
+        logo="/api/app-store/qr_code/icon.svg"
+        description="Easily generate a QR code for your links to print, share, or embed."
+      />
+      )*/}
+
       {hasPaymentIntegration && (
         <AppCard
           name="Stripe"
