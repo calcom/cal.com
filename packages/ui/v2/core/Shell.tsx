@@ -759,7 +759,7 @@ export function ShellMain(props: LayoutProps) {
               "mb-4 flex w-full items-center pt-4 md:p-0 lg:mb-10"
             )}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className="hidden w-full ltr:mr-4 rtl:ml-4 sm:block">
+            <div className="w-full ltr:mr-4 rtl:ml-4 sm:block">
               {props.heading && (
                 <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
@@ -780,9 +780,6 @@ export function ShellMain(props: LayoutProps) {
         )}
       </div>
       <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
-        {/* add padding to top for mobile when App Bar is fixed */}
-        <div className="pt-8 sm:hidden" />
-
         {props.children}
       </div>
     </>
@@ -816,6 +813,8 @@ function MainContainer({
       {SettingsSidebarContainerProp}
       <div className="px-4 py-2 lg:py-8 lg:px-12">
         <ErrorBoundary>
+          {/* add padding to top for mobile when App Bar is fixed */}
+          <div className="pt-14 sm:hidden" />
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>
         {/* show bottom navigation for md and smaller (tablet and phones) on pages where back button doesn't exist */}
