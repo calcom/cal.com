@@ -100,7 +100,7 @@ function RoutingForm({ form, profile }: inferSSRProps<typeof getServerSideProps>
         {!customPageMessage ? (
           <>
             <Head>
-              <title>{form.name} | Cal.com Forms</title>
+              <title>{`${form.name} | Cal.com Forms`}</title>
             </Head>
             <div className={classNames("mx-auto my-0 max-w-3xl", isEmbed ? "" : "md:my-24")}>
               <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
