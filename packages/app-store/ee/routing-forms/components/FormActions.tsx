@@ -60,7 +60,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
   const router = useRouter();
   const utils = trpc.useContext();
 
-  const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
+  const mutation = trpc.useMutation("viewer.app_routing_forms.formMutation", {
     onSuccess: (_data, variables) => {
       utils.invalidateQueries("viewer.app_routing_forms.forms");
       router.push(`${appUrl}/form-edit/${variables.id}`);
@@ -223,7 +223,7 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
   const [deleteDialogFormId, setDeleteDialogFormId] = useState<string | null>(null);
   const router = useRouter();
 
-  const toggleMutation = trpc.useMutation("viewer.app_routing_forms.form", {
+  const toggleMutation = trpc.useMutation("viewer.app_routing_forms.formMutation", {
     onError: () => {
       showToast(`Something went wrong`, "error");
     },

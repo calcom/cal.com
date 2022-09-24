@@ -194,7 +194,7 @@ export default function SingleForm({
   const utils = trpc.useContext();
   const router = useRouter();
 
-  const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
+  const mutation = trpc.useMutation("viewer.app_routing_forms.formMutation", {
     onSuccess() {
       router.replace(router.asPath);
       showToast("Form updated successfully.", "success");
@@ -203,7 +203,7 @@ export default function SingleForm({
       showToast(`Something went wrong`, "error");
     },
     onSettled() {
-      utils.invalidateQueries(["viewer.app_routing_forms.form"]);
+      utils.invalidateQueries(["viewer.app_routing_forms.formQuery"]);
     },
   });
   return (

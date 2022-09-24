@@ -38,7 +38,8 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
    * We intend to not cache i18n query
    **/
-  const { i18n, locale } = trpc.useQuery(["viewer.public.i18n"], { context: { skipBatch: true } }).data ?? {
+  const { i18n, locale } = trpc.useQuery(["viewer.public.i18n"], { trpc: { context: { skipBatch: true } } })
+    .data ?? {
     locale: "en",
   };
 
