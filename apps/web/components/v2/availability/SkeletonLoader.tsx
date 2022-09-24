@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import React from "react";
 
 import { SkeletonText } from "@calcom/ui/v2";
@@ -32,9 +33,13 @@ function SkeletonItem() {
   );
 }
 
-export const AvailabilitySelectSkeletonLoader = () => {
+export const SelectSkeletonLoader = ({ className }: { className?: string }) => {
   return (
-    <li className="group flex w-full items-center justify-between rounded-sm border border-gray-200 px-[10px] py-3">
+    <li
+      className={classNames(
+        "group flex w-full items-center justify-between rounded-sm border border-gray-200 px-[10px] py-3",
+        className
+      )}>
       <div className="flex-grow truncate text-sm">
         <div className="flex justify-between">
           <SkeletonText className="h-4 w-32" />
