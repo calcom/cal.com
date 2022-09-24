@@ -18,21 +18,25 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
 
   return (
     <>
-      <Shell isPublic large>
-        <div className="text-md flex items-center gap-1 px-4 pb-3 pt-3 font-semibold md:px-8 lg:px-0 lg:pt-0">
-          <Link href="/apps">
-            <a className="inline-flex items-center justify-start gap-1 rounded-sm py-2 text-gray-900">
-              <Icon.FiArrowLeft className="h-4 w-4" />
-              {isLocaleReady ? t("app_store") : <SkeletonText className="h-4 w-24" />}{" "}
-            </a>
-          </Link>
-          {category && (
-            <span className="flex gap-1 text-gray-600">
-              <span>&nbsp;/&nbsp;</span>
-              {t("category_apps", { category: category[0].toUpperCase() + category?.slice(1) })}
-            </span>
-          )}
-        </div>
+      <Shell
+        isPublic
+        backPath="/apps"
+        heading={
+          <>
+            <Link href="/apps">
+              <a className="inline-flex items-center justify-start gap-1 rounded-sm py-2 text-gray-900">
+                {isLocaleReady ? t("app_store") : <SkeletonText className="h-4 w-24" />}{" "}
+              </a>
+            </Link>
+            {category && (
+              <span className="gap-1 text-gray-600">
+                <span>&nbsp;/&nbsp;</span>
+                {t("category_apps", { category: category[0].toUpperCase() + category?.slice(1) })}
+              </span>
+            )}
+          </>
+        }
+        large>
         <div className="mb-16">
           <div className="grid-col-1 grid grid-cols-1 gap-3 md:grid-cols-3">
             {apps.map((app) => {
