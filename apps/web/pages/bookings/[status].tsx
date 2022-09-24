@@ -28,6 +28,7 @@ const descriptionByStatus: Record<BookingListingStatus, string> = {
   recurring: "recurring_bookings",
   past: "past_bookings",
   cancelled: "cancelled_bookings",
+  unconfirmed: "unconfirmed_bookings",
 };
 
 const querySchema = z.object({

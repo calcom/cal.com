@@ -185,6 +185,7 @@ function WorkflowPage() {
         });
       }}>
       <Shell
+        backPath="/workflows"
         title={workflow && workflow.name ? workflow.name : "Untitled"}
         CTA={
           <div>
