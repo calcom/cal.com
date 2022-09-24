@@ -29,6 +29,7 @@ import Dropdown, {
 } from "@calcom/ui/v2/core/Dropdown";
 import Shell from "@calcom/ui/v2/core/Shell";
 import VerticalDivider from "@calcom/ui/v2/core/VerticalDivider";
+import { Skeleton } from "@calcom/ui/v2/core/skeleton";
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import { EmbedButton, EmbedDialog } from "@components/Embed";
@@ -137,7 +138,7 @@ function EventTypeSingleLayout({
     if (team)
       navigation.splice(2, 0, {
         name: "scheduling_type",
-        href: `team`,
+        href: `/event-types/${eventType.id}?tabName=team`,
         icon: Icon.FiUsers,
         info: eventType.schedulingType === "COLLECTIVE" ? "collective" : "round_robin",
       });
@@ -159,9 +160,12 @@ function EventTypeSingleLayout({
       CTA={
         <div className="flex items-center justify-end">
           <div className="flex items-center rounded-md px-2 sm:hover:bg-gray-100">
-            <Label htmlFor="hiddenSwitch" className="mt-2 hidden cursor-pointer self-center pr-2 sm:inline">
+            <Skeleton
+              as={Label}
+              htmlFor="hiddenSwitch"
+              className="mt-2 hidden cursor-pointer self-center pr-2 sm:inline">
               {t("hide_from_profile")}
-            </Label>
+            </Skeleton>
             <Switch
               id="hiddenSwitch"
               defaultChecked={formMethods.getValues("hidden")}
@@ -202,6 +206,7 @@ function EventTypeSingleLayout({
               StartIcon={Icon.FiCode}
               color="secondary"
               size="icon"
+              tooltip={t("embed")}
             />
             <Button
               color="secondary"
