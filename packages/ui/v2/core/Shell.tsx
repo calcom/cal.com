@@ -575,16 +575,12 @@ function MobileNavigationContainer() {
 
 const MobileNavigation = () => {
   const isEmbed = useIsEmbed();
-  const router = useRouter();
-  const isSubNav = router.pathname.split("/").length > 3;
 
   return (
     <>
       <nav
         className={classNames(
-          isSubNav
-            ? "hidden"
-            : "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-gray-200 bg-gray-50 bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
+          "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-gray-200 bg-gray-50 bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (
@@ -822,9 +818,8 @@ function MainContainer({
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>
-        {/* show bottom navigation for md and smaller (tablet and phones) */}
-        {MobileNavigationContainerProp}
-        {/* <LicenseBanner /> */}
+        {/* show bottom navigation for md and smaller (tablet and phones) on pages where back button doesn't exist */}
+        {!props.backPath ? MobileNavigationContainerProp : null}
       </div>
     </main>
   );
