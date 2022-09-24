@@ -10,7 +10,6 @@ import { ReactNode } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
-import type { UseTRPCQueryOptions } from "@calcom/trpc/react/shared";
 import type {
   inferHandlerInput,
   inferProcedureInput,
@@ -20,6 +19,8 @@ import type {
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Alert } from "@calcom/ui/Alert";
 import Loader from "@calcom/ui/Loader";
+
+import type { UseTRPCQueryOptions } from "@trpc/react/shared";
 
 type ErrorLike = {
   message: string;

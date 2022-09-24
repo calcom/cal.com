@@ -92,7 +92,7 @@ export default function Bookings() {
               {query.status === "error" && (
                 <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
               )}
-              {(query.status === "loading" || query.status === "idle") && <SkeletonLoader />}
+              {(query.status === "loading" || query.isPaused) && <SkeletonLoader />}
               {query.status === "success" && !isEmpty && (
                 <>
                   <div className="mt-6 overflow-hidden rounded-sm border border-b border-gray-200">

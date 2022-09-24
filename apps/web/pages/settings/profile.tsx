@@ -575,7 +575,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
  * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
  * We intend to not cache i18n query
  **/
-const WithQuery = withQuery(["viewer.public.i18n"], { context: { skipBatch: true } });
+const WithQuery = withQuery(["viewer.public.i18n"], { trpc: { context: { skipBatch: true } } });
 
 export default function Settings(props: Props) {
   const { t } = useLocale();
