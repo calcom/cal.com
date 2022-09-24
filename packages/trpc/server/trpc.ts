@@ -22,7 +22,6 @@ const isAuthedMiddleware = t.middleware(({ ctx, next }) => {
   }
   return next({
     ctx: {
-      ...ctx,
       // infers that `user` and `session` are non-nullable to downstream procedures
       session: ctx.session,
       user: ctx.user,
