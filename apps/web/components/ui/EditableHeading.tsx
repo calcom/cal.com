@@ -5,18 +5,16 @@ import { ControllerRenderProps } from "react-hook-form";
 import { Icon } from "@calcom/ui/Icon";
 
 const EditableHeading = function EditableHeading({
-  readOnly = false,
   value,
   onChange,
   isReady,
   ...passThroughProps
 }: {
-  readOnly?: boolean;
   isReady?: boolean;
 } & Omit<JSX.IntrinsicElements["input"], "name" | "onChange"> &
   ControllerRenderProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const enableEditing = () => !readOnly && setIsEditing(true);
+  const enableEditing = () => setIsEditing(true);
   return (
     <div className="group relative cursor-pointer" onClick={enableEditing}>
       <div className="flex items-center">
