@@ -5,6 +5,7 @@ import React, { ComponentProps, useEffect, useState } from "react";
 
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/v2/core/Button";
@@ -47,8 +48,7 @@ const tabs: VerticalTabItemProps[] = [
     href: "/settings/billing",
     icon: Icon.FiCreditCard,
     children: [
-      //
-      { name: "invoices", href: "/settings/billing" },
+      { name: "Manage Billing", href: "/api/integrations/stripepayment/portal", isExternalLink: true },
     ],
   },
   {
@@ -142,6 +142,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                   <VerticalTabItem
                     key={child.href}
                     name={t(child.name)}
+                    isExternalLink={child.isExternalLink}
                     href={child.href || "/"}
                     textClassNames="px-3 text-gray-900 font-medium text-sm"
                     disableChevron
@@ -194,13 +195,11 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                                   <Icon.FiChevronRight />
                                 )}
                               </div>
-                              {team.logo && (
-                                <img
-                                  src={team.logo}
-                                  className="mt-2 ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
-                                  alt={team.name || "Team logo"}
-                                />
-                              )}
+                              <img
+                                src={getPlaceholderAvatar(team.logo, team?.name as string)}
+                                className="mt-2 ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
+                                alt={team.name || "Team logo"}
+                              />
                               <p>{team.name}</p>
                               {!team.accepted && (
                                 <Badge className="ml-3" variant="orange">
@@ -213,14 +212,14 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                             {team.accepted && (
                               <VerticalTabItem
                                 name={t("profile")}
-                                href={`${WEBAPP_URL}/settings/teams/${team.id}/profile`}
+                                href={`/settings/teams/${team.id}/profile`}
                                 textClassNames="px-3 text-gray-900 font-medium text-sm"
                                 disableChevron
                               />
                             )}
                             <VerticalTabItem
                               name={t("members")}
-                              href={`${WEBAPP_URL}/settings/teams/${team.id}/members`}
+                              href={`/settings/teams/${team.id}/members`}
                               textClassNames="px-3 text-gray-900 font-medium text-sm"
                               disableChevron
                             />
@@ -235,7 +234,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                             /> */}
                                 <VerticalTabItem
                                   name={t("appearance")}
-                                  href={`${WEBAPP_URL}/settings/teams/${team.id}/appearance`}
+                                  href={`/settings/teams/${team.id}/appearance`}
                                   textClassNames="px-3 text-gray-900 font-medium text-sm"
                                   disableChevron
                                 />
@@ -273,7 +272,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 
   return (
     <>
-      <nav className="fixed flex w-full items-center justify-between border-b border-gray-100 bg-gray-50 p-4 sm:relative lg:hidden">
+      <nav className="fixed z-20 flex w-full items-center justify-between border-b border-gray-100 bg-gray-50 p-4 sm:relative lg:hidden">
         <div className="flex items-center space-x-3 ">
           <Button
             StartIcon={Icon.FiMenu}

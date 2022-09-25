@@ -30,7 +30,7 @@ export function Dialog(props: DialogProps) {
       }
       router.push(
         {
-          pathname: router.pathname,
+          pathname: router.pathname.replace("/v2", ""),
           query: {
             ...router.query,
           },

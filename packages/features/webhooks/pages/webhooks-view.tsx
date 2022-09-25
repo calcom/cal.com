@@ -5,7 +5,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { ButtonGroup, EmptyScreen, SkeletonText } from "@calcom/ui/v2";
+import { EmptyScreen, SkeletonText } from "@calcom/ui/v2";
 import { Button } from "@calcom/ui/v2/core/Button";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
@@ -15,7 +15,10 @@ import { WebhookListItem, WebhookListSkeleton } from "../components";
 const WebhooksView = () => {
   return (
     <>
-      <Meta title="webhooks" description="webhooks_description" />
+      <Meta
+        title="Webhooks"
+        description="Receive meeting data in real-time when something happens in Cal.com"
+      />
       <div>
         <Suspense fallback={<WebhookListSkeleton />}>
           <WebhooksList />
@@ -30,8 +33,9 @@ const NewWebhookButton = () => {
   return (
     <Button
       color="secondary"
+      data-testid="new_webhook"
       StartIcon={Icon.FiPlus}
-      href={`${WEBAPP_URL}/v2/settings/developer/webhooks/new`}>
+      href={`${WEBAPP_URL}/settings/developer/webhooks/new`}>
       {isLocaleReady ? t("new_webhook") : <SkeletonText className="h-4 w-24" />}
     </Button>
   );
@@ -56,9 +60,7 @@ const WebhooksList = () => {
                 key={webhook.id}
                 webhook={webhook}
                 lastItem={webhooks.length === index + 1}
-                onEditWebhook={() =>
-                  router.push(`${WEBAPP_URL}/v2/settings/developer/webhooks/${webhook.id} `)
-                }
+                onEditWebhook={() => router.push(`${WEBAPP_URL}/settings/developer/webhooks/${webhook.id} `)}
               />
             ))}
           </div>

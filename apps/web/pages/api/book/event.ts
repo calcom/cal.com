@@ -327,26 +327,29 @@ async function handler(req: NextApiRequest) {
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
 
-  const availableUsers = await ensureAvailableUsers(
-    {
-      ...eventType,
-      users,
-    },
-    {
-      dateFrom: reqBody.start,
-      dateTo: reqBody.end,
-    }
-  );
+  if (!eventType.seatsPerTimeSlot) {
+    const availableUsers = await ensureAvailableUsers(
+      {
+        ...eventType,
+        users,
+      },
+      {
+        dateFrom: reqBody.start,
+        dateTo: reqBody.end,
+      }
+    );
 
-  // Assign to only one user when ROUND_ROBIN
-  if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-    users = [await getLuckyUser("MAXIMIZE_AVAILABILITY", { availableUsers, eventTypeId: eventType.id })];
-  } else {
-    // excluding ROUND_ROBIN, all users have availability required.
-    if (availableUsers.length !== users.length) {
-      throw new Error("Some users are unavailable for booking.");
+    // Add an if conditional if there are no seats on the event type
+    // Assign to only one user when ROUND_ROBIN
+    if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+      users = [await getLuckyUser("MAXIMIZE_AVAILABILITY", { availableUsers, eventTypeId: eventType.id })];
+    } else {
+      // excluding ROUND_ROBIN, all users have availability required.
+      if (availableUsers.length !== users.length) {
+        throw new Error("Some users are unavailable for booking.");
+      }
+      users = availableUsers;
     }
-    users = availableUsers;
   }
 
   console.log("available users", users);
