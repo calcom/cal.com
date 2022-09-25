@@ -7,16 +7,15 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
-import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
-import { Input, Label } from "@calcom/ui/v2";
+import { Input, Label, Button } from "@calcom/ui/v2";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
   setCurrentUsername: (value: string | undefined) => void;
   inputUsernameValue: string | undefined;
-  usernameRef: MutableRefObject<HTMLInputElement>;
+  usernameRef: MutableRefObject<HTMLInputElement | null>;
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
@@ -73,15 +72,14 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
     },
   });
 
-  const ActionButtons = (props: { index: string }) => {
-    const { index } = props;
+  const ActionButtons = () => {
     return usernameIsAvailable && currentUsername !== inputUsernameValue ? (
       <div className="flex flex-row">
         <Button
           type="button"
           className="mx-2"
           onClick={() => setOpenDialogSaveUsername(true)}
-          data-testid={`update-username-btn-${index}`}>
+          data-testid="update-username-btn">
           {t("update")}
         </Button>
         <Button
@@ -91,7 +89,9 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           onClick={() => {
             if (currentUsername) {
               setInputUsernameValue(currentUsername);
-              usernameRef.current.value = currentUsername;
+              if (usernameRef.current) {
+                usernameRef.current.value = currentUsername;
+              }
             }
           }}>
           {t("cancel")}
@@ -122,7 +122,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             autoCapitalize="none"
             autoCorrect="none"
             className={classNames(
-              "mb-0 mt-0 rounded-md rounded-l-none",
+              "mb-0 mt-0 h-6 rounded-md rounded-l-none",
               markAsError
                 ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
                 : ""
@@ -137,20 +137,20 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           {currentUsername !== inputUsernameValue && (
             <div className="absolute right-[2px] top-0 flex flex-row">
               <span className={classNames("mx-2 py-2")}>
-                {usernameIsAvailable ? <Icon.FiCheck className="mt-[4px] w-6" /> : <></>}
+                {usernameIsAvailable ? <Icon.FiCheck className="mt-[2px] w-6" /> : <></>}
               </span>
             </div>
           )}
         </div>
         <div className="hidden  md:inline">
-          <ActionButtons index="desktop" />
+          <ActionButtons />
         </div>
       </div>
       {markAsError && <p className="mt-1 text-xs text-red-500">Username is already taken</p>}
 
       {usernameIsAvailable && currentUsername !== inputUsernameValue && (
-        <div className="mt-2 flex justify-end sm:hidden">
-          <ActionButtons index="mobile" />
+        <div className="mt-2 flex justify-end md:hidden">
+          <ActionButtons />
         </div>
       )}
       <Dialog open={openDialogSaveUsername}>

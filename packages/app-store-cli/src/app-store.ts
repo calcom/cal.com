@@ -13,6 +13,10 @@ if (process.argv[2] === "--watch") {
 
 const formatOutput = (source: string) => prettier.format(source, prettierConfig);
 
+const getVariableName = function (appName) {
+  return appName.replace("-", "_");
+};
+
 const APP_STORE_PATH = path.join(__dirname, "..", "..", "app-store");
 type App = {
   name: string;
@@ -112,7 +116,7 @@ function generateFiles() {
     ...getObjectExporter("apiHandlers", {
       fileToBeImported: "api/index.ts",
       // Import path must have / even for windows and not \
-      entryBuilder: (app) => `  ${app.name}: import("./${app.path.replace(/\\/g, "/")}/api"),`,
+      entryBuilder: (app) => `  "${app.name}": import("./${app.path.replace(/\\/g, "/")}/api"),`,
     })
   );
 
@@ -121,8 +125,11 @@ function generateFiles() {
       fileToBeImported: "_metadata.ts",
       // Import path must have / even for windows and not \
       importBuilder: (app) =>
-        `import { metadata as ${app.name}_meta } from "./${app.path.replace(/\\/g, "/")}/_metadata";`,
-      entryBuilder: (app) => `  ${app.name}:${app.name}_meta,`,
+        `import { metadata as ${getVariableName(app.name)}_meta } from "./${app.path.replace(
+          /\\/g,
+          "/"
+        )}/_metadata";`,
+      entryBuilder: (app) => `  "${app.name}":${getVariableName(app.name)}_meta,`,
     })
   );
 

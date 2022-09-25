@@ -1,5 +1,5 @@
 import { WebhookTriggerEvents } from "@prisma/client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
@@ -30,7 +30,7 @@ export type WebhookFormSubmitData = WebhookFormData & {
   newSecret: string;
 };
 
-type WebhookTriggerEventOptions = { value: WebhookTriggerEvents; label: string }[];
+type WebhookTriggerEventOptions = readonly { value: WebhookTriggerEvents; label: string }[];
 
 const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEventOptions> = {
   core: [
@@ -39,8 +39,8 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
     { value: WebhookTriggerEvents.BOOKING_RESCHEDULED, label: "booking_rescheduled" },
     { value: WebhookTriggerEvents.MEETING_ENDED, label: "meeting_ended" },
   ],
-  routing_forms: [{ value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" }],
-};
+  "routing-forms": [{ value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" }],
+} as const;
 
 const WebhookForm = (props: {
   webhook?: WebhookFormData;
@@ -49,23 +49,22 @@ const WebhookForm = (props: {
 }) => {
   const { apps = [] } = props;
   const { t } = useLocale();
-  const triggerOptions = useMemo(
-    () =>
-      apps.reduce((acc, app) => {
-        if (!WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2[app]) return acc;
-        acc.push(...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2[app]);
-        return acc;
-      }, WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["core"]),
-    [apps]
-  );
 
+  const triggerOptions = [...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["core"]];
+  if (apps) {
+    for (const app of apps) {
+      triggerOptions.push(...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2[app]);
+    }
+  }
   const translatedTriggerOptions = triggerOptions.map((option) => ({ ...option, label: t(option.label) }));
 
   const formMethods = useForm({
     defaultValues: {
-      subscriberUrl: props?.webhook?.subscriberUrl || "",
-      active: props?.webhook?.active || false,
-      eventTriggers: props?.webhook?.eventTriggers || [],
+      subscriberUrl: props.webhook?.subscriberUrl || "",
+      active: props.webhook ? props.webhook.active : true,
+      eventTriggers: !props.webhook
+        ? translatedTriggerOptions.map((option) => option.value)
+        : props.webhook.eventTriggers,
       secret: props?.webhook?.secret || "",
       payloadTemplate: props?.webhook?.payloadTemplate || undefined,
     },
@@ -128,20 +127,24 @@ const WebhookForm = (props: {
         <Controller
           name="eventTriggers"
           control={formMethods.control}
-          render={({ field: { onChange } }) => (
-            <div className="mt-8">
-              <Label className="font-sm mt-8 font-medium text-gray-900">
-                <>{t("event_triggers")}</>
-              </Label>
-              <Select
-                options={translatedTriggerOptions}
-                isMulti
-                onChange={(event) => {
-                  onChange(event.map((selection) => selection.value));
-                }}
-              />
-            </div>
-          )}
+          render={({ field: { onChange, value } }) => {
+            const selectValue = translatedTriggerOptions.filter((option) => value.includes(option.value));
+            return (
+              <div className="mt-8">
+                <Label className="font-sm mt-8 font-medium text-gray-900">
+                  <>{t("event_triggers")}</>
+                </Label>
+                <Select
+                  options={translatedTriggerOptions}
+                  isMulti
+                  value={selectValue}
+                  onChange={(event) => {
+                    onChange(event.map((selection) => selection.value));
+                  }}
+                />
+              </div>
+            );
+          }}
         />
         <Controller
           name="secret"

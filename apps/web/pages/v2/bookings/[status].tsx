@@ -20,13 +20,14 @@ import SkeletonLoader from "@components/v2/bookings/SkeletonLoader";
 type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
 type BookingOutput = inferQueryOutput<"viewer.bookings">["bookings"][0];
 
-const validStatuses = ["upcoming", "recurring", "past", "cancelled"] as const;
+const validStatuses = ["upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
 
 const descriptionByStatus: Record<BookingListingStatus, string> = {
   upcoming: "upcoming_bookings",
   recurring: "recurring_bookings",
   past: "past_bookings",
   cancelled: "cancelled_bookings",
+  unconfirmed: "unconfirmed_bookings",
 };
 
 const querySchema = z.object({

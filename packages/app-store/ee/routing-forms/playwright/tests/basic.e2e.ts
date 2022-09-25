@@ -74,13 +74,13 @@ test.describe("Routing Forms", () => {
   });
   test.describe("Zero State Routing Forms", () => {
     test.beforeEach(async ({ page, users }) => {
-      const user = await users.create({ username: "routing_forms" });
+      const user = await users.create({ username: "routing-forms" });
       await user.login();
       // Install app
-      await page.goto(`/apps/routing_forms`);
+      await page.goto(`/apps/routing-forms`);
       await page.click('[data-testid="install-app-button"]');
       await page.waitForNavigation({
-        url: (url) => url.pathname === `/apps/routing_forms/forms`,
+        url: (url) => url.pathname === `/apps/routing-forms/forms`,
       });
     });
 
@@ -89,9 +89,9 @@ test.describe("Routing Forms", () => {
 
       const formId = await addForm(page);
 
-      await page.click('[href="/apps/routing_forms/forms"]');
+      await page.click('[href="/apps/routing-forms/forms"]');
       // TODO: Workaround for bug in https://github.com/calcom/cal.com/issues/3410
-      await page.click('[href="/apps/routing_forms/forms"]');
+      await page.click('[href="/apps/routing-forms/forms"]');
 
       await page.waitForSelector('[data-testid="routing-forms-list"]');
       // Ensure that it's visible in forms list
@@ -100,7 +100,7 @@ test.describe("Routing Forms", () => {
       await gotoRoutingLink(page, formId);
       await page.isVisible("text=Test Form Name");
 
-      await page.goto(`apps/routing_forms/route-builder/${formId}`);
+      await page.goto(`apps/routing-forms/route-builder/${formId}`);
       await page.click('[data-testid="toggle-form"] [value="on"]');
       await gotoRoutingLink(page, formId);
       await page.isVisible("text=ERROR 404");
@@ -129,7 +129,7 @@ test.describe("Routing Forms", () => {
         types[field.typeIndex]
       );
 
-      await page.click('[href*="/apps/routing_forms/route-builder/"]');
+      await page.click('[href*="/apps/routing-forms/route-builder/"]');
       await page.click('[data-testid="add-route"]');
       await page.click('[data-testid="add-rule"]');
       await verifySelectOptions(
@@ -151,13 +151,13 @@ test.describe("Routing Forms", () => {
       users: Fixtures["users"];
       page: Page;
     }) {
-      const user = await users.create({ username: "routing_forms" }, { seedRoutingForms: true });
+      const user = await users.create({ username: "routing-forms" }, { seedRoutingForms: true });
       await user.login();
       // Install app
-      await page.goto(`/apps/routing_forms`);
+      await page.goto(`/apps/routing-forms`);
       await page.click('[data-testid="install-app-button"]');
       await page.waitForNavigation({
-        url: (url) => url.pathname === `/apps/routing_forms/forms`,
+        url: (url) => url.pathname === `/apps/routing-forms/forms`,
       });
       return user;
     };
@@ -197,7 +197,7 @@ test.describe("Routing Forms", () => {
       // Log back in to view form responses.
       await user.login();
 
-      await page.goto(`/apps/routing_forms/route-builder/${routingForm.id}`);
+      await page.goto(`/apps/routing-forms/route-builder/${routingForm.id}`);
       const [download] = await Promise.all([
         // Start waiting for the download
         page.waitForEvent("download"),

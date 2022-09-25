@@ -48,8 +48,7 @@ const tabs: VerticalTabItemProps[] = [
     href: "/settings/billing",
     icon: Icon.FiCreditCard,
     children: [
-      //
-      { name: "invoices", href: "/settings/billing" },
+      { name: "Manage Billing", href: "/api/integrations/stripepayment/portal", isExternalLink: true },
     ],
   },
   {
@@ -143,6 +142,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                   <VerticalTabItem
                     key={child.href}
                     name={t(child.name)}
+                    isExternalLink={child.isExternalLink}
                     href={child.href || "/"}
                     textClassNames="px-3 text-gray-900 font-medium text-sm"
                     disableChevron
@@ -272,7 +272,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 
   return (
     <>
-      <nav className="fixed flex w-full items-center justify-between border-b border-gray-100 bg-gray-50 p-4 sm:relative lg:hidden">
+      <nav className="fixed z-20 flex w-full items-center justify-between border-b border-gray-100 bg-gray-50 p-4 sm:relative lg:hidden">
         <div className="flex items-center space-x-3 ">
           <Button
             StartIcon={Icon.FiMenu}
