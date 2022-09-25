@@ -427,7 +427,7 @@ const navigation: NavigationItemType[] = [
       const path = router.asPath.split("?")[0];
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
       return (
-        (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) && !path.includes("routing_forms/")
+        (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) && !path.includes("routing-forms/")
       );
     },
     child: [
@@ -439,7 +439,7 @@ const navigation: NavigationItemType[] = [
           // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
           return (
             (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) &&
-            !path.includes("routing_forms/") &&
+            !path.includes("routing-forms/") &&
             !path.includes("/installed")
           );
         },
@@ -461,10 +461,10 @@ const navigation: NavigationItemType[] = [
   },
   {
     name: "Routing Forms",
-    href: "/apps/routing_forms/forms",
+    href: "/apps/routing-forms/forms",
     icon: Icon.FiFileText,
     isCurrent: ({ router }) => {
-      return router.asPath.startsWith("/apps/routing_forms/");
+      return router.asPath.startsWith("/apps/routing-forms/");
     },
   },
   {
@@ -511,7 +511,7 @@ const Navigation = () => {
 
 function useShouldDisplayNavigationItem(item: NavigationItemType) {
   const { status } = useSession();
-  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing_forms" }], {
+  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing-forms" }], {
     enabled: status === "authenticated" && requiredCredentialNavigationItems.includes(item.name),
   });
   return !requiredCredentialNavigationItems.includes(item.name) || !!routingForms;
@@ -575,6 +575,7 @@ function MobileNavigationContainer() {
 
 const MobileNavigation = () => {
   const isEmbed = useIsEmbed();
+
   return (
     <>
       <nav
@@ -758,7 +759,7 @@ export function ShellMain(props: LayoutProps) {
               "mb-4 flex w-full items-center pt-4 md:p-0 lg:mb-10"
             )}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className="hidden w-full ltr:mr-4 rtl:ml-4 sm:block">
+            <div className="w-full ltr:mr-4 rtl:ml-4 sm:block">
               {props.heading && (
                 <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
@@ -779,9 +780,6 @@ export function ShellMain(props: LayoutProps) {
         )}
       </div>
       <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
-        {/* add padding to top for mobile when App Bar is fixed */}
-        <div className="pt-8 sm:hidden" />
-
         {props.children}
       </div>
     </>
@@ -815,11 +813,12 @@ function MainContainer({
       {SettingsSidebarContainerProp}
       <div className="px-4 py-2 lg:py-8 lg:px-12">
         <ErrorBoundary>
+          {/* add padding to top for mobile when App Bar is fixed */}
+          <div className="pt-14 sm:hidden" />
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>
-        {/* show bottom navigation for md and smaller (tablet and phones) */}
-        {MobileNavigationContainerProp}
-        {/* <LicenseBanner /> */}
+        {/* show bottom navigation for md and smaller (tablet and phones) on pages where back button doesn't exist */}
+        {!props.backPath ? MobileNavigationContainerProp : null}
       </div>
     </main>
   );

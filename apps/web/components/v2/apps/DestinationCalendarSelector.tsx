@@ -51,7 +51,7 @@ const DestinationCalendarSelector = ({
     if (selected) {
       setSelectedOption({
         value: `${selected.integration}:${selected.externalId}`,
-        label: `<span class="font-semibold">${selected.name}</span> (${selected.externalId})` || "",
+        label: `${selected.name} (${selected.externalId})` || "",
       });
     }
   }, [query.data?.connectedCalendars, value]);
@@ -66,7 +66,7 @@ const DestinationCalendarSelector = ({
       options: (selectedCalendar.calendars ?? [])
         .filter((cal) => cal.readOnly === false)
         .map((cal) => ({
-          label: `<span class="font-semibold">${cal.name}</span> (${cal.externalId})` || "",
+          label: `${cal.name} (${cal.externalId})` || "",
           value: `${cal.integration}:${cal.externalId}`,
         })),
     })) ?? [];
@@ -83,9 +83,6 @@ const DestinationCalendarSelector = ({
       title={`${t("select_destination_calendar")}: ${selectedOption?.label || ""}`}>
       <Select
         name="primarySelectedCalendar"
-        formatOptionLabel={function (data) {
-          return <span dangerouslySetInnerHTML={{ __html: data.label }} />;
-        }}
         placeholder={
           !hidePlaceholder ? (
             `${t("select_destination_calendar")}`
