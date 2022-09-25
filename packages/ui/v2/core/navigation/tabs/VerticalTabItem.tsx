@@ -46,14 +46,12 @@ const VerticalTabItem = function ({
                 "group flex w-64 flex-row items-center rounded-md px-3 py-[10px] hover:bg-gray-100 group-hover:text-gray-700  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900",
                 props.disabled && "pointer-events-none !opacity-30",
                 (isChild || !props.icon) && "ml-7 mr-5 w-auto",
-                !info ? "h-9" : "h-14",
+                !info ? "h-6" : "h-14",
                 props.className
               )}
               data-testid={`vertical-tab-${name}`}
               aria-current={isCurrent ? "page" : undefined}>
-              {props.icon && (
-                <props.icon className="mr-[10px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
-              )}
+              {props.icon && <props.icon className="mr-[10px] h-[16px] w-[16px] stroke-[2px] md:mt-0" />}
               <div>
                 <p>{t(name)}</p>
                 {info && <p className="pt-1 text-xs font-normal">{t(info)}</p>}
