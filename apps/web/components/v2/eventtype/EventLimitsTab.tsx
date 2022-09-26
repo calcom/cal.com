@@ -237,6 +237,10 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
                           className="block w-16 rounded-md border-gray-300 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
                           placeholder="30"
                           defaultValue={value}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            formMethods.setValue(`bookingLimits.${key as keyof BookingLimit}`, parseInt(val));
+                          }}
                         />
                         <Select
                           options={BOOKING_LIMIT_OPTIONS.filter(
@@ -244,6 +248,16 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
                           )}
                           isSearchable={false}
                           defaultValue={BOOKING_LIMIT_OPTIONS.find((option) => option.value === key)}
+                          onChange={(val) => {
+                            const current = watchBookingLimits;
+                            delete current[key as keyof BookingLimit];
+
+                            const newData = {
+                              ...current,
+                              [val?.value as keyof BookingLimit]: value,
+                            };
+                            formMethods.setValue("bookingLimits", newData);
+                          }}
                         />
                       </div>
                     ))}
