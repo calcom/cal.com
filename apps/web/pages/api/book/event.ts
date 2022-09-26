@@ -27,7 +27,7 @@ import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defa
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
-import { defaultResponder, getLuckyUser } from "@calcom/lib/server";
+import { defaultResponder } from "@calcom/lib/server";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { userSelect } from "@calcom/prisma";
 import { extendedBookingCreateBody, requiredCustomInputSchema } from "@calcom/prisma/zod-utils";
@@ -294,16 +294,17 @@ async function handler(req: NextApiRequest) {
     throw new HttpError({ statusCode: 400, message: error.message });
   }
 
-  let users = !eventTypeId
-    ? await prisma.user.findMany({
-        where: {
-          username: {
-            in: dynamicUserList,
+  let users =
+    dynamicUserList.length > 0
+      ? await prisma.user.findMany({
+          where: {
+            username: {
+              in: dynamicUserList,
+            },
           },
-        },
-        ...userSelect,
-      })
-    : eventType.users;
+          ...userSelect,
+        })
+      : eventType.users;
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
     throw new HttpError({
@@ -342,7 +343,8 @@ async function handler(req: NextApiRequest) {
     // Add an if conditional if there are no seats on the event type
     // Assign to only one user when ROUND_ROBIN
     if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-      users = [await getLuckyUser("MAXIMIZE_AVAILABILITY", { availableUsers, eventTypeId: eventType.id })];
+      //users = [await getLuckyUser("MAXIMIZE_AVAILABILITY", { availableUsers, eventTypeId: eventType.id })];
+      users = availableUsers.length > 0 ? availableUsers : eventType.users;
     } else {
       // excluding ROUND_ROBIN, all users have availability required.
       if (availableUsers.length !== users.length) {
