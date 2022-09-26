@@ -296,6 +296,20 @@ export default function SettingsLayout({
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   const state = useState(false);
   const [sideContainerOpen, setSideContainerOpen] = state;
+
+  useEffect(() => {
+    const closeSideContainer = () => {
+      if (window.innerWidth >= 1024) {
+        setSideContainerOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", closeSideContainer);
+    return () => {
+      window.removeEventListener("resize", closeSideContainer);
+    };
+  }, []);
+
   return (
     <Shell
       flexChildrenContainer
