@@ -22,6 +22,7 @@ import showToast from "@calcom/ui/v2/core/notifications";
 import { SkeletonContainer, SkeletonText, SkeletonButton, SkeletonAvatar } from "@calcom/ui/v2/core/skeleton";
 
 import TwoFactor from "@components/auth/TwoFactor";
+import { UsernameAvailability } from "@components/ui/UsernameAvailability";
 
 const SkeletonLoader = () => {
   return (
@@ -48,6 +49,7 @@ interface DeleteAccountValues {
 const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const usernameRef = useRef<HTMLInputElement>(null);
 
   const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
   const mutation = trpc.useMutation("viewer.updateProfile", {
@@ -64,7 +66,11 @@ const ProfileView = () => {
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
-
+  const [currentUsername, setCurrentUsername] = useState<string | undefined>(user?.username || undefined);
+  const [inputUsernameValue, setInputUsernameValue] = useState(currentUsername);
+  useEffect(() => {
+    if (user?.username) setCurrentUsername(user?.username);
+  }, [user?.username]);
   const form = useForm<DeleteAccountValues>();
 
   const emailMd5 = crypto
@@ -156,8 +162,16 @@ const ProfileView = () => {
     [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
+  const onSuccessfulUsernameUpdate = async () => {
+    showToast(t("settings_updated_successfully"), "success");
+    await utils.invalidateQueries(["viewer.me"]);
+  };
 
-  if (isLoading) return <SkeletonLoader />;
+  const onErrorInUsernameUpdate = () => {
+    showToast(t("error_updating_settings"), "error");
+  };
+
+  if (isLoading || !user) return <SkeletonLoader />;
 
   return (
     <>
@@ -194,11 +208,15 @@ const ProfileView = () => {
           />
         </div>
         <div className="mt-8">
-          <TextField
-            data-testid="username-input"
-            label={t("personal_cal_url")}
-            addOnLeading={WEBSITE_URL + "/"}
-            {...formMethods.register("username")}
+          <UsernameAvailability
+            currentUsername={currentUsername}
+            setCurrentUsername={setCurrentUsername}
+            inputUsernameValue={inputUsernameValue}
+            usernameRef={usernameRef}
+            setInputUsernameValue={setInputUsernameValue}
+            onSuccessMutation={onSuccessfulUsernameUpdate}
+            onErrorMutation={onErrorInUsernameUpdate}
+            user={user}
           />
         </div>
         <div className="mt-8">

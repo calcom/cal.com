@@ -86,7 +86,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
             {t("add_new_form")}
           </h3>
           <div>
-            <p className="text-sm text-gray-500">{t("forms_description")}</p>
+            <p className="text-sm text-gray-500">{t("form_description")}</p>
           </div>
         </div>
         <Form
@@ -338,7 +338,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       href: `${appUrl}/form-edit/${routingForm?.id}`,
     },
     download: {
-      href: `/api/integrations/routing_forms/responses/${routingForm?.id}`,
+      href: `/api/integrations/routing-forms/responses/${routingForm?.id}`,
     },
     _delete: {
       onClick: () => _delete.onAction({ routingForm }),
