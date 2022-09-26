@@ -15,6 +15,13 @@ export enum Frequency {
   SECONDLY = 6,
 }
 
+export enum BookingLimit {
+  PER_DAY = 0,
+  PER_WEEK = 1,
+  PER_MONTH = 2,
+  PER_YEAR = 3,
+}
+
 export const eventTypeLocations = z.array(
   z.object({
     // TODO: Couldn't find a way to make it a union of types from App Store locations
@@ -38,6 +45,13 @@ export const recurringEventType = z
     tzid: z.string().optional(),
   })
   .nullable();
+
+export const bookingLimitsType = z.object({
+  PER_DAY: z.number().optional(),
+  PER_WEEK: z.number().optional(),
+  PER_MONTH: z.number().optional(),
+  PER_YEAR: z.number().optional(),
+});
 
 export const eventTypeSlug = z.string().transform((val) => slugify(val.trim()));
 
