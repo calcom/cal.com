@@ -14,12 +14,11 @@ const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
     href: "/bookings/upcoming",
     icon: Icon.FiCalendar,
   },
-  // TODO: Add filter for unconfimred bookings in a future PR - Out of scope
-  // {
-  //   name: "unconfirmed",
-  //   href: "/bookings/unconfirmed",
-  //   icon: Icon.FiInbox,
-  // },
+  {
+    name: "unconfirmed",
+    href: "/bookings/unconfirmed",
+    icon: Icon.FiInbox,
+  },
   {
     name: "recurring",
     href: "/bookings/recurring",
@@ -45,10 +44,10 @@ export default function BookingLayout({
     <Shell {...rest}>
       <div className="flex flex-col sm:space-x-2 xl:flex-row">
         <div className="hidden xl:block">
-          <VerticalTabs tabNameKey="tabName" tabs={tabs} sticky />
+          <VerticalTabs tabs={tabs} sticky />
         </div>
         <div className="block xl:hidden">
-          <HorizontalTabs tabNameKey="tabName" tabs={tabs} />
+          <HorizontalTabs tabs={tabs} />
         </div>
         <main className="w-full max-w-6xl">{children}</main>
       </div>

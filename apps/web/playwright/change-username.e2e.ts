@@ -35,10 +35,10 @@ test.describe("Change username on settings", () => {
     const usernameInput = page.locator("[data-testid=username-input]");
 
     await usernameInput.fill("demousernamex");
-
+    await page.click("[data-testid=update-username-btn]");
     await Promise.all([
+      page.click("[data-testid=save-username]"),
       page.waitForResponse("**/viewer.updateProfile*"),
-      page.click('button[type="submit"]'),
     ]);
 
     const newUpdatedUser = await prisma.user.findUniqueOrThrow({

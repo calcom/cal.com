@@ -948,7 +948,7 @@
   "confirm_delete_workflow": "네, 워크플로를 삭제하겠습니다",
   "workflow_deleted_successfully": "워크플로가 성공적으로 삭제되었습니다",
   "how_long_before": "이벤트 시작 전까지 얼마 남았나요?",
-  "day_timeUnit": "일 수",
+  "day_timeUnit": "일",
   "hour_timeUnit": "시간",
   "minute_timeUnit": "분",
   "new_workflow_heading": "첫 워크플로 생성",

@@ -31,7 +31,8 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
   return (
     <>
       {/* Already connected calendars  */}
-      {firstCalendar &&
+      {!queryConnectedCalendars.isLoading &&
+        firstCalendar &&
         firstCalendar.integration &&
         firstCalendar.integration.title &&
         firstCalendar.integration.imageSrc && (

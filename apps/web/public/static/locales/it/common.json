@@ -811,7 +811,7 @@
   "api_key": "Chiave API",
   "test_api_key": "Prova chiave API",
   "test_passed": "Test superato!",
-  "test_failed": "Test non superato",
+  "test_failed": "Prova non superata",
   "provide_api_key": "Fornisci chiave API",
   "api_key_modal_subtitle": "Le chiavi API consentono di effettuare chiamate API per il proprio account.",
   "api_keys_subtitle": "Genera chiavi API da usare per accedere al tuo account.",
