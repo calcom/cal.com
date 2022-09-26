@@ -1256,7 +1256,7 @@
   "back_to_signin": "Back to sign in",
   "reset_link_sent": "Reset link sent",
   "password_reset_email":"An email is on it’s way to {{email}} with instructions to reset your password.",
-  "password_reset_leading":"If you did not receive the email soon, check that the email address you entered is correct, check your spam folder or reach out to support if the issue persists.",
+  "password_reset_leading":"If you don't receive an email soon, check that the email address you entered is correct, check your spam folder or reach out to support if the issue persists.",
   "password_updated":"Password updated!",
   "pending_payment": "Pending payment",
   "confirmation_page_rainbow": "Token gate your event with tokens or NFTs on Ethereum, Polygon, and more.",
