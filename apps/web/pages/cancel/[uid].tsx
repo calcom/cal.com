@@ -98,7 +98,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                               <>
                                 <div className="mb-1 inline py-1 text-left">
                                   <div>
-                                    {dayjs(props.recurringInstances[0].startTime).format(
+                                    {dayjs(props?.recurringInstances?.[0]?.startTime).format(
                                       detectBrowserTimeFormat + ", dddd DD MMMM YYYY"
                                     )}
                                     <Collapsible

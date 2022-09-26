@@ -234,9 +234,37 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       select: {
         workflowReminders: true,
         uid: true,
+        status: true,
         scheduledJobs: true,
       },
     });
+
+    // CUSTOM_CODE to webhook all recurring events
+    const webhooks = await getWebhooks(subscriberOptions);
+    for (const booking of allUpdatedBookings) {
+      if (booking && booking?.status === BookingStatus.CANCELLED) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const evt: CalendarEvent = {
+          uid: booking?.uid,
+        };
+
+        const promises = webhooks.map((webhook) =>
+          sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
+            ...evt,
+            ...eventTypeInfo,
+            status: "CANCELLED",
+          }).catch((e) => {
+            console.error(
+              `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}`,
+              e
+            );
+          })
+        );
+        await Promise.all(promises);
+      }
+    }
+
     updatedBookings = updatedBookings.concat(allUpdatedBookings);
   } else {
     const updatedBooking = await prisma.booking.update({
