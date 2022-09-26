@@ -78,7 +78,7 @@ model EventType {
   /// @zod.custom(imports.successRedirectUrl)
   successRedirectUrl      String?
   workflows               WorkflowsOnEventTypes[]
-  /// @zod.custom(imports.recurringEventType)
+  /// @zod.custom(imports.bookingLimitsType)
   bookingLimits           Json?
 
   @@unique([userId, slug])

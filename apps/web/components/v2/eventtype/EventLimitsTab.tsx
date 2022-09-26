@@ -1,19 +1,21 @@
+import autoAnimate from "@formkit/auto-animate";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFormContext, Controller, useWatch } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PeriodType } from "@calcom/prisma/client";
-import { Select, Switch, Label, Input, MinutesField } from "@calcom/ui/v2";
+import { BookingLimit } from "@calcom/types/Calendar";
+import { Icon } from "@calcom/ui";
+import { Select, Switch, Label, Input, MinutesField, Button } from "@calcom/ui/v2";
 import DateRangePicker from "@calcom/ui/v2/core/form/date-range-picker/DateRangePicker";
 
 export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const { eventType } = props;
-
   const PERIOD_TYPES = [
     {
       type: "ROLLING" as const,
@@ -26,6 +28,28 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
     {
       type: "UNLIMITED" as const,
       prefix: t("indefinitely_into_future"),
+    },
+  ];
+
+  const BOOKING_LIMIT_OPTIONS: {
+    value: keyof BookingLimit;
+    label: string;
+  }[] = [
+    {
+      value: "PER_DAY",
+      label: "Per Day",
+    },
+    {
+      value: "PER_WEEK",
+      label: "Per Week",
+    },
+    {
+      value: "PER_MONTH",
+      label: "Per Month",
+    },
+    {
+      value: "PER_YEAR",
+      label: "Per Year",
     },
   ];
 
@@ -42,6 +66,16 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
     name: "periodType",
     defaultValue: periodType?.type,
   });
+  const watchBookingLimits = useWatch({
+    control: formMethods.control,
+    name: "bookingLimits",
+  });
+
+  const animateRef = useRef(null);
+
+  useEffect(() => {
+    animateRef.current && autoAnimate(animateRef.current);
+  }, [animateRef]);
 
   return (
     <div>
@@ -154,7 +188,91 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
           />
         </div>
       </div>
+
       <hr className="my-8" />
+
+      <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
+        <fieldset className="block flex-col sm:flex">
+          <div className="flex space-x-3">
+            <Controller
+              name="bookingLimits"
+              control={formMethods.control}
+              render={({ field: { value } }) => (
+                <Switch
+                  fitToHeight={true}
+                  checked={Object.keys(watchBookingLimits ?? {}).length > 0}
+                  onCheckedChange={(active) => {
+                    if (active) {
+                      formMethods.setValue("bookingLimits", {
+                        PER_DAY: 1,
+                      });
+                    } else {
+                      formMethods.setValue("bookingLimits", undefined);
+                    }
+                  }}
+                />
+              )}
+            />
+
+            <div className="">
+              <Label className="text-sm font-semibold leading-none text-black">
+                {t("limit_booking_frequency")}
+              </Label>
+              <p className="-mt-2 text-sm leading-normal text-gray-600">
+                {t("limit_booking_frequency_description")}
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 lg:ml-14">
+            <Controller
+              name="bookingLimits"
+              control={formMethods.control}
+              render={() => (
+                <ul ref={animateRef}>
+                  {watchBookingLimits &&
+                    Object.entries(watchBookingLimits).map(([key, value]) => (
+                      <div className="mb-2 flex text-sm" key={key}>
+                        <Input
+                          type="number"
+                          className="block w-16 rounded-md border-gray-300 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
+                          placeholder="30"
+                          defaultValue={value}
+                        />
+                        <Select
+                          options={BOOKING_LIMIT_OPTIONS.filter(
+                            (option) => !Object.keys(watchBookingLimits).includes(option.value)
+                          )}
+                          isSearchable={false}
+                          defaultValue={BOOKING_LIMIT_OPTIONS.find((option) => option.value === key)}
+                        />
+                      </div>
+                    ))}
+                  {watchBookingLimits && Object.keys(watchBookingLimits).length <= 3 && (
+                    <Button
+                      color="minimal"
+                      StartIcon={Icon.FiPlus}
+                      onClick={() => {
+                        const currentKeys = Object.keys(watchBookingLimits);
+                        const newKey = Object.values(BOOKING_LIMIT_OPTIONS).filter(
+                          (option) => !currentKeys.includes(option.value)
+                        )[0].value;
+                        formMethods.setValue("bookingLimits", {
+                          ...watchBookingLimits,
+                          [newKey]: 1,
+                        });
+                      }}>
+                      {t("add_limit")}
+                    </Button>
+                  )}
+                </ul>
+              )}
+            />
+          </div>
+        </fieldset>
+      </div>
+
+      <hr className="my-8" />
+
       <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
         <fieldset className="block flex-col sm:flex">
           <div className="flex space-x-3">

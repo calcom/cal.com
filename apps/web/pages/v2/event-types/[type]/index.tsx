@@ -16,7 +16,7 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc/react";
-import type { RecurringEvent } from "@calcom/types/Calendar";
+import type { BookingLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form } from "@calcom/ui/form/fields";
 import { showToast } from "@calcom/ui/v2";
 
@@ -82,6 +82,7 @@ export type FormValues = {
   giphyThankYouPage: string;
   blockchainId: number;
   smartContractAddress: string;
+  bookingLimits?: BookingLimit;
 };
 
 const querySchema = z.object({
@@ -217,6 +218,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             beforeBufferTime,
             afterBufferTime,
             seatsPerTimeSlot,
+            bookingLimits,
             recurringEvent,
             locations,
             blockchainId,
@@ -234,6 +236,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             id: eventType.id,
             beforeEventBuffer: beforeBufferTime,
             afterEventBuffer: afterBufferTime,
+            bookingLimits,
             seatsPerTimeSlot,
             metadata: {
               ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
@@ -338,6 +341,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       afterEventBuffer: true,
       slotInterval: true,
       hashedLink: true,
+      bookingLimits: true,
       successRedirectUrl: true,
       team: {
         select: {

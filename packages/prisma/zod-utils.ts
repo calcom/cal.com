@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import { LocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { slugify } from "@calcom/lib/slugify";
 
@@ -13,13 +12,6 @@ export enum Frequency {
   HOURLY = 4,
   MINUTELY = 5,
   SECONDLY = 6,
-}
-
-export enum BookingLimit {
-  PER_DAY = 0,
-  PER_WEEK = 1,
-  PER_MONTH = 2,
-  PER_YEAR = 3,
 }
 
 export const eventTypeLocations = z.array(
@@ -46,12 +38,14 @@ export const recurringEventType = z
   })
   .nullable();
 
-export const bookingLimitsType = z.object({
-  PER_DAY: z.number().optional(),
-  PER_WEEK: z.number().optional(),
-  PER_MONTH: z.number().optional(),
-  PER_YEAR: z.number().optional(),
-});
+export const bookingLimitsType = z
+  .object({
+    PER_DAY: z.number().optional(),
+    PER_WEEK: z.number().optional(),
+    PER_MONTH: z.number().optional(),
+    PER_YEAR: z.number().optional(),
+  })
+  .nullable();
 
 export const eventTypeSlug = z.string().transform((val) => slugify(val.trim()));
 
