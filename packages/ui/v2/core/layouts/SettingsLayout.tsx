@@ -305,6 +305,9 @@ export default function SettingsLayout({
     };
 
     window.addEventListener("resize", closeSideContainer);
+    return () => {
+      window.removeEventListener("resize", closeSideContainer);
+    };
   }, []);
 
   return (
