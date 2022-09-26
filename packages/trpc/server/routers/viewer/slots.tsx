@@ -237,6 +237,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         timeZone,
         workingHours,
         busy,
+        user: currentUser,
       };
     })
   );
@@ -294,9 +295,15 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       })
     );
 
+    const userIsAvailable = (user: typeof eventType.users[number], time: Dayjs) => {
+      const schedule = usersWorkingHoursAndBusySlots.find((s) => s.user.id === user.id);
+      if (!schedule) return false;
+      return checkIfIsAvailable({ time, ...schedule, ...availabilityCheckProps });
+    };
+
     computedAvailableSlots[currentCheckedTime.format("YYYY-MM-DD")] = availableTimeSlots.map((time) => ({
       time: time.toISOString(),
-      users: eventType.users.map((user) => user.username || ""),
+      users: eventType.users.filter((user) => userIsAvailable(user, time)).map((user) => user.username || ""),
       // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
       ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
         attendees:
