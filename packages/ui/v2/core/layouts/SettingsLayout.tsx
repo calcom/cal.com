@@ -120,31 +120,33 @@ const SettingsSidebarContainer = ({ className = "" }) => {
         <div className="desktop-only pt-4" />
         <div>
           <VerticalTabItem
-            name="Settings"
+            name="Back"
             href="/"
             icon={Icon.FiArrowLeft}
             textClassNames="text-md font-medium leading-none text-black"
+            className="my-6"
           />
         </div>
         {tabsWithPermissions.map((tab) => {
           return tab.name !== "teams" ? (
             <React.Fragment key={tab.href}>
-              <div>
-                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
+              <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
+                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
                   {tab && tab.icon && (
-                    <tab.icon className="mr-[12px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
+                    <tab.icon className="mr-[12px] h-[16px] w-[16px] stroke-[2px] md:mt-0" />
                   )}
-                  <p>{t(tab.name)}</p>
+                  <p className="text-sm font-medium leading-5">{t(tab.name)}</p>
                 </div>
               </div>
-              <div className="mt-2">
-                {tab.children?.map((child) => (
+              <div className="my-3">
+                {tab.children?.map((child, index) => (
                   <VerticalTabItem
                     key={child.href}
                     name={t(child.name)}
                     isExternalLink={child.isExternalLink}
                     href={child.href || "/"}
                     textClassNames="px-3 text-gray-900 font-medium text-sm"
+                    className={`my-0.5 h-7 ${tab.children && index === tab.children?.length - 1 && "!mb-3"}`}
                     disableChevron
                   />
                 ))}
@@ -152,12 +154,12 @@ const SettingsSidebarContainer = ({ className = "" }) => {
             </React.Fragment>
           ) : (
             <React.Fragment key={tab.href}>
-              <div>
-                <div className="group mt-2 flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
+              <div className={`${!tab.children?.length ? "mb-3" : ""}`}>
+                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
                   {tab && tab.icon && (
-                    <tab.icon className="mr-[12px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0" />
+                    <tab.icon className="mr-[12px] h-[16px] w-[16px] stroke-[2px] md:mt-0" />
                   )}
-                  <p>{t(tab.name)}</p>
+                  <p className="text-sm font-medium leading-5">{t(tab.name)}</p>
                 </div>
                 {teams &&
                   teamMenuState &&
@@ -197,7 +199,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                               </div>
                               <img
                                 src={getPlaceholderAvatar(team.logo, team?.name as string)}
-                                className="mt-2 ml-[12px] mr-[8px] h-[16px] w-[16px] self-start stroke-[2px] md:mt-0"
+                                className="mr-[8px] h-[16px] w-[16px] self-start rounded-full stroke-[2px] md:mt-0"
                                 alt={team.name || "Team logo"}
                               />
                               <p>{team.name}</p>
