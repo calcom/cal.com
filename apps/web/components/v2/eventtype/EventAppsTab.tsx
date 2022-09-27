@@ -1,208 +1,114 @@
+import dynamic from "next/dynamic";
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
-import React, { useState } from "react";
-import { useFormContext } from "react-hook-form";
-import { Controller } from "react-hook-form";
-import { FormattedNumber, IntlProvider } from "react-intl";
+import React, { useEffect, useState } from "react";
 
-import { SelectGifInput } from "@calcom/app-store/giphy/components";
-import RainbowInstallForm from "@calcom/app-store/rainbow/components/RainbowInstallForm";
+import AppCard from "@calcom/app-store/_components/AppCard";
+// import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Alert, Button, EmptyScreen, Select, Switch, TextField } from "@calcom/ui/v2";
+import ErrorBoundary from "@calcom/ui/ErrorBoundary";
+import { Button, EmptyScreen } from "@calcom/ui/v2";
 
-const AppCard = ({
-  logo,
-  name,
-  description,
-  switchOnClick,
-  switchChecked,
-  children,
-}: {
-  logo: string;
-  name: string;
-  description: React.ReactNode;
-  switchChecked?: boolean;
-  switchOnClick?: (e: boolean) => void;
-  children?: React.ReactNode;
-}) => {
-  return (
-    <div className="mb-4 rounded-md border border-gray-200 p-8">
-      <div className="flex w-full">
-        <img src={logo} alt={name} className="mr-3 h-auto w-[42px] rounded-sm" />
-        <div className="flex flex-col">
-          <span className="font-semibold leading-none text-black">{name}</span>
-          <p className="pt-2 text-sm font-normal text-gray-600">{description}</p>
-        </div>
-        <div className="ml-auto flex items-center">
-          <Switch onCheckedChange={switchOnClick} checked={switchChecked} />
-        </div>
-      </div>
-      {children}
-    </div>
-  );
-};
+type EventType = Pick<EventTypeSetupInfered, "eventType">["eventType"];
 
-export const EventAppsTab = ({
-  hasPaymentIntegration,
-  currency,
+function AppCardFactory({ app }: { app: inferQueryOutput<"viewer.apps">[number] }) {
+  return function AppCardDefault() {
+    return <AppCard app={app} />;
+  };
+}
+
+function AppCardWrapper({
+  app,
   eventType,
-  hasGiphyIntegration,
-  hasRainbowIntegration,
-}: Pick<
-  EventTypeSetupInfered,
-  "eventType" | "hasPaymentIntegration" | "hasGiphyIntegration" | "hasRainbowIntegration" | "currency"
->) => {
-  const formMethods = useFormContext<FormValues>();
-  const [showGifSelection, setShowGifSelection] = useState(
-    hasGiphyIntegration && !!eventType.metadata["giphyThankYouPage"]
-  );
-  const [showRainbowSection, setShowRainbowSection] = useState(
-    hasRainbowIntegration &&
-      !!eventType.metadata["blockchainId"] &&
-      !!eventType.metadata["smartContractAddress"]
-  );
-  const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
-  const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
-
-  const getCurrencySymbol = (locale: string, currency: string) =>
-    (0)
-      .toLocaleString(locale, {
-        style: "currency",
-        currency,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      })
-      .replace(/\d/g, "")
-      .trim();
-
-  const { t } = useLocale();
-
-  const installedApps = [hasPaymentIntegration, hasGiphyIntegration].filter(Boolean).length;
-
-  if (installedApps === 0) {
-    return (
-      <div className="pt-4 before:border-0">
-        <EmptyScreen
-          Icon={Icon.FiGrid}
-          headline={t("empty_installed_apps_headline")}
-          description={t("empty_installed_apps_description")}
-          buttonRaw={
-            <Button target="_blank" color="secondary" href="/apps">
-              {t("empty_installed_apps_button")}{" "}
-            </Button>
-          }
-        />
-      </div>
-    );
+}: {
+  app: inferQueryOutput<"viewer.apps">[number];
+  eventType: EventType;
+}) {
+  // TODO: dirName isn't directly available in app(it requires a get from DB which doesn't happen currently).
+  // All new apps being created would have slug equal to dirName. So, stripe is only exception, which we can handle here.
+  const dirName = app.slug === "stripe" ? "stripepayment" : app.slug;
+  const [Component, setComponent] =
+    useState<React.ComponentType<{ eventType: EventType; app: inferQueryOutput<"viewer.apps">[number] }>>();
+  useEffect(() => {
+    (async function () {
+      try {
+        await import(`@calcom/app-store/${dirName}/extensions/EventTypeAppCard`);
+        setComponent(dynamic(() => import(`@calcom/app-store/${dirName}/extensions/EventTypeAppCard`)));
+      } catch (e) {
+        setComponent(() => {
+          return AppCardFactory({ app });
+        });
+      }
+    })();
+  }, [app, dirName]);
+  if (!Component) {
+    return null;
   }
   return (
-    <div className="pt-4 before:border-0">
-      {/* TODO:Strip isnt fully setup yet  */}
-      {hasPaymentIntegration && (
-        <AppCard
-          name="Stripe"
-          switchChecked={requirePayment}
-          switchOnClick={(e) => {
-            if (!e) {
-              formMethods.setValue("price", 0);
-              setRequirePayment(false);
-            } else {
-              setRequirePayment(true);
-            }
-          }}
-          description={
-            <>
-              <div className="">
-                {t("require_payment")} (0.5% +{" "}
-                <IntlProvider locale="en">
-                  <FormattedNumber value={0.1} style="currency" currency={currency} />
-                </IntlProvider>{" "}
-                {t("commission_per_transaction")})
-              </div>
-            </>
-          }
-          logo="/api/app-store/stripepayment/icon.svg">
-          <>
-            {recurringEventDefined ? (
-              <Alert severity="warning" title={t("warning_recurring_event_payment")} />
-            ) : (
-              requirePayment && (
-                <div className="block items-center sm:flex">
-                  <Controller
-                    defaultValue={eventType.price}
-                    control={formMethods.control}
-                    name="price"
-                    render={({ field }) => (
-                      <TextField
-                        label=""
-                        addOnLeading={<>{getCurrencySymbol("en", currency)}</>}
-                        {...field}
-                        step="0.01"
-                        min="0.5"
-                        type="number"
-                        required
-                        className="block w-full rounded-sm border-gray-300 pl-2 pr-12 text-sm"
-                        placeholder="Price"
-                        onChange={(e) => {
-                          field.onChange(e.target.valueAsNumber * 100);
-                        }}
-                        value={field.value > 0 ? field.value / 100 : undefined}
-                      />
-                    )}
-                  />
-                </div>
-              )
-            )}
-          </>
-        </AppCard>
-      )}
-      {hasGiphyIntegration && (
-        <AppCard
-          name="Giphy"
-          description={t("confirmation_page_gif")}
-          logo="/api/app-store/giphy/icon.svg"
-          switchOnClick={(e) => {
-            if (!e) {
-              setShowGifSelection(false);
-              formMethods.setValue("giphyThankYouPage", "");
-            } else {
-              setShowGifSelection(true);
-            }
-          }}
-          switchChecked={showGifSelection}>
-          {showGifSelection && (
-            <SelectGifInput
-              defaultValue={eventType.metadata["giphyThankYouPage"] as string}
-              onChange={(url: string) => {
-                formMethods.setValue("giphyThankYouPage", url);
-              }}
-            />
-          )}
-        </AppCard>
-      )}
-      {hasRainbowIntegration && (
-        <AppCard
-          name="Rainbow"
-          description={t("confirmation_page_rainbow")}
-          logo="/api/app-store/rainbow/icon.svg"
-          switchOnClick={(e) => {
-            if (!e) {
-              formMethods.setValue("blockchainId", 1);
-              formMethods.setValue("smartContractAddress", "");
-            }
+    <ErrorBoundary>
+      <Component key={app.slug} app={app} eventType={eventType} />
+    </ErrorBoundary>
+  );
+}
 
-            setShowRainbowSection(e);
-          }}
-          switchChecked={showRainbowSection}>
-          {showRainbowSection && (
-            <RainbowInstallForm
-              formMethods={formMethods}
-              blockchainId={(eventType.metadata.blockchainId as number) || 1}
-              smartContractAddress={(eventType.metadata.smartContractAddress as string) || ""}
+export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
+  const { t } = useLocale();
+  const { data: eventTypeApps, isLoading } = trpc.useQuery([
+    "viewer.apps",
+    {
+      extendsFeature: "EventType",
+    },
+  ]);
+
+  const installedApps = eventTypeApps?.filter((app) => app.credentials.length);
+  const notInstalledApps = eventTypeApps?.filter((app) => !app.credentials.length);
+  const numberOfInstalledEventTypeApps = installedApps?.length ?? 0;
+
+  return (
+    <>
+      <div>
+        <h2 className="mt-0 mb-2 text-lg font-semibold text-gray-900">Installed Apps</h2>
+        <div className="before:border-0">
+          {!isLoading && !installedApps?.length ? (
+            <EmptyScreen
+              Icon={Icon.FiGrid}
+              headline={t("empty_installed_apps_headline")}
+              description={t("empty_installed_apps_description")}
+              buttonRaw={
+                <Button target="_blank" color="secondary" href="/apps">
+                  {t("empty_installed_apps_button")}{" "}
+                </Button>
+              }
             />
-          )}
-        </AppCard>
-      )}
-    </div>
+          ) : null}
+          {installedApps?.map((app) => (
+            <AppCardWrapper key={app.slug} app={app} eventType={eventType} />
+          ))}
+        </div>
+      </div>
+      <div>
+        <h2 className="mt-0 mb-2 text-lg font-semibold text-gray-900">Available Apps</h2>
+        <div className="before:border-0">
+          {!isLoading && !notInstalledApps?.length ? (
+            <div className="before:border-0">
+              <EmptyScreen
+                Icon={Icon.FiGrid}
+                headline={t("Hurray !! All Event Type apps are installed")}
+                description={t("Go and explore the app store to install other apps")}
+                buttonRaw={
+                  <Button target="_blank" color="secondary" href="/apps">
+                    {t("empty_installed_apps_button")}{" "}
+                  </Button>
+                }
+              />
+            </div>
+          ) : null}
+          {notInstalledApps?.map((app) => (
+            <AppCardWrapper key={app.slug} app={app} eventType={eventType} />
+          ))}
+        </div>
+      </div>
+    </>
   );
 };

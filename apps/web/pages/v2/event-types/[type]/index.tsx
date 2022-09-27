@@ -8,7 +8,6 @@ import { useForm } from "react-hook-form";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
-import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { LocationObject, EventLocationType } from "@calcom/core/location";
 import { parseRecurringEvent } from "@calcom/lib";
@@ -95,6 +94,14 @@ export type EventTypeSetupInfered = inferSSRProps<typeof getServerSideProps>;
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
+  const { data: eventTypeApps } = trpc.useQuery([
+    "viewer.apps",
+    {
+      extendsFeature: "EventType",
+    },
+  ]);
+
+  const numberOfInstalledEventTypeApps = eventTypeApps?.filter((app) => app.credentials.length).length ?? 0;
 
   const { eventType, locationOptions, team, teamMembers } = props;
   const animationParentRef = useRef(null);
@@ -180,15 +187,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     recurring: (
       <EventRecurringTab eventType={eventType} hasPaymentIntegration={props.hasPaymentIntegration} />
     ),
-    apps: (
-      <EventAppsTab
-        currency={props.currency}
-        eventType={eventType}
-        hasPaymentIntegration={props.hasPaymentIntegration}
-        hasGiphyIntegration={props.hasGiphyIntegration}
-        hasRainbowIntegration={props.hasRainbowIntegration}
-      />
-    ),
+    apps: <EventAppsTab eventType={eventType} />,
     workflows: (
       <EventWorkflowsTab
         eventType={eventType}
@@ -199,7 +198,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   return (
     <EventTypeSingleLayout
-      enabledAppsNumber={[props.hasGiphyIntegration, props.hasPaymentIntegration].filter(Boolean).length}
+      enabledAppsNumber={numberOfInstalledEventTypeApps}
       enabledWorkflowsNumber={eventType.workflows.length}
       eventType={eventType}
       team={team}
@@ -367,7 +366,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       },
       userId: true,
       price: true,
-      currency: true,
       destinationCalendar: true,
       seatsPerTimeSlot: true,
       workflows: {
@@ -420,10 +418,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     metadata: (metadata || {}) as JSONObject,
   };
 
-  const hasGiphyIntegration = !!credentials.find((credential) => credential.type === "giphy_other");
-
-  const hasRainbowIntegration = !!credentials.find((credential) => credential.type === "rainbow_web3");
-
   // backwards compat
   if (eventType.users.length === 0 && !eventType.team) {
     const fallbackUser = await prisma.user.findUnique({
@@ -440,9 +434,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const integrations = getApps(credentials);
   const locationOptions = getLocationOptions(integrations, t);
   const hasPaymentIntegration = !!credentials.find((credential) => credential.type === "stripe_payment");
-  const currency =
-    (credentials.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)
-      ?.default_currency || "usd";
 
   const eventTypeObject = Object.assign({}, eventType, {
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
@@ -469,11 +460,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       locationOptions,
       team: eventTypeObject.team || null,
       teamMembers,
-      hasPaymentIntegration,
-      hasGiphyIntegration,
-      hasRainbowIntegration,
-      currency,
       currentUserMembership,
+      hasPaymentIntegration,
     },
   };
 };

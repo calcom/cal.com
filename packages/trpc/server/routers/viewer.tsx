@@ -7,6 +7,7 @@ import app_RoutingForms from "@calcom/app-store/ee/routing-forms/trpc-router";
 import ethRouter from "@calcom/app-store/rainbow/trpc/router";
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
 import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
+import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
@@ -767,13 +768,46 @@ const loggedInViewerRouter = createProtectedRouter()
       const appId = input.appId;
       const { credentials } = user;
       const apps = getApps(credentials);
-      const appFromDb = apps.find((app) => app.credential?.appId === appId);
+      const appFromDb = apps.find((app) => app.slug === appId);
       if (!appFromDb) {
-        return appFromDb;
+        throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find app ${appId}` });
       }
+
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { credential: _, credentials: _1, ...app } = appFromDb;
-      return app;
+      return {
+        isInstalled: appFromDb.credentials.length,
+        ...app,
+      };
+    },
+  })
+  .query("apps", {
+    input: z.object({
+      extendsFeature: z.literal("EventType"),
+    }),
+    async resolve({ ctx, input }) {
+      const { user } = ctx;
+      const { credentials } = user;
+
+      const apps = getApps(credentials);
+      return apps
+        .filter((app) => app.extendsFeature?.includes(input.extendsFeature))
+        .map((app) => ({
+          ...app,
+          isInstalled: app.credentials.length,
+        }));
+    },
+  })
+  .query("stripeCurrency", {
+    resolve({ ctx }) {
+      const { user } = ctx;
+      const { credentials } = user;
+      return (
+        (
+          credentials.find((integration) => integration.type === "stripe_payment")
+            ?.key as unknown as StripeData
+        )?.default_currency || "usd"
+      );
     },
   })
   .query("appCredentialsByType", {

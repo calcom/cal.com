@@ -117,7 +117,7 @@ export default function RoutingForms({
                                   StartIcon={Icon.FiCopy}>
                                   {t("duplicate")}
                                 </FormAction>
-                                {typeformApp ? (
+                                {typeformApp?.isInstalled ? (
                                   <FormAction
                                     routingForm={form}
                                     action="copyRedirectUrl"
