@@ -67,6 +67,7 @@ const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
 const useSlots = ({
   eventTypeId,
   eventTypeSlug,
+  eventTypeLength,
   startTime,
   endTime,
   usernameList,
@@ -74,6 +75,7 @@ const useSlots = ({
 }: {
   eventTypeId: number;
   eventTypeSlug: string;
+  eventTypeLength: number;
   startTime?: Dayjs;
   endTime?: Dayjs;
   usernameList: string[];
@@ -85,6 +87,7 @@ const useSlots = ({
       {
         eventTypeId,
         eventTypeSlug,
+        eventTypeLength,
         usernameList,
         startTime: startTime?.toISOString() || "",
         endTime: endTime?.toISOString() || "",
@@ -155,6 +158,7 @@ const SlotPicker = ({
   const { slots: _1 } = useSlots({
     eventTypeId: eventType.id,
     eventTypeSlug: eventType.slug,
+    eventTypeLength: eventType.length,
     usernameList: users,
     startTime: selectedDate?.startOf("day"),
     endTime: selectedDate?.endOf("day"),
@@ -163,6 +167,7 @@ const SlotPicker = ({
   const { slots: _2, isLoading } = useSlots({
     eventTypeId: eventType.id,
     eventTypeSlug: eventType.slug,
+    eventTypeLength: eventType.length,
     usernameList: users,
     startTime: browsingDate?.startOf("month"),
     endTime: browsingDate?.endOf("month"),
