@@ -6,7 +6,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
-  const appType = "zapier_other";
+  const appType = "zapier_automation";
   try {
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {
