@@ -2,7 +2,7 @@ import autoAnimate from "@formkit/auto-animate";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
 import { useEffect, useRef, useState } from "react";
-import { useFormContext, Controller, useWatch } from "react-hook-form";
+import { useFormContext, Controller, useWatch, useForm, useFieldArray } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -31,28 +31,6 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
     },
   ];
 
-  const BOOKING_LIMIT_OPTIONS: {
-    value: keyof BookingLimit;
-    label: string;
-  }[] = [
-    {
-      value: "PER_DAY",
-      label: "Per Day",
-    },
-    {
-      value: "PER_WEEK",
-      label: "Per Week",
-    },
-    {
-      value: "PER_MONTH",
-      label: "Per Month",
-    },
-    {
-      value: "PER_YEAR",
-      label: "Per Year",
-    },
-  ];
-
   const periodType =
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
     PERIOD_TYPES.find((s) => s.type === "UNLIMITED");
@@ -66,12 +44,6 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
     name: "periodType",
     defaultValue: periodType?.type,
   });
-
-  const animateRef = useRef(null);
-
-  useEffect(() => {
-    animateRef.current && autoAnimate(animateRef.current);
-  }, [animateRef]);
 
   return (
     <div>
@@ -220,76 +192,7 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
             </div>
           </div>
           <div className="mt-4 lg:ml-14">
-            <Controller
-              name="bookingLimits"
-              control={formMethods.control}
-              render={({ field: { value, onChange } }) => (
-                <ul ref={animateRef}>
-                  {value &&
-                    Object.entries(value).map(([key, bookingAmount]) => {
-                      const bookingLimitKey = key as keyof BookingLimit;
-                      return (
-                        <div className="mb-2 flex items-center space-x-2 text-sm" key={bookingLimitKey}>
-                          <Input
-                            type="number"
-                            className="mb-0 block w-16 rounded-md border-gray-300 text-sm  [appearance:textfield]"
-                            min={1}
-                            placeholder="1"
-                            defaultValue={bookingAmount}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              formMethods.setValue(`bookingLimits.${bookingLimitKey}`, parseInt(val));
-                            }}
-                          />
-                          <Select
-                            options={BOOKING_LIMIT_OPTIONS.filter(
-                              (option) => !Object.keys(value).includes(option.value)
-                            )}
-                            isSearchable={false}
-                            defaultValue={BOOKING_LIMIT_OPTIONS.find((option) => option.value === key)}
-                            onChange={(val) => {
-                              const current = value;
-                              delete current[bookingLimitKey];
-                              const newData = {
-                                ...current,
-                                [val?.value as keyof BookingLimit]: value[bookingLimitKey],
-                              };
-                              onChange(newData);
-                            }}
-                          />
-                          <Button
-                            size="icon"
-                            StartIcon={Icon.FiTrash}
-                            color="destructive"
-                            onClick={() => {
-                              const current = value;
-                              delete current[key as keyof BookingLimit];
-                              onChange(current);
-                            }}
-                          />
-                        </div>
-                      );
-                    })}
-                  {value && Object.keys(value).length <= 3 && (
-                    <Button
-                      color="minimal"
-                      StartIcon={Icon.FiPlus}
-                      onClick={() => {
-                        const currentKeys = Object.keys(value);
-                        const newKey = Object.values(BOOKING_LIMIT_OPTIONS).filter(
-                          (option) => !currentKeys.includes(option.value)
-                        )[0].value;
-                        onChange({
-                          ...value,
-                          [newKey]: 1,
-                        });
-                      }}>
-                      {t("add_limit")}
-                    </Button>
-                  )}
-                </ul>
-              )}
-            />
+            <BookingLimits />
           </div>
         </fieldset>
       </div>
@@ -400,5 +303,113 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
         </fieldset>
       </div>
     </div>
+  );
+};
+
+const BookingLimits = () => {
+  const { watch, setValue, control } = useFormContext<FormValues>();
+  const watchBookingLimits = watch("bookingLimits");
+  const animateRef = useRef(null);
+  const { t } = useLocale();
+
+  useEffect(() => {
+    animateRef.current && autoAnimate(animateRef.current);
+  }, [animateRef]);
+
+  const BOOKING_LIMIT_OPTIONS: {
+    value: keyof BookingLimit;
+    label: string;
+  }[] = [
+    {
+      value: "PER_DAY",
+      label: "Per Day",
+    },
+    {
+      value: "PER_WEEK",
+      label: "Per Week",
+    },
+    {
+      value: "PER_MONTH",
+      label: "Per Month",
+    },
+    {
+      value: "PER_YEAR",
+      label: "Per Year",
+    },
+  ];
+
+  return (
+    <Controller
+      name="bookingLimits"
+      control={control}
+      render={({ field: { value, onChange } }) => (
+        <ul ref={animateRef}>
+          {value &&
+            watchBookingLimits &&
+            Object.entries(value).map(([key, bookingAmount]) => {
+              const bookingLimitKey = key as keyof BookingLimit;
+              return (
+                <div className="mb-2 flex items-center space-x-2 text-sm" key={bookingLimitKey}>
+                  <Input
+                    id={`${bookingLimitKey}-limit`}
+                    type="number"
+                    className="mb-0 block w-16 rounded-md border-gray-300 text-sm  [appearance:textfield]"
+                    min={1}
+                    placeholder="1"
+                    defaultValue={bookingAmount}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setValue(`bookingLimits.${bookingLimitKey}`, parseInt(val));
+                    }}
+                  />
+                  <Select
+                    options={BOOKING_LIMIT_OPTIONS.filter(
+                      (option) => !Object.keys(value).includes(option.value)
+                    )}
+                    isSearchable={false}
+                    defaultValue={BOOKING_LIMIT_OPTIONS.find((option) => option.value === key)}
+                    onChange={(val) => {
+                      const current = value;
+                      delete current[bookingLimitKey];
+                      const newData = {
+                        ...current,
+                        [val?.value as keyof BookingLimit]: watchBookingLimits[bookingLimitKey],
+                      };
+                      onChange(newData);
+                    }}
+                  />
+                  <Button
+                    size="icon"
+                    StartIcon={Icon.FiTrash}
+                    color="destructive"
+                    onClick={() => {
+                      const current = value;
+                      delete current[key as keyof BookingLimit];
+                      onChange(current);
+                    }}
+                  />
+                </div>
+              );
+            })}
+          {value && Object.keys(value).length <= 3 && (
+            <Button
+              color="minimal"
+              StartIcon={Icon.FiPlus}
+              onClick={() => {
+                const currentKeys = Object.keys(value);
+                const newKey = Object.values(BOOKING_LIMIT_OPTIONS).filter(
+                  (option) => !currentKeys.includes(option.value)
+                )[0].value;
+                setValue("bookingLimits", {
+                  ...watchBookingLimits,
+                  [newKey]: 1,
+                });
+              }}>
+              {t("add_limit")}
+            </Button>
+          )}
+        </ul>
+      )}
+    />
   );
 };
