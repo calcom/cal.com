@@ -118,7 +118,7 @@ const SlotPicker = ({
   weekStart = 0,
   ethSignature,
 }: {
-  eventType: Pick<EventType, "id" | "schedulingType" | "slug">;
+  eventType: Pick<EventType, "id" | "schedulingType" | "slug" | "length">;
   timeFormat: string;
   timeZone?: string;
   seatsPerTimeSlot?: number;
