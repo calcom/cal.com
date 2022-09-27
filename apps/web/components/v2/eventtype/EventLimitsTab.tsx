@@ -420,7 +420,7 @@ const BookingLimits = () => {
                 const previousKey = currentKeys[currentKeys.length - 1] as keyof BookingLimit;
 
                 // @ts-expect-error - previousKey is always defined as this button is only displayed for 3 or less keys
-                const newValue = value[previousKey] + 1;
+                const newValue = watchBookingLimits[previousKey] + 1;
                 setValue("bookingLimits", {
                   ...watchBookingLimits,
                   [rest[0].value]: newValue,
