@@ -3,9 +3,10 @@ import { useFormContext } from "react-hook-form";
 
 import AppCard from "@calcom/app-store/_components/AppCard";
 import RainbowInstallForm from "@calcom/app-store/rainbow/components/RainbowInstallForm";
+import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-export default function EventTypeAppCard({ app, eventType }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
   // TODO: Compute it.
   const hasRainbowIntegration = true;
   const { t } = useLocale();
@@ -38,4 +39,6 @@ export default function EventTypeAppCard({ app, eventType }) {
       )}
     </AppCard>
   );
-}
+};
+
+export default EventTypeAppCard;

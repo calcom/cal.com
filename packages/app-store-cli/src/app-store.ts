@@ -1,11 +1,33 @@
+import child_process from "child_process";
 import chokidar from "chokidar";
 import fs from "fs";
 import { debounce } from "lodash";
 import path from "path";
 import prettier from "prettier";
 
+import { AppMeta } from "@calcom/types/App";
+
 import prettierConfig from "../../config/prettier-preset";
 
+export const execSync = (...args) => {
+  if (process.env.DEBUG === "1") {
+    console.log(`${process.cwd()}$: ${args[0]}`);
+  }
+  const result = child_process.execSync(...args).toString();
+  if (process.env.DEBUG === "1") {
+    console.log(result);
+  }
+  return args[0];
+};
+
+function isFileThere(path) {
+  try {
+    fs.statSync(path);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
 let isInWatchMode = false;
 if (process.argv[2] === "--watch") {
   isInWatchMode = true;
@@ -18,7 +40,7 @@ const getVariableName = function (appName) {
 };
 
 const APP_STORE_PATH = path.join(__dirname, "..", "..", "app-store");
-type App = {
+type App = Partial<AppMeta> & {
   name: string;
   path: string;
 };
@@ -45,7 +67,7 @@ function getAppName(candidatePath) {
 function generateFiles() {
   const browserOutput = [`import dynamic from "next/dynamic"`];
   const serverOutput = [];
-  const appDirs: App[] = [];
+  const appDirs: { name: string; path: string }[] = [];
 
   fs.readdirSync(`${APP_STORE_PATH}`).forEach(function (dir) {
     if (dir === "ee") {
@@ -74,9 +96,30 @@ function generateFiles() {
 
   function forEachAppDir(callback: (arg: App) => void) {
     for (let i = 0; i < appDirs.length; i++) {
-      callback(appDirs[i]);
+      const configPath = path.join(APP_STORE_PATH, appDirs[i].path, "config.json");
+      let app;
+
+      if (fs.existsSync(configPath)) {
+        app = JSON.parse(fs.readFileSync(configPath).toString());
+      } else {
+        app = {};
+      }
+      callback({
+        ...app,
+        name: appDirs[i].name,
+        path: appDirs[i].path,
+      });
     }
   }
+
+  forEachAppDir((app) => {
+    const templateDestinationDir = path.join(APP_STORE_PATH, app.path, "extensions");
+    const templateDestinationFilePath = path.join(templateDestinationDir, "EventTypeAppCard.tsx");
+    if (app.extendsFeature === "EventType" && !isFileThere(templateDestinationFilePath)) {
+      execSync(`mkdir -p ${templateDestinationDir}`);
+      execSync(`cp ../app-store/_templates/EventTypeAppCard.tsx ${templateDestinationFilePath}`);
+    }
+  });
 
   function getObjectExporter(
     objectName,
@@ -138,6 +181,14 @@ function generateFiles() {
       fileToBeImported: "components/InstallAppButton.tsx",
       entryBuilder: (app) =>
         `  ${app.name}: dynamic(() =>import("./${app.path}/components/InstallAppButton")),`,
+    })
+  );
+
+  browserOutput.push(
+    ...getObjectExporter("EventTypeAddonMap", {
+      fileToBeImported: "extensions/EventTypeAppCard.tsx",
+      entryBuilder: (app) =>
+        `  ${app.name}: dynamic(() =>import("./${app.path}/extensions/EventTypeAppCard")),`,
     })
   );
 

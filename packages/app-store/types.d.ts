@@ -1,3 +1,6 @@
+import React from "react";
+
+import { inferQueryOutput } from "@calcom/trpc/react";
 import { ButtonBaseProps } from "@calcom/ui/Button";
 import { ButtonBaseProps as v2ButtonBaseProps } from "@calcom/ui/v2/core/Button";
 
@@ -17,3 +20,8 @@ export interface InstallAppButtonProps {
   ) => JSX.Element;
   onChanged?: () => unknown;
 }
+
+export type EventTypeAppCardComponent = React.FC<{
+  eventType: any;
+  app: inferQueryOutput<"viewer.apps">[number];
+}>;

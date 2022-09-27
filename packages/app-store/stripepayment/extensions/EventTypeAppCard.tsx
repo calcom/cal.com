@@ -3,11 +3,12 @@ import { useFormContext, Controller } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
 import AppCard from "@calcom/app-store/_components/AppCard";
+import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, TextField } from "@calcom/ui/v2";
 
-export default function EventTypeAppCard({ eventType, app }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const formMethods = useFormContext();
   const { t } = useLocale();
@@ -81,4 +82,6 @@ export default function EventTypeAppCard({ eventType, app }) {
       </>
     </AppCard>
   );
-}
+};
+
+export default EventTypeAppCard;

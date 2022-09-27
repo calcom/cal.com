@@ -3,6 +3,7 @@ import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
 import React, { useEffect, useState } from "react";
 
 import AppCard from "@calcom/app-store/_components/AppCard";
+import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
 // import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
@@ -14,7 +15,23 @@ type EventType = Pick<EventTypeSetupInfered, "eventType">["eventType"];
 
 function AppCardFactory({ app }: { app: inferQueryOutput<"viewer.apps">[number] }) {
   return function AppCardDefault() {
-    return <AppCard app={app} />;
+    const APP_DIR = "packages/app-store/";
+    return (
+      <AppCard
+        description={
+          <span>
+            You can configure this AppCard by creating a file{" "}
+            <span className="font-semibold italic">
+              {APP_DIR + app.slug + "/extensions/EventTypeAppCard.tsx"}
+            </span>
+            . See{" "}
+            <span className="font-semibold italic">{APP_DIR + "giphy/extensions/EventTypeAppCard.tsx"}</span>{" "}
+            for an example
+          </span>
+        }
+        app={app}
+      />
+    );
   };
 }
 
@@ -25,23 +42,7 @@ function AppCardWrapper({
   app: inferQueryOutput<"viewer.apps">[number];
   eventType: EventType;
 }) {
-  // TODO: dirName isn't directly available in app(it requires a get from DB which doesn't happen currently).
-  // All new apps being created would have slug equal to dirName. So, stripe is only exception, which we can handle here.
-  const dirName = app.slug === "stripe" ? "stripepayment" : app.slug;
-  const [Component, setComponent] =
-    useState<React.ComponentType<{ eventType: EventType; app: inferQueryOutput<"viewer.apps">[number] }>>();
-  useEffect(() => {
-    (async function () {
-      try {
-        await import(`@calcom/app-store/${dirName}/extensions/EventTypeAppCard`);
-        setComponent(dynamic(() => import(`@calcom/app-store/${dirName}/extensions/EventTypeAppCard`)));
-      } catch (e) {
-        setComponent(() => {
-          return AppCardFactory({ app });
-        });
-      }
-    })();
-  }, [app, dirName]);
+  const Component = EventTypeAddonMap[app.slug as keyof typeof EventTypeAddonMap];
   if (!Component) {
     return null;
   }
@@ -63,12 +64,10 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
 
   const installedApps = eventTypeApps?.filter((app) => app.credentials.length);
   const notInstalledApps = eventTypeApps?.filter((app) => !app.credentials.length);
-  const numberOfInstalledEventTypeApps = installedApps?.length ?? 0;
 
   return (
     <>
       <div>
-        <h2 className="mt-0 mb-2 text-lg font-semibold text-gray-900">Installed Apps</h2>
         <div className="before:border-0">
           {!isLoading && !installedApps?.length ? (
             <EmptyScreen
@@ -88,22 +87,10 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
         </div>
       </div>
       <div>
-        <h2 className="mt-0 mb-2 text-lg font-semibold text-gray-900">Available Apps</h2>
+        {!isLoading && notInstalledApps?.length ? (
+          <h2 className="mt-0 mb-2 text-lg font-semibold text-gray-900">Other Apps</h2>
+        ) : null}
         <div className="before:border-0">
-          {!isLoading && !notInstalledApps?.length ? (
-            <div className="before:border-0">
-              <EmptyScreen
-                Icon={Icon.FiGrid}
-                headline={t("Hurray !! All Event Type apps are installed")}
-                description={t("Go and explore the app store to install other apps")}
-                buttonRaw={
-                  <Button target="_blank" color="secondary" href="/apps">
-                    {t("empty_installed_apps_button")}{" "}
-                  </Button>
-                }
-              />
-            </div>
-          ) : null}
           {notInstalledApps?.map((app) => (
             <AppCardWrapper key={app.slug} app={app} eventType={eventType} />
           ))}

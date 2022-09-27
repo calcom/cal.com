@@ -24,7 +24,7 @@ function getAppDirPath(slug: any) {
 
 const appStoreDir = path.resolve(__dirname, "..", "..", "app-store");
 const workspaceDir = path.resolve(__dirname, "..", "..", "..");
-const execSync = (...args) => {
+export const execSync = (...args) => {
   const result = child_process.execSync(...args).toString();
   if (process.env.DEBUG === "1") {
     console.log(`$: ${args[0]}`);
@@ -221,8 +221,11 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
       label: "What Cal.com feature it extends",
       name: "extendsFeature",
       options: [
-        { label: "Event Type", value: "EventType" },
         { label: "Other", value: "Other" },
+        {
+          label: "Event Type(Available for configuration in Apps tab for all Event Types)",
+          value: "EventType",
+        },
       ],
     },
     { label: "Publisher Name", name: "publisherName", type: "text", explainer: "Let users know who you are" },
@@ -296,7 +299,7 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
             <Text bold italic>
               Just wait for a few seconds for process to exit and then you are good to go. Your App code
               exists at ${getAppDirPath(slug)}
-              Tip: Go and change the logo of your app by replacing {getAppDirPath(slug) + "/static/icon.svg"}
+              Tip : Go and change the logo of your app by replacing {getAppDirPath(slug) + "/static/icon.svg"}
             </Text>
             <Text bold italic>
               App Summary:

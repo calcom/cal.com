@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { useFormContext, Controller } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 
 import AppCard from "@calcom/app-store/_components/AppCard";
 import { SelectGifInput } from "@calcom/app-store/giphy/components";
+import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-export default function EventTypeAppCard({ eventType, app }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ eventType, app }) {
   //TODO: Compute it.
   const hasGiphyIntegration = true;
   const [showGifSelection, setShowGifSelection] = useState(
@@ -38,4 +39,6 @@ export default function EventTypeAppCard({ eventType, app }) {
       )}
     </AppCard>
   );
-}
+};
+
+export default EventTypeAppCard;

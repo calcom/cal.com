@@ -10,6 +10,7 @@ import { metadata as caldavcalendar_meta } from "./caldavcalendar/_metadata";
 import { metadata as campfire_meta } from "./campfire/_metadata";
 import { metadata as closecomothercalendar_meta } from "./closecomothercalendar/_metadata";
 import { metadata as dailyvideo_meta } from "./dailyvideo/_metadata";
+import { metadata as demo_eventtype_extension_meta } from "./demo_eventtype_extension/_metadata";
 import { metadata as routing_forms_meta } from "./ee/routing-forms/_metadata";
 import { metadata as exchange2013calendar_meta } from "./exchange2013calendar/_metadata";
 import { metadata as exchange2016calendar_meta } from "./exchange2016calendar/_metadata";
@@ -45,6 +46,7 @@ export const appStoreMetadata = {
   campfire: campfire_meta,
   closecomothercalendar: closecomothercalendar_meta,
   dailyvideo: dailyvideo_meta,
+  demo_eventtype_extension: demo_eventtype_extension_meta,
   "routing-forms": routing_forms_meta,
   exchange2013calendar: exchange2013calendar_meta,
   exchange2016calendar: exchange2016calendar_meta,
@@ -97,4 +99,10 @@ export const InstallAppButtonMap = {
   wipemycalother: dynamic(() => import("./wipemycalother/components/InstallAppButton")),
   zapier: dynamic(() => import("./zapier/components/InstallAppButton")),
   zoomvideo: dynamic(() => import("./zoomvideo/components/InstallAppButton")),
+};
+export const EventTypeAddonMap = {
+  demo_eventtype_extension: dynamic(() => import("./demo_eventtype_extension/extensions/EventTypeAppCard")),
+  giphy: dynamic(() => import("./giphy/extensions/EventTypeAppCard")),
+  rainbow: dynamic(() => import("./rainbow/extensions/EventTypeAppCard")),
+  stripepayment: dynamic(() => import("./stripepayment/extensions/EventTypeAppCard")),
 };
