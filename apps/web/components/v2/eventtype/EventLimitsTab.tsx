@@ -226,46 +226,50 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
               render={({ field: { value, onChange } }) => (
                 <ul ref={animateRef}>
                   {value &&
-                    Object.entries(value).map(([key, bookingAmount]) => (
-                      <div className="mb-2 flex items-center space-x-2 text-sm" key={key}>
-                        <Input
-                          type="number"
-                          className="mb-0 block w-16 rounded-md border-gray-300 text-sm  [appearance:textfield]"
-                          placeholder="30"
-                          defaultValue={bookingAmount}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            formMethods.setValue(`bookingLimits.${key as keyof BookingLimit}`, parseInt(val));
-                          }}
-                        />
-                        <Select
-                          options={BOOKING_LIMIT_OPTIONS.filter(
-                            (option) => !Object.keys(value).includes(option.value)
-                          )}
-                          isSearchable={false}
-                          defaultValue={BOOKING_LIMIT_OPTIONS.find((option) => option.value === key)}
-                          onChange={(val) => {
-                            const current = value;
-                            delete current[key as keyof BookingLimit];
-                            const newData = {
-                              ...current,
-                              [val?.value as keyof BookingLimit]: bookingAmount,
-                            };
-                            onChange(newData);
-                          }}
-                        />
-                        <Button
-                          size="icon"
-                          StartIcon={Icon.FiTrash}
-                          color="destructive"
-                          onClick={() => {
-                            const current = value;
-                            delete current[key as keyof BookingLimit];
-                            onChange(current);
-                          }}
-                        />
-                      </div>
-                    ))}
+                    Object.entries(value).map(([key, bookingAmount]) => {
+                      const bookingLimitKey = key as keyof BookingLimit;
+                      return (
+                        <div className="mb-2 flex items-center space-x-2 text-sm" key={bookingLimitKey}>
+                          <Input
+                            type="number"
+                            className="mb-0 block w-16 rounded-md border-gray-300 text-sm  [appearance:textfield]"
+                            min={1}
+                            placeholder="1"
+                            defaultValue={bookingAmount}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              formMethods.setValue(`bookingLimits.${bookingLimitKey}`, parseInt(val));
+                            }}
+                          />
+                          <Select
+                            options={BOOKING_LIMIT_OPTIONS.filter(
+                              (option) => !Object.keys(value).includes(option.value)
+                            )}
+                            isSearchable={false}
+                            defaultValue={BOOKING_LIMIT_OPTIONS.find((option) => option.value === key)}
+                            onChange={(val) => {
+                              const current = value;
+                              delete current[bookingLimitKey];
+                              const newData = {
+                                ...current,
+                                [val?.value as keyof BookingLimit]: value[bookingLimitKey],
+                              };
+                              onChange(newData);
+                            }}
+                          />
+                          <Button
+                            size="icon"
+                            StartIcon={Icon.FiTrash}
+                            color="destructive"
+                            onClick={() => {
+                              const current = value;
+                              delete current[key as keyof BookingLimit];
+                              onChange(current);
+                            }}
+                          />
+                        </div>
+                      );
+                    })}
                   {value && Object.keys(value).length <= 3 && (
                     <Button
                       color="minimal"
