@@ -99,13 +99,34 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   });
 
   const setHiddenMutation = trpc.useMutation("viewer.eventTypes.update", {
-    onError: async (err) => {
-      console.error(err.message);
+    onMutate: async ({ id }) => {
       await utils.cancelQuery(["viewer.eventTypes"]);
-      await utils.invalidateQueries(["viewer.eventTypes"]);
+      const previousValue = utils.getQueryData(["viewer.eventTypes"]);
+      if (previousValue) {
+        const newList = [...types];
+        const itemIndex = newList.findIndex((item) => item.id === id);
+        if (itemIndex !== -1 && newList[itemIndex]) {
+          newList[itemIndex].hidden = !newList[itemIndex].hidden;
+        }
+        utils.setQueryData(["viewer.eventTypes"], {
+          ...previousValue,
+          eventTypeGroups: [
+            ...previousValue.eventTypeGroups.slice(0, groupIndex),
+            { ...group, eventTypes: newList },
+            ...previousValue.eventTypeGroups.slice(groupIndex + 1),
+          ],
+        });
+      }
+      return { previousValue };
     },
-    onSettled: async () => {
-      await utils.invalidateQueries(["viewer.eventTypes"]);
+    onError: async (err, _, context) => {
+      if (context?.previousValue) {
+        utils.setQueryData(["viewer.eventTypes"], context.previousValue);
+      }
+      console.error(err.message);
+    },
+    onSettled: () => {
+      utils.invalidateQueries(["viewer.eventTypes"]);
     },
   });
 
