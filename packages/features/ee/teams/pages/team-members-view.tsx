@@ -1,7 +1,7 @@
 import { MembershipRole } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, Fragment } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -21,11 +21,32 @@ const MembersView = () => {
   const router = useRouter();
   const session = useSession();
 
-  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
-    onError: () => {
-      router.push("/settings");
-    },
-  });
+  const queryTeam = () => {
+    const teamQuery = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
+      onError: () => {
+        router.push("/settings");
+      },
+    });
+    const memberQuery = trpc.useInfiniteQuery(
+      ["viewer.teams.getMembers", { teamId: Number(router.query.id), limit: 5 }],
+      {
+        onSuccess: () => {
+          console.log("🚀 ~ file: team-members-view.tsx ~ line 45 ~ queryTeam ~ memberQuery", memberQuery);
+        },
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+      }
+    );
+    return [teamQuery, memberQuery];
+  };
+
+  const [{ data: team, isLoading }, { data: teamMemebers, isLoading: memberLoading, hasNextPage }] =
+    queryTeam();
+
+  // const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
+  //   onError: () => {
+  //     router.push("/settings");
+  //   },
+  // });
 
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
 
@@ -109,13 +130,26 @@ const MembersView = () => {
                 </Button>
               </div>
             )}
-            <div>
-              <ul className="divide-y divide-gray-200 rounded-md border ">
-                {team?.members.map((member) => {
-                  return <MemberListItem key={member.id} team={team} member={member} />;
-                })}
-              </ul>
-            </div>
+            {teamMemebers ? (
+              <div>
+                <ul className="divide-y divide-gray-200 rounded-md border ">
+                  {/* {team.members?.map((member) => {
+                    return <MemberListItem key={member.id} team={team} member={member} />;
+                  })} */}
+                  {teamMemebers.pages.map((page, index) => (
+                    <Fragment key={index}>
+                      {page.members.map((member) => (
+                        <MemberListItem key={member.id} team={team} member={member} />
+                      ))}
+                    </Fragment>
+                  ))}
+                </ul>
+                <p>{hasNextPage ? "Next page" : "No new data"}</p>
+              </div>
+            ) : (
+              <p>Loading</p>
+            )}
+
             <hr className="my-8 border-gray-200" />
 
             {team && session.data && (

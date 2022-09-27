@@ -52,6 +52,101 @@ export const viewerTeamsRouter = createProtectedRouter()
       };
     },
   })
+  .query("getMembers", {
+    input: z.object({
+      teamId: z.number(),
+      limit: z.number().min(1).max(100).nullish(),
+      cursor: z.number().nullish(),
+    }),
+    async resolve({ ctx, input }) {
+      const { teamId, limit, cursor } = input;
+
+      // Check to see that the user is a part of the team
+      const team = await ctx.prisma.team.findFirst({
+        where: {
+          id: teamId,
+        },
+        select: {
+          members: {
+            select: {
+              userId: true,
+            },
+          },
+        },
+      });
+
+      if (!team?.members.some((member) => member.userId !== ctx.user.id)) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not a member of this team." });
+      }
+
+      const take = limit ?? 5;
+      const skip = cursor ?? 0;
+
+      const membersQuery = await ctx.prisma.membership.findMany({
+        take: take + 1,
+        skip,
+        where: {
+          teamId: input.teamId,
+        },
+        select: {
+          role: true,
+          accepted: true,
+          disableImpersonation: true,
+          user: {
+            select: {
+              username: true,
+              email: true,
+              name: true,
+              id: true,
+              bio: true,
+              avatar: true,
+            },
+          },
+        },
+      });
+
+      const members = membersQuery.map((member) => {
+        return {
+          role: member.role,
+          accepted: member.accepted,
+          disableImpersonation: member.disableImpersonation,
+          ...member.user,
+        };
+      });
+
+      console.log("🚀 ~ file: teams.tsx ~ line 88 ~ resolve ~ members", members);
+
+      let nextCursor: typeof skip | null = skip;
+      if (members.length > take) {
+        nextCursor += members.length;
+      } else {
+        nextCursor = null;
+      }
+
+      return {
+        members,
+        nextCursor,
+      };
+
+      // const team = await getTeamWithMembers(input.teamId);
+      // if (!team?.members.find((m) => m.id === ctx.user.id)) {
+      //   throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not a member of this team." });
+      // }
+
+      // return team.members;
+      // const membership = team?.members.find((membership) => membership.id === ctx.user.id);
+
+      // return {
+      //   ...team,
+      //   membership: {
+      //     role: membership?.role as MembershipRole,
+      //     isMissingSeat: membership?.plan === UserPlan.FREE,
+      //     accepted: membership?.accepted,
+      //   },
+      //   requiresUpgrade: HOSTED_CAL_FEATURES ? !!team.members.find((m) => m.plan !== UserPlan.PRO) : false,
+      // };
+    },
+  })
   // Returns teams I a member of
   .query("list", {
     async resolve({ ctx }) {

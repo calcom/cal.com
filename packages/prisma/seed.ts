@@ -516,6 +516,28 @@ async function main() {
     eventTypes: [],
   });
 
+  const pro5UserTeam = await createUserAndEventType({
+    user: {
+      email: "teampro5@example.com",
+      password: "teampro5",
+      username: "teampro5",
+      name: "Team Pro Example 5",
+      plan: "PRO",
+    },
+    eventTypes: [],
+  });
+
+  const pro6UserTeam = await createUserAndEventType({
+    user: {
+      email: "teampro6@example.com",
+      password: "teampro6",
+      username: "teampro6",
+      name: "Team Pro Example 6",
+      plan: "PRO",
+    },
+    eventTypes: [],
+  });
+
   await createTeamAndAddUsers(
     {
       name: "Seeded Team",
@@ -560,6 +582,14 @@ async function main() {
       {
         id: pro4UserTeam.id,
         username: pro4UserTeam.name || "Unknown",
+      },
+      {
+        id: pro5UserTeam.id,
+        username: pro5UserTeam.name || "Unknown",
+      },
+      {
+        id: pro6UserTeam.id,
+        username: pro6UserTeam.name || "Unknown",
       },
     ]
   );
