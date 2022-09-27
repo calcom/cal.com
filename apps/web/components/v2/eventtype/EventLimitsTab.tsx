@@ -1,5 +1,6 @@
 import autoAnimate from "@formkit/auto-animate";
 import * as RadioGroup from "@radix-ui/react-radio-group";
+import { values } from "lodash";
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
 import { useEffect, useRef, useState } from "react";
 import { useFormContext, Controller, useWatch, useForm, useFieldArray } from "react-hook-form";
@@ -306,6 +307,14 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
   );
 };
 
+function calculateMinMaxValue(key: keyof BookingLimit, value: number) {
+  if (key === "PER_DAY") return 1;
+  if (key === "PER_MONTH") return value + 1;
+  if (key === "PER_WEEK") return value + 1;
+  if (key === "PER_YEAR") return value + 1;
+  return 1; // Imposible case
+}
+
 const BookingLimits = () => {
   const { watch, setValue, control } = useFormContext<FormValues>();
   const watchBookingLimits = watch("bookingLimits");
@@ -354,7 +363,7 @@ const BookingLimits = () => {
                     id={`${bookingLimitKey}-limit`}
                     type="number"
                     className="mb-0 block w-16 rounded-md border-gray-300 text-sm  [appearance:textfield]"
-                    min={1}
+                    min={calculateMinMaxValue(bookingLimitKey, bookingAmount)}
                     placeholder="1"
                     defaultValue={bookingAmount}
                     onChange={(e) => {
@@ -396,13 +405,25 @@ const BookingLimits = () => {
               color="minimal"
               StartIcon={Icon.FiPlus}
               onClick={() => {
-                const currentKeys = Object.keys(value);
-                const newKey = Object.values(BOOKING_LIMIT_OPTIONS).filter(
+                if (!value || !watchBookingLimits) return;
+                const currentKeys = Object.keys(watchBookingLimits);
+
+                const rest = Object.values(BOOKING_LIMIT_OPTIONS).filter(
                   (option) => !currentKeys.includes(option.value)
-                )[0].value;
+                );
+                if (!rest || !currentKeys) return;
+                //Value is always defined so can be casted
+
+                // So we need to get the value of the previous key and add 1
+                // 1) Default to per_day if there is no previous key
+                // 2) If there is a previous key, get the value of that key and add 1
+                const previousKey = currentKeys[currentKeys.length - 1] as keyof BookingLimit;
+
+                // @ts-expect-error - previousKey is always defined as this button is only displayed for 3 or less keys
+                const newValue = value[previousKey] + 1;
                 setValue("bookingLimits", {
                   ...watchBookingLimits,
-                  [newKey]: 1,
+                  [rest[0].value]: newValue,
                 });
               }}>
               {t("add_limit")}

@@ -11,7 +11,7 @@ import { z } from "zod";
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { LocationObject, EventLocationType } from "@calcom/core/location";
-import { parseRecurringEvent } from "@calcom/lib";
+import { parseRecurringEvent, parseBookingLimit } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
@@ -148,6 +148,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       recurringEvent: eventType.recurringEvent || null,
       description: eventType.description ?? undefined,
       schedule: eventType.schedule || undefined,
+      bookingLimits: eventType.bookingLimits || undefined,
       hidden: eventType.hidden,
       periodDates: {
         startDate: periodDates.startDate,
@@ -420,6 +421,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     ...restEventType,
     schedule: rawEventType.schedule?.id || rawEventType.users[0].defaultScheduleId,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
+    bookingLimits: parseBookingLimit(restEventType.bookingLimits),
     locations: locations as unknown as LocationObject[],
     metadata: (metadata || {}) as JSONObject,
   };
