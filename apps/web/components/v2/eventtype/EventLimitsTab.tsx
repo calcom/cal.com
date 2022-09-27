@@ -66,10 +66,6 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
     name: "periodType",
     defaultValue: periodType?.type,
   });
-  const watchBookingLimits = useWatch({
-    control: formMethods.control,
-    name: "bookingLimits",
-  });
 
   const animateRef = useRef(null);
 
@@ -200,7 +196,7 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
               render={({ field: { value } }) => (
                 <Switch
                   fitToHeight={true}
-                  checked={Object.keys(watchBookingLimits ?? {}).length > 0}
+                  checked={Object.keys(value ?? {}).length > 0}
                   onCheckedChange={(active) => {
                     if (active) {
                       formMethods.setValue("bookingLimits", {
@@ -227,16 +223,16 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
             <Controller
               name="bookingLimits"
               control={formMethods.control}
-              render={() => (
+              render={({ field: { value, onChange } }) => (
                 <ul ref={animateRef}>
-                  {watchBookingLimits &&
-                    Object.entries(watchBookingLimits).map(([key, value]) => (
-                      <div className="mb-2 flex text-sm" key={key}>
+                  {value &&
+                    Object.entries(value).map(([key, bookingAmount]) => (
+                      <div className="mb-2 flex items-center space-x-2 text-sm" key={key}>
                         <Input
                           type="number"
-                          className="block w-16 rounded-md border-gray-300 text-sm [appearance:textfield] ltr:mr-2 rtl:ml-2"
+                          className="mb-0 block w-16 rounded-md border-gray-300 text-sm  [appearance:textfield]"
                           placeholder="30"
-                          defaultValue={value}
+                          defaultValue={bookingAmount}
                           onChange={(e) => {
                             const val = e.target.value;
                             formMethods.setValue(`bookingLimits.${key as keyof BookingLimit}`, parseInt(val));
@@ -244,34 +240,43 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
                         />
                         <Select
                           options={BOOKING_LIMIT_OPTIONS.filter(
-                            (option) => !Object.keys(watchBookingLimits).includes(option.value)
+                            (option) => !Object.keys(value).includes(option.value)
                           )}
                           isSearchable={false}
                           defaultValue={BOOKING_LIMIT_OPTIONS.find((option) => option.value === key)}
                           onChange={(val) => {
-                            const current = watchBookingLimits;
+                            const current = value;
                             delete current[key as keyof BookingLimit];
-
                             const newData = {
                               ...current,
-                              [val?.value as keyof BookingLimit]: value,
+                              [val?.value as keyof BookingLimit]: bookingAmount,
                             };
-                            formMethods.setValue("bookingLimits", newData);
+                            onChange(newData);
+                          }}
+                        />
+                        <Button
+                          size="icon"
+                          StartIcon={Icon.FiTrash}
+                          color="destructive"
+                          onClick={() => {
+                            const current = value;
+                            delete current[key as keyof BookingLimit];
+                            onChange(current);
                           }}
                         />
                       </div>
                     ))}
-                  {watchBookingLimits && Object.keys(watchBookingLimits).length <= 3 && (
+                  {value && Object.keys(value).length <= 3 && (
                     <Button
                       color="minimal"
                       StartIcon={Icon.FiPlus}
                       onClick={() => {
-                        const currentKeys = Object.keys(watchBookingLimits);
+                        const currentKeys = Object.keys(value);
                         const newKey = Object.values(BOOKING_LIMIT_OPTIONS).filter(
                           (option) => !currentKeys.includes(option.value)
                         )[0].value;
-                        formMethods.setValue("bookingLimits", {
-                          ...watchBookingLimits,
+                        onChange({
+                          ...value,
                           [newKey]: 1,
                         });
                       }}>
