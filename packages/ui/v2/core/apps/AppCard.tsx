@@ -3,13 +3,10 @@ import type { Credential } from "@prisma/client";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
-import { trpc } from "@calcom/trpc/react";
 import { App } from "@calcom/types/App";
 import { Icon } from "@calcom/ui/Icon";
+import { showToast } from "@calcom/ui/v2";
 import Button from "@calcom/ui/v2/core/Button";
-
-import { SkeletonText } from "../skeleton";
 
 interface AppCardProps {
   app: App;
@@ -18,7 +15,6 @@ interface AppCardProps {
 
 export default function AppCard({ app, credentials }: AppCardProps) {
   const { t } = useLocale();
-  const { isLocaleReady } = useLocale();
   const mutation = useAddAppMutation(null, {
     onSuccess: () => {
       showToast(t("app_successfully_installed"), "success");

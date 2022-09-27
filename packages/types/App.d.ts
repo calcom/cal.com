@@ -84,7 +84,7 @@ export interface App {
 
   /** The category to which this app belongs, currently we have `calendar`, `payment` or `video`  */
   categories?: string[];
-
+  extendsFeature?: "EventType"[];
   /** An absolute url to the app logo */
   logo: string;
   /** Company or individual publishing this app */
