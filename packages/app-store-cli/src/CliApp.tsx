@@ -53,6 +53,7 @@ const BaseAppFork = {
     slug,
     publisherName,
     publisherEmail,
+    extendsFeature,
   }) {
     const appDirPath = getAppDirPath(slug);
     let message = !editMode ? "Forking base app" : "Updating app";
@@ -106,6 +107,7 @@ const BaseAppFork = {
       publisher: publisherName,
       email: publisherEmail,
       description: appDescription,
+      extendsFeature: extendsFeature,
       // TODO: Use this to avoid edit and delete on the apps created outside of cli
       __createdUsingCli: true,
       ...dataFromCategory,
@@ -215,6 +217,14 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
       ],
       explainer: "This is how apps are categorized in App Store.",
     },
+    {
+      label: "What Cal.com feature it extends",
+      name: "extendsFeature",
+      options: [
+        { label: "Event Type", value: "EventType" },
+        { label: "Other", value: "Other" },
+      ],
+    },
     { label: "Publisher Name", name: "publisherName", type: "text", explainer: "Let users know who you are" },
     {
       label: "Publisher Email",
@@ -232,6 +242,7 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
   const appDescription = appInputData["appDescription"];
   const publisherName = appInputData["publisherName"];
   const publisherEmail = appInputData["publisherEmail"];
+  const extendsFeature = appInputData["extendsFeature"] || [];
   const [status, setStatus] = useState<"inProgress" | "done">("inProgress");
   const allFieldsFilled = inputIndex === fields.length;
   const [progressUpdate, setProgressUpdate] = useState("");
@@ -251,6 +262,7 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
         slug,
         publisherName,
         publisherEmail,
+        extendsFeature,
       });
       for (const item of it) {
         setProgressUpdate(item);
