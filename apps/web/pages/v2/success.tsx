@@ -29,6 +29,7 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
+import { EventTypeMetaDataSchema, _EventTypeModel } from "@calcom/prisma/zod";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 import { EmailInput } from "@calcom/ui/form/fields";
@@ -38,6 +39,7 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
 import { HeadSeo } from "@components/seo/head-seo";
+import { getEventTypeAppData } from "@components/v2/eventtype/EventAppsTab";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -170,8 +172,12 @@ export default function Success(props: SuccessProps) {
     location: location,
     t,
   };
-  const metadata = props.eventType?.metadata as { giphyThankYouPage: string };
-  const giphyImage = metadata?.giphyThankYouPage;
+
+  const giphyAppData = getEventTypeAppData(
+    eventType as Pick<z.infer<typeof _EventTypeModel>, "currency" | "price" | "metadata">,
+    "giphy"
+  );
+  const giphyImage = giphyAppData.thankYouPage;
 
   const eventName = getEventName(eventNameObject, true);
   const needsConfirmation = eventType.requiresConfirmation && reschedule != "true";
@@ -688,6 +694,8 @@ const getEventTypesFromDB = async (id: number) => {
       userId: true,
       successRedirectUrl: true,
       locations: true,
+      price: true,
+      currency: true,
       users: {
         select: {
           id: true,
@@ -797,6 +805,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventType = {
     ...eventTypeRaw,
+    //TODO: Move EventTypeMetaDataSchema to zod-utils?
+    metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
   };
 

@@ -8,6 +8,8 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { getEventTypeAppData } from "@components/v2/eventtype/EventAppsTab";
+
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { createPaymentLink } from "./client";
 
@@ -63,17 +65,19 @@ export async function handlePayment(
 ) {
   const appKeys = await getAppKeysFromSlug("stripe");
   const { payment_fee_fixed, payment_fee_percentage } = stripeKeysSchema.parse(appKeys);
-
-  const paymentFee = Math.round(selectedEventType.price * payment_fee_percentage + payment_fee_fixed);
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const stripeAppData = getEventTypeAppData(selectedEventType, "stripe");
+  const paymentFee = Math.round(stripeAppData.price * payment_fee_percentage + payment_fee_fixed);
   const { stripe_user_id, stripe_publishable_key } = stripeCredentialSchema.parse(stripeCredential.key);
 
   const params: Stripe.PaymentIntentCreateParams = {
-    amount: selectedEventType.price,
-    currency: selectedEventType.currency,
+    amount: stripeAppData.price,
+    currency: stripeAppData.currency,
     payment_method_types: ["card"],
     application_fee_amount: paymentFee,
   };
 
+  console.log(params, stripeAppData, "stripeAppData");
   const paymentIntent = await stripe.paymentIntents.create(params, { stripeAccount: stripe_user_id });
 
   const payment = await prisma.payment.create({

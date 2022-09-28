@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useFormContext, Controller } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
 import AppCard from "@calcom/app-store/_components/AppCard";
@@ -7,12 +6,15 @@ import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, TextField } from "@calcom/ui/v2";
+//TODO: Find a better place to import from
+import { eventTypeAppContext } from "@calcom/web/components/v2/eventtype/EventAppsTab";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
-  const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
-  const formMethods = useFormContext();
+  const [getAppData, setAppData] = React.useContext(eventTypeAppContext);
+  const price = getAppData("price");
+  const currency = getAppData("currency");
+  const [requirePayment, setRequirePayment] = useState(price > 0);
   const { t } = useLocale();
-  const { data: currency } = trpc.useQuery(["viewer.stripeCurrency"]);
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
   const getCurrencySymbol = (locale: string, currency: string) =>
     (0)
@@ -31,7 +33,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchChecked={requirePayment}
       switchOnClick={(e) => {
         if (!e) {
-          formMethods.setValue("price", 0);
+          setAppData("price", 0);
           setRequirePayment(false);
         } else {
           setRequirePayment(true);
@@ -54,27 +56,19 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
         ) : (
           requirePayment && (
             <div className="block items-center sm:flex">
-              <Controller
-                defaultValue={eventType.price}
-                control={formMethods.control}
-                name="price"
-                render={({ field }) => (
-                  <TextField
-                    label=""
-                    addOnLeading={<>{currency ? getCurrencySymbol("en", currency) : ""}</>}
-                    {...field}
-                    step="0.01"
-                    min="0.5"
-                    type="number"
-                    required
-                    className="block w-full rounded-sm border-gray-300 pl-2 pr-12 text-sm"
-                    placeholder="Price"
-                    onChange={(e) => {
-                      field.onChange(e.target.valueAsNumber * 100);
-                    }}
-                    value={field.value > 0 ? field.value / 100 : undefined}
-                  />
-                )}
+              <TextField
+                label=""
+                addOnLeading={<>{currency ? getCurrencySymbol("en", currency) : ""}</>}
+                step="0.01"
+                min="0.5"
+                type="number"
+                required
+                className="block w-full rounded-sm border-gray-300 pl-2 pr-12 text-sm"
+                placeholder="Price"
+                onChange={(e) => {
+                  setAppData("price", e.target.valueAsNumber * 100);
+                }}
+                value={price > 0 ? price / 100 : undefined}
               />
             </div>
           )

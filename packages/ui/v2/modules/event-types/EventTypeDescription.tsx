@@ -1,21 +1,18 @@
 import { Prisma, SchedulingType } from "@prisma/client";
 import { useMemo } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
+import { z } from "zod";
 
 import { classNames, parseRecurringEvent } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { baseEventTypeSelect } from "@calcom/prisma/selects";
+import { baseEventTypeSelect } from "@calcom/prisma";
+import { _EventTypeModel as EventType, _EventTypeModel } from "@calcom/prisma/zod";
 import { Icon } from "@calcom/ui";
 import Badge from "@calcom/ui/v2/core/Badge";
-
-const eventTypeData = Prisma.validator<Prisma.EventTypeArgs>()({
-  select: baseEventTypeSelect,
-});
-
-type EventType = Prisma.EventTypeGetPayload<typeof eventTypeData>;
+import { getEventTypeAppData } from "@calcom/web/components/v2/eventtype/EventAppsTab";
 
 export type EventTypeDescriptionProps = {
-  eventType: EventType;
+  eventType: Pick<z.infer<typeof _EventTypeModel>, keyof typeof baseEventTypeSelect>;
   className?: string;
 };
 
@@ -26,6 +23,8 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
     () => parseRecurringEvent(eventType.recurringEvent),
     [eventType.recurringEvent]
   );
+
+  const stripeAppData = getEventTypeAppData(eventType as z.infer<typeof _EventTypeModel>, "stripe");
 
   return (
     <>
@@ -65,14 +64,14 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
               </Badge>
             </li>
           )}
-          {eventType.price > 0 && (
+          {stripeAppData.price > 0 && (
             <li>
               <Badge variant="gray" size="lg" StartIcon={Icon.FiCreditCard}>
                 <IntlProvider locale="en">
                   <FormattedNumber
-                    value={eventType.price / 100.0}
+                    value={stripeAppData.price / 100.0}
                     style="currency"
-                    currency={eventType.currency.toUpperCase()}
+                    currency={stripeAppData.currency.toUpperCase()}
                   />
                 </IntlProvider>
               </Badge>

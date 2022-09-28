@@ -7,7 +7,6 @@ import app_RoutingForms from "@calcom/app-store/ee/routing-forms/trpc-router";
 import ethRouter from "@calcom/app-store/rainbow/trpc/router";
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
 import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
-import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
@@ -38,8 +37,11 @@ import {
   updateWebUser as syncServicesUpdateWebUser,
 } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
+import { _EventTypeModel, EventTypeModel } from "@calcom/prisma/zod";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
+
+import { getEventTypeAppData } from "@components/v2/eventtype/EventAppsTab";
 
 import { TRPCError } from "@trpc/server";
 
@@ -358,20 +360,25 @@ const loggedInViewerRouter = createProtectedRouter()
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
 
+      const userEventTypes = user.eventTypes.map((eventType) => EventTypeModel.parse(eventType));
       // backwards compatibility, TMP:
-      const typesRaw = await prisma.eventType.findMany({
-        where: {
-          userId: ctx.user.id,
-        },
-        select: eventTypeSelect,
-        orderBy: [
-          {
-            position: "desc",
+      const typesRaw = (
+        await prisma.eventType.findMany({
+          where: {
+            userId: ctx.user.id,
           },
-          {
-            id: "asc",
-          },
-        ],
+          select: eventTypeSelect,
+          orderBy: [
+            {
+              position: "desc",
+            },
+            {
+              id: "asc",
+            },
+          ],
+        })
+      ).map((eventType) => {
+        return EventTypeModel.parse(eventType);
       });
 
       type EventTypeGroup = {
@@ -384,11 +391,11 @@ const loggedInViewerRouter = createProtectedRouter()
           membershipCount: number;
           readOnly: boolean;
         };
-        eventTypes: typeof user.eventTypes[number][];
+        eventTypes: typeof userEventTypes;
       };
 
       let eventTypeGroups: EventTypeGroup[] = [];
-      const eventTypesHashMap = user.eventTypes.concat(typesRaw).reduce((hashMap, newItem) => {
+      const eventTypesHashMap = userEventTypes.concat(typesRaw).reduce((hashMap, newItem) => {
         const oldItem = hashMap[newItem.id];
         hashMap[newItem.id] = { ...oldItem, ...newItem };
         return hashMap;
@@ -420,7 +427,7 @@ const loggedInViewerRouter = createProtectedRouter()
             membershipCount: membership.team.members.length,
             readOnly: membership.role === MembershipRole.MEMBER,
           },
-          eventTypes: membership.team.eventTypes,
+          eventTypes: membership.team.eventTypes.map((eventType) => EventTypeModel.parse(eventType)),
         }))
       );
 
@@ -798,18 +805,7 @@ const loggedInViewerRouter = createProtectedRouter()
         }));
     },
   })
-  .query("stripeCurrency", {
-    resolve({ ctx }) {
-      const { user } = ctx;
-      const { credentials } = user;
-      return (
-        (
-          credentials.find((integration) => integration.type === "stripe_payment")
-            ?.key as unknown as StripeData
-        )?.default_currency || "usd"
-      );
-    },
-  })
+
   .query("appCredentialsByType", {
     input: z.object({
       appType: z.string(),
@@ -1225,6 +1221,8 @@ const loggedInViewerRouter = createProtectedRouter()
           locations: true,
           destinationCalendar: true,
           price: true,
+          currency: true,
+          metadata: true,
         },
       });
 
@@ -1300,9 +1298,15 @@ const loggedInViewerRouter = createProtectedRouter()
           }
         }
 
+        //TODO: Actually parse using zod instead of assertion
+        const stripeAppData = getEventTypeAppData(
+          eventType as Pick<z.infer<typeof _EventTypeModel>, "currency" | "price" | "metadata">,
+          "stripe"
+        );
+
         // If it's a payment, hide the event type and set the price to 0. Also cancel all pending bookings
         if (credential.app?.categories.includes(AppCategories.payment)) {
-          if (eventType.price) {
+          if (stripeAppData.price) {
             await prisma.$transaction(async () => {
               await prisma.eventType.update({
                 where: {
@@ -1310,7 +1314,14 @@ const loggedInViewerRouter = createProtectedRouter()
                 },
                 data: {
                   hidden: true,
-                  price: 0,
+                  // FIXME: how to handle setting data of an App(price)
+                  metadata: {
+                    ...(eventType as Pick<z.infer<typeof _EventTypeModel>, "currency" | "price" | "metadata">)
+                      .metadata,
+                    stripe: {
+                      price: 0,
+                    },
+                  },
                 },
               });
 

@@ -3,6 +3,7 @@ import classNames from "classnames";
 import Head from "next/head";
 import { FC, useEffect, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
+import { z } from "zod";
 
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
@@ -12,7 +13,9 @@ import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
+import { _EventTypeModel } from "@calcom/prisma/zod";
 import { Icon } from "@calcom/ui/Icon";
+import { getEventTypeAppData } from "@calcom/web/components/v2/eventtype/EventAppsTab";
 
 import type { PaymentPageProps } from "../pages/payment";
 import PaymentComponent from "./Payment";
@@ -23,6 +26,11 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   const [date, setDate] = useState(dayjs.utc(props.booking.startTime));
   useTheme(props.profile.theme);
   const isEmbed = useIsEmbed();
+  const stripeAppData = getEventTypeAppData(
+    props.eventType as Pick<z.infer<typeof _EventTypeModel>, "currency" | "price" | "metadata">,
+    "stripe"
+  );
+  console.log(stripeAppData, "stripeAppData");
   useEffect(() => {
     let embedIframeWidth = 0;
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
@@ -95,9 +103,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         {date.format("dddd, DD MMMM YYYY")}
                         <br />
                         {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
-                        <span className="text-gray-500">
-                          ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-                        </span>
+                        <span className="text-gray-500">({dayjs.tz.guess()})</span>
                       </div>
                       {props.booking.location && (
                         <>
@@ -111,9 +117,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       <div className="col-span-2 mb-6">
                         <IntlProvider locale="en">
                           <FormattedNumber
-                            value={props.eventType.price / 100.0}
+                            value={stripeAppData.price / 100.0}
                             style="currency"
-                            currency={props.eventType.currency.toUpperCase()}
+                            currency={stripeAppData.currency.toUpperCase()}
                           />
                         </IntlProvider>
                       </div>

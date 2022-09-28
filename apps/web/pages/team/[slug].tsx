@@ -11,6 +11,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { EventTypeModel } from "@calcom/prisma/zod";
 import { Icon } from "@calcom/ui/Icon";
 import { Avatar } from "@calcom/ui/v2";
 import { Button } from "@calcom/ui/v2/core";
@@ -146,9 +147,14 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     })),
   }));
 
+  const eventTypes = team.eventTypes.map((type) => EventTypeModel.parse(type));
+
   return {
     props: {
-      team,
+      team: {
+        ...team,
+        eventTypes,
+      },
     },
   };
 };

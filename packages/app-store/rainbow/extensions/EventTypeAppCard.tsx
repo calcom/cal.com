@@ -1,30 +1,23 @@
 import React, { useState } from "react";
-import { useFormContext } from "react-hook-form";
 
 import AppCard from "@calcom/app-store/_components/AppCard";
 import RainbowInstallForm from "@calcom/app-store/rainbow/components/RainbowInstallForm";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { eventTypeAppContext } from "@calcom/web/components/v2/eventtype/EventAppsTab";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
-  // TODO: Compute it.
-  const hasRainbowIntegration = true;
-  const { t } = useLocale();
-  const formMethods = useFormContext();
-
-  const [showRainbowSection, setShowRainbowSection] = useState(
-    hasRainbowIntegration &&
-      !!eventType.metadata["blockchainId"] &&
-      !!eventType.metadata["smartContractAddress"]
-  );
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app }) {
+  const [getAppData, setAppData] = React.useContext(eventTypeAppContext);
+  const blockchainId = getAppData("blockchainId");
+  const smartContractAddress = getAppData("smartContractAddress");
+  const [showRainbowSection, setShowRainbowSection] = useState(!!blockchainId && !!smartContractAddress);
 
   return (
     <AppCard
       app={app}
       switchOnClick={(e) => {
         if (!e) {
-          formMethods.setValue("blockchainId", 1);
-          formMethods.setValue("smartContractAddress", "");
+          setAppData("blockchainId", 1);
+          setAppData("smartContractAddress", "");
         }
 
         setShowRainbowSection(e);
@@ -32,9 +25,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchChecked={showRainbowSection}>
       {showRainbowSection && (
         <RainbowInstallForm
-          formMethods={formMethods}
-          blockchainId={(eventType.metadata.blockchainId as number) || 1}
-          smartContractAddress={(eventType.metadata.smartContractAddress as string) || ""}
+          setAppData={setAppData}
+          blockchainId={(blockchainId as number) || 1}
+          smartContractAddress={(smartContractAddress as string) || ""}
         />
       )}
     </AppCard>

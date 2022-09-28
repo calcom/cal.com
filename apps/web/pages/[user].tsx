@@ -26,6 +26,8 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod";
+import { recurringEventType } from "@calcom/prisma/zod-utils";
 import { BadgeCheckIcon, Icon } from "@calcom/ui/Icon";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
@@ -241,7 +243,6 @@ const getEventTypesWithHiddenFromDB = async (userId: number, plan: UserPlan) => 
       },
     ],
     select: {
-      metadata: true,
       ...baseEventTypeSelect,
     },
   });
@@ -318,8 +319,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const eventTypesRaw = eventTypesWithHidden.filter((evt) => !evt.hidden);
 
   const eventTypes = eventTypesRaw.map((eventType) => ({
+    // TODO: zod parse entire eventType object
     ...eventType,
-    metadata: (eventType.metadata || {}) as JSONObject,
+    recurringEvent: recurringEventType.parse(eventType.recurringEvent),
+    metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
   }));
 
   const isSingleUser = users.length === 1;

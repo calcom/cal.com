@@ -1,20 +1,18 @@
 import React, { useState } from "react";
-import { useFormContext } from "react-hook-form";
 
 import AppCard from "@calcom/app-store/_components/AppCard";
 import { SelectGifInput } from "@calcom/app-store/giphy/components";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+//TODO:
+import { eventTypeAppContext } from "@calcom/web/components/v2/eventtype/EventAppsTab";
 
-const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ eventType, app }) {
+const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app }) {
   //TODO: Compute it.
-  const hasGiphyIntegration = true;
-  const [showGifSelection, setShowGifSelection] = useState(
-    hasGiphyIntegration && !!eventType.metadata["giphyThankYouPage"]
-  );
+  const [getAppData, setAppData] = React.useContext(eventTypeAppContext);
+  const thankYouPage = getAppData("thankYouPage");
+  const [showGifSelection, setShowGifSelection] = useState(!!thankYouPage);
   const { t } = useLocale();
-
-  const formMethods = useFormContext();
 
   return (
     <AppCard
@@ -23,7 +21,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchOnClick={(e) => {
         if (!e) {
           setShowGifSelection(false);
-          formMethods.setValue("giphyThankYouPage", "");
+          setAppData("thankYouPage", "");
         } else {
           setShowGifSelection(true);
         }
@@ -31,9 +29,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchChecked={showGifSelection}>
       {showGifSelection && (
         <SelectGifInput
-          defaultValue={eventType.metadata["giphyThankYouPage"] as string}
+          defaultValue={thankYouPage}
           onChange={(url: string) => {
-            formMethods.setValue("giphyThankYouPage", url);
+            setAppData("thankYouPage", url);
           }}
         />
       )}

@@ -46,6 +46,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
               eventName: true,
               requiresConfirmation: true,
               userId: true,
+              metadata: true,
               users: {
                 select: {
                   name: true,

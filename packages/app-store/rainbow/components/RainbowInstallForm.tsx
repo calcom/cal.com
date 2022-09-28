@@ -1,19 +1,17 @@
-import type { UseFormReturn } from "react-hook-form";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SUPPORTED_CHAINS_FOR_FORM } from "@calcom/rainbow/utils/ethereum";
-import type { FormValues } from "@calcom/web/pages/event-types/[type]";
 
 import Select from "@components/ui/form/Select";
 
 type RainbowInstallFormProps = {
-  formMethods: UseFormReturn<FormValues>;
+  //TODO: Reuse type
+  setAppData: (key: string, value: any) => void;
   blockchainId: number;
   smartContractAddress: string;
 };
 
 const RainbowInstallForm: React.FC<RainbowInstallFormProps> = ({
-  formMethods,
+  setAppData,
   blockchainId,
   smartContractAddress,
 }) => {
@@ -33,7 +31,7 @@ const RainbowInstallForm: React.FC<RainbowInstallFormProps> = ({
           isSearchable={false}
           className="block w-full min-w-0 flex-1 rounded-sm text-sm"
           onChange={(e) => {
-            formMethods.setValue("blockchainId", (e && e.value) || 1);
+            setAppData("blockchainId", (e && e.value) || 1);
           }}
           defaultValue={
             SUPPORTED_CHAINS_FOR_FORM.find((e) => e.value === blockchainId) || {
@@ -57,7 +55,9 @@ const RainbowInstallForm: React.FC<RainbowInstallFormProps> = ({
               className="block w-full rounded-sm border-gray-300 text-sm "
               placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
               defaultValue={(smartContractAddress || "") as string}
-              {...formMethods.register("smartContractAddress")}
+              onChange={(e) => {
+                setAppData("smartContractAddress", e.target.value);
+              }}
             />
           </div>
         </div>

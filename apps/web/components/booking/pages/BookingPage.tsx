@@ -51,6 +51,7 @@ import slugify from "@lib/slugify";
 import Gates, { Gate, GateState } from "@components/Gates";
 import { UserAvatars } from "@components/booking/UserAvatars";
 import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
+import { getEventTypeAppData } from "@components/v2/eventtype/EventAppsTab";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";
@@ -409,17 +410,18 @@ const BookingPage = ({
       }
     });
   }
+  const rainbowAppData = getEventTypeAppData(eventType, "rainbow");
 
   // Define conditional gates here
   const gates = [
     // Rainbow gate is only added if the event has both a `blockchainId` and a `smartContractAddress`
-    eventType.metadata && eventType.metadata.blockchainId && eventType.metadata.smartContractAddress
+    rainbowAppData && rainbowAppData.blockchainId && rainbowAppData.smartContractAddress
       ? ("rainbow" as Gate)
       : undefined,
   ];
 
   return (
-    <Gates gates={gates} metadata={eventType.metadata} dispatch={gateDispatcher}>
+    <Gates gates={gates} appData={rainbowAppData} dispatch={gateDispatcher}>
       <Head>
         <title>
           {rescheduleUid

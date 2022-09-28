@@ -8,12 +8,14 @@ import { useForm } from "react-hook-form";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
+import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { LocationObject, EventLocationType } from "@calcom/core/location";
 import { parseRecurringEvent } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
+import { _EventTypeModel } from "@calcom/prisma/zod";
 import { trpc } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Form } from "@calcom/ui/form/fields";
@@ -48,8 +50,6 @@ export type FormValues = {
   requiresConfirmation: boolean;
   recurringEvent: RecurringEvent | null;
   schedulingType: SchedulingType | null;
-  price: number;
-  currency: string;
   hidden: boolean;
   hideCalendarNotes: boolean;
   hashedLink: string | undefined;
@@ -73,14 +73,12 @@ export type FormValues = {
   beforeBufferTime: number;
   afterBufferTime: number;
   slotInterval: number | null;
+  metadata: z.infer<typeof _EventTypeModel>["metadata"];
   destinationCalendar: {
     integration: string;
     externalId: string;
   };
   successRedirectUrl: string;
-  giphyThankYouPage: string;
-  blockchainId: number;
-  smartContractAddress: string;
 };
 
 const querySchema = z.object({
@@ -161,6 +159,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       },
       schedulingType: eventType.schedulingType,
       minimumBookingNotice: eventType.minimumBookingNotice,
+      metadata: eventType.metadata,
     },
   });
 
@@ -212,14 +211,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
           const {
             periodDates,
             periodCountCalendarDays,
-            giphyThankYouPage,
             beforeBufferTime,
             afterBufferTime,
             seatsPerTimeSlot,
             recurringEvent,
             locations,
-            blockchainId,
-            smartContractAddress,
+            metadata,
             ...input
           } = values;
 
@@ -234,11 +231,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             beforeEventBuffer: beforeBufferTime,
             afterEventBuffer: afterBufferTime,
             seatsPerTimeSlot,
-            metadata: {
-              ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
-              ...(smartContractAddress ? { smartContractAddress } : {}),
-              ...(blockchainId ? { blockchainId } : { blockchainId: 1 }),
-            },
+            metadata,
           });
         }}>
         <div ref={animationParentRef} className="space-y-6">
@@ -338,6 +331,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       slotInterval: true,
       hashedLink: true,
       successRedirectUrl: true,
+      currency: true,
       team: {
         select: {
           id: true,
@@ -410,12 +404,44 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   });
 
   const { locations, metadata, ...restEventType } = rawEventType;
+
+  // TODO: Actually parse this metadata instead of assertion
+  const newMetadata = (metadata || {}) as NonNullable<z.infer<typeof _EventTypeModel>["metadata"]>;
+  const apps = newMetadata.apps || {};
+  // Bring all Apps data to metadata
+  newMetadata.apps = {
+    ...apps,
+    stripe: apps.stripe || {
+      price: rawEventType.price || null,
+      currency:
+        rawEventType.currency ||
+        (
+          credentials.find((integration) => integration.type === "stripe_payment")
+            ?.key as unknown as StripeData
+        )?.default_currency ||
+        "usd",
+    },
+
+    giphy: apps.giphy || {
+      thankYouPage: newMetadata?.giphyThankYouPage || "",
+    },
+
+    rainbow: apps.rainbow || {
+      blockchainId: newMetadata?.blockchainId || "",
+      smartContractAddress: newMetadata?.smartContractAddress || "",
+    },
+  };
+
+  // TODO: How to extract metadata schema from _EventTypeModel to be able to parse it?
+  // const parsedMetaData = _EventTypeModel.parse(newMetadata);
+  const parsedMetaData = newMetadata;
+
   const eventType = {
     ...restEventType,
     schedule: rawEventType.schedule?.id || rawEventType.users[0].defaultScheduleId,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
     locations: locations as unknown as LocationObject[],
-    metadata: (metadata || {}) as JSONObject,
+    metadata: parsedMetaData,
   };
 
   // backwards compat

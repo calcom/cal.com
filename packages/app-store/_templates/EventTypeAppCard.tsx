@@ -5,8 +5,10 @@ import AppCard from "@calcom/app-store/_components/AppCard";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { Icon } from "@calcom/ui";
 
+// import { FormValues } from "@calcom/web/pages/event-types/[type]";
+
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ eventType, app }) {
-  //const formMethods = useFormContext();
+  //const formMethods = useFormContext<FormValues>();
   const [checked, setChecked] = useState(false);
   return (
     <AppCard

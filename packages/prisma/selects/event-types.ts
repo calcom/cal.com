@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 
+//TODO: We should make it consistent with _EventTypeModel from zod(which only has scalars)
 export const baseEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   id: true,
   title: true,
@@ -12,6 +13,7 @@ export const baseEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   price: true,
   currency: true,
   requiresConfirmation: true,
+  metadata: true,
 });
 
 export const bookEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
