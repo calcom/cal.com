@@ -4,7 +4,7 @@ import MemberListItem from "./MemberListItem";
 
 interface Props {
   team: inferQueryOutput<"viewer.teams.get">;
-  members: inferQueryOutput<"viewer.teams.get">["members"];
+  members: inferQueryOutput<"viewer.teams.getMembers">["members"];
 }
 
 export default function MemberList(props: Props) {

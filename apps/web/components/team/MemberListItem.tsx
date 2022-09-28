@@ -30,7 +30,7 @@ import TeamPill, { TeamRole } from "./TeamPill";
 
 interface Props {
   team: inferQueryOutput<"viewer.teams.get">;
-  member: inferQueryOutput<"viewer.teams.get">["members"][number];
+  member: inferQueryOutput<"viewer.teams.getMembers">["members"][number];
 }
 
 /** @deprecated Use `packages/features/ee/teams/components/MemberListItem.tsx` */

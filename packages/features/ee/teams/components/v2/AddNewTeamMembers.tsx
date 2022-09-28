@@ -30,10 +30,10 @@ const AddNewTeamMembers = (props: { teamId: number }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId: props.teamId }]);
+  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.getMembers", { teamId: props.teamId }]);
   const removeMemberMutation = trpc.useMutation("viewer.teams.removeMember", {
     onSuccess() {
-      utils.invalidateQueries(["viewer.teams.get", { teamId: props.teamId }]);
+      utils.invalidateQueries(["viewer.teams.getMembers", { teamId: props.teamId }]);
       utils.invalidateQueries(["viewer.teams.list"]);
     },
   });

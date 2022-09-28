@@ -13,7 +13,7 @@ import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 
 interface Props {
   team?: inferQueryOutput<"viewer.teams.get">;
-  member?: inferQueryOutput<"viewer.teams.get">["members"][number];
+  member?: inferQueryOutput<"viewer.teams.getMembers">["members"][number];
 }
 
 export default function TeamAvailabilityModal(props: Props) {

@@ -31,7 +31,7 @@ import TeamAvailabilityModal from "./v2/TeamAvailabilityModal";
 
 interface Props {
   team: inferQueryOutput<"viewer.teams.get">;
-  member: inferQueryOutput<"viewer.teams.get">["members"][number];
+  member: inferQueryOutput<"viewer.teams.getMembers">["members"][number];
 }
 
 /** TODO: Migrate the one in apps/web to tRPC package */
@@ -51,7 +51,7 @@ export default function MemberListItem(props: Props) {
 
   const removeMemberMutation = trpc.useMutation("viewer.teams.removeMember", {
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
+      await utils.invalidateQueries(["viewer.teams.getMembers"]);
       showToast(t("success"), "success");
     },
     async onError(err) {
@@ -100,7 +100,7 @@ export default function MemberListItem(props: Props) {
               <div className="mb-1 flex">
                 <span className="mr-1 text-sm font-bold leading-4">{name}</span>
 
-                {props.member.isMissingSeat && <TeamPill color="red" text={t("hidden")} />}
+                {/* {props.member.isMissingSeat && <TeamPill color="red" text={t("hidden")} />} */}
                 {!props.member.accepted && <TeamPill color="orange" text={t("pending")} />}
                 {props.member.role && <TeamRole role={props.member.role} />}
               </div>

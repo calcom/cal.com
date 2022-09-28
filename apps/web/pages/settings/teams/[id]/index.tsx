@@ -95,7 +95,7 @@ export function TeamSettingsPage() {
               )
             }>
             {!!errorMessage && <Alert className="-mt-24 border" severity="error" title={errorMessage} />}
-            {team && (
+            {/* {team && (
               <>
                 <div className="block sm:flex md:max-w-5xl">
                   <div className="w-full ltr:mr-2 rtl:ml-2 sm:w-9/12">
@@ -110,7 +110,7 @@ export function TeamSettingsPage() {
                             {t("hidden_team_owner_message")} <UpgradeToFlexibleProModal teamId={team.id} />
                             {/* <a href={"https://cal.com/upgrade"} className="underline">
                               {"https://cal.com/upgrade"}
-                            </a> */}
+                            </a> 
                           </>
                         }
                         className="mb-4 "
@@ -170,7 +170,7 @@ export function TeamSettingsPage() {
                   />
                 )}
               </>
-            )}
+            )} */}
           </Shell>
         );
       }}
