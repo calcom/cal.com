@@ -9,6 +9,7 @@ import { Icon } from "@calcom/ui/Icon";
 import { Alert, Button } from "@calcom/ui/v2/core";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
+import { SkeletonContainer, SkeletonText, SkeletonButton, SkeletonAvatar } from "@calcom/ui/v2/core/skeleton";
 
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import MemberInvitationModal from "../components/MemberInvitationModal";
@@ -42,12 +43,6 @@ const MembersView = () => {
   const [{ data: team, isLoading }, { data: teamMemebers, isLoading: memberLoading, hasNextPage }] =
     queryTeam();
 
-  // const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
-  //   onError: () => {
-  //     router.push("/settings");
-  //   },
-  // });
-
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
 
   const isInviteOpen = !team?.membership.accepted;
@@ -55,11 +50,14 @@ const MembersView = () => {
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
+  if (isLoading || memberLoading) return <SkeletonLoader />;
+
   return (
     <>
       <Meta title="Team Members" description="Users that are in the group" />
       {!isLoading && (
         <>
+          <SkeletonLoader />
           <div>
             {team && (
               <>
@@ -130,12 +128,9 @@ const MembersView = () => {
                 </Button>
               </div>
             )}
-            {teamMemebers ? (
+            {teamMemebers && (
               <div>
                 <ul className="divide-y divide-gray-200 rounded-md border ">
-                  {/* {team.members?.map((member) => {
-                    return <MemberListItem key={member.id} team={team} member={member} />;
-                  })} */}
                   {teamMemebers.pages.map((page, index) => (
                     <Fragment key={index}>
                       {page.members.map((member) => (
@@ -146,8 +141,6 @@ const MembersView = () => {
                 </ul>
                 <p>{hasNextPage ? "Next page" : "No new data"}</p>
               </div>
-            ) : (
-              <p>Loading</p>
             )}
 
             <hr className="my-8 border-gray-200" />
@@ -178,3 +171,40 @@ const MembersView = () => {
 MembersView.getLayout = getLayout;
 
 export default MembersView;
+
+const SkeletonLoader = () => {
+  return (
+    <SkeletonContainer>
+      <SkeletonButton className="ml-auto h-9 w-24 rounded-md" />
+      <ul className="mt-6 divide-y divide-gray-200 rounded-md border">
+        <SkeletonTeamMember />
+        <SkeletonTeamMember />
+        <SkeletonTeamMember />
+        <SkeletonTeamMember />
+      </ul>
+
+      <hr className="my-8 border-gray-200" />
+
+      <div className="flex items-center justify-between">
+        <SkeletonText className="h-8 w-2/5" />
+        <SkeletonButton className="ml-auto h-9 w-24 rounded-md" />
+      </div>
+    </SkeletonContainer>
+  );
+};
+
+const SkeletonTeamMember = () => {
+  return (
+    <li className="divide-y px-5">
+      <div className="my-4 flex justify-between">
+        <div className="flex w-full flex-col justify-between sm:flex-row">
+          <div className="flex w-full items-center">
+            <SkeletonAvatar className="h-10 w-10 rounded-full" />
+            <SkeletonText className="h-8 w-2/5" />
+            <SkeletonButton className="ml-80 h-9 w-24 rounded-md" />
+          </div>
+        </div>
+      </div>
+    </li>
+  );
+};
