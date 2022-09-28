@@ -1,5 +1,5 @@
 import { useId } from "@radix-ui/react-id";
-import React, { forwardRef, ReactElement, ReactNode, Ref, useCallback, useState } from "react";
+import React, { forwardRef, ReactElement, ReactNode, Ref, useCallback, useEffect, useState } from "react";
 import { Check, Circle, Info, X, Eye, EyeOff } from "react-feather";
 import {
   FieldErrors,
@@ -13,8 +13,10 @@ import {
 import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Skeleton, Tooltip } from "@calcom/ui/v2";
+import Select from "@calcom/ui/v2/core/form/Select";
 import showToast from "@calcom/ui/v2/core/notifications";
+import { Skeleton } from "@calcom/ui/v2/core/skeleton";
+import { Tooltip } from "@calcom/ui/v2/core/tooltip";
 
 import { Alert } from "../../../Alert";
 
@@ -216,7 +218,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
               "h-9 border border-gray-300",
               addOnFilled && "bg-gray-100",
               addOnLeading && "rounded-l-md border-r-0 px-3",
-              addOnSuffix && "rounded-r-md border-l-0 px-3"
+              addOnSuffix && "rounded-r-md border-l-0"
             )}>
             <div
               className={classNames(
@@ -446,6 +448,74 @@ export function InputGroupBox(props: JSX.IntrinsicElements["div"]) {
   );
 }
 
-export const MinutesField = forwardRef<HTMLInputElement, InputFieldProps>(function MinutesField(props, ref) {
-  return <InputField ref={ref} type="number" min={0} {...props} addOnSuffix="mins" />;
+export const MinutesField = (props: Omit<InputFieldProps, "name"> & { name: string }) => {
+  const form = useFormContext();
+  const [timeUnit, setTimeUnit] = useState<typeof TIME_UNIT_OPTIONS[number]>();
+  return (
+    <TimeUnitField
+      onTimeUnitChange={setTimeUnit}
+      {...form.register(props.name, {
+        required: true,
+        setValueAs: (value) => Number(value / (timeUnit?.asNumber || 1)),
+      })}
+      {...props}
+    />
+  );
+};
+
+const TIME_UNIT_OPTIONS = [
+  { value: "day", label: "days", asNumber: 1440 },
+  { value: "hour", label: "hours", asNumber: 60 },
+  { value: "minute", label: "mins", asNumber: 1 },
+];
+
+export const TimeUnitField = forwardRef<
+  HTMLInputElement,
+  Omit<InputFieldProps, "name"> & {
+    onTimeUnitChange: (timeUnit: typeof TIME_UNIT_OPTIONS[number]) => void;
+    name: string;
+  }
+>(function TimeUnitField({ onTimeUnitChange, ...props }, ref) {
+  const { watch, setValue } = useFormContext();
+
+  const [displayValue, setDisplayValue] = useState<number>();
+  const [selectedTimeUnit, setSelectedTimeUnit] = useState<typeof TIME_UNIT_OPTIONS[number]>(
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    TIME_UNIT_OPTIONS.find((option) => option.value === "minute")!
+  );
+
+  useEffect(() => {
+    setValue(props.name, displayValue * selectedTimeUnit.asNumber);
+  }, [displayValue, selectedTimeUnit, props.name, setValue]);
+
+  console.log(watch(props.name), displayValue);
+
+  return (
+    <>
+      {/* Actual value (in minutes) of input field */}
+      <input type="hidden" ref={ref} />
+      <InputField
+        type="number"
+        onKeyUp={(e) => {
+          setValue(props.name, Number(e.target.value) * selectedTimeUnit.asNumber);
+        }}
+        value={displayValue}
+        onChange={(e) => setDisplayValue(Number(e.target.value))}
+        min={0}
+        addOnSuffix={
+          <Select
+            className="focus:outline-none"
+            noInputStyle
+            value={selectedTimeUnit}
+            onChange={(newValue) => {
+              if (!newValue) return;
+              setSelectedTimeUnit(newValue);
+              onTimeUnitChange(newValue);
+            }}
+            options={TIME_UNIT_OPTIONS}
+          />
+        }
+      />
+    </>
+  );
 });

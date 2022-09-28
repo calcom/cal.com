@@ -1,6 +1,16 @@
+import {
+  DropdownMenuCheckboxItem as PrimitiveDropdownMenuCheckboxItem,
+  DropdownMenuCheckboxItemProps,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@radix-ui/react-dropdown-menu";
+import classNames from "classnames";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import React from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -14,6 +24,7 @@ import type { Schedule as ScheduleType } from "@calcom/types/schedule";
 import { Icon } from "@calcom/ui";
 import TimezoneSelect from "@calcom/ui/form/TimezoneSelect";
 import Button from "@calcom/ui/v2/core/Button";
+import Dropdown, { DropdownMenuTrigger, DropdownMenuContent } from "@calcom/ui/v2/core/Dropdown";
 import Shell from "@calcom/ui/v2/core/Shell";
 import Switch from "@calcom/ui/v2/core/Switch";
 import VerticalDivider from "@calcom/ui/v2/core/VerticalDivider";
@@ -34,6 +45,101 @@ type AvailabilityFormValues = {
   schedule: ScheduleType;
   timeZone: string;
   isDefault: boolean;
+};
+
+const DropdownMenuCheckboxItem = React.forwardRef<HTMLDivElement, DropdownMenuCheckboxItemProps>(
+  ({ children }, ref) => (
+    <PrimitiveDropdownMenuCheckboxItem ref={ref}>
+      <label className="flex w-60 items-center justify-between">
+        {children}
+        <input
+          type="checkbox"
+          onClick={(e) => e.stopPropagation()}
+          onChange={(e) => e.stopPropagation()}
+          className="inline-block rounded-[4px] border-gray-300 text-neutral-900 focus:ring-neutral-500 disabled:text-neutral-400"
+        />
+      </label>
+    </PrimitiveDropdownMenuCheckboxItem>
+  )
+);
+
+DropdownMenuCheckboxItem.displayName = "DropdownMenuCheckboxItem";
+
+const ActiveOnEventTypeSelect = () => {
+  const { t } = useLocale();
+  const [isOpen, setOpen] = useState(false);
+
+  const { data } = trpc.useQuery(["viewer.eventTypes"]);
+
+  const eventTypeGroups = data?.eventTypeGroups.reduce((aggregate, eventTypeGroups) => {
+    if (eventTypeGroups.eventTypes[0].team !== null) {
+      aggregate.push({
+        groupName: eventTypeGroups.eventTypes[0].team.name || "",
+        eventTypeNames: [...eventTypeGroups.eventTypes.map((eventType) => eventType.title)],
+      });
+    } else {
+      aggregate.push({
+        groupName: eventTypeGroups.eventTypes[0].users[0].name || "",
+        eventTypeNames: [...eventTypeGroups.eventTypes.map((eventType) => eventType.title)],
+      });
+    }
+    return aggregate;
+  }, [] as { groupName: string; eventTypeNames: string[] }[]);
+
+  return (
+    <Dropdown onOpenChange={setOpen} open={isOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          size="base"
+          color="secondary"
+          className="w-full px-3 !font-light"
+          EndIcon={({ className, ...props }) =>
+            isOpen ? (
+              <Icon.FiChevronUp
+                {...props}
+                className={classNames(className, "!h-5 !w-5 !font-extrabold text-gray-300")}
+              />
+            ) : (
+              <Icon.FiChevronDown
+                {...props}
+                className={classNames(className, "!h-5 !w-5 !font-extrabold text-gray-300")}
+              />
+            )
+          }>
+          {t("nr_event_type", { count: 3 })}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        {(eventTypeGroups || []).map((eventTypeGroup) => (
+          <DropdownMenuGroup key={eventTypeGroup.groupName} className="space-y-3 p-4 px-3">
+            <DropdownMenuLabel className="h6 pb-3 pl-1 text-xs font-medium uppercase text-neutral-400">
+              {eventTypeGroup.groupName}
+            </DropdownMenuLabel>
+            {eventTypeGroup.eventTypeNames.map((eventTypeTitle) => (
+              <DropdownMenuCheckboxItem key={eventTypeTitle}>
+                <span className="w-[200px] truncate">{eventTypeTitle}</span>
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuGroup>
+        ))}
+        <DropdownMenuSeparator asChild>
+          <hr />
+        </DropdownMenuSeparator>
+        <DropdownMenuItem className="flex justify-end space-x-2 px-4 pt-3 pb-2">
+          <Button color="minimalSecondary" onClick={() => setOpen(false)}>
+            {t("cancel")}
+          </Button>
+          <Button
+            color="primary"
+            onClick={() => {
+              console.log("do nothing");
+            }}>
+            {t("apply")}
+          </Button>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </Dropdown>
+  );
 };
 
 export default function Availability({ schedule }: { schedule: number }) {
@@ -130,7 +236,7 @@ export default function Availability({ schedule }: { schedule: number }) {
             }}
             className="-mx-4 flex flex-col pb-16 sm:mx-0 xl:flex-row xl:space-x-6">
             <div className="flex-1">
-              <div className="rounded-md border-gray-200 bg-white py-5 pr-4 sm:border sm:p-6">
+              <div className="mb-4 rounded-md border-gray-200 bg-white py-5 pr-4 sm:border sm:p-6">
                 <h3 className="mb-5 text-base font-medium leading-6 text-gray-900">
                   {t("change_start_end")}
                 </h3>
@@ -148,25 +254,31 @@ export default function Availability({ schedule }: { schedule: number }) {
               </div>
             </div>
             <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
-              <div className="xl:max-w-80 w-full pr-4 sm:p-0">
-                <div>
-                  <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
-                    {t("timezone")}
-                  </label>
-                  <Controller
-                    name="timeZone"
-                    render={({ field: { onChange, value } }) =>
-                      value ? (
-                        <TimezoneSelect
-                          value={value}
-                          className="focus:border-brand mt-1 block rounded-md border-gray-300 text-sm"
-                          onChange={(timezone) => onChange(timezone.value)}
-                        />
-                      ) : (
-                        <SkeletonText className="h-6 w-full" />
-                      )
-                    }
-                  />
+              <div className="xl:max-w-80 w-full space-y-4 pr-4 sm:p-0">
+                <div className="space-y-4">
+                  <div className="sm:w-full md:w-1/2 lg:w-full">
+                    <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
+                      {t("timezone")}
+                    </label>
+                    <Controller
+                      name="timeZone"
+                      render={({ field: { onChange, value } }) =>
+                        value ? (
+                          <TimezoneSelect
+                            value={value}
+                            className="focus:border-brand mt-1 block rounded-md border-gray-300 text-sm"
+                            onChange={(timezone) => onChange(timezone.value)}
+                          />
+                        ) : (
+                          <SkeletonText className="h-6 w-full" />
+                        )
+                      }
+                    />
+                  </div>
+                  <Label className="mt-1 cursor-pointer space-y-2 sm:w-full md:w-1/2 lg:w-full">
+                    <span>Active on</span>
+                    <ActiveOnEventTypeSelect />
+                  </Label>
                 </div>
                 <hr className="my-8" />
                 <div className="rounded-md">

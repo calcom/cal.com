@@ -281,6 +281,7 @@ const loggedInViewerRouter = createProtectedRouter()
         successRedirectUrl: true,
         hashedLink: true,
         destinationCalendar: true,
+        scheduleId: true,
         team: true,
         users: {
           select: {
