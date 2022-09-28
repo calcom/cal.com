@@ -44,7 +44,9 @@ const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
 export const getTeam = async (id?: number, slug?: string) => {
   const team = await prisma.team.findUnique({
     where: id ? { id } : { slug },
-    select: teamSelect,
+    include: {
+      members: true,
+    },
   });
 
   return team;

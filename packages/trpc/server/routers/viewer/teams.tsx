@@ -14,7 +14,13 @@ import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { getTeamWithMembers, isTeamAdmin, isTeamOwner, isTeamMember } from "@calcom/lib/server/queries/teams";
+import {
+  getTeamWithMembers,
+  isTeamAdmin,
+  isTeamOwner,
+  isTeamMember,
+  getTeam,
+} from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
 import {
   closeComDeleteTeam,
@@ -35,20 +41,18 @@ export const viewerTeamsRouter = createProtectedRouter()
       teamId: z.number(),
     }),
     async resolve({ ctx, input }) {
-      const team = await getTeamWithMembers(input.teamId);
-      if (!team?.members.find((m) => m.id === ctx.user.id)) {
+      const team = await getTeam(input.teamId);
+      if (!team?.members.find((m) => m.userId === ctx.user.id)) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not a member of this team." });
       }
-      const membership = team?.members.find((membership) => membership.id === ctx.user.id);
+      const membership = team?.members.find((membership) => membership.userId === ctx.user.id);
 
       return {
         ...team,
         membership: {
           role: membership?.role as MembershipRole,
-          isMissingSeat: membership?.plan === UserPlan.FREE,
           accepted: membership?.accepted,
         },
-        requiresUpgrade: HOSTED_CAL_FEATURES ? !!team.members.find((m) => m.plan !== UserPlan.PRO) : false,
       };
     },
   })
@@ -125,24 +129,6 @@ export const viewerTeamsRouter = createProtectedRouter()
         members,
         nextCursor,
       };
-
-      // const team = await getTeamWithMembers(input.teamId);
-      // if (!team?.members.find((m) => m.id === ctx.user.id)) {
-      //   throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not a member of this team." });
-      // }
-
-      // return team.members;
-      // const membership = team?.members.find((membership) => membership.id === ctx.user.id);
-
-      // return {
-      //   ...team,
-      //   membership: {
-      //     role: membership?.role as MembershipRole,
-      //     isMissingSeat: membership?.plan === UserPlan.FREE,
-      //     accepted: membership?.accepted,
-      //   },
-      //   requiresUpgrade: HOSTED_CAL_FEATURES ? !!team.members.find((m) => m.plan !== UserPlan.PRO) : false,
-      // };
     },
   })
   // Returns teams I a member of

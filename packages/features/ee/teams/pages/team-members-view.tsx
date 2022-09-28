@@ -31,9 +31,6 @@ const MembersView = () => {
     const memberQuery = trpc.useInfiniteQuery(
       ["viewer.teams.getMembers", { teamId: Number(router.query.id), limit: 5 }],
       {
-        onSuccess: () => {
-          console.log("🚀 ~ file: team-members-view.tsx ~ line 45 ~ queryTeam ~ memberQuery", memberQuery);
-        },
         getNextPageParam: (lastPage) => lastPage.nextCursor,
       }
     );
