@@ -4,6 +4,7 @@ import { SchedulingType } from "@prisma/client";
 import * as Collapsible from "@radix-ui/react-collapsible";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
+import type { NextRouter } from "next/router";
 import { useReducer, useEffect, useMemo, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { FormattedNumber, IntlProvider } from "react-intl";
@@ -293,6 +294,25 @@ const useRouterQuery = <T extends string>(name: T) => {
 };
 
 export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
+type WeekDayIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+function weekDayToNumber(weekDay: string): WeekDayIndex {
+  const index = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+    weekDay
+  );
+  return index === -1 ? 0 : (index as WeekDayIndex);
+}
+
+function getWeekStartFromRouterOrProfile(router: NextRouter, profile: Props["profile"]): WeekDayIndex {
+  if (router.query.weekStart) {
+    return weekDayToNumber(router.query.weekStart as string);
+  }
+
+  /* Allows providing weekStart as number */
+  return typeof profile.weekStart === "string"
+    ? weekDayToNumber(profile.weekStart)
+    : (profile.weekStart as WeekDayIndex);
+}
 
 const AvailabilityPage = ({ profile, eventType }: Props) => {
   const router = useRouter();
@@ -305,6 +325,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const isBackgroundTransparent = useIsBackgroundTransparent();
+  const weekStart = getWeekStartFromRouterOrProfile(router, profile);
 
   const [timeZone, setTimeZone] = useState<string>();
   const [timeFormat, setTimeFormat] = useState(detectBrowserTimeFormat);
@@ -599,13 +620,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   )*/}
               </div>
               <SlotPicker
-                weekStart={
-                  typeof profile.weekStart === "string"
-                    ? (["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
-                        profile.weekStart
-                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
-                    : profile.weekStart /* Allows providing weekStart as number */
-                }
+                weekStart={weekStart}
                 eventType={eventType}
                 timeFormat={timeFormat}
                 timeZone={timeZone}
