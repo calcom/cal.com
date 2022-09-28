@@ -9,8 +9,10 @@ export const getSafeRedirectUrl = (url = "") => {
     throw new Error("Pass an absolute URL");
   }
 
+  const urlParsed = new URL(url);
+
   // Avoid open redirection security vulnerability
-  if (![CONSOLE_URL, WEBAPP_URL, WEBSITE_URL].some((u) => url.startsWith(u))) {
+  if (![CONSOLE_URL, WEBAPP_URL, WEBSITE_URL].some((u) => new URL(u).origin === urlParsed.origin)) {
     url = `${WEBAPP_URL}/`;
   }
 
