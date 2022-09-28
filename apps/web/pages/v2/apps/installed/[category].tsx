@@ -1,4 +1,4 @@
-import { GetStaticPaths, GetStaticProps, InferGetStaticPropsType } from "next";
+import { InferGetServerSidePropsType } from "next";
 import z from "zod";
 
 import { InstallAppButton } from "@calcom/app-store/components";
@@ -6,6 +6,7 @@ import { InstalledAppVariants } from "@calcom/app-store/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { App } from "@calcom/types/App";
+import { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
 import { Icon } from "@calcom/ui/Icon";
 import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
 import { Alert } from "@calcom/ui/v2/core/Alert";
@@ -177,7 +178,7 @@ const querySchema = z.object({
   category: z.nativeEnum(InstalledAppVariants),
 });
 
-export default function InstalledApps({ category }: InferGetStaticPropsType<typeof getStaticProps>) {
+export default function InstalledApps({ category }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { t } = useLocale();
 
   return (
@@ -199,7 +200,22 @@ export default function InstalledApps({ category }: InferGetStaticPropsType<type
   );
 }
 
-export const getStaticProps: GetStaticProps = (ctx) => {
+// Server side rendering
+export async function getServerSideProps(ctx: AppGetServerSidePropsContext) {
+  // get return-to cookie and redirect if needed
+  const { cookies } = ctx.req;
+  if (cookies && cookies["return-to"]) {
+    const returnTo = cookies["return-to"];
+    if (returnTo) {
+      ctx.res.setHeader("Set-Cookie", "return-to=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT");
+      return {
+        redirect: {
+          destination: `${returnTo}`,
+          permanent: false,
+        },
+      };
+    }
+  }
   const params = querySchema.safeParse(ctx.params);
 
   if (!params.success) return { notFound: true };
@@ -209,14 +225,4 @@ export const getStaticProps: GetStaticProps = (ctx) => {
       category: params.data.category,
     },
   };
-};
-
-export const getStaticPaths: GetStaticPaths = () => {
-  return {
-    paths: Object.values(InstalledAppVariants).map((category) => ({
-      params: { category },
-      locale: "en",
-    })),
-    fallback: "blocking",
-  };
-};
+}
