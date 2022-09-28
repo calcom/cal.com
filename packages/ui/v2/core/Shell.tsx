@@ -4,7 +4,6 @@ import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
 import React, { Dispatch, Fragment, ReactNode, SetStateAction, useEffect, useState } from "react";
-import { Trash2 } from "react-feather";
 import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
