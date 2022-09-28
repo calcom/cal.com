@@ -1,4 +1,5 @@
 import Head from "next/head";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { z } from "zod";
@@ -7,6 +8,7 @@ import { z } from "zod";
 import AddNewTeamMembers from "@calcom/features/ee/teams/components/v2/AddNewTeamMembers";
 import CreateNewTeam from "@calcom/features/ee/teams/components/v2/CreateNewTeam";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Icon } from "@calcom/ui/Icon";
 
 import { StepCard } from "@components/getting-started/components/StepCard";
 import { Steps } from "@components/getting-started/components/Steps";
@@ -72,7 +74,13 @@ const CreateNewTeamPage = () => {
         <title>{t("create_new_team")}</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
+      <div className="mt-2 ml-4 -mb-4">
+        <Link href="/settings">
+          <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-transparent dark:hover:text-white">
+            <Icon.FiChevronLeft className="h-5 w-5" /> {t("Exit")}
+          </a>
+        </Link>
+      </div>
       <div className="mx-auto px-4 py-24">
         <div className="relative">
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]">
