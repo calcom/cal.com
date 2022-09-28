@@ -114,8 +114,6 @@ export const viewerTeamsRouter = createProtectedRouter()
         };
       });
 
-      console.log("🚀 ~ file: teams.tsx ~ line 88 ~ resolve ~ members", members);
-
       let nextCursor: typeof skip | null = skip;
       if (members.length > take) {
         nextCursor += members.length;
