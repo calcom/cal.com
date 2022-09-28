@@ -167,7 +167,7 @@ const DatePicker = ({
           </button>
         </div>
       </div>
-      <div className="border-bookinglightest mb-2 grid grid-cols-7 gap-4 border-t border-b text-center dark:border-gray-800 md:mb-0 md:border-0">
+      <div className="border-bookinglightest mb-2 grid grid-cols-7 gap-4 border-t border-b text-center dark:border-neutral-900 md:mb-0 md:border-0">
         {weekdayNames(locale, weekStart, "short").map((weekDay) => (
           <div
             key={weekDay}
