@@ -54,11 +54,11 @@ export function TeamAvailabilityPage() {
       <LicenseRequired>
         {!!errorMessage && <Alert className="-mt-24 border" severity="error" title={errorMessage} />}
         {isLoading && <Loader />}
-        {isFreeUser ? (
+        {/* {isFreeUser ? (
           <Alert className="-mt-24 border" severity="warning" title={t("pro_feature_teams")} />
         ) : (
           TeamAvailability
-        )}
+        )} */}
       </LicenseRequired>
     </Shell>
   );
