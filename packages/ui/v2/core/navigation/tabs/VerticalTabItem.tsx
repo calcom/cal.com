@@ -20,7 +20,7 @@ export type VerticalTabItemProps = {
   isChild?: boolean;
   hidden?: boolean;
   disableChevron?: boolean;
-  href?: string;
+  href: string;
   isExternalLink?: boolean;
   linkProps?: Omit<ComponentProps<typeof Link>, "href">;
 };
