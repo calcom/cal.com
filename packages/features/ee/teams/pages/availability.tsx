@@ -30,9 +30,9 @@ export function TeamAvailabilityPage() {
   });
 
   // prevent unnecessary re-renders due to shell queries
-  const TeamAvailability = useMemo(() => {
-    return <TeamAvailabilityScreen team={team} />;
-  }, [team]);
+  // const TeamAvailability = useMemo(() => {
+  //   return <TeamAvailabilityScreen team={team} />;
+  // }, [team]);
 
   return (
     <Shell
