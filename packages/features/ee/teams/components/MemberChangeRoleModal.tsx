@@ -48,7 +48,7 @@ export default function MemberChangeRoleModal(props: {
 
   const changeRoleMutation = trpc.useMutation("viewer.teams.changeMemberRole", {
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
+      await utils.invalidateQueries(["viewer.teams.getMembers"]);
       props.onExit();
     },
     async onError(err) {

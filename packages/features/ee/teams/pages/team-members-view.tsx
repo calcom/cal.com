@@ -21,31 +21,21 @@ const MembersView = () => {
   const router = useRouter();
   const session = useSession();
 
-  const queryTeam = () => {
-    const teamQuery = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
-      onError: () => {
-        router.push("/settings");
-      },
-      onSuccess: () => {
-        console.log("🚀 ~ file: team-members-view.tsx ~ line 38 ~ queryTeam ~ memberQuery", teamQuery);
-      },
-    });
-    const memberQuery = trpc.useInfiniteQuery(
-      ["viewer.teams.getMembers", { teamId: Number(router.query.id), limit: 5 }],
-      {
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-        onSuccess: () => {
-          console.log("🚀 ~ file: team-members-view.tsx ~ line 38 ~ queryTeam ~ memberQuery", memberQuery);
-        },
-      }
-    );
-    return [teamQuery, memberQuery];
-  };
+  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
+    onError: () => {
+      router.push("/settings");
+    },
+  });
 
-  const [
-    { data: team, isLoading },
-    { data: teamMemebers, isLoading: memberLoading, hasNextPage, fetchNextPage, isFetchingNextPage },
-  ] = queryTeam();
+  const {
+    data: teamMemebers,
+    isLoading: memberLoading,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = trpc.useInfiniteQuery(["viewer.teams.getMembers", { teamId: Number(router.query.id), limit: 5 }], {
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+  });
 
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
 
@@ -168,7 +158,7 @@ const MembersView = () => {
           {showMemberInvitationModal && team && (
             <MemberInvitationModal
               isOpen={showMemberInvitationModal}
-              team={team}
+              teamId={team.id}
               currentMember={team.membership.role}
               onExit={() => setShowMemberInvitationModal(false)}
             />

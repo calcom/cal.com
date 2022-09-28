@@ -35,7 +35,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
   const inviteMemberMutation = trpc.useMutation("viewer.teams.inviteMember", {
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
+      await utils.invalidateQueries(["viewer.teams.getMembers"]);
       props.onExit();
     },
     async onError(err) {
