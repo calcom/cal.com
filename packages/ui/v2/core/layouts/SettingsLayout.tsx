@@ -316,7 +316,9 @@ export default function SettingsLayout({
     <Shell
       flexChildrenContainer
       {...rest}
-      SidebarContainer={<SettingsSidebarContainer className="hidden lg:flex" />}
+      SidebarContainer={
+        <SettingsSidebarContainer className="absolute inset-y-0 z-50 m-0 hidden h-screen translate-x-0 transform overflow-y-scroll border-gray-100 bg-gray-50 transition duration-200 ease-in-out lg:flex" />
+      }
       drawerState={state}
       MobileNavigationContainer={null}
       SettingsSidebarContainer={
