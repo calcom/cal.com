@@ -86,14 +86,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         const cursorPosition = refEmailSubject?.current?.selectionStart || currentEmailSubject.length;
         const subjectWithAddedVariable = `${currentEmailSubject.substring(0, cursorPosition)}{${variable
           .toUpperCase()
-          .replace(" ", "_")}}${currentEmailSubject.substring(cursorPosition)}`;
+          .replace(/ /g, "_")}}${currentEmailSubject.substring(cursorPosition)}`;
         form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectWithAddedVariable);
       } else {
         const currentMessageBody = refReminderBody?.current?.value || "";
         const cursorPosition = refReminderBody?.current?.selectionStart || currentMessageBody.length;
         const messageWithAddedVariable = `${currentMessageBody.substring(0, cursorPosition)}{${variable
           .toUpperCase()
-          .replace(" ", "_")}}${currentMessageBody.substring(cursorPosition)}`;
+          .replace(/ /g, "_")}}${currentMessageBody.substring(cursorPosition)}`;
         form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, messageWithAddedVariable);
       }
     }
