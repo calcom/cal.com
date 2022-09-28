@@ -121,7 +121,7 @@ const MembersView = () => {
                 </Button>
               </div>
             )}
-            {teamMemebers && (
+            {teamMemebers && team && (
               <div>
                 <ul className="divide-y divide-gray-200 rounded-md border ">
                   {teamMemebers.pages.map((page, index) => (
