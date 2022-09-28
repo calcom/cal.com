@@ -767,7 +767,7 @@ export function ShellMain(props: LayoutProps) {
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className="w-full ltr:mr-4 rtl:ml-4 sm:block">
               {props.heading && (
-                <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
+                <h1 className="font-cal  mb-1 text-xl font-bold capitalize tracking-wide text-black">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
               )}
@@ -778,7 +778,11 @@ export function ShellMain(props: LayoutProps) {
               )}
             </div>
             {props.CTA && (
-              <div className="cta fixed right-4 bottom-[75px] z-40 mb-4 flex-shrink-0 sm:relative  sm:bottom-auto sm:right-auto sm:z-0">
+              <div
+                className={classNames(
+                  props.backPath ? "relative" : "fixed right-4 bottom-[75px] z-40 ",
+                  "cta mb-4 flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto sm:z-0"
+                )}>
                 {props.CTA}
               </div>
             )}
