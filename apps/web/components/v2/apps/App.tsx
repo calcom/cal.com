@@ -66,7 +66,7 @@ const Component = ({
   return (
     <div className="relative flex-1 flex-col items-start justify-start px-4 md:flex md:px-8 lg:flex-row lg:px-0">
       {hasImages && (
-        <div className="flex-2 mb-4 -ml-4 -mr-4 flex min-h-[450px] w-auto min-w-[672px] snap-x snap-mandatory flex-row overflow-auto whitespace-nowrap bg-gray-100  p-4 md:mb-8 md:-ml-8 md:-mr-8 md:p-8 lg:mx-0 lg:mb-0 lg:max-w-2xl lg:flex-col lg:rounded-md">
+        <div className="flex-2 mb-4 -ml-4 -mr-4 flex min-h-[450px] w-auto snap-x snap-mandatory flex-row overflow-auto whitespace-nowrap bg-gray-100  p-4 md:mb-8 md:-ml-8 md:-mr-8 md:p-8 lg:mx-0 lg:mb-0 lg:max-w-2xl lg:flex-col lg:rounded-md">
           {images ? (
             images.map((img) => (
               <img
