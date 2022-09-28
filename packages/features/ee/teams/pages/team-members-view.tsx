@@ -40,8 +40,10 @@ const MembersView = () => {
     return [teamQuery, memberQuery];
   };
 
-  const [{ data: team, isLoading }, { data: teamMemebers, isLoading: memberLoading, hasNextPage }] =
-    queryTeam();
+  const [
+    { data: team, isLoading },
+    { data: teamMemebers, isLoading: memberLoading, hasNextPage, fetchNextPage, isFetchingNextPage },
+  ] = queryTeam();
 
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
 
@@ -57,7 +59,6 @@ const MembersView = () => {
       <Meta title="Team Members" description="Users that are in the group" />
       {!isLoading && (
         <>
-          <SkeletonLoader />
           <div>
             {team && (
               <>
@@ -139,7 +140,15 @@ const MembersView = () => {
                     </Fragment>
                   ))}
                 </ul>
-                <p>{hasNextPage ? "Next page" : "No new data"}</p>
+                {hasNextPage && (
+                  <Button
+                    color="secondary"
+                    loading={isFetchingNextPage}
+                    onClick={() => fetchNextPage()}
+                    className="mt-6">
+                    {t("load_more_members")}
+                  </Button>
+                )}
               </div>
             )}
 
