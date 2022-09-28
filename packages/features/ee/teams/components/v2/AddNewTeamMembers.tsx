@@ -104,8 +104,9 @@ const AddNewTeamMembers = (props: { teamId: number }) => {
           <MemberInvitationModal
             isOpen={memberInviteModal}
             onExit={() => setMemberInviteModal(false)}
-            teamId={team.id}
-            currentMember={team?.membership.role}
+            teamId={props.teamId}
+            // We set this as owner since this is the screen that appears when a team is first made
+            currentMember="OWNER"
           />
         )}
 
