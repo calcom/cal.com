@@ -92,11 +92,11 @@ export default function MemberListItem(props: Props) {
           </div>
           <div className="mt-2 flex ltr:mr-2 rtl:ml-2 sm:mt-0 sm:justify-center">
             {/* Tooltip doesn't show... WHY????? */}
-            {props.member.isMissingSeat && (
+            {/* {props.member.isMissingSeat && (
               <Tooltip side="top" content={t("hidden_team_member_message")}>
                 <TeamPill color="red" text={t("hidden")} />
               </Tooltip>
-            )}
+            )} */}
             {!props.member.accepted && <TeamPill color="yellow" text={t("invitee")} />}
             {props.member.role && <TeamRole role={props.member.role} />}
           </div>

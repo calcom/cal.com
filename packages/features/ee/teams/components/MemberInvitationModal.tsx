@@ -9,7 +9,7 @@ import { Button, Dialog, DialogContent, DialogFooter, Select, TextField } from "
 
 type MemberInvitationModalProps = {
   isOpen: boolean;
-  team: TeamWithMembers | null;
+  teamId: number | null;
   currentMember: MembershipRole;
   onExit: () => void;
 };
@@ -45,7 +45,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
 
   function inviteMember(e: SyntheticEvent) {
     e.preventDefault();
-    if (!props.team) return;
+    if (!props.teamId) return;
 
     const target = e.target as typeof e.target & {
       elements: {
@@ -56,7 +56,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     };
 
     inviteMemberMutation.mutate({
-      teamId: props.team.id,
+      teamId: props.teamId,
       language: i18n.language,
       role: target.elements["role"].value,
       usernameOrEmail: target.elements["inviteUser"].value,

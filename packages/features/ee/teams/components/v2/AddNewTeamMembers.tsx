@@ -104,7 +104,7 @@ const AddNewTeamMembers = (props: { teamId: number }) => {
           <MemberInvitationModal
             isOpen={memberInviteModal}
             onExit={() => setMemberInviteModal(false)}
-            team={team}
+            teamId={team.id}
             currentMember={team?.membership.role}
           />
         )}

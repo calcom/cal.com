@@ -6,7 +6,7 @@ import { useState, Fragment } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
-import { Alert, Button } from "@calcom/ui/v2/core";
+import { Button } from "@calcom/ui/v2/core";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import { SkeletonContainer, SkeletonText, SkeletonButton, SkeletonAvatar } from "@calcom/ui/v2/core/skeleton";
@@ -15,7 +15,6 @@ import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import MemberInvitationModal from "../components/MemberInvitationModal";
 import MemberListItem from "../components/MemberListItem";
 import TeamInviteList from "../components/TeamInviteList";
-import { UpgradeToFlexibleProModal } from "../components/UpgradeToFlexibleProModal";
 
 const MembersView = () => {
   const { t } = useLocale();
@@ -27,11 +26,17 @@ const MembersView = () => {
       onError: () => {
         router.push("/settings");
       },
+      onSuccess: () => {
+        console.log("🚀 ~ file: team-members-view.tsx ~ line 38 ~ queryTeam ~ memberQuery", teamQuery);
+      },
     });
     const memberQuery = trpc.useInfiniteQuery(
       ["viewer.teams.getMembers", { teamId: Number(router.query.id), limit: 5 }],
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
+        onSuccess: () => {
+          console.log("🚀 ~ file: team-members-view.tsx ~ line 38 ~ queryTeam ~ memberQuery", memberQuery);
+        },
       }
     );
     return [teamQuery, memberQuery];
@@ -73,7 +78,7 @@ const MembersView = () => {
                     ]}
                   />
                 )}
-                {team.membership.role === MembershipRole.OWNER &&
+                {/* {team.membership.role === MembershipRole.OWNER &&
                 team.membership.isMissingSeat &&
                 team.requiresUpgrade ? (
                   <Alert
@@ -110,7 +115,7 @@ const MembersView = () => {
                       />
                     )}
                   </>
-                )}
+                )} */}
               </>
             )}
             {isAdmin && (
