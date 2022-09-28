@@ -51,7 +51,7 @@ export default function showToast(message: string, variant: "success" | "warning
       break;
     default:
       toast.custom(
-        () => (
+        (t) => (
           <div
             className={classNames(
               "animate-fade-in-up bg-brand-500 mb-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md",
