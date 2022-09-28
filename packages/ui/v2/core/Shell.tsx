@@ -26,6 +26,7 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
+import Button from "@calcom/ui/v2/core/Button";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
@@ -747,9 +748,13 @@ export function ShellMain(props: LayoutProps) {
     <>
       <div className="flex items-baseline sm:mt-0">
         {!!props.backPath && (
-          <Icon.FiArrowLeft
-            className="mr-3 hover:cursor-pointer"
+          <Button
+            size="icon"
+            color="minimal"
             onClick={() => router.push(props.backPath as string)}
+            StartIcon={Icon.FiArrowLeft}
+            aria-label="Go Back"
+            className="ltr:mr-2 rtl:ml-2"
           />
         )}
         {props.heading && (
