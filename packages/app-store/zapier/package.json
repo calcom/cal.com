@@ -4,7 +4,7 @@
   "name": "@calcom/zapier",
   "version": "0.0.0",
   "main": "./index.ts",
-  "description": "Workflow automation for everyone. Use the Cal.com Zapier app to trigger your workflows when a booking was created, rescheduled or cancled.",
+  "description": "Workflow automation for everyone. Use the Cal.com Zapier app to trigger your workflows when a booking was created, rescheduled or cancelled.",
   "dependencies": {
     "@calcom/lib": "*",
     "node-schedule": "2.1.0"
