@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "Benutzen Sie den Link, um Ihr Passwort zurückzusetzen",
   "hey_there": "Hallo,",
   "forgot_your_password_calcom": "Passwort vergessen? - Cal.com",
-  "event_type_title": "{{eventTypeTitle}} | Event-Typ",
   "delete_webhook_confirmation_message": "Sind Sie sicher, dass Sie diesen Webhook löschen möchten? Sie werden keine Cal.com Termindaten mehr erhalten.",
   "confirm_delete_webhook": "Ja, Webhook löschen",
   "edit_webhook": "Webhook bearbeiten",

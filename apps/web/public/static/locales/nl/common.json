@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "Gebruik de onderstaande link om uw wachtwoord te resetten",
   "hey_there": "Hallo daar,",
   "forgot_your_password_calcom": "Wachtwoord vergeten? - Cal.com",
-  "event_type_title": "{{eventTypeTitle}} | Evenement",
   "delete_webhook_confirmation_message": "Weet u zeker dat u deze webhook wilt verwijderen? U ontvangt dan niet langer Cal.com vergadergegevens op een opgegeven URL, in real-time, wanneer een evenement is geboekt of geannuleerd.",
   "confirm_delete_webhook": "Ja, webhook verwijderen",
   "edit_webhook": "Webhook bewerken",

@@ -6,7 +6,6 @@ import * as path from "path";
 dotEnv.config({ path: ".env" });
 
 const outputDir = path.join(__dirname, "test-results");
-const testDir = path.join(__dirname, "apps/web/playwright");
 
 const DEFAULT_NAVIGATION_TIMEOUT = 15000;
 

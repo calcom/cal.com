@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "Utilisez le lien ci-dessous pour réinitialiser votre mot de passe",
   "hey_there": "Salut,",
   "forgot_your_password_calcom": "Mot de passe oublié ? - Cal.com",
-  "event_type_title": "{{eventTypeTitle}} | Type d'événement",
   "delete_webhook_confirmation_message": "Êtes-vous sûr de vouloir supprimer ce webhook ? Vous ne recevrez plus les données de réunion de Cal.com à une URL spécifiée, en temps réel, lorsqu'un événement est programmé ou annulé.",
   "confirm_delete_webhook": "Oui, supprimer le webhook",
   "edit_webhook": "Modifier le webhook",
@@ -1127,6 +1126,10 @@
   "custom_brand_colors": "Couleurs de marque personnalisées",
   "customize_your_brand_colors": "Personnalisez votre propre couleur de marque dans votre page de réservation.",
   "pro": "Pro",
+  "removes_cal_branding": "Supprime les marques associées à Cal, c'est-à-dire \"Powered by Cal.\"",
+  "profile_picture": "Photo de profil",
+  "upload": "Télécharger",
+  "web3": "Web3",
   "organizer_name_info": "Votre nom",
   "theme_light": "Clair",
   "theme_dark": "Sombre"
