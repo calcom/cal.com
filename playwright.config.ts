@@ -59,6 +59,10 @@ const config: PlaywrightTestConfig = {
       timeout: 120000,
       use: {
         ...devices["Desktop Chrome"],
+        viewport: {
+          width: 1920,
+          height: 1280,
+        },
         /** If navigation takes more than this, then something's wrong, let's fail fast. */
         navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
       },
