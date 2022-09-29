@@ -82,7 +82,7 @@ export default function Availability({ schedule }: { schedule: number }) {
   return (
     <Shell
       backPath="/availability"
-      title={t("availability_title", { availabilityTitle: data?.schedule.name })}
+      title={data?.schedule.name && data.schedule.name + " | " + t("availability")}
       heading={
         <Controller
           control={form.control}

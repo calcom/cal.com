@@ -118,14 +118,12 @@ const SettingsSidebarContainer = ({ className = "" }) => {
       aria-label="Tabs">
       <>
         <div className="desktop-only pt-4" />
-        <div onClick={() => history.back()}>
-          <VerticalTabItem
-            name="Back"
-            href="/."
-            icon={Icon.FiArrowLeft}
-            textClassNames="text-md font-medium leading-none text-black"
-          />
-        </div>
+        <VerticalTabItem
+          name="Back"
+          href="/."
+          icon={Icon.FiArrowLeft}
+          textClassNames="text-md font-medium leading-none text-black"
+        />
         {tabsWithPermissions.map((tab) => {
           return tab.name !== "teams" ? (
             <React.Fragment key={tab.href}>
