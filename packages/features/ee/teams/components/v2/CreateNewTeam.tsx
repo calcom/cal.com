@@ -91,9 +91,15 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
           )}
         />
       </div>
-      <Button type="submit" EndIcon={Icon.FiArrowRight} className="w-full justify-center">
-        {t("continue")}
-      </Button>
+      <div className="flex space-x-2">
+        <Button color="secondary" href="/settings" className="w-full justify-center">
+          {t("cancel")}
+        </Button>
+        <Button color="primary" type="submit" EndIcon={Icon.FiArrowRight} className="w-full justify-center">
+          {t("continue")}
+        </Button>
+      </div>
+
       {createTeamMutation.isError && <p className="mt-4 text-red-700">{createTeamMutation.error.message}</p>}
     </Form>
   );

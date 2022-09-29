@@ -1268,5 +1268,6 @@
   "confirm_password_change_email": "Please confirm your password before changing your email address",
   "seats": "seats",
   "every_app_published": "Every app published on the Cal.com App Store is open source and thoroughly tested via peer reviews. Nevertheless, Cal.com, Inc. does not endorse or certify these apps unless they are published by Cal.com. If you encounter inappropriate content or behaviour please report it.",
-  "report_app": "Report app"
+  "report_app": "Report app",
+  "team_name_required": "Team name required"
 }
