@@ -22,6 +22,14 @@ export default class AttendeeScheduledEmail extends BaseEmail {
     this.attendee = attendee;
     this.hideAttendees = hideAttendees;
     this.t = attendee.language.translate;
+
+    if (this.hideAttendees) {
+      this.calEvent.attendees = [
+        {
+          ...this.attendee,
+        },
+      ];
+    }
   }
 
   protected getiCalEventAsString(): string | undefined {
@@ -46,10 +54,17 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       description: this.getTextBody(),
       duration: { minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), "minute") },
       organizer: { name: this.calEvent.organizer.name, email: this.calEvent.organizer.email },
-      attendees: this.calEvent.attendees.map((attendee: Person) => ({
-        name: attendee.name,
-        email: attendee.email,
-      })),
+      attendees: this.hideAttendees
+        ? [
+            {
+              name: this.attendee.name,
+              email: this.attendee.email,
+            },
+          ]
+        : this.calEvent.attendees.map((attendee: Person) => ({
+            name: attendee.name,
+            email: attendee.email,
+          })),
       ...{ recurrenceRule },
       status: "CONFIRMED",
     });
@@ -60,10 +75,6 @@ export default class AttendeeScheduledEmail extends BaseEmail {
   }
 
   protected getNodeMailerPayload(): Record<string, unknown> {
-    if (this.hideAttendees) {
-      this.calEvent.attendees = [];
-    }
-
     return {
       icalEvent: {
         filename: "event.ics",
