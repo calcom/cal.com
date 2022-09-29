@@ -365,20 +365,8 @@ function BookingListItem(booking: BookingItemProps) {
               </div>
             )}
           </div>
-          <div className="flex justify-end sm:hidden">
-            <div className="whitespace-nowrap pt-2 pb-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4">
-              {isUpcoming && !isCancelled ? (
-                <>
-                  {isPending && user?.id === booking.user?.id && <TableActions actions={pendingActions} />}
-                  {isConfirmed && <TableActions actions={bookedActions} />}
-                  {isRejected && <div className="text-sm text-gray-500">{t("rejected")}</div>}
-                </>
-              ) : null}
-              {isPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
-            </div>
-          </div>
         </td>
-        <td className="hidden whitespace-nowrap py-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:block">
+        <td className="whitespace-nowrap py-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4">
           {isUpcoming && !isCancelled ? (
             <>
               {isPending && user?.id === booking.user?.id && <TableActions actions={pendingActions} />}
