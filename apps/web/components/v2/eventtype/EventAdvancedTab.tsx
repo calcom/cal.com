@@ -350,7 +350,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                 />
                 <div className="mt-6">
                   <CheckboxField
-                    description="Hide attendee info from other attendees"
+                    description={t("hide_attendees")}
                     onChange={(e) => formMethods.setValue("seatsHideAttendees", e.target.checked)}
                     defaultChecked={!!eventType.seatsHideAttendees}
                   />
