@@ -35,7 +35,7 @@ interface GeneralViewProps {
   localeProp: string;
 }
 
-const WithQuery = withQuery(["viewer.public.i18n"], { context: { skipBatch: true } });
+const WithQuery = withQuery(["viewer.public.i18n"], { trpc: { context: { skipBatch: true } } });
 
 const GeneralQueryView = () => {
   return (

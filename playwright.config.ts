@@ -7,7 +7,7 @@ dotEnv.config({ path: ".env" });
 
 const outputDir = path.join(__dirname, "test-results");
 
-const DEFAULT_NAVIGATION_TIMEOUT = 40000;
+const DEFAULT_NAVIGATION_TIMEOUT = 15000;
 
 const headless = !!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS;
 
@@ -56,7 +56,6 @@ const config: PlaywrightTestConfig = {
       name: "@calcom/web",
       testDir: "./apps/web/playwright",
       testMatch: /.*\.e2e\.tsx?/,
-      timeout: 120000,
       use: {
         ...devices["Desktop Chrome"],
         /** If navigation takes more than this, then something's wrong, let's fail fast. */
