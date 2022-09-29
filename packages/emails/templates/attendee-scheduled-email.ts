@@ -12,13 +12,15 @@ import BaseEmail from "./_base-email";
 export default class AttendeeScheduledEmail extends BaseEmail {
   calEvent: CalendarEvent;
   attendee: Person;
+  hideAttendees: boolean | undefined;
   t: TFunction;
 
-  constructor(calEvent: CalendarEvent, attendee: Person) {
+  constructor(calEvent: CalendarEvent, attendee: Person, hideAttendees?: boolean | undefined) {
     super();
     this.name = "SEND_BOOKING_CONFIRMATION";
     this.calEvent = calEvent;
     this.attendee = attendee;
+    this.hideAttendees = hideAttendees;
     this.t = attendee.language.translate;
   }
 
@@ -58,6 +60,10 @@ export default class AttendeeScheduledEmail extends BaseEmail {
   }
 
   protected getNodeMailerPayload(): Record<string, unknown> {
+    if (this.hideAttendees) {
+      this.calEvent.attendees = [];
+    }
+
     return {
       icalEvent: {
         filename: "event.ics",
