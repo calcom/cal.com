@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "Скористайтеся посиланням нижче, щоб скинути пароль",
   "hey_there": "Привіт!",
   "forgot_your_password_calcom": "Забули пароль? – Cal.com",
-  "event_type_title": "{{eventTypeTitle}} | Тип заходу",
   "delete_webhook_confirmation_message": "Справді видалити цей вебгук? Ви більше не отримуватимете дані про нараду Cal.com за вказаною URL-адресою: у реальному часі, а також під час планування та скасування.",
   "confirm_delete_webhook": "Так, видалити вебгук",
   "edit_webhook": "Редагувати вебгук",
