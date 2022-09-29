@@ -48,7 +48,7 @@ const PasswordView = () => {
 
   return (
     <>
-      <Meta title="Password" description="Manage settings for your account passwords" />
+      <Meta title={t("password")} description={t("password_description")} />
       {user && user.identityProvider !== IdentityProvider.CAL ? (
         <div>
           <div className="mt-6">
@@ -65,22 +65,27 @@ const PasswordView = () => {
           </p>
         </div>
       ) : (
-        <Form<ChangePasswordFormValues> form={formMethods} handleSubmit={handleSubmit}>
+        <Form form={formMethods} handleSubmit={handleSubmit}>
           <div className="max-w-[38rem] sm:flex sm:space-x-4">
             <div className="flex-grow">
-              <TextField {...register("oldPassword")} label={t("old_password")} type="password" />
+              <TextField
+                {...register("oldPassword")}
+                label={t("old_password")}
+                type="password"
+                placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
+              />
             </div>
             <div className="flex-grow">
               <TextField
                 {...register("newPassword")}
                 label={t("new_password")}
                 type="password"
-                placeholder={t("secure_password")}
+                placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
               />
             </div>
           </div>
           <p className="text-sm text-gray-600">
-            <Trans i18nKey="valid_password">
+            <Trans i18nKey="invalid_password_hint">
               Password must be at least at least 7 characters, mix of uppercase & lowercase letters, and
               contain at least 1 number
             </Trans>
@@ -89,8 +94,8 @@ const PasswordView = () => {
           <Button
             color="primary"
             className="mt-8"
-            disabled={isSubmitting || mutation.isLoading}
-            onClick={() => handleSubmit(formMethods.getValues())}>
+            type="submit"
+            disabled={isSubmitting || mutation.isLoading}>
             {t("update")}
           </Button>
         </Form>
