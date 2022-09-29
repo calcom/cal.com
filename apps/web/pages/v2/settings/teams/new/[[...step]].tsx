@@ -7,6 +7,9 @@ import { z } from "zod";
 import AddNewTeamMembers from "@calcom/features/ee/teams/components/v2/AddNewTeamMembers";
 import CreateNewTeam from "@calcom/features/ee/teams/components/v2/CreateNewTeam";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Icon } from "@calcom/ui/Icon";
+import { Shell } from "@calcom/ui/v2/core";
+import Button from "@calcom/ui/v2/core/Button";
 
 import { StepCard } from "@components/getting-started/components/StepCard";
 import { Steps } from "@components/getting-started/components/Steps";
@@ -72,7 +75,6 @@ const CreateNewTeamPage = () => {
         <title>{t("create_new_team")}</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
       <div className="mx-auto px-4 py-24">
         <div className="relative">
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]">
