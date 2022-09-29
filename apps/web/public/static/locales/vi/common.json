@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "Sử dụng đường link dưới đây để thay đổi mật khẩu của bạn",
   "hey_there": "Xin chào,",
   "forgot_your_password_calcom": "Quên mật khẩu của bạn? - Cal.com",
-  "event_type_title": "{{eventTypeTitle}} | Loại Sự Kiện",
   "delete_webhook_confirmation_message": "Bạn có chắc bạn muốn xoá webhook này? Bạn sẽ không còn nhận dữ liệu cuộc họp Cal.com tại đường URL này, trong thời gian thực, khi một sự kiện được lên lịch hoặc huỷ.",
   "confirm_delete_webhook": "Vâng, hãy xoá webhook",
   "edit_webhook": "Chỉnh Webhook",

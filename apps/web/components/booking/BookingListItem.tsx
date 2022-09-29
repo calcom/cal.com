@@ -366,7 +366,7 @@ function BookingListItem(booking: BookingItemProps) {
             )}
           </div>
         </td>
-        <td className="whitespace-nowrap py-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4">
+        <td className="whitespace-nowrap py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
           {isUpcoming && !isCancelled ? (
             <>
               {isPending && user?.id === booking.user?.id && <TableActions actions={pendingActions} />}
