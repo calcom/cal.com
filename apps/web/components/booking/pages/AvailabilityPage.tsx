@@ -176,7 +176,7 @@ const SlotPicker = ({
       <DatePicker
         isLoading={isLoading}
         className={classNames(
-          "mt-8 w-full px-4 sm:mt-0 sm:min-w-[455px] md:px-5",
+          "mt-8 w-full px-4 pb-4 sm:mt-0 sm:min-w-[455px] md:px-5",
           selectedDate
             ? "sm:dark:border-darkgray-200 border-gray-200 sm:w-1/2 sm:border-r sm:p-4 sm:pr-6 md:w-1/3"
             : "sm:p-4"
@@ -393,7 +393,9 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
           <div
             style={availabilityDatePickerEmbedStyles}
             className={classNames(
-              isBackgroundTransparent ? "" : "dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-white",
+              isBackgroundTransparent
+                ? ""
+                : "dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-white pb-4 md:pb-0",
               "border-bookinglightest overflow-hidden rounded-md md:border",
               isEmbed ? "mx-auto" : maxWidth
             )}>

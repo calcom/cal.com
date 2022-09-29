@@ -1127,6 +1127,10 @@
   "custom_brand_colors": "Couleurs de marque personnalisées",
   "customize_your_brand_colors": "Personnalisez votre propre couleur de marque dans votre page de réservation.",
   "pro": "Pro",
+  "removes_cal_branding": "Supprime les marques associées à Cal, c'est-à-dire \"Powered by Cal.\"",
+  "profile_picture": "Photo de profil",
+  "upload": "Télécharger",
+  "web3": "Web3",
   "organizer_name_info": "Votre nom",
   "theme_light": "Clair",
   "theme_dark": "Sombre"
