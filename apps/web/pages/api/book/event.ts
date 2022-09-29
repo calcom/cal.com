@@ -22,17 +22,12 @@ import {
 } from "@calcom/emails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/utils/getWebhooks";
-import {
-  checkBookingLimits,
-  isPrismaObjOrUndefined,
-  parseBookingLimit,
-  parseRecurringEvent,
-} from "@calcom/lib";
+import { isPrismaObjOrUndefined, parseBookingLimit, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
-import { defaultResponder, getLuckyUser } from "@calcom/lib/server";
+import { defaultResponder, getLuckyUser, checkBookingLimits } from "@calcom/lib/server";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { userSelect } from "@calcom/prisma";
 import { extendedBookingCreateBody, requiredCustomInputSchema } from "@calcom/prisma/zod-utils";

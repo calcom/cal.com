@@ -1,5 +1,5 @@
 import dayjs from "@calcom/dayjs";
-import { checkBookingLimits, checkLimit } from "@calcom/lib";
+import { checkBookingLimits, checkLimit } from "@calcom/lib/server";
 import { BookingLimit } from "@calcom/types/Calendar";
 
 import { prismaMock } from "../../../../tests/config/singleton";
