@@ -632,7 +632,6 @@
   "billing": "计费",
   "manage_your_billing_info": "管理您的账单信息和取消您的订阅。",
   "availability": "可预约时间",
-  "availability_title": "{{availabilityTitle}} | 可预约时间",
   "edit_availability": "编辑可预约时间",
   "configure_availability": "配置您可预约的时间。",
   "copy_times_to": "复制时间到",

@@ -632,7 +632,6 @@
   "billing": "Fatura",
   "manage_your_billing_info": "Fatura bilgilerinizi yönetin ve aboneliğinizi iptal edin.",
   "availability": "Müsaitlik",
-  "availability_title": "{{availabilityTitle}} | Müsaitlik Durumu",
   "edit_availability": "Müsaitlik durumunu düzenle",
   "configure_availability": "Rezervasyon için uygun olduğunuz zamanları yapılandırın.",
   "copy_times_to": "Saatleri şuraya kopyala:",

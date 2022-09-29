@@ -632,7 +632,6 @@
   "billing": "Facturare",
   "manage_your_billing_info": "Gestionați informațiile de facturare și anulați abonamentul.",
   "availability": "Disponibilitate",
-  "availability_title": "{{availabilityTitle}} | Disponibilitate",
   "edit_availability": "Editează disponibilitatea",
   "configure_availability": "Configurați orele când sunteți disponibil pentru rezervări.",
   "copy_times_to": "Copiază orele la",
