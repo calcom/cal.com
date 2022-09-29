@@ -91,7 +91,7 @@ interface IntegrationsContainerProps {
 
 const IntegrationsList = ({ data }: { data: inferQueryOutput<"viewer.integrations"> }) => {
   return (
-    <List>
+    <List noBorderTreatment>
       {data.items.map((item) => (
         <IntegrationListItem
           name={item.name}

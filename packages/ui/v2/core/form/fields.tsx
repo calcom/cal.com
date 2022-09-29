@@ -166,14 +166,14 @@ type InputFieldProps = {
 
 const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(props, ref) {
   const id = useId();
-  const { t: _t, isLocaleReady } = useLocale();
+  const { t: _t, isLocaleReady, i18n } = useLocale();
   const t = props.t || _t;
   const name = props.name || "";
   const {
     label = t(name),
     labelProps,
     labelClassName,
-    placeholder = isLocaleReady ? t(name + "_placeholder") : "",
+    placeholder = isLocaleReady && i18n.exists(name + "_placeholder") ? t(name + "_placeholder") : "",
     className,
     addOnLeading,
     addOnSuffix,
@@ -186,12 +186,6 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
     t: __t,
     ...passThrough
   } = props;
-
-  const translatedPlaceholder = isLocaleReady
-    ? !placeholder?.endsWith("_placeholder")
-      ? placeholder
-      : ""
-    : "";
 
   return (
     <div className={classNames(containerClassName)}>
@@ -228,7 +222,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
           </div>
           <Input
             id={id}
-            placeholder={translatedPlaceholder}
+            placeholder={placeholder}
             className={classNames(
               className,
               addOnLeading && "rounded-l-none",
@@ -240,7 +234,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
           />
         </div>
       ) : (
-        <Input id={id} placeholder={translatedPlaceholder} className={className} {...passThrough} ref={ref} />
+        <Input id={id} placeholder={placeholder} className={className} {...passThrough} ref={ref} />
       )}
       <HintsOrErrors hintErrors={hintErrors} fieldName={name} t={t} />
       {hint && <div className="text-gray mt-2 flex items-center text-sm text-gray-700">{hint}</div>}
@@ -268,7 +262,7 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
     <div className="relative">
       <InputField
         type={isPasswordVisible ? "text" : "password"}
-        placeholder="•••••••••••••"
+        placeholder={isPasswordVisible ? "0hMy4P4ssw0rd" : "•••••••••••••"}
         ref={ref}
         {...props}
         className={classNames("mb-0 pr-10", props.className)}
@@ -276,7 +270,10 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
 
       <Tooltip content={textLabel}>
         <button
-          className="absolute bottom-0 right-3 h-9 text-gray-900"
+          className={classNames(
+            "absolute right-3 h-9 text-gray-900",
+            props.hintErrors ? "top-[22px]" : "bottom-0"
+          )}
           type="button"
           onClick={() => toggleIsPasswordVisible()}>
           {isPasswordVisible ? (
