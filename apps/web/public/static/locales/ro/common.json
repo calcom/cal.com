@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "Utilizați linkul de mai jos pentru a vă reseta parola",
   "hey_there": "Bună,",
   "forgot_your_password_calcom": "Ți-ai uitat parola? - Cal.com",
-  "event_type_title": "{{eventTypeTitle}} Tip de Eveniment",
   "delete_webhook_confirmation_message": "Ești sigur că vrei să ștergi acest webhook? Nu vei mai primi Cal.com date de întâlnire la un URL specificat, în timp real, atunci când un eveniment este programat sau anulat.",
   "confirm_delete_webhook": "Da, șterge webhook",
   "edit_webhook": "Editează Webhook",
