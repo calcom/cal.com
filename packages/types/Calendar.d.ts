@@ -22,7 +22,9 @@ export type Person = {
   timeZone: string;
   language: { translate: TFunction; locale: string };
   username?: string;
-  id?: string;
+  id?: number;
+  bookingId?: number;
+  locale?: string;
 };
 
 export type EventBusyDate = {
