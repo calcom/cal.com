@@ -625,7 +625,7 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ ctx }) {
       const { user } = ctx;
       // get user's credentials + their connected integrations
-      const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
+      const calendarCredentials = getCalendarCredentials(user.credentials);
 
       // get all the connected integrations' calendars (from third party)
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
@@ -691,7 +691,7 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const { user } = ctx;
       const { integration, externalId, eventTypeId } = input;
-      const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
+      const calendarCredentials = getCalendarCredentials(user.credentials);
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
 
