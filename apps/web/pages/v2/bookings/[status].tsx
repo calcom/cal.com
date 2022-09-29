@@ -94,7 +94,7 @@ export default function Bookings() {
         {query.status === "error" && (
           <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
         )}
-        {(query.status === "loading" || query.status === "idle") && <SkeletonLoader />}
+        {(query.status === "loading" || query.isPaused) && <SkeletonLoader />}
         {query.status === "success" && !isEmpty && (
           <div className="pt-2 xl:pt-0">
             <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />

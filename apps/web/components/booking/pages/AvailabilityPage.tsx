@@ -79,7 +79,7 @@ const useSlots = ({
   usernameList: string[];
   timeZone?: string;
 }) => {
-  const { data, isLoading, isIdle } = trpc.useQuery(
+  const { data, isLoading, isPaused } = trpc.useQuery(
     [
       "viewer.public.slots.getSchedule",
       {
@@ -101,8 +101,8 @@ const useSlots = ({
     }
   }, [data]);
 
-  // The very first time isIdle is set if auto-fetch is disabled, so isIdle should also be considered a loading state.
-  return { slots: cachedSlots, isLoading: isLoading || isIdle };
+  // The very first time isPaused is set if auto-fetch is disabled, so isPaused should also be considered a loading state.
+  return { slots: cachedSlots, isLoading: isLoading || isPaused };
 };
 
 const SlotPicker = ({
