@@ -13,6 +13,7 @@ import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { TRPCClientError } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
 import Badge from "@calcom/ui/Badge";
@@ -41,8 +42,6 @@ import AvatarGroup from "@components/ui/AvatarGroup";
 import { LinkText } from "@components/ui/LinkText";
 import NoCalendarConnectedAlert from "@components/ui/NoCalendarConnectedAlert";
 import SkeletonLoader from "@components/v2/eventtype/SkeletonLoader";
-
-import { TRPCClientError } from "@trpc/react";
 
 type EventTypeGroups = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
