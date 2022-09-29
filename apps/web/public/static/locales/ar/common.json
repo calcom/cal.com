@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "استخدم الرابط أدناه لإعادة تعيين كلمة المرور",
   "hey_there": "مرحبًا،",
   "forgot_your_password_calcom": "نسيت كلمة المرور الخاصة بك؟ - Cal.com",
-  "event_type_title": "{{eventTypeTitle}} | نوع الحدث",
   "delete_webhook_confirmation_message": "هل أنت متأكد أنك تريد حذف الويب هوك هذا؟ لن تتلقى بعد الآن بيانات اجتماعات Cal.com على عنوان URL محدد، وفي الوقت الفعلي، عندما تتم جدولة حدث أو يتم إلغاؤه.",
   "confirm_delete_webhook": "نعم، قم بحذف الويبهوك",
   "edit_webhook": "تعديل الويبهوك",

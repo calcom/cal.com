@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "Pro obnovení hesla použijte odkaz níž",
   "hey_there": "Zdravíme,",
   "forgot_your_password_calcom": "Zapomněli jste heslo? - Cal.com",
-  "event_type_title": "{{eventTypeTitle}} | Typ události",
   "delete_webhook_confirmation_message": "Opravdu chcete smazat tento webhook? Přestanete v reálném čase dostávat Cal.com data o schůzce na dané URL, pokud bude událost naplánována nebo zrušena.",
   "confirm_delete_webhook": "Ano, smazat webhook",
   "edit_webhook": "Upravit webhook",

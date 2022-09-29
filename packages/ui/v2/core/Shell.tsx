@@ -119,7 +119,7 @@ export function ShellSubHeading(props: {
 }
 
 const Layout = (props: LayoutProps) => {
-  const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
+  const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
 
   return (
     <>
