@@ -3,7 +3,8 @@ import { PeriodType, Prisma, SchedulingType, UserPlan } from "@prisma/client";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { userSelect } from "@calcom/prisma/selects";
-import { EventTypeMetaDataSchema, _EventTypeModel } from "@calcom/prisma/zod";
+import { _EventTypeModel } from "@calcom/prisma/zod";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 

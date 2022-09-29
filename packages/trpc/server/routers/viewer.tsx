@@ -36,8 +36,15 @@ import {
   deleteWebUser as syncServicesDeleteWebUser,
   updateWebUser as syncServicesUpdateWebUser,
 } from "@calcom/lib/sync/SyncServiceManager";
-import prisma, { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
-import { _EventTypeModel, EventTypeModel } from "@calcom/prisma/zod";
+import prisma, { baseEventTypeSelect, baseUserSelect, bookingMinimalSelect } from "@calcom/prisma";
+import {
+  _EventTypeModel,
+  EventTypeModel,
+  _UserModel,
+  _TeamModel,
+  _DestinationCalendarModel,
+  _HashedLinkModel,
+} from "@calcom/prisma/zod";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 
@@ -280,17 +287,11 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ ctx }) {
       const { prisma } = ctx;
       const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-        position: true,
-        successRedirectUrl: true,
         hashedLink: true,
         destinationCalendar: true,
         team: true,
         users: {
-          select: {
-            id: true,
-            username: true,
-            name: true,
-          },
+          select: baseUserSelect,
         },
         ...baseEventTypeSelect,
       });
@@ -359,8 +360,18 @@ const loggedInViewerRouter = createProtectedRouter()
       if (!user) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
+      const MyEventTypeSchema = _EventTypeModel.extend({
+        hashedLink: _HashedLinkModel.nullable(),
+        destinationCalendar: _DestinationCalendarModel.nullable(),
+        team: _TeamModel,
+        users: _UserModel.array(),
+      });
 
-      const userEventTypes = user.eventTypes.map((eventType) => EventTypeModel.parse(eventType));
+      const userEventTypes = user.eventTypes.map((eventType) => {
+        console.log("hashedlink", eventType.hashedLink);
+        return MyEventTypeSchema.parse(eventType);
+      });
+
       // backwards compatibility, TMP:
       const typesRaw = (
         await prisma.eventType.findMany({
@@ -378,8 +389,9 @@ const loggedInViewerRouter = createProtectedRouter()
           ],
         })
       ).map((eventType) => {
-        return EventTypeModel.parse(eventType);
+        return MyEventTypeSchema.parse(eventType);
       });
+      console.log("PARSED typesRaw");
 
       type EventTypeGroup = {
         teamId?: number | null;
@@ -427,10 +439,10 @@ const loggedInViewerRouter = createProtectedRouter()
             membershipCount: membership.team.members.length,
             readOnly: membership.role === MembershipRole.MEMBER,
           },
-          eventTypes: membership.team.eventTypes.map((eventType) => EventTypeModel.parse(eventType)),
+          eventTypes: membership.team.eventTypes.map((eventType) => MyEventTypeSchema.parse(eventType)),
         }))
       );
-
+      console.log("parsed teamEventtypes");
       return {
         viewer: {
           plan: user.plan,

@@ -147,7 +147,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     })),
   }));
 
-  const eventTypes = team.eventTypes.map((type) => EventTypeModel.parse(type));
+  const eventTypes = team.eventTypes;
 
   return {
     props: {

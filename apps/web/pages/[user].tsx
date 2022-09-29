@@ -26,8 +26,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod";
-import { recurringEventType } from "@calcom/prisma/zod-utils";
+import { eventTypeLocations, EventTypeMetaDataSchema, recurringEventType } from "@calcom/prisma/zod-utils";
 import { BadgeCheckIcon, Icon } from "@calcom/ui/Icon";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
@@ -321,6 +320,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const eventTypes = eventTypesRaw.map((eventType) => ({
     // TODO: zod parse entire eventType object
     ...eventType,
+    locations: eventTypeLocations.parse(eventType.locations),
     recurringEvent: recurringEventType.parse(eventType.recurringEvent),
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
   }));

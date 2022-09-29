@@ -28,8 +28,9 @@ import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
-import prisma from "@calcom/prisma";
-import { EventTypeMetaDataSchema, _EventTypeModel } from "@calcom/prisma/zod";
+import prisma, { baseUserSelect } from "@calcom/prisma";
+import { _EventTypeModel } from "@calcom/prisma/zod";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 import { EmailInput } from "@calcom/ui/form/fields";
@@ -779,18 +780,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       where: {
         id: eventTypeRaw.userId,
       },
-      select: {
-        id: true,
-        name: true,
-        username: true,
-        hideBranding: true,
-        plan: true,
-        theme: true,
-        brandColor: true,
-        darkBrandColor: true,
-        email: true,
-        timeZone: true,
-      },
+      select: baseUserSelect,
     });
     if (user) {
       eventTypeRaw.users.push(user);
