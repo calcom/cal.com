@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "비밀번호를 재설정하시려면 아래 링크를 사용하세요.",
   "hey_there": "안녕하세요.",
   "forgot_your_password_calcom": "비밀번호를 잊어버리셨나요? - Cal.com",
-  "event_type_title": "{{eventTypeTitle}} | 이벤트 타입",
   "delete_webhook_confirmation_message": "웹훅을 정말로 삭제하시겠습니까? 이벤트 일정이 잡혔거나 취소되었을 때 Cal.com의 회의 정보를 더 이상 실시간으로 받아보실 수 없게 됩니다.",
   "confirm_delete_webhook": "네, 웹훅을 삭제하겠습니다.",
   "edit_webhook": "웹훅 수정하기",

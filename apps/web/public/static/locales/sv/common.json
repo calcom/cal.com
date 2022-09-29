@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "Använd länken nedan för att återställa ditt lösenord",
   "hey_there": "Hallå där,",
   "forgot_your_password_calcom": "Glömt ditt lösenord? - Cal.com",
-  "event_type_title": "{{eventTypeTitle}} | Händelsetyp",
   "delete_webhook_confirmation_message": "Är du säker på att du vill ta bort denna webhook? Du kommer inte längre att få Calcom mötesdata skickad till angiven URL, i realtid, när en händelse är schemalagd eller avbruten.",
   "confirm_delete_webhook": "Ja, ta bort webhook",
   "edit_webhook": "Redigera Webhook",
