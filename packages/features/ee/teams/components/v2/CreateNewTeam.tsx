@@ -92,7 +92,7 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
         />
       </div>
       <div className="flex space-x-2">
-        <Button color="secondary" type="submit" className="w-full justify-center">
+        <Button color="secondary" href="/settings" className="w-full justify-center">
           {t("cancel")}
         </Button>
         <Button color="primary" type="submit" EndIcon={Icon.FiArrowRight} className="w-full justify-center">
