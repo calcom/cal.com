@@ -118,15 +118,12 @@ const SettingsSidebarContainer = ({ className = "" }) => {
       aria-label="Tabs">
       <>
         <div className="desktop-only pt-4" />
-        <div>
-          <VerticalTabItem
-            name="Back"
-            href="/"
-            icon={Icon.FiArrowLeft}
-            textClassNames="text-md font-medium leading-none text-black"
-            className="my-6"
-          />
-        </div>
+        <VerticalTabItem
+          name="Back"
+          href="/."
+          icon={Icon.FiArrowLeft}
+          textClassNames="text-md font-medium leading-none text-black"
+        />
         {tabsWithPermissions.map((tab) => {
           return tab.name !== "teams" ? (
             <React.Fragment key={tab.href}>
@@ -332,7 +329,7 @@ export default function SettingsLayout({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="mx-auto max-w-xs justify-center md:max-w-3xl">
+        <div className="mx-auto max-w-3xl justify-center">
           <ShellHeader />
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
@@ -347,7 +344,7 @@ function ShellHeader() {
   const { meta } = useMeta();
   const { t, isLocaleReady } = useLocale();
   return (
-    <header className="mx-auto block max-w-xs justify-between pt-12 sm:flex sm:pt-8 md:max-w-3xl">
+    <header className="mx-auto block justify-between pt-12 sm:flex sm:pt-8">
       <div className="mb-8 flex w-full items-center border-b border-gray-200 pb-8">
         {meta.backButton && (
           <a href="javascript:history.back()">
