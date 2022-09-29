@@ -307,11 +307,11 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
   );
 };
 
-function calculateMinMaxValue(key: keyof BookingLimit, value: number) {
+function calculateMinValue(key: keyof BookingLimit, value: number) {
   if (key === "PER_DAY") return 1;
-  if (key === "PER_MONTH") return value + 1;
-  if (key === "PER_WEEK") return value + 1;
-  if (key === "PER_YEAR") return value + 1;
+  if (key === "PER_MONTH") return value;
+  if (key === "PER_WEEK") return value;
+  if (key === "PER_YEAR") return value;
   return 1; // Imposible case
 }
 
@@ -363,7 +363,7 @@ const BookingLimits = () => {
                     id={`${bookingLimitKey}-limit`}
                     type="number"
                     className="mb-0 block w-16 rounded-md border-gray-300 text-sm  [appearance:textfield]"
-                    min={calculateMinMaxValue(bookingLimitKey, bookingAmount)}
+                    min={calculateMinValue(bookingLimitKey, bookingAmount)}
                     placeholder="1"
                     defaultValue={bookingAmount}
                     onChange={(e) => {
