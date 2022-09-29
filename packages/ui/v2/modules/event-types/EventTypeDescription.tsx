@@ -6,13 +6,18 @@ import { z } from "zod";
 import { classNames, parseRecurringEvent } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { baseEventTypeSelect } from "@calcom/prisma";
-import { _EventTypeModel as EventType, _EventTypeModel } from "@calcom/prisma/zod";
+import { EventTypeModel } from "@calcom/prisma/zod";
 import { Icon } from "@calcom/ui";
 import Badge from "@calcom/ui/v2/core/Badge";
 import { getEventTypeAppData } from "@calcom/web/components/v2/eventtype/EventAppsTab";
 
 export type EventTypeDescriptionProps = {
-  eventType: Pick<z.infer<typeof _EventTypeModel>, keyof typeof baseEventTypeSelect>;
+  eventType: Pick<
+    z.infer<typeof EventTypeModel>,
+    Exclude<keyof typeof baseEventTypeSelect, "recurringEvent"> | "metadata"
+  > & {
+    recurringEvent: Prisma.JsonValue;
+  };
   className?: string;
 };
 
@@ -24,7 +29,7 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
     [eventType.recurringEvent]
   );
 
-  const stripeAppData = getEventTypeAppData(eventType as z.infer<typeof _EventTypeModel>, "stripe");
+  const stripeAppData = getEventTypeAppData(eventType, "stripe");
 
   return (
     <>

@@ -1,5 +1,5 @@
 import { _EventTypeModel } from "../eventtype";
-
+import {z} from "zod"
 export const createEventTypeInput = _EventTypeModel
   .pick({
     title: true,
@@ -15,3 +15,5 @@ export const createEventTypeInput = _EventTypeModel
     path: ["schedulingType"],
     message: "You must select a scheduling type for team events",
   });
+
+

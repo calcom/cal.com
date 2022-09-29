@@ -211,40 +211,46 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
 User.isThemeSupported = true;
 
 const getEventTypesWithHiddenFromDB = async (userId: number, plan: UserPlan) => {
-  return await prisma.eventType.findMany({
-    where: {
-      AND: [
-        {
-          teamId: null,
-        },
-        {
-          OR: [
-            {
-              userId,
-            },
-            {
-              users: {
-                some: {
-                  id: userId,
+  return (
+    await prisma.eventType.findMany({
+      where: {
+        AND: [
+          {
+            teamId: null,
+          },
+          {
+            OR: [
+              {
+                userId,
+              },
+              {
+                users: {
+                  some: {
+                    id: userId,
+                  },
                 },
               },
-            },
-          ],
+            ],
+          },
+        ],
+      },
+      orderBy: [
+        {
+          position: "desc",
+        },
+        {
+          id: "asc",
         },
       ],
-    },
-    orderBy: [
-      {
-        position: "desc",
+      select: {
+        ...baseEventTypeSelect,
+        metadata: true,
       },
-      {
-        id: "asc",
-      },
-    ],
-    select: {
-      ...baseEventTypeSelect,
-    },
-  });
+    })
+  ).map((eventType) => ({
+    ...eventType,
+    metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+  }));
 };
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
@@ -320,8 +326,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const eventTypes = eventTypesRaw.map((eventType) => ({
     // TODO: zod parse entire eventType object
     ...eventType,
-    locations: eventTypeLocations.parse(eventType.locations),
-    recurringEvent: recurringEventType.parse(eventType.recurringEvent),
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
   }));
 

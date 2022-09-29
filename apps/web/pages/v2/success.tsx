@@ -29,7 +29,7 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma, { baseUserSelect } from "@calcom/prisma";
-import { _EventTypeModel } from "@calcom/prisma/zod";
+import { EventTypeModel } from "@calcom/prisma/zod";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
@@ -175,7 +175,7 @@ export default function Success(props: SuccessProps) {
   };
 
   const giphyAppData = getEventTypeAppData(
-    eventType as Pick<z.infer<typeof _EventTypeModel>, "currency" | "price" | "metadata">,
+    eventType as Pick<z.infer<typeof EventTypeModel>, "currency" | "price" | "metadata">,
     "giphy"
   );
   const giphyImage = giphyAppData.thankYouPage;
@@ -726,9 +726,12 @@ const getEventTypesFromDB = async (id: number) => {
     return eventType;
   }
 
+  const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+
   return {
     isDynamic: false,
     ...eventType,
+    metadata,
   };
 };
 

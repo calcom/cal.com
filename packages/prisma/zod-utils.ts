@@ -15,20 +15,30 @@ export enum Frequency {
   SECONDLY = 6,
 }
 
-export const eventTypeLocations = z
-  .array(
-    z.object({
-      // TODO: Couldn't find a way to make it a union of types from App Store locations
-      // Creating a dynamic union by iterating over the object doesn't seem to make TS happy
-      type: z.string(),
-      address: z.string().optional(),
-      link: z.string().url().optional(),
-      displayLocationPublicly: z.boolean().optional(),
-      hostPhoneNumber: z.string().optional(),
+export const EventTypeMetaDataSchema = z.object({
+  smartContractAddress: z.string().optional(),
+  blockchainId: z.number().optional(),
+  giphyThankYouPage: z.string().optional(),
+  apps: z
+    .object({
+      stripe: z.any().optional(),
+      giphy: z.any().optional(),
+      rainbow: z.any().optional(),
     })
-  )
-  .nullable()
-  .optional();
+    .optional(),
+});
+
+export const eventTypeLocations = z.array(
+  z.object({
+    // TODO: Couldn't find a way to make it a union of types from App Store locations
+    // Creating a dynamic union by iterating over the object doesn't seem to make TS happy
+    type: z.string(),
+    address: z.string().optional(),
+    link: z.string().url().optional(),
+    displayLocationPublicly: z.boolean().optional(),
+    hostPhoneNumber: z.string().optional(),
+  })
+);
 
 // Matching RRule.Options: rrule/dist/esm/src/types.d.ts
 export const recurringEventType = z
@@ -133,22 +143,6 @@ export const userMetadata = z
     intentUsername: z.string().optional(),
     checkoutSessionId: z.string().nullable().optional(),
   })
-  .nullable();
-
-export const EventTypeMetaDataSchema = z
-  .object({
-    smartContractAddress: z.string().optional(),
-    blockchainId: z.number().optional(),
-    giphyThankYouPage: z.string().optional(),
-    apps: z
-      .object({
-        stripe: z.any().optional(),
-        giphy: z.any().optional(),
-        rainbow: z.any().optional(),
-      })
-      .optional(),
-  })
-  .optional()
   .nullable();
 
 /**

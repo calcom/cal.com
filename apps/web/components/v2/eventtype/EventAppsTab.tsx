@@ -6,7 +6,8 @@ import { z } from "zod";
 import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
 // import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { _EventTypeModel } from "@calcom/prisma/zod";
+import { EventTypeModel } from "@calcom/prisma/zod";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import ErrorBoundary from "@calcom/ui/ErrorBoundary";
@@ -15,11 +16,11 @@ import { Button, EmptyScreen } from "@calcom/ui/v2";
 type EventType = Pick<EventTypeSetupInfered, "eventType">["eventType"];
 type GetAppData = (key: string) => any;
 type SetAppData = (key: string, value: any) => void;
-type EventTypeApps = keyof NonNullable<NonNullable<z.infer<typeof _EventTypeModel>["metadata"]>["apps"]>;
+type EventTypeApps = keyof NonNullable<NonNullable<z.infer<typeof EventTypeMetaDataSchema>>["apps"]>;
 export const eventTypeAppContext = React.createContext<[GetAppData, SetAppData]>([() => ({}), () => {}]);
 
 export const getEventTypeAppData = (
-  eventType: Pick<z.infer<typeof _EventTypeModel>, "price" | "currency" | "metadata">,
+  eventType: Pick<z.infer<typeof EventTypeModel>, "price" | "currency" | "metadata">,
   appId: EventTypeApps
 ) => {
   const metadata = eventType.metadata;

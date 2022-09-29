@@ -6,6 +6,7 @@ import { z } from "zod";
 import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@calcom/emails";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
+import { EventTypeModel } from "@calcom/prisma/zod";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { getEventTypeAppData } from "@components/v2/eventtype/EventAppsTab";
@@ -51,10 +52,7 @@ const stripeCredentialSchema = z.object({
 
 export async function handlePayment(
   evt: CalendarEvent,
-  selectedEventType: {
-    price: number;
-    currency: string;
-  },
+  selectedEventType: Pick<z.infer<typeof EventTypeModel>, "price" | "currency" | "metadata">,
   stripeCredential: { key: Prisma.JsonValue },
   booking: {
     user: { email: string | null; name: string | null; timeZone: string } | null;

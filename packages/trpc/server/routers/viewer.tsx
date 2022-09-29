@@ -37,15 +37,8 @@ import {
   updateWebUser as syncServicesUpdateWebUser,
 } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { baseEventTypeSelect, baseUserSelect, bookingMinimalSelect } from "@calcom/prisma";
-import {
-  _EventTypeModel,
-  EventTypeModel,
-  _UserModel,
-  _TeamModel,
-  _DestinationCalendarModel,
-  _HashedLinkModel,
-} from "@calcom/prisma/zod";
-import { userMetadata } from "@calcom/prisma/zod-utils";
+import { _EventTypeModel } from "@calcom/prisma/zod";
+import { userMetadata, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 
 import { getEventTypeAppData } from "@components/v2/eventtype/EventAppsTab";
@@ -290,6 +283,7 @@ const loggedInViewerRouter = createProtectedRouter()
         hashedLink: true,
         destinationCalendar: true,
         team: true,
+        metadata: true,
         users: {
           select: baseUserSelect,
         },
@@ -360,18 +354,11 @@ const loggedInViewerRouter = createProtectedRouter()
       if (!user) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
-      const MyEventTypeSchema = _EventTypeModel.extend({
-        hashedLink: _HashedLinkModel.nullable(),
-        destinationCalendar: _DestinationCalendarModel.nullable(),
-        team: _TeamModel,
-        users: _UserModel.array(),
-      });
 
-      const userEventTypes = user.eventTypes.map((eventType) => {
-        console.log("hashedlink", eventType.hashedLink);
-        return MyEventTypeSchema.parse(eventType);
-      });
-
+      const userEventTypes = user.eventTypes.map((eventType) => ({
+        ...eventType,
+        metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+      }));
       // backwards compatibility, TMP:
       const typesRaw = (
         await prisma.eventType.findMany({
@@ -388,10 +375,10 @@ const loggedInViewerRouter = createProtectedRouter()
             },
           ],
         })
-      ).map((eventType) => {
-        return MyEventTypeSchema.parse(eventType);
-      });
-      console.log("PARSED typesRaw");
+      ).map((eventType) => ({
+        ...eventType,
+        metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+      }));
 
       type EventTypeGroup = {
         teamId?: number | null;
@@ -439,10 +426,12 @@ const loggedInViewerRouter = createProtectedRouter()
             membershipCount: membership.team.members.length,
             readOnly: membership.role === MembershipRole.MEMBER,
           },
-          eventTypes: membership.team.eventTypes.map((eventType) => MyEventTypeSchema.parse(eventType)),
+          eventTypes: membership.team.eventTypes.map((eventType) => ({
+            ...eventType,
+            metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+          })),
         }))
       );
-      console.log("parsed teamEventtypes");
       return {
         viewer: {
           plan: user.plan,
@@ -1320,6 +1309,7 @@ const loggedInViewerRouter = createProtectedRouter()
         if (credential.app?.categories.includes(AppCategories.payment)) {
           if (stripeAppData.price) {
             await prisma.$transaction(async () => {
+              const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
               await prisma.eventType.update({
                 where: {
                   id: eventType.id,
@@ -1328,8 +1318,7 @@ const loggedInViewerRouter = createProtectedRouter()
                   hidden: true,
                   // FIXME: how to handle setting data of an App(price)
                   metadata: {
-                    ...(eventType as Pick<z.infer<typeof _EventTypeModel>, "currency" | "price" | "metadata">)
-                      .metadata,
+                    ...metadata,
                     stripe: {
                       price: 0,
                     },

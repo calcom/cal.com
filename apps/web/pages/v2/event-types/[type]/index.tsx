@@ -5,7 +5,6 @@ import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
@@ -16,6 +15,7 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { _EventTypeModel } from "@calcom/prisma/zod";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Form } from "@calcom/ui/form/fields";
@@ -73,7 +73,7 @@ export type FormValues = {
   beforeBufferTime: number;
   afterBufferTime: number;
   slotInterval: number | null;
-  metadata: z.infer<typeof _EventTypeModel>["metadata"];
+  metadata: z.infer<typeof EventTypeMetaDataSchema>;
   destinationCalendar: {
     integration: string;
     externalId: string;
@@ -407,8 +407,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const { locations, metadata, ...restEventType } = rawEventType;
 
-  // TODO: Actually parse this metadata instead of assertion
-  const newMetadata = (metadata || {}) as NonNullable<z.infer<typeof _EventTypeModel>["metadata"]>;
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const newMetadata = EventTypeMetaDataSchema.parse(metadata || {})!;
   const apps = newMetadata.apps || {};
   // Bring all Apps data to metadata
   newMetadata.apps = {
