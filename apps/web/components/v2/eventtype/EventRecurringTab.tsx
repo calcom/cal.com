@@ -1,8 +1,7 @@
-import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
+import { EventTypeSetupInfered } from "pages/v2/event-types/[type]";
 import { useState } from "react";
-import { useFormContext } from "react-hook-form";
 
-import { getEventTypeAppData } from "@components/v2/eventtype/EventAppsTab";
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 
 import RecurringEventController from "./RecurringEventController";
 

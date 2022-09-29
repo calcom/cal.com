@@ -41,8 +41,7 @@ import { _EventTypeModel } from "@calcom/prisma/zod";
 import { userMetadata, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 
-import { getEventTypeAppData } from "@components/v2/eventtype/EventAppsTab";
-
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";

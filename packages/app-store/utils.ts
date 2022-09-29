@@ -1,12 +1,17 @@
 import { Prisma } from "@prisma/client";
 import { TFunction } from "next-i18next";
+import { z } from "zod";
 
-import { defaultLocations, EventLocationType, LocationType } from "@calcom/app-store/locations";
+import { defaultLocations, EventLocationType } from "@calcom/app-store/locations";
+import { EventTypeModel } from "@calcom/prisma/zod";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { App, AppMeta } from "@calcom/types/App";
 
 // If you import this file on any app it should produce circular dependency
 // import appStore from "./index";
 import { appStoreMetadata } from "./apps.browser.generated";
+
+export type EventTypeApps = keyof NonNullable<NonNullable<z.infer<typeof EventTypeMetaDataSchema>>["apps"]>;
 
 const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
   store[key] = appStoreMetadata[key as keyof typeof appStoreMetadata];
@@ -129,4 +134,37 @@ export function getAppType(name: string): string {
   return "Unknown";
 }
 
+export const getEventTypeAppData = (
+  eventType: Pick<z.infer<typeof EventTypeModel>, "price" | "currency" | "metadata">,
+  appId: EventTypeApps
+) => {
+  const metadata = eventType.metadata;
+  if (!metadata) {
+    return {};
+  }
+  let appMetadata = metadata.apps && metadata.apps[appId];
+  if (appMetadata) {
+    return appMetadata;
+  }
+
+  // Backward compatibility for existing event types.
+  // TODO: Write code here to migrate metadata to new format and delete this backwards compatibility once we there is no hit for it.
+
+  if (appId === "stripe") {
+    appMetadata = {
+      price: eventType.price,
+      currency: eventType.currency,
+    };
+  } else if (appId === "rainbow") {
+    appMetadata = {
+      smartContractAddress: eventType.metadata?.smartContractAddress,
+      blockchainId: eventType.metadata?.blockchainId,
+    };
+  } else if (appId === "giphy") {
+    appMetadata = {
+      thankYouPage: eventType.metadata?.giphyThankYouPage,
+    };
+  }
+  return appMetadata;
+};
 export default getApps;

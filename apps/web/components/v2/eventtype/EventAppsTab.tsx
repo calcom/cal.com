@@ -1,58 +1,18 @@
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useFormContext } from "react-hook-form";
-import { z } from "zod";
 
+import EventTypeAppContext, { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppContext";
 import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
+import { EventTypeApps } from "@calcom/app-store/utils";
 // import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EventTypeModel } from "@calcom/prisma/zod";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import ErrorBoundary from "@calcom/ui/ErrorBoundary";
 import { Button, EmptyScreen } from "@calcom/ui/v2";
 
 type EventType = Pick<EventTypeSetupInfered, "eventType">["eventType"];
-type GetAppData = (key: string) => any;
-type SetAppData = (key: string, value: any) => void;
-type EventTypeApps = keyof NonNullable<NonNullable<z.infer<typeof EventTypeMetaDataSchema>>["apps"]>;
-export const eventTypeAppContext = React.createContext<[GetAppData, SetAppData]>([() => ({}), () => {}]);
-
-export const getEventTypeAppData = (
-  eventType: Pick<z.infer<typeof EventTypeModel>, "price" | "currency" | "metadata">,
-  appId: EventTypeApps
-) => {
-  const metadata = eventType.metadata;
-  if (!metadata) {
-    return {};
-  }
-  let appMetadata = metadata.apps && metadata.apps[appId];
-  if (appMetadata) {
-    return appMetadata;
-  }
-
-  // Backward compatibility for existing event types.
-  // TODO: Write code here to migrate metadata to new format and delete this backwards compatibility once we there is no hit for it.
-
-  if (appId === "stripe") {
-    appMetadata = {
-      price: eventType.price,
-      currency: eventType.currency,
-    };
-  } else if (appId === "rainbow") {
-    appMetadata = {
-      smartContractAddress: eventType.metadata?.smartContractAddress,
-      blockchainId: eventType.metadata?.blockchainId,
-    };
-  } else if (appId === "giphy") {
-    appMetadata = {
-      thankYouPage: eventType.metadata?.giphyThankYouPage,
-    };
-  }
-  return appMetadata;
-};
-
 function AppCardWrapper({
   app,
   eventType,
@@ -73,9 +33,9 @@ function AppCardWrapper({
   }
   return (
     <ErrorBoundary>
-      <eventTypeAppContext.Provider value={[getAppData, setAppData]}>
+      <EventTypeAppContext.Provider value={[getAppData, setAppData]}>
         <Component key={app.slug} app={app} eventType={eventType} />
-      </eventTypeAppContext.Provider>
+      </EventTypeAppContext.Provider>
     </ErrorBoundary>
   );
 }

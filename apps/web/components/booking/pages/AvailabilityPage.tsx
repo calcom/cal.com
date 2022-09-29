@@ -9,6 +9,7 @@ import { Toaster } from "react-hot-toast";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -42,7 +43,6 @@ import { UserAvatars } from "@components/booking/UserAvatars";
 import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
 import { HeadSeo } from "@components/seo/head-seo";
 import PoweredByCal from "@components/ui/PoweredByCal";
-import { getEventTypeAppData } from "@components/v2/eventtype/EventAppsTab";
 
 import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";

@@ -40,8 +40,7 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
 import { HeadSeo } from "@components/seo/head-seo";
-import { getEventTypeAppData } from "@components/v2/eventtype/EventAppsTab";
-
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { ssrInit } from "@server/lib/ssr";
 
 function redirectToExternalUrl(url: string) {

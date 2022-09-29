@@ -3,13 +3,13 @@ import { useMemo } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { classNames, parseRecurringEvent } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { baseEventTypeSelect } from "@calcom/prisma";
 import { EventTypeModel } from "@calcom/prisma/zod";
 import { Icon } from "@calcom/ui";
 import Badge from "@calcom/ui/v2/core/Badge";
-import { getEventTypeAppData } from "@calcom/web/components/v2/eventtype/EventAppsTab";
 
 export type EventTypeDescriptionProps = {
   eventType: Pick<

@@ -1,15 +1,15 @@
 import React, { useState } from "react";
 
+//TODO:
+import EventTypeAppContext from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import { SelectGifInput } from "@calcom/app-store/giphy/components";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-//TODO:
-import { eventTypeAppContext } from "@calcom/web/components/v2/eventtype/EventAppsTab";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app }) {
   //TODO: Compute it.
-  const [getAppData, setAppData] = React.useContext(eventTypeAppContext);
+  const [getAppData, setAppData] = React.useContext(EventTypeAppContext);
   const thankYouPage = getAppData("thankYouPage");
   const [showGifSelection, setShowGifSelection] = useState(!!thankYouPage);
   const { t } = useLocale();

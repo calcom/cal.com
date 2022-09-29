@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 
+import EventTypeAppContext from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import RainbowInstallForm from "@calcom/app-store/rainbow/components/RainbowInstallForm";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
-import { eventTypeAppContext } from "@calcom/web/components/v2/eventtype/EventAppsTab";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app }) {
-  const [getAppData, setAppData] = React.useContext(eventTypeAppContext);
+  const [getAppData, setAppData] = React.useContext(EventTypeAppContext);
   const blockchainId = getAppData("blockchainId");
   const smartContractAddress = getAppData("smartContractAddress");
   const [showRainbowSection, setShowRainbowSection] = useState(!!blockchainId && !!smartContractAddress);

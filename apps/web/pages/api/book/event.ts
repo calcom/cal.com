@@ -42,8 +42,7 @@ import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import sendPayload, { EventTypeInfo } from "@lib/webhooks/sendPayload";
 
-import { getEventTypeAppData } from "@components/v2/eventtype/EventAppsTab";
-
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { getTranslation } from "@server/lib/i18n";
 
 const translator = short();

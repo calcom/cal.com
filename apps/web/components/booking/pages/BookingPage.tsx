@@ -20,6 +20,7 @@ import {
   EventLocationType,
 } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { LocationObject, LocationType } from "@calcom/core/location";
 import dayjs from "@calcom/dayjs";
 import {
@@ -51,7 +52,6 @@ import slugify from "@lib/slugify";
 import Gates, { Gate, GateState } from "@components/Gates";
 import { UserAvatars } from "@components/booking/UserAvatars";
 import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
-import { getEventTypeAppData } from "@components/v2/eventtype/EventAppsTab";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";

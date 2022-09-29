@@ -9,8 +9,7 @@ import prisma from "@calcom/prisma";
 import { EventTypeModel } from "@calcom/prisma/zod";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { getEventTypeAppData } from "@components/v2/eventtype/EventAppsTab";
-
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { createPaymentLink } from "./client";
 

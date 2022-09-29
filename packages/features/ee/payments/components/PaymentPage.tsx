@@ -15,8 +15,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { _EventTypeModel } from "@calcom/prisma/zod";
 import { Icon } from "@calcom/ui/Icon";
-import { getEventTypeAppData } from "@calcom/web/components/v2/eventtype/EventAppsTab";
-
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { PaymentPageProps } from "../pages/payment";
 import PaymentComponent from "./Payment";
 
