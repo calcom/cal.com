@@ -1,10 +1,7 @@
 import Link from "next/link";
 import { TeamPageProps } from "pages/team/[slug]";
-import React from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import Button from "@calcom/ui/Button";
-import { Icon } from "@calcom/ui/Icon";
 import { Avatar } from "@calcom/ui/v2";
 
 import { useLocale } from "@lib/hooks/useLocale";
@@ -13,7 +10,7 @@ type TeamType = TeamPageProps["team"];
 type MembersType = TeamType["members"];
 type MemberType = MembersType[number];
 
-const Member = ({ member, teamName }: { member: MemberType; teamName: string }) => {
+const Member = ({ member, teamName }: { member: MemberType; teamName: string | null }) => {
   const { t } = useLocale();
 
   return (
@@ -35,9 +32,7 @@ const Member = ({ member, teamName }: { member: MemberType; teamName: string }) 
   );
 };
 
-const Members = ({ members, teamName }: { members: MembersType; teamName: string }) => {
-  const { t } = useLocale();
-
+const Members = ({ members, teamName }: { members: MembersType; teamName: string | null }) => {
   if (!members || members.length === 0) {
     return null;
   }
