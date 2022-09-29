@@ -632,7 +632,6 @@
   "billing": "Naplate",
   "manage_your_billing_info": "Upravljajte svojim informacijama za plaćanje i otkažite pretplatu.",
   "availability": "Dostupnost",
-  "availability_title": "{{availabilityTitle}} | Dostupnost",
   "edit_availability": "Uredi dostupnost",
   "configure_availability": "Konfigurišite vreme kada ste dostupni za rezervacije.",
   "copy_times_to": "Kopiraj vremena u",

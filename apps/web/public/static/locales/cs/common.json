@@ -632,7 +632,6 @@
   "billing": "Fakturace",
   "manage_your_billing_info": "Spravujte své fakturační údaje a zrušte své předplatné.",
   "availability": "Dostupnost",
-  "availability_title": "{{availabilityTitle}} | Dostupnost",
   "edit_availability": "Upravit dostupnost",
   "configure_availability": "Nastavit časy, kdy jste dostupní pro rezervace.",
   "copy_times_to": "Kopírovat časy do",
