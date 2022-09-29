@@ -136,6 +136,7 @@ export interface CalendarEvent {
   recurrence?: string;
   recurringEvent?: RecurringEvent | null;
   eventTypeId?: number | null;
+  seatsHideAttendees?: boolean | null;
 }
 
 export interface EntryPoint {

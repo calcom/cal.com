@@ -435,6 +435,7 @@ async function handler(req: NextApiRequest) {
     hideCalendarNotes: eventType.hideCalendarNotes,
     requiresConfirmation: eventType.requiresConfirmation ?? false,
     eventTypeId: eventType.id,
+    seatsHideAttendees: !!eventType.seatsHideAttendees,
   };
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
