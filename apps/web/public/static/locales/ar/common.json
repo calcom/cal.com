@@ -632,7 +632,6 @@
   "billing": "الفوترة",
   "manage_your_billing_info": "قم بإدارة معلومات الفوترة لديك وإلغاء اشتراكك.",
   "availability": "الأوقات المتاحة",
-  "availability_title": "{{availabilityTitle}} | توفر",
   "edit_availability": "تعديل التوفر",
   "configure_availability": "اضبط الأوقات التي تكون متاحًا فيها للحجز.",
   "copy_times_to": "نسخ الأوقات إلى",

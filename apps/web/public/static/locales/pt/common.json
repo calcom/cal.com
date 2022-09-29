@@ -632,7 +632,6 @@
   "billing": "Facturação",
   "manage_your_billing_info": "Gerir as suas informações de faturação e cancele a sua assinatura.",
   "availability": "Disponibilidade",
-  "availability_title": "{{availabilityTitle}} | Disponibilidade",
   "edit_availability": "Editar disponibilidade",
   "configure_availability": "Configure os horários em que estiver disponível para reservas.",
   "copy_times_to": "Copiar horários para",

@@ -632,7 +632,6 @@
   "billing": "Abrechnung",
   "manage_your_billing_info": "Verwalten Sie Ihre Rechnungsinformationen und kündigen Sie Ihr Abonnement.",
   "availability": "Verfügbarkeit",
-  "availability_title": "{{availabilityTitle}} | Verfügbarkeit",
   "edit_availability": "Verfügbarkeit editieren",
   "configure_availability": "Konfigurieren Sie die Zeiten, in denen Sie für Buchungen zur Verfügung stehen.",
   "copy_times_to": "Zeiten kopieren in",

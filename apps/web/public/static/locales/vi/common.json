@@ -632,7 +632,6 @@
   "billing": "Thanh toán",
   "manage_your_billing_info": "Quản lý thông tin thanh toán của bạn và hủy đăng ký của bạn.",
   "availability": "Lịch khả dụng",
-  "availability_title": "{{availabilityTitle}} | Tình trạng trống lịch",
   "edit_availability": "Sửa tình trạng trống lịch",
   "configure_availability": "Định cấu hình thời gian mà mọi người có thể đặt lịch hẹn.",
   "copy_times_to": "Sao chép thời gian đến",

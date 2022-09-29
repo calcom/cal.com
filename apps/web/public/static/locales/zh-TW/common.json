@@ -632,7 +632,6 @@
   "billing": "付費",
   "manage_your_billing_info": "管理付費資訊，以及取消訂閱。",
   "availability": "開放時間",
-  "availability_title": "{{availabilityTitle}} | 開放時間",
   "edit_availability": "編輯開放時間",
   "configure_availability": "設定開放接受預約的時段。",
   "copy_times_to": "將時間複製到",
