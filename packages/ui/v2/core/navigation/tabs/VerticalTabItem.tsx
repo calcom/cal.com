@@ -47,7 +47,7 @@ const VerticalTabItem = function ({
               target={props.isExternalLink ? "_blank" : "_self"}
               className={classNames(
                 props.textClassNames || "text-sm font-medium leading-none text-gray-600",
-                "group flex w-64 flex-row items-center rounded-md px-3 py-[10px] hover:bg-gray-100 group-hover:text-gray-700  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900",
+                "min-h-9 group flex w-64 flex-row items-center rounded-md px-3 py-[10px] hover:bg-gray-100 group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900",
                 props.disabled && "pointer-events-none !opacity-30",
                 (isChild || !props.icon) && "ml-7 mr-5 w-auto",
                 !info ? "h-6" : "h-14",

@@ -30,11 +30,12 @@ import Switch from "@calcom/ui/v2/core/Switch";
 import VerticalDivider from "@calcom/ui/v2/core/VerticalDivider";
 import { Form, Label } from "@calcom/ui/v2/core/form/fields";
 import showToast from "@calcom/ui/v2/core/notifications";
-import { SkeletonText } from "@calcom/ui/v2/core/skeleton";
+import { Skeleton, SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
 import { HttpError } from "@lib/core/http/error";
 
 import EditableHeading from "@components/ui/EditableHeading";
+import { SelectSkeletonLoader } from "@components/v2/availability/SkeletonLoader";
 
 const querySchema = z.object({
   schedule: stringOrNumber,
@@ -151,7 +152,7 @@ export default function Availability({ schedule }: { schedule: number }) {
   const { data, isLoading } = trpc.useQuery(["viewer.availability.schedule", { scheduleId: schedule }]);
 
   const form = useForm<AvailabilityFormValues>();
-  const { control, reset, setValue } = form;
+  const { control, reset } = form;
 
   useEffect(() => {
     if (!isLoading && data) {
@@ -187,22 +188,35 @@ export default function Availability({ schedule }: { schedule: number }) {
   return (
     <Shell
       backPath="/availability"
-      title={t("availability_title", { availabilityTitle: data?.schedule.name })}
+      title={data?.schedule.name && data.schedule.name + " | " + t("availability")}
       heading={
-        <EditableHeading title={data?.schedule.name || ""} onChange={(name) => setValue("name", name)} />
+        <Controller
+          control={form.control}
+          name="name"
+          render={({ field }) => <EditableHeading isReady={!isLoading} {...field} />}
+        />
       }
-      subtitle={data?.schedule.availability.map((availability) => (
-        <span key={availability.id}>
-          {availabilityAsString(availability, { locale: i18n.language })}
-          <br />
-        </span>
-      ))}
+      subtitle={
+        data ? (
+          data.schedule.availability.map((availability) => (
+            <span key={availability.id}>
+              {availabilityAsString(availability, { locale: i18n.language })}
+              <br />
+            </span>
+          ))
+        ) : (
+          <SkeletonText className="h-4 w-48" />
+        )
+      }
       CTA={
         <div className="flex items-center justify-end">
           <div className="flex items-center rounded-md px-2 sm:hover:bg-gray-100">
-            <Label htmlFor="hiddenSwitch" className="mt-2 hidden cursor-pointer self-center pr-2 sm:inline">
+            <Skeleton
+              as={Label}
+              htmlFor="hiddenSwitch"
+              className="mt-2 hidden cursor-pointer self-center pr-2 sm:inline">
               {t("set_to_default")}
-            </Label>
+            </Skeleton>
             <Switch
               id="hiddenSwitch"
               disabled={isLoading}
@@ -256,24 +270,26 @@ export default function Availability({ schedule }: { schedule: number }) {
             <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
               <div className="xl:max-w-80 w-full space-y-4 pr-4 sm:p-0">
                 <div className="space-y-4">
-                  <div className="sm:w-full md:w-1/2 lg:w-full">
-                    <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
-                      {t("timezone")}
-                    </label>
-                    <Controller
-                      name="timeZone"
-                      render={({ field: { onChange, value } }) =>
-                        value ? (
-                          <TimezoneSelect
-                            value={value}
-                            className="focus:border-brand mt-1 block rounded-md border-gray-300 text-sm"
-                            onChange={(timezone) => onChange(timezone.value)}
-                          />
-                        ) : (
-                          <SkeletonText className="h-6 w-full" />
-                        )
-                      }
-                    />
+                  <div className="xl:max-w-80 w-full pr-4 sm:p-0">
+                    <div>
+                      <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
+                        {t("timezone")}
+                      </label>
+                      <Controller
+                        name="timeZone"
+                        render={({ field: { onChange, value } }) =>
+                          value ? (
+                            <TimezoneSelect
+                              value={value}
+                              className="focus:border-brand mt-1 block w-72 rounded-md border-gray-300 text-sm"
+                              onChange={(timezone) => onChange(timezone.value)}
+                            />
+                          ) : (
+                            <SelectSkeletonLoader className="w-72" />
+                          )
+                        }
+                      />
+                    </div>
                   </div>
                   <Label className="mt-1 cursor-pointer space-y-2 sm:w-full md:w-1/2 lg:w-full">
                     <span>Active on</span>

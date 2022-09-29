@@ -45,12 +45,12 @@ export function translateVariablesToEnglish(text: string, language: { locale: st
       originalVariables.forEach((originalVariable) => {
         const newVariableName = variable.replace("_NAME", "");
         if (
-          language.t(originalVariable).replace(/ /, "_").toUpperCase() === variable ||
-          language.t(originalVariable).replace(/ /, "_").toUpperCase() === newVariableName
+          language.t(originalVariable).replace(/ /g, "_").toUpperCase() === variable ||
+          language.t(originalVariable).replace(/ /g, "_").toUpperCase() === newVariableName
         ) {
           newText = newText.replace(
             variable,
-            language.t(originalVariable, { lng: "en" }).replace(" ", "_").toUpperCase()
+            language.t(originalVariable, { lng: "en" }).replace(/ /g, "_").toUpperCase()
           );
           return;
         }

@@ -270,7 +270,7 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
     <div className="relative">
       <InputField
         type={isPasswordVisible ? "text" : "password"}
-        placeholder="•••••••••••••"
+        placeholder={isPasswordVisible ? "0hMy4P4ssw0rd" : "•••••••••••••"}
         ref={ref}
         {...props}
         className={classNames("mb-0 pr-10", props.className)}
@@ -278,7 +278,10 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
 
       <Tooltip content={textLabel}>
         <button
-          className="absolute bottom-0 right-3 h-9 text-gray-900"
+          className={classNames(
+            "absolute right-3 h-9 text-gray-900",
+            props.hintErrors ? "top-[22px]" : "bottom-0"
+          )}
           type="button"
           onClick={() => toggleIsPasswordVisible()}>
           {isPasswordVisible ? (
