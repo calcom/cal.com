@@ -70,6 +70,7 @@ export type FormValues = {
   periodCountCalendarDays: "1" | "0";
   periodDates: { startDate: Date; endDate: Date };
   seatsPerTimeSlot: number | null;
+  seatsHideAttendees: boolean | null;
   minimumBookingNotice: number;
   beforeBufferTime: number;
   afterBufferTime: number;
@@ -219,6 +220,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             beforeBufferTime,
             afterBufferTime,
             seatsPerTimeSlot,
+            seatsHideAttendees,
             recurringEvent,
             locations,
             blockchainId,
@@ -237,6 +239,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             beforeEventBuffer: beforeBufferTime,
             afterEventBuffer: afterBufferTime,
             seatsPerTimeSlot,
+            seatsHideAttendees,
             metadata: {
               ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
               ...(smartContractAddress ? { smartContractAddress } : {}),
@@ -372,6 +375,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       currency: true,
       destinationCalendar: true,
       seatsPerTimeSlot: true,
+      seatsHideAttendees: true,
       workflows: {
         include: {
           workflow: {
