@@ -632,7 +632,6 @@
   "billing": "Fakturering",
   "manage_your_billing_info": "Hantera din faktureringsinformation och avsluta din prenumeration.",
   "availability": "Tillgänglighet",
-  "availability_title": "{{availabilityTitle}} | Tillgänglighet",
   "edit_availability": "Redigera tillgänglighet",
   "configure_availability": "Ställ in de tider du är tillgänglig för bokningar.",
   "copy_times_to": "Kopiera tider till",

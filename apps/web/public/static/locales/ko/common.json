@@ -632,7 +632,6 @@
   "billing": "청구",
   "manage_your_billing_info": "결제 정보를 관리하고 구독을 취소하세요.",
   "availability": "유효성",
-  "availability_title": "{{availabilityTitle}} | 가용성",
   "edit_availability": "가용성 편집",
   "configure_availability": "예약 가능한 시간을 구성하십시오.",
   "copy_times_to": "횟수 복사:",
