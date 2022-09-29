@@ -1,3 +1,9 @@
+/**
+ * @deprecated modifications to this file should be v2 only
+ * Use `apps/web/pages/v2/event-types/[type].tsx` instead
+ */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInput, MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
@@ -25,6 +31,7 @@ import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import prisma from "@calcom/prisma";
+import { TRPCClientError } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Alert } from "@calcom/ui/Alert";
@@ -64,7 +71,6 @@ import * as RadioArea from "@components/ui/form/radio-area";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
 
 import { getTranslation } from "@server/lib/i18n";
-import { TRPCClientError } from "@trpc/client";
 
 const RainbowInstallForm = dynamic(() => import("@calcom/rainbow/components/RainbowInstallForm"), {
   suspense: true,
@@ -108,6 +114,7 @@ export type FormValues = {
   periodCountCalendarDays: "1" | "0";
   periodDates: { startDate: Date; endDate: Date };
   seatsPerTimeSlot: number | null;
+  seatsPerTimeSlotEnabled: boolean;
   minimumBookingNotice: number;
   beforeBufferTime: number;
   afterBufferTime: number;

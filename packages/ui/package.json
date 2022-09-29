@@ -12,6 +12,7 @@
     "lint:report": "eslint . --format json --output-file ../../lint-results/ui.json"
   },
   "dependencies": {
+    "@tanstack/react-query": "^4.3.9",
     "@calcom/lib": "*",
     "@calcom/trpc": "*",
     "@radix-ui/react-dialog": "^0.1.0",
@@ -24,7 +25,6 @@
     "react-feather": "^2.0.10",
     "react-hook-form": "^7.34.2",
     "react-icons": "^4.4.0",
-    "react-query": "^3.39.2",
     "react-select": "^5.4.0"
   },
   "devDependencies": {
