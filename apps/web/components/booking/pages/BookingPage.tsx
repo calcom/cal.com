@@ -849,7 +849,7 @@ const BookingPage = ({
                       tooltip={t("additional_guests")}
                       StartIcon={Icon.FiUserPlus}
                       onClick={() => setGuestToggle(!guestToggle)}
-                      className="mr-auto"
+                      className="dark:hover:bg-darkgray-200 mr-auto"
                     />
                   )}
                   <Button
@@ -862,7 +862,7 @@ const BookingPage = ({
                   </Button>
                   <Button
                     type="submit"
-                    className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast dark:hover:border-darkmodebrandcontrast mr-auto dark:border-transparent"
+                    className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast mr-auto dark:border-transparent dark:hover:border-neutral-900"
                     data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
                     loading={mutation.isLoading || recurringMutation.isLoading}>
                     {rescheduleUid ? t("reschedule") : t("confirm")}
