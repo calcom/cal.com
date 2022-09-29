@@ -1,7 +1,7 @@
 // Get router variables
 import { EventType } from "@prisma/client";
 import { SchedulingType } from "@prisma/client";
-import * as Collapsible from "@radix-ui/react-collapsible";
+import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import { useReducer, useEffect, useMemo, useState } from "react";
@@ -27,6 +27,7 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
+import Dropdown, { DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import DatePicker from "@calcom/ui/v2/modules/booker/DatePicker";
 
@@ -241,8 +242,10 @@ function TimezoneDropdown({
   };
 
   return (
-    <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen} className="flex">
-      <Collapsible.Trigger className="min-w-32 dark:text-darkgray-600 mb-2 -ml-2 px-2 text-left text-gray-600">
+    <Dropdown open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
+      <DropdownMenuTrigger
+        asChild
+        className="min-w-32 dark:text-darkgray-600 mb-2 pr-2 text-left text-gray-600">
         <p className="text-sm font-medium">
           <Icon.FiGlobe className="mr-[10px] ml-[2px] -mt-[2px] inline-block h-4 w-4" />
           {timeZone}
@@ -252,15 +255,19 @@ function TimezoneDropdown({
             <Icon.FiChevronDown className="ml-1 inline-block h-4 w-4" />
           )}
         </p>
-      </Collapsible.Trigger>
-      <Collapsible.Content>
+      </DropdownMenuTrigger>
+      <DropdownMenuPrimitive.Content
+        avoidCollisions={false}
+        align="start"
+        side="bottom"
+        className="-ml-4 w-screen sm:-ml-8 md:ml-0 md:mt-2 md:w-full md:-translate-y-24">
         <TimeOptions
           onSelectTimeZone={handleSelectTimeZone}
           onToggle24hClock={handleToggle24hClock}
           timeFormat={timeFormat}
         />
-      </Collapsible.Content>
-    </Collapsible.Root>
+      </DropdownMenuPrimitive.Content>
+    </Dropdown>
   );
 }
 
