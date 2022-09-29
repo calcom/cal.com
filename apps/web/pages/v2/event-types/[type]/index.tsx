@@ -101,7 +101,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const numberOfInstalledEventTypeApps = eventTypeApps?.filter((app) => app.credentials.length).length ?? 0;
 
-  const { eventType, locationOptions, team, teamMembers } = props;
+  const { eventType: dbEventType, locationOptions, team, teamMembers } = props;
+  const [eventType, setEventType] = useState(dbEventType);
   const animationParentRef = useRef(null);
   const router = useRouter();
   const { tabName } = querySchema.parse(router.query);
@@ -111,7 +112,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   }, [animationParentRef]);
 
   const updateMutation = trpc.useMutation("viewer.eventTypes.update", {
-    onSuccess: async ({ eventType }) => {
+    onSuccess: async ({ eventType: newEventType }) => {
+      setEventType({ ...eventType, slug: newEventType.slug });
       showToast(
         t("event_type_updated_successfully", {
           eventTypeTitle: eventType.title,

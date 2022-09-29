@@ -117,8 +117,7 @@ function BookingListItem(booking: BookingItemProps) {
     },
     {
       id: "edit_booking",
-      label: t("edit_booking"),
-      icon: Icon.FiEdit,
+      label: t("edit"),
       actions: [
         {
           id: "reschedule",
@@ -262,7 +261,7 @@ function BookingListItem(booking: BookingItemProps) {
         </DialogContent>
       </Dialog>
 
-      <tr className="flex hover:bg-neutral-50">
+      <tr className="flex flex-col hover:bg-neutral-50 sm:flex-row">
         <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-48" onClick={onClick}>
           <div className="cursor-pointer py-4">
             <div className="text-sm leading-6 text-gray-900">{startTime}</div>
@@ -270,64 +269,80 @@ function BookingListItem(booking: BookingItemProps) {
               {dayjs(booking.startTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")} -{" "}
               {dayjs(booking.endTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
             </div>
-            <div className="text-sm text-gray-400">
-              {booking.recurringBookings &&
-                booking.eventType?.recurringEvent?.freq &&
-                (booking.listingStatus === "recurring" || booking.listingStatus === "cancelled") && (
-                  <div className="underline decoration-gray-400 decoration-dashed underline-offset-2">
-                    <div className="flex">
-                      <Tooltip
-                        content={recurringStrings.map((aDate, key) => (
-                          <p key={key}>{aDate}</p>
-                        ))}>
-                        <div className="text-gray-600 dark:text-white">
-                          <Icon.FiRefreshCcw
-                            strokeWidth="3"
-                            className="float-left mr-1 mt-1.5 inline-block h-3 w-3 text-gray-400"
-                          />
-                          <p className="mt-1 pl-5 text-xs">
-                            {booking.status === BookingStatus.ACCEPTED
-                              ? `${t("event_remaining", {
-                                  count: recurringDates.length,
-                                })}`
-                              : getEveryFreqFor({
-                                  t,
-                                  recurringEvent: booking.eventType.recurringEvent,
-                                  recurringCount: booking.recurringBookings.length,
-                                })}
-                          </p>
-                        </div>
-                      </Tooltip>
-                    </div>
-                  </div>
-                )}
+
+            {isPending && (
+              <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
+                {t("unconfirmed")}
+              </Badge>
+            )}
+
+            {booking.eventType?.team && (
+              <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
+                {booking.eventType.team.name}
+              </Badge>
+            )}
+            {!!booking?.eventType?.price && !booking.paid && (
+              <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
+                {t("pending_payment")}
+              </Badge>
+            )}
+
+            <div className="mt-2 text-sm text-gray-400">
+              <RecurringBookingsTooltip
+                booking={booking}
+                recurringStrings={recurringStrings}
+                recurringDates={recurringDates}
+              />
             </div>
           </div>
         </td>
         <td className={"flex-1 px-4" + (isRejected ? " line-through" : "")} onClick={onClick}>
-          <div className="cursor-pointer py-4">
+          {/* Time and Badges for mobile */}
+          <div className="w-full pt-4 pb-2 sm:hidden">
+            <div className="flex w-full items-center justify-between sm:hidden">
+              <div className="text-sm leading-6 text-gray-900">{startTime}</div>
+              <div className="pr-2 text-sm text-gray-500">
+                {dayjs(booking.startTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")} -{" "}
+                {dayjs(booking.endTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
+              </div>
+            </div>
+
+            {isPending && (
+              <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
+                {t("unconfirmed")}
+              </Badge>
+            )}
+            {booking.eventType?.team && (
+              <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="gray">
+                {booking.eventType.team.name}
+              </Badge>
+            )}
             {!!booking?.eventType?.price && !booking.paid && (
-              <Badge variant="orange" className="mb-2 ltr:mr-2 rtl:ml-2">
+              <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
                 {t("pending_payment")}
               </Badge>
             )}
+            <div className="text-sm text-gray-400 sm:hidden">
+              <RecurringBookingsTooltip
+                booking={booking}
+                recurringStrings={recurringStrings}
+                recurringDates={recurringDates}
+              />
+            </div>
+          </div>
+
+          <div className="cursor-pointer py-4">
             <div
               title={booking.title}
               className={classNames(
-                "max-w-56 truncate text-sm font-medium leading-6 text-neutral-900 md:max-w-max",
+                "max-w-10/12 sm:max-w-56 truncate text-sm font-medium leading-6 text-neutral-900 md:max-w-max",
                 isCancelled ? "line-through" : ""
               )}>
               {booking.title}
               <span> </span>
-              {booking.eventType?.team && <Badge variant="gray">{booking.eventType.team.name}</Badge>}
 
               {!!booking?.eventType?.price && !booking.paid && (
                 <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">Pending payment</Tag>
-              )}
-              {isPending && (
-                <Badge variant="orange" className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">
-                  {t("unconfirmed")}
-                </Badge>
               )}
             </div>
             {booking.description && (
@@ -350,9 +365,20 @@ function BookingListItem(booking: BookingItemProps) {
               </div>
             )}
           </div>
+          <div className="flex justify-end sm:hidden">
+            <div className="whitespace-nowrap pt-2 pb-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4">
+              {isUpcoming && !isCancelled ? (
+                <>
+                  {isPending && user?.id === booking.user?.id && <TableActions actions={pendingActions} />}
+                  {isConfirmed && <TableActions actions={bookedActions} />}
+                  {isRejected && <div className="text-sm text-gray-500">{t("rejected")}</div>}
+                </>
+              ) : null}
+              {isPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
+            </div>
+          </div>
         </td>
-
-        <td className="whitespace-nowrap py-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4">
+        <td className="hidden whitespace-nowrap py-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:block">
           {isUpcoming && !isCancelled ? (
             <>
               {isPending && user?.id === booking.user?.id && <TableActions actions={pendingActions} />}
@@ -371,6 +397,54 @@ function BookingListItem(booking: BookingItemProps) {
     </>
   );
 }
+
+interface RecurringBookingsTooltipProps {
+  booking: BookingItemProps;
+  recurringStrings: string[];
+  recurringDates: Date[];
+}
+
+const RecurringBookingsTooltip = ({
+  booking,
+  recurringStrings,
+  recurringDates,
+}: RecurringBookingsTooltipProps) => {
+  const { t } = useLocale();
+
+  return (
+    (booking.recurringBookings &&
+      booking.eventType?.recurringEvent?.freq &&
+      (booking.listingStatus === "recurring" || booking.listingStatus === "cancelled") && (
+        <div className="underline decoration-gray-400 decoration-dashed underline-offset-2">
+          <div className="flex">
+            <Tooltip
+              content={recurringStrings.map((aDate, key) => (
+                <p key={key}>{aDate}</p>
+              ))}>
+              <div className="text-gray-600 dark:text-white">
+                <Icon.FiRefreshCcw
+                  strokeWidth="3"
+                  className="float-left mr-1 mt-1.5 inline-block h-3 w-3 text-gray-400"
+                />
+                <p className="mt-1 pl-5 text-xs">
+                  {booking.status === BookingStatus.ACCEPTED
+                    ? `${t("event_remaining", {
+                        count: recurringDates.length,
+                      })}`
+                    : getEveryFreqFor({
+                        t,
+                        recurringEvent: booking.eventType.recurringEvent,
+                        recurringCount: booking.recurringBookings.length,
+                      })}
+                </p>
+              </div>
+            </Tooltip>
+          </div>
+        </div>
+      )) ||
+    null
+  );
+};
 
 interface UserProps {
   id: number;

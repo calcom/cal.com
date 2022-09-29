@@ -26,6 +26,7 @@ import Dropdown, {
   DropdownMenuTrigger,
 } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
+import Button from "@calcom/ui/v2/core/Button";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
@@ -575,16 +576,12 @@ function MobileNavigationContainer() {
 
 const MobileNavigation = () => {
   const isEmbed = useIsEmbed();
-  const router = useRouter();
-  const isSubNav = router.pathname.split("/").length > 3;
 
   return (
     <>
       <nav
         className={classNames(
-          isSubNav
-            ? "hidden"
-            : "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-gray-200 bg-gray-50 bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
+          "bottom-nav fixed bottom-0 z-30 -mx-4 flex w-full border border-t border-gray-200 bg-gray-50 bg-opacity-40 px-1 shadow backdrop-blur-md md:hidden",
           isEmbed && "hidden"
         )}>
         {mobileNavigationBottomItems.map((item) => (
@@ -751,9 +748,13 @@ export function ShellMain(props: LayoutProps) {
     <>
       <div className="flex items-baseline sm:mt-0">
         {!!props.backPath && (
-          <Icon.FiArrowLeft
-            className="mr-3 hover:cursor-pointer"
+          <Button
+            size="icon"
+            color="minimal"
             onClick={() => router.push(props.backPath as string)}
+            StartIcon={Icon.FiArrowLeft}
+            aria-label="Go Back"
+            className="ltr:mr-2 rtl:ml-2"
           />
         )}
         {props.heading && (
@@ -763,9 +764,9 @@ export function ShellMain(props: LayoutProps) {
               "mb-4 flex w-full items-center pt-4 md:p-0 lg:mb-10"
             )}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className="hidden w-full ltr:mr-4 rtl:ml-4 sm:block">
+            <div className="w-full ltr:mr-4 rtl:ml-4 sm:block">
               {props.heading && (
-                <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
+                <h1 className="font-cal  mb-1 text-xl font-bold capitalize tracking-wide text-black">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
               )}
@@ -776,7 +777,11 @@ export function ShellMain(props: LayoutProps) {
               )}
             </div>
             {props.CTA && (
-              <div className="cta fixed right-4 bottom-[75px] z-40 mb-4 flex-shrink-0 sm:relative  sm:bottom-auto sm:right-auto sm:z-0">
+              <div
+                className={classNames(
+                  props.backPath ? "relative" : "fixed right-4 bottom-[75px] z-40 ",
+                  "cta mb-4 flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto sm:z-0"
+                )}>
                 {props.CTA}
               </div>
             )}
@@ -784,9 +789,6 @@ export function ShellMain(props: LayoutProps) {
         )}
       </div>
       <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
-        {/* add padding to top for mobile when App Bar is fixed */}
-        <div className="pt-8 sm:hidden" />
-
         {props.children}
       </div>
     </>
@@ -820,11 +822,12 @@ function MainContainer({
       {SettingsSidebarContainerProp}
       <div className="px-4 py-2 lg:py-8 lg:px-12">
         <ErrorBoundary>
+          {/* add padding to top for mobile when App Bar is fixed */}
+          <div className="pt-14 sm:hidden" />
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>
-        {/* show bottom navigation for md and smaller (tablet and phones) */}
-        {MobileNavigationContainerProp}
-        {/* <LicenseBanner /> */}
+        {/* show bottom navigation for md and smaller (tablet and phones) on pages where back button doesn't exist */}
+        {!props.backPath ? MobileNavigationContainerProp : null}
       </div>
     </main>
   );
