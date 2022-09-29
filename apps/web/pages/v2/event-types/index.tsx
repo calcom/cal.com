@@ -345,7 +345,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                       <Button type="button" size="icon" color="secondary" StartIcon={Icon.FiMoreHorizontal} />
                     </DropdownMenuTrigger>
                     <DropdownMenuPortal>
-                      <DropdownMenuContent portalled>
+                      <DropdownMenuContent>
                         <DropdownMenuItem className="outline-none">
                           <Link href={calLink}>
                             <a target="_blank">
