@@ -2,7 +2,7 @@ import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { BookingLimit } from "@calcom/types/Calendar";
 
-import { HttpError } from "./http-error";
+import { HttpError } from "../http-error";
 
 export async function checkBookingLimits(bookingLimits: BookingLimit, eventStartDate: Date, eventId: number) {
   const limitCalculations = Object.entries(bookingLimits).map(
