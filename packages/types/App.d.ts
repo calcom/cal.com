@@ -115,10 +115,8 @@ export interface App {
   key?: Prisma.JsonValue;
   /** If not free, what kind of fees does the app have */
   feeType?: "monthly" | "usage-based" | "one-time" | "free";
-  /** 0 = free. if type="usage-based" it's the price per booking.
-   * An array indicates a price range
-   */
-  price?: number | [number, number];
+  /** 0 = free. if type="usage-based" it's the price per booking */
+  price?: number;
   /** only required for "usage-based" billing. % of commission for paid bookings */
   commission?: number;
   licenseRequired?: boolean;
