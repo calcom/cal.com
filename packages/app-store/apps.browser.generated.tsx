@@ -10,14 +10,13 @@ import { metadata as caldavcalendar_meta } from "./caldavcalendar/_metadata";
 import { metadata as campfire_meta } from "./campfire/_metadata";
 import { metadata as closecomothercalendar_meta } from "./closecomothercalendar/_metadata";
 import { metadata as dailyvideo_meta } from "./dailyvideo/_metadata";
-import { metadata as demo_eventtype_extension_meta } from "./demo_eventtype_extension/_metadata";
-import { appDataSchema as demo_eventtype_extension_schema } from "./demo_eventtype_extension/extensions/EventTypeAppCard";
 import { metadata as routing_forms_meta } from "./ee/routing-forms/_metadata";
+import { appDataSchema as routing_forms_schema } from "./ee/routing-forms/zod";
 import { metadata as exchange2013calendar_meta } from "./exchange2013calendar/_metadata";
 import { metadata as exchange2016calendar_meta } from "./exchange2016calendar/_metadata";
 import { metadata as exchangecalendar_meta } from "./exchangecalendar/_metadata";
 import { metadata as giphy_meta } from "./giphy/_metadata";
-import { appDataSchema as giphy_schema } from "./giphy/extensions/EventTypeAppCard";
+import { appDataSchema as giphy_schema } from "./giphy/zod";
 import { metadata as googlecalendar_meta } from "./googlecalendar/_metadata";
 import { metadata as googlevideo_meta } from "./googlevideo/_metadata";
 import { metadata as hubspotothercalendar_meta } from "./hubspotothercalendar/_metadata";
@@ -29,12 +28,12 @@ import { metadata as office365calendar_meta } from "./office365calendar/_metadat
 import { metadata as office365video_meta } from "./office365video/_metadata";
 import { metadata as ping_meta } from "./ping/_metadata";
 import { metadata as rainbow_meta } from "./rainbow/_metadata";
-import { appDataSchema as rainbow_schema } from "./rainbow/extensions/EventTypeAppCard";
+import { appDataSchema as rainbow_schema } from "./rainbow/zod";
 import { metadata as raycast_meta } from "./raycast/_metadata";
 import { metadata as riverside_meta } from "./riverside/_metadata";
 import { metadata as slackmessaging_meta } from "./slackmessaging/_metadata";
 import { metadata as stripe_meta } from "./stripepayment/_metadata";
-import { appDataSchema as stripe_schema } from "./stripepayment/extensions/EventTypeAppCard";
+import { appDataSchema as stripe_schema } from "./stripepayment/zod";
 import { metadata as tandemvideo_meta } from "./tandemvideo/_metadata";
 import { metadata as typeform_meta } from "./typeform/_metadata";
 import { metadata as vital_meta } from "./vital/_metadata";
@@ -50,7 +49,6 @@ export const appStoreMetadata = {
   campfire: campfire_meta,
   closecomothercalendar: closecomothercalendar_meta,
   dailyvideo: dailyvideo_meta,
-  demo_eventtype_extension: demo_eventtype_extension_meta,
   "routing-forms": routing_forms_meta,
   exchange2013calendar: exchange2013calendar_meta,
   exchange2016calendar: exchange2016calendar_meta,
@@ -81,7 +79,7 @@ export const appStoreMetadata = {
 };
 
 export const appDataSchemas = {
-  demo_eventtype_extension: demo_eventtype_extension_schema,
+  "routing-forms": routing_forms_schema,
   giphy: giphy_schema,
   rainbow: rainbow_schema,
   stripe: stripe_schema,
@@ -112,7 +110,6 @@ export const InstallAppButtonMap = {
   zoomvideo: dynamic(() => import("./zoomvideo/components/InstallAppButton")),
 };
 export const EventTypeAddonMap = {
-  demo_eventtype_extension: dynamic(() => import("./demo_eventtype_extension/extensions/EventTypeAppCard")),
   giphy: dynamic(() => import("./giphy/extensions/EventTypeAppCard")),
   rainbow: dynamic(() => import("./rainbow/extensions/EventTypeAppCard")),
   stripe: dynamic(() => import("./stripepayment/extensions/EventTypeAppCard")),

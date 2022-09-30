@@ -3,7 +3,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SUPPORTED_CHAINS_FOR_FORM } from "@calcom/rainbow/utils/ethereum";
 import Select from "@calcom/ui/v2/core/form/Select";
 
-import { appDataSchema } from "../extensions/EventTypeAppCard";
+import { appDataSchema } from "../zod";
 
 type RainbowInstallFormProps = {
   //TODO: Reuse type

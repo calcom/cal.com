@@ -9,7 +9,8 @@ import { showToast } from "@calcom/ui/v2";
 import Button from "@calcom/ui/v2/core/Button";
 
 /**
- * Needs you to remove custom InstallAppButtonComponent to avoid redirection to /installed page
+ * Use this component to allow installing an app from anywhere on the app.
+ * Use of this component requires you to remove custom InstallAppButtonComponent so that it can manage the redirection itself
  */
 export default function OmniInstallAppButton({ appId, className }: { appId: string; className: string }) {
   const { t } = useLocale();
@@ -18,6 +19,7 @@ export default function OmniInstallAppButton({ appId, className }: { appId: stri
 
   const mutation = useAddAppMutation(null, {
     onSuccess: () => {
+      //TODO: viewer.appById might be replaced with viewer.apps so that a single query needs to be invalidated.
       utils.invalidateQueries(["viewer.appById", { appId }]);
       utils.invalidateQueries(["viewer.apps", { extendsFeature: "EventType" }]);
       showToast(t("app_successfully_installed"), "success");

@@ -1,15 +1,11 @@
 import React, { useState } from "react";
-import { z } from "zod";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import RainbowInstallForm from "@calcom/app-store/rainbow/components/RainbowInstallForm";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 
-export const appDataSchema = z.object({
-  smartContractAddress: z.string().optional(),
-  blockchainId: z.number().optional(),
-});
+import { appDataSchema } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app }) {
   const [getAppData, setAppData] = useAppContextWithSchema(appDataSchema);

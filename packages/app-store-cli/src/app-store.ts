@@ -180,13 +180,13 @@ function generateFiles() {
 
   browserOutput.push(
     ...getObjectExporter("appDataSchemas", {
-      fileToBeImported: path.join("extensions", "EventTypeAppCard.tsx"),
+      fileToBeImported: "zod.ts",
       // Import path must have / even for windows and not \
       importBuilder: (app) =>
         `import { appDataSchema as ${getVariableName(app.name)}_schema } from "./${app.path.replace(
           /\\/g,
           "/"
-        )}/extensions/EventTypeAppCard";`,
+        )}/zod";`,
       entryBuilder: (app) => `  "${app.name}":${getVariableName(app.name)}_schema ,`,
     })
   );

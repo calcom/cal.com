@@ -5,7 +5,6 @@ import { useFormContext } from "react-hook-form";
 import EventTypeAppContext, { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppContext";
 import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
 import { EventTypeAppsList } from "@calcom/app-store/utils";
-// import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";

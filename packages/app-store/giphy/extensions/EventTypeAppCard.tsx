@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { z } from "zod";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
@@ -7,9 +6,7 @@ import { SelectGifInput } from "@calcom/app-store/giphy/components";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-export const appDataSchema = z.object({
-  thankYouPage: z.string().optional(),
-});
+import { appDataSchema } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app }) {
   const [getAppData, setAppData] = useAppContextWithSchema(appDataSchema);

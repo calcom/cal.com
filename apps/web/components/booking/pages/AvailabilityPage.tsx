@@ -360,7 +360,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
     [timeZone, timeFormat]
   );
   const stripeAppData = getStripeAppData(eventType);
-
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
@@ -449,7 +448,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                             <FormattedNumber
                               value={stripeAppData.price / 100.0}
                               style="currency"
-                              // TODO: Move currency to metadata
                               currency={stripeAppData.currency.toUpperCase()}
                             />
                           </IntlProvider>
@@ -576,7 +574,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       <IntlProvider locale="en">
                         <FormattedNumber
                           value={stripeAppData.price / 100.0}
-                          //TODO: Move the currency to metadata
                           style="currency"
                           currency={stripeAppData.currency.toUpperCase()}
                         />

@@ -86,9 +86,9 @@ export async function handlePayment(
           id: booking.id,
         },
       },
-      amount: selectedEventType.price,
+      amount: stripeAppData.price,
       fee: paymentFee,
-      currency: selectedEventType.currency,
+      currency: stripeAppData.currency,
       success: false,
       refunded: false,
       data: Object.assign({}, paymentIntent, {
