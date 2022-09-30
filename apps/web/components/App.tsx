@@ -281,7 +281,7 @@ export default function App(props: {
   categories: string[];
   author: string;
   pro?: boolean;
-  price?: number;
+  price?: number | [number, number];
   commission?: number;
   feeType?: AppType["feeType"];
   docs?: string;
