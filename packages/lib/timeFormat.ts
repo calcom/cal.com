@@ -6,8 +6,16 @@
  */
 import { localStorage } from "@calcom/lib/webstorage";
 
+const is24hLocalstorageKey = "timeOption.is24hClock";
+
+export const setIs24hClockInLocalStorage = (is24h: "true" | "false") =>
+  localStorage.setItem(is24hLocalstorageKey, is24h);
+
+export const getIs24hClockFromLocalStorage = () =>
+  localStorage.getItem(is24hLocalstorageKey) as "true" | "false" | null;
+
 export const isBrowserLocale24h = () => {
-  const localStorageTimeFormat = localStorage.getItem("timeOption.is24hClock");
+  const localStorageTimeFormat = getIs24hClockFromLocalStorage();
   // If time format is already stored in the browser then retrieve and return early
   if (localStorageTimeFormat === "true") {
     return true;
@@ -19,10 +27,10 @@ export const isBrowserLocale24h = () => {
   if (typeof window !== "undefined" && navigator) locale = window.navigator?.language;
 
   if (!new Intl.DateTimeFormat(locale, { hour: "numeric" }).format(0).match(/M/)) {
-    localStorage.setItem("timeOption.is24hClock", "false");
+    setIs24hClockInLocalStorage("false");
     return false;
   } else {
-    localStorage.setItem("timeOption.is24hClock", "true");
+    setIs24hClockInLocalStorage("true");
     return true;
   }
 };
