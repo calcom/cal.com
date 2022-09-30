@@ -96,8 +96,8 @@ export const webhookRouter = createProtectedRouter()
     input: z.object({
       webhookId: z.string().optional(),
     }),
-    resolve({ ctx, input }) {
-      return ctx.prisma.webhook.findUniqueOrThrow({
+    async resolve({ ctx, input }) {
+      return await ctx.prisma.webhook.findUniqueOrThrow({
         where: {
           id: input.webhookId,
         },

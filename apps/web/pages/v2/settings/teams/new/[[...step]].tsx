@@ -69,10 +69,9 @@ const CreateNewTeamPage = () => {
       data-testid="onboarding"
       key={router.asPath}>
       <Head>
-        <title>{t("create_new_team")}</title>
+        <title>Create a new Team</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
       <div className="mx-auto px-4 py-24">
         <div className="relative">
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]">

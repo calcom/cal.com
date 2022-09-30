@@ -21,6 +21,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
+import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Alert } from "@calcom/ui/Alert";
@@ -38,8 +39,6 @@ import Loader from "@components/Loader";
 import Schedule from "@components/availability/Schedule";
 import { CalendarListContainer } from "@components/integrations/CalendarListContainer";
 import { UsernameAvailability } from "@components/ui/UsernameAvailability";
-
-import { TRPCClientErrorLike } from "@trpc/client";
 
 // Embed isn't applicable to onboarding, so ignore the rule
 /* eslint-disable @calcom/eslint/avoid-web-storage */

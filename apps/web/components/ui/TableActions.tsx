@@ -1,6 +1,11 @@
 import React, { FC } from "react";
 
-import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
+import Dropdown, {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuPortal,
+} from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import Button from "@calcom/ui/v2/core/Button";
 
@@ -43,22 +48,24 @@ const DropdownActions = ({
       ) : (
         <DropdownMenuTrigger asChild>{actionTrigger}</DropdownMenuTrigger>
       )}
-      <DropdownMenuContent portalled>
-        {actions.map((action) => (
-          <DropdownMenuItem key={action.id} className="focus-visible:outline-none">
-            <Button
-              type="button"
-              color="minimal"
-              className="w-full rounded-none font-normal"
-              href={action.href}
-              StartIcon={action.icon}
-              onClick={action.onClick || defaultAction}
-              data-testid={action.id}>
-              {action.label}
-            </Button>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
+      <DropdownMenuPortal>
+        <DropdownMenuContent>
+          {actions.map((action) => (
+            <DropdownMenuItem key={action.id} className="focus-visible:outline-none">
+              <Button
+                type="button"
+                color="minimal"
+                className="w-full rounded-none font-normal"
+                href={action.href}
+                StartIcon={action.icon}
+                onClick={action.onClick || defaultAction}
+                data-testid={action.id}>
+                {action.label}
+              </Button>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenuPortal>
     </Dropdown>
   );
 };
