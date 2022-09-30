@@ -23,10 +23,11 @@ function AppCardWrapper({
   getAppData: GetAppData;
   setAppData: SetAppData;
 }) {
-  const Component = EventTypeAddonMap[app.slug as keyof typeof EventTypeAddonMap];
+  const dirName = app.slug === "stripe" ? "stripepayment" : app.slug;
+  const Component = EventTypeAddonMap[dirName as keyof typeof EventTypeAddonMap];
 
   if (!Component) {
-    throw new Error('No component found for "' + app.slug + '"');
+    throw new Error('No component found for "' + dirName + '"');
   }
   return (
     <ErrorBoundary>

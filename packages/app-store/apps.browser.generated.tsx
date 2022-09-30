@@ -32,8 +32,8 @@ import { appDataSchema as rainbow_schema } from "./rainbow/zod";
 import { metadata as raycast_meta } from "./raycast/_metadata";
 import { metadata as riverside_meta } from "./riverside/_metadata";
 import { metadata as slackmessaging_meta } from "./slackmessaging/_metadata";
-import { metadata as stripe_meta } from "./stripepayment/_metadata";
-import { appDataSchema as stripe_schema } from "./stripepayment/zod";
+import { metadata as stripepayment_meta } from "./stripepayment/_metadata";
+import { appDataSchema as stripepayment_schema } from "./stripepayment/zod";
 import { metadata as tandemvideo_meta } from "./tandemvideo/_metadata";
 import { metadata as typeform_meta } from "./typeform/_metadata";
 import { metadata as vital_meta } from "./vital/_metadata";
@@ -68,7 +68,7 @@ export const appStoreMetadata = {
   raycast: raycast_meta,
   riverside: riverside_meta,
   slackmessaging: slackmessaging_meta,
-  stripe: stripe_meta,
+  stripepayment: stripepayment_meta,
   tandemvideo: tandemvideo_meta,
   typeform: typeform_meta,
   vital: vital_meta,
@@ -82,7 +82,7 @@ export const appDataSchemas = {
   "routing-forms": routing_forms_schema,
   giphy: giphy_schema,
   rainbow: rainbow_schema,
-  stripe: stripe_schema,
+  stripe: stripepayment_schema,
 };
 export const InstallAppButtonMap = {
   applecalendar: dynamic(() => import("./applecalendar/components/InstallAppButton")),
@@ -101,7 +101,7 @@ export const InstallAppButtonMap = {
   office365video: dynamic(() => import("./office365video/components/InstallAppButton")),
   riverside: dynamic(() => import("./riverside/components/InstallAppButton")),
   slackmessaging: dynamic(() => import("./slackmessaging/components/InstallAppButton")),
-  stripe: dynamic(() => import("./stripepayment/components/InstallAppButton")),
+  stripepayment: dynamic(() => import("./stripepayment/components/InstallAppButton")),
   tandemvideo: dynamic(() => import("./tandemvideo/components/InstallAppButton")),
   vital: dynamic(() => import("./vital/components/InstallAppButton")),
   whereby: dynamic(() => import("./whereby/components/InstallAppButton")),
@@ -112,5 +112,5 @@ export const InstallAppButtonMap = {
 export const EventTypeAddonMap = {
   giphy: dynamic(() => import("./giphy/extensions/EventTypeAppCard")),
   rainbow: dynamic(() => import("./rainbow/extensions/EventTypeAppCard")),
-  stripe: dynamic(() => import("./stripepayment/extensions/EventTypeAppCard")),
+  stripepayment: dynamic(() => import("./stripepayment/extensions/EventTypeAppCard")),
 };

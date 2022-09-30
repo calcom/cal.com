@@ -39,6 +39,11 @@ const getVariableName = function (appName: string) {
   return appName.replace("-", "_");
 };
 
+const getAppId = function (app: { name: string }) {
+  // Handle stripe separately as it's an old app with different dirName than slug/appId
+  return app.name === "stripepayment" ? "stripe" : app.name;
+};
+
 const APP_STORE_PATH = path.join(__dirname, "..", "..", "app-store");
 type App = Partial<AppMeta> & {
   name: string;
@@ -104,11 +109,10 @@ function generateFiles() {
       } else {
         app = {};
       }
-      const name = appDirs[i].name === "stripepayment" ? "stripe" : appDirs[i].name;
 
       callback({
         ...app,
-        name,
+        name: appDirs[i].name,
         path: appDirs[i].path,
       });
     }
@@ -187,7 +191,8 @@ function generateFiles() {
           /\\/g,
           "/"
         )}/zod";`,
-      entryBuilder: (app) => `  "${app.name}":${getVariableName(app.name)}_schema ,`,
+      // Key must be appId as this is used by eventType metadata and lookup is by appId
+      entryBuilder: (app) => `  "${getAppId(app)}":${getVariableName(app.name)}_schema ,`,
     })
   );
 
