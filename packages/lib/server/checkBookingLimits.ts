@@ -4,13 +4,25 @@ import { BookingLimit } from "@calcom/types/Calendar";
 
 import { HttpError } from "../http-error";
 
-export async function checkBookingLimits(bookingLimits: BookingLimit, eventStartDate: Date, eventId: number) {
+export async function checkBookingLimits(
+  bookingLimits: BookingLimit,
+  eventStartDate: Date,
+  eventId: number,
+  returnBusyTimes?: boolean
+) {
   const limitCalculations = Object.entries(bookingLimits).map(
-    async ([key, limitingNumber]) => await checkLimit({ key, limitingNumber, eventStartDate, eventId })
+    async ([key, limitingNumber]) =>
+      await checkLimit({ key, limitingNumber, eventStartDate, eventId, returnBusyTimes })
   );
-  await Promise.all(limitCalculations).catch((error) => {
-    throw new HttpError({ message: error.message, statusCode: 401 });
-  });
+  await Promise.all(limitCalculations)
+    .then((res) => {
+      if (returnBusyTimes) {
+        return res;
+      }
+    })
+    .catch((error) => {
+      throw new HttpError({ message: error.message, statusCode: 401 });
+    });
   return true;
 }
 
@@ -19,11 +31,13 @@ export async function checkLimit({
   eventId,
   key,
   limitingNumber,
+  returnBusyTimes = false,
 }: {
   eventStartDate: Date;
   eventId: number;
   key: string;
   limitingNumber: number;
+  returnBusyTimes?: boolean;
 }) {
   {
     const limitKey = key as keyof BookingLimit;
@@ -32,8 +46,9 @@ export async function checkLimit({
     const startDate = dayjs(eventStartDate).startOf(filter).toDate();
     // this is parsed above with parseBookingLimit so we know it's safe.
 
-    // This allows us to easily add it within dayjs
     const endDate = dayjs(startDate).endOf(filter).toDate();
+
+    // This allows us to easily add it within dayjs
     const bookingsInPeriod = await prisma.booking.count({
       where: {
         status: "ACCEPTED",
@@ -57,6 +72,14 @@ export async function checkLimit({
       },
     });
     if (bookingsInPeriod >= limitingNumber) {
+      // This is used when getting availbility
+      if (returnBusyTimes) {
+        return {
+          start: startDate,
+          end: endDate,
+        };
+      }
+
       throw new HttpError({
         message: `Booking limit of ${limitingNumber}:${key} reached for this eventType`,
         statusCode: 401,

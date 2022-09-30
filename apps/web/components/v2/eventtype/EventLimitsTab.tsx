@@ -1,9 +1,8 @@
 import autoAnimate from "@formkit/auto-animate";
 import * as RadioGroup from "@radix-ui/react-radio-group";
-import { values } from "lodash";
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
 import { useEffect, useRef, useState } from "react";
-import { useFormContext, Controller, useWatch, useForm, useFieldArray } from "react-hook-form";
+import { useFormContext, Controller, useWatch } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

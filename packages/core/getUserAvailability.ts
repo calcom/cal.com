@@ -5,6 +5,7 @@ import dayjs, { Dayjs } from "@calcom/dayjs";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { checkBookingLimits } from "@calcom/lib/server";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { stringToDayjs } from "@calcom/prisma/zod-utils";
@@ -29,6 +30,7 @@ const getEventType = (id: number) =>
     select: {
       id: true,
       seatsPerTimeSlot: true,
+      bookingLimits: true,
       timeZone: true,
       schedule: {
         select: {
@@ -77,6 +79,23 @@ export const getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Da
   });
 
 export type CurrentSeats = Awaited<ReturnType<typeof getCurrentSeats>>;
+
+export async function getBookingLimits({
+  eventType,
+  dateFrom,
+  dateTo,
+}: {
+  eventType: EventType;
+  dateFrom: Date;
+  dateTo: Date;
+}) {
+  if (!eventType?.bookingLimits) return;
+  console.log({ dateFrom, dateTo });
+  try {
+  } catch (error) {
+    logger.warn(error);
+  }
+}
 
 /** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
 export async function getUserAvailability(
@@ -127,6 +146,12 @@ export async function getUserAvailability(
     eventTypeId,
     userId: currentUser.id,
     selectedCalendars,
+  });
+
+  const bookingLimitBusyTimes = getBookingLimits({
+    eventType,
+    dateFrom: dateFrom.toDate(),
+    dateTo: dateTo.toDate(),
   });
 
   const bufferedBusyTimes = busyTimes.map((a) => ({

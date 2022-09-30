@@ -118,6 +118,7 @@ async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeo
       slotInterval: true,
       beforeEventBuffer: true,
       afterEventBuffer: true,
+      bookingLimits: true,
       schedulingType: true,
       periodType: true,
       periodStartDate: true,

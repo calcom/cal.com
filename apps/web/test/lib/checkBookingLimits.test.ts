@@ -66,4 +66,19 @@ describe("Check Booking Limits Tests", () => {
       })
     ).rejects.toThrowError();
   });
+  it("Should return busyTimes when set", async () => {
+    prismaMock.booking.count.mockResolvedValue(2);
+    expect(
+      checkLimit({
+        key: "PER_DAY",
+        limitingNumber: 2,
+        eventStartDate: MOCK_DATA.startDate,
+        eventId: MOCK_DATA.id,
+        returnBusyTimes: true,
+      })
+    ).resolves.toEqual({
+      start: dayjs(MOCK_DATA.startDate).startOf("day").toDate(),
+      end: dayjs(MOCK_DATA.startDate).endOf("day").toDate(),
+    });
+  });
 });
