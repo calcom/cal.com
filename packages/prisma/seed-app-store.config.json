@@ -87,13 +87,5 @@
     ],
     "slug": "exchange",
     "type": "exchange_calendar"
-  },
-  {
-    "dirName": "demo_eventtype_extension",
-    "categories": [
-      "other"
-    ],
-    "slug": "demo_eventtype_extension",
-    "type": "demo_eventtype_extension_other"
   }
 ]
