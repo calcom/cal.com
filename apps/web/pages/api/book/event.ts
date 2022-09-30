@@ -847,10 +847,10 @@ async function handler(req: NextApiRequest) {
   const subscribers = await getWebhooks(subscriberOptions);
 
   // If a global webhook is defined, send it to that one too.
-  if (process.env.NEXT_PUBLIC_GLOBAL_WEBHOOK_URL) {
+  if (process.env.GLOBAL_WEBHOOK_URL) {
     subscribers.push({
       id: "global",
-      subscriberUrl: process.env.NEXT_PUBLIC_GLOBAL_WEBHOOK_URL,
+      subscriberUrl: process.env.GLOBAL_WEBHOOK_URL,
       secret: null,
       payloadTemplate: null,
       appId: null,
