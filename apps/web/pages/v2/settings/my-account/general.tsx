@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { setIs24hClockInLocalStorage } from "@calcom/lib/timeFormat";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/v2/core/Button";
 import Meta from "@calcom/ui/v2/core/Meta";
@@ -110,6 +111,8 @@ const GeneralView = ({ localeProp }: GeneralViewProps) => {
     <Form
       form={formMethods}
       handleSubmit={(values) => {
+        setIs24hClockInLocalStorage(values.timeFormat.value === 24);
+
         mutation.mutate({
           ...values,
           locale: values.locale.value,
