@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
@@ -48,11 +48,31 @@ const Component = ({
     },
   });
 
-  const priceInDollar = Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    useGrouping: false,
-  }).format(price);
+  const priceInDollar = (price: number) => {
+    return Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      useGrouping: false,
+    }).format(price);
+  };
+
+  const AppPrice = useMemo(() => {
+    if (price === 0) return <span>Free</span>;
+
+    const dollarAmount = Array.isArray(price)
+      ? `${priceInDollar(price[0])} - ${priceInDollar(price[1])}`
+      : `${priceInDollar(price)}`;
+
+    return (
+      <span>
+        {feeType === "usage-based"
+          ? commission + "% + " + dollarAmount + `/${t("booking")}`
+          : feeType === "monthly"
+          ? dollarAmount + `/${t("month")}`
+          : dollarAmount}
+      </span>
+    );
+  }, [price, feeType, commission, t]);
 
   const [existingCredentials, setExistingCredentials] = useState<number[]>([]);
   const appCredentials = trpc.useQuery(["viewer.appCredentialsByType", { appType: type }], {
@@ -176,29 +196,12 @@ const Component = ({
         ) : (
           <SkeletonButton className="h-10 w-24" />
         )}
-        {price !== 0 && (
-          <span className="block text-right">
-            {feeType === "usage-based" ? commission + "% + " + priceInDollar + "/booking" : priceInDollar}
-            {feeType === "monthly" && "/" + t("month")}
-          </span>
-        )}
+        <span className="block text-right">{AppPrice}</span>
 
         <div className="prose prose-sm mt-8">{body}</div>
         <h4 className="mt-8 font-semibold text-gray-900 ">{t("pricing")}</h4>
-        <span>
-          {price === 0 ? (
-            "Free"
-          ) : (
-            <>
-              {Intl.NumberFormat("en-US", {
-                style: "currency",
-                currency: "USD",
-                useGrouping: false,
-              }).format(price)}
-              {feeType === "monthly" && "/" + t("month")}
-            </>
-          )}
-        </span>
+
+        <span>{AppPrice}</span>
 
         <h4 className="mt-8 mb-2 font-semibold text-gray-900 ">{t("learn_more")}</h4>
         <ul className="prose-sm -ml-1 -mr-1 leading-5">
@@ -285,7 +288,7 @@ export default function App(props: {
   categories: string[];
   author: string;
   pro?: boolean;
-  price?: number;
+  price?: number | [number, number];
   commission?: number;
   feeType?: AppType["feeType"];
   docs?: string;
