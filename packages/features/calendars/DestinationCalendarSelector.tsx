@@ -33,6 +33,7 @@ const DestinationCalendarSelector = ({
     if (!hidePlaceholder) {
       return {
         alignItems: "center",
+        width: "100%",
         display: "flex",
         ":before": {
           content: `'${t("select_destination_calendar")}:'`,
@@ -51,9 +52,15 @@ const DestinationCalendarSelector = ({
       .find((cal) => cal.externalId === value);
 
     if (selected) {
+      const selectedIntegration = query.data?.connectedCalendars.find((integration) =>
+        integration.calendars?.some((calendar) => calendar.externalId === selected.externalId)
+      );
+
       setSelectedOption({
         value: `${selected.integration}:${selected.externalId}`,
-        label: selected.name || "",
+        label:
+          `${selected.name} (${selectedIntegration?.integration.title} - ${selectedIntegration?.primary?.name})` ||
+          "",
       });
     }
   }, [query.data?.connectedCalendars, value]);

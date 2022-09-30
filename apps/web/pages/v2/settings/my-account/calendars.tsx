@@ -62,7 +62,7 @@ const CalendarsView = () => {
                   <Icon.FiCalendar className="h-6 w-6" />
                 </div>
 
-                <div className="flex flex-col space-y-3">
+                <div className="flex w-full flex-col space-y-3">
                   <div>
                     <h4 className=" pb-2 text-base font-semibold leading-5 text-black">
                       {t("add_to_calendar")}
