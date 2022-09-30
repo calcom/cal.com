@@ -25,7 +25,6 @@ import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, getIs24hClockFromLocalStorage } from "@calcom/lib/timeFormat";
-import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import DatePicker from "@calcom/ui/v2/modules/booker/DatePicker";
