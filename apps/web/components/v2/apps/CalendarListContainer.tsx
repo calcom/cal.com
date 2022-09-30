@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Fragment } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
+import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
@@ -13,7 +14,6 @@ import { Alert, EmptyScreen } from "@calcom/ui/v2";
 import { List } from "@calcom/ui/v2/core/List";
 import { ShellSubHeading } from "@calcom/ui/v2/core/Shell";
 import Switch from "@calcom/ui/v2/core/Switch";
-import DestinationCalendarSelector from "@calcom/ui/v2/modules/event-types/DestinationCalendarSelector";
 import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
 
 import { QueryCell } from "@lib/QueryCell";
