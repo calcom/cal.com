@@ -35,7 +35,7 @@ if (process.argv[2] === "--watch") {
 
 const formatOutput = (source: string) => prettier.format(source, prettierConfig);
 
-const getVariableName = function (appName) {
+const getVariableName = function (appName: string) {
   return appName.replace("-", "_");
 };
 
@@ -104,9 +104,11 @@ function generateFiles() {
       } else {
         app = {};
       }
+      const name = appDirs[i].name === "stripepayment" ? "stripe" : appDirs[i].name;
+
       callback({
         ...app,
-        name: appDirs[i].name,
+        name,
         path: appDirs[i].path,
       });
     }
@@ -177,6 +179,19 @@ function generateFiles() {
   );
 
   browserOutput.push(
+    ...getObjectExporter("appDataSchemas", {
+      fileToBeImported: path.join("extensions", "EventTypeAppCard.tsx"),
+      // Import path must have / even for windows and not \
+      importBuilder: (app) =>
+        `import { appDataSchema as ${getVariableName(app.name)}_schema } from "./${app.path.replace(
+          /\\/g,
+          "/"
+        )}/extensions/EventTypeAppCard";`,
+      entryBuilder: (app) => `  "${app.name}":${getVariableName(app.name)}_schema ,`,
+    })
+  );
+
+  browserOutput.push(
     ...getObjectExporter("InstallAppButtonMap", {
       fileToBeImported: "components/InstallAppButton.tsx",
       entryBuilder: (app) =>
@@ -186,7 +201,7 @@ function generateFiles() {
 
   browserOutput.push(
     ...getObjectExporter("EventTypeAddonMap", {
-      fileToBeImported: "extensions/EventTypeAppCard.tsx",
+      fileToBeImported: path.join("extensions", "EventTypeAppCard.tsx"),
       entryBuilder: (app) =>
         `  ${app.name}: dynamic(() =>import("./${app.path}/extensions/EventTypeAppCard")),`,
     })

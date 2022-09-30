@@ -27,7 +27,7 @@ export const apiHandlers = {
   raycast: import("./raycast/api"),
   riverside: import("./riverside/api"),
   slackmessaging: import("./slackmessaging/api"),
-  stripepayment: import("./stripepayment/api"),
+  stripe: import("./stripepayment/api"),
   tandemvideo: import("./tandemvideo/api"),
   typeform: import("./typeform/api"),
   vital: import("./vital/api"),

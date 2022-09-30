@@ -4,7 +4,7 @@ import { useFormContext } from "react-hook-form";
 
 import EventTypeAppContext, { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppContext";
 import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
-import { EventTypeApps } from "@calcom/app-store/utils";
+import { EventTypeAppsList } from "@calcom/app-store/utils";
 // import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
@@ -24,12 +24,10 @@ function AppCardWrapper({
   getAppData: GetAppData;
   setAppData: SetAppData;
 }) {
-  // Handle special case for stripe. All new apps creates using CLI should have slug equal to dirName.
-  const dirName = app.slug === "stripe" ? "stripepayment" : app.slug;
-  const Component = EventTypeAddonMap[dirName as keyof typeof EventTypeAddonMap];
+  const Component = EventTypeAddonMap[app.slug as keyof typeof EventTypeAddonMap];
 
   if (!Component) {
-    throw new Error('No component found for "' + dirName + '"');
+    throw new Error('No component found for "' + app.slug + '"');
   }
   return (
     <ErrorBoundary>
@@ -60,17 +58,17 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     });
   };
 
-  const getAppDataGetter = (appId: EventTypeApps): GetAppData => {
+  const getAppDataGetter = (appId: EventTypeAppsList): GetAppData => {
     return function (key) {
-      const appData = allAppsData[appId];
+      const appData = allAppsData[appId as keyof typeof allAppsData] || {};
       if (key) {
-        return appData[key];
+        return appData[key as keyof typeof appData];
       }
       return appData;
     };
   };
 
-  const getAppDataSetter = (appId: EventTypeApps): SetAppData => {
+  const getAppDataSetter = (appId: EventTypeAppsList): SetAppData => {
     return function (key, value) {
       const appData = allAppsData[appId];
       setAllAppsData({
@@ -101,8 +99,8 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
           ) : null}
           {installedApps?.map((app) => (
             <AppCardWrapper
-              getAppData={getAppDataGetter(app.slug as EventTypeApps)}
-              setAppData={getAppDataSetter(app.slug as EventTypeApps)}
+              getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
+              setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
               key={app.slug}
               app={app}
               eventType={eventType}
@@ -117,8 +115,8 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
         <div className="before:border-0">
           {notInstalledApps?.map((app) => (
             <AppCardWrapper
-              getAppData={getAppDataGetter(app.slug as EventTypeApps)}
-              setAppData={getAppDataSetter(app.slug as EventTypeApps)}
+              getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
+              setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
               key={app.slug}
               app={app}
               eventType={eventType}

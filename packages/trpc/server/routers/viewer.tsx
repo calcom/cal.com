@@ -9,6 +9,7 @@ import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/custom
 import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
 import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { DailyLocationType } from "@calcom/core/location";
@@ -17,6 +18,7 @@ import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import getStripeAppData from "@calcom/lib/getStripeAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import jackson from "@calcom/lib/jackson";
 import {
@@ -41,7 +43,6 @@ import { _EventTypeModel } from "@calcom/prisma/zod";
 import { userMetadata, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 
-import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
@@ -1293,17 +1294,15 @@ const loggedInViewerRouter = createProtectedRouter()
           }
         }
 
+        const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+
         //TODO: Actually parse using zod instead of assertion
-        const stripeAppData = getEventTypeAppData(
-          eventType as Pick<z.infer<typeof _EventTypeModel>, "currency" | "price" | "metadata">,
-          "stripe"
-        );
+        const stripeAppData = getStripeAppData({ ...eventType, metadata });
 
         // If it's a payment, hide the event type and set the price to 0. Also cancel all pending bookings
         if (credential.app?.categories.includes(AppCategories.payment)) {
           if (stripeAppData.price) {
             await prisma.$transaction(async () => {
-              const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
               await prisma.eventType.update({
                 where: {
                   id: eventType.id,

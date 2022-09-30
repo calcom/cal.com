@@ -268,7 +268,10 @@ export const eventTypesRouter = createProtectedRouter()
         hashedLink,
         ...rest
       } = input;
-      const data: Prisma.EventTypeUpdateInput = rest;
+      const data: Prisma.EventTypeUpdateInput = {
+        ...rest,
+        metadata: rest.metadata === null ? Prisma.DbNull : rest.metadata,
+      };
       data.locations = locations ?? undefined;
       if (periodType) {
         data.periodType = handlePeriodType(periodType);

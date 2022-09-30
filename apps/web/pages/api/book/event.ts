@@ -9,6 +9,7 @@ import { z } from "zod";
 import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
 import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
 import { handlePayment } from "@calcom/app-store/stripepayment/lib/server";
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
@@ -26,6 +27,7 @@ import getWebhooks from "@calcom/features/webhooks/utils/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import getStripeAppData from "@calcom/lib/getStripeAppData";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { defaultResponder, getLuckyUser } from "@calcom/lib/server";
@@ -42,7 +44,6 @@ import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import sendPayload, { EventTypeInfo } from "@lib/webhooks/sendPayload";
 
-import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { getTranslation } from "@server/lib/i18n";
 
 const translator = short();
@@ -258,10 +259,8 @@ async function handler(req: NextApiRequest) {
     !eventTypeId && !!eventTypeSlug ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
 
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
-  const stripeAppData = getEventTypeAppData(
-    eventType as Pick<z.infer<typeof _EventTypeModel>, "currency" | "price" | "metadata">,
-    "stripe"
-  );
+
+  const stripeAppData = getStripeAppData(eventType);
 
   // Check if required custom inputs exist
   if (eventType.customInputs) {
@@ -362,7 +361,7 @@ async function handler(req: NextApiRequest) {
   }
 
   console.log("available users", users);
-  const rainbowAppData = getEventTypeAppData(eventType, "rainbow");
+  const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
   // @TODO: use the returned address somewhere in booking creation?
   // const address: string | undefined = await ...
   await handleEthSignature(rainbowAppData, reqBody.ethSignature);

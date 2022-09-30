@@ -5,11 +5,11 @@ import { z } from "zod";
 
 import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@calcom/emails";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import getStripeAppData from "@calcom/lib/getStripeAppData";
 import prisma from "@calcom/prisma";
 import { EventTypeModel } from "@calcom/prisma/zod";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { getEventTypeAppData } from "@calcom/app-store/utils";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import { createPaymentLink } from "./client";
 
@@ -63,7 +63,7 @@ export async function handlePayment(
   const appKeys = await getAppKeysFromSlug("stripe");
   const { payment_fee_fixed, payment_fee_percentage } = stripeKeysSchema.parse(appKeys);
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const stripeAppData = getEventTypeAppData(selectedEventType, "stripe");
+  const stripeAppData = getStripeAppData(selectedEventType);
   const paymentFee = Math.round(stripeAppData.price * payment_fee_percentage + payment_fee_fixed);
   const { stripe_user_id, stripe_publishable_key } = stripeCredentialSchema.parse(stripeCredential.key);
 

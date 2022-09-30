@@ -11,11 +11,13 @@ import { metadata as campfire_meta } from "./campfire/_metadata";
 import { metadata as closecomothercalendar_meta } from "./closecomothercalendar/_metadata";
 import { metadata as dailyvideo_meta } from "./dailyvideo/_metadata";
 import { metadata as demo_eventtype_extension_meta } from "./demo_eventtype_extension/_metadata";
+import { appDataSchema as demo_eventtype_extension_schema } from "./demo_eventtype_extension/extensions/EventTypeAppCard";
 import { metadata as routing_forms_meta } from "./ee/routing-forms/_metadata";
 import { metadata as exchange2013calendar_meta } from "./exchange2013calendar/_metadata";
 import { metadata as exchange2016calendar_meta } from "./exchange2016calendar/_metadata";
 import { metadata as exchangecalendar_meta } from "./exchangecalendar/_metadata";
 import { metadata as giphy_meta } from "./giphy/_metadata";
+import { appDataSchema as giphy_schema } from "./giphy/extensions/EventTypeAppCard";
 import { metadata as googlecalendar_meta } from "./googlecalendar/_metadata";
 import { metadata as googlevideo_meta } from "./googlevideo/_metadata";
 import { metadata as hubspotothercalendar_meta } from "./hubspotothercalendar/_metadata";
@@ -27,10 +29,12 @@ import { metadata as office365calendar_meta } from "./office365calendar/_metadat
 import { metadata as office365video_meta } from "./office365video/_metadata";
 import { metadata as ping_meta } from "./ping/_metadata";
 import { metadata as rainbow_meta } from "./rainbow/_metadata";
+import { appDataSchema as rainbow_schema } from "./rainbow/extensions/EventTypeAppCard";
 import { metadata as raycast_meta } from "./raycast/_metadata";
 import { metadata as riverside_meta } from "./riverside/_metadata";
 import { metadata as slackmessaging_meta } from "./slackmessaging/_metadata";
-import { metadata as stripepayment_meta } from "./stripepayment/_metadata";
+import { metadata as stripe_meta } from "./stripepayment/_metadata";
+import { appDataSchema as stripe_schema } from "./stripepayment/extensions/EventTypeAppCard";
 import { metadata as tandemvideo_meta } from "./tandemvideo/_metadata";
 import { metadata as typeform_meta } from "./typeform/_metadata";
 import { metadata as vital_meta } from "./vital/_metadata";
@@ -66,7 +70,7 @@ export const appStoreMetadata = {
   raycast: raycast_meta,
   riverside: riverside_meta,
   slackmessaging: slackmessaging_meta,
-  stripepayment: stripepayment_meta,
+  stripe: stripe_meta,
   tandemvideo: tandemvideo_meta,
   typeform: typeform_meta,
   vital: vital_meta,
@@ -74,6 +78,13 @@ export const appStoreMetadata = {
   wipemycalother: wipemycalother_meta,
   zapier: zapier_meta,
   zoomvideo: zoomvideo_meta,
+};
+
+export const appDataSchemas = {
+  demo_eventtype_extension: demo_eventtype_extension_schema,
+  giphy: giphy_schema,
+  rainbow: rainbow_schema,
+  stripe: stripe_schema,
 };
 export const InstallAppButtonMap = {
   applecalendar: dynamic(() => import("./applecalendar/components/InstallAppButton")),
@@ -92,7 +103,7 @@ export const InstallAppButtonMap = {
   office365video: dynamic(() => import("./office365video/components/InstallAppButton")),
   riverside: dynamic(() => import("./riverside/components/InstallAppButton")),
   slackmessaging: dynamic(() => import("./slackmessaging/components/InstallAppButton")),
-  stripepayment: dynamic(() => import("./stripepayment/components/InstallAppButton")),
+  stripe: dynamic(() => import("./stripepayment/components/InstallAppButton")),
   tandemvideo: dynamic(() => import("./tandemvideo/components/InstallAppButton")),
   vital: dynamic(() => import("./vital/components/InstallAppButton")),
   whereby: dynamic(() => import("./whereby/components/InstallAppButton")),
@@ -104,5 +115,5 @@ export const EventTypeAddonMap = {
   demo_eventtype_extension: dynamic(() => import("./demo_eventtype_extension/extensions/EventTypeAppCard")),
   giphy: dynamic(() => import("./giphy/extensions/EventTypeAppCard")),
   rainbow: dynamic(() => import("./rainbow/extensions/EventTypeAppCard")),
-  stripepayment: dynamic(() => import("./stripepayment/extensions/EventTypeAppCard")),
+  stripe: dynamic(() => import("./stripepayment/extensions/EventTypeAppCard")),
 };

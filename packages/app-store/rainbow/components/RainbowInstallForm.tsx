@@ -1,10 +1,13 @@
+import { SetAppDataGeneric } from "@calcom/app-store/EventTypeAppContext";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SUPPORTED_CHAINS_FOR_FORM } from "@calcom/rainbow/utils/ethereum";
 import Select from "@calcom/ui/v2/core/form/Select";
 
+import { appDataSchema } from "../extensions/EventTypeAppCard";
+
 type RainbowInstallFormProps = {
   //TODO: Reuse type
-  setAppData: (key: string, value: any) => void;
+  setAppData: SetAppDataGeneric<typeof appDataSchema>;
   blockchainId: number;
   smartContractAddress: string;
 };

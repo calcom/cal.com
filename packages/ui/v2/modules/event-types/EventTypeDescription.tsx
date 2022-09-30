@@ -3,8 +3,8 @@ import { useMemo } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
-import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { classNames, parseRecurringEvent } from "@calcom/lib";
+import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { baseEventTypeSelect } from "@calcom/prisma";
 import { EventTypeModel } from "@calcom/prisma/zod";
@@ -29,7 +29,7 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
     [eventType.recurringEvent]
   );
 
-  const stripeAppData = getEventTypeAppData(eventType, "stripe");
+  const stripeAppData = getStripeAppData(eventType);
 
   return (
     <>

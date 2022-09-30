@@ -20,6 +20,7 @@ import {
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { WEBSITE_URL } from "@calcom/lib/constants";
+import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import notEmpty from "@calcom/lib/notEmpty";
@@ -358,8 +359,9 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
     ),
     [timeZone, timeFormat]
   );
-  const stripeAppData = getEventTypeAppData(eventType, "stripe");
-  const rainbowAppData = getEventTypeAppData(eventType, "rainbow");
+  const stripeAppData = getStripeAppData(eventType);
+
+  const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
   const slug = rawSlug.join("/");

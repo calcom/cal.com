@@ -1,14 +1,20 @@
 import React, { useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
+import { z } from "zod";
 
-import EventTypeAppContext from "@calcom/app-store/EventTypeAppContext";
+import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, TextField } from "@calcom/ui/v2";
 
+export const appDataSchema = z.object({
+  price: z.number(),
+  currency: z.string(),
+});
+
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
-  const [getAppData, setAppData] = React.useContext(EventTypeAppContext);
+  const [getAppData, setAppData] = useAppContextWithSchema(appDataSchema);
   const price = getAppData("price");
   const currency = getAppData("currency");
   const [requirePayment, setRequirePayment] = useState(price > 0);

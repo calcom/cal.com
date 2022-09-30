@@ -10,12 +10,13 @@ import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBSITE_URL } from "@calcom/lib/constants";
+import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { _EventTypeModel } from "@calcom/prisma/zod";
 import { Icon } from "@calcom/ui/Icon";
-import { getEventTypeAppData } from "@calcom/app-store/utils";
+
 import type { PaymentPageProps } from "../pages/payment";
 import PaymentComponent from "./Payment";
 
@@ -25,10 +26,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   const [date, setDate] = useState(dayjs.utc(props.booking.startTime));
   useTheme(props.profile.theme);
   const isEmbed = useIsEmbed();
-  const stripeAppData = getEventTypeAppData(
-    props.eventType as Pick<z.infer<typeof _EventTypeModel>, "currency" | "price" | "metadata">,
-    "stripe"
-  );
+  const stripeAppData = getStripeAppData(props.eventType);
   console.log(stripeAppData, "stripeAppData");
   useEffect(() => {
     let embedIframeWidth = 0;

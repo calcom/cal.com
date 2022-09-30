@@ -414,11 +414,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const newMetadata = EventTypeMetaDataSchema.parse(metadata || {})!;
   const apps = newMetadata.apps || {};
+  // TODO: Abstract it out into a function like getEventTypeAppData
   // Bring all Apps data to metadata
   newMetadata.apps = {
     ...apps,
     stripe: apps.stripe || {
-      price: rawEventType.price || null,
+      price: rawEventType.price,
       currency:
         rawEventType.currency ||
         (
@@ -433,7 +434,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
 
     rainbow: apps.rainbow || {
-      blockchainId: newMetadata?.blockchainId || "",
+      blockchainId: newMetadata?.blockchainId || 0,
       smartContractAddress: newMetadata?.smartContractAddress || "",
     },
   };

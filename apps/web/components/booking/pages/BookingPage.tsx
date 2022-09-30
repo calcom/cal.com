@@ -410,7 +410,7 @@ const BookingPage = ({
       }
     });
   }
-  const rainbowAppData = getEventTypeAppData(eventType, "rainbow");
+  const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
 
   // Define conditional gates here
   const gates = [

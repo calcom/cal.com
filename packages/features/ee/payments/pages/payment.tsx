@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { PaymentData } from "@calcom/app-store/stripepayment/lib/server";
 import prisma from "@calcom/prisma";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 export type PaymentPageProps = inferSSRProps<typeof getServerSideProps>;
@@ -101,7 +102,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       user,
-      eventType,
+      eventType: {
+        ...eventType,
+        metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+      },
       booking,
       payment,
       profile,

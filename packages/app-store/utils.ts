@@ -11,7 +11,8 @@ import type { App, AppMeta } from "@calcom/types/App";
 // import appStore from "./index";
 import { appStoreMetadata } from "./apps.browser.generated";
 
-export type EventTypeApps = keyof NonNullable<NonNullable<z.infer<typeof EventTypeMetaDataSchema>>["apps"]>;
+export type EventTypeApps = NonNullable<NonNullable<z.infer<typeof EventTypeMetaDataSchema>>["apps"]>;
+export type EventTypeAppsList = keyof EventTypeApps;
 
 const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
   store[key] = appStoreMetadata[key as keyof typeof appStoreMetadata];
@@ -134,37 +135,32 @@ export function getAppType(name: string): string {
   return "Unknown";
 }
 
-export const getEventTypeAppData = (
+export const getEventTypeAppData = <T extends EventTypeAppsList>(
   eventType: Pick<z.infer<typeof EventTypeModel>, "price" | "currency" | "metadata">,
-  appId: EventTypeApps
-) => {
+  appId: T
+): EventTypeApps[T] => {
   const metadata = eventType.metadata;
-  if (!metadata) {
-    return {};
-  }
-  let appMetadata = metadata.apps && metadata.apps[appId];
+  const appMetadata = metadata?.apps && metadata.apps[appId];
   if (appMetadata) {
     return appMetadata;
   }
 
   // Backward compatibility for existing event types.
   // TODO: Write code here to migrate metadata to new format and delete this backwards compatibility once we there is no hit for it.
-
-  if (appId === "stripe") {
-    appMetadata = {
+  const legacyAppsData = {
+    stripe: {
       price: eventType.price,
       currency: eventType.currency,
-    };
-  } else if (appId === "rainbow") {
-    appMetadata = {
+    },
+    rainbow: {
       smartContractAddress: eventType.metadata?.smartContractAddress,
       blockchainId: eventType.metadata?.blockchainId,
-    };
-  } else if (appId === "giphy") {
-    appMetadata = {
+    },
+    giphy: {
       thankYouPage: eventType.metadata?.giphyThankYouPage,
-    };
-  }
-  return appMetadata;
+    },
+  } as const;
+
+  return legacyAppsData[appId as Extract<T, "stripe" | "rainbow" | "giphy">];
 };
 export default getApps;

@@ -11,6 +11,7 @@ import { RRule } from "rrule";
 import { z } from "zod";
 
 import { getEventLocationValue, getSuccessPageLocationMessage } from "@calcom/app-store/locations";
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
 import {
@@ -40,7 +41,7 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
 import { HeadSeo } from "@components/seo/head-seo";
-import { getEventTypeAppData } from "@calcom/app-store/utils";
+
 import { ssrInit } from "@server/lib/ssr";
 
 function redirectToExternalUrl(url: string) {
@@ -177,7 +178,7 @@ export default function Success(props: SuccessProps) {
     eventType as Pick<z.infer<typeof EventTypeModel>, "currency" | "price" | "metadata">,
     "giphy"
   );
-  const giphyImage = giphyAppData.thankYouPage;
+  const giphyImage = giphyAppData?.thankYouPage;
 
   const eventName = getEventName(eventNameObject, true);
   const needsConfirmation = eventType.requiresConfirmation && reschedule != "true";
