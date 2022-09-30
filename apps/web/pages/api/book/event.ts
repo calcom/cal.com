@@ -845,6 +845,18 @@ async function handler(req: NextApiRequest) {
 
   // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
   const subscribers = await getWebhooks(subscriberOptions);
+
+  // If a global webhook is defined, send it to that one too.
+  if (process.env.NEXT_PUBLIC_GLOBAL_WEBHOOK_URL) {
+    subscribers.push({
+      id: "global",
+      subscriberUrl: process.env.NEXT_PUBLIC_GLOBAL_WEBHOOK_URL,
+      secret: null,
+      payloadTemplate: null,
+      appId: null,
+    });
+  }
+
   console.log("evt:", {
     ...evt,
     metadata: reqBody.metadata,
