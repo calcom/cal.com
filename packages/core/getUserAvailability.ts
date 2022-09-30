@@ -5,7 +5,6 @@ import dayjs, { Dayjs } from "@calcom/dayjs";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
-import { checkBookingLimits } from "@calcom/lib/server";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { stringToDayjs } from "@calcom/prisma/zod-utils";
@@ -146,12 +145,6 @@ export async function getUserAvailability(
     eventTypeId,
     userId: currentUser.id,
     selectedCalendars,
-  });
-
-  const bookingLimitBusyTimes = getBookingLimits({
-    eventType,
-    dateFrom: dateFrom.toDate(),
-    dateTo: dateTo.toDate(),
   });
 
   const bufferedBusyTimes = busyTimes.map((a) => ({
