@@ -82,8 +82,16 @@ export default class GoogleCalendarService implements Calendar {
           timeZone: calEventRaw.organizer.timeZone,
         },
         attendees: [
-          { ...calEventRaw.organizer, organizer: true, responseStatus: "accepted" },
-          ...calEventRaw.attendees.map((attendee) => ({ ...attendee, responseStatus: "accepted" })),
+          {
+            ...calEventRaw.organizer,
+            id: String(calEventRaw.organizer.id),
+            organizer: true,
+            responseStatus: "accepted",
+          },
+          ...calEventRaw.attendees.map(({ id, ...rest }) => ({
+            rest,
+            responseStatus: "accepted",
+          })),
         ],
         reminders: {
           useDefault: true,
@@ -161,7 +169,18 @@ export default class GoogleCalendarService implements Calendar {
           dateTime: event.endTime,
           timeZone: event.organizer.timeZone,
         },
-        attendees: [{ ...event.organizer, organizer: true, responseStatus: "accepted" }, ...event.attendees],
+        attendees: [
+          {
+            ...event.organizer,
+            id: String(event.organizer.id),
+            organizer: true,
+            responseStatus: "accepted",
+          },
+          ...event.attendees.map(({ id, ...rest }) => ({
+            rest,
+            responseStatus: "accepted",
+          })),
+        ],
         reminders: {
           useDefault: true,
         },
