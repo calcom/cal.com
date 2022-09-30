@@ -10,6 +10,7 @@ import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
+import UserV2OptInBanner from "@calcom/features/users/components/UserV2OptInBanner";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { JOIN_SLACK, ROADMAP, DESKTOP_APP_LINK, WEBAPP_URL } from "@calcom/lib/constants";
@@ -23,7 +24,6 @@ import Dropdown, {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuPortal,
 } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import Button from "@calcom/ui/v2/core/Button";
@@ -272,109 +272,107 @@ function UserDropdown({ small }: { small?: boolean }) {
           )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuPortal>
-        <DropdownMenuContent onInteractOutside={() => setMenuOpen(false)}>
-          {helpOpen ? (
-            <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
-          ) : (
-            <>
-              <DropdownMenuItem>
-                <button
-                  onClick={() => {
-                    mutation.mutate({ away: !user?.away });
-                    utils.invalidateQueries("viewer.me");
-                  }}
-                  className="flex min-w-max cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
-                  <Icon.FiMoon
-                    className={classNames(
-                      user.away
-                        ? "text-purple-500 group-hover:text-purple-700"
-                        : "text-gray-500 group-hover:text-gray-700",
-                      "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-3"
-                    )}
-                    aria-hidden="true"
-                  />
-                  {user.away ? t("set_as_free") : t("set_as_away")}
-                </button>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator className="h-px bg-gray-200" />
-              {user.username && (
-                <DropdownMenuItem>
-                  <a
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
-                    className="flex items-center px-4 py-2 text-sm text-gray-700">
-                    <Icon.FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
-                    {t("view_public_page")}
-                  </a>
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuSeparator className="h-px bg-gray-200" />
-              <DropdownMenuItem>
-                <a
-                  href={JOIN_SLACK}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
-                  <Icon.FiSlack strokeWidth={1.5} className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
-                  {t("join_our_slack")}
-                </a>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <a
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  href={ROADMAP}
-                  className="flex items-center px-4 py-2 text-sm text-gray-700">
-                  <Icon.FiMap className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" /> {t("visit_roadmap")}
-                </a>
-              </DropdownMenuItem>
-
+      <DropdownMenuContent portalled={true} onInteractOutside={() => setMenuOpen(false)}>
+        {helpOpen ? (
+          <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
+        ) : (
+          <>
+            <DropdownMenuItem>
               <button
-                className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                onClick={() => setHelpOpen(true)}>
-                <Icon.FiHelpCircle
+                onClick={() => {
+                  mutation.mutate({ away: !user?.away });
+                  utils.invalidateQueries("viewer.me");
+                }}
+                className="flex min-w-max cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
+                <Icon.FiMoon
                   className={classNames(
-                    "text-gray-500 group-hover:text-neutral-500",
-                    "h-4 w-4 flex-shrink-0 ltr:mr-2"
+                    user.away
+                      ? "text-purple-500 group-hover:text-purple-700"
+                      : "text-gray-500 group-hover:text-gray-700",
+                    "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-3"
                   )}
                   aria-hidden="true"
                 />
-
-                {t("help")}
+                {user.away ? t("set_as_free") : t("set_as_away")}
               </button>
-
+            </DropdownMenuItem>
+            <DropdownMenuSeparator className="h-px bg-gray-200" />
+            {user.username && (
               <DropdownMenuItem>
                 <a
                   target="_blank"
                   rel="noopener noreferrer"
-                  href={DESKTOP_APP_LINK}
-                  className="desktop-hidden hidden items-center px-4 py-2 text-sm text-gray-700 lg:flex">
-                  <Icon.FiDownload className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
-                  {t("download_desktop_app")}
+                  href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
+                  className="flex items-center px-4 py-2 text-sm text-gray-700">
+                  <Icon.FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                  {t("view_public_page")}
                 </a>
               </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator className="h-px bg-gray-200" />
+            <DropdownMenuItem>
+              <a
+                href={JOIN_SLACK}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                <Icon.FiSlack strokeWidth={1.5} className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                {t("join_our_slack")}
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href={ROADMAP}
+                className="flex items-center px-4 py-2 text-sm text-gray-700">
+                <Icon.FiMap className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" /> {t("visit_roadmap")}
+              </a>
+            </DropdownMenuItem>
 
-              <DropdownMenuSeparator className="h-px bg-gray-200" />
-              <DropdownMenuItem>
-                <a
-                  onClick={() => signOut({ callbackUrl: "/auth/logout" })}
-                  className="flex cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
-                  <Icon.FiLogOut
-                    className={classNames(
-                      "text-gray-500 group-hover:text-gray-700",
-                      "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-3"
-                    )}
-                    aria-hidden="true"
-                  />
-                  {t("sign_out")}
-                </a>
-              </DropdownMenuItem>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenuPortal>
+            <button
+              className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+              onClick={() => setHelpOpen(true)}>
+              <Icon.FiHelpCircle
+                className={classNames(
+                  "text-gray-500 group-hover:text-neutral-500",
+                  "h-4 w-4 flex-shrink-0 ltr:mr-2"
+                )}
+                aria-hidden="true"
+              />
+
+              {t("help")}
+            </button>
+
+            <DropdownMenuItem>
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                href={DESKTOP_APP_LINK}
+                className="desktop-hidden hidden items-center px-4 py-2 text-sm text-gray-700 lg:flex">
+                <Icon.FiDownload className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                {t("download_desktop_app")}
+              </a>
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator className="h-px bg-gray-200" />
+            <DropdownMenuItem>
+              <a
+                onClick={() => signOut({ callbackUrl: "/auth/logout" })}
+                className="flex cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
+                <Icon.FiLogOut
+                  className={classNames(
+                    "text-gray-500 group-hover:text-gray-700",
+                    "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-3"
+                  )}
+                  aria-hidden="true"
+                />
+                {t("sign_out")}
+              </a>
+            </DropdownMenuItem>
+          </>
+        )}
+      </DropdownMenuContent>
     </Dropdown>
   );
 }
@@ -814,7 +812,7 @@ function MainContainer({
       {/* The following is used for settings navigation on medium and smaller screens */}
       <div
         className={classNames(
-          "overflow-none fixed z-40 m-0 h-screen w-screen overscroll-none bg-black opacity-50",
+          "absolute z-40 m-0 h-screen w-screen bg-black opacity-50",
           sideContainerOpen ? "" : "hidden"
         )}
         onClick={() => {
