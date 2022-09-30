@@ -22,14 +22,15 @@ export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTri
 );
 DropdownMenuTrigger.displayName = "DropdownMenuTrigger";
 
-export const DropdownMenuTriggerItem = DropdownMenuPrimitive.TriggerItem;
+export const DropdownMenuTriggerItem = DropdownMenuPrimitive.Trigger;
+
+export const DropdownMenuPortal = DropdownMenuPrimitive.Portal;
 
 type DropdownMenuContentProps = ComponentProps<typeof DropdownMenuPrimitive["Content"]>;
 export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuContentProps>(
   ({ children, ...props }, forwardedRef) => {
     return (
       <DropdownMenuPrimitive.Content
-        portalled={props.portalled}
         {...props}
         className={classNames(
           `slideInTop w-50 relative z-10 mt-1 -ml-0 origin-top-right rounded-sm bg-white text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none`,
