@@ -1,15 +1,21 @@
 import React, { useState } from "react";
+import { z } from "zod";
 
-//TODO:
 import EventTypeAppContext from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import { SelectGifInput } from "@calcom/app-store/giphy/components";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
+const appDataSchema = z.object({
+  thankYouPage: z.string().optional(),
+});
+
+type GetAppData = (key: keyof z.infer<typeof appDataSchema>) => string;
+type SetAppData = (key: keyof z.infer<typeof appDataSchema>, value: string) => void;
+
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app }) {
-  //TODO: Compute it.
-  const [getAppData, setAppData] = React.useContext(EventTypeAppContext);
+  const [getAppData, setAppData] = React.useContext<[GetAppData, SetAppData]>(EventTypeAppContext);
   const thankYouPage = getAppData("thankYouPage");
   const [showGifSelection, setShowGifSelection] = useState(!!thankYouPage);
   const { t } = useLocale();
