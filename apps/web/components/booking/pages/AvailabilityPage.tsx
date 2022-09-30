@@ -241,7 +241,7 @@ function TimezoneDropdown({
   };
 
   return (
-    <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen} className="flex">
+    <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen} className="flex flex-col">
       <Collapsible.Trigger className="min-w-32 dark:text-darkgray-600 mb-2 -ml-2 px-2 text-left text-gray-600">
         <p className="text-sm font-medium">
           <Icon.FiGlobe className="mr-[10px] ml-[2px] -mt-[2px] inline-block h-4 w-4" />
