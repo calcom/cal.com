@@ -1,7 +1,6 @@
 import { MembershipRole, UserPermissionRole } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
 import React, { ComponentProps, useEffect, useState } from "react";
 
 import { classNames } from "@calcom/lib";
@@ -294,7 +293,6 @@ export default function SettingsLayout({
   children,
   ...rest
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
-  const router = useRouter();
   const state = useState(false);
   const [sideContainerOpen, setSideContainerOpen] = state;
 
@@ -311,12 +309,6 @@ export default function SettingsLayout({
     };
   }, []);
 
-  useEffect(() => {
-    if (sideContainerOpen) {
-      setSideContainerOpen(!sideContainerOpen);
-    }
-  }, [router.asPath]);
-
   return (
     <Shell
       flexChildrenContainer
@@ -327,7 +319,7 @@ export default function SettingsLayout({
       SettingsSidebarContainer={
         <div
           className={classNames(
-            "fixed inset-y-0 z-50 m-0 h-screen transform overflow-y-scroll border-gray-100 bg-gray-50 transition duration-200 ease-in-out",
+            "absolute inset-y-0 z-50 m-0 h-screen transform overflow-y-scroll border-gray-100 bg-gray-50 transition duration-200 ease-in-out",
             sideContainerOpen ? "translate-x-0" : "-translate-x-full"
           )}>
           <SettingsSidebarContainer />
