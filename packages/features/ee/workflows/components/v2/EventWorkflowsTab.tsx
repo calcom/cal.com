@@ -8,11 +8,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Button, Loader, showToast, Switch, Tooltip } from "@calcom/ui/v2";
+import { Button, showToast, Switch, Tooltip } from "@calcom/ui/v2";
 
 import LicenseRequired from "../../../common/components/v2/LicenseRequired";
 import { getActionIcon } from "../../lib/getActionIcon";
 import EmptyScreen from "./EmptyScreen";
+import SkeletonLoader from "./SkeletonLoaderEventWorkflowsTab";
 import { WorkflowType } from "./WorkflowListPage";
 
 type ItemProps = {
@@ -213,7 +214,7 @@ function EventWorkflowsTab(props: Props) {
           />
         )
       ) : (
-        <Loader />
+        <SkeletonLoader />
       )}
     </LicenseRequired>
   );
