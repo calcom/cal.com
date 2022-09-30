@@ -262,7 +262,7 @@ function BookingListItem(booking: BookingItemProps) {
       </Dialog>
 
       <tr className="flex flex-col hover:bg-neutral-50 sm:flex-row">
-        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:w-48" onClick={onClick}>
+        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:min-w-[10rem]" onClick={onClick}>
           <div className="cursor-pointer py-4">
             <div className="text-sm leading-6 text-gray-900">{startTime}</div>
             <div className="text-sm text-gray-500">
@@ -296,7 +296,7 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
           </div>
         </td>
-        <td className={"flex-1 px-4" + (isRejected ? " line-through" : "")} onClick={onClick}>
+        <td className={"w-full px-4" + (isRejected ? " line-through" : "")} onClick={onClick}>
           {/* Time and Badges for mobile */}
           <div className="w-full pt-4 pb-2 sm:hidden">
             <div className="flex w-full items-center justify-between sm:hidden">
@@ -335,7 +335,7 @@ function BookingListItem(booking: BookingItemProps) {
             <div
               title={booking.title}
               className={classNames(
-                "max-w-10/12 sm:max-w-56 truncate text-sm font-medium leading-6 text-neutral-900 md:max-w-max",
+                "max-w-10/12 sm:max-w-56 text-sm font-medium leading-6 text-neutral-900 md:max-w-full",
                 isCancelled ? "line-through" : ""
               )}>
               {booking.title}
@@ -366,7 +366,7 @@ function BookingListItem(booking: BookingItemProps) {
             )}
           </div>
         </td>
-        <td className="whitespace-nowrap py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
+        <td className="py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
           {isUpcoming && !isCancelled ? (
             <>
               {isPending && user?.id === booking.user?.id && <TableActions actions={pendingActions} />}
