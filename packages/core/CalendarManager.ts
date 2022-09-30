@@ -9,6 +9,7 @@ import getApps from "@calcom/app-store/utils";
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import { App } from "@calcom/types/App";
@@ -70,12 +71,14 @@ export const getConnectedCalendars = async (
           primary,
           calendars,
         };
-      } catch (error: AxiosError | unknown) {
+      } catch (error) {
         let errorMessage = "Could not get connected calendars";
 
         // Here you can expect for specific errors
-        if (error && error?.response.data.error === "invalid_grant") {
-          errorMessage = `Service responded with: ${error?.response.data.error_message}`;
+        if (error instanceof Error) {
+          if (error.message === "invalid_grant") {
+            errorMessage = "Access token expired or revoked";
+          }
         }
 
         return {

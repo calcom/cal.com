@@ -91,7 +91,28 @@ const CalendarsView = () => {
               <List>
                 {data.connectedCalendars.map((item) => (
                   <Fragment key={item.credentialId}>
-                    {item.calendars && (
+                    {item.error && item.error.message && (
+                      <Alert
+                        severity="warning"
+                        key={item.credentialId}
+                        title={`${t("error")} - A Calendar connection broke`}
+                        message={item.error.message}
+                        className="mb-4"
+                        actions={
+                          <>
+                            {/* {JSON.stringify(item)} */}
+                            <Button className="mx-2">Reconnect</Button>
+                            <DisconnectIntegration
+                              credentialId={item.credentialId}
+                              trashIcon
+                              // onSuccess={onChanged}
+                              buttonProps={{ className: "border border-gray-300 py-[2px]" }}
+                            />
+                          </>
+                        }
+                      />
+                    )}
+                    {item?.error === undefined && item.calendars && (
                       <ListItem expanded className="flex-col">
                         <div className="flex w-full flex-1 items-center space-x-3 pb-5 pl-1 pt-1 rtl:space-x-reverse">
                           {
