@@ -489,7 +489,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <ul className="mt-2 ml-5 list-disc text-gray-900">
                   <li>{t("uppercase_for_letters")}</li>
                   <li>{t("replace_whitespaces_underscores")}</li>
-                  <li>{t("ingore_special_characters")}</li>
+                  <li>{t("ignore_special_characters")}</li>
                 </ul>
                 <div className="mt-6">
                   <p className="test-sm w-full font-medium">{t("example_1")}</p>

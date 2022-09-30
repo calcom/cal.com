@@ -1272,5 +1272,5 @@
   "format": "Format",
   "uppercase_for_letters": "Use uppercase for all letters",
   "replace_whitespaces_underscores": "Replace whitespaces with underscores",
-  "ingore_special_characters": "Ignore special characters in your Additonal Input label. Use only letters and numbers"
+  "ignore_special_characters": "Ignore special characters in your Additonal Input label. Use only letters and numbers"
 }
