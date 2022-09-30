@@ -111,7 +111,7 @@ const GeneralView = ({ localeProp }: GeneralViewProps) => {
     <Form
       form={formMethods}
       handleSubmit={(values) => {
-        setIs24hClockInLocalStorage(values.timeFormat.value === 12 ? "false" : "true");
+        setIs24hClockInLocalStorage(values.timeFormat.value === 24);
 
         mutation.mutate({
           ...values,

@@ -230,7 +230,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     // Write time format to localStorage if available
     // Embed isn't applicable to profile pages. So ignore the rule
     // eslint-disable-next-line @calcom/eslint/avoid-web-storage
-    setIs24hClockInLocalStorage(selectedTimeFormat.value === 12 ? "false" : "true");
+    setIs24hClockInLocalStorage(selectedTimeFormat.value === 24);
 
     // TODO: Add validation
 
