@@ -1,4 +1,5 @@
 import { Credential, SelectedCalendar } from "@prisma/client";
+import { AxiosError } from "axios";
 import { createHash } from "crypto";
 import _ from "lodash";
 import cache from "memory-cache";
@@ -10,6 +11,7 @@ import { getUid } from "@calcom/lib/CalEventParser";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
+import { App } from "@calcom/types/App";
 import type { CalendarEvent, EventBusyDate, NewCalendarEventType } from "@calcom/types/Calendar";
 import type { EventResult } from "@calcom/types/EventManager";
 
@@ -35,39 +37,71 @@ export const getConnectedCalendars = async (
 ) => {
   const connectedCalendars = await Promise.all(
     calendarCredentials.map(async (item) => {
-      const { calendar, integration, credential } = item;
-      const credentialId = credential.id;
-      if (!calendar) {
+      try {
+        const { calendar, integration, credential } = item;
+        // Don't leak credentials to the client
+
+        const credentialId = credential.id;
+        if (!calendar) {
+          return {
+            integration,
+            credentialId,
+          };
+        }
+        const cals = await calendar.listCalendars();
+        const calendars = _(cals)
+          .map((cal) => ({
+            ...cal,
+            readOnly: cal.readOnly || false,
+            primary: cal.primary || null,
+            isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
+            credentialId,
+          }))
+          .sortBy(["primary"])
+          .value();
+        const primary = calendars.find((item) => item.primary) ?? calendars[0];
+        if (!primary) {
+          throw new Error("No primary calendar found");
+        }
+
         return {
-          integration,
+          integration: cleanIntegrationKeys(integration),
           credentialId,
+          primary,
+          calendars,
+        };
+      } catch (error: AxiosError | unknown) {
+        let errorMessage = "Could not get connected calendars";
+
+        // Here you can expect for specific errors
+        if (error && error?.response.data.error === "invalid_grant") {
+          errorMessage = `Service responded with: ${error?.response.data.error_message}`;
+        }
+
+        return {
+          integration: cleanIntegrationKeys(item.integration),
+          credentialId: item.credential.id,
+          error: {
+            message: errorMessage,
+          },
         };
       }
-      const cals = await calendar.listCalendars();
-      const calendars = _(cals)
-        .map((cal) => ({
-          ...cal,
-          readOnly: cal.readOnly || false,
-          primary: cal.primary || null,
-          isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
-          credentialId,
-        }))
-        .sortBy(["primary"])
-        .value();
-      const primary = calendars.find((item) => item.primary) ?? calendars[0];
-      if (!primary) {
-        throw new Error("No primary calendar found");
-      }
-      return {
-        integration,
-        credentialId,
-        primary,
-        calendars,
-      };
     })
   );
 
   return connectedCalendars;
+};
+
+/**
+ * Important function to don't leak credentials to the client
+ * @param appIntegration
+ * @returns App
+ */
+const cleanIntegrationKeys = (
+  appIntegration: Partial<App> & { credentials?: Array<Credential>; credential: Credential }
+) => {
+  const { credentials, credential, ...rest } = appIntegration;
+  return rest;
 };
 
 const CACHING_TIME = 30_000; // 30 seconds

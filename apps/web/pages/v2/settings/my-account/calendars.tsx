@@ -7,6 +7,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
+import { Alert, Button } from "@calcom/ui/v2";
 import Badge from "@calcom/ui/v2/core/Badge";
 import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
 import Meta from "@calcom/ui/v2/core/Meta";
@@ -18,12 +19,13 @@ import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/Disconnect
 
 import { QueryCell } from "@lib/QueryCell";
 
+import { LinkText } from "@components/ui/LinkText";
 import { CalendarSwitch } from "@components/v2/settings/CalendarSwitch";
 
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <div className="mt-6 mb-8 space-y-6 divide-y">
+      <div className="mt-6 mb-8 space-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -151,6 +153,22 @@ const CalendarsView = () => {
               description={t("no_calendar_installed_description")}
               buttonText={t("add_a_calendar")}
               buttonOnClick={() => router.push(`${WEBAPP_URL}/apps/categories/calendar`)}
+            />
+          );
+        }}
+        error={() => {
+          return (
+            <Alert
+              message={
+                <Trans i18nKey="fetching_calendars_error">
+                  An error ocurred while fetching your Calendars.
+                  <a className="cursor-pointer underline" onClick={() => query.refetch()}>
+                    try again
+                  </a>
+                  .
+                </Trans>
+              }
+              severity="error"
             />
           );
         }}
