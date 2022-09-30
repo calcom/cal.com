@@ -99,7 +99,7 @@ html.todesktop nav a[aria-current="page"]{
 
 html.todesktop nav a svg{
   color: #0272F7 !important
-} 
+}
 */
 
 
@@ -153,11 +153,11 @@ button[role="switch"][data-state="checked"] {
 }
 /* TODO: avoid global specific css */
 /* button[role="switch"][data-state="checked"] span {
-  transform: translateX(16px); 
+  transform: translateX(16px);
 } */
 
 /* DateRangePicker */
-/* 
+/*
   TODO:: Remove on V2 launch
  */
 .react-daterange-picker > .react-daterange-picker__wrapper {
@@ -480,5 +480,19 @@ hr {
   }
   to {
     opacity: 1;
+  }
+}
+
+/**
+ * Makes sure h-screen works on mobile Safari. By default h-screen
+ * does not take into account the height of the address bar, causing
+ * weird behaviour when scrolling — sometimes the height will be correct
+ * and sometimes it won't, depending on whether the address bar is
+ * in 'collapsed' state or not.
+ * @see: https://benborgers.com/posts/tailwind-h-screen
+ */
+@supports (-webkit-touch-callout: none) {
+  .h-screen {
+    height: -webkit-fill-available;
   }
 }
