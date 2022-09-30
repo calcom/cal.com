@@ -12,6 +12,8 @@ export const metadata = {
   verified: true,
   licenseRequired: true,
   isProOnly: true,
+  feeType: "monthly",
+  price: [29, 149],
   ...config,
 } as App;
 
