@@ -1,10 +1,10 @@
 [
   {
     "/*": "This file is auto-generated and updated by `yarn app-store create/edit`. Don't edit it manually",
-    "dirName": "routing_forms",
+    "dirName": "routing-forms",
     "categories": ["other"],
-    "slug": "routing_forms",
-    "type": "routing_forms_other"
+    "slug": "routing-forms",
+    "type": "routing-forms_other"
   },
   {
     "dirName": "whereby",

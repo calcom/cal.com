@@ -17,7 +17,7 @@ export default function HowToUse() {
             <ol className="mt-5 mb-5 ml-5 mr-5 list-decimal">
               <li>
                 Make sure that you have{" "}
-                <Link href="/apps/routing_forms" className="text-base text-gray-500">
+                <Link href="/apps/routing-forms" className="text-base text-gray-500">
                   <a className="text-base text-gray-500">Routing Forms</a>
                 </Link>{" "}
                 app installed

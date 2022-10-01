@@ -1,12 +1,12 @@
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import Badge from "@calcom/ui/v2/core/Badge";
 import Button from "@calcom/ui/v2/core/Button";
 import Switch from "@calcom/ui/v2/core/Switch";
 import { Tooltip } from "@calcom/ui/v2/core/Tooltip";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 export type TWebhook = inferQueryOutput<"viewer.webhook.list">[number];
 
@@ -21,8 +21,7 @@ export default function WebhookListItem(props: {
   const deleteWebhook = trpc.useMutation("viewer.webhook.delete", {
     async onSuccess() {
       await utils.invalidateQueries(["viewer.webhook.list"]);
-      // TODO: Better success message
-      showToast(t("deleted"), "success");
+      showToast(t("webhook_removed_successfully"), "success");
     },
   });
   const toggleWebhook = trpc.useMutation("viewer.webhook.edit", {
@@ -38,14 +37,13 @@ export default function WebhookListItem(props: {
     <div className={classNames("flex w-full justify-between p-4", props.lastItem ? "" : "border-b")}>
       <div>
         <p className="text-sm font-medium text-gray-900">{webhook.subscriberUrl}</p>
-        <Tooltip
-          content={webhook.eventTriggers.map((trigger) => (
-            <p key={trigger}>{t(`${trigger.toLowerCase()}`)}</p>
-          ))}>
-          <div className="mt-2.5 w-max">
-            <Badge variant="gray" bold StartIcon={Icon.FiAlertCircle}>
-              {t("triggers_when")}
-            </Badge>
+        <Tooltip content={t("triggers_when")}>
+          <div className="mt-2.5 w-4/5">
+            {webhook.eventTriggers.map((trigger) => (
+              <Badge key={trigger} className="mr-2" variant="gray" bold StartIcon={Icon.FiAlertCircle}>
+                {t(`${trigger.toLowerCase()}`)}
+              </Badge>
+            ))}
           </div>
         </Tooltip>
       </div>

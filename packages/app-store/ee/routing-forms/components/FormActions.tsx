@@ -60,7 +60,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
   const router = useRouter();
   const utils = trpc.useContext();
 
-  const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
+  const mutation = trpc.useMutation("viewer.app_routing_forms.formMutation", {
     onSuccess: (_data, variables) => {
       utils.invalidateQueries("viewer.app_routing_forms.forms");
       router.push(`${appUrl}/form-edit/${variables.id}`);
@@ -86,7 +86,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
             {t("add_new_form")}
           </h3>
           <div>
-            <p className="text-sm text-gray-500">{t("forms_description")}</p>
+            <p className="text-sm text-gray-500">{t("form_description")}</p>
           </div>
         </div>
         <Form
@@ -223,7 +223,7 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
   const [deleteDialogFormId, setDeleteDialogFormId] = useState<string | null>(null);
   const router = useRouter();
 
-  const toggleMutation = trpc.useMutation("viewer.app_routing_forms.form", {
+  const toggleMutation = trpc.useMutation("viewer.app_routing_forms.formMutation", {
     onError: () => {
       showToast(`Something went wrong`, "error");
     },
@@ -338,7 +338,7 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       href: `${appUrl}/form-edit/${routingForm?.id}`,
     },
     download: {
-      href: `/api/integrations/routing_forms/responses/${routingForm?.id}`,
+      href: `/api/integrations/routing-forms/responses/${routingForm?.id}`,
     },
     _delete: {
       onClick: () => _delete.onAction({ routingForm }),

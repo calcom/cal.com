@@ -3,7 +3,7 @@ import _ from "lodash";
 import { authenticator } from "otplib";
 import { z } from "zod";
 
-import app_RoutingForms from "@calcom/app-store/ee/routing_forms/trpc-router";
+import app_RoutingForms from "@calcom/app-store/ee/routing-forms/trpc-router";
 import ethRouter from "@calcom/app-store/rainbow/trpc/router";
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
 import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
@@ -55,11 +55,6 @@ import { workflowsRouter } from "./viewer/workflows";
 
 // things that unauthenticated users can query about themselves
 const publicViewerRouter = createRouter()
-  .query("session", {
-    resolve({ ctx }) {
-      return ctx.session;
-    },
-  })
   .query("i18n", {
     async resolve({ ctx }) {
       const { locale, i18n } = ctx;
@@ -179,6 +174,7 @@ const loggedInViewerRouter = createProtectedRouter()
         weekStart: user.weekStart,
         theme: user.theme,
         hideBranding: user.hideBranding,
+        metadata: user.metadata,
       };
     },
   })
@@ -624,7 +620,7 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ ctx }) {
       const { user } = ctx;
       // get user's credentials + their connected integrations
-      const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
+      const calendarCredentials = getCalendarCredentials(user.credentials);
 
       // get all the connected integrations' calendars (from third party)
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
@@ -690,7 +686,7 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const { user } = ctx;
       const { integration, externalId, eventTypeId } = input;
-      const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
+      const calendarCredentials = getCalendarCredentials(user.credentials);
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
 

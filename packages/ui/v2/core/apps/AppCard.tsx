@@ -4,12 +4,9 @@ import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
-import { trpc } from "@calcom/trpc/react";
 import { App } from "@calcom/types/App";
 import { Icon } from "@calcom/ui/Icon";
 import Button from "@calcom/ui/v2/core/Button";
-
-import { SkeletonText } from "../skeleton";
 
 interface AppCardProps {
   app: App;
@@ -18,7 +15,6 @@ interface AppCardProps {
 
 export default function AppCard({ app, credentials }: AppCardProps) {
   const { t } = useLocale();
-  const { isLocaleReady } = useLocale();
   const mutation = useAddAppMutation(null, {
     onSuccess: () => {
       showToast(t("app_successfully_installed"), "success");
@@ -53,7 +49,7 @@ export default function AppCard({ app, credentials }: AppCardProps) {
         }}>
         {app.description}
       </p>
-      <div className="mt-5 flex max-w-full flex-row flex-wrap justify-between gap-2">
+      <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
         <Button
           color="secondary"
           className="flex w-32 flex-grow justify-center"

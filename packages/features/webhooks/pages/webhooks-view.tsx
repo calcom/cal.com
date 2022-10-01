@@ -5,7 +5,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { ButtonGroup, EmptyScreen, SkeletonText } from "@calcom/ui/v2";
+import { EmptyScreen, SkeletonText } from "@calcom/ui/v2";
 import { Button } from "@calcom/ui/v2/core/Button";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
@@ -31,7 +31,11 @@ const WebhooksView = () => {
 const NewWebhookButton = () => {
   const { t, isLocaleReady } = useLocale();
   return (
-    <Button color="secondary" StartIcon={Icon.FiPlus} href={`${WEBAPP_URL}/settings/developer/webhooks/new`}>
+    <Button
+      color="secondary"
+      data-testid="new_webhook"
+      StartIcon={Icon.FiPlus}
+      href={`${WEBAPP_URL}/settings/developer/webhooks/new`}>
       {isLocaleReady ? t("new_webhook") : <SkeletonText className="h-4 w-24" />}
     </Button>
   );
