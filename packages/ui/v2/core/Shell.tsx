@@ -10,7 +10,6 @@ import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
-import UserV2OptInBanner from "@calcom/features/users/components/UserV2OptInBanner";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { JOIN_SLACK, ROADMAP, DESKTOP_APP_LINK, WEBAPP_URL } from "@calcom/lib/constants";
@@ -27,6 +26,7 @@ import Dropdown, {
   DropdownMenuPortal,
 } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
+import Badge from "@calcom/ui/v2/core/Badge";
 import Button from "@calcom/ui/v2/core/Button";
 
 /* TODO: Get this from endpoint */
@@ -385,7 +385,7 @@ export type NavigationItemType = {
   href: string;
   icon?: SVGComponent;
   child?: NavigationItemType[];
-  pro?: true;
+  new?: boolean;
   onlyMobile?: boolean;
   onlyDesktop?: boolean;
   isCurrent?: ({
@@ -458,6 +458,7 @@ const navigation: NavigationItemType[] = [
       },
     ],
   },
+
   {
     name: MORE_SEPARATOR_NAME,
     href: "/more",
@@ -475,6 +476,14 @@ const navigation: NavigationItemType[] = [
     name: "workflows",
     href: "/workflows",
     icon: Icon.FiZap,
+  },
+
+  {
+    name: "Reporting",
+    href: "/reporting",
+    icon: Icon.FiBarChart,
+    onlyDesktop: true,
+    new: true,
   },
   {
     name: "settings",
@@ -542,6 +551,7 @@ const NavigationItem: React.FC<{
     <Fragment>
       <Link href={item.href}>
         <a
+          target={item.href.startsWith("http") ? "_blank" : undefined}
           aria-label={t(item.name)}
           className={classNames(
             "group flex items-center rounded-md py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100 lg:px-[14px]  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
@@ -558,7 +568,11 @@ const NavigationItem: React.FC<{
             />
           )}
           {isLocaleReady ? (
-            <span className="hidden lg:inline">{t(item.name)}</span>
+            <div className="hidden w-full justify-between lg:flex">
+              {t(item.name)}
+              {/* TODO: hide new badge after clicking */}
+              {item.new && <Badge variant="green">NEW</Badge>}
+            </div>
           ) : (
             <SkeletonText className="h-3 w-32" />
           )}
