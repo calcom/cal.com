@@ -1,5 +1,10 @@
 import { z } from "zod";
 
-export const appDataSchema = z.object({
-  thankYouPage: z.string().optional(),
-});
+import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
+
+export const appDataSchema = eventTypeAppCardZod.merge(
+  z.object({
+    enabled: z.boolean().optional(),
+    thankYouPage: z.string().optional(),
+  })
+);

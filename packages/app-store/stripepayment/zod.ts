@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-export const appDataSchema = z.object({
-  price: z.number(),
-  currency: z.string(),
-});
+import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
+
+export const appDataSchema = eventTypeAppCardZod.merge(
+  z.object({
+    price: z.number(),
+    currency: z.string(),
+  })
+);

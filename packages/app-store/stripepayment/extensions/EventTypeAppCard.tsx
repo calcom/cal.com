@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
@@ -10,10 +10,10 @@ import { Alert, TextField } from "@calcom/ui/v2";
 import { appDataSchema } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
-  const [getAppData, setAppData] = useAppContextWithSchema(appDataSchema);
+  const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");
   const currency = getAppData("currency");
-  const [requirePayment, setRequirePayment] = useState(price > 0);
+  const [requirePayment, setRequirePayment] = useState(getAppData("enabled"));
   const { t } = useLocale();
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
   const getCurrencySymbol = (locale: string, currency: string) =>
@@ -26,9 +26,9 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       })
       .replace(/\d/g, "")
       .trim();
-
   return (
     <AppCard
+      setAppData={setAppData}
       app={app}
       switchChecked={requirePayment}
       switchOnClick={(e) => {
@@ -52,7 +52,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       }>
       <>
         {recurringEventDefined ? (
-          <Alert severity="warning" title={t("warning_recurring_event_payment")} />
+          <Alert className="mt-2" severity="warning" title={t("warning_recurring_event_payment")} />
         ) : (
           requirePayment && (
             <div className="block items-center sm:flex">

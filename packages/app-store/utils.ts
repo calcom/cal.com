@@ -137,30 +137,37 @@ export function getAppType(name: string): string {
 
 export const getEventTypeAppData = <T extends EventTypeAppsList>(
   eventType: Pick<z.infer<typeof EventTypeModel>, "price" | "currency" | "metadata">,
-  appId: T
+  appId: T,
+  forcedGet?: boolean
 ): EventTypeApps[T] => {
   const metadata = eventType.metadata;
   const appMetadata = metadata?.apps && metadata.apps[appId];
   if (appMetadata) {
-    return appMetadata;
+    const allowDataGet = forcedGet ? true : appMetadata.enabled;
+    return allowDataGet ? appMetadata : null;
   }
 
   // Backward compatibility for existing event types.
-  // TODO: Write code here to migrate metadata to new format and delete this backwards compatibility once we there is no hit for it.
+  // TODO: Write code here to migrate metadata to new format and delete this backwards compatibility once there is no hit for it.
   const legacyAppsData = {
     stripe: {
+      enabled: eventType.price > 0,
       price: eventType.price,
       currency: eventType.currency,
     },
     rainbow: {
+      enabled: eventType.metadata?.smartContractAddress && eventType.metadata?.blockchainId,
       smartContractAddress: eventType.metadata?.smartContractAddress,
       blockchainId: eventType.metadata?.blockchainId,
     },
     giphy: {
+      enabled: !!eventType.metadata?.giphyThankYouPage,
       thankYouPage: eventType.metadata?.giphyThankYouPage,
     },
   } as const;
-
-  return legacyAppsData[appId as Extract<T, "stripe" | "rainbow" | "giphy">];
+  const legacyAppData = legacyAppsData[appId as Extract<T, "stripe" | "rainbow" | "giphy">];
+  const allowDataGet = forcedGet ? true : legacyAppData.enabled;
+  return allowDataGet ? legacyAppData : null;
 };
+
 export default getApps;

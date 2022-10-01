@@ -18,11 +18,11 @@ export type GetAppDataGeneric<TAppData extends ZodType> = <TKey extends keyof z.
   key: TKey
 ) => z.infer<TAppData>[TKey];
 
-export const useAppContextWithSchema = <TAppData extends ZodType>(appDataSchema: TAppData) => {
+export const useAppContextWithSchema = <TAppData extends ZodType>() => {
   type GetAppData = GetAppDataGeneric<TAppData>;
   type SetAppData = SetAppDataGeneric<TAppData>;
   // TODO: Not able to do it without type assertion here
-  const context = appDataSchema.parse(React.useContext(EventTypeAppContext)) as [GetAppData, SetAppData];
+  const context = React.useContext(EventTypeAppContext) as [GetAppData, SetAppData];
   return context;
 };
 export default EventTypeAppContext;

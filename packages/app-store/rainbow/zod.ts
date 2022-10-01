@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-export const appDataSchema = z.object({
-  smartContractAddress: z.string().optional(),
-  blockchainId: z.number().optional(),
-});
+import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
+
+export const appDataSchema = eventTypeAppCardZod.merge(
+  z.object({
+    enabled: z.boolean().optional(),
+    smartContractAddress: z.string().optional(),
+    blockchainId: z.number().optional(),
+  })
+);

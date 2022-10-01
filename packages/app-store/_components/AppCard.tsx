@@ -1,8 +1,11 @@
 import Link from "next/link";
 
 import { inferQueryOutput } from "@calcom/trpc/react";
-import { Switch, Skeleton } from "@calcom/ui/v2";
+import { Switch } from "@calcom/ui/v2";
 import OmniInstallAppButton from "@calcom/web/components/v2/apps/OmniInstallAppButton";
+
+import { SetAppDataGeneric } from "../EventTypeAppContext";
+import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
 
 export default function AppCard({
   app,
@@ -10,12 +13,14 @@ export default function AppCard({
   switchOnClick,
   switchChecked,
   children,
+  setAppData,
 }: {
   app: inferQueryOutput<"viewer.apps">[number];
   description?: React.ReactNode;
   switchChecked?: boolean;
   switchOnClick?: (e: boolean) => void;
   children?: React.ReactNode;
+  setAppData: SetAppDataGeneric<typeof eventTypeAppCardZod>;
 }) {
   return (
     <div className="mb-4 rounded-md border border-gray-200 p-8">
@@ -32,7 +37,15 @@ export default function AppCard({
         </div>
         {app?.isInstalled ? (
           <div className="ml-auto flex items-center">
-            <Switch onCheckedChange={switchOnClick} checked={switchChecked} />
+            <Switch
+              onCheckedChange={(enabled) => {
+                if (switchOnClick) {
+                  switchOnClick(enabled);
+                }
+                setAppData("enabled", enabled);
+              }}
+              checked={switchChecked}
+            />
           </div>
         ) : (
           <OmniInstallAppButton className="ml-auto flex items-center" appId={app?.slug} />

@@ -8,13 +8,14 @@ import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { appDataSchema } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app }) {
-  const [getAppData, setAppData] = useAppContextWithSchema(appDataSchema);
+  const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
   const blockchainId = getAppData("blockchainId");
   const smartContractAddress = getAppData("smartContractAddress");
-  const [showRainbowSection, setShowRainbowSection] = useState(!!blockchainId && !!smartContractAddress);
+  const [showRainbowSection, setShowRainbowSection] = useState(getAppData("enabled"));
 
   return (
     <AppCard
+      setAppData={setAppData}
       app={app}
       switchOnClick={(e) => {
         if (!e) {

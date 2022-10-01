@@ -8,10 +8,11 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
-import getApps, { getLocationOptions } from "@calcom/app-store/utils";
+import getApps, { getEventTypeAppData, getLocationOptions } from "@calcom/app-store/utils";
 import { LocationObject, EventLocationType } from "@calcom/core/location";
 import { parseRecurringEvent } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
+import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { _EventTypeModel } from "@calcom/prisma/zod";
@@ -100,8 +101,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     },
   ]);
 
-  const numberOfInstalledEventTypeApps = eventTypeApps?.filter((app) => app.credentials.length).length ?? 0;
-
   const { eventType: dbEventType, locationOptions, team, teamMembers } = props;
   const [eventType, setEventType] = useState(dbEventType);
   const animationParentRef = useRef(null);
@@ -166,6 +165,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     },
   });
 
+  const apps = formMethods.getValues("metadata")?.apps;
+  let numberOfActiveApps = 0;
+
+  if (apps) {
+    numberOfActiveApps = Object.values(apps).filter((app) => app.enabled).length;
+  }
+
   const tabMap = {
     setup: (
       <EventSetupTab
@@ -200,7 +206,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   return (
     <EventTypeSingleLayout
-      enabledAppsNumber={numberOfInstalledEventTypeApps}
+      enabledAppsNumber={numberOfActiveApps}
       enabledWorkflowsNumber={eventType.workflows.length}
       eventType={eventType}
       team={team}
@@ -416,27 +422,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const apps = newMetadata.apps || {};
   // TODO: Abstract it out into a function like getEventTypeAppData
   // Bring all Apps data to metadata
+  // (
+  //   credentials.find((integration) => integration.type === "stripe_payment")
+  //     ?.key as unknown as StripeData
+  // )?.default_currency
+  const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
   newMetadata.apps = {
     ...apps,
-    stripe: apps.stripe || {
-      price: rawEventType.price,
-      currency:
-        rawEventType.currency ||
-        (
-          credentials.find((integration) => integration.type === "stripe_payment")
-            ?.key as unknown as StripeData
-        )?.default_currency ||
-        "usd",
-    },
-
-    giphy: apps.giphy || {
-      thankYouPage: newMetadata?.giphyThankYouPage || "",
-    },
-
-    rainbow: apps.rainbow || {
-      blockchainId: newMetadata?.blockchainId || 0,
-      smartContractAddress: newMetadata?.smartContractAddress || "",
-    },
+    stripe: getStripeAppData(eventTypeWithParsedMetadata, true),
+    giphy: getEventTypeAppData(eventTypeWithParsedMetadata, "giphy", true),
+    rainbow: getEventTypeAppData(eventTypeWithParsedMetadata, "rainbow", true),
   };
 
   // TODO: How to extract metadata schema from _EventTypeModel to be able to parse it?

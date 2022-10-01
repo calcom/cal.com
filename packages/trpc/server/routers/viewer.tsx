@@ -1296,7 +1296,6 @@ const loggedInViewerRouter = createProtectedRouter()
 
         const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
 
-        //TODO: Actually parse using zod instead of assertion
         const stripeAppData = getStripeAppData({ ...eventType, metadata });
 
         // If it's a payment, hide the event type and set the price to 0. Also cancel all pending bookings

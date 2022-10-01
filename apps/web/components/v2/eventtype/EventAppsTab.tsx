@@ -30,7 +30,7 @@ function AppCardWrapper({
     throw new Error('No component found for "' + dirName + '"');
   }
   return (
-    <ErrorBoundary>
+    <ErrorBoundary message={`There is some problem with ${app.name} App`}>
       <EventTypeAppContext.Provider value={[getAppData, setAppData]}>
         <Component key={app.slug} app={app} eventType={eventType} />
       </EventTypeAppContext.Provider>

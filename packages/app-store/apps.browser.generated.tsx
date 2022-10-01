@@ -84,6 +84,7 @@ export const appDataSchemas = {
   rainbow: rainbow_schema,
   stripe: stripepayment_schema,
 };
+
 export const InstallAppButtonMap = {
   applecalendar: dynamic(() => import("./applecalendar/components/InstallAppButton")),
   around: dynamic(() => import("./around/components/InstallAppButton")),
