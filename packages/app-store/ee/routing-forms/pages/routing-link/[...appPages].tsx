@@ -109,7 +109,7 @@ function RoutingForm({ form, profile }: inferSSRProps<typeof getServerSideProps>
 
                   <form onSubmit={handleOnSubmit}>
                     <div className="mb-8">
-                      <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-gray-900 dark:text-white">
+                      <h1 className="font-cal mb-1 text-xl font-bold tracking-wide text-gray-900 dark:text-white">
                         {form.name}
                       </h1>
                       {form.description ? (
