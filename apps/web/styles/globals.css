@@ -482,3 +482,17 @@ hr {
     opacity: 1;
   }
 }
+
+/**
+ * Makes sure h-screen works on mobile Safari. By default h-screen
+ * does not take into account the height of the address bar, causing
+ * weird behaviour when scrolling — sometimes the height will be correct
+ * and sometimes it won't, depending on whether the address bar is
+ * in 'collapsed' state or not.
+ * @see: https://benborgers.com/posts/tailwind-h-screen
+ */
+@supports (-webkit-touch-callout: none) {
+  .h-screen {
+    height: -webkit-fill-available;
+  }
+}

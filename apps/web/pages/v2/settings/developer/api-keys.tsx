@@ -39,16 +39,16 @@ const ApiKeysView = () => {
 
   return (
     <>
-      <Meta title="api_keys" description="webhooks_description" />
+      <Meta title="API Keys" description="API keys allow other apps to communicate with Cal.com" />
 
       <LicenseRequired>
         <>
           {isLoading && <SkeletonLoader />}
           <div>
-            {data?.length ? (
+            {isLoading ? null : data?.length ? (
               <>
                 <div className="mt-6 mb-8 rounded-md border">
-                  {data?.map((apiKey, index) => (
+                  {data.map((apiKey, index) => (
                     <ApiKeyListItem
                       key={apiKey.id}
                       apiKey={apiKey}

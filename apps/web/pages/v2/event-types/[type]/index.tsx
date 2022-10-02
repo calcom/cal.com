@@ -69,6 +69,7 @@ export type FormValues = {
   periodCountCalendarDays: "1" | "0";
   periodDates: { startDate: Date; endDate: Date };
   seatsPerTimeSlot: number | null;
+  seatsPerTimeSlotEnabled: boolean;
   minimumBookingNotice: number;
   beforeBufferTime: number;
   afterBufferTime: number;
@@ -95,7 +96,8 @@ export type EventTypeSetupInfered = inferSSRProps<typeof getServerSideProps>;
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
 
-  const { eventType, locationOptions, team, teamMembers } = props;
+  const { eventType: dbEventType, locationOptions, team, teamMembers } = props;
+  const [eventType, setEventType] = useState(dbEventType);
   const animationParentRef = useRef(null);
   const router = useRouter();
   const { tabName } = querySchema.parse(router.query);
@@ -105,7 +107,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   }, [animationParentRef]);
 
   const updateMutation = trpc.useMutation("viewer.eventTypes.update", {
-    onSuccess: async ({ eventType }) => {
+    onSuccess: async ({ eventType: newEventType }) => {
+      setEventType({ ...eventType, slug: newEventType.slug });
       showToast(
         t("event_type_updated_successfully", {
           eventTypeTitle: eventType.title,
@@ -152,6 +155,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         endDate: periodDates.endDate,
       },
       schedulingType: eventType.schedulingType,
+      minimumBookingNotice: eventType.minimumBookingNotice,
     },
   });
 
@@ -213,6 +217,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             locations,
             blockchainId,
             smartContractAddress,
+            // We don't need to send it to the backend
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            seatsPerTimeSlotEnabled,
             ...input
           } = values;
 

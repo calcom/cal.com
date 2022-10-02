@@ -1,4 +1,5 @@
 import { TFunction } from "next-i18next";
+import { useRouter } from "next/router";
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
 import { useMemo, useState } from "react";
 import { Loader } from "react-feather";
@@ -29,6 +30,7 @@ import Dropdown, {
 } from "@calcom/ui/v2/core/Dropdown";
 import Shell from "@calcom/ui/v2/core/Shell";
 import VerticalDivider from "@calcom/ui/v2/core/VerticalDivider";
+import { Skeleton } from "@calcom/ui/v2/core/skeleton";
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import { EmbedButton, EmbedDialog } from "@components/Embed";
@@ -103,6 +105,7 @@ function EventTypeSingleLayout({
 }: Props) {
   const utils = trpc.useContext();
   const { t } = useLocale();
+  const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const hasPermsToDelete = currentUserMembership?.role !== "MEMBER" || !currentUserMembership;
@@ -111,6 +114,7 @@ function EventTypeSingleLayout({
     onSuccess: async () => {
       await utils.invalidateQueries(["viewer.eventTypes"]);
       showToast(t("event_type_deleted_successfully"), "success");
+      await router.push("/event-types");
       setDeleteDialogOpen(false);
     },
     onError: (err) => {
@@ -131,7 +135,7 @@ function EventTypeSingleLayout({
     if (team)
       navigation.splice(2, 0, {
         name: "scheduling_type",
-        href: `team`,
+        href: `/event-types/${eventType.id}?tabName=team`,
         icon: Icon.FiUsers,
         info: eventType.schedulingType === "COLLECTIVE" ? "collective" : "round_robin",
       });
@@ -147,15 +151,18 @@ function EventTypeSingleLayout({
   return (
     <Shell
       backPath="/event-types"
-      title={t("event_type_title", { eventTypeTitle: eventType.title })}
+      title={eventType.title + " | " + t("event_type")}
       heading={eventType.title}
       subtitle={eventType.description || ""}
       CTA={
         <div className="flex items-center justify-end">
           <div className="flex items-center rounded-md px-2 sm:hover:bg-gray-100">
-            <Label htmlFor="hiddenSwitch" className="mt-2 hidden cursor-pointer self-center pr-2 sm:inline">
+            <Skeleton
+              as={Label}
+              htmlFor="hiddenSwitch"
+              className="mt-2 hidden cursor-pointer self-center pr-2 sm:inline">
               {t("hide_from_profile")}
-            </Label>
+            </Skeleton>
             <Switch
               id="hiddenSwitch"
               defaultChecked={formMethods.getValues("hidden")}

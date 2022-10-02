@@ -11,7 +11,7 @@ import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
+import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { Icon } from "@calcom/ui/Icon";
 
 import type { PaymentPageProps } from "../pages/payment";
@@ -26,7 +26,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   useEffect(() => {
     let embedIframeWidth = 0;
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
-    setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
+    setIs24h(!!getIs24hClockFromLocalStorage());
     if (isEmbed) {
       requestAnimationFrame(function fixStripeIframe() {
         // HACK: Look for stripe iframe and center position it just above the embed content

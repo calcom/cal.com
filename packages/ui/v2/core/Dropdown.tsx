@@ -27,14 +27,15 @@ export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTri
 );
 DropdownMenuTrigger.displayName = "DropdownMenuTrigger";
 
-export const DropdownMenuTriggerItem = DropdownMenuPrimitive.TriggerItem;
+export const DropdownMenuTriggerItem = DropdownMenuPrimitive.Trigger;
+
+export const DropdownMenuPortal = DropdownMenuPrimitive.Portal;
 
 type DropdownMenuContentProps = ComponentProps<typeof DropdownMenuPrimitive["Content"]>;
 export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuContentProps>(
   ({ children, align = "end", ...props }, forwardedRef) => {
     return (
       <DropdownMenuPrimitive.Content
-        portalled={props.portalled}
         align={align}
         {...props}
         className="shadow-dropdown w-50 relative z-10 mt-1 -ml-0 origin-top-right rounded-md border border-gray-200 bg-white text-sm"
@@ -55,7 +56,7 @@ type DropdownMenuItemProps = ComponentProps<typeof DropdownMenuPrimitive["Checkb
 export const DropdownMenuItem = forwardRef<HTMLDivElement, DropdownMenuItemProps>(
   ({ className = "", ...props }, forwardedRef) => (
     <DropdownMenuPrimitive.Item
-      className={`text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 ${className}`}
+      className={`focus:ring-brand-800 text-sm text-gray-700 ring-inset first-of-type:rounded-t-[inherit] last-of-type:rounded-b-[inherit] hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-1 ${className}`}
       {...props}
       ref={forwardedRef}
     />
@@ -127,7 +128,7 @@ export const DropdownItem = (props: DropdownItemProps) => {
     <ButtonOrLink
       {...props}
       className={classNames(
-        "focus:ring-brand-800 f inline-flex items-center px-3 py-2 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-1",
+        "inline-flex w-full items-center px-3 py-2 text-gray-700 hover:text-gray-900",
         props.color === "destructive" ? "hover:bg-red-100 hover:text-red-700" : " hover:bg-gray-100"
       )}>
       <>

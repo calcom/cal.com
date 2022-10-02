@@ -45,7 +45,7 @@ const ProfileView = () => {
 
   return (
     <>
-      <Meta title="booking_appearance" description="appearance_team_description" />
+      <Meta title="Booking Appearance" description="Manage settings for your team's booking appearance" />
       {!isLoading && (
         <>
           {isAdmin ? (

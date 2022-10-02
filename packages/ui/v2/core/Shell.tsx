@@ -24,8 +24,10 @@ import Dropdown, {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuPortal,
 } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
+import Button from "@calcom/ui/v2/core/Button";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
@@ -118,7 +120,7 @@ export function ShellSubHeading(props: {
 }
 
 const Layout = (props: LayoutProps) => {
-  const pageTitle = typeof props.heading === "string" ? props.heading : props.title;
+  const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
 
   return (
     <>
@@ -271,41 +273,43 @@ function UserDropdown({ small }: { small?: boolean }) {
           )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent portalled={true} onInteractOutside={() => setMenuOpen(false)}>
-        {helpOpen ? (
-          <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
-        ) : (
-          <>
-            {user.username && (
+      <DropdownMenuPortal>
+        <DropdownMenuContent onInteractOutside={() => setMenuOpen(false)}>
+          {helpOpen ? (
+            <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
+          ) : (
+            <>
+              {user.username && (
+                <DropdownMenuItem>
+                  <a
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
+                    className="flex items-center px-4 py-2 text-sm text-gray-700">
+                    <Icon.FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                    {t("view_public_page")}
+                  </a>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator className="h-px bg-gray-200" />
               <DropdownMenuItem>
                 <a
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
-                  className="flex items-center px-4 py-2 text-sm text-gray-700">
-                  <Icon.FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
-                  {t("view_public_page")}
+                  onClick={() => signOut({ callbackUrl: "/auth/logout" })}
+                  className="flex cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
+                  <Icon.FiLogOut
+                    className={classNames(
+                      "text-gray-500 group-hover:text-gray-700",
+                      "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-3"
+                    )}
+                    aria-hidden="true"
+                  />
+                  {t("sign_out")}
                 </a>
               </DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator className="h-px bg-gray-200" />
-            <DropdownMenuItem>
-              <a
-                onClick={() => signOut({ callbackUrl: "/auth/logout" })}
-                className="flex cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
-                <Icon.FiLogOut
-                  className={classNames(
-                    "text-gray-500 group-hover:text-gray-700",
-                    "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-3"
-                  )}
-                  aria-hidden="true"
-                />
-                {t("sign_out")}
-              </a>
-            </DropdownMenuItem>
-          </>
-        )}
-      </DropdownMenuContent>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenuPortal>
     </Dropdown>
   );
 }
@@ -361,7 +365,7 @@ const navigation: NavigationItemType[] = [
       const path = router.asPath.split("?")[0];
       // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
       return (
-        (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) && !path.includes("routing_forms/")
+        (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) && !path.includes("routing-forms/")
       );
     },
     child: [
@@ -373,7 +377,7 @@ const navigation: NavigationItemType[] = [
           // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
           return (
             (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) &&
-            !path.includes("routing_forms/") &&
+            !path.includes("routing-forms/") &&
             !path.includes("/installed")
           );
         },
@@ -395,10 +399,10 @@ const navigation: NavigationItemType[] = [
   },
   {
     name: "Routing Forms",
-    href: "/apps/routing_forms/forms",
+    href: "/apps/routing-forms/forms",
     icon: Icon.FiFileText,
     isCurrent: ({ router }) => {
-      return router.asPath.startsWith("/apps/routing_forms/");
+      return router.asPath.startsWith("/apps/routing-forms/");
     },
   },
   {
@@ -440,7 +444,7 @@ const Navigation = () => {
 
 function useShouldDisplayNavigationItem(item: NavigationItemType) {
   const { status } = useSession();
-  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing_forms" }], {
+  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing-forms" }], {
     enabled: status === "authenticated" && requiredCredentialNavigationItems.includes(item.name),
   });
   return !requiredCredentialNavigationItems.includes(item.name) || !!routingForms;
@@ -504,6 +508,7 @@ function MobileNavigationContainer() {
 
 const MobileNavigation = () => {
   const isEmbed = useIsEmbed();
+
   return (
     <>
       <nav
@@ -686,9 +691,13 @@ export function ShellMain(props: LayoutProps) {
     <>
       <div className="flex items-baseline sm:mt-0">
         {!!props.backPath && (
-          <Icon.FiArrowLeft
-            className="mr-3 hover:cursor-pointer"
+          <Button
+            size="icon"
+            color="minimal"
             onClick={() => router.push(props.backPath as string)}
+            StartIcon={Icon.FiArrowLeft}
+            aria-label="Go Back"
+            className="ltr:mr-2 rtl:ml-2"
           />
         )}
         {props.heading && (
@@ -698,9 +707,9 @@ export function ShellMain(props: LayoutProps) {
               "mb-4 flex w-full items-center pt-4 md:p-0 lg:mb-10"
             )}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className="hidden w-full ltr:mr-4 rtl:ml-4 sm:block">
+            <div className="w-full ltr:mr-4 rtl:ml-4 sm:block">
               {props.heading && (
-                <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
+                <h1 className="font-cal  mb-1 text-xl font-bold tracking-wide text-black">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
               )}
@@ -711,7 +720,11 @@ export function ShellMain(props: LayoutProps) {
               )}
             </div>
             {props.CTA && (
-              <div className="cta fixed right-4 bottom-[75px] z-40 mb-4 flex-shrink-0 sm:relative  sm:bottom-auto sm:right-auto sm:z-0">
+              <div
+                className={classNames(
+                  props.backPath ? "relative" : "fixed right-4 bottom-[75px] z-40 ",
+                  "cta mb-4 flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto sm:z-0"
+                )}>
                 {props.CTA}
               </div>
             )}
@@ -719,9 +732,6 @@ export function ShellMain(props: LayoutProps) {
         )}
       </div>
       <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
-        {/* add padding to top for mobile when App Bar is fixed */}
-        <div className="pt-8 sm:hidden" />
-
         {props.children}
       </div>
     </>
@@ -755,11 +765,12 @@ function MainContainer({
       {SettingsSidebarContainerProp}
       <div className="px-4 py-2 lg:py-8 lg:px-12">
         <ErrorBoundary>
+          {/* add padding to top for mobile when App Bar is fixed */}
+          <div className="pt-14 sm:hidden" />
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>
-        {/* show bottom navigation for md and smaller (tablet and phones) */}
-        {MobileNavigationContainerProp}
-        {/* <LicenseBanner /> */}
+        {/* show bottom navigation for md and smaller (tablet and phones) on pages where back button doesn't exist */}
+        {!props.backPath ? MobileNavigationContainerProp : null}
       </div>
     </main>
   );

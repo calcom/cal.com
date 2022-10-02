@@ -1,7 +1,7 @@
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 
-import RoutingFormsRoutingConfig from "@calcom/app-store/ee/routing_forms/pages/app-routing.config";
+import RoutingFormsRoutingConfig from "@calcom/app-store/ee/routing-forms/pages/app-routing.config";
 import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
 import prisma from "@calcom/prisma";
 import { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
@@ -28,7 +28,7 @@ type NotFound = {
 
 // TODO: It is a candidate for apps.*.generated.*
 const AppsRouting = {
-  routing_forms: RoutingFormsRoutingConfig,
+  "routing-forms": RoutingFormsRoutingConfig,
   typeform: TypeformRoutingConfig,
 };
 

@@ -27,7 +27,9 @@ const NewWebhookView = () => {
 
   const createWebhookMutation = trpc.useMutation("viewer.webhook.create", {
     async onSuccess() {
+      showToast(t("webhook_created_successfully"), "success");
       await utils.invalidateQueries(["viewer.webhook.list"]);
+      router.back();
     },
     onError(error) {
       showToast(`${error.message}`, "error");
@@ -55,15 +57,17 @@ const NewWebhookView = () => {
       payloadTemplate: values.payloadTemplate,
       secret: values.secret,
     });
-    showToast(t("webhook_created_successfully"), "success");
-    router.back();
   };
 
   if (isLoading) return <SkeletonContainer />;
 
   return (
     <>
-      <Meta title="add_webhook" description="add_webhook_description" backButton />
+      <Meta
+        title="Add Webhook"
+        description="Receive meeting data in real-time when something happens in Cal.com"
+        backButton
+      />
 
       <WebhookForm onSubmit={onCreateWebhook} apps={installedApps?.items.map((app) => app.slug)} />
     </>

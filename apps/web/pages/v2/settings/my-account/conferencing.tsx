@@ -51,7 +51,7 @@ const ConferencingLayout = () => {
 
   return (
     <div className="w-full bg-white sm:mx-0 xl:mt-0">
-      <Meta title="conferencing" description="conferencing_description" />
+      <Meta title="Conferencing" description="Add your favourite video conferencing apps for your meetings" />
       <List roundContainer={true}>
         {apps?.items &&
           apps.items

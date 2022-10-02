@@ -5,9 +5,7 @@ import cache from "memory-cache";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
-import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import type { CalendarEvent, EventBusyDate, NewCalendarEventType } from "@calcom/types/Calendar";
@@ -15,15 +13,13 @@ import type { EventResult } from "@calcom/types/EventManager";
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
 
-export const getCalendarCredentials = (credentials: Array<Credential>, userId: number) => {
+export const getCalendarCredentials = (credentials: Array<Credential>) => {
   const calendarCredentials = getApps(credentials)
     .filter((app) => app.type.endsWith("_calendar"))
     .flatMap((app) => {
       const credentials = app.credentials.flatMap((credential) => {
         const calendar = getCalendar(credential);
-        return app && calendar && app.variant === "calendar"
-          ? [{ integration: app, credential, calendar }]
-          : [];
+        return app.variant === "calendar" ? [{ integration: app, credential, calendar }] : [];
       });
       return credentials.length ? credentials : [];
     });
@@ -38,40 +34,40 @@ export const getConnectedCalendars = async (
   const connectedCalendars = await Promise.all(
     calendarCredentials.map(async (item) => {
       const { calendar, integration, credential } = item;
-
       const credentialId = credential.id;
-      try {
-        const cals = await calendar.listCalendars();
-        const calendars = _(cals)
-          .map((cal) => ({
-            ...cal,
-            readOnly: cal.readOnly || false,
-            primary: cal.primary || null,
-            isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
-            credentialId,
-          }))
-          .sortBy(["primary"])
-          .value();
-        const primary = calendars.find((item) => item.primary) ?? calendars[0];
-        if (!primary) {
-          throw new Error("No primary calendar found");
-        }
+      if (!calendar) {
         return {
           integration,
           credentialId,
-          primary,
-          calendars,
         };
-      } catch (_error) {
-        const error = getErrorFromUnknown(_error);
+      }
+      const cals = await calendar.listCalendars();
+      const calendars = _(cals)
+        .map((cal) => ({
+          ...cal,
+          readOnly: cal.readOnly || false,
+          primary: cal.primary || null,
+          isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
+          credentialId,
+        }))
+        .sortBy(["primary"])
+        .value();
+      const primary = calendars.find((item) => item.primary) ?? calendars.find((cal) => cal !== undefined);
+      if (!primary) {
         return {
           integration,
           credentialId,
           error: {
-            message: error.message,
+            message: "No primary calendar found",
           },
         };
       }
+      return {
+        integration,
+        credentialId,
+        primary,
+        calendars,
+      };
     })
   );
 

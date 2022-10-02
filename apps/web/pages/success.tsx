@@ -26,7 +26,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
+import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma from "@calcom/prisma";
 import Button from "@calcom/ui/Button";
@@ -203,7 +203,7 @@ export default function Success(props: SuccessProps) {
       // TODO: Add payment details
     });
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
-    setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
+    setIs24h(!!getIs24hClockFromLocalStorage());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventType, needsConfirmation]);
 

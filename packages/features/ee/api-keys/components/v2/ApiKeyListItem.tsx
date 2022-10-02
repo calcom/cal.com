@@ -7,6 +7,7 @@ import { Icon } from "@calcom/ui";
 import Badge from "@calcom/ui/v2/core/Badge";
 import Button from "@calcom/ui/v2/core/Button";
 import Dropdown, {
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
@@ -50,7 +51,7 @@ const ApiKeyListItem = ({
               {t("active")}
             </Badge>
           )}
-          <p className="text-gray-600">
+          <p className="text-xs text-gray-600">
             {" "}
             {neverExpires ? (
               <div className="flex flex-row space-x-3 text-gray-500">{t("api_key_never_expires")}</div>
@@ -63,24 +64,26 @@ const ApiKeyListItem = ({
       <div>
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button size="icon" StartIcon={Icon.FiMoreHorizontal} color="secondary" />
+            <Button type="button" size="icon" color="secondary" StartIcon={Icon.FiMoreHorizontal} />
           </DropdownMenuTrigger>
+
           <DropdownMenuContent>
-            <DropdownMenuItem
-              className="flex items-center space-x-2.5 py-3 pr-32 pl-3.5"
-              onClick={onEditClick}>
-              <Icon.FiEdit2 />
-              <p>{t("edit")}</p>
+            <DropdownMenuItem>
+              <DropdownItem type="button" onClick={onEditClick} StartIcon={Icon.FiEdit2}>
+                {t("edit") as string}
+              </DropdownItem>
             </DropdownMenuItem>
-            <DropdownMenuItem
-              className="flex items-center space-x-2.5 py-3 pr-32 pl-3.5"
-              onClick={() =>
-                deleteApiKey.mutate({
-                  id: apiKey.id,
-                })
-              }>
-              <Icon.FiTrash2 />
-              <p>{t("delete")}</p>
+            <DropdownMenuItem>
+              <DropdownItem
+                type="button"
+                onClick={() =>
+                  deleteApiKey.mutate({
+                    id: apiKey.id,
+                  })
+                }
+                StartIcon={Icon.FiTrash}>
+                {t("delete") as string}
+              </DropdownItem>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </Dropdown>

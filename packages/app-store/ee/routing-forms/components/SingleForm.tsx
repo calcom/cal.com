@@ -7,7 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Form } from "@calcom/ui/form/fields";
-import { showToast } from "@calcom/ui/v2";
+import { showToast, DropdownMenuSeparator } from "@calcom/ui/v2";
 import { ButtonGroup, TextAreaField, TextField, Tooltip, Button, VerticalDivider } from "@calcom/ui/v2";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { ShellMain } from "@calcom/ui/v2/core/Shell";
@@ -82,6 +82,7 @@ const Actions = ({
           StartIcon={Icon.FiCode}
           tooltip={t("embed")}
         />
+        <DropdownMenuSeparator className="h-px bg-gray-200" />
         <FormAction
           routingForm={form}
           action="_delete"
@@ -193,7 +194,7 @@ export default function SingleForm({
   const utils = trpc.useContext();
   const router = useRouter();
 
-  const mutation = trpc.useMutation("viewer.app_routing_forms.form", {
+  const mutation = trpc.useMutation("viewer.app_routing_forms.formMutation", {
     onSuccess() {
       router.replace(router.asPath);
       showToast("Form updated successfully.", "success");
@@ -202,7 +203,7 @@ export default function SingleForm({
       showToast(`Something went wrong`, "error");
     },
     onSettled() {
-      utils.invalidateQueries(["viewer.app_routing_forms.form"]);
+      utils.invalidateQueries(["viewer.app_routing_forms.formQuery"]);
     },
   });
   return (

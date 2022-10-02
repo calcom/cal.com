@@ -10,7 +10,7 @@ import { getEventLocationType, EventLocationType } from "@calcom/app-store/locat
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/Icon";
-import { Select, Label, TextField, Button } from "@calcom/ui/v2";
+import { Select, Label, TextField, Button, Skeleton } from "@calcom/ui/v2";
 
 import { slugify } from "@lib/slugify";
 
@@ -222,7 +222,9 @@ export const EventSetupTab = (
           }}
         />
         <div>
-          <Label>{t("location")}</Label>
+          <Skeleton as={Label} loadingClassName="w-16">
+            {t("location")}
+          </Skeleton>
           <Controller
             name="locations"
             control={formMethods.control}
