@@ -51,7 +51,7 @@ export default function AppCard({
           <OmniInstallAppButton className="ml-auto flex items-center" appId={app?.slug} />
         )}
       </div>
-      {children}
+      {app?.isInstalled ? children : null}
     </div>
   );
 }

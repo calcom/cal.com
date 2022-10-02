@@ -55,7 +55,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           <Alert className="mt-2" severity="warning" title={t("warning_recurring_event_payment")} />
         ) : (
           requirePayment && (
-            <div className="block items-center sm:flex">
+            <div className="mt-2 block items-center sm:flex">
               <TextField
                 label=""
                 addOnLeading={<>{currency ? getCurrencySymbol("en", currency) : ""}</>}

@@ -797,7 +797,7 @@ const loggedInViewerRouter = createProtectedRouter()
         .filter((app) => app.extendsFeature?.includes(input.extendsFeature))
         .map((app) => ({
           ...app,
-          isInstalled: app.credentials.length,
+          isInstalled: !!app.credentials.length,
         }));
     },
   })

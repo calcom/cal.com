@@ -165,11 +165,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     },
   });
 
-  const apps = formMethods.getValues("metadata")?.apps;
+  const appsMetadata = formMethods.getValues("metadata")?.apps;
+  const numberOfInstalledApps = eventTypeApps?.filter((app) => app.isInstalled).length || 0;
   let numberOfActiveApps = 0;
 
-  if (apps) {
-    numberOfActiveApps = Object.values(apps).filter((app) => app.enabled).length;
+  if (appsMetadata) {
+    numberOfActiveApps = Object.entries(appsMetadata).filter(
+      ([appId, appData]) => eventTypeApps?.find((app) => app.slug === appId)?.isInstalled && appData.enabled
+    ).length;
   }
 
   const tabMap = {
@@ -207,6 +210,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   return (
     <EventTypeSingleLayout
       enabledAppsNumber={numberOfActiveApps}
+      installedAppsNumber={numberOfInstalledApps}
       enabledWorkflowsNumber={eventType.workflows.length}
       eventType={eventType}
       team={team}

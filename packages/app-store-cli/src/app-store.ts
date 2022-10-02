@@ -121,9 +121,12 @@ function generateFiles() {
   forEachAppDir((app) => {
     const templateDestinationDir = path.join(APP_STORE_PATH, app.path, "extensions");
     const templateDestinationFilePath = path.join(templateDestinationDir, "EventTypeAppCard.tsx");
+    const zodDestinationFilePath = path.join(APP_STORE_PATH, app.path, "zod.ts");
+
     if (app.extendsFeature === "EventType" && !isFileThere(templateDestinationFilePath)) {
       execSync(`mkdir -p ${templateDestinationDir}`);
-      execSync(`cp ../app-store/_templates/EventTypeAppCard.tsx ${templateDestinationFilePath}`);
+      execSync(`cp ../app-store/_templates/extensions/EventTypeAppCard.tsx ${templateDestinationFilePath}`);
+      execSync(`cp ../app-store/_templates/zod.ts ${zodDestinationFilePath}`);
     }
   });
 

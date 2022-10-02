@@ -70,9 +70,11 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
 
   const getAppDataSetter = (appId: EventTypeAppsList): SetAppData => {
     return function (key, value) {
-      const appData = allAppsData[appId];
+      // Always get latest data available in Form because consequent calls to setData would update the Form but not allAppsData(it would update during next render)
+      const allAppsDataFromForm = methods.getValues("metadata")?.apps || {};
+      const appData = allAppsDataFromForm[appId];
       setAllAppsData({
-        ...allAppsData,
+        ...allAppsDataFromForm,
         [appId]: {
           ...appData,
           [key]: value,

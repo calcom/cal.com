@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import { trpc } from "@calcom/trpc/react";
 import { App } from "@calcom/types/App";
-import Badge from "@calcom/ui/Badge";
 import Button from "@calcom/ui/Button";
 
 interface AppCardProps {
