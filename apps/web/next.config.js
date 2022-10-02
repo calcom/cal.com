@@ -87,6 +87,7 @@ const nextConfig = {
     ignoreDuringBuilds: !!process.env.CI,
   },
   experimental: {
+    esmExternals: false,
     images: {
       unoptimized: true,
     },

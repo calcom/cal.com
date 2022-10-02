@@ -5,6 +5,9 @@ const withNextra = require("nextra")({
   unstable_staticImage: true,
 });
 module.exports = withNextra({
+  experimental: {
+    esmExternals: false,
+  },
   async rewrites() {
     return [
       // This redirects requests recieved at /api to /public-api to workaround nextjs default use of /api.
