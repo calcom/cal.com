@@ -1,5 +1,5 @@
 import { _EventTypeModel } from "../eventtype";
-import {z} from "zod"
+
 export const createEventTypeInput = _EventTypeModel
   .pick({
     title: true,

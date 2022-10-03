@@ -39,7 +39,6 @@ import {
   updateWebUser as syncServicesUpdateWebUser,
 } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { baseEventTypeSelect, baseUserSelect, bookingMinimalSelect } from "@calcom/prisma";
-import { _EventTypeModel } from "@calcom/prisma/zod";
 import { userMetadata, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 

@@ -4,7 +4,6 @@ import type { NextApiRequest } from "next";
 import { RRule } from "rrule";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
-import { z } from "zod";
 
 import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
 import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
@@ -33,7 +32,6 @@ import logger from "@calcom/lib/logger";
 import { defaultResponder, getLuckyUser } from "@calcom/lib/server";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { userSelect } from "@calcom/prisma";
-import { _EventTypeModel } from "@calcom/prisma/zod";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { extendedBookingCreateBody, requiredCustomInputSchema } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";

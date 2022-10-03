@@ -1,6 +1,5 @@
 import { UserPlan } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
-import { JSONObject } from "superjson/dist/types";
 
 import { privacyFilteredLocations, LocationObject } from "@calcom/core/location";
 import { parseRecurringEvent } from "@calcom/lib";

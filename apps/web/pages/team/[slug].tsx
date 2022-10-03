@@ -146,14 +146,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     })),
   }));
 
-  const eventTypes = team.eventTypes;
-
   return {
     props: {
-      team: {
-        ...team,
-        eventTypes,
-      },
+      team,
     },
   };
 };

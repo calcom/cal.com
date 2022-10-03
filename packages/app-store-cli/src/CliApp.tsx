@@ -1,10 +1,11 @@
-import child_process from "child_process";
 import fs from "fs";
 import { Box, Text } from "ink";
 import SelectInput from "ink-select-input";
 import TextInput from "ink-text-input";
 import path from "path";
 import React, { FC, useEffect, useState } from "react";
+
+import execSync from "./execSync";
 
 const slugify = (str: string) => {
   // It is to be a valid dir name, a valid JS variable name and a valid URL path
@@ -24,14 +25,7 @@ function getAppDirPath(slug: any) {
 
 const appStoreDir = path.resolve(__dirname, "..", "..", "app-store");
 const workspaceDir = path.resolve(__dirname, "..", "..", "..");
-export const execSync = (...args) => {
-  const result = child_process.execSync(...args).toString();
-  if (process.env.DEBUG === "1") {
-    console.log(`$: ${args[0]}`);
-    console.log(result);
-  }
-  return args[0];
-};
+
 function absolutePath(appRelativePath) {
   return path.join(appStoreDir, appRelativePath);
 }
@@ -218,10 +212,10 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
       explainer: "This is how apps are categorized in App Store.",
     },
     {
-      label: "What Cal.com feature it extends",
+      label: "What kind of app would you consider it?",
       name: "extendsFeature",
       options: [
-        { label: "Other", value: "Other" },
+        { label: "User", value: "User" },
         {
           label: "Event Type(Available for configuration in Apps tab for all Event Types)",
           value: "EventType",

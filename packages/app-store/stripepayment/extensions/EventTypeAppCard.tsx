@@ -31,13 +31,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       setAppData={setAppData}
       app={app}
       switchChecked={requirePayment}
-      switchOnClick={(e) => {
-        if (!e) {
-          setAppData("price", 0);
-          setRequirePayment(false);
-        } else {
-          setRequirePayment(true);
-        }
+      switchOnClick={(enabled) => {
+        setRequirePayment(enabled);
       }}
       description={
         <>

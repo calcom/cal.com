@@ -1,4 +1,3 @@
-import { UserPlan } from "@prisma/client";
 import { GetStaticPaths, GetStaticPropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";

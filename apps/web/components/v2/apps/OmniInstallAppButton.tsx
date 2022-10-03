@@ -42,7 +42,7 @@ export default function OmniInstallAppButton({ appId, className }: { appId: stri
         if (useDefaultComponent) {
           props = {
             onClick: () => {
-              mutation.mutate({ type: app.type, variant: app.variant, slug: app.slug, omni: true });
+              mutation.mutate({ type: app.type, variant: app.variant, slug: app.slug, isOmniInstall: true });
             },
           };
         }

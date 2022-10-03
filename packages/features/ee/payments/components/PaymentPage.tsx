@@ -25,7 +25,6 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   useTheme(props.profile.theme);
   const isEmbed = useIsEmbed();
   const stripeAppData = getStripeAppData(props.eventType);
-  console.log(stripeAppData, "stripeAppData");
   useEffect(() => {
     let embedIframeWidth = 0;
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
@@ -98,7 +97,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         {date.format("dddd, DD MMMM YYYY")}
                         <br />
                         {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
-                        <span className="text-gray-500">({dayjs.tz.guess()})</span>
+                        <span className="text-gray-500">
+                          ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
+                        </span>
                       </div>
                       {props.booking.location && (
                         <>

@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import { useState } from "react";
 
-import { GetAppDataGeneric, useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
+import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import { SelectGifInput } from "@calcom/app-store/giphy/components";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
@@ -20,12 +20,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       app={app}
       description={t("confirmation_page_gif")}
       switchOnClick={(e) => {
-        if (!e) {
-          setShowGifSelection(false);
-          setAppData("thankYouPage", "");
-        } else {
-          setShowGifSelection(true);
-        }
+        setShowGifSelection(e);
       }}
       switchChecked={showGifSelection}>
       {showGifSelection && (

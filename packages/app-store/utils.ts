@@ -84,6 +84,7 @@ function getApps(userCredentials: CredentialData[]) {
       credentials.push({
         id: +new Date().getTime(),
         type: appMeta.type,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         key: appMeta.key!,
         userId: +new Date().getTime(),
         appId: appMeta.slug,
@@ -148,11 +149,14 @@ export const getEventTypeAppData = <T extends EventTypeAppsList>(
   }
 
   // Backward compatibility for existing event types.
-  // TODO: Write code here to migrate metadata to new format and delete this backwards compatibility once there is no hit for it.
+  // TODO: After the new AppStore EventType App flow is stable, write a migration to migrate metadata to new format which will let us remove this compatibility code
+  // Migration isn't being done right now, to allow a revert if needed
   const legacyAppsData = {
     stripe: {
       enabled: eventType.price > 0,
+      // Price default is 0 in DB. So, it would always be non nullish.
       price: eventType.price,
+      // Currency default is "usd" in DB.So, it would also be available always
       currency: eventType.currency,
     },
     rainbow: {
@@ -165,7 +169,9 @@ export const getEventTypeAppData = <T extends EventTypeAppsList>(
       thankYouPage: eventType.metadata?.giphyThankYouPage,
     },
   } as const;
-  const legacyAppData = legacyAppsData[appId as Extract<T, "stripe" | "rainbow" | "giphy">];
+
+  // TODO: This assertion helps typescript hint that only one of the app's data can be returned
+  const legacyAppData = legacyAppsData[appId as Extract<T, keyof typeof legacyAppsData>];
   const allowDataGet = forcedGet ? true : legacyAppData.enabled;
   return allowDataGet ? legacyAppData : null;
 };

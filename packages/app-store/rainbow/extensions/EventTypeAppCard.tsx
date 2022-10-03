@@ -18,11 +18,6 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       setAppData={setAppData}
       app={app}
       switchOnClick={(e) => {
-        if (!e) {
-          setAppData("blockchainId", 1);
-          setAppData("smartContractAddress", "");
-        }
-
         setShowRainbowSection(e);
       }}
       switchChecked={showRainbowSection}>

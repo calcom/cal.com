@@ -10,14 +10,14 @@ function useAddAppMutation(_type: App["type"] | null, options?: Parameters<typeo
   const mutation = useMutation<
     unknown,
     Error,
-    { type?: App["type"]; variant?: string; slug?: string; omni?: boolean } | ""
+    { type?: App["type"]; variant?: string; slug?: string; isOmniInstall?: boolean } | ""
   >(async (variables) => {
     let type: string | null | undefined;
-    let omni;
+    let isOmniInstall;
     if (variables === "") {
       type = _type;
     } else {
-      omni = variables.omni;
+      isOmniInstall = variables.isOmniInstall;
       type = variables.type;
     }
     const state: IntegrationOAuthCallbackState = {
@@ -39,7 +39,10 @@ function useAddAppMutation(_type: App["type"] | null, options?: Parameters<typeo
     }
 
     const json = await res.json();
-    if (!omni) {
+    // Skip redirection only if it is an OmniInstall and redirect URL isn't of some other origin
+    // This allows installation of apps like Stripe to still redirect to their authentication pages.
+    // TODO: For Omni installation to authenticate and come back to the page where installation was initiated, some changes need to be done in all apps' add callbacks
+    if (!(isOmniInstall && !json.url.startsWith(window.location.origin))) {
       window.location.href = json.url;
     }
   }, options);

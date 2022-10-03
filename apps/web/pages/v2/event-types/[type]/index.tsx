@@ -102,6 +102,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   ]);
 
   const { eventType: dbEventType, locationOptions, team, teamMembers } = props;
+  // TODO: It isn't a good idea to maintain state using setEventType. If we want to connect the SSR'd data to tRPC, we should useQuery(["viewer.eventTypes.get"]) with initialData
+  // Due to this change, when Form is saved, there is no way to propagate that info to eventType (e.g. disabling stripe app doesn't allow recurring tab to be enabled without refresh).
   const [eventType, setEventType] = useState(dbEventType);
   const animationParentRef = useRef(null);
   const router = useRouter();
@@ -195,9 +197,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     ),
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
-    recurring: (
-      <EventRecurringTab eventType={eventType} hasPaymentIntegration={props.hasPaymentIntegration} />
-    ),
+    recurring: <EventRecurringTab eventType={eventType} />,
     apps: <EventAppsTab eventType={eventType} />,
     workflows: (
       <EventWorkflowsTab
@@ -424,16 +424,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const newMetadata = EventTypeMetaDataSchema.parse(metadata || {})!;
   const apps = newMetadata.apps || {};
-  // TODO: Abstract it out into a function like getEventTypeAppData
-  // Bring all Apps data to metadata
-  // (
-  //   credentials.find((integration) => integration.type === "stripe_payment")
-  //     ?.key as unknown as StripeData
-  // )?.default_currency
   const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
   newMetadata.apps = {
     ...apps,
-    stripe: getStripeAppData(eventTypeWithParsedMetadata, true),
+    stripe: {
+      ...getStripeAppData(eventTypeWithParsedMetadata, true),
+      currency:
+        (
+          credentials.find((integration) => integration.type === "stripe_payment")
+            ?.key as unknown as StripeData
+        )?.default_currency || "usd",
+    },
     giphy: getEventTypeAppData(eventTypeWithParsedMetadata, "giphy", true),
     rainbow: getEventTypeAppData(eventTypeWithParsedMetadata, "rainbow", true),
   };
@@ -465,7 +466,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
   const integrations = getApps(credentials);
   const locationOptions = getLocationOptions(integrations, t);
-  const hasPaymentIntegration = !!credentials.find((credential) => credential.type === "stripe_payment");
 
   const eventTypeObject = Object.assign({}, eventType, {
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
@@ -493,7 +493,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       team: eventTypeObject.team || null,
       teamMembers,
       currentUserMembership,
-      hasPaymentIntegration,
     },
   };
 };

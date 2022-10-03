@@ -1,4 +1,3 @@
-import child_process from "child_process";
 import chokidar from "chokidar";
 import fs from "fs";
 import { debounce } from "lodash";
@@ -8,17 +7,7 @@ import prettier from "prettier";
 import { AppMeta } from "@calcom/types/App";
 
 import prettierConfig from "../../config/prettier-preset";
-
-export const execSync = (...args) => {
-  if (process.env.DEBUG === "1") {
-    console.log(`${process.cwd()}$: ${args[0]}`);
-  }
-  const result = child_process.execSync(...args).toString();
-  if (process.env.DEBUG === "1") {
-    console.log(result);
-  }
-  return args[0];
-};
+import execSync from "./execSync";
 
 function isFileThere(path) {
   try {

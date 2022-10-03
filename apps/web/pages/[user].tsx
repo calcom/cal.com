@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
-import { JSONObject } from "superjson/dist/types";
 
 import {
   sdkActionManager,
@@ -26,7 +25,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
-import { eventTypeLocations, EventTypeMetaDataSchema, recurringEventType } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { BadgeCheckIcon, Icon } from "@calcom/ui/Icon";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
@@ -210,7 +209,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
 }
 User.isThemeSupported = true;
 
-const getEventTypesWithHiddenFromDB = async (userId: number, plan: UserPlan) => {
+const getEventTypesWithHiddenFromDB = async (userId: number) => {
   return (
     await prisma.eventType.findMany({
       where: {
@@ -316,7 +315,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         darkBrandColor: user.darkBrandColor,
       };
 
-  const eventTypesWithHidden = isDynamicGroup ? [] : await getEventTypesWithHiddenFromDB(user.id, user.plan);
+  const eventTypesWithHidden = isDynamicGroup ? [] : await getEventTypesWithHiddenFromDB(user.id);
   const dataFetchEnd = Date.now();
   if (context.query.log === "1") {
     context.res.setHeader("X-Data-Fetch-Time", `${dataFetchEnd - dataFetchStart}ms`);
@@ -324,7 +323,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const eventTypesRaw = eventTypesWithHidden.filter((evt) => !evt.hidden);
 
   const eventTypes = eventTypesRaw.map((eventType) => ({
-    // TODO: zod parse entire eventType object
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
   }));

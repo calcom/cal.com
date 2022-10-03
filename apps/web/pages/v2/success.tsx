@@ -30,7 +30,6 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma, { baseUserSelect } from "@calcom/prisma";
-import { EventTypeModel } from "@calcom/prisma/zod";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
@@ -174,10 +173,7 @@ export default function Success(props: SuccessProps) {
     t,
   };
 
-  const giphyAppData = getEventTypeAppData(
-    eventType as Pick<z.infer<typeof EventTypeModel>, "currency" | "price" | "metadata">,
-    "giphy"
-  );
+  const giphyAppData = getEventTypeAppData(eventType, "giphy");
   const giphyImage = giphyAppData?.thankYouPage;
 
   const eventName = getEventName(eventNameObject, true);
@@ -798,7 +794,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventType = {
     ...eventTypeRaw,
-    //TODO: Move EventTypeMetaDataSchema to zod-utils?
     metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
   };
