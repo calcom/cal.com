@@ -37,12 +37,20 @@ export const availabilityRouter = createProtectedRouter()
       };
     },
   })
-  .mutation("activateOnEventTypes", {
+  .mutation("switchActiveOnEventTypes", {
     input: z.object({
       scheduleId: z.number(),
-      eventTypeIds: z.array(z.number()).nonempty(),
+      eventTypeIds: z.record(z.boolean()),
     }),
-    async resolve(/*{ ctx, input }*/) {
+    async resolve({ input }) {
+      await Object.entries(input.eventTypeIds).map(async ([eventTypeId, isActive]) => {
+        await prisma?.eventType.update({
+          where: { id: Number(eventTypeId) },
+          data: {
+            scheduleId: isActive ? input.scheduleId : null,
+          },
+        });
+      });
       // intentionally empty
     },
   })

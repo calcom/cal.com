@@ -2,7 +2,7 @@ import { DropdownMenuCheckboxItemProps, DropdownMenuItemIndicator } from "@radix
 import classNames from "classnames";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
-import React from "react";
+import React, { useMemo } from "react";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -49,17 +49,20 @@ type AvailabilityFormValues = {
   isDefault: boolean;
 };
 
-type EventTypeGroup = { groupName: string; eventTypes: { title: string; isActive: boolean }[] };
+type EventTypeGroup = { groupName: string; eventTypes: { title: string; isActive: boolean; id: number }[] };
 
 export const DropdownMenuCheckboxItem = React.forwardRef<HTMLDivElement, DropdownMenuCheckboxItemProps>(
-  ({ children, defaultChecked }, forwardedRef) => {
+  ({ children, defaultChecked, ...passThroughProps }, forwardedRef) => {
     const [checked, setChecked] = useState(defaultChecked);
     return (
       <PrimitiveDropdownMenuCheckboxItem
         ref={forwardedRef}
         className="flex w-72 items-center justify-between truncate p-1 font-normal"
         checked={checked}
-        onCheckedChange={setChecked}
+        onCheckedChange={(checked) => {
+          setChecked(checked);
+          passThroughProps.onCheckedChange && passThroughProps.onCheckedChange(checked);
+        }}
         ItemIndicator={() => (
           <DropdownMenuItemIndicator asChild>
             <span className="hidden" />
@@ -68,6 +71,7 @@ export const DropdownMenuCheckboxItem = React.forwardRef<HTMLDivElement, Dropdow
         onSelect={(e) => e.preventDefault()}>
         {children}
         <input
+          readOnly
           type="checkbox"
           checked={checked}
           className="inline-block rounded-[4px] border-gray-300 text-neutral-900 focus:ring-neutral-500 disabled:text-neutral-400"
@@ -83,41 +87,48 @@ const ActiveOnEventTypeSelect = ({ scheduleId }: { scheduleId: number }) => {
   const { t } = useLocale();
   // I was doubtful to make this RHF but this has no point: because the DropdownMenuCheckboxItem is
   // controlled anyway; requiring the use of Controller regardless.
-  const [eventTypeIds, setEventTypeIds] = useState<number[]>([]);
+  const [eventTypeIds, setEventTypeIds] = useState<{ [K: number]: boolean }>({});
   const [isOpen, setOpen] = useState(false);
   const { data } = trpc.useQuery(["viewer.eventTypes"]);
-  const mutation = trpc.useMutation("viewer.availability.activateOnEventTypes");
+  const mutation = trpc.useMutation("viewer.availability.switchActiveOnEventTypes");
   const { data: user } = useMeQuery();
+  const utils = trpc.useContext();
 
-  const eventTypeGroups = data?.eventTypeGroups.reduce((aggregate, eventTypeGroups) => {
-    if (eventTypeGroups.eventTypes[0].team !== null) {
-      aggregate.push({
-        groupName: eventTypeGroups.eventTypes[0].team.name || "",
-        eventTypes: [
-          ...eventTypeGroups.eventTypes.map((eventType) => ({
-            title: eventType.title,
-            isActive: eventType.scheduleId
-              ? scheduleId === eventType.scheduleId
-              : scheduleId === user?.defaultScheduleId,
-          })),
-        ],
-      });
-    } else {
-      aggregate.push({
-        groupName: eventTypeGroups.eventTypes[0].users[0].name || "",
-        eventTypes: [
-          ...eventTypeGroups.eventTypes.map((eventType) => ({
-            title: eventType.title,
-            isActive: eventType.scheduleId
-              ? scheduleId === eventType.scheduleId
-              : scheduleId === user?.defaultScheduleId,
-          })),
-        ],
-      });
+  const eventTypeGroups = useMemo(
+    () =>
+      data?.eventTypeGroups.reduce((aggregate, eventTypeGroups) => {
+        aggregate.push({
+          groupName:
+            eventTypeGroups.eventTypes[0].team?.name || eventTypeGroups.eventTypes[0].users[0].name || "",
+          eventTypes: [
+            ...eventTypeGroups.eventTypes.map((eventType) => ({
+              title: eventType.title,
+              id: eventType.id,
+              isActive: eventType.scheduleId
+                ? scheduleId === eventType.scheduleId
+                : scheduleId === user?.defaultScheduleId,
+            })),
+          ],
+        });
+
+        return aggregate;
+      }, [] as EventTypeGroup[]),
+    [data?.eventTypeGroups, user?.defaultScheduleId, scheduleId]
+  );
+
+  useEffect(() => {
+    if (!data) return;
+
+    if (eventTypeGroups) {
+      const eventTypeIdsLocal: { [K: number]: boolean } = {};
+      for (const item of eventTypeGroups) {
+        for (const eventType of item.eventTypes) {
+          eventTypeIdsLocal[eventType.id] = eventType.isActive;
+        }
+      }
+      setEventTypeIds(eventTypeIdsLocal);
     }
-
-    return aggregate;
-  }, [] as EventTypeGroup[]);
+  }, [data, eventTypeGroups]);
 
   return (
     <Dropdown onOpenChange={setOpen} open={isOpen}>
@@ -156,7 +167,10 @@ const ActiveOnEventTypeSelect = ({ scheduleId }: { scheduleId: number }) => {
               </span>
             </DropdownMenuLabel>
             {eventTypeGroup.eventTypes.map((eventType) => (
-              <DropdownMenuCheckboxItem key={eventType.title} defaultChecked={eventType.isActive}>
+              <DropdownMenuCheckboxItem
+                key={eventType.title}
+                defaultChecked={eventType.isActive}
+                onCheckedChange={(checked) => setEventTypeIds({ ...eventTypeIds, [eventType.id]: checked })}>
                 {eventType.title}
               </DropdownMenuCheckboxItem>
             ))}
@@ -169,7 +183,16 @@ const ActiveOnEventTypeSelect = ({ scheduleId }: { scheduleId: number }) => {
           <Button color="minimalSecondary" onClick={() => setOpen(false)}>
             {t("cancel")}
           </Button>
-          <Button color="primary" type="submit" onClick={() => mutation.mutate({ scheduleId, eventTypeIds })}>
+          <Button
+            color="primary"
+            type="submit"
+            onClick={async () => {
+              await mutation.mutate({
+                scheduleId,
+                eventTypeIds,
+              });
+              await utils.invalidateQueries("viewer.eventTypes");
+            }}>
             {t("apply")}
           </Button>
         </DropdownMenuItem>
