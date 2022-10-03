@@ -175,6 +175,7 @@ const loggedInViewerRouter = createProtectedRouter()
         theme: user.theme,
         hideBranding: user.hideBranding,
         metadata: user.metadata,
+        defaultScheduleId: user.defaultScheduleId,
       };
     },
   })

@@ -37,6 +37,15 @@ export const availabilityRouter = createProtectedRouter()
       };
     },
   })
+  .mutation("activateOnEventTypes", {
+    input: z.object({
+      scheduleId: z.number(),
+      eventTypeIds: z.array(z.number()).nonempty(),
+    }),
+    async resolve(/*{ ctx, input }*/) {
+      // intentionally empty
+    },
+  })
   .query("schedule", {
     input: z.object({
       scheduleId: z.optional(z.number()),
