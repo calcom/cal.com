@@ -1221,6 +1221,7 @@ const loggedInViewerRouter = createProtectedRouter()
         },
       });
 
+      // TODO: Improve this uninstallation cleanup per event by keeping a relation of EventType to App which has the data.
       for (const eventType of eventTypes) {
         if (eventType.locations) {
           // If it's a video, replace the location with Cal video
@@ -1307,11 +1308,14 @@ const loggedInViewerRouter = createProtectedRouter()
                 },
                 data: {
                   hidden: true,
-                  // FIXME: how to handle setting data of an App(price)
                   metadata: {
                     ...metadata,
-                    stripe: {
-                      price: 0,
+                    apps: {
+                      ...metadata?.apps,
+                      stripe: {
+                        ...metadata?.apps?.stripe,
+                        price: 0,
+                      },
                     },
                   },
                 },
