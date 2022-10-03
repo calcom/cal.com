@@ -1272,5 +1272,16 @@
   "format": "Format",
   "uppercase_for_letters": "Use uppercase for all letters",
   "replace_whitespaces_underscores": "Replace whitespaces with underscores",
-  "ignore_special_characters": "Ignore special characters in your Additonal Input label. Use only letters and numbers"
+  "ignore_special_characters": "Ignore special characters in your Additonal Input label. Use only letters and numbers",
+  "manage_billing": "Manage billing",
+  "manage_billing_description": "Manage all things billing",
+  "billing_freeplan_title": "You're currently on the FREE plan",
+  "billing_freeplan_description": "We work better in teams. Extend your workflows with round-robin and collective events and make advanced routing forms",
+  "billing_freeplan_cta": "Try now",
+  "billing_manage_details_title": "View and manage your billing details",
+  "billing_manage_details_description": "View and edit your billing details, as well as cancel your subscription.",
+  "billing_portal": "Billing portal",
+  "billing_help_title": "Need anything else?",
+  "billing_help_description": "If you need any further help with billing, our support team are here to help.",
+  "billing_help_cta": "Contact support"
 }
