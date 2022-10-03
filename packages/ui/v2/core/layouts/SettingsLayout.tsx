@@ -353,9 +353,7 @@ function ShellHeader() {
         )}
         <div>
           {meta.title && isLocaleReady ? (
-            <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
-              {t(meta.title)}
-            </h1>
+            <h1 className="font-cal mb-1 text-xl font-bold tracking-wide text-black">{t(meta.title)}</h1>
           ) : (
             <div className="mb-1 h-6 w-24 animate-pulse rounded-md bg-gray-200" />
           )}
