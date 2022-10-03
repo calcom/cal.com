@@ -98,12 +98,32 @@ async function createOrlistAllEventTypes(
       return;
     }
     if (!isAdmin) {
-      const data = await prisma.eventType.create({ data: { ...safe.data, userId } });
+      const data = await prisma.eventType.create({
+        data: {
+          ...safe.data,
+          userId,
+          users: {
+            connect: {
+              id: userId,
+            },
+          },
+        },
+      });
       const event_type = schemaEventTypeReadPublic.parse(data);
       if (data) res.status(201).json({ event_type, message: "EventType created successfully" });
     } else {
       // if admin don't re-set userId from input
-      const data = await prisma.eventType.create({ data: { ...safe.data } });
+      const data = await prisma.eventType.create({
+        data: {
+          ...safe.data,
+          ...(!safe.data.userId && { userId }),
+          users: {
+            connect: {
+              id: safe.data.userId || userId,
+            },
+          },
+        },
+      });
       const event_type = schemaEventTypeReadPublic.parse(data);
       if (data) res.status(201).json({ event_type, message: "EventType created successfully" });
     }
