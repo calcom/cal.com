@@ -241,6 +241,9 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       };
     })
   );
+  console.log({
+    busy: usersWorkingHoursAndBusySlots[0].busy,
+  });
   const workingHours = getAggregateWorkingHours(usersWorkingHoursAndBusySlots, eventType.schedulingType);
   const computedAvailableSlots: Record<string, Slot[]> = {};
   const availabilityCheckProps = {

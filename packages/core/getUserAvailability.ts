@@ -2,12 +2,15 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import dayjs, { Dayjs } from "@calcom/dayjs";
+import { parseBookingLimit } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { checkLimit } from "@calcom/lib/server";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { stringToDayjs } from "@calcom/prisma/zod-utils";
+import { BookingLimit, EventBusyDetails } from "@calcom/types/Calendar";
 
 import { getBusyTimes } from "./getBusyTimes";
 
@@ -136,6 +139,8 @@ export async function getUserAvailability(
   if (!currentSeats && eventType?.seatsPerTimeSlot)
     currentSeats = await getCurrentSeats(eventType.id, dateFrom, dateTo);
 
+  const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
+
   const { selectedCalendars, ...currentUser } = user;
 
   const busyTimes = await getBusyTimes({
@@ -146,6 +151,57 @@ export async function getUserAvailability(
     userId: currentUser.id,
     selectedCalendars,
   });
+
+  if (bookingLimits) {
+    // Get all dates between dateFrom and dateTo
+    const dates = []; // this is as dayjs date
+    let startDate = dayjs(dateFrom);
+    const endDate = dayjs(dateTo);
+    while (startDate.isBefore(endDate)) {
+      dates.push(startDate.add(1, "day"));
+      startDate = startDate.add(1, "day");
+    }
+
+    const ourBookings = busyTimes.filter((busyTime) => busyTime.source?.startsWith(`eventType-`));
+
+    // Apply booking limit filter against our bookings
+
+    Object.entries(bookingLimits).forEach(async ([key, limit]) => {
+      const limitKey = key as keyof BookingLimit;
+
+      if (limitKey === "PER_YEAR") {
+        const yearlyBusyTime = await checkLimit({
+          eventStartDate: startDate.toDate(),
+          limitingNumber: limit,
+          eventId: eventType?.id as number, // This is always set
+          key: "PER_YEAR",
+          returnBusyTimes: true,
+        });
+        if (!yearlyBusyTime) return;
+        busyTimes.push({
+          start: yearlyBusyTime.start.toISOString(),
+          end: yearlyBusyTime.end.toISOString(),
+        });
+        console.log({ busyTimes });
+        return;
+      }
+
+      // Take PER_DAY and turn it into day and PER_WEEK into week etc.
+      const filter = limitKey.split("_")[1].toLocaleLowerCase() as "day" | "week" | "month" | "year";
+
+      let total = 0;
+
+      // Get all bookings that are within the filter period
+      ourBookings.forEach((booking) => {
+        const startDate = dayjs(booking.start).startOf(filter);
+        // this is parsed above with parseBookingLimit so we know it's safe.
+        const endDate = dayjs(startDate).endOf(filter);
+
+        if (dayjs(booking.start).isBetween(startDate, endDate)) total++;
+        if (total >= limit) busyTimes.push({ start: startDate.toISOString(), end: endDate.toISOString() });
+      });
+    });
+  }
 
   const bufferedBusyTimes = busyTimes.map((a) => ({
     ...a,
