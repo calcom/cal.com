@@ -17,6 +17,7 @@ import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { setIs24hClockInLocalStorage } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
@@ -229,7 +230,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     // Write time format to localStorage if available
     // Embed isn't applicable to profile pages. So ignore the rule
     // eslint-disable-next-line @calcom/eslint/avoid-web-storage
-    window.localStorage.setItem("timeOption.is24hClock", selectedTimeFormat.value === 12 ? "false" : "true");
+    setIs24hClockInLocalStorage(selectedTimeFormat.value === 24);
 
     // TODO: Add validation
 
@@ -575,7 +576,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
  * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
  * We intend to not cache i18n query
  **/
-const WithQuery = withQuery(["viewer.public.i18n"], { context: { skipBatch: true } });
+const WithQuery = withQuery(["viewer.public.i18n"], { trpc: { context: { skipBatch: true } } });
 
 export default function Settings(props: Props) {
   const { t } = useLocale();

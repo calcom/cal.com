@@ -24,8 +24,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
-import { localStorage } from "@calcom/lib/webstorage";
+import { detectBrowserTimeFormat, getIs24hClockFromLocalStorage } from "@calcom/lib/timeFormat";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import DatePicker from "@calcom/ui/v2/modules/booker/DatePicker";
@@ -79,7 +78,7 @@ const useSlots = ({
   usernameList: string[];
   timeZone?: string;
 }) => {
-  const { data, isLoading, isIdle } = trpc.useQuery(
+  const { data, isLoading, isPaused } = trpc.useQuery(
     [
       "viewer.public.slots.getSchedule",
       {
@@ -101,8 +100,8 @@ const useSlots = ({
     }
   }, [data]);
 
-  // The very first time isIdle is set if auto-fetch is disabled, so isIdle should also be considered a loading state.
-  return { slots: cachedSlots, isLoading: isLoading || isIdle };
+  // The very first time isPaused is set if auto-fetch is disabled, so isPaused should also be considered a loading state.
+  return { slots: cachedSlots, isLoading: isLoading || isPaused };
 };
 
 const SlotPicker = ({
@@ -225,7 +224,7 @@ function TimezoneDropdown({
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
 
   useEffect(() => {
-    handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
+    handleToggle24hClock(!!getIs24hClockFromLocalStorage());
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

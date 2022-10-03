@@ -168,14 +168,14 @@ type InputFieldProps = {
 
 const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(props, ref) {
   const id = useId();
-  const { t: _t, isLocaleReady } = useLocale();
+  const { t: _t, isLocaleReady, i18n } = useLocale();
   const t = props.t || _t;
   const name = props.name || "";
   const {
     label = t(name),
     labelProps,
     labelClassName,
-    placeholder = isLocaleReady ? t(name + "_placeholder") : "",
+    placeholder = isLocaleReady && i18n.exists(name + "_placeholder") ? t(name + "_placeholder") : "",
     className,
     addOnLeading,
     addOnSuffix,
@@ -188,12 +188,6 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
     t: __t,
     ...passThrough
   } = props;
-
-  const translatedPlaceholder = isLocaleReady
-    ? !placeholder?.endsWith("_placeholder")
-      ? placeholder
-      : ""
-    : "";
 
   return (
     <div className={classNames(containerClassName)}>
@@ -230,7 +224,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
           </div>
           <Input
             id={id}
-            placeholder={translatedPlaceholder}
+            placeholder={placeholder}
             className={classNames(
               className,
               addOnLeading && "rounded-l-none",
@@ -242,7 +236,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
           />
         </div>
       ) : (
-        <Input id={id} placeholder={translatedPlaceholder} className={className} {...passThrough} ref={ref} />
+        <Input id={id} placeholder={placeholder} className={className} {...passThrough} ref={ref} />
       )}
       <HintsOrErrors hintErrors={hintErrors} fieldName={name} t={t} />
       {hint && <div className="text-gray mt-2 flex items-center text-sm text-gray-700">{hint}</div>}
@@ -258,25 +252,25 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
   props,
   ref
 ) {
-  const { t } = useLocale();
+  /*const { t } = useLocale();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const toggleIsPasswordVisible = useCallback(
     () => setIsPasswordVisible(!isPasswordVisible),
     [isPasswordVisible, setIsPasswordVisible]
   );
   const textLabel = isPasswordVisible ? t("hide_password") : t("show_password");
-
+*/
   return (
     <div className="relative">
       <InputField
-        type={isPasswordVisible ? "text" : "password"}
-        placeholder={isPasswordVisible ? "0hMy4P4ssw0rd" : "•••••••••••••"}
+        type={/* isPasswordVisible ? "text" : */ "password"}
+        placeholder={/* isPasswordVisible ? "0hMy4P4ssw0rd" : */ "•••••••••••••"}
         ref={ref}
         {...props}
         className={classNames("mb-0 pr-10", props.className)}
       />
 
-      <Tooltip content={textLabel}>
+      {/*<Tooltip content={textLabel}>
         <button
           className={classNames(
             "absolute right-3 h-9 text-gray-900",
@@ -291,7 +285,7 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
           )}
           <span className="sr-only">{textLabel}</span>
         </button>
-      </Tooltip>
+          </Tooltip>*/}
     </div>
   );
 });

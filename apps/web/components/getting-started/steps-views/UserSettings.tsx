@@ -85,7 +85,7 @@ const UserSettings = (props: IUserSettingsProps) => {
             className="w-full rounded-md border border-gray-300 text-sm"
           />
           {errors.name && (
-            <p data-testid="required" className="text-xs italic text-red-500">
+            <p data-testid="required" className="py-2 text-xs text-red-500">
               {t("required")}
             </p>
           )}
