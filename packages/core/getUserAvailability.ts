@@ -155,7 +155,9 @@ export async function getUserAvailability(
       startDate = startDate.add(1, "day");
     }
 
-    const ourBookings = busyTimes.filter((busyTime) => busyTime.source?.startsWith(`eventType-`));
+    const ourBookings = busyTimes.filter((busyTime) =>
+      busyTime.source?.startsWith(`eventType-${eventType?.id}`)
+    );
 
     // Apply booking limit filter against our bookings
 
