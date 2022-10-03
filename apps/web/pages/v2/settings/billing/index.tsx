@@ -58,7 +58,7 @@ const BillingView = () => {
         )}
 
         <CtaRow
-          className={classNames(!isPro && "pointer-events-none opacity-50")}
+          className={classNames(!isPro && "pointer-events-none opacity-30")}
           title={t("billing_manage_details_title")}
           description={t("billing_manage_details_description")}>
           <Button
