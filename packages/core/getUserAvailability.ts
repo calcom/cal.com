@@ -82,23 +82,6 @@ export const getCurrentSeats = (eventTypeId: number, dateFrom: Dayjs, dateTo: Da
 
 export type CurrentSeats = Awaited<ReturnType<typeof getCurrentSeats>>;
 
-export async function getBookingLimits({
-  eventType,
-  dateFrom,
-  dateTo,
-}: {
-  eventType: EventType;
-  dateFrom: Date;
-  dateTo: Date;
-}) {
-  if (!eventType?.bookingLimits) return;
-  console.log({ dateFrom, dateTo });
-  try {
-  } catch (error) {
-    logger.warn(error);
-  }
-}
-
 /** This should be called getUsersWorkingHoursAndBusySlots (...and remaining seats, and final timezone) */
 export async function getUserAvailability(
   query: {
@@ -152,6 +135,16 @@ export async function getUserAvailability(
     selectedCalendars,
   });
 
+  const bufferedBusyTimes: EventBusyDetails[] = busyTimes.map((a) => ({
+    ...a,
+    start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toISOString(),
+    end: dayjs(a.end)
+      .add(currentUser.bufferTime + (afterEventBuffer || 0), "minute")
+      .toISOString(),
+    title: a.title,
+    source: query.withSource ? a.source : undefined,
+  }));
+
   if (bookingLimits) {
     // Get all dates between dateFrom and dateTo
     const dates = []; // this is as dayjs date
@@ -166,24 +159,23 @@ export async function getUserAvailability(
 
     // Apply booking limit filter against our bookings
 
-    Object.entries(bookingLimits).forEach(async ([key, limit]) => {
+    for (const [key, limit] of Object.entries(bookingLimits)) {
       const limitKey = key as keyof BookingLimit;
 
       if (limitKey === "PER_YEAR") {
         const yearlyBusyTime = await checkLimit({
           eventStartDate: startDate.toDate(),
           limitingNumber: limit,
-          eventId: eventType?.id as number, // This is always set
+          eventId: eventType?.id as number,
           key: "PER_YEAR",
           returnBusyTimes: true,
         });
-        if (!yearlyBusyTime) return;
-        busyTimes.push({
+        if (!yearlyBusyTime) break;
+        bufferedBusyTimes.push({
           start: yearlyBusyTime.start.toISOString(),
           end: yearlyBusyTime.end.toISOString(),
         });
-        console.log({ busyTimes });
-        return;
+        break;
       }
 
       // Take PER_DAY and turn it into day and PER_WEEK into week etc.
@@ -198,21 +190,11 @@ export async function getUserAvailability(
         const endDate = dayjs(startDate).endOf(filter);
 
         if (dayjs(booking.start).isBetween(startDate, endDate)) total++;
-        if (total >= limit) busyTimes.push({ start: startDate.toISOString(), end: endDate.toISOString() });
+        if (total >= limit)
+          bufferedBusyTimes.push({ start: startDate.toISOString(), end: endDate.toISOString() });
       });
-    });
+    }
   }
-
-  const bufferedBusyTimes = busyTimes.map((a) => ({
-    ...a,
-    start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toISOString(),
-    end: dayjs(a.end)
-      .add(currentUser.bufferTime + (afterEventBuffer || 0), "minute")
-      .toISOString(),
-    title: a.title,
-    source: query.withSource ? a.source : undefined,
-  }));
-
   const schedule = eventType?.schedule
     ? { ...eventType?.schedule }
     : {
