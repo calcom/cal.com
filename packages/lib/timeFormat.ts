@@ -6,12 +6,24 @@
  */
 import { localStorage } from "@calcom/lib/webstorage";
 
+const is24hLocalstorageKey = "timeOption.is24hClock";
+
+export const setIs24hClockInLocalStorage = (is24h: boolean) =>
+  localStorage.setItem(is24hLocalstorageKey, is24h.toString());
+
+export const getIs24hClockFromLocalStorage = () => {
+  const is24hFromLocalstorage = localStorage.getItem(is24hLocalstorageKey);
+  if (is24hFromLocalstorage === null) return null;
+
+  return is24hFromLocalstorage === "true";
+};
+
 export const isBrowserLocale24h = () => {
-  const localStorageTimeFormat = localStorage.getItem("timeOption.is24hClock");
+  const localStorageTimeFormat = getIs24hClockFromLocalStorage();
   // If time format is already stored in the browser then retrieve and return early
-  if (localStorageTimeFormat === "true") {
+  if (localStorageTimeFormat === true) {
     return true;
-  } else if (localStorageTimeFormat === "false") {
+  } else if (localStorageTimeFormat === false) {
     return false;
   }
 
@@ -19,10 +31,10 @@ export const isBrowserLocale24h = () => {
   if (typeof window !== "undefined" && navigator) locale = window.navigator?.language;
 
   if (!new Intl.DateTimeFormat(locale, { hour: "numeric" }).format(0).match(/M/)) {
-    localStorage.setItem("timeOption.is24hClock", "false");
+    setIs24hClockInLocalStorage(false);
     return false;
   } else {
-    localStorage.setItem("timeOption.is24hClock", "true");
+    setIs24hClockInLocalStorage(true);
     return true;
   }
 };
