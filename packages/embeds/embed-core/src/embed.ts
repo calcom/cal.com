@@ -483,8 +483,11 @@ export class Cal {
     });
 
     this.actionManager.on("__routeChanged", () => {
-      if (this.inlineEl && (this.inlineEl as unknown as any).__CalAutoScroll) {
-        this.inlineEl.scrollIntoView();
+      const { top, height } = this.inlineEl.getBoundingClientRect();
+      // Try to readjust and scroll into view if more than 25% is hidden.
+      // Otherwise we assume that user might have positioned the content appropriately already
+      if (top < 0 && Math.abs(top / height) >= 0.25) {
+        this.inlineEl.scrollIntoView({ behavior: "smooth" });
       }
     });
 
