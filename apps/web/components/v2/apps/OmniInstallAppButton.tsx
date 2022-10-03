@@ -49,6 +49,7 @@ export default function OmniInstallAppButton({ appId, className }: { appId: stri
 
         return (
           <Button
+            loading={mutation.isLoading}
             color="secondary"
             className="[@media(max-width:260px)]:w-full [@media(max-width:260px)]:justify-center"
             StartIcon={Icon.FiPlus}
