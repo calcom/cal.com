@@ -15,5 +15,3 @@ export const createEventTypeInput = _EventTypeModel
     path: ["schedulingType"],
     message: "You must select a scheduling type for team events",
   });
-
-
