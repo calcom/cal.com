@@ -1,4 +1,4 @@
-import { DropdownMenuItemIndicator } from "@radix-ui/react-dropdown-menu";
+import { DropdownMenuCheckboxItemProps, DropdownMenuItemIndicator } from "@radix-ui/react-dropdown-menu";
 import classNames from "classnames";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
@@ -20,7 +20,7 @@ import Button from "@calcom/ui/v2/core/Button";
 import Dropdown, {
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuCheckboxItem,
+  DropdownMenuCheckboxItem as PrimitiveDropdownMenuCheckboxItem,
   DropdownMenuGroup,
   DropdownMenuLabel,
   DropdownMenuItem,
@@ -49,17 +49,42 @@ type AvailabilityFormValues = {
   isDefault: boolean;
 };
 
-DropdownMenuCheckboxItem.displayName = "DropdownMenuCheckboxItem";
-
 type EventTypeGroup = { groupName: string; eventTypes: { title: string; isActive: boolean }[] };
+
+export const DropdownMenuCheckboxItem = React.forwardRef<HTMLDivElement, DropdownMenuCheckboxItemProps>(
+  ({ children, defaultChecked }, forwardedRef) => {
+    const [checked, setChecked] = useState(defaultChecked);
+    return (
+      <PrimitiveDropdownMenuCheckboxItem
+        ref={forwardedRef}
+        className="flex w-72 items-center justify-between truncate p-1 font-normal"
+        checked={checked}
+        onCheckedChange={setChecked}
+        ItemIndicator={() => (
+          <DropdownMenuItemIndicator asChild>
+            <span className="hidden" />
+          </DropdownMenuItemIndicator>
+        )}
+        onSelect={(e) => e.preventDefault()}>
+        {children}
+        <input
+          type="checkbox"
+          checked={checked}
+          className="inline-block rounded-[4px] border-gray-300 text-neutral-900 focus:ring-neutral-500 disabled:text-neutral-400"
+        />
+      </PrimitiveDropdownMenuCheckboxItem>
+    );
+  }
+);
+
+DropdownMenuCheckboxItem.displayName = "DropdownMenuCheckboxItem";
 
 const ActiveOnEventTypeSelect = ({ scheduleId }: { scheduleId: number }) => {
   const { t } = useLocale();
-  const [isOpen, setOpen] = useState(false);
   // I was doubtful to make this RHF but this has no point: because the DropdownMenuCheckboxItem is
   // controlled anyway; requiring the use of Controller regardless.
   const [eventTypeIds, setEventTypeIds] = useState<number[]>([]);
-
+  const [isOpen, setOpen] = useState(false);
   const { data } = trpc.useQuery(["viewer.eventTypes"]);
   const mutation = trpc.useMutation("viewer.availability.activateOnEventTypes");
   const { data: user } = useMeQuery();
@@ -100,7 +125,7 @@ const ActiveOnEventTypeSelect = ({ scheduleId }: { scheduleId: number }) => {
         <Button
           size="base"
           color="secondary"
-          className="w-full px-3 !font-light"
+          className="w-72 px-3 !font-light"
           EndIcon={({ className, ...props }) =>
             isOpen ? (
               <Icon.FiChevronUp
@@ -124,20 +149,15 @@ const ActiveOnEventTypeSelect = ({ scheduleId }: { scheduleId: number }) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         {(eventTypeGroups || []).map((eventTypeGroup) => (
-          <DropdownMenuGroup key={eventTypeGroup.groupName} className="space-y-3 p-4 px-3">
-            <DropdownMenuLabel className="h6 pb-3 pl-1 text-xs font-medium uppercase text-neutral-400">
-              {eventTypeGroup.groupName}
+          <DropdownMenuGroup key={eventTypeGroup.groupName} className=" space-y-3 p-4 px-3">
+            <DropdownMenuLabel asChild>
+              <span className="h6 pb-3 pl-1 text-xs font-medium uppercase text-neutral-400">
+                {eventTypeGroup.groupName}
+              </span>
             </DropdownMenuLabel>
             {eventTypeGroup.eventTypes.map((eventType) => (
-              <DropdownMenuCheckboxItem
-                key={eventType.title}
-                defaultChecked={eventType.isActive}
-                onSelect={(e) => e.preventDefault()}
-                onCheckedChange={(e) => {
-                  console.log(e);
-                }}>
-                <span className="w-[200px] truncate">{eventType.title}</span>
-                <DropdownMenuItemIndicator>Bliep</DropdownMenuItemIndicator>
+              <DropdownMenuCheckboxItem key={eventType.title} defaultChecked={eventType.isActive}>
+                {eventType.title}
               </DropdownMenuCheckboxItem>
             ))}
           </DropdownMenuGroup>
@@ -145,7 +165,7 @@ const ActiveOnEventTypeSelect = ({ scheduleId }: { scheduleId: number }) => {
         <DropdownMenuSeparator asChild>
           <hr />
         </DropdownMenuSeparator>
-        <DropdownMenuItem className="flex justify-end space-x-2 px-4 pt-3 pb-2">
+        <DropdownMenuItem className="flex w-72 justify-end space-x-2 px-4 pt-3 pb-2">
           <Button color="minimalSecondary" onClick={() => setOpen(false)}>
             {t("cancel")}
           </Button>

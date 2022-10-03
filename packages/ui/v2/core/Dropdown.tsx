@@ -29,6 +29,8 @@ DropdownMenuTrigger.displayName = "DropdownMenuTrigger";
 
 export const DropdownMenuTriggerItem = DropdownMenuPrimitive.Trigger;
 
+export const DropdownMenuItemIndicator = DropdownMenuPrimitive.ItemIndicator;
+
 export const DropdownMenuPortal = DropdownMenuPrimitive.Portal;
 
 type DropdownMenuContentProps = ComponentProps<typeof DropdownMenuPrimitive["Content"]>;
@@ -66,19 +68,31 @@ DropdownMenuItem.displayName = "DropdownMenuItem";
 
 export const DropdownMenuGroup = DropdownMenuPrimitive.Group;
 
-type DropdownMenuCheckboxItemProps = ComponentProps<typeof DropdownMenuPrimitive["CheckboxItem"]>;
-export const DropdownMenuCheckboxItem = forwardRef<HTMLDivElement, DropdownMenuCheckboxItemProps>(
-  ({ children, ...props }, forwardedRef) => {
-    return (
-      <DropdownMenuPrimitive.CheckboxItem {...props} ref={forwardedRef}>
-        {children}
+export const DropdownMenuCheckboxItem = forwardRef<
+  HTMLDivElement,
+  DropdownMenuPrimitive.DropdownMenuCheckboxItemProps & { ItemIndicator?: () => JSX.Element }
+>(
+  (
+    {
+      children,
+      ItemIndicator = () => (
         <DropdownMenuPrimitive.ItemIndicator>
           <CheckCircleIcon />
         </DropdownMenuPrimitive.ItemIndicator>
+      ),
+      ...props
+    },
+    forwardedRef
+  ) => {
+    return (
+      <DropdownMenuPrimitive.CheckboxItem {...props} ref={forwardedRef}>
+        {children}
+        <ItemIndicator />
       </DropdownMenuPrimitive.CheckboxItem>
     );
   }
 );
+
 DropdownMenuCheckboxItem.displayName = "DropdownMenuCheckboxItem";
 
 export const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup;
