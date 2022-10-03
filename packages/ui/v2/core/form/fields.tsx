@@ -250,25 +250,25 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
   props,
   ref
 ) {
-  const { t } = useLocale();
+  /*const { t } = useLocale();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const toggleIsPasswordVisible = useCallback(
     () => setIsPasswordVisible(!isPasswordVisible),
     [isPasswordVisible, setIsPasswordVisible]
   );
   const textLabel = isPasswordVisible ? t("hide_password") : t("show_password");
-
+*/
   return (
     <div className="relative">
       <InputField
-        type={isPasswordVisible ? "text" : "password"}
-        placeholder={isPasswordVisible ? "0hMy4P4ssw0rd" : "•••••••••••••"}
+        type={/* isPasswordVisible ? "text" : */ "password"}
+        placeholder={/* isPasswordVisible ? "0hMy4P4ssw0rd" : */ "•••••••••••••"}
         ref={ref}
         {...props}
         className={classNames("mb-0 pr-10", props.className)}
       />
 
-      <Tooltip content={textLabel}>
+      {/*<Tooltip content={textLabel}>
         <button
           className={classNames(
             "absolute right-3 h-9 text-gray-900",
@@ -283,7 +283,7 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
           )}
           <span className="sr-only">{textLabel}</span>
         </button>
-      </Tooltip>
+          </Tooltip>*/}
     </div>
   );
 });
