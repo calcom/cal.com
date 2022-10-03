@@ -262,7 +262,7 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
     <div className="relative">
       <InputField
         type={isPasswordVisible ? "text" : "password"}
-        placeholder={isPasswordVisible ? "0hMy4P4ssw0rd" : "•••••••••••••"}
+        placeholder={props.placeholder || "•••••••••••••"}
         ref={ref}
         {...props}
         className={classNames("mb-0 pr-10", props.className)}
