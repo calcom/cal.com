@@ -1,3 +1,6 @@
+import { useEffect } from "react";
+import { z } from "zod";
+
 import { SetAppDataGeneric } from "@calcom/app-store/EventTypeAppContext";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SUPPORTED_CHAINS_FOR_FORM } from "@calcom/rainbow/utils/ethereum";
@@ -6,11 +9,8 @@ import Select from "@calcom/ui/v2/core/form/Select";
 import { appDataSchema } from "../zod";
 
 type RainbowInstallFormProps = {
-  //TODO: Reuse type
   setAppData: SetAppDataGeneric<typeof appDataSchema>;
-  blockchainId: number;
-  smartContractAddress: string;
-};
+} & Pick<z.infer<typeof appDataSchema>, "smartContractAddress" | "blockchainId">;
 
 const RainbowInstallForm: React.FC<RainbowInstallFormProps> = ({
   setAppData,
@@ -35,12 +35,7 @@ const RainbowInstallForm: React.FC<RainbowInstallFormProps> = ({
           onChange={(e) => {
             setAppData("blockchainId", (e && e.value) || 1);
           }}
-          defaultValue={
-            SUPPORTED_CHAINS_FOR_FORM.find((e) => e.value === blockchainId) || {
-              value: 1,
-              label: "Ethereum",
-            }
-          }
+          defaultValue={SUPPORTED_CHAINS_FOR_FORM.find((e) => e.value === blockchainId)}
           options={SUPPORTED_CHAINS_FOR_FORM || [{ value: 1, label: "Ethereum" }]}
         />
       </div>

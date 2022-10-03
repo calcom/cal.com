@@ -24,7 +24,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       {showRainbowSection && (
         <RainbowInstallForm
           setAppData={setAppData}
-          blockchainId={(blockchainId as number) || 1}
+          blockchainId={blockchainId}
           smartContractAddress={(smartContractAddress as string) || ""}
         />
       )}
