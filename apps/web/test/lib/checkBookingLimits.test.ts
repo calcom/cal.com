@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import { validateBookingLimitOrder } from "@calcom/lib/isBookingLimits";
 import { checkBookingLimits, checkLimit } from "@calcom/lib/server";
 import { BookingLimit } from "@calcom/types/Calendar";
 
@@ -80,5 +81,23 @@ describe("Check Booking Limits Tests", () => {
       start: dayjs(MOCK_DATA.startDate).startOf("day").toDate(),
       end: dayjs(MOCK_DATA.startDate).endOf("day").toDate(),
     });
+  });
+});
+
+describe("Booking limit validation", () => {
+  it("Should validate a correct limit", () => {
+    expect(validateBookingLimitOrder({ PER_DAY: 3, PER_MONTH: 5 })).toBe(true);
+  });
+
+  it("Should invalidate an incorrect limit", () => {
+    expect(validateBookingLimitOrder({ PER_DAY: 9, PER_MONTH: 5 })).toBe(false);
+  });
+
+  it("Should validate a correct limit with 'gaps' ", () => {
+    expect(validateBookingLimitOrder({ PER_DAY: 9, PER_YEAR: 25 })).toBe(true);
+  });
+
+  it("Should validate a correct limit with equal values ", () => {
+    expect(validateBookingLimitOrder({ PER_DAY: 1, PER_YEAR: 1 })).toBe(true);
   });
 });

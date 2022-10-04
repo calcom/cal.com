@@ -11,7 +11,7 @@ import { z } from "zod";
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
 import { LocationObject, EventLocationType } from "@calcom/core/location";
-import { parseRecurringEvent, parseBookingLimit } from "@calcom/lib";
+import { parseRecurringEvent, parseBookingLimit, validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
@@ -232,6 +232,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             seatsPerTimeSlotEnabled,
             ...input
           } = values;
+
+          if (values.bookingLimits) {
+            const { bookingLimits } = values;
+            const isValid = validateBookingLimitOrder(bookingLimits);
+            if (!isValid) throw new Error("Booking limits are not valid");
+          }
 
           updateMutation.mutate({
             ...input,

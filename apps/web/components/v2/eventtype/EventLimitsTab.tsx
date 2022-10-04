@@ -7,7 +7,7 @@ import { useFormContext, Controller, useWatch } from "react-hook-form";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PeriodType } from "@calcom/prisma/client";
-import { BookingLimit } from "@calcom/types/Calendar";
+import type { BookingLimit } from "@calcom/types/Calendar";
 import { Icon } from "@calcom/ui";
 import { Select, Switch, Label, Input, MinutesField, Button } from "@calcom/ui/v2";
 import DateRangePicker from "@calcom/ui/v2/core/form/date-range-picker/DateRangePicker";
@@ -306,13 +306,7 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
   );
 };
 
-function calculateMinValue(key: keyof BookingLimit, value: number) {
-  if (key === "PER_DAY") return 1;
-  if (key === "PER_MONTH") return value;
-  if (key === "PER_WEEK") return value;
-  if (key === "PER_YEAR") return value;
-  return 1; // Imposible case
-}
+const validationOrderKeys = ["PER_DAY", "PER_WEEK", "PER_MONTH", "PER_YEAR"];
 
 const BookingLimits = () => {
   const { watch, setValue, control } = useFormContext<FormValues>();
@@ -350,86 +344,88 @@ const BookingLimits = () => {
     <Controller
       name="bookingLimits"
       control={control}
-      render={({ field: { value, onChange } }) => (
-        <ul ref={animateRef}>
-          {value &&
-            watchBookingLimits &&
-            Object.entries(value).map(([key, bookingAmount]) => {
-              const bookingLimitKey = key as keyof BookingLimit;
-              return (
-                <div className="mb-2 flex items-center space-x-2 text-sm" key={bookingLimitKey}>
-                  <Input
-                    id={`${bookingLimitKey}-limit`}
-                    type="number"
-                    className="mb-0 block w-16 rounded-md border-gray-300 text-sm  [appearance:textfield]"
-                    min={calculateMinValue(bookingLimitKey, bookingAmount)}
-                    placeholder="1"
-                    defaultValue={bookingAmount}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setValue(`bookingLimits.${bookingLimitKey}`, parseInt(val));
-                    }}
-                  />
-                  <Select
-                    options={BOOKING_LIMIT_OPTIONS.filter(
-                      (option) => !Object.keys(value).includes(option.value)
-                    )}
-                    isSearchable={false}
-                    defaultValue={BOOKING_LIMIT_OPTIONS.find((option) => option.value === key)}
-                    onChange={(val) => {
-                      const current = value;
-                      delete current[bookingLimitKey];
-                      const newData = {
-                        ...current,
-                        [val?.value as keyof BookingLimit]: watchBookingLimits[bookingLimitKey],
-                      };
-                      onChange(newData);
-                    }}
-                  />
-                  <Button
-                    size="icon"
-                    StartIcon={Icon.FiTrash}
-                    color="destructive"
-                    onClick={() => {
-                      const current = value;
-                      delete current[key as keyof BookingLimit];
-                      onChange(current);
-                    }}
-                  />
-                </div>
-              );
-            })}
-          {value && Object.keys(value).length <= 3 && (
-            <Button
-              color="minimal"
-              StartIcon={Icon.FiPlus}
-              onClick={() => {
-                if (!value || !watchBookingLimits) return;
-                const currentKeys = Object.keys(watchBookingLimits);
+      render={({ field: { value, onChange } }) => {
+        return (
+          <ul ref={animateRef}>
+            {value &&
+              watchBookingLimits &&
+              Object.entries(value)
+                .sort(([key], [keytwo]) => {
+                  return (
+                    validationOrderKeys.indexOf(key as keyof BookingLimit) -
+                    validationOrderKeys.indexOf(keytwo as keyof BookingLimit)
+                  );
+                })
+                .map(([key, bookingAmount]) => {
+                  const bookingLimitKey = key as keyof BookingLimit;
+                  return (
+                    <div className="mb-2 flex items-center space-x-2 text-sm" key={bookingLimitKey}>
+                      <Input
+                        id={`${bookingLimitKey}-limit`}
+                        type="number"
+                        className="mb-0 block w-16 rounded-md border-gray-300 text-sm  [appearance:textfield]"
+                        placeholder="1"
+                        min={1}
+                        defaultValue={bookingAmount}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setValue(`bookingLimits.${bookingLimitKey}`, parseInt(val));
+                        }}
+                      />
+                      <Select
+                        options={BOOKING_LIMIT_OPTIONS.filter(
+                          (option) => !Object.keys(value).includes(option.value)
+                        )}
+                        isSearchable={false}
+                        defaultValue={BOOKING_LIMIT_OPTIONS.find((option) => option.value === key)}
+                        onChange={(val) => {
+                          const current = value;
+                          delete current[bookingLimitKey];
+                          const newData = {
+                            ...current,
+                            [val?.value as keyof BookingLimit]: watchBookingLimits[bookingLimitKey],
+                          };
+                          onChange(newData);
+                        }}
+                      />
+                      <Button
+                        size="icon"
+                        StartIcon={Icon.FiTrash}
+                        color="destructive"
+                        onClick={() => {
+                          const current = value;
+                          delete current[key as keyof BookingLimit];
+                          onChange(current);
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+            {value && Object.keys(value).length <= 3 && (
+              <Button
+                color="minimal"
+                StartIcon={Icon.FiPlus}
+                onClick={() => {
+                  if (!value || !watchBookingLimits) return;
+                  const currentKeys = Object.keys(watchBookingLimits);
 
-                const rest = Object.values(BOOKING_LIMIT_OPTIONS).filter(
-                  (option) => !currentKeys.includes(option.value)
-                );
-                if (!rest || !currentKeys) return;
-                //Value is always defined so can be casted
+                  const rest = Object.values(BOOKING_LIMIT_OPTIONS).filter(
+                    (option) => !currentKeys.includes(option.value)
+                  );
+                  if (!rest || !currentKeys) return;
+                  //Value is always defined so can be casted
 
-                // So we need to get the value of the previous key and add 1
-                // 1) Default to per_day if there is no previous key
-                // 2) If there is a previous key, get the value of that key and add 1
-                const previousKey = currentKeys[currentKeys.length - 1] as keyof BookingLimit;
-
-                // @ts-expect-error - previousKey is always defined as this button is only displayed for 3 or less keys
-                const newValue = watchBookingLimits[previousKey] + 1;
-                setValue("bookingLimits", {
-                  ...watchBookingLimits,
-                  [rest[0].value]: newValue,
-                });
-              }}>
-              {t("add_limit")}
-            </Button>
-          )}
-        </ul>
-      )}
+                  setValue("bookingLimits", {
+                    ...watchBookingLimits,
+                    [rest[0].value]: undefined,
+                  });
+                }}>
+                {t("add_limit")}
+              </Button>
+            )}
+          </ul>
+        );
+      }}
     />
   );
 };
