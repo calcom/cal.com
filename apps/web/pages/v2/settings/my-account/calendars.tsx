@@ -94,7 +94,7 @@ const CalendarsView = () => {
                       <Alert
                         severity="warning"
                         key={item.credentialId}
-                        title={t("calendar_connection_broke")}
+                        title={t("calendar_connection_fail")}
                         message={item.error.message}
                         className="mb-4 mt-4"
                         actions={
