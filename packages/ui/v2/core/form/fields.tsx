@@ -202,12 +202,12 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
       {addOnLeading || addOnSuffix ? (
         <div
           className={classNames(
-            " mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1",
+            "relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1",
             addOnSuffix && "group flex-row-reverse"
           )}>
           <div
             className={classNames(
-              "h-9 border border-gray-300",
+              "addon-wrapper h-9 border border-gray-300",
               addOnFilled && "bg-gray-100",
               addOnLeading && "rounded-l-md border-r-0 px-3",
               addOnSuffix && "rounded-r-md border-l-0 px-3"
@@ -259,31 +259,30 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
   const textLabel = isPasswordVisible ? t("hide_password") : t("show_password");
 
   return (
-    <div className="relative">
+    <div className="relative [&_.group:hover_.addon-wrapper]:border-gray-400 [&_.group:focus-within_.addon-wrapper]:border-neutral-300">
       <InputField
         type={isPasswordVisible ? "text" : "password"}
-        placeholder={isPasswordVisible ? "0hMy4P4ssw0rd" : "•••••••••••••"}
+        placeholder={props.placeholder || "•••••••••••••"}
         ref={ref}
         {...props}
-        className={classNames("mb-0 pr-10", props.className)}
+        className={classNames("mb-0 border-r-0 pr-10", props.className)}
+        addOnFilled={false}
+        addOnSuffix={
+          <Tooltip content={textLabel}>
+            <button
+              className="absolute right-3 bottom-0 h-9 text-gray-900"
+              type="button"
+              onClick={() => toggleIsPasswordVisible()}>
+              {isPasswordVisible ? (
+                <EyeOff className="h-4 stroke-[2.5px]" />
+              ) : (
+                <Eye className="h-4 stroke-[2.5px]" />
+              )}
+              <span className="sr-only">{textLabel}</span>
+            </button>
+          </Tooltip>
+        }
       />
-
-      <Tooltip content={textLabel}>
-        <button
-          className={classNames(
-            "absolute right-3 h-9 text-gray-900",
-            props.hintErrors ? "top-[22px]" : "bottom-0"
-          )}
-          type="button"
-          onClick={() => toggleIsPasswordVisible()}>
-          {isPasswordVisible ? (
-            <EyeOff className="h-4 stroke-[2.5px]" />
-          ) : (
-            <Eye className="h-4 stroke-[2.5px]" />
-          )}
-          <span className="sr-only">{textLabel}</span>
-        </button>
-      </Tooltip>
     </div>
   );
 });
