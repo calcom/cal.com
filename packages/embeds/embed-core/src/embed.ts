@@ -183,6 +183,7 @@ export class Cal {
     urlInstance.searchParams.set("embed", this.namespace);
     if (config.debug) {
       urlInstance.searchParams.set("debug", "" + config.debug);
+      iframe.style.border = "1px solid green";
     }
 
     // Merge searchParams from config onto the URL which might have query params already

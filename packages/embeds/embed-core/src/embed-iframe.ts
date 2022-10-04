@@ -218,21 +218,12 @@ function getEmbedType() {
 }
 
 export const useIsEmbed = () => {
-  // We can't simply return isEmbed() from this method.
-  // isEmbed() returns different values on server and browser, which messes up the hydration.
-  // TODO: We can avoid using document.URL and instead use Router.
-  const [isEmbed, setIsEmbed] = useState<boolean | null>(null);
-  useEffect(() => {
-    const namespace = getNamespace();
-    const _isValidNamespace = isValidNamespace(namespace);
-    if (parent !== window && !_isValidNamespace) {
-      log(
-        "Looks like you have iframed cal.com but not using Embed Snippet. Directly using an iframe isn't recommended."
-      );
-    }
-    setIsEmbed(window.isEmbed());
-  }, []);
-  return isEmbed;
+  if (parent !== window && !isValidNamespace(getNamespace())) {
+    log(
+      "Looks like you have iframed cal.com but not using Embed Snippet. Directly using an iframe isn't recommended."
+    );
+  }
+  return typeof window !== "undefined" ? window.isEmbed() : null;
 };
 
 export const useEmbedType = () => {
@@ -283,7 +274,10 @@ export const methods = {
         return;
       }
       // No UI change should happen in sight. Let the parent height adjust and in next cycle show it.
-      requestAnimationFrame(unhideBody);
+      // HACK: React components take time to commit their updates of isEmbed=true to DOM, so add this random 500ms delay which seems to work
+      setTimeout(() => {
+        unhideBody();
+      }, 500);
       sdkActionManager?.fire("linkReady", {});
     });
   },

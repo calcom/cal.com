@@ -76,7 +76,6 @@ class MyDocument extends Document<Props> {
           />
         </Head>
 
-        {/* Keep the embed hidden till parent initializes and gives it the appropriate styles */}
         <body className="dark:bg-darkgray-50 desktop-transparent bg-gray-100">
           <Main />
           <NextScript />
