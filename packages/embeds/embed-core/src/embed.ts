@@ -20,6 +20,7 @@ type Namespace = string;
 type Config = {
   origin: string;
   debug?: boolean;
+  uiDebug?: boolean;
 };
 
 const globalCal = (window as CalWindow).Cal;
@@ -183,6 +184,8 @@ export class Cal {
     urlInstance.searchParams.set("embed", this.namespace);
     if (config.debug) {
       urlInstance.searchParams.set("debug", "" + config.debug);
+    }
+    if (config.uiDebug) {
       iframe.style.border = "1px solid green";
     }
 
@@ -200,10 +203,7 @@ export class Cal {
     if (typeof namespaceOrConfig !== "string") {
       config = (namespaceOrConfig || {}) as Config;
     }
-    if (config?.origin) {
-      this.__config.origin = config.origin;
-    }
-    this.__config.debug = config.debug;
+    this.__config = { ...this.__config, ...config };
   }
 
   getConfig() {
@@ -243,8 +243,8 @@ export class Cal {
         },
       },
     });
+    const isCalPageOptimized = calLink.includes("forms/");
     config = config || {};
-
     // Keeping auto-scroll disabled for two reasons:
     // - If user scrolls the content to an appropriate position, it again resets it to default position which might not be for the liking of the user
     // - Sometimes, the position can be wrong(e.g. if there is a fixed position header on top coming above the iframe content).
@@ -264,7 +264,9 @@ export class Cal {
       throw new Error("Element not found");
     }
     const template = document.createElement("template");
-    template.innerHTML = `<cal-inline style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%"></cal-inline>`;
+    template.innerHTML = `<cal-inline ${
+      isCalPageOptimized ? 'loading="done"' : ""
+    } style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%"></cal-inline>`;
     this.inlineEl = template.content.children[0];
     (this.inlineEl as unknown as any).__CalAutoScroll = config.__autoScroll;
     this.inlineEl.appendChild(iframe);

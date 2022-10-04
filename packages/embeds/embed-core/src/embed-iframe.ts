@@ -19,6 +19,7 @@ declare global {
     resetEmbedStatus: () => void;
     getEmbedNamespace: () => string | null;
     getEmbedTheme: () => "dark" | "light" | null;
+    isPageOptimizedForEmbed: (calLink: string) => boolean;
   }
 }
 
@@ -218,12 +219,22 @@ function getEmbedType() {
 }
 
 export const useIsEmbed = () => {
-  if (parent !== window && !isValidNamespace(getNamespace())) {
-    log(
-      "Looks like you have iframed cal.com but not using Embed Snippet. Directly using an iframe isn't recommended."
-    );
-  }
-  return typeof window !== "undefined" ? window.isEmbed() : null;
+  // We can't simply return isEmbed() from this method.
+  // isEmbed() returns different values on server and browser, which messes up the hydration.
+  // TODO: We can avoid using document.URL and instead use Router.
+  const router = useRouter();
+  const [isEmbed, setIsEmbed] = useState<boolean | null>(typeof router.query.embed === "string");
+  useEffect(() => {
+    const namespace = getNamespace();
+    const _isValidNamespace = isValidNamespace(namespace);
+    if (parent !== window && !_isValidNamespace) {
+      log(
+        "Looks like you have iframed cal.com but not using Embed Snippet. Directly using an iframe isn't recommended."
+      );
+    }
+    setIsEmbed(window.isEmbed());
+  }, []);
+  return isEmbed;
 };
 
 export const useEmbedType = () => {

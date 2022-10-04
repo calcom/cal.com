@@ -35,6 +35,12 @@ function toRunBeforeReactOnClient() {
     const namespace = url.searchParams.get("embed");
     return namespace;
   };
+
+  window.isPageOptimizedForEmbed = () => {
+    // Those pages are considered optimized, which know at backend that they are rendering for embed.
+    // Such pages can be shown straightaway without a loader for a better embed experience
+    return location.pathname.includes("forms/");
+  };
 }
 
 class MyDocument extends Document<Props> {
@@ -84,7 +90,7 @@ class MyDocument extends Document<Props> {
           <script
             dangerouslySetInnerHTML={{
               __html: `
-                if (isEmbed()) {
+                if (isEmbed() && !isPageOptimizedForEmbed()) {
                   document.body.style.display="none";
                   document.body.style.background="transparent";
                 }`,
