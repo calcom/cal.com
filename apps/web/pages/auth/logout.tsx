@@ -1,17 +1,16 @@
 import { GetServerSidePropsContext } from "next";
 import { signOut, useSession } from "next-auth/react";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
+import Button from "@calcom/ui/v2/core/Button";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import AuthContainer from "@components/ui/AuthContainer";
+import AuthContainer from "@components/v2/ui/AuthContainer";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -30,7 +29,7 @@ export default function Logout(props: Props) {
   const { t } = useLocale();
 
   return (
-    <AuthContainer title={t("logged_out")} description={t("youve_been_logged_out")}>
+    <AuthContainer title={t("logged_out")} description={t("youve_been_logged_out")} showLogo>
       <div className="mb-4">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
           <Icon.FiCheck className="h-6 w-6 text-green-600" />
@@ -44,9 +43,9 @@ export default function Logout(props: Props) {
           </div>
         </div>
       </div>
-      <Link href="/auth/login" passHref>
-        <Button className="flex w-full justify-center"> {t("go_back_login")}</Button>
-      </Link>
+      <Button href="/auth/login" passHref className="flex w-full justify-center">
+        {t("go_back_login")}
+      </Button>
     </AuthContainer>
   );
 }
