@@ -7,6 +7,7 @@ import {
   MenuProps,
   OptionProps,
   SingleValueProps,
+  ValueContainerProps,
 } from "react-select";
 
 import { classNames } from "@calcom/lib";
@@ -80,7 +81,24 @@ export const SingleValueComponent = <
     {...props}
     className={classNames(
       className,
-      "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 text-darkgray-900 placeholder:text-gray-400"
+      "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 text-black placeholder:text-gray-400"
+    )}
+  />
+);
+
+export const ValueContainerComponent = <
+  Option,
+  IsMulti extends boolean = false,
+  Group extends GroupBase<Option> = GroupBase<Option>
+>({
+  className,
+  ...props
+}: ValueContainerProps<Option, IsMulti, Group>) => (
+  <reactSelectComponents.ValueContainer
+    {...props}
+    className={classNames(
+      "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 text-black placeholder:text-gray-400",
+      className
     )}
   />
 );

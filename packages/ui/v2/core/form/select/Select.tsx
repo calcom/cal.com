@@ -20,6 +20,7 @@ import {
   MenuListComponent,
   OptionComponent,
   SingleValueComponent,
+  ValueContainerComponent,
 } from "./components";
 
 export type SelectProps<
@@ -53,6 +54,7 @@ export const getReactSelectProps = <
     SingleValue: SingleValueComponent,
     Menu: MenuComponent,
     MenuList: MenuListComponent,
+    ValueContainer: ValueContainerComponent,
     ...components,
   },
 });
