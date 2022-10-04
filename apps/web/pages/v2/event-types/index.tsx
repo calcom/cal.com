@@ -52,7 +52,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
   const { t } = useLocale();
 
   return (
-    <Link href={`/event-types/${type.id}`}>
+    <Link href={`/event-types/${type.id}?tabName=setup`}>
       <a
         className="flex-grow truncate text-sm"
         title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
