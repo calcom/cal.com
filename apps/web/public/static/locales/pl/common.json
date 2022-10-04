@@ -632,7 +632,6 @@
   "billing": "Rozliczenia",
   "manage_your_billing_info": "Zarządzaj informacjami rozliczeniowymi i anuluj subskrypcję.",
   "availability": "Dostępność",
-  "availability_title": "{{availabilityTitle}} | Dostępność",
   "edit_availability": "Edytuj dostępność",
   "configure_availability": "Skonfiguruj czasy, kiedy jesteś dostępny dla rezerwacji.",
   "copy_times_to": "Kopiuj czasy do",

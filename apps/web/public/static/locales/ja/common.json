@@ -632,7 +632,6 @@
   "billing": "請求",
   "manage_your_billing_info": "請求情報の管理とサブスクリプションのキャンセル。",
   "availability": "利用可能期間",
-  "availability_title": "{{availabilityTitle}} | 空き状況",
   "edit_availability": "空き状況を編集",
   "configure_availability": "予約が可能な時間を設定する。",
   "copy_times_to": "次に時間をコピー",

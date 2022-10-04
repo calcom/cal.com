@@ -154,7 +154,7 @@ const app_RoutingForms = createRouter()
           });
         },
       })
-      .query("form", {
+      .query("formQuery", {
         input: z.object({
           id: z.string(),
         }),
@@ -169,7 +169,7 @@ const app_RoutingForms = createRouter()
           return form;
         },
       })
-      .mutation("form", {
+      .mutation("formMutation", {
         input: z.object({
           id: z.string(),
           name: z.string(),

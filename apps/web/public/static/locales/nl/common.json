@@ -632,7 +632,6 @@
   "billing": "Abonnement",
   "manage_your_billing_info": "Beheer uw betalingsgegevens en annuleer uw abonnement.",
   "availability": "Beschikbaarheid",
-  "availability_title": "{{availabilityTitle}} | Beschikbaarheid",
   "edit_availability": "Beschikbaarheid bewerken",
   "configure_availability": "Configureer tijden wanneer u beschikbaar bent voor afspraken.",
   "copy_times_to": "Tijden kopiëren naar",
