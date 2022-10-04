@@ -1,5 +1,4 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { UserPlan } from "@prisma/client";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -293,8 +292,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               <DropdownMenuItem>
                                 <DropdownItem
                                   type="button"
-                                  href={"/event-types/" + type.id}
-                                  StartIcon={Icon.FiEdit2}>
+                                  data-testid={"event-type-edit-" + type.id}
+                                  StartIcon={Icon.FiEdit2}
+                                  onClick={() => router.push("/event-types/" + type.id)}>
                                   {t("edit") as string}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -397,9 +397,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                         <DropdownMenuItem className="outline-none">
                           <Button
                             type="button"
-                            href={"/event-types/" + type.id}
+                            onClick={() => router.push("/event-types/" + type.id)}
                             color="minimal"
-                            className="w-full"
+                            className="w-full rounded-none"
                             StartIcon={Icon.FiEdit}>
                             {t("edit") as string}
                           </Button>
