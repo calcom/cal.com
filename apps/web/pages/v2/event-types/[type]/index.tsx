@@ -233,12 +233,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             ...input
           } = values;
 
-          if (values.bookingLimits) {
-            const { bookingLimits } = values;
-            const isValid = validateBookingLimitOrder(bookingLimits);
-            if (!isValid) throw new Error("Booking limits are not valid");
-          }
-
           updateMutation.mutate({
             ...input,
             locations,
