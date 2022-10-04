@@ -8,10 +8,10 @@ import BaseSelect, {
 
 import { getReactSelectProps } from "@calcom/ui/v2/core/form/Select";
 
-function TimezoneSelect({ className, ...props }: SelectProps) {
+function TimezoneSelect({ className, components, ...props }: SelectProps) {
   const reactSelectProps = useMemo(() => {
-    return getReactSelectProps({ className });
-  }, [className]);
+    return getReactSelectProps({ className, components: components || {} });
+  }, [className, components]);
 
   return (
     <BaseSelect
