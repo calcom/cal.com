@@ -47,6 +47,19 @@ describe("Check Booking Limits Tests", () => {
       )
     ).resolves.toBeTruthy();
   });
+  it("Should pass with multiple booking limits with one undefined", async () => {
+    prismaMock.booking.count.mockResolvedValue(0);
+    expect(
+      checkBookingLimits(
+        {
+          PER_DAY: 1,
+          PER_WEEK: undefined,
+        },
+        MOCK_DATA.startDate,
+        MOCK_DATA.id
+      )
+    ).resolves.toBeTruthy();
+  });
   it("Should handle mutiple limits correctly", async () => {
     prismaMock.booking.count.mockResolvedValue(1);
     expect(

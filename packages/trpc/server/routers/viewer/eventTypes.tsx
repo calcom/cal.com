@@ -300,7 +300,8 @@ export const eventTypesRouter = createProtectedRouter()
 
       if (bookingLimits) {
         const isValid = validateBookingLimitOrder(bookingLimits);
-        if (!isValid) throw new Error("Booking limits are not valid");
+        if (!isValid)
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
         data.bookingLimits = bookingLimits;
       }
 
