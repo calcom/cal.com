@@ -1253,9 +1253,9 @@
   "create_first_api_key_description": "API keys allow other apps to communicate with Cal.com",
   "back_to_signin": "Back to sign in",
   "reset_link_sent": "Reset link sent",
-  "password_reset_email":"An email is on it’s way to {{email}} with instructions to reset your password.",
-  "password_reset_leading":"If you don't receive an email soon, check that the email address you entered is correct, check your spam folder or reach out to support if the issue persists.",
-  "password_updated":"Password updated!",
+  "password_reset_email": "An email is on it’s way to {{email}} with instructions to reset your password.",
+  "password_reset_leading": "If you don't receive an email soon, check that the email address you entered is correct, check your spam folder or reach out to support if the issue persists.",
+  "password_updated": "Password updated!",
   "pending_payment": "Pending payment",
   "confirmation_page_rainbow": "Token gate your event with tokens or NFTs on Ethereum, Polygon, and more.",
   "not_on_cal": "Not on Cal.com",
@@ -1272,5 +1272,8 @@
   "format": "Format",
   "uppercase_for_letters": "Use uppercase for all letters",
   "replace_whitespaces_underscores": "Replace whitespaces with underscores",
-  "ignore_special_characters": "Ignore special characters in your Additonal Input label. Use only letters and numbers"
+  "ignore_special_characters": "Ignore special characters in your Additional Input label. Use only letters and numbers",
+  "retry": "Retry",
+  "fetching_calendars_error": "There was a problem fetching your calendars. Please <1>try again</1> or reach out to customer support.",
+  "calendar_connection_fail": "Calendar connection failed"
 }

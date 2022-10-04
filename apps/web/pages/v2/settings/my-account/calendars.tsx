@@ -7,6 +7,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
+import { Alert } from "@calcom/ui/v2";
 import Badge from "@calcom/ui/v2/core/Badge";
 import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
 import Meta from "@calcom/ui/v2/core/Meta";
@@ -23,7 +24,7 @@ import { CalendarSwitch } from "@components/v2/settings/CalendarSwitch";
 const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <div className="mt-6 mb-8 space-y-6 divide-y">
+      <div className="mt-6 mb-8 space-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -89,7 +90,30 @@ const CalendarsView = () => {
               <List>
                 {data.connectedCalendars.map((item) => (
                   <Fragment key={item.credentialId}>
-                    {item.calendars && (
+                    {item.error && item.error.message && (
+                      <Alert
+                        severity="warning"
+                        key={item.credentialId}
+                        title={t("calendar_connection_fail")}
+                        message={item.error.message}
+                        className="mb-4 mt-4"
+                        actions={
+                          <>
+                            {/* @TODO: add a reconnect button, that calls add api and delete old credential */}
+                            <DisconnectIntegration
+                              credentialId={item.credentialId}
+                              trashIcon
+                              onSuccess={() => query.refetch()}
+                              buttonProps={{
+                                className: "border border-gray-300 py-[2px]",
+                                color: "secondary",
+                              }}
+                            />
+                          </>
+                        }
+                      />
+                    )}
+                    {item?.error === undefined && item.calendars && (
                       <ListItem expanded className="flex-col">
                         <div className="flex w-full flex-1 items-center space-x-3 pb-5 pl-1 pt-1 rtl:space-x-reverse">
                           {
@@ -151,6 +175,22 @@ const CalendarsView = () => {
               description={t("no_calendar_installed_description")}
               buttonText={t("add_a_calendar")}
               buttonOnClick={() => router.push(`${WEBAPP_URL}/apps/categories/calendar`)}
+            />
+          );
+        }}
+        error={() => {
+          return (
+            <Alert
+              message={
+                <Trans i18nKey="fetching_calendars_error">
+                  An error ocurred while fetching your Calendars.
+                  <a className="cursor-pointer underline" onClick={() => query.refetch()}>
+                    try again
+                  </a>
+                  .
+                </Trans>
+              }
+              severity="error"
             />
           );
         }}
