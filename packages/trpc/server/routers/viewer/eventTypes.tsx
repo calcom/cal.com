@@ -301,6 +301,7 @@ export const eventTypesRouter = createProtectedRouter()
       if (bookingLimits) {
         const isValid = validateBookingLimitOrder(bookingLimits);
         if (!isValid) throw new Error("Booking limits are not valid");
+        data.bookingLimits = bookingLimits;
       }
 
       if (schedule) {
