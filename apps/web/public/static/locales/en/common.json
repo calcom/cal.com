@@ -1270,5 +1270,5 @@
   "limit_booking_frequency":"Limit booking frequency",
   "limit_booking_frequency_description":"Limit how many times this event can be booked",
   "add_limit":"Add Limit",
-  "team_name_required": "Team name required",
+  "team_name_required": "Team name required"
 }
