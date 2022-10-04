@@ -329,7 +329,7 @@ export default function SettingsLayout({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="mx-auto max-w-3xl justify-center">
+        <div className="mx-auto max-w-full justify-center md:max-w-3xl">
           <ShellHeader />
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
