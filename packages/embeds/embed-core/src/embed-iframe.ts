@@ -286,6 +286,7 @@ export const methods = {
       }
       // No UI change should happen in sight. Let the parent height adjust and in next cycle show it.
       // HACK: React components take time to commit their updates of isEmbed=true to DOM, so add this random 500ms delay which seems to work
+      // TODO: Optimize page by page and then remove this unnecessary delay
       setTimeout(() => {
         unhideBody();
       }, 500);

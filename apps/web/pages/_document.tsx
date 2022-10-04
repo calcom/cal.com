@@ -90,8 +90,10 @@ class MyDocument extends Document<Props> {
           <script
             dangerouslySetInnerHTML={{
               __html: `
-                if (isEmbed() && !isPageOptimizedForEmbed()) {
-                  document.body.style.display="none";
+                if (isEmbed()) {
+                  if(!isPageOptimizedForEmbed()) {
+                    document.body.style.display="none";
+                  }
                   document.body.style.background="transparent";
                 }`,
             }}

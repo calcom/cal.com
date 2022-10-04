@@ -203,7 +203,11 @@ export class Cal {
     if (typeof namespaceOrConfig !== "string") {
       config = (namespaceOrConfig || {}) as Config;
     }
-    this.__config = { ...this.__config, ...config };
+    const { origin, ...restConfig } = config;
+    if (origin) {
+      this.__config.origin = origin;
+    }
+    this.__config = { ...this.__config, ...restConfig };
   }
 
   getConfig() {
