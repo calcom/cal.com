@@ -7,7 +7,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Alert, Button } from "@calcom/ui/v2";
+import { Alert } from "@calcom/ui/v2";
 import Badge from "@calcom/ui/v2/core/Badge";
 import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
 import Meta from "@calcom/ui/v2/core/Meta";
@@ -19,7 +19,6 @@ import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/Disconnect
 
 import { QueryCell } from "@lib/QueryCell";
 
-import { LinkText } from "@components/ui/LinkText";
 import { CalendarSwitch } from "@components/v2/settings/CalendarSwitch";
 
 const SkeletonLoader = () => {
@@ -95,7 +94,7 @@ const CalendarsView = () => {
                       <Alert
                         severity="warning"
                         key={item.credentialId}
-                        title="Calendar connection broke"
+                        title={t("calendar_connection_broke")}
                         message={item.error.message}
                         className="mb-4 mt-4"
                         actions={
