@@ -221,6 +221,20 @@ export default abstract class BaseCalendarService implements Calendar {
     }
   }
 
+  isValidFormat = (url: string): boolean => {
+    const acceptedFormats = ["eml", "ics"];
+    const urlFormat = url.split(".").pop();
+    if (urlFormat === undefined) {
+      console.error("Invalid request, calendar object extension missing");
+      return false;
+    }
+    if (!acceptedFormats.includes(urlFormat)) {
+      console.error(`Unsupported calendar object format: ${urlFormat}`);
+      return false;
+    }
+    return true;
+  };
+
   async getAvailability(
     dateFrom: string,
     dateTo: string,
@@ -232,6 +246,7 @@ export default abstract class BaseCalendarService implements Calendar {
           .filter((sc) => ["caldav_calendar", "apple_calendar"].includes(sc.integration ?? ""))
           .map((sc) =>
             fetchCalendarObjects({
+              urlFilter: (url: string) => this.isValidFormat(url),
               calendar: {
                 url: sc.externalId,
               },

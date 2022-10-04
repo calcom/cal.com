@@ -3,7 +3,12 @@ import React, { FC } from "react";
 import { SVGComponent } from "@calcom/types/SVGComponent";
 import { Icon } from "@calcom/ui/Icon";
 import Button from "@calcom/ui/v2/core/Button";
-import { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/v2/core/Dropdown";
+import {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuPortal,
+} from "@calcom/ui/v2/core/Dropdown";
 import Dropdown from "@calcom/ui/v2/core/Dropdown";
 
 export type ActionType = {
@@ -45,21 +50,23 @@ const DropdownActions = ({
           {actionTrigger}
         </DropdownMenuTrigger>
       )}
-      <DropdownMenuContent portalled>
-        {actions.map((action) => (
-          <DropdownMenuItem key={action.id} className="focus-visible:outline-none">
-            <Button
-              type="button"
-              color="minimal"
-              href={action.href}
-              StartIcon={action.icon}
-              onClick={action.onClick || defaultAction}
-              data-testid={action.id}>
-              {action.label}
-            </Button>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
+      <DropdownMenuPortal>
+        <DropdownMenuContent>
+          {actions.map((action) => (
+            <DropdownMenuItem key={action.id} className="focus-visible:outline-none">
+              <Button
+                type="button"
+                color="minimal"
+                href={action.href}
+                StartIcon={action.icon}
+                onClick={action.onClick || defaultAction}
+                data-testid={action.id}>
+                {action.label}
+              </Button>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenuPortal>
     </Dropdown>
   );
 };

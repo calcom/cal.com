@@ -23,7 +23,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
 
   const deleteApiKey = trpc.useMutation("viewer.apiKeys.delete");
   const zapierCredentials: { credentialIds: number[] } | undefined = integrations.data?.items.find(
-    (item: { type: string }) => item.type === "zapier_other"
+    (item: { type: string }) => item.type === "zapier_automation"
   );
   const [credentialId] = zapierCredentials?.credentialIds || [false];
   const showContent = integrations.data && integrations.isSuccess && credentialId;

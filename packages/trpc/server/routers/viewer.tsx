@@ -55,11 +55,6 @@ import { workflowsRouter } from "./viewer/workflows";
 
 // things that unauthenticated users can query about themselves
 const publicViewerRouter = createRouter()
-  .query("session", {
-    resolve({ ctx }) {
-      return ctx.session;
-    },
-  })
   .query("i18n", {
     async resolve({ ctx }) {
       const { locale, i18n } = ctx;
@@ -625,7 +620,7 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ ctx }) {
       const { user } = ctx;
       // get user's credentials + their connected integrations
-      const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
+      const calendarCredentials = getCalendarCredentials(user.credentials);
 
       // get all the connected integrations' calendars (from third party)
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
@@ -691,7 +686,7 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const { user } = ctx;
       const { integration, externalId, eventTypeId } = input;
-      const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
+      const calendarCredentials = getCalendarCredentials(user.credentials);
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
 
@@ -769,7 +764,7 @@ const loggedInViewerRouter = createProtectedRouter()
       const apps = getApps(credentials);
       const appFromDb = apps.find((app) => app.credential?.appId === appId);
       if (!appFromDb) {
-        return appFromDb;
+        return null;
       }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { credential: _, credentials: _1, ...app } = appFromDb;
