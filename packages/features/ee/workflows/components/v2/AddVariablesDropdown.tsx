@@ -48,7 +48,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
                 onClick={() => props.addVariable(props.isEmailSubject, t(`${variable}_workflow`))}>
                 <div className="md:grid md:grid-cols-2">
                   <div className="mr-3 text-left md:col-span-1">
-                    {`{${t(`${variable}_workflow`).toUpperCase().replace(" ", "_")}}`}
+                    {`{${t(`${variable}_workflow`).toUpperCase().replace(/ /g, "_")}}`}
                   </div>
                   <div className="invisible text-left text-gray-600 md:visible md:col-span-1">
                     {t(`${variable}_info`)}

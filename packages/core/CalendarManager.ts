@@ -1,15 +1,11 @@
 import { Credential, SelectedCalendar } from "@prisma/client";
-import { AxiosError } from "axios";
 import { createHash } from "crypto";
 import _ from "lodash";
 import cache from "memory-cache";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
-import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import { App } from "@calcom/types/App";
@@ -18,13 +14,13 @@ import type { EventResult } from "@calcom/types/EventManager";
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
 
-export const getCalendarCredentials = (credentials: Array<Credential>, userId: number) => {
+export const getCalendarCredentials = (credentials: Array<Credential>) => {
   const calendarCredentials = getApps(credentials)
     .filter((app) => app.type.endsWith("_calendar"))
     .flatMap((app) => {
       const credentials = app.credentials.flatMap((credential) => {
         const calendar = getCalendar(credential);
-        return [{ integration: app, credential, calendar }];
+        return app.variant === "calendar" ? [{ integration: app, credential, calendar }] : [];
       });
       return credentials.length ? credentials : [];
     });
@@ -40,8 +36,8 @@ export const getConnectedCalendars = async (
     calendarCredentials.map(async (item) => {
       try {
         const { calendar, integration, credential } = item;
-        // Don't leak credentials to the client
 
+        // Don't leak credentials to the client
         const credentialId = credential.id;
         if (!calendar) {
           return {
@@ -60,9 +56,15 @@ export const getConnectedCalendars = async (
           }))
           .sortBy(["primary"])
           .value();
-        const primary = calendars.find((item) => item.primary) ?? calendars[0];
+        const primary = calendars.find((item) => item.primary) ?? calendars.find((cal) => cal !== undefined);
         if (!primary) {
-          throw new Error("No primary calendar found");
+          return {
+            integration,
+            credentialId,
+            error: {
+              message: "No primary calendar found",
+            },
+          };
         }
 
         return {
