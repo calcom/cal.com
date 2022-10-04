@@ -98,13 +98,17 @@ export const getConnectedCalendars = async (
 };
 
 /**
- * Important function to don't leak credentials to the client
+ * Important function to prevent leaking credentials to the client
  * @param appIntegration
  * @returns App
  */
 const cleanIntegrationKeys = (
-  appIntegration: Partial<App> & { credentials?: Array<Credential>; credential: Credential }
+  appIntegration: ReturnType<typeof getCalendarCredentials>[number]["integration"] & {
+    credentials?: Array<Credential>;
+    credential: Credential;
+  }
 ) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { credentials, credential, ...rest } = appIntegration;
   return rest;
 };
