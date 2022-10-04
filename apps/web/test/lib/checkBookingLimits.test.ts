@@ -100,4 +100,7 @@ describe("Booking limit validation", () => {
   it("Should validate a correct limit with equal values ", () => {
     expect(validateBookingLimitOrder({ PER_DAY: 1, PER_YEAR: 1 })).toBe(true);
   });
+  it("Should validate a correct with empty", () => {
+    expect(validateBookingLimitOrder({})).toBe(true);
+  });
 });
