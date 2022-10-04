@@ -8,11 +8,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Button, showToast, Switch, Tooltip } from "@calcom/ui/v2";
+import { Button, showToast, Switch, Tooltip, EmptyScreen } from "@calcom/ui/v2";
 
 import LicenseRequired from "../../../common/components/v2/LicenseRequired";
 import { getActionIcon } from "../../lib/getActionIcon";
-import EmptyScreen from "./EmptyScreen";
 import SkeletonLoader from "./SkeletonLoaderEventWorkflowsTab";
 import { WorkflowType } from "./WorkflowListPage";
 
@@ -203,15 +202,22 @@ function EventWorkflowsTab(props: Props) {
             })}
           </div>
         ) : (
-          <EmptyScreen
-            buttonText={t("create_workflow")}
-            buttonOnClick={() => createMutation.mutate()}
-            IconHeading={Icon.FiZap}
-            headline={t("workflows")}
-            description={t("no_workflows_description")}
-            isLoading={createMutation.isLoading}
-            showExampleWorkflows={false}
-          />
+          <div className="pt-4 before:border-0">
+            <EmptyScreen
+              Icon={Icon.FiZap}
+              headline={t("workflows")}
+              description={t("no_workflows_description")}
+              buttonRaw={
+                <Button
+                  target="_blank"
+                  color="secondary"
+                  onClick={() => createMutation.mutate()}
+                  loading={createMutation.isLoading}>
+                  {t("create_workflow")}
+                </Button>
+              }
+            />
+          </div>
         )
       ) : (
         <SkeletonLoader />
