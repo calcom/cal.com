@@ -95,18 +95,20 @@ const CalendarsView = () => {
                       <Alert
                         severity="warning"
                         key={item.credentialId}
-                        title={`${t("error")} - A Calendar connection broke`}
+                        title="Calendar connection broke"
                         message={item.error.message}
-                        className="mb-4"
+                        className="mb-4 mt-4"
                         actions={
                           <>
-                            {/* {JSON.stringify(item)} */}
-                            <Button className="mx-2">Reconnect</Button>
+                            {/* @TODO: add a reconnect button, that calls add api and delete old credential */}
                             <DisconnectIntegration
                               credentialId={item.credentialId}
                               trashIcon
-                              // onSuccess={onChanged}
-                              buttonProps={{ className: "border border-gray-300 py-[2px]" }}
+                              onSuccess={() => query.refetch()}
+                              buttonProps={{
+                                className: "border border-gray-300 py-[2px]",
+                                color: "secondary",
+                              }}
                             />
                           </>
                         }
