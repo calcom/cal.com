@@ -1,5 +1,4 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { UserPlan } from "@prisma/client";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
