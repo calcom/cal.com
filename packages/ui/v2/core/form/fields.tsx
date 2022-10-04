@@ -262,7 +262,7 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
     <div className="relative [&_.group:hover_.addon-wrapper]:border-gray-400 [&_.group:focus-within_.addon-wrapper]:border-neutral-300">
       <InputField
         type={isPasswordVisible ? "text" : "password"}
-        placeholder={isPasswordVisible ? "0hMy4P4ssw0rd" : "•••••••••••••"}
+        placeholder={props.placeholder || "•••••••••••••"}
         ref={ref}
         {...props}
         className={classNames("mb-0 border-r-0 pr-10", props.className)}
