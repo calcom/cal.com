@@ -1275,5 +1275,7 @@
   "ignore_special_characters": "Ignore special characters in your Additional Input label. Use only letters and numbers",
   "retry": "Retry",
   "fetching_calendars_error": "There was a problem fetching your calendars. Please <1>try again</1> or reach out to customer support.",
-  "calendar_connection_fail": "Calendar connection failed"
+  "calendar_connection_fail": "Calendar connection failed",
+  "booking_confirmation_success": "Booking confirmation succeeded",
+  "booking_confirmation_fail": "Booking confirmation failed"
 }
