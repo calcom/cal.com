@@ -43,8 +43,7 @@ export default async function createEvent(req: NextApiRequest, res: NextApiRespo
 
   // Im sure this query can be made more efficient... The JSON filtering wouldnt work when doing it directly on user.
   const foundUser = await db.credential
-    .findFirst({
-      rejectOnNotFound: true,
+    .findFirstOrThrow({
       ...WhereCredsEqualsId(user.id),
     })
     .user({

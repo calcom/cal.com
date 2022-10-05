@@ -5,15 +5,15 @@ import {
   getCloseComCustomActivityTypeFieldsIds,
   getCloseComLeadId,
 } from "@calcom/lib/CloseComeUtils";
-import { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 
-jest.mock("@calcom/lib/CloseCom", () => {
-  return class {
+jest.mock("@calcom/lib/CloseCom", () => ({
+  default: class {
     constructor() {
       /* Mock */
     }
-  };
-});
+  },
+}));
 
 afterEach(() => {
   jest.resetAllMocks();

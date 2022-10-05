@@ -1,7 +1,16 @@
 import { faker } from "@faker-js/faker";
 
-import { getPublicVideoCallUrl, getLocation, getVideoCallPassword, getVideoCallUrl } from "../CalEventParser";
+import { getLocation, getPublicVideoCallUrl, getVideoCallPassword, getVideoCallUrl } from "../CalEventParser";
 import { buildCalendarEvent, buildVideoCallData } from "./builder";
+
+jest.mock("@calcom/lib/constants", () => ({
+  WEBAPP_URL: "http://localhost:3000",
+}));
+
+jest.mock("short-uuid", () => ({
+  __esModule: true,
+  default: () => ({ fromUUID: () => "FAKE_UUID" }),
+}));
 
 describe("getLocation", () => {
   it("should return a meetingUrl for video call meetings", () => {

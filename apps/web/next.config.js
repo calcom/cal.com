@@ -78,6 +78,14 @@ plugins.push(withAxiom);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
+  /* We already do type check on GH actions */
+  typescript: {
+    ignoreBuildErrors: !!process.env.CI,
+  },
+  /* We already do linting on GH actions */
+  eslint: {
+    ignoreDuringBuilds: !!process.env.CI,
+  },
   experimental: {
     images: {
       unoptimized: true,
@@ -88,7 +96,7 @@ const nextConfig = {
       new CopyWebpackPlugin({
         patterns: [
           {
-            from: "../../packages/app-store/*/static/**",
+            from: "../../packages/app-store/**/static/**",
             to({ context, absoluteFilename }) {
               const appName = /app-store\/(.*)\/static/.exec(absoluteFilename);
               return Promise.resolve(`${context}/public/app-store/${appName[1]}/[name][ext]`);
@@ -127,11 +135,11 @@ const nextConfig = {
       },
       {
         source: "/forms/:formId",
-        destination: "/apps/routing_forms/routing-link/:formId",
+        destination: "/apps/routing-forms/routing-link/:formId",
       },
       {
         source: "/router",
-        destination: "/apps/routing_forms/router",
+        destination: "/apps/routing-forms/router",
       },
       /* TODO: have these files being served from another deployment or CDN {
         source: "/embed/embed.js",
@@ -148,14 +156,23 @@ const nextConfig = {
       },
       {
         source: "/settings",
-        destination: "/settings/profile",
+        destination: "/settings/my-account/profile",
+        permanent: true,
+      },
+      {
+        source: "/settings/teams",
+        destination: "/teams",
         permanent: true,
       },
       /* V2 testers get redirected to the new settings */
       {
         source: "/settings/profile",
-        has: [{ type: "cookie", key: "calcom-v2-early-access" }],
         destination: "/settings/my-account/profile",
+        permanent: false,
+      },
+      {
+        source: "/settings/security",
+        destination: "/settings/security/password",
         permanent: false,
       },
       {

@@ -24,8 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ message: "No user id provided" });
   }
 
-  const authenticatedUser = await prisma.user.findFirst({
-    rejectOnNotFound: true,
+  const authenticatedUser = await prisma.user.findFirstOrThrow({
     where: {
       id: session.user.id,
     },

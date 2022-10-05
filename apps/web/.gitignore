@@ -21,6 +21,7 @@ playwright/reports/*
 # next.js
 /.next/
 /out/
+next-env.d.ts
 
 # production
 /build

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import showToast from "@calcom/lib/notification";
-import { EventType, Workflow, WorkflowsOnEventTypes } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Tooltip } from "@calcom/ui";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
@@ -12,6 +11,8 @@ import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
 import { Icon } from "@calcom/ui/Icon";
+
+import { WorkflowType } from "./v2/WorkflowListPage";
 
 const CreateFirstWorkflowView = () => {
   const { t } = useLocale();
@@ -26,11 +27,7 @@ const CreateFirstWorkflowView = () => {
 };
 
 interface Props {
-  workflows:
-    | (Workflow & {
-        activeOn: (WorkflowsOnEventTypes & { eventType: EventType })[];
-      })[]
-    | undefined;
+  workflows: WorkflowType[] | undefined;
 }
 export default function WorkflowListPage({ workflows }: Props) {
   const { t } = useLocale();

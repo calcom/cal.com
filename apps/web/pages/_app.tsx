@@ -47,7 +47,8 @@ function MyApp(props: AppProps) {
           </LicenseRequired>
         ) : (
           <Component {...pageProps} err={err} />
-        )
+        ),
+        router
       )}
     </AppProviders>
   );

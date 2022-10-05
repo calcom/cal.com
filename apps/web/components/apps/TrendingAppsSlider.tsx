@@ -21,20 +21,10 @@ const TrendingAppsSlider = <T extends App>({ items }: { items: T[] }) => {
           },
         },
       }}
-      renderItem={(app) => (
-        <AppCard
-          key={app.name}
-          name={app.name}
-          slug={app.slug}
-          description={app.description}
-          logo={app.logo}
-          rating={app.rating}
-          reviews={app.reviews}
-          isProOnly={app.isProOnly}
-        />
-      )}
+      renderItem={(app) => <AppCard app={app} />}
     />
   );
 };
 
+/** @deprecated use v2 instead, located at packages/ui/v2/core/apps  */
 export default TrendingAppsSlider;

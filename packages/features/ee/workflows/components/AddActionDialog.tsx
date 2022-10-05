@@ -1,3 +1,8 @@
+/**
+ * @deprecated file
+ * All new changes should be made to the V2 file in
+ * `/packages/features/ee/workflows/components/v2/AddActionDialog.tsx`
+ */
 import { zodResolver } from "@hookform/resolvers/zod";
 import { WorkflowActions } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
@@ -26,6 +31,11 @@ type AddActionFormValues = {
   sendTo?: string;
 };
 
+/**
+ * @deprecated file
+ * All new changes should be made to the V2 file in
+ * `/packages/features/ee/workflows/components/v2/AddActionDialog.tsx`
+ */
 export const AddActionDialog = (props: IAddActionDialog) => {
   const { t } = useLocale();
   const { isOpenDialog, setIsOpenDialog, addAction } = props;

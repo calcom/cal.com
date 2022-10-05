@@ -107,9 +107,10 @@ const DestinationCalendarSelector = ({
           control: (defaultStyles) => {
             return {
               ...defaultStyles,
-              borderRadius: "2px",
+              borderRadius: "6px",
               "@media only screen and (min-width: 640px)": {
                 ...(defaultStyles["@media only screen and (min-width: 640px)"] as object),
+                width: "100%",
               },
             };
           },
@@ -135,6 +136,9 @@ const DestinationCalendarSelector = ({
         }}
         isLoading={isLoading}
         value={selectedOption}
+        components={{
+          IndicatorSeparator: () => null,
+        }}
       />
     </div>
   );

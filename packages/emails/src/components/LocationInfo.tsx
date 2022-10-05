@@ -1,7 +1,7 @@
 import type { TFunction } from "next-i18next";
 
 import { guessEventLocationType } from "@calcom/app-store/locations";
-import { getVideoCallPassword, getVideoCallUrl } from "@calcom/lib/CalEventParser";
+import { getVideoCallUrl } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 

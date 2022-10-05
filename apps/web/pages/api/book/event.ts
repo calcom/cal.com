@@ -6,6 +6,7 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
+import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
 import { handlePayment } from "@calcom/app-store/stripepayment/lib/server";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
@@ -19,8 +20,8 @@ import {
   sendScheduledEmails,
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
-import verifyAccount from "@calcom/features/ee/web3/utils/verifyAccount";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import getWebhooks from "@calcom/features/webhooks/utils/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -28,16 +29,15 @@ import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds
 import logger from "@calcom/lib/logger";
 import { defaultResponder, getLuckyUser } from "@calcom/lib/server";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
-import getSubscribers from "@calcom/lib/webhooks/subscriptions";
 import prisma, { userSelect } from "@calcom/prisma";
-import { extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
+import { extendedBookingCreateBody, requiredCustomInputSchema } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
-import sendPayload from "@lib/webhooks/sendPayload";
+import sendPayload, { EventTypeInfo } from "@lib/webhooks/sendPayload";
 
 import { getTranslation } from "@server/lib/i18n";
 
@@ -112,13 +112,13 @@ function isAvailable(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, lengt
 }
 
 const getEventTypesFromDB = async (eventTypeId: number) => {
-  const eventType = await prisma.eventType.findUnique({
-    rejectOnNotFound: true,
+  const eventType = await prisma.eventType.findUniqueOrThrow({
     where: {
       id: eventTypeId,
     },
     select: {
       id: true,
+      customInputs: true,
       users: userSelect,
       team: {
         select: {
@@ -251,7 +251,19 @@ async function handler(req: NextApiRequest) {
 
   const eventType =
     !eventTypeId && !!eventTypeSlug ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
+
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
+
+  // Check if required custom inputs exist
+  if (eventType.customInputs) {
+    eventType.customInputs.forEach((customInput) => {
+      if (customInput.required) {
+        requiredCustomInputSchema.parse(
+          reqBody.customInputs.find((userInput) => userInput.label === customInput.label)?.value
+        );
+      }
+    });
+  }
 
   let timeOutOfBounds = false;
   try {
@@ -315,29 +327,36 @@ async function handler(req: NextApiRequest) {
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
 
-  const availableUsers = await ensureAvailableUsers(
-    {
-      ...eventType,
-      users,
-    },
-    {
-      dateFrom: reqBody.start,
-      dateTo: reqBody.end,
-    }
-  );
+  if (!eventType.seatsPerTimeSlot) {
+    const availableUsers = await ensureAvailableUsers(
+      {
+        ...eventType,
+        users,
+      },
+      {
+        dateFrom: reqBody.start,
+        dateTo: reqBody.end,
+      }
+    );
 
-  // Assign to only one user when ROUND_ROBIN
-  if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-    users = [await getLuckyUser("MAXIMIZE_AVAILABILITY", { availableUsers, eventTypeId: eventType.id })];
-  } else {
-    // excluding ROUND_ROBIN, all users have availability required.
-    if (availableUsers.length !== users.length) {
-      throw new Error("Some users are unavailable for booking.");
+    // Add an if conditional if there are no seats on the event type
+    // Assign to only one user when ROUND_ROBIN
+    if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+      users = [await getLuckyUser("MAXIMIZE_AVAILABILITY", { availableUsers, eventTypeId: eventType.id })];
+    } else {
+      // excluding ROUND_ROBIN, all users have availability required.
+      if (availableUsers.length !== users.length) {
+        throw new Error("Some users are unavailable for booking.");
+      }
+      users = availableUsers;
     }
-    users = availableUsers;
   }
 
   console.log("available users", users);
+
+  // @TODO: use the returned address somewhere in booking creation?
+  // const address: string | undefined = await ...
+  await handleEthSignature(eventType.metadata, reqBody.ethSignature);
 
   const [organizerUser] = users;
   const tOrganizer = await getTranslation(organizerUser.locale ?? "en", "common");
@@ -544,12 +563,6 @@ async function handler(req: NextApiRequest) {
   }
 
   async function createBooking() {
-    // @TODO: check as metadata
-    if (reqBody.web3Details) {
-      const { web3Details } = reqBody;
-      await verifyAccount(web3Details.userSignature, web3Details.userWallet);
-    }
-
     if (originalRescheduledBooking) {
       evt.title = originalRescheduledBooking?.title || evt.title;
       evt.description = originalRescheduledBooking?.description || evt.additionalNotes;
@@ -649,10 +662,8 @@ async function handler(req: NextApiRequest) {
 
     if (typeof eventType.price === "number" && eventType.price > 0) {
       /* Validate if there is any stripe_payment credential for this user */
-      await prisma.credential.findFirst({
-        rejectOnNotFound(err) {
-          throw new HttpError({ statusCode: 400, message: "Missing stripe credentials", cause: err });
-        },
+      /*  note: removes custom error message about stripe */
+      await prisma.credential.findFirstOrThrow({
         where: {
           type: "stripe_payment",
           userId: organizerUser.id,
@@ -819,7 +830,7 @@ async function handler(req: NextApiRequest) {
     triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
   };
 
-  const subscribersMeetingEnded = await getSubscribers(subscriberOptionsMeetingEnded);
+  const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
 
   subscribersMeetingEnded.forEach((subscriber) => {
     if (rescheduleUid && originalRescheduledBooking) {
@@ -831,19 +842,31 @@ async function handler(req: NextApiRequest) {
   });
 
   // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-  const subscribers = await getSubscribers(subscriberOptions);
+  const subscribers = await getWebhooks(subscriberOptions);
   console.log("evt:", {
     ...evt,
     metadata: reqBody.metadata,
   });
   const bookingId = booking?.id;
+
+  const eventTypeInfo: EventTypeInfo = {
+    eventTitle: eventType.title,
+    eventDescription: eventType.description,
+    requiresConfirmation: eventType.requiresConfirmation || null,
+    price: eventType.price,
+    currency: eventType.currency,
+    length: eventType.length,
+  };
+
   const promises = subscribers.map((sub) =>
     sendPayload(sub.secret, eventTrigger, new Date().toISOString(), sub, {
       ...evt,
+      ...eventTypeInfo,
       bookingId,
       rescheduleUid,
       metadata: reqBody.metadata,
       eventTypeId,
+      status: eventType.requiresConfirmation ? "PENDING" : "ACCEPTED",
     }).catch((e) => {
       console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
     })
@@ -882,7 +905,8 @@ async function handler(req: NextApiRequest) {
     eventType.workflows,
     reqBody.smsReminderNumber as string | null,
     evt,
-    evt.requiresConfirmation || false
+    evt.requiresConfirmation || false,
+    rescheduleUid ? true : false
   );
   // booking successful
   req.statusCode = 201;

@@ -10,6 +10,7 @@ interface Props {
   color?: PillColor;
 }
 
+/** @deprecated Use `packages/features/ee/teams/components/TeamPill.tsx` */
 export default function TeamPill(props: Props) {
   return (
     <div

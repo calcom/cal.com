@@ -12,8 +12,7 @@ let base_url = "";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
     // Get user
-    await prisma.user.findFirst({
-      rejectOnNotFound: true,
+    await prisma.user.findFirstOrThrow({
       where: {
         id: req.session?.user?.id,
       },

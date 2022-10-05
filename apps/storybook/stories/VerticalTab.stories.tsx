@@ -2,7 +2,7 @@
 import { ComponentMeta } from "@storybook/react";
 import { Calendar, Clock, Grid, Link, RefreshCw, User, Users } from "react-feather";
 
-import { VerticalTabs } from "@calcom/ui/v2";
+import VerticalTabs from "@calcom/ui/v2/core/navigation/tabs/VerticalTabs";
 
 export default {
   title: "Vertical Tabs",

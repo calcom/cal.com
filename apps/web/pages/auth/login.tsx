@@ -53,7 +53,8 @@ export default function Login({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const errorMessages: { [key: string]: string } = {
-    // [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
+    [ErrorCode.RateLimitExceeded]: t("rate_limit_exceeded"),
+    [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
     [ErrorCode.IncorrectPassword]: `${t("incorrect_password")} ${t("please_try_again")}`,
     [ErrorCode.UserNotFound]: t("no_account_exists"),
     [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t("please_try_again")}`,
@@ -160,7 +161,7 @@ export default function Login({
             </div>
           </div>
 
-          {twoFactorRequired && <TwoFactor />}
+          {twoFactorRequired && <TwoFactor center />}
 
           {errorMessage && <Alert severity="error" title={errorMessage} />}
           <div className="flex space-y-2">

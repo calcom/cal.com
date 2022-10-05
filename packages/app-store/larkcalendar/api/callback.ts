@@ -7,6 +7,7 @@ import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
+import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { LARK_HOST } from "../common";
 import { getAppAccessToken } from "../lib/AppAccessToken";
 import type { LarkAuthCredentials } from "../types/LarkCalendar";
@@ -88,7 +89,10 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       });
     }
 
-    res.redirect(getSafeRedirectUrl(state?.returnTo) ?? "/apps/installed");
+    res.redirect(
+      getSafeRedirectUrl(state?.returnTo) ??
+        getInstalledAppPath({ variant: "calendar", slug: "lark-calendar" })
+    );
   } catch (error) {
     log.error("handle callback error", error);
     res.redirect(state?.returnTo ?? "/apps/installed");

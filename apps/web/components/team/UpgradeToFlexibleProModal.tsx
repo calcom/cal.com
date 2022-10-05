@@ -19,6 +19,7 @@ interface Props {
   teamId: number;
 }
 
+/** @deprecated Use `packages/features/ee/teams/components/UpgradeToFlexibleProModal.tsx` */
 export function UpgradeToFlexibleProModal(props: Props) {
   const { t } = useLocale();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);

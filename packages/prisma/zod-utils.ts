@@ -62,12 +62,6 @@ export const stringToDayjs = z.string().transform((val) => dayjs(val));
 export const bookingCreateBodySchema = z.object({
   email: z.string(),
   end: z.string(),
-  web3Details: z
-    .object({
-      userWallet: z.string(),
-      userSignature: z.string(),
-    })
-    .optional(),
   eventTypeId: z.number(),
   eventTypeSlug: z.string().optional(),
   guests: z.array(z.string()).optional(),
@@ -85,7 +79,15 @@ export const bookingCreateBodySchema = z.object({
   metadata: z.record(z.string()),
   hasHashedBookingLink: z.boolean().optional(),
   hashedLink: z.string().nullish(),
+  ethSignature: z.string().optional(),
 });
+
+export const requiredCustomInputSchema = z.union([
+  // string must be given & nonempty
+  z.string().trim().min(1),
+  // boolean must be true if set.
+  z.boolean().refine((v) => v === true),
+]);
 
 export type BookingCreateBody = z.input<typeof bookingCreateBodySchema>;
 
@@ -111,6 +113,14 @@ export const vitalSettingsUpdateSchema = z.object({
   sleepValue: z.number().optional(),
 });
 
+export const createdEventSchema = z
+  .object({
+    id: z.string(),
+    password: z.union([z.string(), z.undefined()]),
+    onlineMeetingUrl: z.string().nullable(),
+  })
+  .passthrough();
+
 export const userMetadata = z
   .object({
     proPaidForByTeamId: z.number().optional(),
@@ -118,6 +128,7 @@ export const userMetadata = z
     vitalSettings: vitalSettingsUpdateSchema.optional(),
     isPremium: z.boolean().optional(),
     intentUsername: z.string().optional(),
+    checkoutSessionId: z.string().nullable().optional(),
   })
   .nullable();
 

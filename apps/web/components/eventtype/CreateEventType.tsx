@@ -49,9 +49,8 @@ interface CreateEventTypeBtnProps {
 }
 
 export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
   const router = useRouter();
-
   // URL encoded params
   const teamId: number | undefined =
     typeof router.query.teamId === "string" && router.query.teamId
@@ -139,7 +138,9 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
       { shallow: true }
     );
   };
-
+  if (!isLocaleReady) {
+    return null;
+  }
   return (
     <Dialog
       name="new-eventtype"
@@ -338,7 +339,7 @@ function CreateEventTeamsItem(props: {
       onSelect={() => props.openModal(props.option)}>
       <Avatar
         alt={props.option.name || ""}
-        imageSrc={props.option.image}
+        imageSrc={props.option.image || WEBAPP_URL + "/" + props.option.slug + "/avatar.png"}
         size={6}
         className="inline ltr:mr-2 rtl:ml-2"
       />

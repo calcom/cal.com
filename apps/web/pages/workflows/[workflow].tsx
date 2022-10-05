@@ -1,3 +1,8 @@
+/**
+ * @deprecated file
+ * All new changes should be made to the V2 file in
+ * `apps/web/pages/v2/workflows/[workflow].tsx`
+ */
 import { GetStaticPaths, GetStaticProps } from "next";
 import { z } from "zod";
 

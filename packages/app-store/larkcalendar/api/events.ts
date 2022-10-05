@@ -55,7 +55,8 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
 
   // used for events handler binding in lark open platform, see
   // https://open.larksuite.com/document/ukTMukTMukTM/uUTNz4SN1MjL1UzM?lang=en-US
-  if (req.body.type === "url_verification") {
+  if (req.body.type === "url_verification" && req.body.token === open_verification_token) {
+    log.debug("update token", req.body);
     return res.status(200).json({ challenge: req.body.challenge });
   }
 

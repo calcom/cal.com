@@ -17,8 +17,8 @@
       "type": "integrations:campfire_video",
       "label": "Campfire",
       "linkType": "static",
-      "organizerInputPlaceholder": "https://campfire.to/your-team",
-      "urlRegExp": "^http(s)?:\\/\\/(www\\.)?campfire.to\\/[a-zA-Z0-9]*"
+      "organizerInputPlaceholder": "https://party.campfire.to/your-team",
+      "urlRegExp": "^http(s)?:\\/\\/(www\\.)?party.campfire.to\\/[a-zA-Z0-9]*"
     }
   }
 }

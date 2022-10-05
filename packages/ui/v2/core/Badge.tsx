@@ -8,7 +8,7 @@ export const badgeClassNameByVariant = {
   orange: "bg-orange-100 text-orange-800",
   success: "bg-green-100 text-green-800",
   green: "bg-green-100 text-green-800",
-  gray: "bg-gray-200 text-gray-800 dark:bg-transparent dark:text-darkgray-800",
+  gray: "bg-gray-100 text-gray-800 dark:bg-transparent dark:text-darkgray-800",
   blue: "bg-blue-100 text-blue-800",
   red: "bg-red-100 text-red-800",
   error: "bg-red-100 text-red-800",
@@ -33,7 +33,7 @@ export const Badge = function Badge(props: BadgeProps) {
     <div
       {...passThroughProps}
       className={classNames(
-        "inline-flex items-center justify-center rounded py-0.5 px-[6px] text-sm",
+        "inline-flex items-center justify-center rounded py-0.5 px-[6px] text-xs",
         bold ? "font-semibold" : "font-normal",
         !StartIcon ? classNameBySize[size] : "",
         badgeClassNameByVariant[variant],

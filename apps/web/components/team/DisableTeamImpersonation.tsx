@@ -4,6 +4,7 @@ import { trpc } from "@calcom/trpc/react";
 import Badge from "@calcom/ui/Badge";
 import Button from "@calcom/ui/Button";
 
+/** @deprecated Use `packages/features/ee/teams/components/DisableTeamImpersonation.tsx` */
 const DisableTeamImpersonation = ({ teamId, memberId }: { teamId: number; memberId: number }) => {
   const { t } = useLocale();
 

@@ -15,8 +15,7 @@ type SavvyCalEventType = {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req });
-  const authenticatedUser = await prisma.user.findFirst({
-    rejectOnNotFound: true,
+  const authenticatedUser = await prisma.user.findFirstOrThrow({
     where: {
       id: session?.user.id,
     },

@@ -426,7 +426,7 @@ paths:
                         - installed: true
                           type: caldav_calendar
                           credential: null
-                          title: CalDav Server
+                          title: CalDav (Beta)
                           imageSrc: integrations/caldav.svg
                           description: For personal and business calendars
                     __N_SSP: true

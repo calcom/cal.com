@@ -16,6 +16,10 @@ type RecurringEventControllerProps = {
   onRecurringEventDefined: (value: boolean) => void;
 };
 
+/**
+ * @deprecated
+ * use component from `/apps/web/components/v2/eventtype/RecurringEventController` instead
+ **/
 export default function RecurringEventController({
   recurringEvent,
   formMethods,
@@ -43,8 +47,8 @@ export default function RecurringEventController({
           <Alert severity="warning" title={t("warning_payment_recurring_event")} />
         ) : (
           <>
-            <div className="relative flex items-start">
-              <div className="flex h-5 items-center">
+            <div className="flex items-start">
+              <div className="flex h-5 items-start">
                 <input
                   onChange={(event) => {
                     onRecurringEventDefined(event?.target.checked);

@@ -26,7 +26,7 @@
   },
   "devDependencies": {
     "chokidar": "^3.5.3",
-    "@types/react": "^18.0.9",
+    "@types/react": "^18.0.17",
     "eslint-plugin-react": "^7.30.1",
     "eslint-plugin-react-hooks": "^4.6.0",
     "ts-node": "^10.9.1",

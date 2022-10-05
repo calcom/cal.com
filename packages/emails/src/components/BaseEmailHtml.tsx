@@ -168,7 +168,8 @@ export const BaseEmailHtml = (props: {
                                 lineHeight: 1,
                                 textAlign: "left",
                                 color: "#000000",
-                              }}></div>
+                              }}
+                            />
                           </td>
                         </tr>
                       </tbody>

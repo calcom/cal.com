@@ -53,8 +53,14 @@ export interface App {
     | `${string}_video`
     | `${string}_web3`
     | `${string}_other`
+    | `${string}_automation`
     | `${string}_other_calendar`;
-  /** The display name for the app, TODO settle between this or name */
+
+  /**
+   * @deprecated
+   *
+   * Use name instead. Remove this property after ensuring name has the required value everywhere
+   * */
   title?: string;
   /** The display name for the app */
   name: string;
@@ -66,7 +72,7 @@ export interface App {
    */
   imageSrc?: string;
   /** TODO determine if we should use this instead of category */
-  variant: "calendar" | "payment" | "conferencing" | "video" | "other" | "other_calendar";
+  variant: "calendar" | "payment" | "conferencing" | "video" | "other" | "other_calendar" | "web3";
   /** The slug for the app store public page inside `/apps/[slug] */
   slug: string;
 

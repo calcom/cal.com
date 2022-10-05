@@ -9,8 +9,7 @@ import { getZoomAppKeys } from "../lib";
 
 async function handler(req: NextApiRequest) {
   // Get user
-  await prisma.user.findFirst({
-    rejectOnNotFound: true,
+  await prisma.user.findFirstOrThrow({
     where: {
       id: req.session?.user?.id,
     },

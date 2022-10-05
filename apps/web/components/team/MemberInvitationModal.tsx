@@ -26,6 +26,7 @@ type MembershipRoleOption = {
 
 const _options: MembershipRoleOption[] = [{ value: "MEMBER" }, { value: "ADMIN" }, { value: "OWNER" }];
 
+/** @deprecated Use `packages/features/ee/teams/components/MemberInvitationModal.tsx` */
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const [errorMessage, setErrorMessage] = useState("");
   const { t, i18n } = useLocale();

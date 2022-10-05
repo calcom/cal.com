@@ -1,12 +1,13 @@
-import noop from "lodash/noop";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { FC, Fragment, MouseEventHandler } from "react";
+import { ComponentProps, Fragment } from "react";
 
-// import { ChevronRight } from "react-feather";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SVGComponent } from "@calcom/types/SVGComponent";
+import { Icon } from "@calcom/ui/Icon";
+
+import { Skeleton } from "../../skeleton";
 
 export type VerticalTabItemProps = {
   name: string;
@@ -17,73 +18,71 @@ export type VerticalTabItemProps = {
   textClassNames?: string;
   className?: string;
   isChild?: boolean;
-} & (
-  | {
-      /** If you want to change query param tabName as per current tab */
-      href: string;
-      tabName?: never;
-    }
-  | {
-      href?: never;
-      /** If you want to change the path as per current tab */
-      tabName: string;
-    }
-);
+  hidden?: boolean;
+  disableChevron?: boolean;
+  href: string;
+  isExternalLink?: boolean;
+  linkProps?: Omit<ComponentProps<typeof Link>, "href">;
+};
 
-const VerticalTabItem: FC<VerticalTabItemProps> = ({ name, href, tabName, info, isChild, ...props }) => {
-  const router = useRouter();
+const VerticalTabItem = function ({
+  name,
+  href,
+  info,
+  isChild,
+  disableChevron,
+  linkProps,
+  ...props
+}: VerticalTabItemProps) {
   const { t } = useLocale();
-  let newHref = "";
-  let isCurrent;
-  if (href) {
-    newHref = href;
-    isCurrent = router.asPath === href;
-  } else if (tabName) {
-    newHref = "";
-    isCurrent = router.query.tabName === tabName;
-  }
-
-  const onClick: MouseEventHandler = tabName
-    ? (e) => {
-        e.preventDefault();
-        router.push({
-          query: {
-            ...router.query,
-            tabName,
-          },
-        });
-      }
-    : noop;
+  const { asPath } = useRouter();
+  const isCurrent = asPath.startsWith(href);
 
   return (
     <Fragment key={name}>
-      <Link key={name} href={props.disabled ? "#" : newHref}>
-        <a
-          onClick={onClick}
-          className={classNames(
-            props.textClassNames || "text-sm font-medium leading-none text-gray-600",
-            "group flex h-14 w-64 flex-row items-center rounded-md px-3 py-[10px] hover:bg-gray-100 group-hover:text-gray-700  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900",
-            props.disabled && "pointer-events-none !opacity-30",
-            (isChild || !props.icon) && "ml-9 mr-5 w-auto",
-            !info ? "h-9" : "h-14",
-            props.className
-          )}
-          aria-current={isCurrent ? "page" : undefined}>
-          {props.icon && <props.icon className="mr-[10px] h-[16px] w-[16px] self-start stroke-[2px]" />}
-          <div>
-            <p>{t(name)}</p>
-            {info && <p className="pt-1 text-xs font-normal">{t(info)}</p>}
-          </div>
-          {/* {isCurrent && (
-            <div className="ml-auto self-center">
-              <ChevronRight width={20} height={20} className="h-auto w-[20px] stroke-[1.5px]" />
-            </div>
-          )} */}
-        </a>
-      </Link>
-      {props.children?.map((child) => (
-        <VerticalTabItem key={child.name} {...child} isChild />
-      ))}
+      {!props.hidden && (
+        <>
+          <Link key={name} href={href} {...linkProps}>
+            <a
+              target={props.isExternalLink ? "_blank" : "_self"}
+              className={classNames(
+                props.textClassNames || "text-sm font-medium leading-none text-gray-600",
+                "min-h-9 group flex w-64 flex-row items-center rounded-md px-3 py-[10px] hover:bg-gray-100 group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900",
+                props.disabled && "pointer-events-none !opacity-30",
+                (isChild || !props.icon) && "ml-7 mr-5 w-auto",
+                !info ? "h-6" : "h-14",
+                props.className
+              )}
+              data-testid={`vertical-tab-${name}`}
+              aria-current={isCurrent ? "page" : undefined}>
+              {props.icon && <props.icon className="mr-[10px] h-[16px] w-[16px] stroke-[2px] md:mt-0" />}
+              <div>
+                <span className="flex items-center space-x-2">
+                  <Skeleton as="p">{t(name)}</Skeleton>
+                  {props.isExternalLink ? <Icon.FiExternalLink /> : null}
+                </span>
+                {info && (
+                  <Skeleton as="p" className="mt-1 text-xs font-normal">
+                    {t(info)}
+                  </Skeleton>
+                )}
+              </div>
+              {!disableChevron && isCurrent && (
+                <div className="ml-auto self-center">
+                  <Icon.FiChevronRight
+                    width={20}
+                    height={20}
+                    className="h-auto w-[20px] stroke-[1.5px] text-gray-700"
+                  />
+                </div>
+              )}
+            </a>
+          </Link>
+          {props.children?.map((child) => (
+            <VerticalTabItem key={child.name} {...child} isChild />
+          ))}
+        </>
+      )}
     </Fragment>
   );
 };

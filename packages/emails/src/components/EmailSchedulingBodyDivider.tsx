@@ -17,7 +17,8 @@ export const EmailSchedulingBodyDivider = () => (
           fontSize: 1,
           margin: "0px auto",
           width: "100%",
-        }}></p>
+        }}
+      />
       <RawHtml
         html={`<!--[if mso | IE]><table align="center" border="0" cellpadding="0" cellspacing="0" style="border-top:solid 1px #E1E1E1;font-size:1px;margin:0px auto;width:548px;" role="presentation" width="548px" ><tr><td style="height:0;line-height:0;"> &nbsp;</td></tr></table><![endif]-->`}
       />

@@ -30,9 +30,9 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
 
   return (
     <>
-      <div className={classNames("text-neutral-500 dark:text-white", className)}>
+      <div className={classNames("text-gray-600 dark:text-white", className)}>
         {eventType.description && (
-          <h2 className="max-w-[280px] overflow-hidden text-ellipsis opacity-60 sm:max-w-[500px]">
+          <h2 className="max-w-[280px] overflow-hidden text-ellipsis sm:max-w-[500px]">
             {eventType.description.substring(0, 100)}
             {eventType.description.length > 100 && "..."}
           </h2>

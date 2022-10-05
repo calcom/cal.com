@@ -57,8 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       try {
         if (event.data.user_id) {
           const json = { userVitalId: event.data.user_id as string };
-          const credential = await prisma.credential.findFirst({
-            rejectOnNotFound: true,
+          const credential = await prisma.credential.findFirstOrThrow({
             where: {
               type: "vital_other",
               key: {
