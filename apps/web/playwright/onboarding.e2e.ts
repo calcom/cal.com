@@ -1,51 +1,80 @@
+/* eslint-disable playwright/no-skipped-test */
 import { expect } from "@playwright/test";
-
-import prisma from "@calcom/prisma";
+import { UserPlan } from "@prisma/client";
 
 import { test } from "./lib/fixtures";
 
+test.describe.configure({ mode: "serial" });
+
 test.describe("Onboarding", () => {
-  test.beforeEach(async ({ users }) => {
-    const onboardingUser = await users.create({ completedOnboarding: false });
-    await onboardingUser.login();
-  });
-  test.afterEach(({ users }) => users.deleteAll());
+  test.describe("Onboarding v2", () => {
+    test("Onboarding Flow", async ({ page, users }) => {
+      const user = await users.create({ plan: UserPlan.TRIAL, completedOnboarding: false, name: null });
+      await user.login();
 
-  test("redirects to /getting-started after login", async ({ page }) => {
-    await page.goto("/event-types");
-    await page.waitForNavigation({
-      url(url) {
-        return url.pathname === "/getting-started";
-      },
-    });
-  });
+      // tests whether the user makes it to /getting-started
+      // after login with completedOnboarding false
+      await page.waitForURL("/getting-started");
 
-  test.describe("Onboarding", () => {
-    test("update onboarding username via localstorage", async ({ page, users }) => {
-      const [onboardingUser] = users.get();
-      /**
-       * TODO:
-       * We need to come up with a better test since all test are run in an incognito window.
-       * Meaning that all localstorage access is null here.
-       * Let's try saving the desiredUsername in the metadata instead
-       */
-      test.fixme();
-      await page.addInitScript(() => {
-        // eslint-disable-next-line @calcom/eslint/avoid-web-storage
-        window.localStorage.setItem("username", "alwaysavailable");
-      }, {});
-      // Try to go getting started with a available username
-      await page.goto("/getting-started");
-      // Wait for useEffectUpdate to run
-      // eslint-disable-next-line playwright/no-wait-for-timeout
-      await page.waitForTimeout(1000);
+      await test.step("step 1", async () => {
+        // Check required fields
+        await page.locator("button[type=submit]").click();
+        await expect(page.locator("data-testid=required")).toBeVisible();
 
-      const updatedUser = await prisma.user.findUnique({
-        where: { id: onboardingUser.id },
-        select: { id: true, username: true },
+        // happy path
+        await page.locator("input[name=username]").fill("new user onboarding");
+        await page.locator("input[name=name]").fill("new user 2");
+        await page.locator("input[role=combobox]").click();
+        await page.locator("text=Eastern Time").click();
+
+        await page.locator("button[type=submit]").click();
+
+        // should be on step 2 now.
+        await expect(page).toHaveURL(/.*connected-calendar/);
+
+        const userComplete = await user.self();
+        expect(userComplete.name).toBe("new user 2");
       });
 
-      expect(updatedUser?.username).toBe("alwaysavailable");
+      await test.step("step 2", async () => {
+        const isDisabled = await page.locator("button[data-testid=save-calendar-button]").isDisabled();
+        await expect(isDisabled).toBe(true);
+        // tests skip button, we don't want to test entire flow.
+        await page.locator("button[data-testid=skip-step]").click();
+
+        await expect(page).toHaveURL(/.*setup-availability/);
+      });
+
+      await test.step("step 3", async () => {
+        const isDisabled = await page.locator("button[data-testid=save-availability]").isDisabled();
+        await expect(isDisabled).toBe(false);
+        // same here, skip this step.
+        await page.locator("button[data-testid=skip-step]").click();
+
+        await expect(page).toHaveURL(/.*user-profile/);
+      });
+
+      await test.step("step 4", async () => {
+        const finishButton = await page.locator("button[type=submit]");
+        // bio field is required, try to submit (and test whether that fails)
+        await finishButton.click();
+
+        const requiredBio = await page.locator("data-testid=required");
+        await expect(requiredBio).toBeVisible();
+
+        await page.locator("textarea[name=bio]").fill("Something about me");
+
+        const isDisabled = await finishButton.isDisabled();
+        await expect(isDisabled).toBe(false);
+
+        await finishButton.click();
+
+        // should redirect to /event-types after onboarding
+        await page.waitForURL("/event-types");
+
+        const userComplete = await user.self();
+        expect(userComplete.bio).toBe("Something about me");
+      });
     });
   });
 });

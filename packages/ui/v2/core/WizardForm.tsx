@@ -1,7 +1,8 @@
 import { useRouter } from "next/router";
 
 import classNames from "@calcom/lib/classNames";
-import { Button, Stepper } from "@calcom/ui/v2";
+import Button from "@calcom/ui/v2/core/Button";
+import Stepper from "@calcom/ui/v2/core/Stepper";
 
 type DefaultStep = {
   title: string;

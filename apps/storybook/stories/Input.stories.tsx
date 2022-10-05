@@ -1,7 +1,8 @@
+import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { ComponentMeta, ComponentStory } from "@storybook/react";
 import { Copy } from "react-feather";
 
-import { TextAreaField, TextField } from "@calcom/ui/v2/core/form/fields";
+import { TextAreaField, TextField, PasswordField } from "@calcom/ui/v2/core/form/fields";
 import DatePicker from "@calcom/ui/v2/modules/booker/DatePicker";
 
 export default {
@@ -66,3 +67,9 @@ export const TextAreaInput: ComponentStory<typeof TextAreaField> = () => (
 );
 
 export const DatePickerInput: ComponentStory<typeof DatePicker> = () => <DatePicker date={new Date()} />;
+
+export const PasswordInput: ComponentStory<typeof PasswordField> = () => (
+  <TooltipProvider>
+    <PasswordField />
+  </TooltipProvider>
+);

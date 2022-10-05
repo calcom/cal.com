@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -6,7 +6,7 @@ import Badge from "@calcom/ui/v2/core/Badge";
 import Loader from "@calcom/ui/v2/core/Loader";
 import Meta from "@calcom/ui/v2/core/Meta";
 import Switch from "@calcom/ui/v2/core/Switch";
-import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
+import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 
 import DisableTwoFactorModal from "@components/v2/settings/DisableTwoFactorModal";
 import EnableTwoFactorModal from "@components/v2/settings/EnableTwoFactorModal";
@@ -24,7 +24,7 @@ const TwoFactorAuthView = () => {
 
   return (
     <>
-      <Meta title="2fa" description="2fa_description" />
+      <Meta title="Two-Factor Authentication" description="Manage settings for your account passwords" />
       <div className="mt-6 flex items-start space-x-4">
         <Switch
           checked={user?.twoFactorEnabled}
@@ -34,12 +34,12 @@ const TwoFactorAuthView = () => {
         />
         <div>
           <div className="flex">
-            <p>{t("two_factor_auth")}</p>
+            <p className="font-semibold">{t("two_factor_auth")}</p>
             <Badge className="ml-2 text-xs" variant={user?.twoFactorEnabled ? "success" : "gray"}>
               {user?.twoFactorEnabled ? t("enabled") : t("disabled")}
             </Badge>
           </div>
-          <p>Add an extra layer of security to your account.</p>
+          <p className="text-sm text-gray-600">Add an extra layer of security to your account.</p>
         </div>
       </div>
 

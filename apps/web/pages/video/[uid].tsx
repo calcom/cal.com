@@ -69,7 +69,7 @@ export default function JoinCall(props: JoinCallPageProps) {
             // eslint-disable-next-line @next/next/no-img-element
             <img
               className="h-5·w-auto fixed z-10 hidden sm:inline-block"
-              src={`${WEBSITE_URL}/calcom-logo-white-word.svg`}
+              src={`${WEBSITE_URL}/cal-logo-word-dark.svg`}
               alt="Cal.com Logo"
               style={{
                 top: 46,

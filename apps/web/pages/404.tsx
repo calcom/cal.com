@@ -73,7 +73,7 @@ export default function Custom404() {
                 <ul role="list" className="mt-4">
                   <li className="border-2 border-green-500 px-4 py-2">
                     <a
-                      href={`${WEBSITE_URL}/pricing?infra`}
+                      href="https://console.cal.com"
                       className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                       <div className="flex-shrink-0">
                         <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
@@ -190,12 +190,10 @@ export default function Custom404() {
                     {t("check_spelling_mistakes_or_go_back")}
                   </span>
                 ) : isCalcom ? (
-                  <Link href={url}>
-                    <a className="mt-2 inline-block text-lg">
-                      {t("the_username")} <strong className="text-blue-500">cal.com{username}</strong>{" "}
-                      {t("is_still_available")} <span className="text-blue-500">{t("register_now")}</span>.
-                    </a>
-                  </Link>
+                  <a target="_blank" href={url} className="mt-2 inline-block text-lg" rel="noreferrer">
+                    {t("the_username")} <strong className="text-blue-500">cal.com{username}</strong>{" "}
+                    {t("is_still_available")} <span className="text-blue-500">{t("register_now")}</span>.
+                  </a>
                 ) : (
                   <span className="mt-2 inline-block text-lg">
                     {t("the_username")}{" "}
@@ -211,31 +209,31 @@ export default function Custom404() {
                 {!isSubpage && isCalcom && (
                   <ul role="list" className="mt-4">
                     <li className="border-2 border-green-500 px-4 py-2">
-                      <Link href={url}>
-                        <a className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
-                          <div className="flex-shrink-0">
-                            <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
-                              <Icon.FiCheck className="h-6 w-6 text-green-500" aria-hidden="true" />
-                            </span>
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <h3 className="text-base font-medium text-gray-900">
-                              <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
-                                <span className="focus:outline-none">
-                                  <span className="absolute inset-0" aria-hidden="true" />
-                                  {t("register")} <strong className="text-green-500">{username}</strong>
-                                </span>
+                      <a
+                        href={url}
+                        target="_blank"
+                        className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse"
+                        rel="noreferrer">
+                        <div className="flex-shrink-0">
+                          <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
+                            <Icon.FiCheck className="h-6 w-6 text-green-500" aria-hidden="true" />
+                          </span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-base font-medium text-gray-900">
+                            <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
+                              <span className="focus:outline-none">
+                                <span className="absolute inset-0" aria-hidden="true" />
+                                {t("register")} <strong className="text-green-500">{username}</strong>
                               </span>
-                            </h3>
-                            <p className="text-base text-gray-500">
-                              {t("claim_username_and_schedule_events")}
-                            </p>
-                          </div>
-                          <div className="flex-shrink-0 self-center">
-                            <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                          </div>
-                        </a>
-                      </Link>
+                            </span>
+                          </h3>
+                          <p className="text-base text-gray-500">{t("claim_username_and_schedule_events")}</p>
+                        </div>
+                        <div className="flex-shrink-0 self-center">
+                          <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        </div>
+                      </a>
                     </li>
                   </ul>
                 )}

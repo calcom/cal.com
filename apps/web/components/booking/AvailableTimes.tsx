@@ -20,6 +20,7 @@ type AvailableTimesProps = {
   seatsPerTimeSlot?: number | null;
   slots?: Slot[];
   isLoading: boolean;
+  ethSignature?: string;
 };
 
 const AvailableTimes: FC<AvailableTimesProps> = ({
@@ -31,6 +32,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   recurringCount,
   timeFormat,
   seatsPerTimeSlot,
+  ethSignature,
 }) => {
   const { t, i18n } = useLocale();
   const router = useRouter();
@@ -69,6 +71,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 slug: eventTypeSlug,
                 /** Treat as recurring only when a count exist and it's not a rescheduling workflow */
                 count: recurringCount && !rescheduleUid ? recurringCount : undefined,
+                ethSignature,
               },
             };
 
@@ -97,8 +100,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                   <Link href={bookingUrl} prefetch={false}>
                     <a
                       className={classNames(
-                        "text-primary-500 hover:bg-brand hover:text-brandcontrast dark:hover:bg-darkmodebrand",
-                        "dark:hover:text-darkmodebrandcontrast dark:bg-darkgray-200 dark:hover:border-darkgray-900 mb-2 block rounded-md border bg-white py-2.5 text-sm font-medium hover:text-white dark:border-transparent dark:text-neutral-200",
+                        "text-primary-500 hover:border-gray-900 hover:bg-gray-50",
+                        "dark:bg-darkgray-200 dark:hover:bg-darkgray-300 dark:hover:border-darkmodebrand mb-2 block rounded-md border bg-white py-2 text-sm font-medium dark:border-transparent dark:text-neutral-200",
                         brand === "#fff" || brand === "#ffffff" ? "" : ""
                       )}
                       data-testid="time">

@@ -1,0 +1,15 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Raycast",
+  "slug": "raycast",
+  "type": "raycast_other",
+  "imageSrc": "/api/app-store/raycast/icon.svg",
+  "logo": "/api/app-store/raycast/icon.svg",
+  "url": "https://cal.com/apps/raycast",
+  "variant": "other",
+  "categories": ["other"],
+  "publisher": "eluce2",
+  "email": "info@restlessmindstech.com",
+  "description": "Quickly share your Cal.com meeting links with Raycast",
+  "__createdUsingCli": true
+}

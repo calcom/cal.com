@@ -28,6 +28,7 @@ const descriptionByStatus: Record<BookingListingStatus, string> = {
   recurring: "recurring_bookings",
   past: "past_bookings",
   cancelled: "cancelled_bookings",
+  unconfirmed: "unconfirmed_bookings",
 };
 
 const querySchema = z.object({
@@ -82,7 +83,7 @@ export default function Bookings() {
     return true;
   };
   return (
-    <Shell heading={t("bookings")} subtitle={t("bookings_description")} customLoader={<SkeletonLoader />}>
+    <Shell heading={t("bookings")} subtitle={t("bookings_description")}>
       <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
       <BookingsShell>
         <div className="-mx-4 flex flex-col sm:mx-auto">
@@ -91,7 +92,7 @@ export default function Bookings() {
               {query.status === "error" && (
                 <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
               )}
-              {(query.status === "loading" || query.status === "idle") && <SkeletonLoader />}
+              {(query.status === "loading" || query.isPaused) && <SkeletonLoader />}
               {query.status === "success" && !isEmpty && (
                 <>
                   <div className="mt-6 overflow-hidden rounded-sm border border-b border-gray-200">

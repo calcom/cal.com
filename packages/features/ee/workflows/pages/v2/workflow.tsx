@@ -19,12 +19,12 @@ import { HttpError } from "@calcom/lib/http-error";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import Loader from "@calcom/ui/Loader";
 import { Option } from "@calcom/ui/form/MultiSelectCheckboxes";
 import { Alert, Button, Form, showToast } from "@calcom/ui/v2";
 import Shell from "@calcom/ui/v2/core/Shell";
 
 import LicenseRequired from "../../../common/components/v2/LicenseRequired";
+import SkeletonLoader from "../../components/v2/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../../components/v2/WorkflowDetailsPage";
 import { getTranslatedText } from "../../lib/variableTranslations";
 import { translateVariablesToEnglish } from "../../lib/variableTranslations";
@@ -69,8 +69,6 @@ function WorkflowPage() {
   const { t, i18n } = useLocale();
   const session = useSession();
   const router = useRouter();
-  const me = useMeQuery();
-  const isFreeUser = me.data?.plan === "FREE";
 
   const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
@@ -187,53 +185,45 @@ function WorkflowPage() {
         });
       }}>
       <Shell
-        title="Title"
+        backPath="/workflows"
+        title={workflow && workflow.name ? workflow.name : "Untitled"}
         CTA={
-          !isFreeUser && (
-            <div>
-              <Button type="submit">{t("save")}</Button>
-            </div>
-          )
+          <div>
+            <Button type="submit">{t("save")}</Button>
+          </div>
         }
         heading={
           session.data?.hasValidLicense &&
-          isAllDataLoaded &&
-          !isFreeUser && (
+          isAllDataLoaded && (
             <div className={classNames(workflow && !workflow.name ? "text-gray-400" : "")}>
               {workflow && workflow.name ? workflow.name : "untitled"}
             </div>
           )
         }>
         <LicenseRequired>
-          {isFreeUser ? (
-            <Alert className="border " severity="warning" title={t("pro_feature_workflows")} />
-          ) : (
+          {!isError ? (
             <>
-              {!isError ? (
+              {isAllDataLoaded ? (
                 <>
-                  {isAllDataLoaded ? (
-                    <>
-                      <WorkflowDetailsPage
-                        form={form}
-                        workflowId={+workflowId}
-                        selectedEventTypes={selectedEventTypes}
-                        setSelectedEventTypes={setSelectedEventTypes}
-                      />
-                    </>
-                  ) : (
-                    <Loader />
-                  )}
+                  <WorkflowDetailsPage
+                    form={form}
+                    workflowId={+workflowId}
+                    selectedEventTypes={selectedEventTypes}
+                    setSelectedEventTypes={setSelectedEventTypes}
+                  />
                 </>
               ) : (
-                <Alert severity="error" title="Something went wrong" message={error.message} />
+                <SkeletonLoader />
               )}
             </>
+          ) : (
+            <Alert severity="error" title="Something went wrong" message={error.message} />
           )}
         </LicenseRequired>
       </Shell>
     </Form>
   ) : (
-    <Loader />
+    <></>
   );
 }
 

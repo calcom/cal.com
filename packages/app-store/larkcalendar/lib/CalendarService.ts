@@ -282,9 +282,6 @@ export default class LarkCalendarService implements Calendar {
 
       const response = await this.fetcher(`/calendar/v4/freebusy/batch_get`, {
         method: "POST",
-        headers: {
-          "x-tt-env": "boe_wangzichao",
-        },
         body: JSON.stringify({
           time_min: dateFrom,
           time_max: dateTo,

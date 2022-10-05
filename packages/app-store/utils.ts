@@ -10,6 +10,12 @@ import { appStoreMetadata } from "./apps.browser.generated";
 
 const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
   store[key] = appStoreMetadata[key as keyof typeof appStoreMetadata];
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
+  delete store[key]["/*"];
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
+  delete store[key]["__createdUsingCli"];
   return store;
 }, {} as Record<string, AppMeta>);
 
@@ -18,6 +24,13 @@ const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
 });
 
 type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
+
+export enum InstalledAppVariants {
+  "conferencing" = "conferencing",
+  "calendar" = "calendar",
+  "payment" = "payment",
+  "other" = "other",
+}
 
 export const ALL_APPS = Object.values(ALL_APPS_MAP);
 

@@ -5,25 +5,22 @@ import cache from "memory-cache";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
-import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
+import { App } from "@calcom/types/App";
 import type { CalendarEvent, EventBusyDate, NewCalendarEventType } from "@calcom/types/Calendar";
 import type { EventResult } from "@calcom/types/EventManager";
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
 
-export const getCalendarCredentials = (credentials: Array<Credential>, userId: number) => {
+export const getCalendarCredentials = (credentials: Array<Credential>) => {
   const calendarCredentials = getApps(credentials)
     .filter((app) => app.type.endsWith("_calendar"))
     .flatMap((app) => {
       const credentials = app.credentials.flatMap((credential) => {
         const calendar = getCalendar(credential);
-        return app && calendar && app.variant === "calendar"
-          ? [{ integration: app, credential, calendar }]
-          : [];
+        return app.variant === "calendar" ? [{ integration: app, credential, calendar }] : [];
       });
       return credentials.length ? credentials : [];
     });
@@ -37,10 +34,17 @@ export const getConnectedCalendars = async (
 ) => {
   const connectedCalendars = await Promise.all(
     calendarCredentials.map(async (item) => {
-      const { calendar, integration, credential } = item;
-
-      const credentialId = credential.id;
       try {
+        const { calendar, integration, credential } = item;
+
+        // Don't leak credentials to the client
+        const credentialId = credential.id;
+        if (!calendar) {
+          return {
+            integration,
+            credentialId,
+          };
+        }
         const cals = await calendar.listCalendars();
         const calendars = _(cals)
           .map((cal) => ({
@@ -52,23 +56,38 @@ export const getConnectedCalendars = async (
           }))
           .sortBy(["primary"])
           .value();
-        const primary = calendars.find((item) => item.primary) ?? calendars[0];
+        const primary = calendars.find((item) => item.primary) ?? calendars.find((cal) => cal !== undefined);
         if (!primary) {
-          throw new Error("No primary calendar found");
+          return {
+            integration,
+            credentialId,
+            error: {
+              message: "No primary calendar found",
+            },
+          };
         }
+
         return {
-          integration,
+          integration: cleanIntegrationKeys(integration),
           credentialId,
           primary,
           calendars,
         };
-      } catch (_error) {
-        const error = getErrorFromUnknown(_error);
+      } catch (error) {
+        let errorMessage = "Could not get connected calendars";
+
+        // Here you can expect for specific errors
+        if (error instanceof Error) {
+          if (error.message === "invalid_grant") {
+            errorMessage = "Access token expired or revoked";
+          }
+        }
+
         return {
-          integration,
-          credentialId,
+          integration: cleanIntegrationKeys(item.integration),
+          credentialId: item.credential.id,
           error: {
-            message: error.message,
+            message: errorMessage,
           },
         };
       }
@@ -76,6 +95,22 @@ export const getConnectedCalendars = async (
   );
 
   return connectedCalendars;
+};
+
+/**
+ * Important function to prevent leaking credentials to the client
+ * @param appIntegration
+ * @returns App
+ */
+const cleanIntegrationKeys = (
+  appIntegration: ReturnType<typeof getCalendarCredentials>[number]["integration"] & {
+    credentials?: Array<Credential>;
+    credential: Credential;
+  }
+) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { credentials, credential, ...rest } = appIntegration;
+  return rest;
 };
 
 const CACHING_TIME = 30_000; // 30 seconds
@@ -94,7 +129,7 @@ const getCachedResults = async (
     /** Filter out nulls */
     if (!c) return [];
     /** We rely on the index so we can match credentials with calendars */
-    const { id, type } = calendarCredentials[i];
+    const { id, type, appId } = calendarCredentials[i];
     /** We just pass the calendars that matched the credential type,
      * TODO: Migrate credential type or appId
      */
@@ -113,7 +148,10 @@ const getCachedResults = async (
     }
     log.debug(`Cache MISS: Calendar Availability for key ${cacheKey}`);
     /** If we don't then we actually fetch external calendars (which can be very slow) */
-    const availability = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
+    const availability = (await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars)).map((a) => ({
+      ...a,
+      source: `${appId}`,
+    }));
     /** We save the availability to a few seconds so recurrent calls are nearly instant */
 
     cache.put(cacheHashedKey, availability, CACHING_TIME);
@@ -142,7 +180,6 @@ export const getBusyCalendarTimes = async (
   } catch (error) {
     log.warn(error);
   }
-
   return results.reduce((acc, availability) => acc.concat(availability), []);
 };
 

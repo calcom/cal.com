@@ -1,8 +1,13 @@
 import React, { FC } from "react";
 
-import Button from "@calcom/ui/Button";
-import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
+import Dropdown, {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuPortal,
+} from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
+import Button from "@calcom/ui/v2/core/Button";
 
 import { SVGComponent } from "@lib/types/SVGComponent";
 
@@ -38,43 +43,37 @@ const DropdownActions = ({
     <Dropdown>
       {!actionTrigger ? (
         <DropdownMenuTrigger asChild>
-          <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
+          <Button type="button" color="secondary" size="icon" StartIcon={Icon.FiMoreHorizontal} />
         </DropdownMenuTrigger>
       ) : (
         <DropdownMenuTrigger asChild>{actionTrigger}</DropdownMenuTrigger>
       )}
-      <DropdownMenuContent portalled>
-        {actions.map((action) => (
-          <DropdownMenuItem key={action.id} className="focus-visible:outline-none">
-            <Button
-              type="button"
-              size="sm"
-              color="minimal"
-              className="w-full rounded-none font-normal"
-              href={action.href}
-              StartIcon={action.icon}
-              startIconClassName={action.iconClassName}
-              onClick={action.onClick || defaultAction}
-              data-testid={action.id}>
-              {action.label}
-            </Button>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
+      <DropdownMenuPortal>
+        <DropdownMenuContent>
+          {actions.map((action) => (
+            <DropdownMenuItem key={action.id} className="focus-visible:outline-none">
+              <Button
+                type="button"
+                color="minimal"
+                className="w-full rounded-none font-normal"
+                href={action.href}
+                StartIcon={action.icon}
+                onClick={action.onClick || defaultAction}
+                data-testid={action.id}>
+                {action.label}
+              </Button>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenuPortal>
     </Dropdown>
   );
 };
 
 const TableActions: FC<Props> = ({ actions }) => {
-  const mobileActions = actions.flatMap((action) => {
-    if (action.actions) {
-      return action.actions;
-    }
-    return action;
-  });
   return (
     <>
-      <div className="hidden space-x-2 rtl:space-x-reverse lg:block">
+      <div className="flex space-x-2 rtl:space-x-reverse">
         {actions.map((action) => {
           const button = (
             <Button
@@ -83,7 +82,6 @@ const TableActions: FC<Props> = ({ actions }) => {
               href={action.href}
               onClick={action.onClick || defaultAction}
               StartIcon={action.icon}
-              startIconClassName={action.iconClassName}
               {...(action?.actions ? { EndIcon: Icon.FiChevronDown } : null)}
               disabled={action.disabled}
               color={action.color || "secondary"}>
@@ -95,9 +93,6 @@ const TableActions: FC<Props> = ({ actions }) => {
           }
           return <DropdownActions key={action.id} actions={action.actions} actionTrigger={button} />;
         })}
-      </div>
-      <div className="inline-block text-left lg:hidden">
-        <DropdownActions actions={mobileActions} />
       </div>
     </>
   );

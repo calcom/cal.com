@@ -17,6 +17,7 @@ import TimezoneSelect, { ITimezone } from "react-timezone-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
+import { setIs24hClockInLocalStorage } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
@@ -27,8 +28,8 @@ import Button from "@calcom/ui/Button";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
+import { UpgradeToProDialog } from "@calcom/ui/UpgradeToProDialog";
 import { Form, PasswordField } from "@calcom/ui/form/fields";
-import { Label } from "@calcom/ui/form/fields";
 
 import { withQuery } from "@lib/QueryCell";
 import { asStringOrNull, asStringOrUndefined } from "@lib/asStringOrNull";
@@ -45,8 +46,6 @@ import InfoBadge from "@components/ui/InfoBadge";
 import { UsernameAvailability } from "@components/ui/UsernameAvailability";
 import ColorPicker from "@components/ui/colorpicker";
 import Select from "@components/ui/form/Select";
-
-import { UpgradeToProDialog } from "../../components/UpgradeToProDialog";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
 
@@ -231,7 +230,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
     // Write time format to localStorage if available
     // Embed isn't applicable to profile pages. So ignore the rule
     // eslint-disable-next-line @calcom/eslint/avoid-web-storage
-    window.localStorage.setItem("timeOption.is24hClock", selectedTimeFormat.value === 12 ? "false" : "true");
+    setIs24hClockInLocalStorage(selectedTimeFormat.value === 24);
 
     // TODO: Add validation
 
@@ -509,7 +508,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
                   <div className="text-sm ltr:ml-3 rtl:mr-3">
                     <label htmlFor="hide-branding" className="font-medium text-gray-700">
                       {t("disable_cal_branding")}{" "}
-                      {user.plan !== "PRO" && <Badge variant="default">PRO</Badge>}
+                      {user.plan !== "PRO" && <Badge variant="default">TEAM</Badge>}
                     </label>
                     <p className="text-gray-500">{t("disable_cal_branding_description")}</p>
                   </div>
@@ -577,7 +576,7 @@ function SettingsView(props: ComponentProps<typeof Settings> & { localeProp: str
  * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
  * We intend to not cache i18n query
  **/
-const WithQuery = withQuery(["viewer.public.i18n"], { context: { skipBatch: true } });
+const WithQuery = withQuery(["viewer.public.i18n"], { trpc: { context: { skipBatch: true } } });
 
 export default function Settings(props: Props) {
   const { t } = useLocale();

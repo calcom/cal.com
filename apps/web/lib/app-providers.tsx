@@ -9,8 +9,7 @@ import { ComponentProps, ReactNode } from "react";
 
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
-import { ContractsProvider } from "@calcom/features/ee/web3/contexts/contractsContext";
-import { trpc } from "@calcom/trpc/react";
+import { trpc, proxy } from "@calcom/trpc/react";
 import { MetaProvider } from "@calcom/ui/v2/core/Meta";
 
 import usePublicPage from "@lib/hooks/usePublicPage";
@@ -24,7 +23,7 @@ export type AppProps = Omit<NextAppProps, "Component"> & {
   Component: NextAppProps["Component"] & {
     requiresLicense?: boolean;
     isThemeSupported?: boolean | ((arg: { router: NextRouter }) => boolean);
-    getLayout?: (page: React.ReactElement) => ReactNode;
+    getLayout?: (page: React.ReactElement, router: NextRouter) => ReactNode;
   };
   /** Will be defined only is there was an error */
   err?: Error;
@@ -39,7 +38,8 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
    * We intend to not cache i18n query
    **/
-  const { i18n, locale } = trpc.useQuery(["viewer.public.i18n"], { context: { skipBatch: true } }).data ?? {
+  const { i18n, locale } = trpc.useQuery(["viewer.public.i18n"], { trpc: { context: { skipBatch: true } } })
+    .data ?? {
     locale: "en",
   };
 
@@ -55,7 +55,7 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
 };
 
 const AppProviders = (props: AppPropsWithChildren) => {
-  const session = trpc.useQuery(["viewer.public.session"]).data;
+  const session = proxy.public.session.useQuery().data;
   // No need to have intercom on public pages - Good for Page Performance
   const isPublicPage = usePublicPage();
   const isThemeSupported =
@@ -71,22 +71,20 @@ const AppProviders = (props: AppPropsWithChildren) => {
 
   const RemainingProviders = (
     <EventCollectionProvider options={{ apiPath: "/api/collect-events" }}>
-      <ContractsProvider>
-        <SessionProvider session={session || undefined}>
-          <CustomI18nextProvider {...props}>
-            <TooltipProvider>
-              {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
-              <ThemeProvider
-                enableColorScheme={false}
-                storageKey={storageKey}
-                forcedTheme={forcedTheme}
-                attribute="class">
-                <MetaProvider>{props.children}</MetaProvider>
-              </ThemeProvider>
-            </TooltipProvider>
-          </CustomI18nextProvider>
-        </SessionProvider>
-      </ContractsProvider>
+      <SessionProvider session={session || undefined}>
+        <CustomI18nextProvider {...props}>
+          <TooltipProvider>
+            {/* color-scheme makes background:transparent not work which is required by embed. We need to ensure next-theme adds color-scheme to `body` instead of `html`(https://github.com/pacocoursey/next-themes/blob/main/src/index.tsx#L74). Once that's done we can enable color-scheme support */}
+            <ThemeProvider
+              enableColorScheme={false}
+              storageKey={storageKey}
+              forcedTheme={forcedTheme}
+              attribute="class">
+              <MetaProvider>{props.children}</MetaProvider>
+            </ThemeProvider>
+          </TooltipProvider>
+        </CustomI18nextProvider>
+      </SessionProvider>
     </EventCollectionProvider>
   );
 

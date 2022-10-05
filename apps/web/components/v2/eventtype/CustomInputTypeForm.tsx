@@ -40,8 +40,8 @@ const CustomInputTypeForm: FC<Props> = (props) => {
   };
 
   return (
-    <form onSubmit={handleSubmit(props.onSubmit)}>
-      <div className="mb-2">
+    <form onSubmit={handleSubmit(props.onSubmit)} className="flex flex-col space-y-4">
+      <div>
         <label htmlFor="type" className="block text-sm font-medium text-gray-700">
           {t("input_type")}
         </label>

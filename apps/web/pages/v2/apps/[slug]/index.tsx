@@ -35,9 +35,11 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
     <App
       name={data.name}
       isGlobal={data.isGlobal}
+      slug={data.slug}
+      variant={data.variant}
       type={data.type}
       logo={data.logo}
-      categories={[data.category]}
+      categories={data.categories ?? [data.category]}
       author={data.publisher}
       feeType={data.feeType || "usage-based"}
       price={data.price || 0}

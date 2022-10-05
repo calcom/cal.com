@@ -11,6 +11,7 @@ import { InputGroupBox } from "@calcom/ui/form/fields";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
+/** @deprecated Moved to `packages/features/webhooks` */
 export default function WebhookTestDisclosure() {
   const subscriberUrl: string = useWatch({ name: "subscriberUrl" });
   const payloadTemplate = useWatch({ name: "payloadTemplate" }) || null;

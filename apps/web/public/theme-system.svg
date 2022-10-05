@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="208" height="120" fill="none">
+  <g clip-path="url(#a)">
+    <g clip-path="url(#b)">
+      <path d="M0 0h104v120H0V0Z" fill="url(#c)"/>
+      <path d="M18 27.6c0-3.36 0-5.04.65-6.32a6 6 0 0 1 2.63-2.63C22.56 18 24.24 18 27.6 18H104v102H18V27.6Z" fill="#F3F4F6"/>
+      <path d="M39 75a3 3 0 0 1 3-3h62v17H39V75ZM39 90h65v17H39V90ZM39 108h65v17H39v-17Z" fill="#fff"/>
+      <circle cx="107.74" cy="46.58" r="6" fill="#D1D5DB"/>
+      <rect x="96.17" y="56.25" width="23.15" height="2" rx="1" fill="#D1D5DB"/>
+      <rect x="84.17" y="60.25" width="47.15" height="2" rx="1" fill="#E5E7EB"/>
+      <rect x="43.24" y="77.58" width="24" height="2" rx="1" fill="#D1D5DB"/>
+      <rect x="43.24" y="95.58" width="24" height="2" rx="1" fill="#D1D5DB"/>
+      <rect x="43.24" y="113.58" width="24" height="2" rx="1" fill="#D1D5DB"/>
+      <rect x="43.24" y="81.88" width="58" height="2" rx="1" fill="#E5E7EB"/>
+      <rect x="43.24" y="99.88" width="58" height="2" rx="1" fill="#E5E7EB"/>
+      <rect x="43.24" y="117.88" width="58" height="2" rx="1" fill="#E5E7EB"/>
+    </g>
+    <path d="M104 0h104v120H104V0Z" fill="url(#d)"/>
+    <path d="M122 27.6c0-3.36 0-5.04.65-6.32a6 6 0 0 1 2.63-2.63c1.28-.65 2.96-.65 6.32-.65H208v102h-86V27.6Z" fill="#101010"/>
+    <path d="M143 75a3 3 0 0 1 3-3h62v17h-65V75ZM143 90h65v17h-65V90ZM143 108h65v17h-65v-17Z" fill="#1C1C1C"/>
+    <circle cx="211.74" cy="46.58" r="6" fill="#2B2B2B"/>
+    <rect x="200.17" y="56.25" width="23.15" height="2" rx="1" fill="#444"/>
+    <rect x="188.17" y="60.25" width="47.15" height="2" rx="1" fill="#2B2B2B"/>
+    <rect x="147.24" y="77.58" width="24" height="2" rx="1" fill="#444"/>
+    <rect x="147.24" y="95.58" width="24" height="2" rx="1" fill="#444"/>
+    <rect x="147.24" y="113.58" width="24" height="2" rx="1" fill="#444"/>
+    <rect x="147.24" y="81.88" width="58" height="2" rx="1" fill="#2B2B2B"/>
+    <rect x="147.24" y="99.88" width="58" height="2" rx="1" fill="#2B2B2B"/>
+    <rect x="147.24" y="117.88" width="58" height="2" rx="1" fill="#2B2B2B"/>
+  </g>
+  <defs>
+    <radialGradient id="c" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(-169.80904 178.07418 -351.05785 -334.76382 192.77 -55)">
+      <stop stop-color="#A2ABBE"/>
+      <stop offset="1" stop-color="#D4D4D5"/>
+    </radialGradient>
+    <radialGradient id="d" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="rotate(125.93 103.83 52.98) scale(326.659 590.989)">
+      <stop stop-color="#282E39"/>
+      <stop offset="1" stop-color="#D4D4D5"/>
+    </radialGradient>
+    <clipPath id="a">
+      <path fill="#fff" d="M0 0h208v120H0z"/>
+    </clipPath>
+    <clipPath id="b">
+      <path d="M0 0h104v120H0V0Z" fill="#fff"/>
+    </clipPath>
+  </defs>
+  <defs>
+    <radialGradient id="e" r=".1"/>
+    <filter id="f" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency=".7" numOctaves="2" seed="2" stitchTiles="stitch" x="0%" y="0%" width="100%" height="100%" result="turbulence"/>
+      <feColorMatrix type="saturate" values="0" x="0%" y="0%" width="100%" height="100%" in="turbulence" result="colormatrix"/>
+      <feComponentTransfer x="0%" y="0%" width="100%" height="100%" in="colormatrix" result="componentTransfer">
+        <feFuncR type="linear" slope="3"/>
+        <feFuncG type="linear" slope="3"/>
+        <feFuncB type="linear" slope="3"/>
+      </feComponentTransfer>
+      <feColorMatrix x="0%" y="0%" width="100%" height="100%" in="componentTransfer" result="colormatrix2" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 15 -7"/>
+    </filter>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#e)"/>
+  <rect width="100%" height="100%" fill="transparent" filter="url(#f)" opacity=".1" style="mix-blend-mode:normal"/>
+</svg>

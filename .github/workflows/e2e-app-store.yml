@@ -12,6 +12,9 @@ on:
       - apps/swagger/**
       - apps/website/**
       - apps/web/public/**
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   test:
     timeout-minutes: 20
@@ -95,5 +98,5 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
-          name: test-results-core
-          path: packages/app-store/**/playwright/results
+          name: test-results
+          path: test-results

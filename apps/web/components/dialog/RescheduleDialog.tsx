@@ -1,14 +1,14 @@
+import { useMutation } from "@tanstack/react-query";
 import { RescheduleResponse } from "pages/api/book/request-reschedule";
 import React, { useState, Dispatch, SetStateAction } from "react";
-import { useMutation } from "react-query";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
-import Button from "@calcom/ui/Button";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { TextArea } from "@calcom/ui/form/fields";
+import Button from "@calcom/ui/v2/core/Button";
 
 import * as fetchWrapper from "@lib/core/http/fetch-wrapper";
 

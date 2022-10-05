@@ -35,26 +35,26 @@ test.describe("Wipe my Cal App Test", () => {
     await bookings.create(pro.id, pro.username, eventType.id, {});
     await pro.login();
     await page.goto("/bookings/upcoming");
+
     await expect(page.locator("data-testid=wipe-today-button")).toBeVisible();
 
-    const totalUserBookings = await prisma.booking.findMany({
-      where: {
-        userId: pro.id,
-      },
-    });
-    expect(totalUserBookings.length).toBe(3);
+    const $openBookingCount = await page.locator('[data-testid="bookings"] > *').count();
+    await expect($openBookingCount).toBe(3);
+
     await page.locator("data-testid=wipe-today-button").click();
     await page.locator("data-testid=send_request").click();
-    // eslint-disable-next-line playwright/no-wait-for-timeout
-    await page.waitForTimeout(250);
-    const totalUserBookingsCancelled = await prisma.booking.findMany({
-      where: {
-        userId: pro.id,
-        status: "CANCELLED",
-      },
+
+    const $openBookings = await page.locator('[data-testid="bookings"]');
+    await $openBookings.evaluate((ul) => {
+      return new Promise<void>((resolve) =>
+        new window.MutationObserver(() => {
+          if (ul.childElementCount === 2) {
+            resolve();
+          }
+        }).observe(ul, { childList: true })
+      );
     });
 
-    expect(totalUserBookingsCancelled.length).toBe(1);
     await users.deleteAll();
   });
 });

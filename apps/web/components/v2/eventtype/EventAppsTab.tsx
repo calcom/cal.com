@@ -5,6 +5,7 @@ import { Controller } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { SelectGifInput } from "@calcom/app-store/giphy/components";
+import RainbowInstallForm from "@calcom/app-store/rainbow/components/RainbowInstallForm";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui";
 import { Alert, Button, EmptyScreen, Select, Switch, TextField } from "@calcom/ui/v2";
@@ -32,11 +33,10 @@ const AppCard = ({
           <span className="font-semibold leading-none text-black">{name}</span>
           <p className="pt-2 text-sm font-normal text-gray-600">{description}</p>
         </div>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center">
           <Switch onCheckedChange={switchOnClick} checked={switchChecked} />
         </div>
       </div>
-      <hr className="my-6" />
       {children}
     </div>
   );
@@ -47,13 +47,19 @@ export const EventAppsTab = ({
   currency,
   eventType,
   hasGiphyIntegration,
+  hasRainbowIntegration,
 }: Pick<
   EventTypeSetupInfered,
-  "eventType" | "hasPaymentIntegration" | "hasGiphyIntegration" | "currency"
+  "eventType" | "hasPaymentIntegration" | "hasGiphyIntegration" | "hasRainbowIntegration" | "currency"
 >) => {
   const formMethods = useFormContext<FormValues>();
   const [showGifSelection, setShowGifSelection] = useState(
     hasGiphyIntegration && !!eventType.metadata["giphyThankYouPage"]
+  );
+  const [showRainbowSection, setShowRainbowSection] = useState(
+    hasRainbowIntegration &&
+      !!eventType.metadata["blockchainId"] &&
+      !!eventType.metadata["smartContractAddress"]
   );
   const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
   const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
@@ -75,16 +81,18 @@ export const EventAppsTab = ({
 
   if (installedApps === 0) {
     return (
-      <EmptyScreen
-        Icon={Icon.FiGrid}
-        headline={t("empty_installed_apps_headline")}
-        description={t("empty_installed_apps_description")}
-        buttonRaw={
-          <Button target="_blank" href="/apps">
-            {t("empty_installed_apps_button")}{" "}
-          </Button>
-        }
-      />
+      <div className="pt-4 before:border-0">
+        <EmptyScreen
+          Icon={Icon.FiGrid}
+          headline={t("empty_installed_apps_headline")}
+          description={t("empty_installed_apps_description")}
+          buttonRaw={
+            <Button target="_blank" color="secondary" href="/apps">
+              {t("empty_installed_apps_button")}{" "}
+            </Button>
+          }
+        />
+      </div>
     );
   }
   return (
@@ -168,6 +176,29 @@ export const EventAppsTab = ({
               onChange={(url: string) => {
                 formMethods.setValue("giphyThankYouPage", url);
               }}
+            />
+          )}
+        </AppCard>
+      )}
+      {hasRainbowIntegration && (
+        <AppCard
+          name="Rainbow"
+          description={t("confirmation_page_rainbow")}
+          logo="/api/app-store/rainbow/icon.svg"
+          switchOnClick={(e) => {
+            if (!e) {
+              formMethods.setValue("blockchainId", 1);
+              formMethods.setValue("smartContractAddress", "");
+            }
+
+            setShowRainbowSection(e);
+          }}
+          switchChecked={showRainbowSection}>
+          {showRainbowSection && (
+            <RainbowInstallForm
+              formMethods={formMethods}
+              blockchainId={(eventType.metadata.blockchainId as number) || 1}
+              smartContractAddress={(eventType.metadata.smartContractAddress as string) || ""}
             />
           )}
         </AppCard>

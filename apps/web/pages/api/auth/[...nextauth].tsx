@@ -215,29 +215,24 @@ export default NextAuth({
   callbacks: {
     async jwt({ token, user, account }) {
       const autoMergeIdentities = async () => {
-        if (!hostedCal) {
-          const existingUser = await prisma.user.findFirst({
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            where: { email: token.email! },
-          });
+        const existingUser = await prisma.user.findFirst({
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          where: { email: token.email! },
+        });
 
-          if (!existingUser) {
-            return token;
-          }
-
-          return {
-            id: existingUser.id,
-            username: existingUser.username,
-            name: existingUser.name,
-            email: existingUser.email,
-            role: existingUser.role,
-            impersonatedByUID: token?.impersonatedByUID as number,
-          };
+        if (!existingUser) {
+          return token;
         }
 
-        return token;
+        return {
+          id: existingUser.id,
+          username: existingUser.username,
+          name: existingUser.name,
+          email: existingUser.email,
+          role: existingUser.role,
+          impersonatedByUID: token?.impersonatedByUID as number,
+        };
       };
-
       if (!user) {
         return await autoMergeIdentities();
       }

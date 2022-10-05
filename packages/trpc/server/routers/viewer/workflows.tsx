@@ -287,13 +287,10 @@ export const workflowsRouter = createProtectedRouter()
             },
           },
         });
-
         if (
           newEventType &&
           newEventType.userId !== user.id &&
-          newEventType?.team?.members.filter((membership) => {
-            membership.userId === user.id;
-          }).length
+          newEventType?.team?.members.filter((membership) => membership.userId === user.id).length === 0
         ) {
           throw new TRPCError({ code: "UNAUTHORIZED" });
         }
@@ -619,9 +616,11 @@ export const workflowsRouter = createProtectedRouter()
       //added steps
       const addedSteps = steps.map((s) => {
         if (s.id <= 0) {
-          const { id, ...stepToAdd } = s;
-          if (stepToAdd) {
+          const { id: stepId, ...stepToAdd } = s;
+          if (stepToAdd.workflowId === id) {
             return stepToAdd;
+          } else {
+            throw new TRPCError({ code: "UNAUTHORIZED" });
           }
         }
       });

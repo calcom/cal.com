@@ -7,7 +7,7 @@ export { CollectionIcon } from "@heroicons/react/outline";
 export { ShieldCheckIcon } from "@heroicons/react/outline";
 export { BadgeCheckIcon } from "@heroicons/react/outline";
 export { ClipboardCopyIcon } from "@heroicons/react/outline";
-
+export { StarIcon as StarIconSolid } from "@heroicons/react/solid";
 // TODO:
 // right now: Icon.Sun comes from react-feather
 // CollectionIcon comes from "@heroicons/react/outline";

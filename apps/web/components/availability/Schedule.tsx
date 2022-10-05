@@ -1,3 +1,7 @@
+/**
+ * @deprecated
+ * use Component in  "/packages/features/schedules/components/Schedule";
+ **/
 import classNames from "classnames";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
@@ -192,6 +196,10 @@ const CopyTimes = ({ disabled, onApply }: { disabled: number[]; onApply: (select
   );
 };
 
+/**
+ * @deprecated
+ * use Component in  "/packages/features/schedules/components/Schedule";
+ **/
 export const DayRanges = ({
   name,
   defaultValue = [defaultDayRange],
@@ -324,6 +332,10 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
   );
 };
 
+/**
+ * @deprecated
+ * use Component in  "/packages/features/schedules/components/Schedule";
+ **/
 const Schedule = ({ name }: { name: string }) => {
   const { i18n } = useLocale();
   return (

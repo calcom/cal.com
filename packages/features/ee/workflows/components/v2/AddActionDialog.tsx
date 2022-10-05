@@ -7,16 +7,7 @@ import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
-import {
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  Form,
-  Select,
-} from "@calcom/ui/v2";
+import { Button, Dialog, DialogClose, DialogContent, DialogFooter, Form, Label, Select } from "@calcom/ui/v2";
 
 import { WORKFLOW_ACTIONS } from "../../lib/constants";
 import { getWorkflowActionOptions } from "../../lib/getOptions";
@@ -56,10 +47,9 @@ export const AddActionDialog = (props: IAddActionDialog) => {
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent type="creation" useOwnActionButtons={true}>
+      <DialogContent type="creation" useOwnActionButtons={true} title={t("add_action")}>
         <div className="space-x-3 ">
           <div className="pt-1">
-            <DialogHeader title={t("add_action")} />
             <Form
               form={form}
               handleSubmit={(values) => {
@@ -69,10 +59,8 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                 setIsOpenDialog(false);
                 setIsPhoneNumberNeeded(false);
               }}>
-              <div className="space-y-1">
-                <label htmlFor="label" className="mt-5 block text-sm font-medium text-gray-700">
-                  {t("action")}:
-                </label>
+              <div className="mt-5 space-y-1">
+                <Label htmlFor="label">{t("action")}:</Label>
                 <Controller
                   name="action"
                   control={form.control}
@@ -80,7 +68,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                     return (
                       <Select
                         isSearchable={false}
-                        className="block w-full min-w-0 flex-1 rounded-sm text-sm"
+                        className="text-sm"
                         defaultValue={actionOptions[0]}
                         onChange={(val) => {
                           if (val) {
@@ -105,9 +93,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
               </div>
               {isPhoneNumberNeeded && (
                 <div className="mt-5 space-y-1">
-                  <label htmlFor="sendTo" className="block text-sm font-medium text-gray-700 dark:text-white">
-                    {t("phone_number")}
-                  </label>
+                  <Label htmlFor="sendTo">{t("phone_number")}</Label>
                   <div className="mt-1">
                     <PhoneInput<AddActionFormValues>
                       control={form.control}

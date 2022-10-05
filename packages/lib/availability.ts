@@ -120,7 +120,10 @@ export function getWorkingHours(
   return workingHours;
 }
 
-export function availabilityAsString(availability: Availability, locale: string) {
+export function availabilityAsString(
+  availability: Availability,
+  { locale, hour12 }: { locale?: string; hour12?: boolean }
+) {
   const weekSpan = (availability: Availability) => {
     const days = availability.days.slice(1).reduce(
       (days, day) => {
@@ -145,11 +148,11 @@ export function availabilityAsString(availability: Availability, locale: string)
 
   const timeSpan = (availability: Availability) => {
     return (
-      new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "numeric" }).format(
+      new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "numeric", hour12 }).format(
         new Date(availability.startTime.toISOString().slice(0, -1))
       ) +
       " - " +
-      new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "numeric" }).format(
+      new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "numeric", hour12 }).format(
         new Date(availability.endTime.toISOString().slice(0, -1))
       )
     );

@@ -225,6 +225,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
         )}
         <Form
           form={locationFormMethods}
+          className="space-y-4"
           handleSubmit={async (values) => {
             const { locationType: newLocation, displayLocationPublicly } = values;
 
@@ -284,7 +285,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                           : locationOptions
                       }
                       isSearchable={false}
-                      className="my-4 block w-full min-w-0 flex-1 rounded-md border border-gray-300 text-sm"
                       onChange={(val) => {
                         if (val) {
                           locationFormMethods.setValue("locationType", val.value);
