@@ -57,7 +57,7 @@ export const DropdownMenuCheckboxItem = React.forwardRef<HTMLDivElement, Dropdow
     return (
       <PrimitiveDropdownMenuCheckboxItem
         ref={forwardedRef}
-        className="flex w-72 items-center justify-between truncate p-1 font-normal"
+        className="flex w-full items-center justify-between space-x-4 p-1 font-normal"
         checked={checked}
         onCheckedChange={(checked) => {
           setChecked(checked);
@@ -140,7 +140,7 @@ const ActiveOnEventTypeSelect = ({ scheduleId, isDefault }: { scheduleId: number
         <Button
           size="base"
           color="secondary"
-          className="w-72 px-3 !font-light"
+          className="w-full px-3 !font-light sm:w-72"
           EndIcon={({ className, ...props }) =>
             isOpen ? (
               <Icon.FiChevronUp
@@ -164,7 +164,7 @@ const ActiveOnEventTypeSelect = ({ scheduleId, isDefault }: { scheduleId: number
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         {(eventTypeGroups || []).map((eventTypeGroup) => (
-          <DropdownMenuGroup key={eventTypeGroup.groupName} className=" space-y-3 p-4 px-3">
+          <DropdownMenuGroup key={eventTypeGroup.groupName} className="space-y-3 p-4 px-3 sm:w-72">
             <DropdownMenuLabel asChild>
               <span className="h6 pb-3 pl-1 text-xs font-medium uppercase text-neutral-400">
                 {eventTypeGroup.groupName}
@@ -176,7 +176,7 @@ const ActiveOnEventTypeSelect = ({ scheduleId, isDefault }: { scheduleId: number
                 disabled={isDefault}
                 defaultChecked={eventType.isActive}
                 onCheckedChange={(checked) => setEventTypeIds({ ...eventTypeIds, [eventType.id]: checked })}>
-                {eventType.title}
+                <span className="truncate">{eventType.title}</span>
               </DropdownMenuCheckboxItem>
             ))}
           </DropdownMenuGroup>
@@ -184,7 +184,7 @@ const ActiveOnEventTypeSelect = ({ scheduleId, isDefault }: { scheduleId: number
         <DropdownMenuSeparator asChild>
           <hr />
         </DropdownMenuSeparator>
-        <DropdownMenuItem className="flex w-72 justify-end space-x-2 px-4 pt-3 pb-2">
+        <div className="flex justify-end space-x-2 px-4 pt-3 pb-2">
           <Button color="minimalSecondary" onClick={() => setOpen(false)}>
             {t("cancel")}
           </Button>
@@ -200,7 +200,7 @@ const ActiveOnEventTypeSelect = ({ scheduleId, isDefault }: { scheduleId: number
             }}>
             {t("apply")}
           </Button>
-        </DropdownMenuItem>
+        </div>
       </DropdownMenuContent>
     </Dropdown>
   );
@@ -332,27 +332,25 @@ export default function Availability({ schedule }: { schedule: number }) {
             </div>
             <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
               <div className="xl:max-w-80 w-full space-y-4 pr-4 sm:p-0">
-                <div className="space-y-4">
-                  <div className="xl:max-w-80 w-full pr-4 sm:p-0">
-                    <div>
-                      <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
-                        {t("timezone")}
-                      </label>
-                      <Controller
-                        name="timeZone"
-                        render={({ field: { onChange, value } }) =>
-                          value ? (
-                            <TimezoneSelect
-                              value={value}
-                              className="focus:border-brand mt-1 block w-72 rounded-md border-gray-300 text-sm"
-                              onChange={(timezone) => onChange(timezone.value)}
-                            />
-                          ) : (
-                            <SelectSkeletonLoader className="w-72" />
-                          )
-                        }
-                      />
-                    </div>
+                <div className="xl:max-w-80 w-full space-y-4 pr-4 sm:p-0">
+                  <div>
+                    <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
+                      {t("timezone")}
+                    </label>
+                    <Controller
+                      name="timeZone"
+                      render={({ field: { onChange, value } }) =>
+                        value ? (
+                          <TimezoneSelect
+                            value={value}
+                            className="focus:border-brand mt-1 block w-full rounded-md border-gray-300 text-sm sm:w-72"
+                            onChange={(timezone) => onChange(timezone.value)}
+                          />
+                        ) : (
+                          <SelectSkeletonLoader className="w-full sm:w-72" />
+                        )
+                      }
+                    />
                   </div>
                   <Label className="mt-1 cursor-pointer space-y-2 sm:w-full md:w-1/2 lg:w-full">
                     <span>Active on</span>
