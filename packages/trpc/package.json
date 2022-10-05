@@ -6,12 +6,12 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
-    "@tanstack/react-query": "^4.3.9",
+    "@tanstack/react-query": "^4.10.1",
     "@trpc/client": "^10.0.0-proxy-beta.5",
     "@trpc/next": "^10.0.0-proxy-beta.5",
     "@trpc/react": "^10.0.0-proxy-beta.5",
     "@trpc/server": "^10.0.0-proxy-beta.5",
     "superjson": "1.9.1",
-    "zod": "^3.18.0"
+    "zod": "^3.19.1"
   }
 }
