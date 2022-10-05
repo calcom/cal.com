@@ -50,7 +50,7 @@ function Select<
   Option,
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
->({ className, noInputStyle, ...props }: SelectProps<Option, IsMulti, Group> & { noInputStyle?: boolean }) {
+>({ className, ...props }: SelectProps<Option, IsMulti, Group>) {
   return (
     <ReactSelect
       className={classNames(
@@ -71,12 +71,6 @@ function Select<
       styles={{
         control: (base) => ({
           ...base,
-          ...(noInputStyle
-            ? {
-                border: 0,
-                backgroundColor: "transparent !important",
-              }
-            : {}),
           // Brute force to remove focus outline of input
           "& .react-select__input": {
             borderWidth: 0,
