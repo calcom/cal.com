@@ -766,7 +766,7 @@ const loggedInViewerRouter = createProtectedRouter()
       const apps = getApps(credentials);
       const appFromDb = apps.find((app) => app.credential?.appId === appId);
       if (!appFromDb) {
-        return appFromDb;
+        return null;
       }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { credential: _, credentials: _1, ...app } = appFromDb;
