@@ -55,7 +55,6 @@ const config: Config = {
       roots: ["<rootDir>/apps/api"],
       testMatch: ["**/test/lib/**/*.(spec|test).(ts|tsx|js)"],
       setupFilesAfterEnv: ["<rootDir>/tests/config/singleton.ts"],
-      setupFiles: ["<rootDir>/apps/api/test/jest-setup.js"],
       transform: {
         "^.+\\.ts?$": "ts-jest",
       },
