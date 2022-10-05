@@ -350,7 +350,12 @@ const BookingLimits = () => {
             {value &&
               watchBookingLimits &&
               Object.entries(value)
-                .sort(([key], [keytwo]) => {
+                // Ensures the bookingLimits are always sorted from day to year.
+                .sort(([limitkeyA], [limitKeyB]) => {
+                     return (
+                      validationOrderKeys.indexOf(limitkeyA as keyof BookingLimit) -
+                      validationOrderKeys.indexOf(limitKeyB as keyof BookingLimit)
+                 );
                   return (
                     validationOrderKeys.indexOf(key as keyof BookingLimit) -
                     validationOrderKeys.indexOf(keytwo as keyof BookingLimit)
