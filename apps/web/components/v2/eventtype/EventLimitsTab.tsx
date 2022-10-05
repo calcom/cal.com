@@ -351,10 +351,10 @@ const BookingLimits = () => {
             {currentBookingLimits &&
               watchBookingLimits &&
               Object.entries(currentBookingLimits)
-                .sort(([key], [keytwo]) => {
+                .sort(([limitkeyA], [limitKeyB]) => {
                   return (
-                    validationOrderKeys.indexOf(key as BookingLimitsKey) -
-                    validationOrderKeys.indexOf(keytwo as BookingLimitsKey)
+                    validationOrderKeys.indexOf(limitkeyA as BookingLimitsKey) -
+                    validationOrderKeys.indexOf(limitKeyB as BookingLimitsKey)
                   );
                 })
                 .map(([key, bookingAmount]) => {
