@@ -783,7 +783,7 @@ export function ShellMain(props: LayoutProps) {
               <div
                 className={classNames(
                   props.backPath ? "relative" : "fixed right-4 bottom-[75px] z-40 ",
-                  "cta mb-4 flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto sm:z-0"
+                  "cta mb-4 flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto"
                 )}>
                 {props.CTA}
               </div>
