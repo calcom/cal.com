@@ -53,7 +53,6 @@ export const availabilityRouter = createProtectedRouter()
           })
         )
       );
-      // intentionally empty
     },
   })
   .query("schedule", {
