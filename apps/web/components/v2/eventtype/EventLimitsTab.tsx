@@ -380,9 +380,11 @@ const BookingLimits = () => {
                         defaultValue={BOOKING_LIMIT_OPTIONS.find((option) => option.value === key)}
                         onChange={(val) => {
                           const current = value;
+                          // Removes limit from previous selected value (eg when changed from per_week to per_month, we unset per_week here)
                           delete current[bookingLimitKey];
                           const newData = {
                             ...current,
+                            // Set limit to new selected value (in the example above this means we set the limit to per_week here).
                             [val?.value as keyof BookingLimit]: watchBookingLimits[bookingLimitKey],
                           };
                           onChange(newData);
