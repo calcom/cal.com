@@ -1265,5 +1265,9 @@
   "confirm_password_change_email": "Potvrdite svoju lozinku pre promene imejl adrese",
   "seats": "sedišta",
   "every_app_published": "Svaka aplikacija objavljena na Cal.com prodavnici je otvorenog tipa i detaljno je testirana kroz recenzije saradnika. Bez obzira na to, Cal.com, Inc. ne podržava ni sertifikuje ove aplikacije osim ako ih nije objavio Cal.com. Ako naiđete na neprikladan sardžaj ili ponašanje, molimo vas da to prijavite.",
-  "report_app": "Prijavite aplikaciju"
+  "report_app": "Prijavite aplikaciju",
+  "billing_manage_details_title": "Pogledajte i upravljate vaše detalje naplate",
+  "billing_manage_details_description": "Pogledajte i uredite vaše detalje naplate, a i otkažite vašu pretplatu.",
+  "billing_help_title": "Treba li vam još nešto?",
+  "billing_help_description": "Ako vam treba pomoć sa naplatom, naš tim podrške je tu da pomogne."
 }
