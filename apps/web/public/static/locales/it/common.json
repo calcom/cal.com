@@ -1265,5 +1265,9 @@
   "confirm_password_change_email": "Conferma la password prima di cambiare l'indirizzo e-mail",
   "seats": "posti",
   "every_app_published": "Tutte le applicazioni pubblicate nell'App store di Cal.com sono open source e sono state testate in modo approfondito attraverso una valutazione tra pari. Tuttavia, Cal.com, Inc. non promuove né certifica tali applicazioni, a meno che non siano pubblicate da Cal.com. Se notate contenuti o comportamenti inappropriati, vi preghiamo di segnalarceli.",
-  "report_app": "Segnala app"
+  "report_app": "Segnala app",
+  "billing_manage_details_title": "Visualizza e gestisci i tuoi dettagli di fatturazione",
+  "billing_manage_details_description": "Visualizza e modifica i tuoi dati di fatturazione, puoi anche modificare la tua subcription.",
+  "billing_help_title": "Hai bisogno di altro?",
+  "billing_help_description": "Se hai bisogno di ulteriore aiuto per la fatturazione, il nostro team di supporto è qui per aiutarti."
 }
