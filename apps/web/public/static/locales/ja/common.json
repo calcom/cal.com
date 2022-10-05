@@ -1265,5 +1265,9 @@
   "confirm_password_change_email": "メールアドレスを変更する前にパスワードを確認してください",
   "seats": "座席",
   "every_app_published": "Cal.com アプリストアで公開されているアプリはいずれもオープンソースであり、ピアレビューを通じて徹底的にテストされています。しかしながら Cal.com, Inc は、Cal.com によって公開されたものでない限り、これらのアプリを推奨または認証していません。不適切なコンテンツや動作に遭遇した場合は、ご報告ください。",
-  "report_app": "アプリを報告"
+  "report_app": "アプリを報告",
+  "billing_manage_details_title": "請求情報の詳細を表示・管理する",
+  "billing_manage_details_description": "請求情報の詳細を表示・編集、およびサブスクリプションをキャンセルする。",
+  "billing_help_title": "他に必要なものはありませんか？",
+  "billing_help_description": "請求に関するサポートが必要な場合は、サポートチームがお手伝いします。"
 }

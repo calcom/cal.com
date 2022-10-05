@@ -244,7 +244,7 @@
   "where": "Wo",
   "add_to_calendar": "Zum Kalender hinzufügen",
   "add_another_calendar": "Einen weiteren Kalender hinzufügen",
-  "other": "Anderes",
+  "other": "Sonstige",
   "emailed_you_and_attendees": "Wir haben Ihnen und den anderen Teilnehmern eine Einladung zum Kalender mit allen Details zugeschickt.",
   "emailed_you_and_attendees_recurring": "Wir haben Ihnn und den anderen Teilnemern eine Kalendereinladung für den ersten Termin dieses wiederkehrendem Ereignisses gesendet.",
   "emailed_you_and_any_other_attendees": "Wir haben Ihnen und allen anderen Teilnehmer diesen Informationen per E-Mail geschickt.",
@@ -1265,5 +1265,9 @@
   "confirm_password_change_email": "Bitte bestätigen Sie Ihr Passwort, bevor Sie Ihre E-Mail-Adresse ändern",
   "seats": "Plätze",
   "every_app_published": "Jede App, die im Cal.com App Store veröffentlicht wird, ist Open Source und gründlich durch Peer Reviews getestet. Cal.com, Inc. unterstützt oder zertifiziert diese Apps jedoch nicht, es sei denn, sie werden von Cal.com veröffentlicht. Wenn Sie auf unangemessene Inhalte oder Verhaltensweisen stoßen, melden Sie diese bitte.",
-  "report_app": "App melden"
+  "report_app": "App melden",
+  "billing_manage_details_title": "Ihre Rechnungsdetails ansehen und verwalten",
+  "billing_manage_details_description": "Rechnungsdaten ansehen, bearbeiten oder Abonnement kündigen.",
+  "billing_help_title": "Brauchen Sie etwas anderes?",
+  "billing_help_description": "Wenn Sie weitere Hilfe bei der Rechnungsstellung benötigen, hilft Ihnen unser Support-Team gerne weiter."
 }
