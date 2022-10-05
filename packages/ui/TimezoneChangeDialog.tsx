@@ -47,10 +47,10 @@ export default function TimezoneChangeDialog() {
   }, [closeCookie, currentTz, isLoading, userTz]);
 
   // save cookie to not show again
-  function onCancel() {
+  function onCancel(maxAge: number, toast: boolean) {
     setOpen(false);
-    document.cookie = "calcom-timezone-dialog=1;max-age=7776000"; // 3 months expire
-    showToast(t("we_wont_show_again"), "success");
+    document.cookie = `calcom-timezone-dialog=1;max-age=${maxAge}`;
+    toast && showToast(t("we_wont_show_again"), "success");
   }
 
   return (
@@ -62,8 +62,8 @@ export default function TimezoneChangeDialog() {
         actionText={t("update_timezone")}
         actionOnClick={() => updateTimezone()}
         closeText={t("dont_update")}
-        onInteractOutside={() => onCancel()}
-        actionOnClose={() => onCancel()}>
+        onInteractOutside={() => onCancel(86400, false) /* 1 day expire */}
+        actionOnClose={() => onCancel(7776000, true) /* 3 months expire */}>
         {/* todo: save this in db and auto-update when timezone changes (be able to disable??? if yes, /settings) 
         <Checkbox description="Always update timezone" />
         */}
