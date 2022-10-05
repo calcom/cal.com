@@ -43,14 +43,16 @@ export const availabilityRouter = createProtectedRouter()
       eventTypeIds: z.record(z.boolean()),
     }),
     async resolve({ input }) {
-      await Object.entries(input.eventTypeIds).map(async ([eventTypeId, isActive]) => {
-        await prisma?.eventType.update({
-          where: { id: Number(eventTypeId) },
-          data: {
-            scheduleId: isActive ? input.scheduleId : null,
-          },
-        });
-      });
+      return await Promise.all(
+        Object.entries(input.eventTypeIds).map(([eventTypeId, isActive]) =>
+          prisma?.eventType.update({
+            where: { id: Number(eventTypeId) },
+            data: {
+              scheduleId: isActive ? input.scheduleId : null,
+            },
+          })
+        )
+      );
       // intentionally empty
     },
   })

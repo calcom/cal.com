@@ -52,7 +52,7 @@ type AvailabilityFormValues = {
 type EventTypeGroup = { groupName: string; eventTypes: { title: string; isActive: boolean; id: number }[] };
 
 export const DropdownMenuCheckboxItem = React.forwardRef<HTMLDivElement, DropdownMenuCheckboxItemProps>(
-  ({ children, defaultChecked, ...passThroughProps }, forwardedRef) => {
+  ({ children, defaultChecked, disabled, ...passThroughProps }, forwardedRef) => {
     const [checked, setChecked] = useState(defaultChecked);
     return (
       <PrimitiveDropdownMenuCheckboxItem
@@ -63,6 +63,7 @@ export const DropdownMenuCheckboxItem = React.forwardRef<HTMLDivElement, Dropdow
           setChecked(checked);
           passThroughProps.onCheckedChange && passThroughProps.onCheckedChange(checked);
         }}
+        disabled={defaultChecked && disabled}
         ItemIndicator={() => (
           <DropdownMenuItemIndicator asChild>
             <span className="hidden" />
@@ -72,6 +73,7 @@ export const DropdownMenuCheckboxItem = React.forwardRef<HTMLDivElement, Dropdow
         {children}
         <input
           readOnly
+          disabled={defaultChecked && disabled}
           type="checkbox"
           checked={checked}
           className="inline-block rounded-[4px] border-gray-300 text-neutral-900 focus:ring-neutral-500 disabled:text-neutral-400"
@@ -83,7 +85,7 @@ export const DropdownMenuCheckboxItem = React.forwardRef<HTMLDivElement, Dropdow
 
 DropdownMenuCheckboxItem.displayName = "DropdownMenuCheckboxItem";
 
-const ActiveOnEventTypeSelect = ({ scheduleId }: { scheduleId: number }) => {
+const ActiveOnEventTypeSelect = ({ scheduleId, isDefault }: { scheduleId: number; isDefault: boolean }) => {
   const { t } = useLocale();
   // I was doubtful to make this RHF but this has no point: because the DropdownMenuCheckboxItem is
   // controlled anyway; requiring the use of Controller regardless.
@@ -123,12 +125,14 @@ const ActiveOnEventTypeSelect = ({ scheduleId }: { scheduleId: number }) => {
       const eventTypeIdsLocal: { [K: number]: boolean } = {};
       for (const item of eventTypeGroups) {
         for (const eventType of item.eventTypes) {
-          eventTypeIdsLocal[eventType.id] = eventType.isActive;
+          if (isDefault && !eventType.isActive) {
+            eventTypeIdsLocal[eventType.id] = eventType.isActive;
+          }
         }
       }
       setEventTypeIds(eventTypeIdsLocal);
     }
-  }, [data, eventTypeGroups]);
+  }, [data, eventTypeGroups, isDefault]);
 
   return (
     <Dropdown onOpenChange={setOpen} open={isOpen}>
@@ -169,6 +173,7 @@ const ActiveOnEventTypeSelect = ({ scheduleId }: { scheduleId: number }) => {
             {eventTypeGroup.eventTypes.map((eventType) => (
               <DropdownMenuCheckboxItem
                 key={eventType.title}
+                disabled={isDefault}
                 defaultChecked={eventType.isActive}
                 onCheckedChange={(checked) => setEventTypeIds({ ...eventTypeIds, [eventType.id]: checked })}>
                 {eventType.title}
@@ -351,7 +356,7 @@ export default function Availability({ schedule }: { schedule: number }) {
                   </div>
                   <Label className="mt-1 cursor-pointer space-y-2 sm:w-full md:w-1/2 lg:w-full">
                     <span>Active on</span>
-                    <ActiveOnEventTypeSelect scheduleId={schedule} />
+                    <ActiveOnEventTypeSelect isDefault={form.watch("isDefault")} scheduleId={schedule} />
                   </Label>
                 </div>
                 <hr className="my-8" />
