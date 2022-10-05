@@ -254,6 +254,7 @@ function TimezoneDropdown({
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content
+          hideWhenDetached
           align="start"
           className="animate-fade-in-up absolute left-0 top-2 w-80 max-w-[calc(100vw_-_1.5rem)]">
           <TimeOptions
