@@ -164,6 +164,26 @@ type InputFieldProps = {
     labelClassName?: string;
   };
 
+type AddonProps = {
+  children: React.ReactNode;
+  isFilled?: boolean;
+  className?: string;
+  error?: boolean;
+};
+
+const Addon = ({ isFilled, children, className, error }: AddonProps) => (
+  <div
+    className={classNames(
+      "addon-wrapper h-9 border border-gray-300 px-3",
+      isFilled && "bg-gray-100",
+      className
+    )}>
+    <div className={classNames("flex h-full flex-col justify-center px-1 text-sm", error && "text-red-900")}>
+      <span className="whitespace-nowrap py-2.5">{children}</span>
+    </div>
+  </div>
+);
+
 const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(props, ref) {
   const id = useId();
   const { t: _t, isLocaleReady, i18n } = useLocale();
@@ -200,26 +220,12 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
         </Skeleton>
       )}
       {addOnLeading || addOnSuffix ? (
-        <div
-          className={classNames(
-            "relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1",
-            addOnSuffix && "group flex-row-reverse"
-          )}>
-          <div
-            className={classNames(
-              "addon-wrapper h-9 border border-gray-300",
-              addOnFilled && "bg-gray-100",
-              addOnLeading && "rounded-l-md border-r-0 px-3",
-              addOnSuffix && "rounded-r-md border-l-0 px-3"
-            )}>
-            <div
-              className={classNames(
-                "flex h-full flex-col justify-center px-1 text-sm",
-                props.error && "text-red-900"
-              )}>
-              <span className="whitespace-nowrap py-2.5">{addOnLeading || addOnSuffix}</span>
-            </div>
-          </div>
+        <div className="relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1">
+          {addOnLeading && (
+            <Addon isFilled={addOnFilled} className="rounded-l-md border-r-0">
+              {addOnLeading}
+            </Addon>
+          )}
           <Input
             id={id}
             placeholder={placeholder}
@@ -232,6 +238,11 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
             {...passThrough}
             ref={ref}
           />
+          {addOnSuffix && (
+            <Addon isFilled={addOnFilled} className="rounded-r-md border-l-0">
+              {addOnSuffix}
+            </Addon>
+          )}
         </div>
       ) : (
         <Input id={id} placeholder={placeholder} className={className} {...passThrough} ref={ref} />
