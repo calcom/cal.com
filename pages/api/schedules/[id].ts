@@ -9,16 +9,17 @@ import {
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
 export async function scheduleById(
-  { method, query, body, userId, prisma }: NextApiRequest,
+  { method, query, body, userId, isAdmin, prisma }: NextApiRequest,
   res: NextApiResponse<ScheduleResponse>
 ) {
+  if (body.userId && !isAdmin) res.status(401).json({ message: "Unauthorized" });
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaScheduleBodyParams.safeParse(body);
   if (!safeQuery.success) {
     res.status(400).json({ message: "Your query was invalid" });
     return;
   }
-  const userSchedules = await prisma.schedule.findMany({ where: { userId } });
+  const userSchedules = await prisma.schedule.findMany({ where: { userId: body.userId || userId } });
   const userScheduleIds = userSchedules.map((schedule) => schedule.id);
   if (!userScheduleIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
   else {
@@ -48,7 +49,10 @@ export async function scheduleById(
        */
       case "GET":
         await prisma.schedule
-          .findUnique({ where: { id: safeQuery.data.id } })
+          .findUnique({
+            where: { id: safeQuery.data.id },
+            include: { availability: { select: { id: true } } },
+          })
           .then((data) => schemaSchedulePublic.parse(data))
           .then((schedule) => res.status(200).json({ schedule }))
           .catch((error: Error) =>
