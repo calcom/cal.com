@@ -80,7 +80,7 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
 };
 
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
-  ({ children, Icon, actionProps, ...props }, forwardedRef) => {
+  ({ children, title, Icon, actionProps, ...props }, forwardedRef) => {
     const { t } = useLocale();
 
     return (
@@ -101,11 +101,10 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
             "max-h-[560px] overflow-visible overscroll-auto md:h-auto md:max-h-[inherit]",
             `${props.className || ""}`
           )}
-          ref={forwardedRef}
-          title={undefined}>
+          ref={forwardedRef}>
           {props.type === "creation" && (
             <div>
-              {props.title && <DialogHeader title={props.title} />}
+              {title && <DialogHeader title={title} />}
               {props.description && <p className="pb-5 text-sm text-gray-500">{props.description}</p>}
               <div className="flex flex-col space-y-6">{children}</div>
             </div>
@@ -118,7 +117,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
                 </div>
               )}
               <div>
-                {props.title && <DialogHeader title={props.title} />}
+                {title && <DialogHeader title={title} />}
                 {props.description && <p className="mb-6 text-sm text-gray-500">{props.description}</p>}
               </div>
             </div>
@@ -163,7 +162,7 @@ export function DialogHeader(props: DialogHeaderProps) {
   return (
     <>
       <h3 className="leading-20 text-semibold font-cal pb-1 text-xl text-gray-900" id="modal-title">
-        {props.title}
+        {title}
       </h3>
       {props.subtitle && <div className="text-sm text-gray-400">{props.subtitle}</div>}
     </>
