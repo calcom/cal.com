@@ -12,7 +12,10 @@ export async function scheduleById(
   { method, query, body, userId, isAdmin, prisma }: NextApiRequest,
   res: NextApiResponse<ScheduleResponse>
 ) {
-  if (body.userId && !isAdmin) res.status(401).json({ message: "Unauthorized" });
+  if (body.userId && !isAdmin) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   const safeBody = schemaScheduleBodyParams.safeParse(body);
   if (!safeQuery.success) {
@@ -21,8 +24,10 @@ export async function scheduleById(
   }
   const userSchedules = await prisma.schedule.findMany({ where: { userId: body.userId || userId } });
   const userScheduleIds = userSchedules.map((schedule) => schedule.id);
-  if (!userScheduleIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
-  else {
+  if (!userScheduleIds.includes(safeQuery.data.id)) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  } else {
     switch (method) {
       /**
        * @swagger

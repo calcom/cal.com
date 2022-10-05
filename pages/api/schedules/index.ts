@@ -12,6 +12,7 @@ async function createOrlistAllSchedules(
 ) {
   if (body.userId && !isAdmin) {
     res.status(401).json({ message: "Unauthorized" });
+    return;
   } else {
     if (method === "GET") {
       /**
@@ -59,7 +60,10 @@ async function createOrlistAllSchedules(
        *        description: Authorization information is missing or invalid.
        */
       const safe = schemaScheduleBodyParams.safeParse(body);
-      if (body.userId && !isAdmin) res.status(401).json({ message: "Unauthorized" });
+      if (body.userId && !isAdmin) {
+        res.status(401).json({ message: "Unauthorized" });
+        return;
+      }
 
       if (!safe.success) {
         res.status(400).json({ message: "Invalid request body" });
