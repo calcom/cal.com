@@ -64,7 +64,7 @@ export default function TimezoneChangeDialog() {
         actionText={t("update_timezone")}
         actionOnClick={() => updateTimezone()}
         closeText={t("dont_update")}
-        onInteractOutside={() => onCancel()}
+        onInteractOutside={() => event.preventDefault()}
         actionOnClose={() => onCancel()}>
         {/* todo: save this in db and auto-update when timezone changes (be able to disable??? if yes, /settings) 
         <Checkbox description="Always update timezone" />
