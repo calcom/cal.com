@@ -41,7 +41,8 @@ export default function TimezoneChangeDialog() {
   // check for difference in user timezone and current browser timezone
   const [open, setOpen] = useState(false);
   useEffect(() => {
-    const tzDifferent = !isLoading && currentTz !== userTz;
+    const tzDifferent =
+      !isLoading && dayjs.tz(undefined, currentTz).utcOffset() !== dayjs.tz(undefined, userTz).utcOffset();
     const showDialog = tzDifferent && closeCookie;
     setOpen(showDialog);
   }, [closeCookie, currentTz, isLoading, userTz]);
