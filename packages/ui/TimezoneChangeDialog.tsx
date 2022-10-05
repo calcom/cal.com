@@ -12,7 +12,6 @@ export default function TimezoneChangeDialog() {
   const utils = trpc.useContext();
   const userTz = user?.timeZone;
   const currentTz = dayjs.tz.guess();
-  const closeCookie = !document.cookie.includes("calcom-timezone-dialog=1");
   const formattedCurrentTz = currentTz?.replace("_", " ");
 
   // update user settings
@@ -43,9 +42,9 @@ export default function TimezoneChangeDialog() {
   useEffect(() => {
     const tzDifferent =
       !isLoading && dayjs.tz(undefined, currentTz).utcOffset() !== dayjs.tz(undefined, userTz).utcOffset();
-    const showDialog = tzDifferent && closeCookie;
+    const showDialog = tzDifferent && !document.cookie.includes("calcom-timezone-dialog=1");
     setOpen(showDialog);
-  }, [closeCookie, currentTz, isLoading, userTz]);
+  }, [currentTz, isLoading, userTz]);
 
   // save cookie to not show again
   function onCancel(maxAge: number, toast: boolean) {
