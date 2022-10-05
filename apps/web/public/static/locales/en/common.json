@@ -1288,5 +1288,12 @@
   "fetching_calendars_error": "There was a problem fetching your calendars. Please <1>try again</1> or reach out to customer support.",
   "calendar_connection_fail": "Calendar connection failed",
   "booking_confirmation_success": "Booking confirmation succeeded",
-  "booking_confirmation_fail": "Booking confirmation failed"
+  "booking_confirmation_fail": "Booking confirmation failed",
+  "we_wont_show_again": "We won't show this again",
+  "couldnt_update_timezone": "We couldn't update the timezone",
+  "updated_timezone_to": "Updated timezone to {{formattedCurrentTz}}",
+  "update_timezone": "Update timezone",
+  "update_timezone_question": "Update Timezone?",
+  "update_timezone_description": "It seems like your local timezone has changed to {{formattedCurrentTz}}.  It's very important to have the correct timezone to prevent bookings at undesired times. Do you want to update it?",
+  "dont_update": "Don't update"
 }

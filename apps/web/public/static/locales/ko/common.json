@@ -1265,5 +1265,9 @@
   "confirm_password_change_email": "이메일 주소 변경 전 비밀번호를 확인하세요",
   "seats": "좌석",
   "every_app_published": "Cal.com App Store에 게시된 모든 앱은 오픈 소스이며 피어 리뷰를 통해 철저한 테스트를 거쳤습니다. 그럼에도 불구하고 Cal.com, Inc.는 Cal.com에서 게시하지 않는 한 이 앱을 보증 또는 인증하지 않습니다. 부적절한 콘텐츠나 활동을 발견하면 신고해 주시기 바랍니다.",
-  "report_app": "신고 앱"
+  "report_app": "신고 앱",
+  "billing_manage_details_title": "결제 세부정보 보기 및 관리",
+  "billing_manage_details_description": "결제 세부 정보 확인 및 수정, 혹은 구독을 취소합니다.",
+  "billing_help_title": "다른 것이 필요하십니까?",
+  "billing_help_description": "청구와 관련하여 추가 도움이 필요한 경우 지원 팀이 도와드리겠습니다."
 }

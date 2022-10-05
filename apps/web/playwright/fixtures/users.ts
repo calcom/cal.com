@@ -3,6 +3,7 @@ import type Prisma from "@prisma/client";
 import { Prisma as PrismaType, UserPlan } from "@prisma/client";
 import { hash } from "bcryptjs";
 
+import dayjs from "@calcom/dayjs";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { prisma } from "@calcom/prisma";
 
@@ -257,7 +258,7 @@ const createUser = async (
     password: await hashPassword(uname),
     emailVerified: new Date(),
     completedOnboarding: opts?.completedOnboarding ?? true,
-    timeZone: opts?.timeZone ?? TimeZoneEnum.UK,
+    timeZone: opts?.timeZone ?? dayjs.tz.guess(),
     locale: opts?.locale ?? "en",
     schedules:
       opts?.completedOnboarding ?? true

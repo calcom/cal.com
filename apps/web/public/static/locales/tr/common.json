@@ -1265,5 +1265,9 @@
   "confirm_password_change_email": "Lütfen e-posta adresinizi değiştirmeden önce şifrenizi onaylayın",
   "seats": "yer",
   "every_app_published": "Cal.com Uygulama Mağazası'nda yayınlanan her uygulama açık kaynak kodludur ve uzman incelemeleriyle kapsamlı bir şekilde test edilmiştir. Cal.com, Cal.com tarafından yayınlanmadıkça bu uygulamaları desteklemez veya onaylamaz. Herhangi bir uygunsuz içerik veya davranışla karşılaşırsanız lütfen bize bildirin.",
-  "report_app": "Uygulamayı bildir"
+  "report_app": "Uygulamayı bildir",
+  "billing_manage_details_title": "Fatura bilgilerinizi görüntüleyin ve yönetin",
+  "billing_manage_details_description": "Fatura bilgilerinizi görüntüleyin ve düzenleyin, ayrıca aboneliğinizi iptal edin.",
+  "billing_help_title": "Başka bir şeye ihtiyacınız var mı?",
+  "billing_help_description": "Faturalandırma konusunda daha fazla yardıma ihtiyacınız olursa destek ekibimiz size yardımcı olmaya hazır."
 }
