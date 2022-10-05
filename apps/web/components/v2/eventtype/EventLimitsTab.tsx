@@ -307,7 +307,7 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
 };
 
 const validationOrderKeys = ["PER_DAY", "PER_WEEK", "PER_MONTH", "PER_YEAR"];
-
+type BookingLimitsKey = keyof BookingLimit;
 const BookingLimits = () => {
   const { watch, setValue, control } = useFormContext<FormValues>();
   const watchBookingLimits = watch("bookingLimits");
@@ -353,12 +353,12 @@ const BookingLimits = () => {
               Object.entries(currentBookingLimits)
                 .sort(([key], [keytwo]) => {
                   return (
-                    validationOrderKeys.indexOf(key as keyof BookingLimit) -
-                    validationOrderKeys.indexOf(keytwo as keyof BookingLimit)
+                    validationOrderKeys.indexOf(key as BookingLimitsKey) -
+                    validationOrderKeys.indexOf(keytwo as BookingLimitsKey)
                   );
                 })
                 .map(([key, bookingAmount]) => {
-                  const bookingLimitKey = key as keyof BookingLimit;
+                  const bookingLimitKey = key as BookingLimitsKey;
                   return (
                     <div className="mb-2 flex items-center space-x-2 text-sm" key={bookingLimitKey}>
                       <Input
@@ -386,7 +386,7 @@ const BookingLimits = () => {
                           const newData = {
                             ...current,
                             // Set limit to new selected value (in the example above this means we set the limit to per_week here).
-                            [val?.value as keyof BookingLimit]: watchBookingLimits[bookingLimitKey],
+                            [val?.value as BookingLimitsKey]: watchBookingLimits[bookingLimitKey],
                           };
                           onChange(newData);
                         }}
@@ -397,7 +397,7 @@ const BookingLimits = () => {
                         color="destructive"
                         onClick={() => {
                           const current = currentBookingLimits;
-                          delete current[key as keyof BookingLimit];
+                          delete current[key as BookingLimitsKey];
                           onChange(current);
                         }}
                       />
