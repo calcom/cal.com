@@ -1266,5 +1266,9 @@
   "confirm_password_change_email": "Confirme sua senha antes de alterar o endereço de e-mail",
   "seats": "assentos",
   "every_app_published": "Todos os aplicativos publicados na App Store da Cal.com são de código aberto e testados minuciosamente por meio de avaliações por pares. No entanto, a Cal.com, Inc. não endossa ou certifica esses aplicativos a não ser que sejam publicados pela Cal.com. Se você encontrar conteúdo ou comportamento inadequado, denuncie.",
-  "report_app": "Denunciar aplicativo"
+  "report_app": "Denunciar aplicativo",
+  "billing_manage_details_title": "Visualizar e gerenciar os seus detalhes de faturamento",
+  "billing_manage_details_description": "Ver e editar os seus dados de faturamento, bem como cancelar a sua assinatura.",
+  "billing_help_title": "Precisa de algo mais?",
+  "billing_help_description": "Se precisar de mais ajuda com o faturamento, o nosso time de suporte está aqui para ajudar."
 }

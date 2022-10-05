@@ -1265,5 +1265,9 @@
   "confirm_password_change_email": "Te rugăm să confirmi parola înainte de a-ți schimba adresa de e-mail",
   "seats": "locuri",
   "every_app_published": "Fiecare aplicație publicată pe Cal.com App Store este open source și testată temeinic prin evaluări inter pares. Cu toate acestea, Cal.com, Inc. nu susține sau certifică aceste aplicații decât dacă sunt publicate de Cal.com. Dacă întâmpini un conținut sau un comportament necorespunzător, te rugăm să îl raportezi.",
-  "report_app": "Raportează aplicația"
+  "report_app": "Raportează aplicația",
+  "billing_manage_details_title": "Vizualizați și gestionați detaliile de facturare",
+  "billing_manage_details_description": "Vizualizați și editați detaliile de facturare, precum și anulați abonarea.",
+  "billing_help_title": "Aveți nevoie de altceva?",
+  "billing_help_description": "Dacă ai nevoie de ajutor suplimentar pentru facturare, echipa noastră de asistență este aici pentru a te ajuta."
 }
