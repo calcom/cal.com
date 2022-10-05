@@ -162,7 +162,7 @@ export function DialogHeader(props: DialogHeaderProps) {
   return (
     <>
       <h3 className="leading-20 text-semibold font-cal pb-1 text-xl text-gray-900" id="modal-title">
-        {title}
+        {props.title}
       </h3>
       {props.subtitle && <div className="text-sm text-gray-400">{props.subtitle}</div>}
     </>
