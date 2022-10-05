@@ -136,6 +136,7 @@ const Layout = (props: LayoutProps) => {
         <Toaster position="bottom-right" />
       </div>
 
+      {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
 
       <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
