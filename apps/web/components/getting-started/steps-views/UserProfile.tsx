@@ -149,7 +149,7 @@ const UserProfile = (props: IUserProfile) => {
           }}
         />
         {errors.bio && (
-          <p data-testid="required" className="text-xs italic text-red-500">
+          <p data-testid="required" className="py-2 text-xs text-red-500">
             {t("required")}
           </p>
         )}

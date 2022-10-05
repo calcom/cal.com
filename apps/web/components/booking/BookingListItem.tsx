@@ -44,6 +44,11 @@ function BookingListItem(booking: BookingItemProps) {
   const mutation = trpc.useMutation(["viewer.bookings.confirm"], {
     onSuccess: () => {
       setRejectionDialogIsOpen(false);
+      showToast(t("booking_confirmation_success"), "success");
+      utils.invalidateQueries("viewer.bookings");
+    },
+    onError: () => {
+      showToast(t("booking_confirmation_failed"), "error");
       utils.invalidateQueries("viewer.bookings");
     },
   });
