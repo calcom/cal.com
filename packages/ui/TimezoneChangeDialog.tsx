@@ -15,8 +15,6 @@ export default function TimezoneChangeDialog() {
   const closeCookie = !document.cookie.includes("calcom-timezone-dialog=1");
   const formattedCurrentTz = currentTz?.replace("_", " ");
 
-  console.log("dialog");
-
   // update user settings
   const onSuccessMutation = async () => {
     showToast(t("updated_timezone_to", { formattedCurrentTz }), "success");
@@ -64,7 +62,7 @@ export default function TimezoneChangeDialog() {
         actionText={t("update_timezone")}
         actionOnClick={() => updateTimezone()}
         closeText={t("dont_update")}
-        onInteractOutside={() => event.preventDefault()}
+        onInteractOutside={() => onCancel()}
         actionOnClose={() => onCancel()}>
         {/* todo: save this in db and auto-update when timezone changes (be able to disable??? if yes, /settings) 
         <Checkbox description="Always update timezone" />
