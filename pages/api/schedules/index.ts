@@ -1,11 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { getAvailabilityFromSchedule, DEFAULT_SCHEDULE } from "@calcom/lib/availability";
+
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { ScheduleResponse, SchedulesResponse } from "@lib/types";
 import { schemaScheduleBodyParams, schemaSchedulePublic } from "@lib/validations/schedule";
 
 async function createOrlistAllSchedules(
-  { method, body, userId, prisma }: NextApiRequest,
+  { method, body, userId, isAdmin, prisma }: NextApiRequest,
   res: NextApiResponse<SchedulesResponse | ScheduleResponse>
 ) {
   if (method === "GET") {
@@ -25,7 +27,10 @@ async function createOrlistAllSchedules(
      *       404:
      *         description: No schedules were found
      */
-    const data = await prisma.schedule.findMany({ where: { userId } });
+    if (body.userId && !isAdmin) res.status(401).json({ message: "Unauthorized" });
+    const data = await prisma.schedule.findMany({
+      where: { userId: body.userId && isAdmin ? body.userId : userId },
+    });
     const schedules = data.map((schedule) => schemaSchedulePublic.parse(schedule));
     if (schedules) res.status(200).json({ schedules });
     else
@@ -52,11 +57,27 @@ async function createOrlistAllSchedules(
      *        description: Authorization information is missing or invalid.
      */
     const safe = schemaScheduleBodyParams.safeParse(body);
+    if (body.userId && !isAdmin) res.status(401).json({ message: "Unauthorized" });
+
     if (!safe.success) {
       res.status(400).json({ message: "Invalid request body" });
       return;
     }
-    const data = await prisma.schedule.create({ data: { ...safe.data, userId } });
+    const data = await prisma.schedule.create({
+      data: {
+        ...safe.data,
+        userId: body.userId && isAdmin ? body.userId : userId,
+        availability: {
+          createMany: {
+            data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE).map((schedule) => ({
+              days: schedule.days,
+              startTime: schedule.startTime,
+              endTime: schedule.endTime,
+            })),
+          },
+        },
+      },
+    });
     const schedule = schemaSchedulePublic.parse(data);
 
     if (schedule) res.status(201).json({ schedule, message: "Schedule created successfully" });

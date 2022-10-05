@@ -5,7 +5,7 @@ import { _ScheduleModel as Schedule } from "@calcom/prisma/zod";
 const schemaScheduleBaseBodyParams = Schedule.omit({ id: true }).partial();
 
 const schemaScheduleRequiredParams = z.object({
-  userId: z.number(),
+  userId: z.number().optional(),
   name: z.string(),
 });
 
