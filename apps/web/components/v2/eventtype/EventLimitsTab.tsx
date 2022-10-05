@@ -345,11 +345,12 @@ const BookingLimits = () => {
       name="bookingLimits"
       control={control}
       render={({ field: { value, onChange } }) => {
+        const currentBookingLimits = value;
         return (
           <ul ref={animateRef}>
-            {value &&
+            {currentBookingLimits &&
               watchBookingLimits &&
-              Object.entries(value)
+              Object.entries(currentBookingLimits)
                 .sort(([key], [keytwo]) => {
                   return (
                     validationOrderKeys.indexOf(key as keyof BookingLimit) -
@@ -374,12 +375,12 @@ const BookingLimits = () => {
                       />
                       <Select
                         options={BOOKING_LIMIT_OPTIONS.filter(
-                          (option) => !Object.keys(value).includes(option.value)
+                          (option) => !Object.keys(currentBookingLimits).includes(option.value)
                         )}
                         isSearchable={false}
                         defaultValue={BOOKING_LIMIT_OPTIONS.find((option) => option.value === key)}
                         onChange={(val) => {
-                          const current = value;
+                          const current = currentBookingLimits;
                           // Removes limit from previous selected value (eg when changed from per_week to per_month, we unset per_week here)
                           delete current[bookingLimitKey];
                           const newData = {
@@ -395,7 +396,7 @@ const BookingLimits = () => {
                         StartIcon={Icon.FiTrash}
                         color="destructive"
                         onClick={() => {
-                          const current = value;
+                          const current = currentBookingLimits;
                           delete current[key as keyof BookingLimit];
                           onChange(current);
                         }}
@@ -403,19 +404,19 @@ const BookingLimits = () => {
                     </div>
                   );
                 })}
-            {value && Object.keys(value).length <= 3 && (
+            {currentBookingLimits && Object.keys(currentBookingLimits).length <= 3 && (
               <Button
                 color="minimal"
                 StartIcon={Icon.FiPlus}
                 onClick={() => {
-                  if (!value || !watchBookingLimits) return;
+                  if (!currentBookingLimits || !watchBookingLimits) return;
                   const currentKeys = Object.keys(watchBookingLimits);
 
                   const rest = Object.values(BOOKING_LIMIT_OPTIONS).filter(
                     (option) => !currentKeys.includes(option.value)
                   );
                   if (!rest || !currentKeys) return;
-                  //Value is always defined so can be casted
+                  //currentBookingLimits is always defined so can be casted
 
                   setValue("bookingLimits", {
                     ...watchBookingLimits,
