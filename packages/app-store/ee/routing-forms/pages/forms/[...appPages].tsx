@@ -1,6 +1,9 @@
 // TODO: i18n
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { Icon } from "@calcom/ui/Icon";
 import { ButtonGroup, DropdownMenuSeparator, Tooltip } from "@calcom/ui/v2";
@@ -15,10 +18,12 @@ import { FormAction, FormActionsDropdown, FormActionsProvider } from "../../comp
 import { getSerializableForm } from "../../lib/getSerializableForm";
 
 export default function RoutingForms({
-  forms,
+  forms: forms_,
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   const { t } = useLocale();
+  const { data: forms } = trpc.useQuery(["viewer.app_routing_forms.forms"], { initialData: forms_ });
+
   const { data: typeformApp } = useApp("typeform");
 
   function NewFormButton() {
@@ -33,7 +38,7 @@ export default function RoutingForms({
       <FormActionsProvider appUrl={appUrl}>
         <div className="-mx-4 md:-mx-8">
           <div className="mb-10 w-full px-4 pb-2 sm:px-6 md:px-8">
-            {!forms.length ? (
+            {!forms?.length ? (
               <EmptyScreen
                 Icon={Icon.FiGitMerge}
                 headline={t("create_your_first_form")}
@@ -41,7 +46,7 @@ export default function RoutingForms({
                 buttonRaw={<NewFormButton />}
               />
             ) : null}
-            {forms.length ? (
+            {forms?.length ? (
               <div className="mb-16 overflow-hidden bg-white">
                 <List data-testid="routing-forms-list">
                   {forms.map((form, index) => {
@@ -201,6 +206,7 @@ export const getServerSideProps = async function getServerSideProps(
 
   return {
     props: {
+      ...(await serverSideTranslations(context.locale ?? "", ["common"])),
       forms: serializableForms,
     },
   };

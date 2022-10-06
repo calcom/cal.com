@@ -77,6 +77,7 @@ const TableActions: FC<Props> = ({ actions }) => {
         {actions.map((action) => {
           const button = (
             <Button
+              className="whitespace-nowrap"
               key={action.id}
               data-testid={action.id}
               href={action.href}

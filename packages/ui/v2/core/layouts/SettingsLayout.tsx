@@ -47,9 +47,7 @@ const tabs: VerticalTabItemProps[] = [
     name: "billing",
     href: "/settings/billing",
     icon: Icon.FiCreditCard,
-    children: [
-      { name: "Manage Billing", href: "/api/integrations/stripepayment/portal", isExternalLink: true },
-    ],
+    children: [{ name: "manage_billing", href: "/settings/billing" }],
   },
   {
     name: "developer",
@@ -329,7 +327,7 @@ export default function SettingsLayout({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="mx-auto max-w-3xl justify-center">
+        <div className="mx-auto max-w-full justify-center md:max-w-3xl">
           <ShellHeader />
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
@@ -353,9 +351,7 @@ function ShellHeader() {
         )}
         <div>
           {meta.title && isLocaleReady ? (
-            <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
-              {t(meta.title)}
-            </h1>
+            <h1 className="font-cal mb-1 text-xl font-bold tracking-wide text-black">{t(meta.title)}</h1>
           ) : (
             <div className="mb-1 h-6 w-24 animate-pulse rounded-md bg-gray-200" />
           )}
