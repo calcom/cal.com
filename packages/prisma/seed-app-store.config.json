@@ -55,7 +55,7 @@
     "type": "raycast_other"
   },
   {
-   "dirName": "n8n",
+    "dirName": "n8n",
     "categories": ["automation"],
     "slug": "n8n",
     "type": "n8n_automation"
