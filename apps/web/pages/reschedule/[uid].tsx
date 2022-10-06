@@ -1,11 +1,23 @@
 import { GetServerSidePropsContext } from "next";
+import { useRouter } from "next/router";
+import { useEffect } from "react";
+import { UrlObject } from "url";
 
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 
 import { asStringOrUndefined } from "@lib/asStringOrNull";
 
-export default function Type() {
+export default function Type(props: { destination: string | UrlObject }) {
+  const router = useRouter();
+
+  // Redirect here due to iframe issues
+  useEffect(() => {
+    if (router.isReady) {
+      router.replace(props.destination);
+    }
+  }, []);
+
   // Just redirect to the schedule page to reschedule it.
   return null;
 }
@@ -64,9 +76,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     eventType?.slug;
 
   return {
-    redirect: {
+    props: {
       destination: "/" + eventPage + "?rescheduleUid=" + context.query.uid,
-      permanent: false,
     },
   };
 }
