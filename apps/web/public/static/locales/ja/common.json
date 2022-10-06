@@ -837,7 +837,6 @@
   "redirect_success_booking": "予約時にリダイレクト",
   "you_are_being_redirected": "$t(second, {\"count\": {{seconds}} }) で {{ url }} にリダイレクトします",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
-  "redirect_url_upgrade_description": "この機能を利用するには、Pro アカウントへのアップグレードが必要です。",
   "duplicate": "複製",
   "offer_seats": "座席を提供",
   "offer_seats_description": "予約に座席を提供 (これはゲストとオプトイン予約を無効化します)",
