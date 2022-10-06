@@ -10,7 +10,9 @@ async function createOrlistAllSchedules(
   { method, body, userId, isAdmin, prisma }: NextApiRequest,
   res: NextApiResponse<SchedulesResponse | ScheduleResponse>
 ) {
-  if (body.userId && !isAdmin) {
+  const safeBody = schemaScheduleBodyParams.safeParse(body);
+
+  if (safeBody.data.userId && !isAdmin) {
     res.status(401).json({ message: "Unauthorized" });
     return;
   } else {
@@ -31,11 +33,14 @@ async function createOrlistAllSchedules(
        *       404:
        *         description: No schedules were found
        */
+
+      const userIds = Array.isArray(safeBody.data.userId)
+        ? safeBody.data.userId
+        : [safeBody.data.userId || userId];
+
       const data = await prisma.schedule.findMany({
         where: {
-          ...(Array.isArray(body.userId)
-            ? { userId: { in: body.userId } }
-            : { userId: body.userId || userId }),
+          userId: { in: userIds },
         },
         ...(Array.isArray(body.userId) && { orderBy: { userId: "asc" } }),
       });
