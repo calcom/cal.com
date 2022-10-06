@@ -90,8 +90,8 @@
   },
   {
     "dirName": "fathom",
-    "categories": ["other"],
+    "categories": ["analytics"],
     "slug": "fathom",
-    "type": "fathom_other"
+    "type": "fathom_analytics"
   }
 ]

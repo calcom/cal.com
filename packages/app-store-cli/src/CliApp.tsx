@@ -207,6 +207,7 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
         { label: "Messaging", value: "messaging" },
         { label: "Web3", value: "web3" },
         { label: "Automation", value: "automation" },
+        { label: "Analytics", value: "analytics" },
         { label: "Other", value: "other" },
       ],
       explainer: "This is how apps are categorized in App Store.",
@@ -239,7 +240,11 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
   const appDescription = appInputData["appDescription"];
   const publisherName = appInputData["publisherName"];
   const publisherEmail = appInputData["publisherEmail"];
-  const extendsFeature = appInputData["extendsFeature"] || [];
+  let extendsFeature = appInputData["extendsFeature"] || [];
+  if (rawCategory === "analytics") {
+    // Analytics only means EventType Analytics as of now
+    extendsFeature = "EventType";
+  }
   const [status, setStatus] = useState<"inProgress" | "done">("inProgress");
   const allFieldsFilled = inputIndex === fields.length;
   const [progressUpdate, setProgressUpdate] = useState("");
