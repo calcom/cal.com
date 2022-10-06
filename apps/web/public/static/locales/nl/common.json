@@ -1265,5 +1265,9 @@
   "confirm_password_change_email": "Bevestig uw wachtwoord voordat u uw e-mailadres wijzigt",
   "seats": "plaatsen",
   "every_app_published": "Elke app die in de app store van Cal.com wordt gepubliceerd is open source en grondig getest via collegiale beoordelingen. Desondanks onderschrijft of certificeert Cal.com, Inc. deze apps niet, tenzij ze zijn gepubliceerd door Cal.com. Meld het als u ongepaste inhoud of gedrag tegenkomt.",
-  "report_app": "App melden"
+  "report_app": "App melden",
+  "billing_manage_details_title": "Bekijk en beheer uw betalingsgegevens",
+  "billing_manage_details_description": "Uw betalingsgegevens bekijken of uw account opzeggen.",
+  "billing_help_title": "Nog iets nodig?",
+  "billing_help_description": "Als u verdere hulp nodig heeft bij facturering, is ons ondersteuningsteam er om u te helpen."
 }

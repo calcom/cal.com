@@ -1265,5 +1265,9 @@
   "confirm_password_change_email": "Confirme su contraseña antes de cambiar su dirección de correo electrónico",
   "seats": "asientos",
   "every_app_published": "Las aplicaciones publicadas en la tienda de aplicaciones de Cal.com son de código abierto y se han sometido a pruebas exhaustivas con las reseñas de pares. Sin embargo, Cal.com, Inc. no avala ni certifica estas aplicaciones a menos que Cal.com las haya publicado expresamente. Si encuentra contenido o comportamiento inapropiados, informe de ello.",
-  "report_app": "Denunciar aplicación"
+  "report_app": "Denunciar aplicación",
+  "billing_manage_details_title": "Ver y administrar sus datos de facturación",
+  "billing_manage_details_description": "Vea y edite sus datos de facturación, así como cancele su suscripción.",
+  "billing_help_title": "¿Necesita algo más?",
+  "billing_help_description": "Si necesita más ayuda con la facturación, nuestro equipo de soporte está aquí para ayudarlo."
 }

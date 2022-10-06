@@ -1265,5 +1265,9 @@
   "confirm_password_change_email": "Vänligen bekräfta ditt lösenord innan du ändrar din e-postadress",
   "seats": "platser",
   "every_app_published": "Alla appar som publiceras i Cal.com App Store har öppen källkod och är noggrant testade genom peer reviews. Cal.com, Inc. stöder eller certifierar dock inte dessa appar om de inte publiceras av Cal.com. Om du stöter på olämpligt innehåll eller beteende ber vi dig att rapportera det.",
-  "report_app": "Rapportera app"
+  "report_app": "Rapportera app",
+  "billing_manage_details_title": "Visa och hantera dina faktureringsuppgifter",
+  "billing_manage_details_description": "Visa och redigera dina faktureringsuppgifter samt avsluta din prenumeration.",
+  "billing_help_title": "Behöver du något annat?",
+  "billing_help_description": "Om du behöver ytterligare hjälp med fakturering finns vårt supportteam här för att hjälpa till."
 }

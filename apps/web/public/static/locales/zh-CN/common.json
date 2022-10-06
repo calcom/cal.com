@@ -1265,5 +1265,9 @@
   "confirm_password_change_email": "请在更改电子邮件地址之前确认密码",
   "seats": "位置",
   "every_app_published": "Cal.com 应用商店上发布的每个应用都是开源的，并通过同行评审进行了全面测试。尽管如此，除非应用是由 Cal.com 发布的，否则 Cal.com, Inc. 不认可或认证这些应用。如果您遇到不当内容或行为，请举报。",
-  "report_app": "报告应用"
+  "report_app": "报告应用",
+  "billing_manage_details_title": "查看和管理您的账单详情",
+  "billing_manage_details_description": "查看和编辑您的账单详情，以及取消订阅。",
+  "billing_help_title": "还有其他需要？",
+  "billing_help_description": "如果您在支付帐单时需要任何进一步的帮助，我们的支持团队会给您提供帮助。"
 }
