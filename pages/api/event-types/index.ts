@@ -45,8 +45,14 @@ async function createOrlistAllEventTypes(
           });
     } else {
       const data = await prisma.eventType.findMany({
-        where: { userId: isAdmin && body.userId ? body.userId : userId },
+        where: {
+          ...(Array.isArray(body.userId)
+            ? { userId: { in: body.userId } }
+            : { userId: body.userId || userId }),
+        },
+        ...(Array.isArray(body.userId) && { orderBy: { userId: "asc" } }),
       });
+      console.log("🚀 ~ file: index.ts ~ line 50 ~ data", data);
       const event_types = data.map((eventType) => schemaEventTypeReadPublic.parse(eventType));
       if (event_types) res.status(200).json({ event_types });
     }
