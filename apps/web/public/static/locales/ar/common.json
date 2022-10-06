@@ -837,7 +837,6 @@
   "redirect_success_booking": "إعادة التوجيه عند الحجز ",
   "you_are_being_redirected": "ستتم إعادة توجيهك إلى {{ url }} خلال $t(second, {\"count\": {{seconds}} }).",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
-  "redirect_url_upgrade_description": "لاستخدام هذه الميزة، تحتاج إلى الترقية إلى حساب Pro.",
   "duplicate": "تكرار",
   "offer_seats": "عرض مقاعد",
   "offer_seats_description": "عرض مقاعد للحجز (هذا يعطل الضيوف والتسجيل في الحجز)",
@@ -1265,5 +1264,9 @@
   "confirm_password_change_email": "الرجاء تأكيد كلمة المرور الخاصة بك قبل تغيير عنوان بريدك الإلكتروني",
   "seats": "مقاعد",
   "every_app_published": "كل تطبيق منشور على متجر تطبيقات Cal.com هو مصدر مفتوح ويتم اختباره بشكل شامل عن طريق مراجعات الأقران. لا يدعم Cal.com أو يصادق على هذه التطبيقات ما لم يتم نشرها بواسطة Cal.com. إذا واجهت محتوى أو سلوك غير مناسب يرجى الإبلاغ عن ذلك.",
-  "report_app": "الإبلاغ عن التطبيق"
+  "report_app": "الإبلاغ عن التطبيق",
+  "billing_manage_details_title": "عرض تفاصيل الفوترة وإدارتها",
+  "billing_manage_details_description": "اعرض تفاصيل الفوترة وعدّلها، بالإضافة إلى إمكانية إلغاء الاشتراك.",
+  "billing_help_title": "هل تحتاج إلى أي شيء آخر؟",
+  "billing_help_description": "إذا كنت تحتاج إلى أي مساعدة إضافية بخصوص الفوترة، فإن فريق الدعم لدينا في انتظارك لتقديم المساعدة."
 }
