@@ -60,7 +60,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   );
 
   const [showTimeSection, setShowTimeSection] = useState(
-    form.getValues("trigger") === WorkflowTriggerEvents.BEFORE_EVENT ? true : false
+    form.getValues("trigger") === WorkflowTriggerEvents.BEFORE_EVENT ||
+      form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
   );
 
   const actionOptions = getWorkflowActionOptions(t);
@@ -147,7 +148,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     onChange={(val) => {
                       if (val) {
                         form.setValue("trigger", val.value);
-                        if (val.value === WorkflowTriggerEvents.BEFORE_EVENT) {
+                        if (
+                          val.value === WorkflowTriggerEvents.BEFORE_EVENT ||
+                          val.value === WorkflowTriggerEvents.AFTER_EVENT
+                        ) {
                           setShowTimeSection(true);
                           form.setValue("time", 24);
                           form.setValue("timeUnit", TimeUnit.HOUR);
@@ -484,7 +488,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <DialogContent useOwnActionButtons type="creation" className="sm:max-w-[610px] md:h-[570px]">
             <div className="-m-3 h-[430px] overflow-x-hidden overflow-y-scroll sm:m-0">
               <h1 className="w-full text-xl font-semibold ">{t("how_additional_inputs_as_variables")}</h1>
-              <div className="mb-7 mt-7 rounded-md bg-gray-50 p-3 sm:p-4">
+              <div className="mt-7 rounded-md bg-gray-50 p-3 sm:p-5">
                 <p className="test-sm font-medium">{t("format")}</p>
                 <ul className="mt-2 ml-5 list-disc text-gray-900">
                   <li>{t("uppercase_for_letters")}</li>
@@ -526,7 +530,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
               </div>
             </div>
-            <div className="flex flex-row-reverse">
+            <div className="mt-3 -mb-7 flex flex-row-reverse gap-x-2">
               <DialogClose asChild>
                 <Button color="primary" type="button">
                   {t("close")}
