@@ -218,11 +218,13 @@ function TimezoneDropdown({
   onChangeTimeZone,
   timeZone,
   timeFormat,
+  hideTimeFormatToggle,
 }: {
   onChangeTimeFormat: (newTimeFormat: string) => void;
   onChangeTimeZone: (newTimeZone: string) => void;
   timeZone?: string;
   timeFormat: string;
+  hideTimeFormatToggle?: boolean;
 }) {
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
 
@@ -264,6 +266,7 @@ function TimezoneDropdown({
             onSelectTimeZone={handleSelectTimeZone}
             onToggle24hClock={handleToggle24hClock}
             timeFormat={timeFormat}
+            hideTimeFormatToggle={hideTimeFormatToggle}
           />
         </Popover.Content>
       </Popover.Portal>
@@ -296,7 +299,14 @@ const useRouterQuery = <T extends string>(name: T) => {
 
 export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
 
+const timeFormatTotimeFormatString = (timeFormat?: number | null) => {
+  if (!timeFormat) return null;
+  return timeFormat === 24 ? "HH:mm" : "h:mma";
+};
+
 const AvailabilityPage = ({ profile, eventType }: Props) => {
+  const { data: user } = trpc.useQuery(["viewer.me"]);
+  const timeFormatFromProfile = timeFormatTotimeFormatString(user?.timeFormat);
   const router = useRouter();
   const isEmbed = useIsEmbed();
   const query = dateQuerySchema.parse(router.query);
@@ -309,7 +319,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const isBackgroundTransparent = useIsBackgroundTransparent();
 
   const [timeZone, setTimeZone] = useState<string>();
-  const [timeFormat, setTimeFormat] = useState(detectBrowserTimeFormat);
+  const [timeFormat, setTimeFormat] = useState(timeFormatFromProfile || detectBrowserTimeFormat);
   const [isAvailableTimesVisible, setIsAvailableTimesVisible] = useState<boolean>();
   const [gateState, gateDispatcher] = useReducer(
     (state: GateState, newState: Partial<GateState>) => ({
@@ -360,9 +370,12 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
         onChangeTimeFormat={setTimeFormat}
         timeZone={timeZone}
         onChangeTimeZone={setTimeZone}
+        // Currently we don't allow the user to change the timeformat when they're logged in,
+        // the only way to change it is if they go to their profile.
+        hideTimeFormatToggle={!!timeFormatFromProfile}
       />
     ),
-    [timeZone, timeFormat]
+    [timeZone, timeFormat, timeFormatFromProfile]
   );
   const stripeAppData = getStripeAppData(eventType);
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
