@@ -837,7 +837,6 @@
   "redirect_success_booking": "Weiterleitung bei Buchung ",
   "you_are_being_redirected": "Sie werden in $t(second, {\"count\": {{seconds}} }) auf {{ url }} weitergeleitet.",
   "external_redirect_url": "Externe Umleitungs-URL - Beginnt mit https://",
-  "redirect_url_upgrade_description": "Um diese Funktion nutzen zu können, müssen Sie ein Upgrade auf einen Pro-Account durchführen.",
   "duplicate": "Duplizieren",
   "offer_seats": "Plätze anbieten",
   "offer_seats_description": "Bieten Sie Plätze für Buchungen an (dies deaktiviert Gäste & Opt-in-Buchungen)",

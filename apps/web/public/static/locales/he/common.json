@@ -837,7 +837,6 @@
   "redirect_success_booking": "הפניה מחדש בעת הזמנה ",
   "you_are_being_redirected": "אנחנו ננתב אותך אל {{ url }} בעוד $t(second, {\"count\": {{seconds}} }).",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
-  "redirect_url_upgrade_description": "כדי להשתמש בתכונה זו, עליך לשדרג לחשבון Pro.",
   "duplicate": "כפילות",
   "offer_seats": "הצעת מקומות",
   "offer_seats_description": "הצעת מקומות להזמנות (אפשרות זו משביתה אישורי הזמנות ואורחים)",
