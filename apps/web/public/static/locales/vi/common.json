@@ -837,7 +837,6 @@
   "redirect_success_booking": "Chuyển hướng khi đặt lịch hẹn ",
   "you_are_being_redirected": "Bạn sẽ được chuyển hướng đến {{ url }} sau $t(second, {\"count\": {{seconds}} }).",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
-  "redirect_url_upgrade_description": "Để sử dụng tính năng này, bạn cần nâng cấp lên tài khoản Pro.",
   "duplicate": "Sao chép",
   "offer_seats": "Cung cấp ghế ngồi",
   "offer_seats_description": "Cung ứng chỗ cho lịch hẹn (Cái này sẽ vô hiệu hoá khách & lịch hẹn tham gia)",
