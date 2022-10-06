@@ -170,7 +170,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             />
             {showTimeSection && (
               <div className="mt-5">
-                <Label>{t("how_long_before")}</Label>
+                <Label>
+                  {form.getValues("trigger") === WorkflowTriggerEvents.BEFORE_EVENT
+                    ? t("how_long_before")
+                    : t("how_long_after")}
+                </Label>
                 <TimeTimeUnitInput form={form} />
               </div>
             )}
@@ -307,7 +311,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
               )}
               <div className="mt-5">
-                <Label>{t("message_template")}</Label>
+                <Label />
                 <Controller
                   name={`steps.${step.stepNumber - 1}.template`}
                   control={form.control}
