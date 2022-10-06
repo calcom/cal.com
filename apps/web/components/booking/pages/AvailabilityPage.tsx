@@ -9,7 +9,7 @@ import { Toaster } from "react-hot-toast";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
-import BookingPageScripts from "@calcom/app-store/BookingPageScripts";
+import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import {
@@ -403,7 +403,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
           noindex: eventType.hidden,
         }}
       />
-      <BookingPageScripts eventType={eventType} />
+      <BookingPageTagManager eventType={eventType} />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <div>
         <main

@@ -10,7 +10,7 @@ const trackingApps: Record<string, Record<string, unknown>> = {
   },
 };
 
-export default function BookingPageScripts({
+export default function BookingPageTagManager({
   eventType,
 }: {
   eventType: Parameters<typeof getEventTypeAppData>[0];

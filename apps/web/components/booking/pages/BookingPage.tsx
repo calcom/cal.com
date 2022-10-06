@@ -57,7 +57,7 @@ import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescrip
 import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
-import BookingPageScripts from "@calcom/app-store/BookingPageScripts";
+import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
 
@@ -440,7 +440,7 @@ const BookingPage = ({
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <BookingPageScripts eventType={eventType} />
+      <BookingPageTagManager eventType={eventType} />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <main
         className={classNames(
