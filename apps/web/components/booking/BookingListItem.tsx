@@ -53,6 +53,16 @@ function BookingListItem(booking: BookingItemProps) {
     },
   });
 
+  const isUpcoming = new Date(booking.endTime) >= new Date();
+  const isPast = new Date(booking.endTime) < new Date();
+  const isCancelled = booking.status === BookingStatus.CANCELLED;
+  const isConfirmed = booking.status === BookingStatus.ACCEPTED;
+  const isRejected = booking.status === BookingStatus.REJECTED;
+  const isPending = booking.status === BookingStatus.PENDING;
+  const isRecurring = booking.recurringEventId !== null;
+  const isTabRecurring = booking.listingStatus === "recurring";
+  const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
+
   const bookingConfirm = async (confirm: boolean) => {
     let body = {
       bookingId: booking.id,
@@ -68,16 +78,6 @@ function BookingListItem(booking: BookingItemProps) {
     }
     mutation.mutate(body);
   };
-
-  const isUpcoming = new Date(booking.endTime) >= new Date();
-  const isPast = new Date(booking.endTime) < new Date();
-  const isCancelled = booking.status === BookingStatus.CANCELLED;
-  const isConfirmed = booking.status === BookingStatus.ACCEPTED;
-  const isRejected = booking.status === BookingStatus.REJECTED;
-  const isPending = booking.status === BookingStatus.PENDING;
-  const isRecurring = booking.recurringEventId !== null;
-  const isTabRecurring = booking.listingStatus === "recurring";
-  const isTabUnconfirmed = booking.listingStatus === "unconfirmed";
 
   const pendingActions: ActionType[] = [
     {
