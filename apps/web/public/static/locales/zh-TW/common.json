@@ -837,7 +837,6 @@
   "redirect_success_booking": "在預約時重新導向 ",
   "you_are_being_redirected": "將於 $t(second, {\"count\": {{seconds}} }) 秒後將您重新導向至 {{ url }}。",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
-  "redirect_url_upgrade_description": "您必須升級至專業版帳號才能使用此功能。",
   "duplicate": "複製",
   "offer_seats": "提供座位",
   "offer_seats_description": "為預約提供席次 (這將停用賓客和主動加入的預約)",

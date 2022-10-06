@@ -837,7 +837,6 @@
   "redirect_success_booking": "Přesměrovat při rezervaci ",
   "you_are_being_redirected": "Budete přesměrováni na {{ url }} za $t(s, {\"count\": {{s}} }).",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
-  "redirect_url_upgrade_description": "Pokud chcete použít tuto funkci, musíte provést aktualizaci na účet Pro.",
   "duplicate": "Duplikovat",
   "offer_seats": "Nabídka míst",
   "offer_seats_description": "Nabídnout místa rezervacím (tím se vypnou rezervace hostů a s potvrzením)",
