@@ -1,19 +1,19 @@
-import type { UseFormReturn } from "react-hook-form";
+import { useEffect } from "react";
+import { z } from "zod";
 
+import { SetAppDataGeneric } from "@calcom/app-store/EventTypeAppContext";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SUPPORTED_CHAINS_FOR_FORM } from "@calcom/rainbow/utils/ethereum";
-import type { FormValues } from "@calcom/web/pages/event-types/[type]";
+import Select from "@calcom/ui/v2/core/form/Select";
 
-import Select from "@components/ui/form/Select";
+import { appDataSchema } from "../zod";
 
 type RainbowInstallFormProps = {
-  formMethods: UseFormReturn<FormValues>;
-  blockchainId: number;
-  smartContractAddress: string;
-};
+  setAppData: SetAppDataGeneric<typeof appDataSchema>;
+} & Pick<z.infer<typeof appDataSchema>, "smartContractAddress" | "blockchainId">;
 
 const RainbowInstallForm: React.FC<RainbowInstallFormProps> = ({
-  formMethods,
+  setAppData,
   blockchainId,
   smartContractAddress,
 }) => {
@@ -33,14 +33,9 @@ const RainbowInstallForm: React.FC<RainbowInstallFormProps> = ({
           isSearchable={false}
           className="block w-full min-w-0 flex-1 rounded-sm text-sm"
           onChange={(e) => {
-            formMethods.setValue("blockchainId", (e && e.value) || 1);
+            setAppData("blockchainId", (e && e.value) || 1);
           }}
-          defaultValue={
-            SUPPORTED_CHAINS_FOR_FORM.find((e) => e.value === blockchainId) || {
-              value: 1,
-              label: "Ethereum",
-            }
-          }
+          defaultValue={SUPPORTED_CHAINS_FOR_FORM.find((e) => e.value === blockchainId)}
           options={SUPPORTED_CHAINS_FOR_FORM || [{ value: 1, label: "Ethereum" }]}
         />
       </div>
@@ -57,7 +52,9 @@ const RainbowInstallForm: React.FC<RainbowInstallFormProps> = ({
               className="block w-full rounded-sm border-gray-300 text-sm "
               placeholder={t("Example: 0x71c7656ec7ab88b098defb751b7401b5f6d8976f")}
               defaultValue={(smartContractAddress || "") as string}
-              {...formMethods.register("smartContractAddress")}
+              onChange={(e) => {
+                setAppData("smartContractAddress", e.target.value);
+              }}
             />
           </div>
         </div>

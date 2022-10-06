@@ -9,6 +9,7 @@ import { Toaster } from "react-hot-toast";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -19,6 +20,7 @@ import {
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { WEBSITE_URL } from "@calcom/lib/constants";
+import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import notEmpty from "@calcom/lib/notEmpty";
@@ -361,6 +363,8 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
     ),
     [timeZone, timeFormat]
   );
+  const stripeAppData = getStripeAppData(eventType);
+  const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
   const slug = rawSlug.join("/");
@@ -368,13 +372,13 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   // Define conditional gates here
   const gates = [
     // Rainbow gate is only added if the event has both a `blockchainId` and a `smartContractAddress`
-    eventType.metadata && eventType.metadata.blockchainId && eventType.metadata.smartContractAddress
+    rainbowAppData && rainbowAppData.blockchainId && rainbowAppData.smartContractAddress
       ? ("rainbow" as Gate)
       : undefined,
   ];
 
   return (
-    <Gates gates={gates} metadata={eventType.metadata} dispatch={gateDispatcher}>
+    <Gates gates={gates} appData={rainbowAppData} dispatch={gateDispatcher}>
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
@@ -441,14 +445,14 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                         <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
                         {eventType.length} {t("minutes")}
                       </p>
-                      {eventType.price > 0 && (
+                      {stripeAppData.price > 0 && (
                         <div className="dark:text-darkgray-600 text-gray-600">
                           <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                           <IntlProvider locale="en">
                             <FormattedNumber
-                              value={eventType.price / 100.0}
+                              value={stripeAppData.price / 100.0}
                               style="currency"
-                              currency={eventType.currency.toUpperCase()}
+                              currency={stripeAppData.currency.toUpperCase()}
                             />
                           </IntlProvider>
                         </div>
@@ -568,14 +572,14 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       </div>
                     </div>
                   )}
-                  {eventType.price > 0 && (
+                  {stripeAppData.price > 0 && (
                     <p className="-ml-2 px-2 text-sm font-medium">
                       <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                       <IntlProvider locale="en">
                         <FormattedNumber
-                          value={eventType.price / 100.0}
+                          value={stripeAppData.price / 100.0}
                           style="currency"
-                          currency={eventType.currency.toUpperCase()}
+                          currency={stripeAppData.currency.toUpperCase()}
                         />
                       </IntlProvider>
                     </p>

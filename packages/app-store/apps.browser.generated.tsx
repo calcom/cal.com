@@ -11,11 +11,13 @@ import { metadata as campfire_meta } from "./campfire/_metadata";
 import { metadata as closecomothercalendar_meta } from "./closecomothercalendar/_metadata";
 import { metadata as dailyvideo_meta } from "./dailyvideo/_metadata";
 import { metadata as routing_forms_meta } from "./ee/routing-forms/_metadata";
+import { appDataSchema as routing_forms_schema } from "./ee/routing-forms/zod";
 import { metadata as exchange2013calendar_meta } from "./exchange2013calendar/_metadata";
 import { metadata as exchange2016calendar_meta } from "./exchange2016calendar/_metadata";
 import { metadata as exchangecalendar_meta } from "./exchangecalendar/_metadata";
 import { metadata as fathom_meta } from "./fathom/_metadata";
 import { metadata as giphy_meta } from "./giphy/_metadata";
+import { appDataSchema as giphy_schema } from "./giphy/zod";
 import { metadata as googlecalendar_meta } from "./googlecalendar/_metadata";
 import { metadata as googlevideo_meta } from "./googlevideo/_metadata";
 import { metadata as hubspotothercalendar_meta } from "./hubspotothercalendar/_metadata";
@@ -27,10 +29,12 @@ import { metadata as office365calendar_meta } from "./office365calendar/_metadat
 import { metadata as office365video_meta } from "./office365video/_metadata";
 import { metadata as ping_meta } from "./ping/_metadata";
 import { metadata as rainbow_meta } from "./rainbow/_metadata";
+import { appDataSchema as rainbow_schema } from "./rainbow/zod";
 import { metadata as raycast_meta } from "./raycast/_metadata";
 import { metadata as riverside_meta } from "./riverside/_metadata";
 import { metadata as slackmessaging_meta } from "./slackmessaging/_metadata";
 import { metadata as stripepayment_meta } from "./stripepayment/_metadata";
+import { appDataSchema as stripepayment_schema } from "./stripepayment/zod";
 import { metadata as tandemvideo_meta } from "./tandemvideo/_metadata";
 import { metadata as typeform_meta } from "./typeform/_metadata";
 import { metadata as vital_meta } from "./vital/_metadata";
@@ -75,6 +79,14 @@ export const appStoreMetadata = {
   zapier: zapier_meta,
   zoomvideo: zoomvideo_meta,
 };
+
+export const appDataSchemas = {
+  "routing-forms": routing_forms_schema,
+  giphy: giphy_schema,
+  rainbow: rainbow_schema,
+  stripe: stripepayment_schema,
+};
+
 export const InstallAppButtonMap = {
   applecalendar: dynamic(() => import("./applecalendar/components/InstallAppButton")),
   around: dynamic(() => import("./around/components/InstallAppButton")),
@@ -83,7 +95,6 @@ export const InstallAppButtonMap = {
   exchange2013calendar: dynamic(() => import("./exchange2013calendar/components/InstallAppButton")),
   exchange2016calendar: dynamic(() => import("./exchange2016calendar/components/InstallAppButton")),
   exchangecalendar: dynamic(() => import("./exchangecalendar/components/InstallAppButton")),
-  giphy: dynamic(() => import("./giphy/components/InstallAppButton")),
   googlecalendar: dynamic(() => import("./googlecalendar/components/InstallAppButton")),
   hubspotothercalendar: dynamic(() => import("./hubspotothercalendar/components/InstallAppButton")),
   huddle01video: dynamic(() => import("./huddle01video/components/InstallAppButton")),
@@ -100,4 +111,9 @@ export const InstallAppButtonMap = {
   wipemycalother: dynamic(() => import("./wipemycalother/components/InstallAppButton")),
   zapier: dynamic(() => import("./zapier/components/InstallAppButton")),
   zoomvideo: dynamic(() => import("./zoomvideo/components/InstallAppButton")),
+};
+export const EventTypeAddonMap = {
+  giphy: dynamic(() => import("./giphy/extensions/EventTypeAppCard")),
+  rainbow: dynamic(() => import("./rainbow/extensions/EventTypeAppCard")),
+  stripepayment: dynamic(() => import("./stripepayment/extensions/EventTypeAppCard")),
 };
