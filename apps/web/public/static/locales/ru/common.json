@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "Используйте ссылку ниже, чтобы сбросить пароль",
   "hey_there": "Привет,",
   "forgot_your_password_calcom": "Забыли пароль? - Cal.com",
-  "event_type_title": "{{eventTypeTitle}} | Тип события",
   "delete_webhook_confirmation_message": "Вы уверены, что хотите удалить этот вебхук? Вы больше не будете получать от Cal.com данные о новых или отменённых встречах по указанному URL в реальном времени.",
   "confirm_delete_webhook": "Да, удалить веб-хук",
   "edit_webhook": "Изменить веб-хук",
@@ -633,7 +632,6 @@
   "billing": "Биллинг",
   "manage_your_billing_info": "Управление платежной информацией и отменой подписки.",
   "availability": "Доступность",
-  "availability_title": "{{availabilityTitle}} | Доступность",
   "edit_availability": "Изменить доступность",
   "configure_availability": "Измените временные интервалы, доступные для бронирования.",
   "copy_times_to": "Скопировать время в",
@@ -839,7 +837,6 @@
   "redirect_success_booking": "Перенаправление при бронировании ",
   "you_are_being_redirected": "Перенаправление на {{ url }} произойдет через $t(second, {\"count\": {{seconds}} }).",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
-  "redirect_url_upgrade_description": "Чтобы использовать эту функцию, необходимо перейти на аккаунт Pro.",
   "duplicate": "Создать копию",
   "offer_seats": "Предложить места",
   "offer_seats_description": "Предлагать места при бронировании (при этом отключается гостевой режим и бронирование с подтверждением)",
@@ -1267,5 +1264,9 @@
   "confirm_password_change_email": "Подтвердите свой пароль, чтобы изменить адрес электронной почты",
   "seats": "места",
   "every_app_published": "Все приложения на Cal.com App Store – это решения с открытым исходным кодом, которые тщательно тестируются коллегами. Тем не менее Cal.com, Inc. не дает гарантию в отношении только тех приложений, которые опубликованы Cal.com. Если вы обнаружите неприемлемое содержание или поведение, просим сообщать об этом.",
-  "report_app": "Пожаловаться на приложение"
+  "report_app": "Пожаловаться на приложение",
+  "billing_manage_details_title": "Просмотр и управление платежными данными",
+  "billing_manage_details_description": "Просматривайте и редактируйте платежные реквизиты, а также отменяйте подписку.",
+  "billing_help_title": "Нужно что-нибудь еще?",
+  "billing_help_description": "Если вам нужна дальнейшая помощь с оплатой счета, наша служба поддержки готова помочь."
 }

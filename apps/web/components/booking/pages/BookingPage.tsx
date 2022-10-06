@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInputType, WorkflowActions } from "@prisma/client";
 import { SchedulingType } from "@prisma/client";
+import { useMutation } from "@tanstack/react-query";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
@@ -9,7 +10,6 @@ import { useEffect, useMemo, useState, useReducer } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
-import { useMutation } from "react-query";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
@@ -712,23 +712,25 @@ const BookingPage = ({
                         />
                       )}
                       {input.type === EventTypeCustomInputType.BOOL && (
-                        <div className="flex h-5 items-center">
-                          <input
-                            type="checkbox"
-                            {...bookingForm.register(`customInputs.${input.id}`, {
-                              required: input.required,
-                            })}
-                            required={input.required}
-                            id={"custom_" + input.id}
-                            className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black disabled:bg-gray-200 ltr:mr-2 rtl:ml-2 disabled:dark:text-gray-500"
-                            placeholder=""
-                            disabled={disabledExceptForOwner}
-                          />
-                          <label
-                            htmlFor={"custom_" + input.id}
-                            className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                            {input.label}
-                          </label>
+                        <div className="my-6">
+                          <div className="flex">
+                            <input
+                              type="checkbox"
+                              {...bookingForm.register(`customInputs.${input.id}`, {
+                                required: input.required,
+                              })}
+                              required={input.required}
+                              id={"custom_" + input.id}
+                              className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black disabled:bg-gray-200 ltr:mr-2 rtl:ml-2 disabled:dark:text-gray-500"
+                              placeholder=""
+                              disabled={disabledExceptForOwner}
+                            />
+                            <label
+                              htmlFor={"custom_" + input.id}
+                              className="-mt-px block text-sm font-medium text-gray-700 dark:text-white">
+                              {input.label}
+                            </label>
+                          </div>
                         </div>
                       )}
                     </div>

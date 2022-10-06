@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "Gebruik de onderstaande link om uw wachtwoord te resetten",
   "hey_there": "Hallo daar,",
   "forgot_your_password_calcom": "Wachtwoord vergeten? - Cal.com",
-  "event_type_title": "{{eventTypeTitle}} | Evenement",
   "delete_webhook_confirmation_message": "Weet u zeker dat u deze webhook wilt verwijderen? U ontvangt dan niet langer Cal.com vergadergegevens op een opgegeven URL, in real-time, wanneer een evenement is geboekt of geannuleerd.",
   "confirm_delete_webhook": "Ja, webhook verwijderen",
   "edit_webhook": "Webhook bewerken",
@@ -633,7 +632,6 @@
   "billing": "Abonnement",
   "manage_your_billing_info": "Beheer uw betalingsgegevens en annuleer uw abonnement.",
   "availability": "Beschikbaarheid",
-  "availability_title": "{{availabilityTitle}} | Beschikbaarheid",
   "edit_availability": "Beschikbaarheid bewerken",
   "configure_availability": "Configureer tijden wanneer u beschikbaar bent voor afspraken.",
   "copy_times_to": "Tijden kopiëren naar",
@@ -839,7 +837,6 @@
   "redirect_success_booking": "Omleiding bij boeking ",
   "you_are_being_redirected": "U wordt omgeleid naar {{ url }} over $t(seconde, {\"count\": {{seconden}} }).",
   "external_redirect_url": "https://voorbeeld.com/omleiding-naar-mijn-succespagina",
-  "redirect_url_upgrade_description": "Om deze functie te gebruiken, moet u upgraden naar een Pro-account.",
   "duplicate": "Dupliceren",
   "offer_seats": "Zitplaatsen aanbieden",
   "offer_seats_description": "Zitplaatsen aanbieden aan boekingen (dit schakelt gastboekingen en aanmeldingsboekingen uit)",
@@ -1267,5 +1264,9 @@
   "confirm_password_change_email": "Bevestig uw wachtwoord voordat u uw e-mailadres wijzigt",
   "seats": "plaatsen",
   "every_app_published": "Elke app die in de app store van Cal.com wordt gepubliceerd is open source en grondig getest via collegiale beoordelingen. Desondanks onderschrijft of certificeert Cal.com, Inc. deze apps niet, tenzij ze zijn gepubliceerd door Cal.com. Meld het als u ongepaste inhoud of gedrag tegenkomt.",
-  "report_app": "App melden"
+  "report_app": "App melden",
+  "billing_manage_details_title": "Bekijk en beheer uw betalingsgegevens",
+  "billing_manage_details_description": "Uw betalingsgegevens bekijken of uw account opzeggen.",
+  "billing_help_title": "Nog iets nodig?",
+  "billing_help_description": "Als u verdere hulp nodig heeft bij facturering, is ons ondersteuningsteam er om u te helpen."
 }

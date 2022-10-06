@@ -1,5 +1,4 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { UserPlan } from "@prisma/client";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -8,6 +7,7 @@ import React, { Fragment, useEffect, useState } from "react";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { TRPCClientError } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Badge, Button, ButtonGroup, Dialog, EmptyScreen, showToast, Switch, Tooltip } from "@calcom/ui/v2";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
@@ -17,6 +17,7 @@ import Dropdown, {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuPortal,
 } from "@calcom/ui/v2/core/Dropdown";
 import Shell from "@calcom/ui/v2/core/Shell";
 import CreateEventTypeButton from "@calcom/ui/v2/modules/event-types/CreateEventType";
@@ -29,8 +30,6 @@ import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import SkeletonLoader from "@components/v2/eventtype/SkeletonLoader";
-
-import { TRPCClientError } from "@trpc/react";
 
 type EventTypeGroups = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
@@ -53,7 +52,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
   const { t } = useLocale();
 
   return (
-    <Link href={`/event-types/${type.id}`}>
+    <Link href={`/event-types/${type.id}?tabName=setup`}>
       <a
         className="flex-grow truncate text-sm"
         title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
@@ -293,8 +292,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               <DropdownMenuItem>
                                 <DropdownItem
                                   type="button"
-                                  href={"/event-types/" + type.id}
-                                  StartIcon={Icon.FiEdit2}>
+                                  data-testid={"event-type-edit-" + type.id}
+                                  StartIcon={Icon.FiEdit2}
+                                  onClick={() => router.push("/event-types/" + type.id)}>
                                   {t("edit") as string}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -344,90 +344,92 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
                       <Button type="button" size="icon" color="secondary" StartIcon={Icon.FiMoreHorizontal} />
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent portalled>
-                      <DropdownMenuItem className="outline-none">
-                        <Link href={calLink}>
-                          <a target="_blank">
+                    <DropdownMenuPortal>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem className="outline-none">
+                          <Link href={calLink}>
+                            <a target="_blank">
+                              <Button
+                                color="minimal"
+                                StartIcon={Icon.FiExternalLink}
+                                className="w-full rounded-none">
+                                {t("preview") as string}
+                              </Button>
+                            </a>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="outline-none">
+                          <Button
+                            type="button"
+                            color="minimal"
+                            className="w-full rounded-none text-left"
+                            data-testid={"event-type-duplicate-" + type.id}
+                            StartIcon={Icon.FiClipboard}
+                            onClick={() => {
+                              navigator.clipboard.writeText(calLink);
+                              showToast(t("link_copied"), "success");
+                            }}>
+                            {t("copy_link") as string}
+                          </Button>
+                        </DropdownMenuItem>
+                        {isNativeShare ? (
+                          <DropdownMenuItem className="outline-none">
                             <Button
+                              type="button"
                               color="minimal"
-                              StartIcon={Icon.FiExternalLink}
-                              className="w-full rounded-none">
-                              {t("preview") as string}
+                              className="w-full rounded-none"
+                              data-testid={"event-type-duplicate-" + type.id}
+                              StartIcon={Icon.FiUpload}
+                              onClick={() => {
+                                navigator
+                                  .share({
+                                    title: t("share"),
+                                    text: t("share_event"),
+                                    url: calLink,
+                                  })
+                                  .then(() => showToast(t("link_shared"), "success"))
+                                  .catch(() => showToast(t("failed"), "error"));
+                              }}>
+                              {t("share") as string}
                             </Button>
-                          </a>
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="outline-none">
-                        <Button
-                          type="button"
-                          color="minimal"
-                          className="w-full rounded-none text-left"
-                          data-testid={"event-type-duplicate-" + type.id}
-                          StartIcon={Icon.FiClipboard}
-                          onClick={() => {
-                            navigator.clipboard.writeText(calLink);
-                            showToast(t("link_copied"), "success");
-                          }}>
-                          {t("copy_link") as string}
-                        </Button>
-                      </DropdownMenuItem>
-                      {isNativeShare ? (
+                          </DropdownMenuItem>
+                        ) : null}
+                        <DropdownMenuItem className="outline-none">
+                          <Button
+                            type="button"
+                            onClick={() => router.push("/event-types/" + type.id)}
+                            color="minimal"
+                            className="w-full rounded-none"
+                            StartIcon={Icon.FiEdit}>
+                            {t("edit") as string}
+                          </Button>
+                        </DropdownMenuItem>
                         <DropdownMenuItem className="outline-none">
                           <Button
                             type="button"
                             color="minimal"
                             className="w-full rounded-none"
                             data-testid={"event-type-duplicate-" + type.id}
-                            StartIcon={Icon.FiUpload}
-                            onClick={() => {
-                              navigator
-                                .share({
-                                  title: t("share"),
-                                  text: t("share_event"),
-                                  url: calLink,
-                                })
-                                .then(() => showToast(t("link_shared"), "success"))
-                                .catch(() => showToast(t("failed"), "error"));
-                            }}>
-                            {t("share") as string}
+                            StartIcon={Icon.FiCopy}
+                            onClick={() => openModal(group, type)}>
+                            {t("duplicate") as string}
                           </Button>
                         </DropdownMenuItem>
-                      ) : null}
-                      <DropdownMenuItem className="outline-none">
-                        <Button
-                          type="button"
-                          href={"/event-types/" + type.id}
-                          color="minimal"
-                          className="w-full"
-                          StartIcon={Icon.FiEdit}>
-                          {t("edit") as string}
-                        </Button>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="outline-none">
-                        <Button
-                          type="button"
-                          color="minimal"
-                          className="w-full rounded-none"
-                          data-testid={"event-type-duplicate-" + type.id}
-                          StartIcon={Icon.FiCopy}
-                          onClick={() => openModal(group, type)}>
-                          {t("duplicate") as string}
-                        </Button>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator className="h-px bg-gray-200" />
-                      <DropdownMenuItem className="outline-none">
-                        <Button
-                          onClick={() => {
-                            setDeleteDialogOpen(true);
-                            setDeleteDialogTypeId(type.id);
-                          }}
-                          color="destructive"
-                          StartIcon={Icon.FiTrash}
-                          className="w-full rounded-none">
-                          {t("delete") as string}
-                        </Button>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
+                        <DropdownMenuSeparator className="h-px bg-gray-200" />
+                        <DropdownMenuItem className="outline-none">
+                          <Button
+                            onClick={() => {
+                              setDeleteDialogOpen(true);
+                              setDeleteDialogTypeId(type.id);
+                            }}
+                            color="destructive"
+                            StartIcon={Icon.FiTrash}
+                            className="w-full rounded-none">
+                            {t("delete") as string}
+                          </Button>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenuPortal>
                   </Dropdown>
                 </div>
               </div>

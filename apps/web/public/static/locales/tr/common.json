@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "Şifrenizi sıfırlamak için aşağıdaki bağlantıyı kullanın",
   "hey_there": "Selam,",
   "forgot_your_password_calcom": "Şifrenizi mi unuttunuz? - Cal.com",
-  "event_type_title": "{{eventTypeTitle}} | Etkinlik Türü",
   "delete_webhook_confirmation_message": "Bu web kancasını silmek istediğinizden emin misiniz? Bir etkinlik planlandığında veya iptal edildiğinde, Cal.com toplantı verilerini gerçek zamanlı olarak belirli bir URL'de almazsınız.",
   "confirm_delete_webhook": "Evet, web kancasını sil",
   "edit_webhook": "Web kancasını düzenle",
@@ -633,7 +632,6 @@
   "billing": "Fatura",
   "manage_your_billing_info": "Fatura bilgilerinizi yönetin ve aboneliğinizi iptal edin.",
   "availability": "Müsaitlik",
-  "availability_title": "{{availabilityTitle}} | Müsaitlik Durumu",
   "edit_availability": "Müsaitlik durumunu düzenle",
   "configure_availability": "Rezervasyon için uygun olduğunuz zamanları yapılandırın.",
   "copy_times_to": "Saatleri şuraya kopyala:",
@@ -839,7 +837,6 @@
   "redirect_success_booking": "Rezervasyonu yönlendir ",
   "you_are_being_redirected": "$t(second, {\"count\": {{seconds}} }) içinde {{ url }} adresine yönlendirileceksiniz.",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
-  "redirect_url_upgrade_description": "Bu özelliği kullanmak için Pro hesabına geçmeniz gerekiyor.",
   "duplicate": "Çoğalt",
   "offer_seats": "Yer teklif et",
   "offer_seats_description": "Rezervasyonlar için koltuk teklif edin (bu işlem, misafirleri ve rezervasyon onaylarını devre dışı bırakır)",
@@ -1267,5 +1264,9 @@
   "confirm_password_change_email": "Lütfen e-posta adresinizi değiştirmeden önce şifrenizi onaylayın",
   "seats": "yer",
   "every_app_published": "Cal.com Uygulama Mağazası'nda yayınlanan her uygulama açık kaynak kodludur ve uzman incelemeleriyle kapsamlı bir şekilde test edilmiştir. Cal.com, Cal.com tarafından yayınlanmadıkça bu uygulamaları desteklemez veya onaylamaz. Herhangi bir uygunsuz içerik veya davranışla karşılaşırsanız lütfen bize bildirin.",
-  "report_app": "Uygulamayı bildir"
+  "report_app": "Uygulamayı bildir",
+  "billing_manage_details_title": "Fatura bilgilerinizi görüntüleyin ve yönetin",
+  "billing_manage_details_description": "Fatura bilgilerinizi görüntüleyin ve düzenleyin, ayrıca aboneliğinizi iptal edin.",
+  "billing_help_title": "Başka bir şeye ihtiyacınız var mı?",
+  "billing_help_description": "Faturalandırma konusunda daha fazla yardıma ihtiyacınız olursa destek ekibimiz size yardımcı olmaya hazır."
 }

@@ -54,8 +54,14 @@ const config: Config = {
       displayName: "@calcom/api",
       roots: ["<rootDir>/apps/api"],
       testMatch: ["**/test/lib/**/*.(spec|test).(ts|tsx|js)"],
+      setupFilesAfterEnv: ["<rootDir>/tests/config/singleton.ts"],
       transform: {
         "^.+\\.ts?$": "ts-jest",
+      },
+      globals: {
+        "ts-jest": {
+          tsconfig: "<rootDir>/apps/api/tsconfig.json",
+        },
       },
       transformIgnorePatterns: ["/node_modules/", "^.+\\.module\\.(css|sass|scss)$"],
       testEnvironment: "node",

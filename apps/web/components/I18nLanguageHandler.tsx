@@ -10,7 +10,9 @@ export function useViewerI18n() {
      * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
      * We intend to not cache i18n query
      **/
-    context: { skipBatch: true },
+    trpc: {
+      context: { skipBatch: true },
+    },
   });
 }
 
