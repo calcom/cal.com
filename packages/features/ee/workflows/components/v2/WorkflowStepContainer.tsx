@@ -492,7 +492,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <DialogContent useOwnActionButtons type="creation" className="sm:max-w-[610px] md:h-[570px]">
             <div className="-m-3 h-[430px] overflow-x-hidden overflow-y-scroll sm:m-0">
               <h1 className="w-full text-xl font-semibold ">{t("how_additional_inputs_as_variables")}</h1>
-              <div className="mt-7 rounded-md bg-gray-50 p-3 sm:p-5">
+              <div className="mb-7 mt-7 rounded-md bg-gray-50 p-3 sm:p-4">
                 <p className="test-sm font-medium">{t("format")}</p>
                 <ul className="mt-2 ml-5 list-disc text-gray-900">
                   <li>{t("uppercase_for_letters")}</li>
@@ -534,7 +534,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
               </div>
             </div>
-            <div className="mt-3 -mb-7 flex flex-row-reverse gap-x-2">
+            <div className="flex flex-row-reverse">
               <DialogClose asChild>
                 <Button color="primary" type="button">
                   {t("close")}
