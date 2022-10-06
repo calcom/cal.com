@@ -32,7 +32,13 @@ async function createOrlistAllSchedules(
        *         description: No schedules were found
        */
       const data = await prisma.schedule.findMany({
-        where: { userId: body.userId && isAdmin ? body.userId : userId },
+        // where: { userId: body.userId && isAdmin ? body.userId : userId },
+        where: {
+          ...(Array.isArray(body.userId)
+            ? { userId: { in: body.userId } }
+            : { userId: body.userId || userId }),
+        },
+        ...(Array.isArray(body.userId) && { orderBy: { userId: "asc" } }),
       });
       const schedules = data.map((schedule) => schemaSchedulePublic.parse(schedule));
       if (schedules) res.status(200).json({ schedules });
