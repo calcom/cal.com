@@ -12,17 +12,18 @@ export async function scheduleById(
   { method, query, body, userId, isAdmin, prisma }: NextApiRequest,
   res: NextApiResponse<ScheduleResponse>
 ) {
-  if (body.userId && !isAdmin) {
+  const safeQuery = schemaQueryIdParseInt.safeParse(query);
+  const safeBody = schemaScheduleBodyParams.safeParse(body);
+
+  if (safeBody.data.userId && !isAdmin) {
     res.status(401).json({ message: "Unauthorized" });
     return;
   }
-  const safeQuery = schemaQueryIdParseInt.safeParse(query);
-  const safeBody = schemaScheduleBodyParams.safeParse(body);
   if (!safeQuery.success) {
     res.status(400).json({ message: "Your query was invalid" });
     return;
   }
-  const userSchedules = await prisma.schedule.findMany({ where: { userId: body.userId || userId } });
+  const userSchedules = await prisma.schedule.findMany({ where: { userId: safeBody.data.userId || userId } });
   const userScheduleIds = userSchedules.map((schedule) => schedule.id);
   if (!userScheduleIds.includes(safeQuery.data.id)) {
     res.status(401).json({ message: "Unauthorized" });
@@ -56,7 +57,7 @@ export async function scheduleById(
         await prisma.schedule
           .findUnique({
             where: { id: safeQuery.data.id },
-            include: { availability: { select: { id: true } } },
+            include: { availability: true },
           })
           .then((data) => schemaSchedulePublic.parse(data))
           .then((schedule) => res.status(200).json({ schedule }))
@@ -98,6 +99,9 @@ export async function scheduleById(
             return;
           }
         }
+
+        delete safeBody.data.userId;
+
         await prisma.schedule
           .update({ where: { id: safeQuery.data.id }, data: safeBody.data })
           .then((data) => schemaSchedulePublic.parse(data))

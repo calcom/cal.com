@@ -1,11 +1,12 @@
 import { z } from "zod";
 
-import { _ScheduleModel as Schedule } from "@calcom/prisma/zod";
+import { _ScheduleModel as Schedule, _AvailabilityModel as Availability } from "@calcom/prisma/zod";
 
 const schemaScheduleBaseBodyParams = Schedule.omit({ id: true }).partial();
 
 const schemaScheduleRequiredParams = z.object({
-  name: z.string(),
+  name: z.string().optional(),
+  userId: z.union([z.number(), z.array(z.number())]).optional(),
 });
 
 export const schemaScheduleBodyParams = schemaScheduleBaseBodyParams.merge(schemaScheduleRequiredParams);
@@ -15,6 +16,8 @@ export const schemaSchedulePublic = z
   .merge(Schedule)
   .merge(
     z.object({
-      availability: z.array(z.object({ id: z.number() })).optional(),
+      availability: z
+        .array(Availability.pick({ id: true, eventTypeId: true, days: true, startTime: true, endTime: true }))
+        .optional(),
     })
   );
