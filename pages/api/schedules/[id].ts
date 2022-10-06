@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { ScheduleResponse } from "@lib/types";
-import { schemaScheduleBodyParams, schemaSchedulePublic } from "@lib/validations/schedule";
+import { schemaSingleScheduleBodyParams, schemaSchedulePublic } from "@lib/validations/schedule";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
@@ -13,7 +13,11 @@ export async function scheduleById(
   res: NextApiResponse<ScheduleResponse>
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
-  const safeBody = schemaScheduleBodyParams.safeParse(body);
+  const safeBody = schemaSingleScheduleBodyParams.safeParse(body);
+  if (!safeBody.success) {
+    res.status(400).json({ message: "Bad request" });
+    return;
+  }
 
   if (safeBody.data.userId && !isAdmin) {
     res.status(401).json({ message: "Unauthorized" });

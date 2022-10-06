@@ -4,15 +4,26 @@ import { getAvailabilityFromSchedule, DEFAULT_SCHEDULE } from "@calcom/lib/avail
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { ScheduleResponse, SchedulesResponse } from "@lib/types";
-import { schemaScheduleBodyParams, schemaSchedulePublic } from "@lib/validations/schedule";
+import {
+  schemaScheduleBodyParams,
+  schemaSchedulePublic,
+  schemaCreateScheduleBodyParams,
+} from "@lib/validations/schedule";
 
 async function createOrlistAllSchedules(
   { method, body, userId, isAdmin, prisma }: NextApiRequest,
   res: NextApiResponse<SchedulesResponse | ScheduleResponse>
 ) {
-  const safeBody = schemaScheduleBodyParams.safeParse(body);
+  const safe = schemaScheduleBodyParams.safeParse(body);
 
-  if (safeBody.data.userId && !isAdmin) {
+  if (!safe.success) {
+    res.status(400).json({ message: "Bad request" });
+    return;
+  }
+
+  const safeBody = safe.data;
+
+  if (safeBody.userId && !isAdmin) {
     res.status(401).json({ message: "Unauthorized" });
     return;
   } else {
@@ -34,14 +45,13 @@ async function createOrlistAllSchedules(
        *         description: No schedules were found
        */
 
-      const userIds = Array.isArray(safeBody.data.userId)
-        ? safeBody.data.userId
-        : [safeBody.data.userId || userId];
+      const userIds = Array.isArray(safeBody.userId) ? safeBody.userId : [safeBody.userId || userId];
 
       const data = await prisma.schedule.findMany({
         where: {
           userId: { in: userIds },
         },
+        include: { availability: true },
         ...(Array.isArray(body.userId) && { orderBy: { userId: "asc" } }),
       });
       const schedules = data.map((schedule) => schemaSchedulePublic.parse(schedule));
@@ -69,7 +79,7 @@ async function createOrlistAllSchedules(
        *       401:
        *        description: Authorization information is missing or invalid.
        */
-      const safe = schemaScheduleBodyParams.safeParse(body);
+      const safe = schemaCreateScheduleBodyParams.safeParse(body);
       if (body.userId && !isAdmin) {
         res.status(401).json({ message: "Unauthorized" });
         return;
@@ -79,10 +89,11 @@ async function createOrlistAllSchedules(
         res.status(400).json({ message: "Invalid request body" });
         return;
       }
+
       const data = await prisma.schedule.create({
         data: {
           ...safe.data,
-          userId: body.userId && isAdmin ? body.userId : userId,
+          userId: safe.data.userId || userId,
           availability: {
             createMany: {
               data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE).map((schedule) => ({

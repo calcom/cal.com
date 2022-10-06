@@ -11,6 +11,14 @@ const schemaScheduleRequiredParams = z.object({
 
 export const schemaScheduleBodyParams = schemaScheduleBaseBodyParams.merge(schemaScheduleRequiredParams);
 
+export const schemaSingleScheduleBodyParams = schemaScheduleBaseBodyParams.merge(
+  z.object({ userId: z.number().optional() })
+);
+
+export const schemaCreateScheduleBodyParams = schemaScheduleBaseBodyParams.merge(
+  z.object({ userId: z.number().optional(), name: z.string() })
+);
+
 export const schemaSchedulePublic = z
   .object({ id: z.number() })
   .merge(Schedule)
