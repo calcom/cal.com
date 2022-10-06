@@ -837,7 +837,6 @@
   "redirect_success_booking": "Перенаправление при бронировании ",
   "you_are_being_redirected": "Перенаправление на {{ url }} произойдет через $t(second, {\"count\": {{seconds}} }).",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
-  "redirect_url_upgrade_description": "Чтобы использовать эту функцию, необходимо перейти на аккаунт Pro.",
   "duplicate": "Создать копию",
   "offer_seats": "Предложить места",
   "offer_seats_description": "Предлагать места при бронировании (при этом отключается гостевой режим и бронирование с подтверждением)",

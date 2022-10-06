@@ -837,7 +837,6 @@
   "redirect_success_booking": "Reindirizza su prenotazione ",
   "you_are_being_redirected": "Verrai reindirizzato a {{ url }} tra $t(second, {\"count\": {{seconds}} }).",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
-  "redirect_url_upgrade_description": "Per poter utilizzare questa funzionalità, è necessario passare a un account Pro.",
   "duplicate": "Duplica",
   "offer_seats": "Imposta posti",
   "offer_seats_description": "Imposta i posti da prenotare (ciò disabiliterà le prenotazioni ospite e le prenotazioni opt-in)",

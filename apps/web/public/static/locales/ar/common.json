@@ -837,7 +837,6 @@
   "redirect_success_booking": "إعادة التوجيه عند الحجز ",
   "you_are_being_redirected": "ستتم إعادة توجيهك إلى {{ url }} خلال $t(second, {\"count\": {{seconds}} }).",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
-  "redirect_url_upgrade_description": "لاستخدام هذه الميزة، تحتاج إلى الترقية إلى حساب Pro.",
   "duplicate": "تكرار",
   "offer_seats": "عرض مقاعد",
   "offer_seats_description": "عرض مقاعد للحجز (هذا يعطل الضيوف والتسجيل في الحجز)",

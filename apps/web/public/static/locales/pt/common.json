@@ -837,7 +837,6 @@
   "redirect_success_booking": "Redireccionar ao reservar ",
   "you_are_being_redirected": "Está a ser redireccionado para {{ url }} em $t(second, {\"count\": {{seconds}} }).",
   "external_redirect_url": "https://exemplo.com/redireccionar-para-pagina-de-sucesso",
-  "redirect_url_upgrade_description": "Para usar esta funcionalidade, tem de actualizar para uma conta Pro.",
   "duplicate": "Duplicar",
   "offer_seats": "Oferecer lugares",
   "offer_seats_description": "Oferecer lugares para reservas (isto desactiva os convidados e confirmações nas reservas)",

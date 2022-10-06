@@ -837,7 +837,6 @@
   "redirect_success_booking": "预约时重定向",
   "you_are_being_redirected": "您将在 $t(second, {\"count\": {{seconds}} }) 秒后重定向到 {{ url }}。",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
-  "redirect_url_upgrade_description": "要使用此功能，您需要升级到专业版帐户。",
   "duplicate": "复制",
   "offer_seats": "提供位置",
   "offer_seats_description": "提供位置以供预约(这将禁止访客并选择预约)",
