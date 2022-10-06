@@ -837,7 +837,7 @@
   "redirect_success_booking": "Redirect on booking ",
   "you_are_being_redirected": "You are being redirected to {{ url }} in $t(second, {\"count\": {{seconds}} }).",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
-  "redirect_url_upgrade_description": "In order to use this feature, you need to upgrade to a Pro account.",
+  "redirect_url_description": "Redirect to a custom URL after a successful booking",
   "duplicate": "Duplicate",
   "offer_seats": "Offer seats",
   "offer_seats_description": "Offer seats for booking. This automatically disables guest & opt-in bookings.",

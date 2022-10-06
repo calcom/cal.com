@@ -837,7 +837,6 @@
   "redirect_success_booking": "Redirecționare la rezervare ",
   "you_are_being_redirected": "Sunteți redirecționat către {{ url }} în $t(second, {\"count\": {{seconds}} }).",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
-  "redirect_url_upgrade_description": "Pentru a utiliza această caracteristică, trebuie să faceți upgrade la un cont Pro.",
   "duplicate": "Duplicare",
   "offer_seats": "Oferiți locuri",
   "offer_seats_description": "Oferiți locuri pentru rezervări (se dezactivează astfel oaspeții și rezervările la alegere)",

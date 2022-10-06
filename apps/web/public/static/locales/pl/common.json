@@ -837,7 +837,6 @@
   "redirect_success_booking": "Przekieruj przy rezerwacji ",
   "you_are_being_redirected": "Zostałeś przekierowany do {{ url }} w $t(second, {\"count\": {{seconds}} }).",
   "external_redirect_url": "https://example.com/przekieruj-do-moja-strona",
-  "redirect_url_upgrade_description": "Aby korzystać z tej funkcji, musisz uaktualnić do konta Pro.",
   "duplicate": "Duplikat",
   "offer_seats": "Zaproponuj miejsca",
   "offer_seats_description": "Zaoferuj miejsca do zarezerwowania (ta funkcja wyłącza rezerwacje gości i rezerwacje wstępne)",
