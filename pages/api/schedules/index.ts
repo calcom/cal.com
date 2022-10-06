@@ -32,7 +32,6 @@ async function createOrlistAllSchedules(
        *         description: No schedules were found
        */
       const data = await prisma.schedule.findMany({
-        // where: { userId: body.userId && isAdmin ? body.userId : userId },
         where: {
           ...(Array.isArray(body.userId)
             ? { userId: { in: body.userId } }
