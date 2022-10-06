@@ -311,7 +311,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
               )}
               <div className="mt-5">
-                <Label />
+                <Label>{t("message_template")}</Label>
                 <Controller
                   name={`steps.${step.stepNumber - 1}.template`}
                   control={form.control}
