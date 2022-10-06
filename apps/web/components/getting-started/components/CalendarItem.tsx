@@ -14,10 +14,11 @@ const CalendarItem = (props: ICalendarItem) => {
   const { title, imageSrc, type } = props;
   const { t } = useLocale();
   return (
-    <div className="flex flex-row items-center p-5">
-      <img src={imageSrc} alt={title} className="h-8 w-8" />
-      <p className="mx-3 text-sm font-bold">{title}</p>
-
+    <div className="flex flex-row items-center justify-between p-5">
+      <div className="flex items-center space-x-3">
+        <img src={imageSrc} alt={title} className="h-8 w-8" />
+        <p className="text-sm font-bold">{title}</p>
+      </div>
       <InstallAppButtonWithoutPlanCheck
         type={type}
         render={(buttonProps) => (
@@ -29,8 +30,7 @@ const CalendarItem = (props: ICalendarItem) => {
               // Save cookie key to return url step
               document.cookie = `return-to=${window.location.href};path=/;max-age=3600;SameSite=Lax`;
               buttonProps && buttonProps.onClick && buttonProps?.onClick(event);
-            }}
-            className="ml-auto rounded-md border border-gray-200 py-[10px] px-4 text-sm font-bold">
+            }}>
             {t("connect")}
           </Button>
         )}

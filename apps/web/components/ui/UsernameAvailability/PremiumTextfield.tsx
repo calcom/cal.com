@@ -91,11 +91,10 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const isCurrentUsernamePremium =
     user && user.metadata && hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
   const [isInputUsernamePremium, setIsInputUsernamePremium] = useState(false);
-
   const debouncedApiCall = useCallback(
-    debounce(async (username) => {
+    debounce(async (username: string) => {
       const { data } = await fetchUsername(username);
-      setMarkAsError(!data.available && username && username !== currentUsername);
+      setMarkAsError(!data.available && !!currentUsername && username !== currentUsername);
       setIsInputUsernamePremium(data.premium);
       setUsernameIsAvailable(data.available);
     }, 150),
