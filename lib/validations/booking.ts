@@ -16,6 +16,7 @@ const schemaBookingCreateParams = z
     title: z.string(),
     startTime: z.date().or(z.string()),
     endTime: z.date().or(z.string()),
+    recurringCount: z.number().optional(),
   })
   .strict();
 
