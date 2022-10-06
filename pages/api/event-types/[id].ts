@@ -12,19 +12,24 @@ export async function eventTypeById(
   { method, query, body, userId, isAdmin, prisma }: NextApiRequest,
   res: NextApiResponse<EventTypeResponse>
 ) {
+  if (body.userId && !isAdmin) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   if (!safeQuery.success) {
     res.status(400).json({ message: "Your query was invalid" });
     return;
   }
   const data = await prisma.user.findUnique({
-    where: { id: userId },
+    where: { id: body.userId || userId },
     rejectOnNotFound: true,
     select: { eventTypes: true },
   });
   const userEventTypes = data.eventTypes.map((eventType) => eventType.id);
-  if (!isAdmin) {
-    if (!userEventTypes.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
+  if (!userEventTypes.includes(safeQuery.data.id)) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
   } else {
     switch (method) {
       /**
@@ -96,6 +101,7 @@ export async function eventTypeById(
        */
       case "PATCH":
         const safeBody = schemaEventTypeEditBodyParams.safeParse(body);
+
         if (!safeBody.success) {
           {
             res.status(400).json({ message: "Invalid request body" });
