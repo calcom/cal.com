@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from "react";
 import { RRule } from "rrule";
 import { z } from "zod";
 
+import BookingPageScripts from "@calcom/app-store/BookingPageScripts";
 import { getEventLocationValue, getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { getEventName } from "@calcom/core/event";
@@ -273,6 +274,7 @@ export default function Success(props: SuccessProps) {
         </div>
       )}
       <HeadSeo title={title} description={title} />
+      <BookingPageScripts eventType={eventType} />
       <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
         <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
