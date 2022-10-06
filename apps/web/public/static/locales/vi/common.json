@@ -1265,5 +1265,9 @@
   "confirm_password_change_email": "Vui lòng xác nhận mật khẩu của bạn trước khi đổi địa chỉ email",
   "seats": "ghế",
   "every_app_published": "Mọi ứng dụng được công bố trên Cal.com App Store là dạng mã nguồn mở và được kiểm nghiệm kĩ càng thông qua khâu bình duyệt ngang hàng. Dẫu vậy, Cal.com, Inc. không công nhận hay chứng nhận những ứng dụng nếu chúng không do Cal.com công bố. Nếu bạn gặp nội dụng hay hành vi không đúng mực nào, vui lòng báo cáo vụ việc.",
-  "report_app": "Báo cáo ứng dụng"
+  "report_app": "Báo cáo ứng dụng",
+  "billing_manage_details_title": "Xem và quản lý chi tiết thanh toán của bạn",
+  "billing_manage_details_description": "Xem và chỉnh sửa chi tiết thanh toán của bạn, cũng như hủy đăng ký gói của bạn.",
+  "billing_help_title": "Cần gì nữa không?",
+  "billing_help_description": "Nếu bạn cần thêm bất kỳ trợ giúp nào về thanh toán, nhóm hỗ trợ của chúng tôi luôn sẵn sàng trợ giúp."
 }

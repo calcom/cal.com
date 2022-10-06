@@ -26,6 +26,7 @@ import Dropdown, {
   DropdownMenuPortal,
 } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
+import TimezoneChangeDialog from "@calcom/ui/TimezoneChangeDialog";
 import Button from "@calcom/ui/v2/core/Button";
 
 /* TODO: Get this from endpoint */
@@ -134,6 +135,9 @@ const Layout = (props: LayoutProps) => {
       <div>
         <Toaster position="bottom-right" />
       </div>
+
+      {/* todo: only run this if timezone is different */}
+      <TimezoneChangeDialog />
 
       <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
         {props.SidebarContainer || <SideBarContainer />}
@@ -782,7 +786,7 @@ export function ShellMain(props: LayoutProps) {
               <div
                 className={classNames(
                   props.backPath ? "relative" : "fixed right-4 bottom-[75px] z-40 ",
-                  "cta mb-4 flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto sm:z-0"
+                  "cta mb-4 flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto"
                 )}>
                 {props.CTA}
               </div>
