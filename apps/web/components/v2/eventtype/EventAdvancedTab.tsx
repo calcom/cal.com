@@ -40,6 +40,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
   const { t } = useLocale();
   const [showEventNameTip, setShowEventNameTip] = useState(false);
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
+  const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!eventType.successRedirectUrl);
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
   const [seatsInputVisible, setSeatsInputVisible] = useState(!!eventType.seatsPerTimeSlot);
   const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
@@ -245,6 +246,48 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               </Skeleton>
             </div>
           </div>
+        )}
+      />
+      <hr />
+
+      <Controller
+        name="successRedirectUrl"
+        control={formMethods.control}
+        defaultValue={hashedUrl}
+        render={({ field: { value, onChange } }) => (
+          <>
+            <div className="flex space-x-3 ">
+              <Switch
+                name="successRedirectUrlCheck"
+                fitToHeight={true}
+                defaultChecked={redirectUrlVisible}
+                onCheckedChange={(e) => {
+                  setRedirectUrlVisible(e);
+                  onChange(e ? value : "");
+                }}
+              />
+              <div className="flex flex-col">
+                <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
+                  {t("redirect_success_booking")}
+                </Skeleton>
+                <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
+                  {t("redirect_url_description")}
+                </Skeleton>
+              </div>
+            </div>
+            {redirectUrlVisible && (
+              <div className="">
+                <TextField
+                  label={t("redirect_success_booking")}
+                  placeholder={t("external_redirect_url")}
+                  required={redirectUrlVisible}
+                  type="text"
+                  defaultValue={eventType.successRedirectUrl || ""}
+                  {...formMethods.register("successRedirectUrl")}
+                />
+              </div>
+            )}
+          </>
         )}
       />
       <hr />

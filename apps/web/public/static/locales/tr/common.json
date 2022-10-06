@@ -837,7 +837,6 @@
   "redirect_success_booking": "Rezervasyonu yönlendir ",
   "you_are_being_redirected": "$t(second, {\"count\": {{seconds}} }) içinde {{ url }} adresine yönlendirileceksiniz.",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
-  "redirect_url_upgrade_description": "Bu özelliği kullanmak için Pro hesabına geçmeniz gerekiyor.",
   "duplicate": "Çoğalt",
   "offer_seats": "Yer teklif et",
   "offer_seats_description": "Rezervasyonlar için koltuk teklif edin (bu işlem, misafirleri ve rezervasyon onaylarını devre dışı bırakır)",
