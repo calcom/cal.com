@@ -50,10 +50,19 @@ export const scheduleWorkflowReminders = async (
             );
           } else if (
             step.action === WorkflowActions.EMAIL_ATTENDEE ||
-            step.action === WorkflowActions.EMAIL_HOST
+            step.action === WorkflowActions.EMAIL_HOST ||
+            step.action === WorkflowActions.EMAIL_ADDRESS
           ) {
-            const sendTo =
-              step.action === WorkflowActions.EMAIL_HOST ? evt.organizer.email : evt.attendees[0].email;
+            let sendTo = "";
+
+            switch (step.action) {
+              case WorkflowActions.EMAIL_HOST:
+                sendTo = evt.organizer.email;
+              case WorkflowActions.EMAIL_ATTENDEE:
+                sendTo = evt.attendees[0].email;
+              case WorkflowActions.EMAIL_ADDRESS:
+                sendTo = step.sendTo || "";
+            }
             scheduleEmailReminder(
               evt,
               workflow.trigger,

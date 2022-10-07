@@ -58,7 +58,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   );
 
   const [isEmailSubjectNeeded, setIsEmailSubjectNeeded] = useState(
-    step?.action === WorkflowActions.EMAIL_ATTENDEE || step?.action === WorkflowActions.EMAIL_HOST
+    step?.action === WorkflowActions.EMAIL_ATTENDEE ||
+      step?.action === WorkflowActions.EMAIL_HOST ||
+      step?.action === WorkflowActions.EMAIL_ADDRESS
       ? true
       : false
   );
@@ -268,9 +270,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setIsEmailAddressNeeded(false);
                               setIsPhoneNumberNeeded(false);
                             }
+                            form.unregister(`steps.${step.stepNumber - 1}.sendTo`);
+                            form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
                             if (
                               val.value === WorkflowActions.EMAIL_ATTENDEE ||
-                              val.value === WorkflowActions.EMAIL_HOST
+                              val.value === WorkflowActions.EMAIL_HOST ||
+                              val.value === WorkflowActions.EMAIL_ADDRESS
                             ) {
                               setIsEmailSubjectNeeded(true);
                             } else {
@@ -455,16 +460,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         reminderBody,
                         template: step.template,
                       });
-                    }
+                    } else {
+                      const isNumberValid =
+                        form.formState.errors.steps &&
+                        form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo
+                          ? false
+                          : true;
 
-                    const isNumberValid =
-                      form.formState.errors.steps &&
-                      form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo
-                        ? false
-                        : true;
-
-                    if (isPhoneNumberNeeded && isNumberValid && !isEmpty) {
-                      setConfirmationDialogOpen(true);
+                      if (isPhoneNumberNeeded && isNumberValid && !isEmpty) {
+                        setConfirmationDialogOpen(true);
+                      }
                     }
                   }}
                   color="secondary">
