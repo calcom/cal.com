@@ -15,7 +15,12 @@ async function createOrlistAllSchedules(
   { method, body, userId, isAdmin, prisma }: NextApiRequest,
   res: NextApiResponse<SchedulesResponse | ScheduleResponse>
 ) {
-  const safe = schemaScheduleBodyParams.safeParse(safeParseJSON(body));
+  body = safeParseJSON(body);
+  if (!body.success) {
+    res.status(400).json({ message: body.message });
+  }
+
+  const safe = schemaScheduleBodyParams.safeParse(body);
 
   if (!safe.success) {
     res.status(400).json({ message: "Bad request" });
