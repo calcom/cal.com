@@ -61,7 +61,8 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, 
     startTime: /* Why? */ startOfDayUTC.add(schedule.startTime, "minute"),
     endTime: /* Why? */ startOfDayUTC.add(schedule.endTime, "minute"),
   }));
-  const localWorkingHours = getWorkingHours({ utcOffset: -inviteeDate.utcOffset() }, workingHoursUTC).filter(
+
+  const localWorkingHours = getWorkingHours({ utcOffset: -dayjs().utcOffset() }, workingHoursUTC).filter(
     (hours) => hours.days.includes(inviteeDate.day())
   );
 
