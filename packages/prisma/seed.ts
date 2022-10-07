@@ -291,7 +291,7 @@ async function main() {
             recurringEventId: Buffer.from("yoga-class").toString("base64"),
             startTime: dayjs().add(1, "day").toDate(),
             endTime: dayjs().add(1, "day").add(30, "minutes").toDate(),
-            status: BookingStatus.PENDING,
+            status: BookingStatus.ACCEPTED,
           },
           {
             uid: uuid(),
@@ -299,7 +299,7 @@ async function main() {
             recurringEventId: Buffer.from("yoga-class").toString("base64"),
             startTime: dayjs().add(1, "day").add(1, "week").toDate(),
             endTime: dayjs().add(1, "day").add(1, "week").add(30, "minutes").toDate(),
-            status: BookingStatus.PENDING,
+            status: BookingStatus.ACCEPTED,
           },
           {
             uid: uuid(),
@@ -307,7 +307,7 @@ async function main() {
             recurringEventId: Buffer.from("yoga-class").toString("base64"),
             startTime: dayjs().add(1, "day").add(2, "week").toDate(),
             endTime: dayjs().add(1, "day").add(2, "week").add(30, "minutes").toDate(),
-            status: BookingStatus.PENDING,
+            status: BookingStatus.ACCEPTED,
           },
           {
             uid: uuid(),
@@ -315,7 +315,7 @@ async function main() {
             recurringEventId: Buffer.from("yoga-class").toString("base64"),
             startTime: dayjs().add(1, "day").add(3, "week").toDate(),
             endTime: dayjs().add(1, "day").add(3, "week").add(30, "minutes").toDate(),
-            status: BookingStatus.PENDING,
+            status: BookingStatus.ACCEPTED,
           },
           {
             uid: uuid(),
@@ -323,7 +323,7 @@ async function main() {
             recurringEventId: Buffer.from("yoga-class").toString("base64"),
             startTime: dayjs().add(1, "day").add(4, "week").toDate(),
             endTime: dayjs().add(1, "day").add(4, "week").add(30, "minutes").toDate(),
-            status: BookingStatus.PENDING,
+            status: BookingStatus.ACCEPTED,
           },
           {
             uid: uuid(),
@@ -331,7 +331,7 @@ async function main() {
             recurringEventId: Buffer.from("yoga-class").toString("base64"),
             startTime: dayjs().add(1, "day").add(5, "week").toDate(),
             endTime: dayjs().add(1, "day").add(5, "week").add(30, "minutes").toDate(),
-            status: BookingStatus.PENDING,
+            status: BookingStatus.ACCEPTED,
           },
         ],
       },

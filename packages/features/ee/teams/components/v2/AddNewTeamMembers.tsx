@@ -6,8 +6,10 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Button, Avatar, Badge } from "@calcom/ui/v2";
-import { SkeletonContainer, SkeletonText } from "@calcom/ui/v2";
+import Avatar from "@calcom/ui/v2/core/Avatar";
+import Badge from "@calcom/ui/v2/core/Badge";
+import Button from "@calcom/ui/v2/core/Button";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
 const AddNewTeamMemberSkeleton = () => {
   return (
@@ -58,7 +60,7 @@ const AddNewTeamMembers = (props: { teamId: number }) => {
                   <Avatar
                     gravatarFallbackMd5="teamMember"
                     size="mdLg"
-                    imageSrc={member?.avatar}
+                    imageSrc={WEBAPP_URL + "/" + member.username + "/avatar.png"}
                     alt="owner-avatar"
                   />
                   <div>
