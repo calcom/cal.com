@@ -83,6 +83,7 @@ export type FormValues = {
   giphyThankYouPage: string;
   blockchainId: number;
   smartContractAddress: string;
+  additionalNotesRequired: boolean;
 };
 
 const querySchema = z.object({
@@ -224,6 +225,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             locations,
             blockchainId,
             smartContractAddress,
+            additionalNotesRequired,
             // We don't need to send it to the backend
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             seatsPerTimeSlotEnabled,
@@ -245,6 +247,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
               ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
               ...(smartContractAddress ? { smartContractAddress } : {}),
               ...(blockchainId ? { blockchainId } : { blockchainId: 1 }),
+              ...(additionalNotesRequired ? { additionalNotesRequired } : {}),
             },
           });
         }}>
