@@ -821,7 +821,11 @@ export const workflowsRouter = createProtectedRouter()
           };
         }
 
-        if (action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.EMAIL_HOST) {
+        if (
+          action === WorkflowActions.EMAIL_ATTENDEE ||
+          action === WorkflowActions.EMAIL_HOST ||
+          action === WorkflowActions.EMAIL_ADDRESS
+        ) {
           scheduleEmailReminder(
             evt,
             WorkflowTriggerEvents.NEW_EVENT,
