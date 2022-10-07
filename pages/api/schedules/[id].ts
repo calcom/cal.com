@@ -23,7 +23,7 @@ export async function scheduleById(
     res.status(400).json({ message: "Bad request" });
     return;
   }
-  
+
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   if (safeBody.data.userId && !isAdmin) {
     res.status(401).json({ message: "Unauthorized" });
