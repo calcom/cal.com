@@ -1,7 +1,7 @@
 import { AppCategories, BookingStatus, IdentityProvider, MembershipRole, Prisma } from "@prisma/client";
 import _ from "lodash";
 import { authenticator } from "otplib";
-import { z } from "zod";
+import z from "zod";
 
 import app_RoutingForms from "@calcom/app-store/ee/routing-forms/trpc-router";
 import ethRouter from "@calcom/app-store/rainbow/trpc/router";
@@ -445,20 +445,12 @@ const loggedInViewerRouter = createProtectedRouter()
           // handled separately for each occurrence
           OR: [
             {
-              AND: [
-                { NOT: { recurringEventId: { equals: null } } },
-                {
-                  status: {
-                    notIn: [BookingStatus.PENDING, BookingStatus.CANCELLED, BookingStatus.REJECTED],
-                  },
-                },
-              ],
+              recurringEventId: { not: null },
+              status: { notIn: [BookingStatus.PENDING, BookingStatus.CANCELLED, BookingStatus.REJECTED] },
             },
             {
-              AND: [
-                { recurringEventId: { equals: null } },
-                { status: { notIn: [BookingStatus.CANCELLED, BookingStatus.REJECTED] } },
-              ],
+              recurringEventId: { equals: null },
+              status: { notIn: [BookingStatus.CANCELLED, BookingStatus.REJECTED] },
             },
           ],
         },
@@ -484,7 +476,15 @@ const loggedInViewerRouter = createProtectedRouter()
         },
         unconfirmed: {
           endTime: { gte: new Date() },
-          status: { equals: BookingStatus.PENDING },
+          OR: [
+            {
+              recurringEventId: { not: null },
+              status: { equals: BookingStatus.PENDING },
+            },
+            {
+              status: { equals: BookingStatus.PENDING },
+            },
+          ],
         },
       };
       const bookingListingOrderby: Record<
@@ -563,7 +563,25 @@ const loggedInViewerRouter = createProtectedRouter()
         skip,
       });
 
-      let bookings = bookingsQuery.map((booking) => {
+      const recurringInfo = await prisma.booking.groupBy({
+        by: ["recurringEventId"],
+        _min: {
+          startTime: true,
+        },
+        _count: {
+          recurringEventId: true,
+        },
+        where: {
+          recurringEventId: {
+            not: { equals: null },
+          },
+          status: {
+            notIn: [BookingStatus.CANCELLED],
+          },
+        },
+      });
+
+      const bookings = bookingsQuery.map((booking) => {
         return {
           ...booking,
           eventType: {
@@ -574,26 +592,8 @@ const loggedInViewerRouter = createProtectedRouter()
           endTime: booking.endTime.toISOString(),
         };
       });
+
       const bookingsFetched = bookings.length;
-      const seenBookings: Record<string, boolean> = {};
-
-      // Remove duplicate recurring bookings for upcoming status.
-      // Couldn't use distinct in query because the distinct column would be different for recurring and non recurring event.
-      // We might be actually sending less then the limit, due to this filter
-      // TODO: Figure out a way to fix it.
-      if (bookingListingByStatus === "upcoming") {
-        bookings = bookings.filter((booking) => {
-          if (!booking.recurringEventId) {
-            return true;
-          }
-          if (seenBookings[booking.recurringEventId]) {
-            return false;
-          }
-          seenBookings[booking.recurringEventId] = true;
-          return true;
-        });
-      }
-
       let nextCursor: typeof skip | null = skip;
       if (bookingsFetched > take) {
         nextCursor += bookingsFetched;
@@ -603,6 +603,7 @@ const loggedInViewerRouter = createProtectedRouter()
 
       return {
         bookings,
+        recurringInfo,
         nextCursor,
       };
     },
