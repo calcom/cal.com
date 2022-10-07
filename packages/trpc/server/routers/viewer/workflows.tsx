@@ -372,7 +372,7 @@ export const workflowsRouter = createProtectedRouter()
 
       let newEventTypes: number[] = [];
       if (activeOn.length) {
-        if (trigger === WorkflowTriggerEvents.BEFORE_EVENT) {
+        if (trigger === WorkflowTriggerEvents.BEFORE_EVENT || trigger === WorkflowTriggerEvents.AFTER_EVENT) {
           newEventTypes = newActiveEventTypes;
         }
         if (newEventTypes.length > 0) {
@@ -424,7 +424,7 @@ export const workflowsRouter = createProtectedRouter()
                       : bookingInfo.attendees[0].email;
                   await scheduleEmailReminder(
                     bookingInfo,
-                    WorkflowTriggerEvents.BEFORE_EVENT,
+                    trigger,
                     step.action,
                     {
                       time,
@@ -440,7 +440,7 @@ export const workflowsRouter = createProtectedRouter()
                   await scheduleSMSReminder(
                     bookingInfo,
                     step.sendTo || "",
-                    WorkflowTriggerEvents.BEFORE_EVENT,
+                    trigger,
                     step.action,
                     {
                       time,
@@ -536,7 +536,10 @@ export const workflowsRouter = createProtectedRouter()
               return eventTypeId;
             }
           });
-          if (eventTypesToUpdateReminders && trigger === WorkflowTriggerEvents.BEFORE_EVENT) {
+          if (
+            eventTypesToUpdateReminders &&
+            (trigger === WorkflowTriggerEvents.BEFORE_EVENT || trigger === WorkflowTriggerEvents.AFTER_EVENT)
+          ) {
             const bookingsOfEventTypes = await ctx.prisma.booking.findMany({
               where: {
                 eventTypeId: {
@@ -582,7 +585,7 @@ export const workflowsRouter = createProtectedRouter()
                     : bookingInfo.attendees[0].email;
                 await scheduleEmailReminder(
                   bookingInfo,
-                  WorkflowTriggerEvents.BEFORE_EVENT,
+                  trigger,
                   newStep.action,
                   {
                     time,
@@ -598,7 +601,7 @@ export const workflowsRouter = createProtectedRouter()
                 await scheduleSMSReminder(
                   bookingInfo,
                   newStep.sendTo || "",
-                  WorkflowTriggerEvents.BEFORE_EVENT,
+                  trigger,
                   newStep.action,
                   {
                     time,
@@ -637,7 +640,8 @@ export const workflowsRouter = createProtectedRouter()
               data: step,
             });
             if (
-              trigger === WorkflowTriggerEvents.BEFORE_EVENT &&
+              (trigger === WorkflowTriggerEvents.BEFORE_EVENT ||
+                trigger === WorkflowTriggerEvents.AFTER_EVENT) &&
               eventTypesToCreateReminders &&
               step.action !== WorkflowActions.SMS_ATTENDEE
             ) {
@@ -701,7 +705,7 @@ export const workflowsRouter = createProtectedRouter()
                   await scheduleSMSReminder(
                     bookingInfo,
                     step.sendTo,
-                    WorkflowTriggerEvents.BEFORE_EVENT,
+                    trigger,
                     step.action,
                     {
                       time,
