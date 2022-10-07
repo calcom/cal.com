@@ -4,15 +4,14 @@ import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
 
-export async function getTeamWithMembers(id?: number, slug?: string) {
-  const userSelect = Prisma.validator<Prisma.UserSelect>()({
-    username: true,
-    email: true,
-    name: true,
-    id: true,
-    plan: true,
-    bio: true,
-  });
+const userSelect = Prisma.validator<Prisma.UserSelect>()({
+  username: true,
+  email: true,
+  name: true,
+  id: true,
+  plan: true,
+  bio: true,
+});
 
 const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
   id: true,
