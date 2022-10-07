@@ -24,10 +24,11 @@ export type BadgeProps = {
   size?: keyof typeof classNameBySize;
   StartIcon?: Icon;
   bold?: boolean;
+  rounded?: boolean;
 } & JSX.IntrinsicElements["div"];
 
 export const Badge = function Badge(props: BadgeProps) {
-  const { variant, className, size = "default", StartIcon, bold, ...passThroughProps } = props;
+  const { variant, className, size = "default", rounded, StartIcon, bold, ...passThroughProps } = props;
 
   return (
     <div
@@ -35,6 +36,7 @@ export const Badge = function Badge(props: BadgeProps) {
       className={classNames(
         "inline-flex items-center justify-center py-0.5 px-[6px] text-xs",
         bold ? "font-semibold" : "font-normal",
+        rounded ? "min-w-5 min-h-5 rounded-full pt-1" : "rounded-md",
         !StartIcon ? classNameBySize[size] : "",
         badgeClassNameByVariant[variant],
         className

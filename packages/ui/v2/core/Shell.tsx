@@ -389,7 +389,7 @@ function UserDropdown({ small }: { small?: boolean }) {
 export type NavigationItemType = {
   name: string;
   href: string;
-  badge?: () => JSX.Element | null;
+  badge?: React.ReactNode;
   icon?: SVGComponent;
   child?: NavigationItemType[];
   pro?: true;
@@ -626,6 +626,7 @@ const MobileNavigationItem: React.FC<{
       <a
         className="relative my-2 min-w-0 flex-1 overflow-hidden rounded-md py-2 px-1 text-center text-xs font-medium text-neutral-400 hover:bg-gray-200 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
         aria-current={current ? "page" : undefined}>
+        {item.badge && <div className="absolute right-1 top-1">{item.badge}</div>}
         {item.icon && (
           <item.icon
             className="mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center text-inherit [&[aria-current='page']]:text-gray-900"

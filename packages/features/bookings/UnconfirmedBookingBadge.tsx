@@ -10,7 +10,9 @@ export default function UnconfirmedBookingBadge() {
     return (
       <Link href="/bookings/unconfirmed">
         <a>
-          <Badge variant="orange">{unconfirmedBookingCount}</Badge>
+          <Badge rounded variant="orange">
+            {unconfirmedBookingCount}
+          </Badge>
         </a>
       </Link>
     );
