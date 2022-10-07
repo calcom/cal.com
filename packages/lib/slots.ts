@@ -42,6 +42,8 @@ const splitAvailableTime = (
 const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, eventLength }: GetSlots) => {
   // current date in invitee tz
   const startDate = dayjs().add(minimumBookingNotice, "minute");
+  // This code is ran client side, startOf() does some conversions based on the
+  // local tz of the client. Sometimes this shifts the day incorrectly.
   const startOfDayUTC = dayjs.utc().set("hour", 0).set("minute", 0).set("second", 0);
   const startOfInviteeDay = inviteeDate.startOf("day");
   // checks if the start date is in the past
@@ -62,6 +64,9 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, 
     endTime: /* Why? */ startOfDayUTC.add(schedule.endTime, "minute"),
   }));
 
+  // Dayjs does not expose the timeZone value publicly through .get("timeZone")
+  // instead, we as devs are required to somewhat hack our way to get the ...
+  // tz value as string
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const timeZone: string = (inviteeDate as any)["$x"]["$timezone"];
 
