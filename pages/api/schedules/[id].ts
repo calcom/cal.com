@@ -13,13 +13,18 @@ export async function scheduleById(
   { method, query, body, userId, isAdmin, prisma }: NextApiRequest,
   res: NextApiResponse<ScheduleResponse>
 ) {
-  const safeQuery = schemaQueryIdParseInt.safeParse(query);
-  const safeBody = schemaSingleScheduleBodyParams.safeParse(safeParseJSON(body));
+  body = safeParseJSON(body);
+  if (!body.success) {
+    res.status(400).json({ message: body.message });
+  }
+
+  const safe = schemaScheduleBodyParams.safeParse(body);
   if (!safeBody.success) {
     res.status(400).json({ message: "Bad request" });
     return;
   }
-
+  
+  const safeQuery = schemaQueryIdParseInt.safeParse(query);
   if (safeBody.data.userId && !isAdmin) {
     res.status(401).json({ message: "Unauthorized" });
     return;
