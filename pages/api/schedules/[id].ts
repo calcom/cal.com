@@ -18,7 +18,7 @@ export async function scheduleById(
     res.status(400).json({ message: body.message });
   }
 
-  const safe = schemaScheduleBodyParams.safeParse(body);
+  const safe = schemaSingleScheduleBodyParams.safeParse(body);
   if (!safeBody.success) {
     res.status(400).json({ message: "Bad request" });
     return;
