@@ -1,10 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import safeParseJSON from "@lib/helpers/safeParseJSON";
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { AvailabilityResponse } from "@lib/types";
 import {
   schemaAvailabilityEditBodyParams,
   schemaAvailabilityReadPublic,
+  schemaSingleAvailabilityReadBodyParams,
 } from "@lib/validations/availability";
 import {
   schemaQueryIdParseInt,
@@ -12,18 +14,47 @@ import {
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
 export async function availabilityById(
-  { method, query, body, userId, prisma }: NextApiRequest,
+  { method, query, body, userId, isAdmin, prisma }: NextApiRequest,
   res: NextApiResponse<AvailabilityResponse>
 ) {
+  body = safeParseJSON(body);
+  if (body.success !== undefined && !body.success) {
+    res.status(400).json({ message: body.message });
+    return;
+  }
+
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
   if (!safeQuery.success) {
     res.status(400).json({ message: "Your query is invalid", error: safeQuery.error });
     return;
   }
-  const data = await prisma.availability.findMany({ where: { userId } });
-  const availabiltiesIds = data.map((availability) => availability.id);
-  if (!availabiltiesIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
-  else {
+
+  const safe = schemaSingleAvailabilityReadBodyParams.safeParse(body);
+  if (!safe.success) {
+    res.status(400).json({ message: "Bad request" });
+    return;
+  }
+
+  const safeBody = safe.data;
+
+  if (safeBody.userId && !isAdmin) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
+
+  const data = await prisma.schedule.findMany({
+    where: { userId: safeBody.userId || userId },
+    select: {
+      availability: true,
+    },
+  });
+
+  const availabilitiesArray = data.flatMap((schedule) => schedule.availability);
+
+  if (!availabilitiesArray.some((availability) => availability.id === safeQuery.data.id)) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  } else {
     switch (method) {
       /**
        * @swagger
@@ -100,7 +131,6 @@ export async function availabilityById(
        *        description: Authorization information is missing or invalid.
        */
       case "PATCH":
-        console.log(body);
         const safeBody = schemaAvailabilityEditBodyParams.safeParse(body);
         if (!safeBody.success) {
           console.log(safeBody.error);

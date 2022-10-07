@@ -8,6 +8,7 @@ export const schemaAvailabilityBaseBodyParams = Availability.pick({
   date: true,
   scheduleId: true,
   days: true,
+  userId: true,
 }).partial();
 
 export const schemaAvailabilityReadPublic = Availability.pick({
@@ -17,9 +18,9 @@ export const schemaAvailabilityReadPublic = Availability.pick({
   date: true,
   scheduleId: true,
   days: true,
-  userId: true,
   eventTypeId: true,
-});
+  userId: true,
+}).merge(z.object({ success: z.boolean().optional() }));
 
 const schemaAvailabilityCreateParams = z
   .object({
@@ -45,3 +46,13 @@ export const schemaAvailabilityEditBodyParams = schemaAvailabilityBaseBodyParams
 export const schemaAvailabilityCreateBodyParams = schemaAvailabilityBaseBodyParams.merge(
   schemaAvailabilityCreateParams
 );
+
+export const schemaAvailabilityReadBodyParams = z
+  .object({
+    userId: z.union([z.number(), z.array(z.number())]),
+  })
+  .partial();
+
+export const schemaSingleAvailabilityReadBodyParams = z.object({
+  userId: z.number(),
+});
