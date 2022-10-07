@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import safeParseJSON from "@lib/helpers/safeParseJSON";
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { ScheduleResponse } from "@lib/types";
 import { schemaSingleScheduleBodyParams, schemaSchedulePublic } from "@lib/validations/schedule";
@@ -13,7 +14,7 @@ export async function scheduleById(
   res: NextApiResponse<ScheduleResponse>
 ) {
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
-  const safeBody = schemaSingleScheduleBodyParams.safeParse(body);
+  const safeBody = schemaSingleScheduleBodyParams.safeParse(safeParseJSON(body));
   if (!safeBody.success) {
     res.status(400).json({ message: "Bad request" });
     return;
