@@ -837,7 +837,6 @@
   "redirect_success_booking": "Přesměrovat při rezervaci ",
   "you_are_being_redirected": "Budete přesměrováni na {{ url }} za $t(s, {\"count\": {{s}} }).",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
-  "redirect_url_upgrade_description": "Pokud chcete použít tuto funkci, musíte provést aktualizaci na účet Pro.",
   "duplicate": "Duplikovat",
   "offer_seats": "Nabídka míst",
   "offer_seats_description": "Nabídnout místa rezervacím (tím se vypnou rezervace hostů a s potvrzením)",
@@ -1265,5 +1264,9 @@
   "confirm_password_change_email": "Před změnou e-mailové adresy potvrďte své heslo",
   "seats": "míst",
   "every_app_published": "Každá aplikace zveřejněná v obchodě s aplikacemi na Cal.com má otevřený zdrojový kód a je důkladně testována prostřednictvím vzájemného hodnocení. Společnost Cal.com, Inc. nicméně tyto aplikace neschvaluje ani necertifikuje, pokud nejsou zveřejněny přímo společností Cal.com. Pokud se setkáte s nevhodným obsahem nebo chováním, nahlaste to.",
-  "report_app": "Nahlásit aplikaci"
+  "report_app": "Nahlásit aplikaci",
+  "billing_manage_details_title": "Zobrazit a spravovat fakturační údaje",
+  "billing_manage_details_description": "Zobrazit a upravovat fakturační údaje, možnost zrušit předplatné.",
+  "billing_help_title": "Potřebujete ještě něco?",
+  "billing_help_description": "Pokud potřebujete další pomoc s fakturací, náš tým podpory je zde, aby vám pomohl."
 }

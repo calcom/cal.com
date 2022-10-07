@@ -7,6 +7,7 @@ import { sendGenericWebhookPayload } from "@calcom/lib/webhooks/sendPayload";
 import { TRPCError } from "@calcom/trpc/server";
 import { createProtectedRouter, createRouter } from "@calcom/trpc/server/createRouter";
 
+import { getSerializableForm } from "./lib/getSerializableForm";
 import { isAllowed } from "./lib/isAllowed";
 import { zodFields, zodRoutes } from "./zod";
 
@@ -144,14 +145,24 @@ const app_RoutingForms = createRouter()
     createProtectedRouter()
       .query("forms", {
         async resolve({ ctx: { user, prisma } }) {
-          return await prisma.app_RoutingForms_Form.findMany({
+          const forms = await prisma.app_RoutingForms_Form.findMany({
             where: {
               userId: user.id,
             },
             orderBy: {
-              createdAt: "asc",
+              createdAt: "desc",
+            },
+            include: {
+              _count: {
+                select: {
+                  responses: true,
+                },
+              },
             },
           });
+
+          const serializableForms = forms.map((form) => getSerializableForm(form));
+          return serializableForms;
         },
       })
       .query("formQuery", {

@@ -837,7 +837,6 @@
   "redirect_success_booking": "Przekieruj przy rezerwacji ",
   "you_are_being_redirected": "Zostałeś przekierowany do {{ url }} w $t(second, {\"count\": {{seconds}} }).",
   "external_redirect_url": "https://example.com/przekieruj-do-moja-strona",
-  "redirect_url_upgrade_description": "Aby korzystać z tej funkcji, musisz uaktualnić do konta Pro.",
   "duplicate": "Duplikat",
   "offer_seats": "Zaproponuj miejsca",
   "offer_seats_description": "Zaoferuj miejsca do zarezerwowania (ta funkcja wyłącza rezerwacje gości i rezerwacje wstępne)",
@@ -1265,5 +1264,9 @@
   "confirm_password_change_email": "Potwierdź hasło przed zmianą adresu e-mail",
   "seats": "miejsca",
   "every_app_published": "Każda aplikacja opublikowana w sklepie App Store serwisu Cal.com jest otwartym oprogramowaniem i jest dokładnie testowana przez innych użytkowników. Niemniej jednak Cal.com, Inc. nie odpowiada za aplikacje ani nie certyfikuje ich, chyba że są one publikowane przez Cal.com. Jeśli natrafisz na nieodpowiednie treści lub zachowanie, zgłoś je.",
-  "report_app": "Zgłoś aplikację"
+  "report_app": "Zgłoś aplikację",
+  "billing_manage_details_title": "Zobacz i zarządzaj swoimi danymi rozliczeniowymi",
+  "billing_manage_details_description": "Zobacz i edytuj swoje dane rozliczeniowe, jak również anuluj subskrypcję.",
+  "billing_help_title": "Potrzebujesz czegoś innego?",
+  "billing_help_description": "Jeśli potrzebujesz dalszej pomocy przy rozliczaniu, nasz zespół wsparcia jest tutaj, aby pomóc."
 }
