@@ -67,6 +67,7 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, 
 
   const localWorkingHours = getWorkingHours(
     {
+      // initialize current day with timeZone without conversion, just parse.
       utcOffset: -dayjs.tz(dayjs(), timeZone).utcOffset(),
     },
     workingHoursUTC
