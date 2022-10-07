@@ -64,6 +64,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
   );
 
+  const [showTimeSectionAfter, setShowTimeSectionAfter] = useState(
+    form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
+  );
+
   const actionOptions = getWorkflowActionOptions(t);
   const triggerOptions = getWorkflowTriggerOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t);
@@ -153,10 +157,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           val.value === WorkflowTriggerEvents.AFTER_EVENT
                         ) {
                           setShowTimeSection(true);
+                          if (val.value === WorkflowTriggerEvents.AFTER_EVENT) {
+                            setShowTimeSectionAfter(true);
+                          } else {
+                            setShowTimeSectionAfter(false);
+                          }
                           form.setValue("time", 24);
                           form.setValue("timeUnit", TimeUnit.HOUR);
                         } else {
                           setShowTimeSection(false);
+                          setShowTimeSectionAfter(false);
                           form.unregister("time");
                           form.unregister("timeUnit");
                         }
@@ -170,11 +180,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             />
             {showTimeSection && (
               <div className="mt-5">
-                <Label>
-                  {form.getValues("trigger") === WorkflowTriggerEvents.BEFORE_EVENT
-                    ? t("how_long_before")
-                    : t("how_long_after")}
-                </Label>
+                <Label>{showTimeSectionAfter ? t("how_long_after") : t("how_long_before")}</Label>
                 <TimeTimeUnitInput form={form} />
               </div>
             )}
