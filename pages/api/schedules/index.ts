@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { getAvailabilityFromSchedule, DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 
+import safeParseJSON from "@lib/helpers/safeParseJSON";
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import { ScheduleResponse, SchedulesResponse } from "@lib/types";
 import {
@@ -14,7 +15,7 @@ async function createOrlistAllSchedules(
   { method, body, userId, isAdmin, prisma }: NextApiRequest,
   res: NextApiResponse<SchedulesResponse | ScheduleResponse>
 ) {
-  const safe = schemaScheduleBodyParams.safeParse(body);
+  const safe = schemaScheduleBodyParams.safeParse(safeParseJSON(body));
 
   if (!safe.success) {
     res.status(400).json({ message: "Bad request" });
