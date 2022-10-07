@@ -18,6 +18,7 @@ async function createOrlistAllSchedules(
   body = safeParseJSON(body);
   if (!body.success) {
     res.status(400).json({ message: body.message });
+    return;
   }
 
   const safe = schemaScheduleBodyParams.safeParse(body);
