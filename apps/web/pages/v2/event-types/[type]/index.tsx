@@ -84,7 +84,7 @@ export type FormValues = {
   giphyThankYouPage: string;
   blockchainId: number;
   smartContractAddress: string;
-  bookingLimits?: BookingLimit | null;
+  bookingLimits?: BookingLimit;
 };
 
 const querySchema = z.object({
