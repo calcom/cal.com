@@ -119,11 +119,11 @@ const BaseAppFork = {
     fs.writeFileSync(`${appDirPath}/config.json`, JSON.stringify(config, null, 2));
     fs.writeFileSync(
       `${appDirPath}/README.mdx`,
-      fs.readFileSync(`${appDirPath}/README.mdx`).toString().replace("_DESCRIPTION_", appDescription)
-    );
-    fs.writeFileSync(
-      `${appDirPath}/README.mdx`,
-      fs.readFileSync(`${appDirPath}/README.mdx`).toString().replace("_DESCRIPTION_", appDescription)
+      fs
+        .readFileSync(`${appDirPath}/README.mdx`)
+        .toString()
+        .replace(/_DESCRIPTION_/g, appDescription)
+        .replace(/_APP_DIR_/g, slug)
     );
     message = !editMode ? "Forked base app" : "Updated app";
     yield message;
