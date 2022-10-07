@@ -1,20 +1,17 @@
 import { PrismaClient } from "@prisma/client";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { TRPCError } from "@calcom/trpc/server";
-
-import { WEBAPP_URL } from "./constants";
 
 export const samlDatabaseUrl = process.env.SAML_DATABASE_URL || "";
 export const samlLoginUrl = WEBAPP_URL;
-
 export const isSAMLLoginEnabled = samlDatabaseUrl.length > 0;
-
 export const samlTenantID = "Cal.com";
 export const samlProductID = "Cal.com";
-
-const samlAdmins = (process.env.SAML_ADMINS || "").split(",");
 export const hostedCal = WEBAPP_URL === "https://app.cal.com";
 export const tenantPrefix = "team-";
+
+const samlAdmins = (process.env.SAML_ADMINS || "").split(",");
 
 export const isSAMLAdmin = (email: string) => {
   for (const admin of samlAdmins) {
@@ -51,6 +48,11 @@ export const samlTenantProduct = async (prisma: PrismaClient, email: string) => 
         "Could not find a SAML Identity Provider for your email. Please contact your admin to ensure you have been given access to Cal",
     });
   }
+
+  console.log({
+    tenant: tenantPrefix + user.invitedTo,
+    product: samlProductID,
+  });
 
   return {
     tenant: tenantPrefix + user.invitedTo,

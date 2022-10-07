@@ -41,6 +41,7 @@ const tabs: VerticalTabItemProps[] = [
       //
       { name: "password", href: "/settings/security/password" },
       { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
+      { name: "saml_config", href: "/settings/security/sso" },
     ],
   },
   {
@@ -235,13 +236,12 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                                   textClassNames="px-3 text-gray-900 font-medium text-sm"
                                   disableChevron
                                 />
-                                {/* TODO: Implement saml configuration page */}
-                                {/* <VerticalTabItem
-                              name={t("saml_config")}
-                              href={`${WEBAPP_URL}/settings/teams/${team.id}/samlConfig`}
-                              textClassNames="px-3 text-gray-900 font-medium text-sm"
-                              disableChevron
-                            /> */}
+                                <VerticalTabItem
+                                  name="SAML SSO"
+                                  href={`${WEBAPP_URL}/settings/teams/${team.id}/sso`}
+                                  textClassNames="px-3 text-gray-900 font-medium text-sm"
+                                  disableChevron
+                                />
                               </>
                             )}
                           </CollapsibleContent>

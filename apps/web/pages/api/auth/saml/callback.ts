@@ -1,25 +1,23 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-import { HttpError } from "@calcom/lib/http-error";
-
-import jackson from "@lib/jackson";
+import jackson from "@calcom/features/ee/sso/lib/jackson";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    if (req.method !== "POST") {
-      throw new Error("Method not allowed");
-    }
+  const { oauthController } = await jackson();
 
-    const { oauthController } = await jackson();
+  if (req.method !== "POST") {
+    return res.status(400).send("Method not allowed");
+  }
+
+  try {
     const { redirect_url } = await oauthController.samlResponse(req.body);
 
-    res.redirect(302, redirect_url);
-  } catch (err: unknown) {
-    if (err instanceof HttpError) {
-      console.error("callback error:", err);
-      const { message, statusCode = 500 } = err;
-      return res.status(statusCode).send(message);
+    if (redirect_url) {
+      return res.redirect(302, redirect_url);
     }
-    return res.status(500).send("Unknown error");
+  } catch (err: any) {
+    const { message, statusCode = 500 } = err;
+
+    return res.status(statusCode).send(message);
   }
 }

@@ -1,11 +1,12 @@
-import jackson, { IAPIController, IOAuthController, JacksonOption } from "@boxyhq/saml-jackson";
+import jackson, { IConnectionAPIController, IOAuthController, JacksonOption } from "@boxyhq/saml-jackson";
 
-import { BASE_URL } from "@lib/config/constants";
-import { samlDatabaseUrl } from "@lib/saml";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+
+import { samlDatabaseUrl } from "./saml";
 
 // Set the required options. Refer to https://github.com/boxyhq/jackson#configuration for the full list
 const opts: JacksonOption = {
-  externalUrl: BASE_URL,
+  externalUrl: WEBAPP_URL,
   samlPath: "/api/auth/saml/callback",
   db: {
     engine: "sql",
@@ -14,27 +15,31 @@ const opts: JacksonOption = {
     encryptionKey: process.env.CALENDSO_ENCRYPTION_KEY,
   },
   samlAudience: "https://saml.cal.com",
+  oidcPath: "/abc",
+  openid: {},
 };
 
-let apiController: IAPIController;
+let connectionController: IConnectionAPIController;
 let oauthController: IOAuthController;
 
 const g = global as any;
 
 export default async function init() {
-  if (!g.apiController || !g.oauthController) {
+  if (!g.connectionController || !g.oauthController) {
     const ret = await jackson(opts);
-    apiController = ret.apiController;
+
+    connectionController = ret.connectionAPIController;
     oauthController = ret.oauthController;
-    g.apiController = apiController;
+
+    g.connectionController = connectionController;
     g.oauthController = oauthController;
   } else {
-    apiController = g.apiController;
+    connectionController = g.connectionController;
     oauthController = g.oauthController;
   }
 
   return {
-    apiController,
+    connectionController,
     oauthController,
   };
 }
