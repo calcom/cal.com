@@ -100,7 +100,6 @@ const SettingsSidebarContainer = ({ className = "" }) => {
   const tabsWithPermissions = useTabs();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
-  const [isLoading, setIsLoading] = useState(true);
 
   const { data: teams } = trpc.useQuery(["viewer.teams.list"]);
 

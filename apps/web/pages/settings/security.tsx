@@ -1,7 +1,6 @@
 import { IdentityProvider } from "@prisma/client";
 import React from "react";
 
-import SAMLConfiguration from "@calcom/features/ee/sso/components/SamlConfiguration";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
@@ -41,7 +40,7 @@ export default function Security() {
           </div>
         )}
 
-        <SAMLConfiguration teamsView={false} teamId={null} />
+        {/* <SAMLConfiguration teamsView={false} teamId={null} /> */}
       </>
     </SettingsShell>
   );

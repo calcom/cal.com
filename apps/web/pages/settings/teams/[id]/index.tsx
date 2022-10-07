@@ -2,7 +2,6 @@ import { MembershipRole } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
-import SAMLConfiguration from "@calcom/features/ee/sso/components/SamlConfiguration";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
@@ -154,7 +153,7 @@ export function TeamSettingsPage() {
                       )}
                     </div>
                     <MemberList team={team} members={team.members || []} />
-                    {isAdmin && <SAMLConfiguration teamsView={true} teamId={team.id} />}
+                    {/* {isAdmin && <SAMLConfiguration teamsView={true} teamId={team.id} />} */}
                     {userId && <DisableTeamImpersonation teamId={team.id} memberId={userId} />}
                   </div>
                   <div className="min-w-32 mt-8 w-full px-2 ltr:ml-2 rtl:mr-2 sm:mt-0 md:w-3/12">
