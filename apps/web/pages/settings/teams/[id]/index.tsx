@@ -2,7 +2,7 @@ import { MembershipRole } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
-import SAMLConfiguration from "@calcom/features/ee/common/components/SamlConfiguration";
+import SAMLConfiguration from "@calcom/features/ee/sso/components/SamlConfiguration";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
