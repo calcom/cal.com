@@ -8,7 +8,7 @@ import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 
-const scopes = ["OnlineMeetings.ReadWrite"];
+const scopes = ["OnlineMeetings.ReadWrite", "offline_access"];
 
 let client_id = "";
 let client_secret = "";
