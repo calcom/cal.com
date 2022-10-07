@@ -42,7 +42,7 @@ const splitAvailableTime = (
 const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, eventLength }: GetSlots) => {
   // current date in invitee tz
   const startDate = dayjs().add(minimumBookingNotice, "minute");
-  const startOfDayUTC = dayjs.utc().startOf("day");
+  const startOfDayUTC = dayjs.utc().set("hour", 0).set("minute", 0).set("second", 0);
   const startOfInviteeDay = inviteeDate.startOf("day");
   // checks if the start date is in the past
 
@@ -62,9 +62,15 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, 
     endTime: /* Why? */ startOfDayUTC.add(schedule.endTime, "minute"),
   }));
 
-  const localWorkingHours = getWorkingHours({ utcOffset: -dayjs().utcOffset() }, workingHoursUTC).filter(
-    (hours) => hours.days.includes(inviteeDate.day())
-  );
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const timeZone: string = (inviteeDate as any)["$x"]["$timezone"];
+
+  const localWorkingHours = getWorkingHours(
+    {
+      utcOffset: -dayjs.tz(dayjs(), timeZone).utcOffset(),
+    },
+    workingHoursUTC
+  ).filter((hours) => hours.days.includes(inviteeDate.day()));
 
   const slots: Dayjs[] = [];
 
