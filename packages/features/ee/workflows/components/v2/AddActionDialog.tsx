@@ -88,16 +88,14 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                             if (val.value === WorkflowActions.SMS_NUMBER) {
                               setIsPhoneNumberNeeded(true);
                               setIsEmailAddressNeeded(false);
-                              form.unregister("sendTo");
                             } else if (val.value === WorkflowActions.EMAIL_ADDRESS) {
                               setIsEmailAddressNeeded(true);
                               setIsPhoneNumberNeeded(false);
-                              form.unregister("sendTo");
                             } else {
                               setIsEmailAddressNeeded(false);
                               setIsPhoneNumberNeeded(false);
-                              form.unregister("sendTo");
                             }
+                            form.unregister("sendTo");
                             form.clearErrors("action");
                             form.clearErrors("sendTo");
                           }
