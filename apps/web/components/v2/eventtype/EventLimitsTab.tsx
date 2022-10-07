@@ -175,7 +175,7 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
                         PER_DAY: 1,
                       });
                     } else {
-                      formMethods.setValue("bookingLimits", undefined);
+                      formMethods.setValue("bookingLimits", null);
                     }
                   }}
                 />
