@@ -1,27 +1,44 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import safeParseJSON from "@lib/helpers/safeParseJSON";
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 import type { ScheduleResponse } from "@lib/types";
-import { schemaScheduleBodyParams, schemaSchedulePublic } from "@lib/validations/schedule";
+import { schemaSingleScheduleBodyParams, schemaSchedulePublic } from "@lib/validations/schedule";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
 } from "@lib/validations/shared/queryIdTransformParseInt";
 
 export async function scheduleById(
-  { method, query, body, userId, prisma }: NextApiRequest,
+  { method, query, body, userId, isAdmin, prisma }: NextApiRequest,
   res: NextApiResponse<ScheduleResponse>
 ) {
+  body = safeParseJSON(body);
+  if (!body.success) {
+    res.status(400).json({ message: body.message });
+  }
+
+  const safeBody = schemaSingleScheduleBodyParams.safeParse(body);
+  if (!safeBody.success) {
+    res.status(400).json({ message: "Bad request" });
+    return;
+  }
+
   const safeQuery = schemaQueryIdParseInt.safeParse(query);
-  const safeBody = schemaScheduleBodyParams.safeParse(body);
+  if (safeBody.data.userId && !isAdmin) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  }
   if (!safeQuery.success) {
     res.status(400).json({ message: "Your query was invalid" });
     return;
   }
-  const userSchedules = await prisma.schedule.findMany({ where: { userId } });
+  const userSchedules = await prisma.schedule.findMany({ where: { userId: safeBody.data.userId || userId } });
   const userScheduleIds = userSchedules.map((schedule) => schedule.id);
-  if (!userScheduleIds.includes(safeQuery.data.id)) res.status(401).json({ message: "Unauthorized" });
-  else {
+  if (!userScheduleIds.includes(safeQuery.data.id)) {
+    res.status(401).json({ message: "Unauthorized" });
+    return;
+  } else {
     switch (method) {
       /**
        * @swagger
@@ -48,7 +65,10 @@ export async function scheduleById(
        */
       case "GET":
         await prisma.schedule
-          .findUnique({ where: { id: safeQuery.data.id } })
+          .findUnique({
+            where: { id: safeQuery.data.id },
+            include: { availability: true },
+          })
           .then((data) => schemaSchedulePublic.parse(data))
           .then((schedule) => res.status(200).json({ schedule }))
           .catch((error: Error) =>
@@ -89,6 +109,9 @@ export async function scheduleById(
             return;
           }
         }
+
+        delete safeBody.data.userId;
+
         await prisma.schedule
           .update({ where: { id: safeQuery.data.id }, data: safeBody.data })
           .then((data) => schemaSchedulePublic.parse(data))
