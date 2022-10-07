@@ -64,14 +64,15 @@ async function handler(
   const eventTypeDb = await prisma.eventType.findUnique({
     where: { id: booking.eventTypeId },
   });
+  if (!eventTypeDb) throw new HttpError({ statusCode: 400, message: "Invalid eventTypeId." });
   const eventType = schemaEventTypeReadPublic.parse(eventTypeDb);
   let bookings: z.infer<typeof schemaBookingReadPublic>[];
   if (!eventType) throw new HttpError({ statusCode: 400, message: "Could not create new booking" });
   if (eventType.recurringEvent) {
     console.log("Event type has recurring configuration");
-    if (!booking.recurringCount) throw new HttpError({ statusCode: 400, message: "Missing recurringCount" });
+    if (!booking.recurringCount) throw new HttpError({ statusCode: 400, message: "Missing recurringCount." });
     if (eventType.recurringEvent.count && booking.recurringCount > eventType?.recurringEvent.count) {
-      throw new HttpError({ statusCode: 400, message: "Invalid recurringCount" });
+      throw new HttpError({ statusCode: 400, message: "Invalid recurringCount." });
     }
     // Event type is recurring, ceating each booking
     const recurringEventId = uuidv4();

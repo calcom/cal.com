@@ -28,7 +28,8 @@ describe("POST /api/bookings", () => {
       expect(res._getStatusCode()).toBe(400);
       expect(JSON.parse(res._getData())).toEqual(
         expect.objectContaining({
-          message: "Booking body is invalid.",
+          message:
+            "'invalid_type' in 'eventTypeId': Required; 'invalid_type' in 'title': Required; 'invalid_type' in 'startTime': Required; 'invalid_type' in 'startTime': Required; 'invalid_type' in 'endTime': Required; 'invalid_type' in 'endTime': Required",
         })
       );
     });
@@ -45,7 +46,7 @@ describe("POST /api/bookings", () => {
         prisma,
       });
 
-      //prismaMock.eventType.findUnique.mockResolvedValue(null);
+      prismaMock.eventType.findUnique.mockResolvedValue(null);
 
       await handler(req, res);
 
