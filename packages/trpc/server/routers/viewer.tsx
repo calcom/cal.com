@@ -1437,6 +1437,18 @@ const loggedInViewerRouter = createProtectedRouter()
         },
       });
     },
+  })
+  .query("bookingUnconfirmedCount", {
+    async resolve({ ctx }) {
+      const { prisma, user } = ctx;
+      return await prisma.booking.count({
+        where: {
+          status: BookingStatus.PENDING,
+          userId: user.id,
+          endTime: { gt: new Date() },
+        },
+      });
+    },
   });
 
 export const viewerRouter = createRouter()

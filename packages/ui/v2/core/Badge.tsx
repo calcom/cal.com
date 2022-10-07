@@ -33,7 +33,7 @@ export const Badge = function Badge(props: BadgeProps) {
     <div
       {...passThroughProps}
       className={classNames(
-        "inline-flex items-center justify-center rounded py-0.5 px-[6px] text-xs",
+        "inline-flex items-center justify-center py-0.5 px-[6px] text-xs",
         bold ? "font-semibold" : "font-normal",
         !StartIcon ? classNameBySize[size] : "",
         badgeClassNameByVariant[variant],

@@ -8,6 +8,7 @@ import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import CustomBranding from "@calcom/lib/CustomBranding";
@@ -388,6 +389,7 @@ function UserDropdown({ small }: { small?: boolean }) {
 export type NavigationItemType = {
   name: string;
   href: string;
+  badge?: () => JSX.Element | null;
   icon?: SVGComponent;
   child?: NavigationItemType[];
   pro?: true;
@@ -406,6 +408,7 @@ export type NavigationItemType = {
 
 const requiredCredentialNavigationItems = ["Routing Forms"];
 const MORE_SEPARATOR_NAME = "more";
+
 const navigation: NavigationItemType[] = [
   {
     name: "event_types_page_title",
@@ -416,6 +419,7 @@ const navigation: NavigationItemType[] = [
     name: "bookings",
     href: "/bookings/upcoming",
     icon: Icon.FiCalendar,
+    badge: <UnconfirmedBookingBadge />,
   },
   {
     name: "availability",
@@ -563,7 +567,10 @@ const NavigationItem: React.FC<{
             />
           )}
           {isLocaleReady ? (
-            <span className="hidden lg:inline">{t(item.name)}</span>
+            <span className="hidden w-full justify-between lg:flex">
+              <div className="flex">{t(item.name)}</div>
+              {item.badge && item.badge}
+            </span>
           ) : (
             <SkeletonText className="h-3 w-32" />
           )}
