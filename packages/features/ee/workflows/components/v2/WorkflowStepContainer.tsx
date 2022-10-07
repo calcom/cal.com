@@ -20,7 +20,7 @@ import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { Button, DialogClose, DialogContent } from "@calcom/ui/v2";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import Select from "@calcom/ui/v2/core/form/Select";
-import { Label, TextArea } from "@calcom/ui/v2/core/form/fields";
+import { EmailField, Label, TextArea } from "@calcom/ui/v2/core/form/fields";
 
 import { AddVariablesDropdown } from "../../components/v2/AddVariablesDropdown";
 import {
@@ -47,6 +47,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
+  );
+
+  const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(
+    step?.action === WorkflowActions.EMAIL_ADDRESS ? true : false
   );
 
   const [isCustomReminderBodyNeeded, setIsCustomReminderBodyNeeded] = useState(
@@ -256,7 +260,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           if (val) {
                             if (val.value === WorkflowActions.SMS_NUMBER) {
                               setIsPhoneNumberNeeded(true);
+                              setIsEmailAddressNeeded(false);
+                            } else if (val.value === WorkflowActions.EMAIL_ADDRESS) {
+                              setIsEmailAddressNeeded(true);
+                              setIsPhoneNumberNeeded(false);
                             } else {
+                              setIsEmailAddressNeeded(false);
                               setIsPhoneNumberNeeded(false);
                             }
                             if (
@@ -300,6 +309,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
                       </p>
                     )}
+                </div>
+              )}
+              {isEmailAddressNeeded && (
+                <div className="mt-5 rounded-md bg-gray-50 p-4">
+                  <EmailField
+                    required
+                    label={t("email_address")}
+                    {...form.register(`steps.${step.stepNumber - 1}.sendTo`)}
+                  />
                 </div>
               )}
               <div className="mt-5">

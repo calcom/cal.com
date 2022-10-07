@@ -55,7 +55,7 @@ const formSchema = z.object({
       template: z.nativeEnum(WorkflowTemplates),
       sendTo: z
         .string()
-        .refine((val) => isValidPhoneNumber(val))
+        .refine((val) => isValidPhoneNumber(val) || val.includes("@"))
         .nullable(),
     })
     .array(),
@@ -77,6 +77,7 @@ function WorkflowPage() {
     mode: "onBlur",
     resolver: zodResolver(formSchema),
   });
+
   const { workflow: workflowId } = router.isReady ? querySchema.parse(router.query) : { workflow: -1 };
   const utils = trpc.useContext();
 
