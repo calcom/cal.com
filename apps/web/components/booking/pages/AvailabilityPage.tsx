@@ -1,7 +1,7 @@
 // Get router variables
 import { EventType } from "@prisma/client";
 import { SchedulingType } from "@prisma/client";
-import * as Collapsible from "@radix-ui/react-collapsible";
+import * as Popover from "@radix-ui/react-popover";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import { useReducer, useEffect, useMemo, useState } from "react";
@@ -215,11 +215,13 @@ function TimezoneDropdown({
   onChangeTimeZone,
   timeZone,
   timeFormat,
+  hideTimeFormatToggle,
 }: {
   onChangeTimeFormat: (newTimeFormat: string) => void;
   onChangeTimeZone: (newTimeZone: string) => void;
   timeZone?: string;
   timeFormat: string;
+  hideTimeFormatToggle?: boolean;
 }) {
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
 
@@ -240,8 +242,8 @@ function TimezoneDropdown({
   };
 
   return (
-    <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen} className="flex">
-      <Collapsible.Trigger className="min-w-32 dark:text-darkgray-600 mb-2 -ml-2 px-2 text-left text-gray-600">
+    <Popover.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
+      <Popover.Trigger className="min-w-32 dark:text-darkgray-600 radix-state-open:bg-gray-200 dark:radix-state-open:bg-darkgray-200 group relative mb-2 -ml-2 inline-block rounded-md px-2 py-2 text-left text-gray-600">
         <p className="text-sm font-medium">
           <Icon.FiGlobe className="mr-[10px] ml-[2px] -mt-[2px] inline-block h-4 w-4" />
           {timeZone}
@@ -251,15 +253,21 @@ function TimezoneDropdown({
             <Icon.FiChevronDown className="ml-1 inline-block h-4 w-4" />
           )}
         </p>
-      </Collapsible.Trigger>
-      <Collapsible.Content>
-        <TimeOptions
-          onSelectTimeZone={handleSelectTimeZone}
-          onToggle24hClock={handleToggle24hClock}
-          timeFormat={timeFormat}
-        />
-      </Collapsible.Content>
-    </Collapsible.Root>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content
+          hideWhenDetached
+          align="start"
+          className="animate-fade-in-up absolute left-0 top-2 w-80 max-w-[calc(100vw_-_1.5rem)]">
+          <TimeOptions
+            onSelectTimeZone={handleSelectTimeZone}
+            onToggle24hClock={handleToggle24hClock}
+            timeFormat={timeFormat}
+            hideTimeFormatToggle={hideTimeFormatToggle}
+          />
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }
 
@@ -288,7 +296,14 @@ const useRouterQuery = <T extends string>(name: T) => {
 
 export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
 
+const timeFormatTotimeFormatString = (timeFormat?: number | null) => {
+  if (!timeFormat) return null;
+  return timeFormat === 24 ? "HH:mm" : "h:mma";
+};
+
 const AvailabilityPage = ({ profile, eventType }: Props) => {
+  const { data: user } = trpc.useQuery(["viewer.me"]);
+  const timeFormatFromProfile = timeFormatTotimeFormatString(user?.timeFormat);
   const router = useRouter();
   const isEmbed = useIsEmbed();
   const query = dateQuerySchema.parse(router.query);
@@ -301,7 +316,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const isBackgroundTransparent = useIsBackgroundTransparent();
 
   const [timeZone, setTimeZone] = useState<string>();
-  const [timeFormat, setTimeFormat] = useState(detectBrowserTimeFormat);
+  const [timeFormat, setTimeFormat] = useState(timeFormatFromProfile || detectBrowserTimeFormat);
   const [isAvailableTimesVisible, setIsAvailableTimesVisible] = useState<boolean>();
   const [gateState, gateDispatcher] = useReducer(
     (state: GateState, newState: Partial<GateState>) => ({
@@ -352,9 +367,12 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
         onChangeTimeFormat={setTimeFormat}
         timeZone={timeZone}
         onChangeTimeZone={setTimeZone}
+        // Currently we don't allow the user to change the timeformat when they're logged in,
+        // the only way to change it is if they go to their profile.
+        hideTimeFormatToggle={!!timeFormatFromProfile}
       />
     ),
-    [timeZone, timeFormat]
+    [timeZone, timeFormat, timeFormatFromProfile]
   );
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
@@ -416,7 +434,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     <h1 className="text-bookingdark dark:text-darkgray-900 mb-4 break-words text-xl font-semibold">
                       {eventType.title}
                     </h1>
-                    <div className="flex flex-col space-y-3">
+                    <div className="flex flex-col items-start space-y-3">
                       {eventType?.description && (
                         <div className="dark:text-darkgray-600 flex py-1 text-sm font-medium text-gray-600">
                           <div>
@@ -500,7 +518,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
             <div className="overflow-hidden sm:flex">
               <div
                 className={
-                  "sm:dark:border-darkgray-200 hidden overflow-hidden border-gray-200 p-5 sm:border-r md:flex md:flex-col " +
+                  "sm:dark:border-darkgray-200 hidden border-gray-200 p-5 sm:border-r md:flex md:flex-col " +
                   (isAvailableTimesVisible ? "sm:w-1/3" : recurringEventCount ? "sm:w-2/3" : "sm:w-1/2")
                 }>
                 <UserAvatars

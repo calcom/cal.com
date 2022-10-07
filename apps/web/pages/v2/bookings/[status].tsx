@@ -55,20 +55,9 @@ export default function Bookings() {
 
   const isEmpty = !query.data?.pages[0]?.bookings.length;
 
-  // Get all recurring events of the series with the same recurringEventId
-  const defineRecurrentBookings = (
-    booking: BookingOutput,
-    groupedBookings: Record<string, BookingOutput[]>
-  ) => {
-    let recurringBookings = undefined;
-    if (booking.recurringEventId !== null) {
-      recurringBookings = groupedBookings[booking.recurringEventId];
-    }
-    return { recurringBookings };
-  };
   const shownBookings: Record<string, BookingOutput[]> = {};
   const filterBookings = (booking: BookingOutput) => {
-    if (status === "recurring" || status === "cancelled") {
+    if (status === "recurring" || status == "unconfirmed" || status === "cancelled") {
       if (!booking.recurringEventId) {
         return true;
       }
@@ -111,7 +100,7 @@ export default function Bookings() {
                         <BookingListItem
                           key={booking.id}
                           listingStatus={status}
-                          {...defineRecurrentBookings(booking, shownBookings)}
+                          recurringBookings={page.recurringInfo}
                           {...booking}
                         />
                       ))}
