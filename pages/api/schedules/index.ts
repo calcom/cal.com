@@ -16,7 +16,7 @@ async function createOrlistAllSchedules(
   res: NextApiResponse<SchedulesResponse | ScheduleResponse>
 ) {
   body = safeParseJSON(body);
-  if (!body.success) {
+  if (body.success !== undefined && !body.success) {
     res.status(400).json({ message: body.message });
     return;
   }

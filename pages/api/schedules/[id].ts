@@ -16,6 +16,7 @@ export async function scheduleById(
   body = safeParseJSON(body);
   if (!body.success) {
     res.status(400).json({ message: body.message });
+    return;
   }
 
   const safeBody = schemaSingleScheduleBodyParams.safeParse(body);
