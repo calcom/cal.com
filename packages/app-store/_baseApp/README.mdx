@@ -1,13 +1,12 @@
 ---
 description: _DESCRIPTION_
+items:
+  - /api/app-store/_APP_DIR_/1.jpg
+  - /api/app-store/_APP_DIR_/2.jpg
+  - /api/app-store/_APP_DIR_/3.jpg
 ---
-{/* Feel free to edit description or add other frontmatter. Frontmatter would be available in the components here as variables by same name */}
 
-<div>
+<Slider items={items} />
+
 {description}
-</div>
-<hr />
-<div style={{color:"gray", fontStyle:"italic"}} >
-	<div>Edit README.mdx file to update the content.</div>
-	<div>Edit config.json to update logo </div>
-</div>
+
