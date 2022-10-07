@@ -15,7 +15,7 @@ import { parseRecurringEvent, parseBookingLimit, validateBookingLimitOrder } fro
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
-import { trpc, TRPCClientError } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { TRPCError } from "@calcom/trpc/server";
 import type { BookingLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form } from "@calcom/ui/form/fields";
