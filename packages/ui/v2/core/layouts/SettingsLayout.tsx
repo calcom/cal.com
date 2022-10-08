@@ -242,8 +242,8 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                                   disableChevron
                                 />
                                 <VerticalTabItem
-                                  name="SAML SSO"
-                                  href={`${WEBAPP_URL}/settings/teams/${team.id}/sso`}
+                                  name={t("saml_config")}
+                                  href={`/settings/teams/${team.id}/sso`}
                                   textClassNames="px-3 text-gray-900 font-medium text-sm"
                                   disableChevron
                                 />
