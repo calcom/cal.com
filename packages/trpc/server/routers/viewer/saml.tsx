@@ -31,7 +31,7 @@ export const samlRouter = createProtectedRouter()
       teamId: z.union([z.number(), z.null()]),
     }),
     async resolve({ ctx, input }) {
-      const { connectionController } = await jackson();
+      const { connectionController, samlSPConfig } = await jackson();
 
       const { email, plan } = ctx.user;
       const { teamsView, teamId } = input;
@@ -42,8 +42,13 @@ export const samlRouter = createProtectedRouter()
 
       if (teamId && !(await isTeamOwner(ctx.user?.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
+      // Retrieve the SP SAML Config
+      const SPConfig = samlSPConfig.get();
+
       const response = {
         provider: null,
+        acsUrl: SPConfig.acsUrl,
+        entityId: SPConfig.entityId,
       };
 
       try {

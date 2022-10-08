@@ -5,7 +5,8 @@ import ConfigDialogForm from "@calcom/features/ee/sso/components/ConfigDialogFor
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Button, showToast } from "@calcom/ui/v2";
+import { ClipboardCopyIcon } from "@calcom/ui/Icon";
+import { Button, showToast, Label } from "@calcom/ui/v2";
 import Badge from "@calcom/ui/v2/core/Badge";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import { Dialog, DialogTrigger, DialogContent } from "@calcom/ui/v2/core/Dialog";
@@ -66,6 +67,58 @@ export default function SAMLConfiguration({
             </Button>
           </div>
         </div>
+
+        {/* Service Provider Details */}
+        {connection && connection.provider && (
+          <>
+            <hr className="border-1 my-8 border-gray-200" />
+            <div className="mb-3 text-base font-semibold">Service Provider Details</div>
+            <p className="mt-3 text-sm font-normal leading-6 text-gray-700 dark:text-gray-300">
+              Your Identity Provider (IdP) will ask you for the following details to complete the SAML
+              application configuration.
+            </p>
+            <div className="mt-5 flex flex-col">
+              <div className="flex">
+                <Label>ACS URL</Label>
+              </div>
+              <div className="flex">
+                <code className="mr-1 w-full truncate rounded-sm bg-gray-100 py-2 px-3 font-mono text-gray-800">
+                  {connection.acsUrl}
+                </code>
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(connection.acsUrl);
+                    showToast("ACS URL copied!", "success");
+                  }}
+                  type="button"
+                  className="px-4 text-base">
+                  <ClipboardCopyIcon className="h-5 w-5 text-neutral-100" />
+                  {t("copy")}
+                </Button>
+              </div>
+            </div>
+            <div className="mt-5 flex flex-col">
+              <div className="flex">
+                <Label>SP Entity ID</Label>
+              </div>
+              <div className="flex">
+                <code className="mr-1 w-full truncate rounded-sm bg-gray-100 py-2 px-3 font-mono text-gray-800">
+                  {connection.entityId}
+                </code>
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(connection.entityId);
+                    showToast("SP Entity ID copied!", "success");
+                  }}
+                  type="button"
+                  className="px-4 text-base">
+                  <ClipboardCopyIcon className="h-5 w-5 text-neutral-100" />
+                  {t("copy")}
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Danger Zone and Delete Confirmation */}
         {connection && connection.provider && (
