@@ -3,6 +3,7 @@ import z from "zod";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { InstalledAppVariants } from "@calcom/app-store/utils";
+import WeatherAppSettings from "@calcom/app-store/weather_in_your_calendar/components/WeatherAppSettings";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { App } from "@calcom/types/App";
@@ -109,8 +110,10 @@ const IntegrationsList = ({ data }: { data: inferQueryOutput<"viewer.integration
                 installed
               />
             </div>
-          }
-        />
+          }>
+          {/* TODO: @hariom move this into /app-store/packages GeneralSettings */}
+          <WeatherAppSettings />
+        </IntegrationListItem>
       ))}
     </List>
   );

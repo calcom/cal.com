@@ -141,6 +141,7 @@ function CalendarList(props: Props) {
   );
 }
 
+// todo: @hariom extract this into packages/apps-store as "GeneralAppSettings"
 function ConnectedCalendarsList(props: Props) {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.connectedCalendars"], { suspense: true });
