@@ -3,6 +3,8 @@ import z from "zod";
 
 import jackson from "@calcom/features/ee/sso/lib/jackson";
 
+import { HttpError } from "@lib/core/http/error";
+
 const extractAuthToken = (req: NextApiRequest) => {
   const authHeader = req.headers["authorization"];
   const parts = (authHeader || "").split(" ");
@@ -48,8 +50,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const profile = await oauthController.userInfo(token);
 
     return res.json(profile);
-  } catch (err: any) {
-    const { message, statusCode = 500 } = err;
+  } catch (err) {
+    const { message, statusCode = 500 } = err as HttpError;
 
     return res.status(statusCode).json({ message });
   }

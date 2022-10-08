@@ -2,6 +2,8 @@ import { NextApiRequest, NextApiResponse } from "next";
 
 import jackson from "@calcom/features/ee/sso/lib/jackson";
 
+import { HttpError } from "@lib/core/http/error";
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { oauthController } = await jackson();
 
@@ -15,8 +17,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (redirect_url) {
       return res.redirect(302, redirect_url);
     }
-  } catch (err: any) {
-    const { message, statusCode = 500 } = err;
+  } catch (err) {
+    const { message, statusCode = 500 } = err as HttpError;
 
     return res.status(statusCode).send(message);
   }
