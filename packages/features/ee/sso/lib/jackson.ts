@@ -34,8 +34,6 @@ export default async function init() {
   if (!g.connectionController || !g.oauthController) {
     const ret = await jackson(opts);
 
-    console.log(ret.spConfig.get());
-
     connectionController = ret.connectionAPIController;
     oauthController = ret.oauthController;
     samlSPConfig = ret.spConfig;

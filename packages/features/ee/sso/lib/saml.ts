@@ -54,11 +54,6 @@ export const samlTenantProduct = async (prisma: PrismaClient, email: string) => 
     });
   }
 
-  console.log({
-    tenant: tenantPrefix + user.invitedTo,
-    product: samlProductID,
-  });
-
   return {
     tenant: tenantPrefix + user.invitedTo,
     product: samlProductID,
