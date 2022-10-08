@@ -1,6 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, UserPlan } from "@prisma/client";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { TRPCError } from "@calcom/trpc/server";
 
 export const samlDatabaseUrl = process.env.SAML_DATABASE_URL || "";
@@ -58,4 +59,17 @@ export const samlTenantProduct = async (prisma: PrismaClient, email: string) => 
     tenant: tenantPrefix + user.invitedTo,
     product: samlProductID,
   };
+};
+
+export const canAccess = (email: string, plan: string, teamsView: boolean) => {
+  // SAML SSO disabled for the following conditions
+  if ((teamsView && !HOSTED_CAL_FEATURES) || (!teamsView && HOSTED_CAL_FEATURES)) {
+    return false;
+  }
+
+  if (teamsView) {
+    return isSAMLLoginEnabled && plan === UserPlan.PRO;
+  } else {
+    return isSAMLLoginEnabled && isSAMLAdmin(email);
+  }
 };

@@ -1,14 +1,7 @@
 import { z } from "zod";
 
 import jackson from "@calcom/features/ee/sso/lib/jackson";
-import {
-  isSAMLAdmin,
-  isSAMLLoginEnabled,
-  samlProductID,
-  samlTenantID,
-  tenantPrefix,
-} from "@calcom/features/ee/sso/lib/saml";
-import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
+import { samlProductID, samlTenantID, tenantPrefix, canAccess } from "@calcom/features/ee/sso/lib/saml";
 import { isTeamOwner } from "@calcom/lib/server/queries/teams";
 
 import { TRPCError } from "@trpc/server";
@@ -16,6 +9,21 @@ import { TRPCError } from "@trpc/server";
 import { createProtectedRouter } from "../../createRouter";
 
 export const samlRouter = createProtectedRouter()
+  // Retrieve SAML SSO access
+  .query("access", {
+    input: z.object({
+      teamsView: z.boolean(),
+    }),
+    async resolve({ ctx, input }) {
+      const { teamsView } = input;
+      const { email, plan } = ctx.user;
+
+      const enabled = canAccess(email, plan, teamsView);
+
+      return { enabled };
+    },
+  })
+
   // Retrieve SAML Connection
   .query("get", {
     input: z.object({
@@ -25,26 +33,18 @@ export const samlRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const { connectionController } = await jackson();
 
-      const { user } = ctx;
+      const { email, plan } = ctx.user;
       const { teamsView, teamId } = input;
 
+      if (!canAccess(email, plan, teamsView)) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      if (teamId && !(await isTeamOwner(ctx.user?.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+
       const response = {
-        samlEnabled: true,
         provider: null,
       };
-
-      // SAML SSO disabled for the following conditions
-      if ((teamsView && !HOSTED_CAL_FEATURES) || (!teamsView && HOSTED_CAL_FEATURES)) {
-        response["samlEnabled"] = false;
-
-        return response;
-      }
-
-      if (teamsView) {
-        response["samlEnabled"] = isSAMLLoginEnabled && user.plan === "PRO";
-      } else {
-        response["samlEnabled"] = isSAMLLoginEnabled && isSAMLAdmin(user.email);
-      }
 
       try {
         const result = await connectionController.getConnections({
@@ -73,7 +73,14 @@ export const samlRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const { connectionController } = await jackson();
 
+      const { email, plan } = ctx.user;
       const { encodedRawMetadata, teamId } = input;
+
+      const teamsView = teamId ? true : false;
+
+      if (!canAccess(email, plan, teamsView)) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
 
       if (teamId && !(await isTeamOwner(ctx.user?.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
