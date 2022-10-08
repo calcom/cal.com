@@ -5,6 +5,7 @@ import React, { ComponentProps, useEffect, useState } from "react";
 
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -38,10 +39,8 @@ const tabs: VerticalTabItemProps[] = [
     href: "/settings/security",
     icon: Icon.FiKey,
     children: [
-      //
       { name: "password", href: "/settings/security/password" },
       { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
-      { name: "saml_config", href: "/settings/security/sso" },
     ],
   },
   {
@@ -80,6 +79,13 @@ const tabs: VerticalTabItemProps[] = [
     ],
   },
 ];
+
+tabs.find((tab) => {
+  // Add "SAML SSO" to the tab
+  if (tab.name === "security" && !HOSTED_CAL_FEATURES) {
+    tab.children?.push({ name: "saml_config", href: "/settings/security/sso" });
+  }
+});
 
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
