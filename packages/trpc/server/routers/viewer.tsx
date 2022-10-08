@@ -587,6 +587,7 @@ const loggedInViewerRouter = createProtectedRouter()
           status: {
             notIn: [BookingStatus.CANCELLED],
           },
+          userId: user.id,
         },
       });
 
@@ -1441,13 +1442,29 @@ const loggedInViewerRouter = createProtectedRouter()
   .query("bookingUnconfirmedCount", {
     async resolve({ ctx }) {
       const { prisma, user } = ctx;
-      return await prisma.booking.count({
+      const count = await prisma.booking.count({
         where: {
           status: BookingStatus.PENDING,
           userId: user.id,
           endTime: { gt: new Date() },
         },
       });
+      const recurringGrouping = await prisma.booking.groupBy({
+        by: ["recurringEventId"],
+        _count: {
+          recurringEventId: true,
+        },
+        where: {
+          recurringEventId: { not: { equals: null } },
+          status: { equals: "PENDING" },
+          userId: user.id,
+        },
+      });
+      return recurringGrouping.reduce((prev, current) => {
+        // recurringEventId is the total number of recurring instances for a booking
+        // we need to substract all but one, to represent a single recurring booking
+        return prev - (current._count?.recurringEventId - 1);
+      }, count);
     },
   });
 
