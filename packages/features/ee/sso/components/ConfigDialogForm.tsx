@@ -64,7 +64,7 @@ export default function ConfigDialogForm({
                 data-testid="saml_config"
                 name="metadata"
                 value={value}
-                className="h-48"
+                className="h-40"
                 required={true}
                 placeholder={t("saml_configuration_placeholder")}
                 onChange={(e) => {
