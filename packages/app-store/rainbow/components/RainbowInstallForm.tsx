@@ -21,9 +21,7 @@ const RainbowInstallForm: React.FC<RainbowInstallFormProps> = ({
 
   return (
     <>
-      <hr className="my-2 border-neutral-200" />
-
-      <div className="block items-center sm:flex">
+      <div className="mt-4 block items-center sm:flex">
         <div className="min-w-48 mb-4 sm:mb-0">
           <label htmlFor="blockchainId" className="flex text-sm font-medium text-neutral-700">
             {t("Blockchain")}
