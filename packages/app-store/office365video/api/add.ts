@@ -6,7 +6,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { encodeOAuthState } from "../../_utils/encodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 
-const scopes = ["OnlineMeetings.ReadWrite"];
+const scopes = ["OnlineMeetings.ReadWrite", "offline_access"];
 
 let client_id = "";
 

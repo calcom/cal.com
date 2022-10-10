@@ -277,7 +277,9 @@ function UserDropdown({ small }: { small?: boolean }) {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuPortal>
-        <DropdownMenuContent onInteractOutside={() => setMenuOpen(false)}>
+        <DropdownMenuContent
+          onInteractOutside={() => setMenuOpen(false)}
+          className="overflow-hidden rounded-md">
           {helpOpen ? (
             <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
           ) : (

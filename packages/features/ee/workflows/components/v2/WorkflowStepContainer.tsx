@@ -60,7 +60,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   );
 
   const [showTimeSection, setShowTimeSection] = useState(
-    form.getValues("trigger") === WorkflowTriggerEvents.BEFORE_EVENT ? true : false
+    form.getValues("trigger") === WorkflowTriggerEvents.BEFORE_EVENT ||
+      form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
+  );
+
+  const [showTimeSectionAfter, setShowTimeSectionAfter] = useState(
+    form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
   );
 
   const actionOptions = getWorkflowActionOptions(t);
@@ -147,12 +152,21 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     onChange={(val) => {
                       if (val) {
                         form.setValue("trigger", val.value);
-                        if (val.value === WorkflowTriggerEvents.BEFORE_EVENT) {
+                        if (
+                          val.value === WorkflowTriggerEvents.BEFORE_EVENT ||
+                          val.value === WorkflowTriggerEvents.AFTER_EVENT
+                        ) {
                           setShowTimeSection(true);
+                          if (val.value === WorkflowTriggerEvents.AFTER_EVENT) {
+                            setShowTimeSectionAfter(true);
+                          } else {
+                            setShowTimeSectionAfter(false);
+                          }
                           form.setValue("time", 24);
                           form.setValue("timeUnit", TimeUnit.HOUR);
                         } else {
                           setShowTimeSection(false);
+                          setShowTimeSectionAfter(false);
                           form.unregister("time");
                           form.unregister("timeUnit");
                         }
@@ -166,7 +180,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             />
             {showTimeSection && (
               <div className="mt-5">
-                <Label>{t("how_long_before")}</Label>
+                <Label>{showTimeSectionAfter ? t("how_long_after") : t("how_long_before")}</Label>
                 <TimeTimeUnitInput form={form} />
               </div>
             )}
