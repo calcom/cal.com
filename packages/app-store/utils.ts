@@ -35,6 +35,8 @@ export enum InstalledAppVariants {
   "conferencing" = "conferencing",
   "calendar" = "calendar",
   "payment" = "payment",
+  "analytics" = "analytics",
+  "automation" = "automation",
   "other" = "other",
 }
 
