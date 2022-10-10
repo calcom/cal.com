@@ -540,6 +540,7 @@ enum WorkflowActions {
   EMAIL_ATTENDEE
   SMS_ATTENDEE
   SMS_NUMBER
+  EMAIL_ADDRESS
 }
 
 model WorkflowStep {
