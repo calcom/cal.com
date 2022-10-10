@@ -294,7 +294,11 @@ export default function FormEditPage({
 }
 
 FormEditPage.getLayout = (page: React.ReactElement) => {
-  return <Shell withoutMain={true}>{page}</Shell>;
+  return (
+    <Shell backPath="/apps/routing-forms/forms" withoutMain={true}>
+      {page}
+    </Shell>
+  );
 };
 
 export const getServerSideProps = async function getServerSideProps(

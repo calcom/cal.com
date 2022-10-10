@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "נא להשתמש בקישור הבא כדי לאפס את הסיסמה",
   "hey_there": "שלום,",
   "forgot_your_password_calcom": "שכחתה את הסיסמה? - cal.com",
-  "event_type_title": "{{eventTypeTitle}} | סוג האירוע",
   "delete_webhook_confirmation_message": "בטוח שברצונך למחוק את ה-Webhook הזה? אם אירוע יבוטל או שייקבע עבורו מועד, לא תקבל יותר נתוני פגישות מ-Cal.com בזמן אמת או בכתובת ה-URL שציינת.",
   "confirm_delete_webhook": "כן, אני רוצה למחוק את ה-Webhook",
   "edit_webhook": "עריכת Webhook",

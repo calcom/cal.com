@@ -90,11 +90,11 @@ export default function Bookings() {
 
   return (
     <BookingLayout heading={t("bookings")} subtitle={t("bookings_description")}>
-      <div className="flex w-full flex-1 flex-col" ref={animationParentRef}>
+      <div className="flex w-full flex-col" ref={animationParentRef}>
         {query.status === "error" && (
           <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
         )}
-        {(query.status === "loading" || query.status === "idle") && <SkeletonLoader />}
+        {(query.status === "loading" || query.isPaused) && <SkeletonLoader />}
         {query.status === "success" && !isEmpty && (
           <div className="pt-2 xl:pt-0">
             <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
@@ -103,7 +103,7 @@ export default function Bookings() {
              */}
 
             <div className="overflow-hidden rounded-md border border-gray-200">
-              <table className="w-full">
+              <table className="w-full max-w-full table-fixed">
                 <tbody className="divide-y divide-gray-200 bg-white" data-testid="bookings">
                   {query.data.pages.map((page, index) => (
                     <Fragment key={index}>

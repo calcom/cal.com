@@ -1,4 +1,5 @@
 import { TFunction } from "next-i18next";
+import { useRouter } from "next/router";
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
 import { useMemo, useState } from "react";
 import { Loader } from "react-feather";
@@ -110,6 +111,7 @@ function EventTypeSingleLayout({
 }: Props) {
   const utils = trpc.useContext();
   const { t } = useLocale();
+  const router = useRouter();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const hasPermsToDelete = currentUserMembership?.role !== "MEMBER" || !currentUserMembership;
@@ -118,6 +120,7 @@ function EventTypeSingleLayout({
     onSuccess: async () => {
       await utils.invalidateQueries(["viewer.eventTypes"]);
       showToast(t("event_type_deleted_successfully"), "success");
+      await router.push("/event-types");
       setDeleteDialogOpen(false);
     },
     onError: (err) => {
@@ -154,7 +157,7 @@ function EventTypeSingleLayout({
   return (
     <Shell
       backPath="/event-types"
-      title={t("event_type_title", { eventTypeTitle: eventType.title })}
+      title={eventType.title + " | " + t("event_type")}
       heading={eventType.title}
       subtitle={eventType.description || ""}
       CTA={
