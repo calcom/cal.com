@@ -1,6 +1,15 @@
-import { z } from "zod";
+import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 
-import { LocationType } from "@calcom/app-store/locations";
+/* eslint-disable no-underscore-dangle */
+import type {
+  objectInputType,
+  objectOutputType,
+  ZodNullableDef,
+  ZodOptionalDef,
+  ZodRawShape,
+  ZodTypeAny,
+} from "zod";
+
 import dayjs from "@calcom/dayjs";
 import { slugify } from "@calcom/lib/slugify";
 
@@ -147,3 +156,84 @@ export const successRedirectUrl = z
       .regex(/^http(s)?:\/\/.*/),
   ])
   .optional();
+
+export type ZodDenullish<T extends ZodTypeAny> = T extends ZodNullable<infer U> | ZodOptional<infer U>
+  ? ZodDenullish<U>
+  : T;
+
+export type ZodDenullishShape<T extends ZodRawShape> = {
+  [k in keyof T]: ZodDenullish<T[k]>;
+};
+
+export const denullish = <T extends ZodTypeAny>(schema: T): ZodDenullish<T> =>
+  (schema instanceof ZodNullable || schema instanceof ZodOptional
+    ? denullish((schema._def as ZodNullableDef | ZodOptionalDef).innerType)
+    : schema) as ZodDenullish<T>;
+
+type UnknownKeysParam = "passthrough" | "strict" | "strip";
+
+/**
+ * @see https://github.com/3x071c/lsg-remix/blob/e2a9592ba3ec5103556f2cf307c32f08aeaee32d/app/lib/util/zod.ts
+ */
+export function denullishShape<
+  T extends ZodRawShape,
+  UnknownKeys extends UnknownKeysParam = "strip",
+  Catchall extends ZodTypeAny = ZodTypeAny,
+  Output = objectOutputType<T, Catchall>,
+  Input = objectInputType<T, Catchall>
+>(
+  obj: ZodObject<T, UnknownKeys, Catchall, Output, Input>
+): ZodObject<ZodDenullishShape<T>, UnknownKeys, Catchall> {
+  const a = entries(obj.shape).map(([field, schema]) => [field, denullish(schema)] as const) as {
+    [K in keyof T]: [K, ZodDenullish<T[K]>];
+  }[keyof T][];
+  return new ZodObject({
+    ...obj._def,
+    shape: () => fromEntries(a) as unknown as ZodDenullishShape<T>, // TODO: Safely assert type
+  });
+}
+
+/**
+ * Like Object.entries, but with actually useful typings
+ * @param obj The object to turn into a tuple array (`[key, value][]`)
+ * @returns The constructed tuple array from the given object
+ * @see https://github.com/3x071c/lsg-remix/blob/e2a9592ba3ec5103556f2cf307c32f08aeaee32d/app/lib/util/entries.ts
+ */
+export const entries = <O>(
+  obj: O
+): {
+  readonly [K in keyof O]: [K, O[K]];
+}[keyof O][] => {
+  return Object.entries(obj) as {
+    [K in keyof O]: [K, O[K]];
+  }[keyof O][];
+};
+
+/**
+ * Returns a type with all readonly notations removed (traverses recursively on an object)
+ */
+type DeepWriteable<T> = T extends Readonly<{
+  -readonly [K in keyof T]: T[K];
+}>
+  ? {
+      -readonly [K in keyof T]: DeepWriteable<T[K]>;
+    }
+  : T; /* Make it work with readonly types (this is not strictly necessary) */
+
+type FromEntries<T> = T extends [infer Keys, unknown][]
+  ? { [K in Keys & PropertyKey]: Extract<T[number], [K, unknown]>[1] }
+  : never;
+
+/**
+ * Like Object.fromEntries, but with actually useful typings
+ * @param arr The tuple array (`[key, value][]`) to turn into an object
+ * @returns Object constructed from the given entries
+ * @see https://github.com/3x071c/lsg-remix/blob/e2a9592ba3ec5103556f2cf307c32f08aeaee32d/app/lib/util/fromEntries.ts
+ */
+export const fromEntries = <
+  E extends [PropertyKey, unknown][] | ReadonlyArray<readonly [PropertyKey, unknown]>
+>(
+  entries: E
+): FromEntries<DeepWriteable<E>> => {
+  return Object.fromEntries(entries) as FromEntries<DeepWriteable<E>>;
+};

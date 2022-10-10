@@ -115,7 +115,11 @@ export function ButtonOrLink({ href, ...props }: ButtonOrLinkProps) {
   const content = <ButtonOrLink {...props} />;
 
   if (isLink) {
-    return <Link href={href}>{content}</Link>;
+    return (
+      <Link href={href}>
+        <a>{content}</a>
+      </Link>
+    );
   }
 
   return content;

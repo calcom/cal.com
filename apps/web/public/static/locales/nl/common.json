@@ -837,7 +837,6 @@
   "redirect_success_booking": "Omleiding bij boeking ",
   "you_are_being_redirected": "U wordt omgeleid naar {{ url }} over $t(seconde, {\"count\": {{seconden}} }).",
   "external_redirect_url": "https://voorbeeld.com/omleiding-naar-mijn-succespagina",
-  "redirect_url_upgrade_description": "Om deze functie te gebruiken, moet u upgraden naar een Pro-account.",
   "duplicate": "Dupliceren",
   "offer_seats": "Zitplaatsen aanbieden",
   "offer_seats_description": "Zitplaatsen aanbieden aan boekingen (dit schakelt gastboekingen en aanmeldingsboekingen uit)",
@@ -1265,5 +1264,9 @@
   "confirm_password_change_email": "Bevestig uw wachtwoord voordat u uw e-mailadres wijzigt",
   "seats": "plaatsen",
   "every_app_published": "Elke app die in de app store van Cal.com wordt gepubliceerd is open source en grondig getest via collegiale beoordelingen. Desondanks onderschrijft of certificeert Cal.com, Inc. deze apps niet, tenzij ze zijn gepubliceerd door Cal.com. Meld het als u ongepaste inhoud of gedrag tegenkomt.",
-  "report_app": "App melden"
+  "report_app": "App melden",
+  "billing_manage_details_title": "Bekijk en beheer uw betalingsgegevens",
+  "billing_manage_details_description": "Uw betalingsgegevens bekijken of uw account opzeggen.",
+  "billing_help_title": "Nog iets nodig?",
+  "billing_help_description": "Als u verdere hulp nodig heeft bij facturering, is ons ondersteuningsteam er om u te helpen."
 }

@@ -34,7 +34,7 @@ function CustomInputItem({ required, deleteOnClick, editOnClick, type, question 
           size="icon"
           color="destructive"
           onClick={deleteOnClick}
-          className="border border-gray-200"
+          className="h-[36px] border border-gray-200"
         />
       </ButtonGroup>
     </li>

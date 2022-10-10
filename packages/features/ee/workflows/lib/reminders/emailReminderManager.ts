@@ -29,7 +29,7 @@ export const scheduleEmailReminder = async (
   evt: BookingInfo,
   triggerEvent: WorkflowTriggerEvents,
   action: WorkflowActions,
-  timeBefore: {
+  timeSpan: {
     time: number | null;
     timeUnit: TimeUnit | null;
   },
@@ -42,11 +42,15 @@ export const scheduleEmailReminder = async (
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
-  const timeUnit: timeUnitLowerCase | undefined =
-    timeBefore.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase;
-  const scheduledDate =
-    timeBefore.time && timeUnit ? dayjs(startTime).subtract(timeBefore.time, timeUnit) : null;
+  const timeUnit: timeUnitLowerCase | undefined = timeSpan.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase;
 
+  let scheduledDate = null;
+
+  if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
+    scheduledDate = timeSpan.time && timeUnit ? dayjs(startTime).subtract(timeSpan.time, timeUnit) : null;
+  } else if (triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) {
+    scheduledDate = timeSpan.time && timeUnit ? dayjs(endTime).add(timeSpan.time, timeUnit) : null;
+  }
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
     console.error("Sendgrid credentials are missing from the .env file");
     return;
@@ -113,7 +117,11 @@ export const scheduleEmailReminder = async (
     } catch (error) {
       console.log("Error sending Email");
     }
-  } else if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT && scheduledDate) {
+  } else if (
+    (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT ||
+      triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) &&
+    scheduledDate
+  ) {
     // Sendgrid to schedule emails
     // Can only schedule at least 60 minutes and at most 72 hours in advance
     if (
