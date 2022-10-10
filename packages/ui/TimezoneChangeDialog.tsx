@@ -1,3 +1,4 @@
+import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
@@ -52,6 +53,10 @@ export default function TimezoneChangeDialog() {
     document.cookie = `calcom-timezone-dialog=1;max-age=${maxAge}`;
     toast && showToast(t("we_wont_show_again"), "success");
   }
+
+  const { data } = useSession();
+
+  if (data?.user.impersonatedByUID) return null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
