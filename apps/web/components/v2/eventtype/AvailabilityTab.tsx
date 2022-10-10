@@ -8,7 +8,7 @@ import { weekdayNames } from "@calcom/lib/weekday";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import Button from "@calcom/ui/v2/core/Button";
-import Select from "@calcom/ui/v2/core/form/Select";
+import Select from "@calcom/ui/v2/core/form/select";
 import { SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
 import { SelectSkeletonLoader } from "@components/v2/availability/SkeletonLoader";
