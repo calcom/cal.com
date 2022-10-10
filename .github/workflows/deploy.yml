@@ -12,11 +12,10 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_ECR_URL: ${{ secrets.AWS_ECR_URL }}
-      WEBAPP_URL: ${{ github.ref == 'refs/heads/main' && 'TODO' || secrets.PUBLIC_WEBAPP_URL_STAGING }}
       DATABASE_URL: postgresql://cal:secret@localhost:5432/cal
       ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
-      NEXT_PUBLIC_WEBAPP_URL: ${{ github.ref == 'refs/heads/main' && 'TODO' || secrets.PUBLIC_WEBAPP_URL_STAGING }}
-      NEXT_PUBLIC_WEBSITE_URL: ${{ github.ref == 'refs/heads/main' && 'TODO' || secrets.PUBLIC_WEBAPP_URL_STAGING }}
+      NEXT_PUBLIC_WEBAPP_URL: ${{ github.ref == 'refs/heads/main' && secrets.PUBLIC_WEBAPP_URL_PRODUCTION || secrets.PUBLIC_WEBAPP_URL_STAGING }}
+      NEXT_PUBLIC_WEBSITE_URL: ${{ github.ref == 'refs/heads/main' && secrets.PUBLIC_WEBAPP_URL_PRODUCTION || secrets.PUBLIC_WEBAPP_URL_STAGING }}
       NEXTAUTH_SECRET: secret
       CALENDSO_ENCRYPTION_KEY: secret
       GOOGLE_API_CREDENTIALS: ${{ secrets.GOOGLE_API_CREDENTIALS }}

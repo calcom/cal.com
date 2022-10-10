@@ -3,6 +3,7 @@ COMMIT_SHA = $(shell git rev-parse HEAD)
 IMAGE = ${AWS_ECR_URL}/tourlane/${SERVICE}:${COMMIT_SHA}
 
 SSM_STAGING = /${SERVICE}/staging
+SSM_PRODUCTION = /${SERVICE}/production
 SSM_SHARED = /${SERVICE}/shared
 
 FUJI=docker run --rm -t \
@@ -32,11 +33,27 @@ deploy_to_staging:
 		--branch staging \
 		--cluster staging \
 		--environment NEXT_PUBLIC_WEBAPP_URL=${NEXT_PUBLIC_WEBAPP_URL},GOOGLE_LOGIN_ENABLED=true \
-		--secrets DATABASE_URL=${SSM_STAGING}/DATABASE_URL,NEXTAUTH_SECRET=${SSM_STAGING}/NEXTAUTH_SECRET,CALENDSO_ENCRYPTION_KEY=${SSM_STAGING}/CALENDSO_ENCRYPTION_KEY,GOOGLE_API_CREDENTIALS=${SSM_SHARED}/GOOGLE_API_CREDENTIALS,SENDGRID_API_KEY=${SSM_SHARED}/SENDGRID_API_KEY \
+		--secrets DATABASE_URL=${SSM_STAGING}/DATABASE_URL,NEXTAUTH_SECRET=${SSM_STAGING}/NEXTAUTH_SECRET,CALENDSO_ENCRYPTION_KEY=${SSM_STAGING}/CALENDSO_ENCRYPTION_KEY,GOOGLE_API_CREDENTIALS=${SSM_SHARED}/GOOGLE_API_CREDENTIALS \
 		--image ${IMAGE} \
 		--command "sh /calcom/scripts/start.sh" \
 		--desired-count "1" \
 		--memory-reservation 512 \
 		--memory 1024 \
+		--port "3000"
+
+.PHONY: deploy_to_production
+deploy_to_production:
+	@echo "\033[94m## Deploying ${COMMIT_SHA} to production \033[0m"
+	@${FUJI} deploy \
+		--service ${SERVICE} \
+		--branch master \
+		--cluster production \
+		--environment NEXT_PUBLIC_WEBAPP_URL=${NEXT_PUBLIC_WEBAPP_URL},GOOGLE_LOGIN_ENABLED=true \
+		--secrets DATABASE_URL=${SSM_PRODUCTION}/DATABASE_URL,NEXTAUTH_SECRET=${SSM_PRODUCTION}/NEXTAUTH_SECRET,CALENDSO_ENCRYPTION_KEY=${SSM_PRODUCTION}/CALENDSO_ENCRYPTION_KEY,GOOGLE_API_CREDENTIALS=${SSM_SHARED}/GOOGLE_API_CREDENTIALS \
+		--image ${IMAGE} \
+		--command "sh /calcom/scripts/start.sh" \
+		--desired-count "1" \
+		--memory-reservation 1024 \
+		--memory 2048 \
 		--port "3000"
 
