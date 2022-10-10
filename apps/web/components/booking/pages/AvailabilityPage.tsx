@@ -491,7 +491,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   </div>
 
                   {!isEmbed && (
-                    <div className="mt-auto hidden sm:block">
+                    <div className="mt-auto hidden md:block">
                       <GoBackToPreviousPage t={t} />
                     </div>
                   )}
