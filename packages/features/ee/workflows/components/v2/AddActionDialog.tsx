@@ -109,7 +109,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                   <p className="mt-1 text-sm text-red-500">{form.formState.errors.action.message}</p>
                 )}
               </div>
-              {!!isPhoneNumberNeeded && (
+              {isPhoneNumberNeeded && (
                 <div className="mt-5 space-y-1">
                   <Label htmlFor="sendTo">{t("phone_number")}</Label>
                   <div className="mt-1">
