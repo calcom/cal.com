@@ -11,6 +11,7 @@ export const WORKFLOW_TRIGGER_EVENTS = [
 export const WORKFLOW_ACTIONS = [
   WorkflowActions.EMAIL_HOST,
   WorkflowActions.EMAIL_ATTENDEE,
+  WorkflowActions.EMAIL_ADDRESS,
   WorkflowActions.SMS_ATTENDEE,
   WorkflowActions.SMS_NUMBER,
 ] as const;
