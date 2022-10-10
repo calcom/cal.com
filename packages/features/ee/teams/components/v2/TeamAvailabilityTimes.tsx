@@ -47,7 +47,7 @@ export default function TeamAvailabilityTimes(props: Props) {
   return (
     <div className={classNames("min-w-60 flex-grow pl-0", props.className)}>
       {props.HeaderComponent}
-      {isLoading && times.length === 0 && <Loader />}
+      {isLoading && times.length === 0 && <></>}
       {!isLoading && times.length === 0 ? (
         <div className="flex flex-col items-center justify-center pt-4">
           <span className="text-sm text-gray-500">No Available slots</span>
