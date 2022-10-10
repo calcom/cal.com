@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - production
       - staging
 
 jobs:
@@ -13,9 +14,9 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_ECR_URL: ${{ secrets.AWS_ECR_URL }}
       DATABASE_URL: postgresql://cal:secret@localhost:5432/cal
-      ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
-      NEXT_PUBLIC_WEBAPP_URL: ${{ github.ref == 'refs/heads/main' && secrets.PUBLIC_WEBAPP_URL_PRODUCTION || secrets.PUBLIC_WEBAPP_URL_STAGING }}
-      NEXT_PUBLIC_WEBSITE_URL: ${{ github.ref == 'refs/heads/main' && secrets.PUBLIC_WEBAPP_URL_PRODUCTION || secrets.PUBLIC_WEBAPP_URL_STAGING }}
+      ENVIRONMENT: ${{ github.ref == 'refs/heads/staging' && 'staging' || 'production' }}
+      NEXT_PUBLIC_WEBAPP_URL: ${{ github.ref == 'refs/heads/staging' && secrets.PUBLIC_WEBAPP_URL_STAGING || secrets.PUBLIC_WEBAPP_URL_PRODUCTION }}
+      NEXT_PUBLIC_WEBSITE_URL: ${{ github.ref == 'refs/heads/staging' && secrets.PUBLIC_WEBAPP_URL_STAGING || secrets.PUBLIC_WEBAPP_URL_PRODUCTION }}
       NEXTAUTH_SECRET: secret
       CALENDSO_ENCRYPTION_KEY: secret
       GOOGLE_API_CREDENTIALS: ${{ secrets.GOOGLE_API_CREDENTIALS }}
