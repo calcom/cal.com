@@ -280,7 +280,7 @@ export const eventTypesRouter = createProtectedRouter()
           until: recurringEvent.until as unknown as Prisma.InputJsonObject,
           tzid: recurringEvent.tzid,
         };
-      } else {
+      } else if (recurringEvent === null) {
         data.recurringEvent = Prisma.DbNull;
       }
 

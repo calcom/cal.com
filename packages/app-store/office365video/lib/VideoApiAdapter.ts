@@ -49,7 +49,6 @@ const o365Auth = async (credential: Credential) => {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        scope: "User.Read OnlineMeetings.ReadWrite",
         client_id,
         refresh_token: refreshToken,
         grant_type: "refresh_token",
@@ -57,6 +56,10 @@ const o365Auth = async (credential: Credential) => {
       }),
     });
     const responseBody = await handleErrorsJson(response);
+    if (responseBody.error) {
+      console.error(responseBody);
+      throw new HttpError({ statusCode: 500, message: "Error contacting MS Teams" });
+    }
     // set expiry date as offset from current time.
     responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
     delete responseBody.expires_in;
