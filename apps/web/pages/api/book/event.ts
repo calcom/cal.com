@@ -330,7 +330,7 @@ async function handler(req: NextApiRequest) {
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
 
-  if (eventType.bookingLimits) {
+  if (eventType && eventType.hasOwnProperty("bookingLimits") && eventType?.bookingLimits) {
     const startAsDate = dayjs(reqBody.start).toDate();
     await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
   }
