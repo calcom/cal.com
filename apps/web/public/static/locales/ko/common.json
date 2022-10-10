@@ -837,7 +837,6 @@
   "redirect_success_booking": "예약 시 리디렉션",
   "you_are_being_redirected": "$t(second, {\"count\": {{seconds}} }) 후에 {{ url }}(으)로 리디렉션됩니다.",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
-  "redirect_url_upgrade_description": "이 기능을 사용하려면 Pro 계정으로 업그레이드해야 합니다.",
   "duplicate": "복제",
   "offer_seats": "좌석 제공",
   "offer_seats_description": "예약에 좌석 제공(게스트를 비활성화하고 예약을 선택함)",

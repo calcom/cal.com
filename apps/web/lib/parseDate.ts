@@ -47,14 +47,27 @@ export const parseRecurringDates = (
   return [dateStrings, rule.all()];
 };
 
-type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
-
 export const extractRecurringDates = (
-  bookings: BookingItem[],
+  booking: inferQueryOutput<"viewer.bookings">["bookings"][number] & {
+    eventType: { recurringEvent: RecurringEvent | null };
+    recurringEventId: string | null;
+    recurringBookings: inferQueryOutput<"viewer.bookings">["recurringInfo"];
+  },
   timeZone: string | undefined,
   i18n: I18n
 ): [string[], Date[]] => {
-  const dateStrings = bookings.map((booking) => processDate(dayjs(booking.startTime).tz(timeZone), i18n));
-  const allDates = dateStrings.map((dateString) => dayjs(dateString).tz(timeZone).toDate());
+  const { count = 0, ...rest } =
+    booking.eventType.recurringEvent !== null ? booking.eventType.recurringEvent : {};
+  const recurringInfo = booking.recurringBookings.find(
+    (val) => val.recurringEventId === booking.recurringEventId
+  );
+  const allDates = new RRule({
+    ...rest,
+    count: recurringInfo?._count.recurringEventId,
+    dtstart: recurringInfo?._min.startTime,
+  }).all();
+  const dateStrings = allDates.map((r) => {
+    return processDate(dayjs(r).tz(timeZone), i18n);
+  });
   return [dateStrings, allDates];
 };

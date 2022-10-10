@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import { Prisma, User, UserPlan } from "@prisma/client";
+import { Booking, BookingStatus, EventType, Prisma, UserPlan, Webhook } from "@prisma/client";
 
 import { CalendarEvent, Person, VideoCallData } from "@calcom/types/Calendar";
 
@@ -25,6 +25,116 @@ export const buildPerson = (person?: Partial<Person>): Person => {
       translate: (key: string) => key,
     },
     ...person,
+  };
+};
+
+export const buildBooking = (booking?: Partial<Booking>): Booking => {
+  return {
+    id: faker.datatype.number(),
+    uid: faker.datatype.uuid(),
+    userId: null,
+    eventTypeId: null,
+    title: faker.lorem.sentence(),
+    description: faker.lorem.paragraph(),
+    customInputs: null,
+    startTime: faker.date.future(),
+    endTime: faker.date.future(),
+    location: null,
+    createdAt: new Date(),
+    updatedAt: null,
+    status: BookingStatus.ACCEPTED,
+    paid: false,
+    destinationCalendarId: null,
+    cancellationReason: null,
+    rejectionReason: null,
+    dynamicEventSlugRef: null,
+    dynamicGroupSlugRef: null,
+    rescheduled: null,
+    fromReschedule: null,
+    recurringEventId: null,
+    smsReminderNumber: null,
+    scheduledJobs: [],
+    ...booking,
+  };
+};
+
+export const buildEventType = (eventType?: Partial<EventType>): EventType => {
+  return {
+    id: faker.datatype.number(),
+    title: faker.lorem.sentence(),
+    slug: faker.lorem.slug(),
+    description: faker.lorem.paragraph(),
+    position: 1,
+    locations: null,
+    length: 15,
+    hidden: false,
+    userId: null,
+    teamId: null,
+    eventName: faker.lorem.words(),
+    timeZone: null,
+    periodType: "UNLIMITED",
+    periodStartDate: null,
+    periodEndDate: null,
+    periodDays: null,
+    periodCountCalendarDays: null,
+    recurringEvent: null,
+    requiresConfirmation: false,
+    disableGuests: false,
+    hideCalendarNotes: false,
+    minimumBookingNotice: 120,
+    beforeEventBuffer: 0,
+    afterEventBuffer: 0,
+    seatsPerTimeSlot: null,
+    schedulingType: null,
+    scheduleId: null,
+    price: 0,
+    currency: "usd",
+    slotInterval: null,
+    metadata: null,
+    successRedirectUrl: null,
+    ...eventType,
+  };
+};
+
+export const buildWebhook = (webhook?: Partial<Webhook>): Webhook => {
+  return {
+    id: faker.datatype.uuid(),
+    eventTypeId: faker.datatype.number(),
+    subscriberUrl: "http://mockedURL.com",
+    payloadTemplate: null,
+    createdAt: faker.datatype.datetime(),
+    appId: null,
+    userId: null,
+    secret: faker.lorem.slug(),
+    active: true,
+    eventTriggers: [],
+    ...webhook,
+  };
+};
+
+export const buildSubscriberEvent = (booking?: Partial<Booking>) => {
+  return {
+    type: booking?.title || "",
+    title: booking?.title,
+    description: "",
+    additionalNotes: "",
+    customInputs: {},
+    startTime: booking?.startTime,
+    endTime: booking?.endTime,
+    organizer: {
+      name: "",
+      email: "",
+      timeZone: "",
+      language: {
+        locale: "en",
+      },
+    },
+    attendees: [],
+    location: "",
+    destinationCalendar: null,
+    hideCalendar: false,
+    uid: booking?.uid,
+    metadata: {},
   };
 };
 

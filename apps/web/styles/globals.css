@@ -344,6 +344,10 @@ button[role="switch"][data-state="checked"] {
   animation: loader-inner 2s infinite ease-in;
 }
 
+.no-ring-inset {
+  --tw-ring-inset: unset;
+}
+
 @keyframes loader {
   0% {
     transform: rotate(0deg);
@@ -496,3 +500,4 @@ hr {
     height: -webkit-fill-available;
   }
 }
+
