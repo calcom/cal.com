@@ -1299,5 +1299,7 @@
   "dont_update": "Don't update",
   "email_address_action": "send email to a specific email address",
   "after_event_trigger": "after event ends",
-  "how_long_after": "How long after event ends?"
+  "how_long_after": "How long after event ends?",
+  "no_available_slots": "No Available slots",
+  "time_available": "Time available"
 }
