@@ -2803,9 +2803,9 @@
   integrity sha512-7jGciNJ2bQ4eZLSNlSZ+VAyW63kALf420CvkEpK4lEsUfWJq9odqimci0YCiyNyMUFB+pWHwLYyNc57dijYsCg==
 
 "@headlessui/react@^1.5.0":
-  version "1.7.2"
-  resolved "https://registry.yarnpkg.com/@headlessui/react/-/react-1.7.2.tgz#e6a6a8d38342064a53182f1eb2bf6d9c1e53ba6a"
-  integrity sha512-snLv2lxwsf2HNTOBNgHYdvoYZ3ChJE8QszPi1d/hl9js8KrFrUulTaQBfSyPbJP5BybVreWh9DxCgz9S0Z6hKQ==
+  version "1.7.3"
+  resolved "https://registry.yarnpkg.com/@headlessui/react/-/react-1.7.3.tgz#853c598ff47b37cdd192c5cbee890d9b610c3ec0"
+  integrity sha512-LGp06SrGv7BMaIQlTs8s2G06moqkI0cb0b8stgq7KZ3xcHdH3qMP+cRyV7qe5x4XEW/IGY48BW4fLesD6NQLng==
 
 "@heroicons/react@^1.0.6":
   version "1.0.6"
@@ -6285,10 +6285,10 @@
   resolved "https://registry.yarnpkg.com/@tanstack/query-core/-/query-core-4.3.8.tgz#d5f07c1d9d4f83f16f0bed7f3b245fa0e557b037"
   integrity sha512-AEUWtCNBIImFZ9tMt/P8V86kIhMHpfoJqAI1auGOLR8Wzeq7Ymiue789PJG0rKYcyViUicBZeHjggMqyEQVMfQ==
 
-"@tanstack/query-core@4.7.2":
-  version "4.7.2"
-  resolved "https://registry.yarnpkg.com/@tanstack/query-core/-/query-core-4.7.2.tgz#5e8f0bc632b9c5423e5c5ca6d147c386b64dfec7"
-  integrity sha512-1zQuFsKShMhLY6rQYBEmkYiK9Zcb3lQcCVOTIgQcvliKIxPyZFaE/8LMtaITEEfgGF5qwYqHdm61+BUtpyNsrg==
+"@tanstack/query-core@4.9.0":
+  version "4.9.0"
+  resolved "https://registry.yarnpkg.com/@tanstack/query-core/-/query-core-4.9.0.tgz#ffc057b664f952bf3d4925fd924a12403646f6a2"
+  integrity sha512-Vl0jAWJR3A1md0PoPMoEd6+H1dlRB5NqXDBNF+MZEgjQsR0Nly2kJgJj0Zh6eRDndnn7VlspxTWoOpt+dwDdAA==
 
 "@tanstack/query-sync-storage-persister@^4.0.10":
   version "4.2.3"
@@ -6310,11 +6310,11 @@
     use-sync-external-store "^1.2.0"
 
 "@tanstack/react-query@^4.2.3":
-  version "4.7.2"
-  resolved "https://registry.yarnpkg.com/@tanstack/react-query/-/react-query-4.7.2.tgz#ce020c4e0261e16b99d24322d1598ffc28974472"
-  integrity sha512-4nJ0HxU2kxkaHZ/swJw39io3Bb3liiggJBsCCdFOydZOl8AJDRCor1E3GsOBrtn53HT01R9EIP4PY/6fyYdKsw==
+  version "4.9.0"
+  resolved "https://registry.yarnpkg.com/@tanstack/react-query/-/react-query-4.9.0.tgz#e0e8894b9b7415608c488d68793826113d61224d"
+  integrity sha512-M4utYjk9BRDUYbbprSsa0eExdC9NjqQ0deuHXYxQkT8l8BIVyw6yv02LQUGBdOnn/6w5xXFyQRG2slo+JhqeBg==
   dependencies:
-    "@tanstack/query-core" "4.7.2"
+    "@tanstack/query-core" "4.9.0"
     use-sync-external-store "^1.2.0"
 
 "@tanstack/react-query@^4.3.9":
@@ -6889,15 +6889,10 @@
   dependencies:
     "@types/node" "*"
 
-"@types/node@*", "@types/node@16.9.1", "@types/node@>=12.0.0", "@types/node@>=8.1.0", "@types/node@^14.0.10 || ^16.0.0", "@types/node@^14.14.20 || ^16.0.0":
+"@types/node@*", "@types/node@16.9.1", "@types/node@>=12.0.0", "@types/node@>=8.1.0", "@types/node@^12.12.54", "@types/node@^12.12.6", "@types/node@^14.0.10 || ^16.0.0", "@types/node@^14.14.20 || ^16.0.0":
   version "16.9.1"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-16.9.1.tgz#0611b37db4246c937feef529ddcc018cf8e35708"
   integrity sha512-QpLcX9ZSsq3YYUUnD3nFDY8H7wctAhQj/TFKL8Ya8v5fMm3CFXxo8zStsLAl780ltoYoo1WvKUVGBQK+1ifr7g==
-
-"@types/node@^12.12.54", "@types/node@^12.12.6":
-  version "12.20.55"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.20.55.tgz#c329cbd434c42164f846b909bd6f85b5537f6240"
-  integrity sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==
 
 "@types/nodemailer@^6.4.5":
   version "6.4.5"
@@ -23325,6 +23320,11 @@ synchronous-promise@^2.0.15:
   version "2.0.15"
   resolved "https://registry.yarnpkg.com/synchronous-promise/-/synchronous-promise-2.0.15.tgz#07ca1822b9de0001f5ff73595f3d08c4f720eb8e"
   integrity sha512-k8uzYIkIVwmT+TcglpdN50pS2y1BDcUnBPK9iJeGu0Pl1lOI8pD6wtzgw91Pjpe+RxtTncw32tLxs/R0yNL2Mg==
+
+tailwind-scrollbar@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/tailwind-scrollbar/-/tailwind-scrollbar-2.0.1.tgz#f08721173d513f1406a44601640b79726e3f9728"
+  integrity sha512-OcR7qHBbux4k+k6bWqnEQFYFooLK/F4dhkBz6nvswIoaA9ancZ5h20e0tyV7ifSWLDCUBtpG+1NHRA8HMRH/wg==
 
 tailwindcss-radix@^2.6.0:
   version "2.6.0"
