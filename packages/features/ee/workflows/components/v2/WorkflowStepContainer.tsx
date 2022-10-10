@@ -20,7 +20,7 @@ import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { Button, DialogClose, DialogContent } from "@calcom/ui/v2";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import Select from "@calcom/ui/v2/core/form/Select";
-import { Label, TextArea } from "@calcom/ui/v2/core/form/fields";
+import { EmailField, Label, TextArea } from "@calcom/ui/v2/core/form/fields";
 
 import { AddVariablesDropdown } from "../../components/v2/AddVariablesDropdown";
 import {
@@ -49,18 +49,29 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
   );
 
+  const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(
+    step?.action === WorkflowActions.EMAIL_ADDRESS ? true : false
+  );
+
   const [isCustomReminderBodyNeeded, setIsCustomReminderBodyNeeded] = useState(
     step?.template === WorkflowTemplates.CUSTOM ? true : false
   );
 
   const [isEmailSubjectNeeded, setIsEmailSubjectNeeded] = useState(
-    step?.action === WorkflowActions.EMAIL_ATTENDEE || step?.action === WorkflowActions.EMAIL_HOST
+    step?.action === WorkflowActions.EMAIL_ATTENDEE ||
+      step?.action === WorkflowActions.EMAIL_HOST ||
+      step?.action === WorkflowActions.EMAIL_ADDRESS
       ? true
       : false
   );
 
   const [showTimeSection, setShowTimeSection] = useState(
-    form.getValues("trigger") === WorkflowTriggerEvents.BEFORE_EVENT ? true : false
+    form.getValues("trigger") === WorkflowTriggerEvents.BEFORE_EVENT ||
+      form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
+  );
+
+  const [showTimeSectionAfter, setShowTimeSectionAfter] = useState(
+    form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
   );
 
   const actionOptions = getWorkflowActionOptions(t);
@@ -147,12 +158,21 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     onChange={(val) => {
                       if (val) {
                         form.setValue("trigger", val.value);
-                        if (val.value === WorkflowTriggerEvents.BEFORE_EVENT) {
+                        if (
+                          val.value === WorkflowTriggerEvents.BEFORE_EVENT ||
+                          val.value === WorkflowTriggerEvents.AFTER_EVENT
+                        ) {
                           setShowTimeSection(true);
+                          if (val.value === WorkflowTriggerEvents.AFTER_EVENT) {
+                            setShowTimeSectionAfter(true);
+                          } else {
+                            setShowTimeSectionAfter(false);
+                          }
                           form.setValue("time", 24);
                           form.setValue("timeUnit", TimeUnit.HOUR);
                         } else {
                           setShowTimeSection(false);
+                          setShowTimeSectionAfter(false);
                           form.unregister("time");
                           form.unregister("timeUnit");
                         }
@@ -166,7 +186,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             />
             {showTimeSection && (
               <div className="mt-5">
-                <Label>{t("how_long_before")}</Label>
+                <Label>{showTimeSectionAfter ? t("how_long_after") : t("how_long_before")}</Label>
                 <TimeTimeUnitInput form={form} />
               </div>
             )}
@@ -256,12 +276,20 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           if (val) {
                             if (val.value === WorkflowActions.SMS_NUMBER) {
                               setIsPhoneNumberNeeded(true);
+                              setIsEmailAddressNeeded(false);
+                            } else if (val.value === WorkflowActions.EMAIL_ADDRESS) {
+                              setIsEmailAddressNeeded(true);
+                              setIsPhoneNumberNeeded(false);
                             } else {
+                              setIsEmailAddressNeeded(false);
                               setIsPhoneNumberNeeded(false);
                             }
+                            form.unregister(`steps.${step.stepNumber - 1}.sendTo`);
+                            form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
                             if (
                               val.value === WorkflowActions.EMAIL_ATTENDEE ||
-                              val.value === WorkflowActions.EMAIL_HOST
+                              val.value === WorkflowActions.EMAIL_HOST ||
+                              val.value === WorkflowActions.EMAIL_ADDRESS
                             ) {
                               setIsEmailSubjectNeeded(true);
                             } else {
@@ -300,6 +328,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
                       </p>
                     )}
+                </div>
+              )}
+              {isEmailAddressNeeded && (
+                <div className="mt-5 rounded-md bg-gray-50 p-4">
+                  <EmailField
+                    required
+                    label={t("email_address")}
+                    {...form.register(`steps.${step.stepNumber - 1}.sendTo`)}
+                  />
                 </div>
               )}
               <div className="mt-5">
@@ -437,16 +474,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         reminderBody,
                         template: step.template,
                       });
-                    }
+                    } else {
+                      const isNumberValid =
+                        form.formState.errors.steps &&
+                        form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo
+                          ? false
+                          : true;
 
-                    const isNumberValid =
-                      form.formState.errors.steps &&
-                      form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo
-                        ? false
-                        : true;
-
-                    if (isPhoneNumberNeeded && isNumberValid && !isEmpty) {
-                      setConfirmationDialogOpen(true);
+                      if (isPhoneNumberNeeded && isNumberValid && !isEmpty) {
+                        setConfirmationDialogOpen(true);
+                      }
                     }
                   }}
                   color="secondary">
