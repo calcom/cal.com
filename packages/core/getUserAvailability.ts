@@ -119,8 +119,9 @@ export async function getUserAvailability(
   /* Current logic is if a booking is in a time slot mark it as busy, but seats can have more than one attendee so grab
   current bookings with a seats event type and display them on the calendar, even if they are full */
   let currentSeats: CurrentSeats | null = initialData?.currentSeats || null;
-  if (!currentSeats && eventType?.seatsPerTimeSlot)
+  if (!currentSeats && eventType?.seatsPerTimeSlot) {
     currentSeats = await getCurrentSeats(eventType.id, dateFrom, dateTo);
+  }
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);
 

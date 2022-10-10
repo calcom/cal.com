@@ -3,27 +3,32 @@ import prisma from "@calcom/prisma";
 import { BookingLimit } from "@calcom/types/Calendar";
 
 import { HttpError } from "../http-error";
+import { parseBookingLimit } from "../isBookingLimits";
 
 export async function checkBookingLimits(
-  bookingLimits: BookingLimit,
+  bookingLimits: any,
   eventStartDate: Date,
   eventId: number,
   returnBusyTimes?: boolean
 ) {
-  const limitCalculations = Object.entries(bookingLimits).map(
-    async ([key, limitingNumber]) =>
-      await checkLimit({ key, limitingNumber, eventStartDate, eventId, returnBusyTimes })
-  );
-  await Promise.all(limitCalculations)
-    .then((res) => {
-      if (returnBusyTimes) {
-        return res;
-      }
-    })
-    .catch((error) => {
-      throw new HttpError({ message: error.message, statusCode: 401 });
-    });
-  return true;
+  const parsedBookingLimits = parseBookingLimit(bookingLimits);
+  if (parsedBookingLimits) {
+    const limitCalculations = Object.entries(parsedBookingLimits).map(
+      async ([key, limitingNumber]) =>
+        await checkLimit({ key, limitingNumber, eventStartDate, eventId, returnBusyTimes })
+    );
+    await Promise.all(limitCalculations)
+      .then((res) => {
+        if (returnBusyTimes) {
+          return res;
+        }
+      })
+      .catch((error) => {
+        throw new HttpError({ message: error.message, statusCode: 401 });
+      });
+    return true;
+  }
+  return false;
 }
 
 export async function checkLimit({
