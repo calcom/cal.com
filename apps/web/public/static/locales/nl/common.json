@@ -837,7 +837,6 @@
   "redirect_success_booking": "Omleiding bij boeking ",
   "you_are_being_redirected": "U wordt omgeleid naar {{ url }} over $t(seconde, {\"count\": {{seconden}} }).",
   "external_redirect_url": "https://voorbeeld.com/omleiding-naar-mijn-succespagina",
-  "redirect_url_upgrade_description": "Om deze functie te gebruiken, moet u upgraden naar een Pro-account.",
   "duplicate": "Dupliceren",
   "offer_seats": "Zitplaatsen aanbieden",
   "offer_seats_description": "Zitplaatsen aanbieden aan boekingen (dit schakelt gastboekingen en aanmeldingsboekingen uit)",

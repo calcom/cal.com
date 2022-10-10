@@ -4,7 +4,7 @@ import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { setIs24hClockInLocalStorage } from "@calcom/lib/timeFormat";
-import { trpc } from "@calcom/trpc/react";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/v2/core/Button";
 import Meta from "@calcom/ui/v2/core/Meta";
 import TimezoneSelect from "@calcom/ui/v2/core/TimezoneSelect";
@@ -34,25 +34,32 @@ const SkeletonLoader = () => {
 
 interface GeneralViewProps {
   localeProp: string;
+  user: inferQueryOutput<"viewer.me">;
 }
 
 const WithQuery = withQuery(["viewer.public.i18n"], { trpc: { context: { skipBatch: true } } });
 
 const GeneralQueryView = () => {
+  const { t } = useLocale();
+
+  const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
+  if (isLoading) return <SkeletonLoader />;
+  if (!user) {
+    throw new Error(t("something_went_wrong"));
+  }
   return (
     <WithQuery
-      success={({ data }) => <GeneralView localeProp={data.locale} />}
+      success={({ data }) => <GeneralView user={user} localeProp={data.locale} />}
       customLoader={<SkeletonLoader />}
     />
   );
 };
 
-const GeneralView = ({ localeProp }: GeneralViewProps) => {
+const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
   const router = useRouter();
   const utils = trpc.useContext();
   const { t } = useLocale();
 
-  const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: () => {
       showToast(t("settings_updated_successfully"), "success");
@@ -93,19 +100,17 @@ const GeneralView = ({ localeProp }: GeneralViewProps) => {
         value: localeProp || "",
         label: localeOptions.find((option) => option.value === localeProp)?.label || "",
       },
-      timeZone: user?.timeZone || "",
+      timeZone: user.timeZone || "",
       timeFormat: {
-        value: user?.timeFormat || 12,
-        label: timeFormatOptions.find((option) => option.value === user?.timeFormat)?.label || 12,
+        value: user.timeFormat || 12,
+        label: timeFormatOptions.find((option) => option.value === user.timeFormat)?.label || 12,
       },
       weekStart: {
-        value: user?.weekStart,
-        label: nameOfDay(localeProp, user?.weekStart === "Sunday" ? 0 : 1),
+        value: user.weekStart,
+        label: nameOfDay(localeProp, user.weekStart === "Sunday" ? 0 : 1),
       },
     },
   });
-
-  if (isLoading) return <SkeletonLoader />;
 
   return (
     <Form
