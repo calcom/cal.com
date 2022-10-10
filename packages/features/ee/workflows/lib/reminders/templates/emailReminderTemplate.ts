@@ -18,7 +18,9 @@ const emailReminderTemplate = (
     .tz(timeZone)
     .format("YYYY MMM D")} at ${dayjs(startTime).tz(timeZone).format("h:mmA")} ${timeZone}.`;
 
-  const introHtml = `<body>Hi ${name},<br><br>This is a reminder about your upcoming event.<br><br>`;
+  const introHtml = `<body>Hi${
+    name ? " " + name : ""
+  },<br><br>This is a reminder about your upcoming event.<br><br>`;
 
   const eventHtml = `<div style="font-weight: bold;">Event:</div>${eventName}<br><br>`;
 
