@@ -13,6 +13,7 @@ import { ReactMultiEmail } from "react-multi-email";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
+import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import {
   locationKeyToString,
   getEventLocationValue,
@@ -57,7 +58,6 @@ import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescrip
 import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
-import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 
 type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
 
