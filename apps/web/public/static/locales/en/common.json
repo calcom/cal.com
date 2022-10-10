@@ -1297,5 +1297,7 @@
   "update_timezone_description": "It seems like your local timezone has changed to {{formattedCurrentTz}}.  It's very important to have the correct timezone to prevent bookings at undesired times. Do you want to update it?",
   "dont_update": "Don't update",
   "after_event_trigger": "after event ends",
-  "how_long_after": "How long after event ends?"
+  "how_long_after": "How long after event ends?",
+  "no_available_slots": "No Available slots",
+  "time_available": "Time available"
 }
