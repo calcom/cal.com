@@ -188,7 +188,7 @@
   "secret": "Passwort",
   "leave_blank_to_remove_secret": "Leer lassen, um Passwort zu entfernen",
   "webhook_secret_key_description": "Stellen Sie sicher, dass Ihr Server aus Sicherheitsgründen nur die erwarteten Cal.com-Anfragen empfängt",
-  "secret_meeting": "Geheimes Termin",
+  "secret_meeting": "Geheimer Termin",
   "login_instead": "Stattdessen anmelden",
   "already_have_an_account": "Haben Sie bereits ein Konto?",
   "create_account": "Konto erstellen",
