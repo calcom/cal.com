@@ -19,8 +19,8 @@ import { Icon } from "@calcom/ui/Icon";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { Button, DialogClose, DialogContent } from "@calcom/ui/v2";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
-import Select from "@calcom/ui/v2/core/form/Select";
 import { EmailField, Label, TextArea } from "@calcom/ui/v2/core/form/fields";
+import Select from "@calcom/ui/v2/core/form/select";
 
 import { AddVariablesDropdown } from "../../components/v2/AddVariablesDropdown";
 import {
