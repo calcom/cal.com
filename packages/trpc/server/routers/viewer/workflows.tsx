@@ -416,12 +416,22 @@ export const workflowsRouter = createProtectedRouter()
                 };
                 if (
                   step.action === WorkflowActions.EMAIL_HOST ||
-                  step.action === WorkflowActions.EMAIL_ATTENDEE
+                  step.action === WorkflowActions.EMAIL_ATTENDEE ||
+                  step.action === WorkflowActions.EMAIL_ADDRESS
                 ) {
-                  const sendTo =
-                    step.action === WorkflowActions.EMAIL_HOST
-                      ? bookingInfo.organizer?.email
-                      : bookingInfo.attendees[0].email;
+                  let sendTo = "";
+
+                  switch (step.action) {
+                    case WorkflowActions.EMAIL_HOST:
+                      sendTo = bookingInfo.organizer?.email;
+                      break;
+                    case WorkflowActions.EMAIL_ATTENDEE:
+                      sendTo = bookingInfo.attendees[0].email;
+                      break;
+                    case WorkflowActions.EMAIL_ADDRESS:
+                      sendTo = step.sendTo || "";
+                  }
+
                   await scheduleEmailReminder(
                     bookingInfo,
                     trigger,
@@ -503,7 +513,11 @@ export const workflowsRouter = createProtectedRouter()
             },
             data: {
               action: newStep.action,
-              sendTo: newStep.action === WorkflowActions.SMS_NUMBER ? newStep.sendTo : null,
+              sendTo:
+                newStep.action === WorkflowActions.SMS_NUMBER ||
+                newStep.action === WorkflowActions.EMAIL_ADDRESS
+                  ? newStep.sendTo
+                  : null,
               stepNumber: newStep.stepNumber,
               workflowId: newStep.workflowId,
               reminderBody: newStep.template === WorkflowTemplates.CUSTOM ? newStep.reminderBody : null,
@@ -577,12 +591,22 @@ export const workflowsRouter = createProtectedRouter()
               };
               if (
                 newStep.action === WorkflowActions.EMAIL_HOST ||
-                newStep.action === WorkflowActions.EMAIL_ATTENDEE
+                newStep.action === WorkflowActions.EMAIL_ATTENDEE ||
+                newStep.action === WorkflowActions.EMAIL_ADDRESS
               ) {
-                const sendTo =
-                  newStep.action === WorkflowActions.EMAIL_HOST
-                    ? bookingInfo.organizer?.email
-                    : bookingInfo.attendees[0].email;
+                let sendTo = "";
+
+                switch (newStep.action) {
+                  case WorkflowActions.EMAIL_HOST:
+                    sendTo = bookingInfo.organizer?.email;
+                    break;
+                  case WorkflowActions.EMAIL_ATTENDEE:
+                    sendTo = bookingInfo.attendees[0].email;
+                    break;
+                  case WorkflowActions.EMAIL_ADDRESS:
+                    sendTo = newStep.sendTo || "";
+                }
+
                 await scheduleEmailReminder(
                   bookingInfo,
                   trigger,
@@ -681,12 +705,22 @@ export const workflowsRouter = createProtectedRouter()
 
                 if (
                   step.action === WorkflowActions.EMAIL_ATTENDEE ||
-                  step.action === WorkflowActions.EMAIL_HOST
+                  step.action === WorkflowActions.EMAIL_HOST ||
+                  step.action === WorkflowActions.EMAIL_ADDRESS
                 ) {
-                  const sendTo =
-                    step.action === WorkflowActions.EMAIL_HOST
-                      ? bookingInfo.organizer?.email
-                      : bookingInfo.attendees[0].email;
+                  let sendTo = "";
+
+                  switch (step.action) {
+                    case WorkflowActions.EMAIL_HOST:
+                      sendTo = bookingInfo.organizer?.email;
+                      break;
+                    case WorkflowActions.EMAIL_ATTENDEE:
+                      sendTo = bookingInfo.attendees[0].email;
+                      break;
+                    case WorkflowActions.EMAIL_ADDRESS:
+                      sendTo = step.sendTo || "";
+                  }
+
                   await scheduleEmailReminder(
                     bookingInfo,
                     trigger,
@@ -821,7 +855,11 @@ export const workflowsRouter = createProtectedRouter()
           };
         }
 
-        if (action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.EMAIL_HOST) {
+        if (
+          action === WorkflowActions.EMAIL_ATTENDEE ||
+          action === WorkflowActions.EMAIL_HOST ||
+          action === WorkflowActions.EMAIL_ADDRESS
+        ) {
           scheduleEmailReminder(
             evt,
             WorkflowTriggerEvents.NEW_EVENT,
