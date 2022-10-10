@@ -70,10 +70,12 @@ export const scheduleEmailReminder = async (
       name = evt.organizer.name;
       attendeeName = evt.attendees[0].name;
       timeZone = evt.organizer.timeZone;
+      break;
     case WorkflowActions.EMAIL_ATTENDEE:
       name = evt.attendees[0].name;
       attendeeName = evt.organizer.name;
       timeZone = evt.attendees[0].timeZone;
+      break;
     case WorkflowActions.EMAIL_ADDRESS:
       name = "";
       attendeeName = evt.attendees[0].name;

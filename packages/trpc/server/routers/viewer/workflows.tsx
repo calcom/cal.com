@@ -424,8 +424,10 @@ export const workflowsRouter = createProtectedRouter()
                   switch (step.action) {
                     case WorkflowActions.EMAIL_HOST:
                       sendTo = bookingInfo.organizer?.email;
+                      break;
                     case WorkflowActions.EMAIL_ATTENDEE:
                       sendTo = bookingInfo.attendees[0].email;
+                      break;
                     case WorkflowActions.EMAIL_ADDRESS:
                       sendTo = step.sendTo || "";
                   }
@@ -597,8 +599,10 @@ export const workflowsRouter = createProtectedRouter()
                 switch (newStep.action) {
                   case WorkflowActions.EMAIL_HOST:
                     sendTo = bookingInfo.organizer?.email;
+                    break;
                   case WorkflowActions.EMAIL_ATTENDEE:
                     sendTo = bookingInfo.attendees[0].email;
+                    break;
                   case WorkflowActions.EMAIL_ADDRESS:
                     sendTo = newStep.sendTo || "";
                 }
@@ -709,8 +713,10 @@ export const workflowsRouter = createProtectedRouter()
                   switch (step.action) {
                     case WorkflowActions.EMAIL_HOST:
                       sendTo = bookingInfo.organizer?.email;
+                      break;
                     case WorkflowActions.EMAIL_ATTENDEE:
                       sendTo = bookingInfo.attendees[0].email;
+                      break;
                     case WorkflowActions.EMAIL_ADDRESS:
                       sendTo = step.sendTo || "";
                   }

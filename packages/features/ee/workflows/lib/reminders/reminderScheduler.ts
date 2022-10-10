@@ -59,8 +59,10 @@ export const scheduleWorkflowReminders = async (
             switch (step.action) {
               case WorkflowActions.EMAIL_HOST:
                 sendTo = evt.organizer.email;
+                break;
               case WorkflowActions.EMAIL_ATTENDEE:
                 sendTo = evt.attendees[0].email;
+                break;
               case WorkflowActions.EMAIL_ADDRESS:
                 sendTo = step.sendTo || "";
             }
@@ -125,12 +127,13 @@ export const sendCancelledReminders = async (
             switch (step.action) {
               case WorkflowActions.EMAIL_HOST:
                 sendTo = evt.organizer.email;
+                break;
               case WorkflowActions.EMAIL_ATTENDEE:
                 sendTo = evt.attendees[0].email;
+                break;
               case WorkflowActions.EMAIL_ADDRESS:
                 sendTo = step.sendTo || "";
             }
-
             scheduleEmailReminder(
               evt,
               workflow.trigger,

@@ -71,8 +71,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         switch (reminder.workflowStep.action) {
           case WorkflowActions.EMAIL_HOST:
             sendTo = reminder.booking?.user?.email;
+            break;
           case WorkflowActions.EMAIL_ATTENDEE:
             sendTo = reminder.booking?.attendees[0].email;
+            break;
           case WorkflowActions.EMAIL_ADDRESS:
             sendTo = reminder.workflowStep.sendTo;
         }
