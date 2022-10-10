@@ -4,7 +4,6 @@ import { useRouter } from "next/router";
 
 import { getStaticProps } from "@calcom/app-store/_pages/setup/_getStaticProps";
 import { AppSetupPage } from "@calcom/app-store/_pages/v2/setup";
-import Loader from "@calcom/ui/Loader";
 
 export default function SetupInformation(props: InferGetStaticPropsType<typeof getStaticProps>) {
   const router = useRouter();
