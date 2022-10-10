@@ -5,6 +5,7 @@ import {
   InputProps,
   MenuListProps,
   MenuProps,
+  MultiValueProps,
   OptionProps,
   SingleValueProps,
   ValueContainerProps,
@@ -67,7 +68,7 @@ export const ControlComponent = <
     {...props}
     className={classNames(
       className,
-      "dark:bg-darkgray-100 border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:border-0 focus-within:ring-2 focus-within:ring-neutral-800 hover:border-neutral-400 dark:focus-within:ring-white"
+      "dark:bg-darkgray-100 dark:border-darkgray-300 border-gray-300 bg-white text-sm leading-4 placeholder:text-sm placeholder:font-normal focus-within:border-0 focus-within:ring-2 focus-within:ring-neutral-800 hover:border-neutral-400 dark:focus-within:ring-white"
     )}
   />
 );
@@ -101,6 +102,23 @@ export const ValueContainerComponent = <
     {...props}
     className={classNames(
       "dark:text-darkgray-900 dark:placeholder:text-darkgray-500 text-black placeholder:text-gray-400",
+      className
+    )}
+  />
+);
+
+export const MultiValueComponent = <
+  Option,
+  IsMulti extends boolean = false,
+  Group extends GroupBase<Option> = GroupBase<Option>
+>({
+  className,
+  ...props
+}: MultiValueProps<Option, IsMulti, Group>) => (
+  <reactSelectComponents.MultiValue
+    {...props}
+    className={classNames(
+      "dark:bg-darkgray-200 dark:text-darkgray-900 !rounded-md bg-gray-100 text-gray-700",
       className
     )}
   />
