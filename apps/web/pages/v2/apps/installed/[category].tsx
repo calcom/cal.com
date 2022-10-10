@@ -85,8 +85,8 @@ function ConnectOrDisconnectIntegrationButton(props: {
 }
 
 interface IntegrationsContainerProps {
-  variant?: "calendar" | "conferencing" | "payment";
-  exclude?: App["variant"][];
+  variant?: keyof typeof InstalledAppVariants;
+  exclude?: (keyof typeof InstalledAppVariants)[];
 }
 
 const IntegrationsList = ({ data }: { data: inferQueryOutput<"viewer.integrations"> }) => {
@@ -122,6 +122,8 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
   const emptyIcon = {
     calendar: Icon.FiCalendar,
     conferencing: Icon.FiVideo,
+    automation: Icon.FiShare2,
+    analytics: Icon.FiBarChart,
     payment: Icon.FiCreditCard,
     other: Icon.FiGrid,
   };
@@ -186,16 +188,20 @@ export default function InstalledApps({ category }: InferGetServerSidePropsType<
       {(category === InstalledAppVariants.payment || category === InstalledAppVariants.conferencing) && (
         <IntegrationsContainer variant={category} />
       )}
-      {category === InstalledAppVariants.other && (
-        <IntegrationsContainer
-          exclude={
-            Object.keys(InstalledAppVariants).filter(
-              (variant) => variant !== InstalledAppVariants.other
-            ) as App["variant"][]
-          }
-        />
+      {(category === InstalledAppVariants.automation || category === InstalledAppVariants.analytics) && (
+        <IntegrationsContainer variant={category} />
       )}
       {category === InstalledAppVariants.calendar && <CalendarListContainer />}
+      {category === InstalledAppVariants.other && (
+        <IntegrationsContainer
+          exclude={[
+            InstalledAppVariants.conferencing,
+            InstalledAppVariants.calendar,
+            InstalledAppVariants.analytics,
+            InstalledAppVariants.automation,
+          ]}
+        />
+      )}
     </InstalledAppsLayout>
   );
 }

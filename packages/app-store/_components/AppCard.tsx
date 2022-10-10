@@ -23,7 +23,7 @@ export default function AppCard({
   setAppData: SetAppDataGeneric<typeof eventTypeAppCardZod>;
 }) {
   return (
-    <div className="mb-4 rounded-md border border-gray-200 p-8">
+    <div className="mb-4 mt-2 rounded-md border border-gray-200 p-8 text-sm">
       <div className="flex w-full">
         {/* Don't know why but w-[42px] isn't working, started happening when I started using next/dynamic */}
         <Link href={"/apps/" + app.slug}>
@@ -51,7 +51,7 @@ export default function AppCard({
           <OmniInstallAppButton className="ml-auto flex items-center" appId={app?.slug} />
         )}
       </div>
-      {app?.isInstalled ? children : null}
+      {app?.isInstalled && switchChecked ? <div className="mt-4">{children}</div> : null}
     </div>
   );
 }

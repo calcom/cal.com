@@ -54,6 +54,7 @@ export interface App {
     | `${string}_web3`
     | `${string}_other`
     | `${string}_automation`
+    | `${string}_analytics`
     | `${string}_other_calendar`;
 
   /**

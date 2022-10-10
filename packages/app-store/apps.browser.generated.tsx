@@ -15,6 +15,8 @@ import { appDataSchema as routing_forms_schema } from "./ee/routing-forms/zod";
 import { metadata as exchange2013calendar_meta } from "./exchange2013calendar/_metadata";
 import { metadata as exchange2016calendar_meta } from "./exchange2016calendar/_metadata";
 import { metadata as exchangecalendar_meta } from "./exchangecalendar/_metadata";
+import { metadata as fathom_meta } from "./fathom/_metadata";
+import { appDataSchema as fathom_schema } from "./fathom/zod";
 import { metadata as giphy_meta } from "./giphy/_metadata";
 import { appDataSchema as giphy_schema } from "./giphy/zod";
 import { metadata as googlecalendar_meta } from "./googlecalendar/_metadata";
@@ -53,6 +55,7 @@ export const appStoreMetadata = {
   exchange2013calendar: exchange2013calendar_meta,
   exchange2016calendar: exchange2016calendar_meta,
   exchangecalendar: exchangecalendar_meta,
+  fathom: fathom_meta,
   giphy: giphy_meta,
   googlecalendar: googlecalendar_meta,
   googlevideo: googlevideo_meta,
@@ -80,11 +83,11 @@ export const appStoreMetadata = {
 
 export const appDataSchemas = {
   "routing-forms": routing_forms_schema,
+  fathom: fathom_schema,
   giphy: giphy_schema,
   rainbow: rainbow_schema,
   stripe: stripepayment_schema,
 };
-
 export const InstallAppButtonMap = {
   applecalendar: dynamic(() => import("./applecalendar/components/InstallAppButton")),
   around: dynamic(() => import("./around/components/InstallAppButton")),
@@ -111,6 +114,7 @@ export const InstallAppButtonMap = {
   zoomvideo: dynamic(() => import("./zoomvideo/components/InstallAppButton")),
 };
 export const EventTypeAddonMap = {
+  fathom: dynamic(() => import("./fathom/extensions/EventTypeAppCard")),
   giphy: dynamic(() => import("./giphy/extensions/EventTypeAppCard")),
   rainbow: dynamic(() => import("./rainbow/extensions/EventTypeAppCard")),
   stripepayment: dynamic(() => import("./stripepayment/extensions/EventTypeAppCard")),

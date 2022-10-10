@@ -478,6 +478,7 @@ enum AppCategories {
   video
   web3
   automation
+  analytics
 }
 
 model App {
