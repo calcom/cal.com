@@ -40,10 +40,7 @@ export const getReactSelectProps = <
   className?: string;
   components: SelectComponentsConfig<Option, IsMulti, Group>;
 }) => ({
-  className: classNames(
-    "cal-react-select-container block h-[36px] w-full min-w-0 flex-1 rounded-md",
-    className
-  ),
+  className: classNames("block h-[36px] w-full min-w-0 flex-1 rounded-md", className),
   classNamePrefix: "cal-react-select",
   components: {
     ...reactSelectComponents,
