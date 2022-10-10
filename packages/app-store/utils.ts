@@ -174,7 +174,7 @@ export const getEventTypeAppData = <T extends EventTypeAppsList>(
 
   // TODO: This assertion helps typescript hint that only one of the app's data can be returned
   const legacyAppData = legacyAppsData[appId as Extract<T, keyof typeof legacyAppsData>];
-  const allowDataGet = forcedGet ? true : legacyAppData.enabled;
+  const allowDataGet = forcedGet ? true : legacyAppData?.enabled;
   return allowDataGet ? legacyAppData : null;
 };
 
