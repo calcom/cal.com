@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE "EventType" ADD COLUMN     "seatsHideAttendees" BOOLEAN;
+ALTER TABLE "EventType" ADD COLUMN     "seatsShowAttendees" BOOLEAN;

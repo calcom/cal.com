@@ -144,7 +144,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       destinationCalendar: true,
       hideCalendarNotes: true,
       seatsPerTimeSlot: true,
-      seatsHideAttendees: true,
+      seatsShowAttendees: true,
       recurringEvent: true,
       workflows: {
         include: {
@@ -435,7 +435,7 @@ async function handler(req: NextApiRequest) {
     hideCalendarNotes: eventType.hideCalendarNotes,
     requiresConfirmation: eventType.requiresConfirmation ?? false,
     eventTypeId: eventType.id,
-    seatsHideAttendees: !!eventType.seatsHideAttendees,
+    seatsShowAttendees: !!eventType.seatsShowAttendees,
   };
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
@@ -496,7 +496,7 @@ async function handler(req: NextApiRequest) {
 
     const newSeat = booking.attendees.length !== 0;
 
-    await sendScheduledSeatsEmails(evt, invitee[0], newSeat, !!eventType.seatsHideAttendees);
+    await sendScheduledSeatsEmails(evt, invitee[0], newSeat, !!eventType.seatsShowAttendees);
 
     const credentials = await refreshCredentials(organizerUser.credentials);
     const eventManager = new EventManager({ ...organizerUser, credentials });
