@@ -234,7 +234,9 @@ model VerificationToken {
 
 model BookingReference {
   id                 Int      @id @default(autoincrement())
+  /// @zod.min(1)
   type               String
+  /// @zod.min(1)
   uid                String
   meetingId          String?
   meetingPassword    String?
