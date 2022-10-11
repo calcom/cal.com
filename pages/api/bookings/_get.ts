@@ -1,11 +1,10 @@
 import { Prisma } from "@prisma/client";
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest } from "next";
 
-import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { BookingResponse, BookingsResponse } from "@lib/types";
 import { schemaBookingReadPublic } from "@lib/validations/booking";
+import { schemaQuerySingleOrMultipleUserIds } from "@lib/validations/shared/queryUserId";
 
 /**
  * @swagger
@@ -23,15 +22,17 @@ import { schemaBookingReadPublic } from "@lib/validations/booking";
  *       404:
  *         description: No bookings were found
  */
-async function handler(
-  { userId, isAdmin, prisma }: NextApiRequest,
-  res: NextApiResponse<BookingsResponse | BookingResponse>
-) {
+async function handler(req: NextApiRequest) {
+  const { userId, isAdmin, prisma } = req;
   const args: Prisma.BookingFindManyArgs = isAdmin ? {} : { where: { userId } };
+  /** Only admins can query other users */
+  if (isAdmin && req.query.userId) {
+    const query = schemaQuerySingleOrMultipleUserIds.parse(req.query);
+    const userIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
+    args.where = { userId: { in: userIds } };
+  }
   const data = await prisma.booking.findMany(args);
-  const bookings = data.map((booking) => schemaBookingReadPublic.parse(booking));
-  if (!bookings) throw new HttpError({ statusCode: 401, message: "No Bookings were found" });
-  res.status(200).json({ bookings });
+  return { bookings: data.map((booking) => schemaBookingReadPublic.parse(booking)) };
 }
 
 export default defaultResponder(handler);

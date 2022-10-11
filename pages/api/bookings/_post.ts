@@ -93,7 +93,7 @@ async function handler(
     );
     bookings = allBookings.map((book) => schemaBookingReadPublic.parse(book));
   } else {
-    // Event type not recurring, ceating as single one
+    // Event type not recurring, creating as single one
     const data = await prisma.booking.create({
       data: {
         uid: uuidv4(),
