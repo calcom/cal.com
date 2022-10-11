@@ -85,7 +85,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
 }
 
 interface IntegrationsContainerProps {
-  variant?: "calendar" | "conferencing" | "payment";
+  variant?: "calendar" | "conferencing" | "payment" | "automation";
   exclude?: App["variant"][];
 }
 
@@ -123,6 +123,7 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
     calendar: Icon.FiCalendar,
     conferencing: Icon.FiVideo,
     payment: Icon.FiCreditCard,
+    automation: Icon.FiZap,
     other: Icon.FiGrid,
   };
   return (
@@ -183,9 +184,9 @@ export default function InstalledApps({ category }: InferGetServerSidePropsType<
 
   return (
     <InstalledAppsLayout heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
-      {(category === InstalledAppVariants.payment || category === InstalledAppVariants.conferencing) && (
-        <IntegrationsContainer variant={category} />
-      )}
+      {(category === InstalledAppVariants.payment ||
+        category === InstalledAppVariants.conferencing ||
+        category === InstalledAppVariants.automation) && <IntegrationsContainer variant={category} />}
       {category === InstalledAppVariants.other && (
         <IntegrationsContainer
           exclude={
