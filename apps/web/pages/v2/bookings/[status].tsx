@@ -1,6 +1,7 @@
+import autoAnimate from "@formkit/auto-animate";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
-import { Fragment } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -14,18 +15,19 @@ import BookingLayout from "@calcom/ui/v2/core/layouts/BookingLayout";
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
 import BookingListItem from "@components/booking/BookingListItem";
-import SkeletonLoader from "@components/booking/SkeletonLoader";
+import SkeletonLoader from "@components/v2/bookings/SkeletonLoader";
 
 type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
 type BookingOutput = inferQueryOutput<"viewer.bookings">["bookings"][0];
 
-const validStatuses = ["upcoming", "recurring", "past", "cancelled"] as const;
+const validStatuses = ["upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
 
 const descriptionByStatus: Record<BookingListingStatus, string> = {
   upcoming: "upcoming_bookings",
   recurring: "recurring_bookings",
   past: "past_bookings",
   cancelled: "cancelled_bookings",
+  unconfirmed: "unconfirmed_bookings",
 };
 
 const querySchema = z.object({
@@ -43,6 +45,8 @@ export default function Bookings() {
     getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 
+  // Animate page (tab) tranistions to look smoothing
+  const animationParentRef = useRef(null);
   const buttonInView = useInViewObserver(() => {
     if (!query.isFetching && query.hasNextPage && query.status === "success") {
       query.fetchNextPage();
@@ -51,20 +55,9 @@ export default function Bookings() {
 
   const isEmpty = !query.data?.pages[0]?.bookings.length;
 
-  // Get all recurring events of the series with the same recurringEventId
-  const defineRecurrentBookings = (
-    booking: BookingOutput,
-    groupedBookings: Record<string, BookingOutput[]>
-  ) => {
-    let recurringBookings = undefined;
-    if (booking.recurringEventId !== null) {
-      recurringBookings = groupedBookings[booking.recurringEventId];
-    }
-    return { recurringBookings };
-  };
   const shownBookings: Record<string, BookingOutput[]> = {};
   const filterBookings = (booking: BookingOutput) => {
-    if (status === "recurring" || status === "cancelled") {
+    if (status === "recurring" || status == "unconfirmed" || status === "cancelled") {
       if (!booking.recurringEventId) {
         return true;
       }
@@ -79,22 +72,27 @@ export default function Bookings() {
     }
     return true;
   };
+
+  useEffect(() => {
+    animationParentRef.current && autoAnimate(animationParentRef.current);
+  }, [animationParentRef]);
+
   return (
     <BookingLayout heading={t("bookings")} subtitle={t("bookings_description")}>
-      <div className="flex w-full flex-1 flex-col">
+      <div className="flex w-full flex-col" ref={animationParentRef}>
         {query.status === "error" && (
           <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
         )}
-        {(query.status === "loading" || query.status === "idle") && <SkeletonLoader />}
+        {(query.status === "loading" || query.isPaused) && <SkeletonLoader />}
         {query.status === "success" && !isEmpty && (
           <div className="pt-2 xl:pt-0">
             <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
             {/* TODO: add today only for the current day
-            <p className="pb-3 text-xs font-medium uppercase leading-4 text-gray-500">{t("today")}</p>
+            <p className="pb-3 text-xs font-medium leading-4 text-gray-500 uppercase">{t("today")}</p>
              */}
 
             <div className="overflow-hidden rounded-md border border-gray-200">
-              <table className="w-full">
+              <table className="w-full max-w-full table-fixed">
                 <tbody className="divide-y divide-gray-200 bg-white" data-testid="bookings">
                   {query.data.pages.map((page, index) => (
                     <Fragment key={index}>
@@ -102,7 +100,7 @@ export default function Bookings() {
                         <BookingListItem
                           key={booking.id}
                           listingStatus={status}
-                          {...defineRecurrentBookings(booking, shownBookings)}
+                          recurringBookings={page.recurringInfo}
                           {...booking}
                         />
                       ))}

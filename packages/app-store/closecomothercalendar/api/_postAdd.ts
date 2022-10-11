@@ -7,6 +7,7 @@ import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
 import checkSession from "../../_utils/auth";
+import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 
 export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const session = checkSession(req);
@@ -32,7 +33,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(500).json({ message: "Could not add Close.com app" });
   }
 
-  return res.status(200).json({ url: "/apps/installed" });
+  return res.status(200).json({ url: getInstalledAppPath({ variant: "other", slug: "closecom" }) });
 }
 
 export default defaultResponder(getHandler);

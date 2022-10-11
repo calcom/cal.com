@@ -2,6 +2,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import React, { ComponentProps, useEffect } from "react";
 
+import ErrorBoundary from "../../../ErrorBoundary";
 import Shell from "../Shell";
 import SettingsLayout from "./SettingsLayout";
 import { UserPermissionRole } from ".prisma/client";
@@ -23,7 +24,9 @@ export default function AdminLayout({
   return (
     <SettingsLayout {...rest}>
       <div className="mx-auto flex max-w-4xl flex-row divide-y divide-gray-200 md:px-12">
-        <div className="flex flex-1 [&>*]:flex-1">{children}</div>
+        <div className="flex flex-1 [&>*]:flex-1">
+          <ErrorBoundary>{children}</ErrorBoundary>
+        </div>
       </div>
     </SettingsLayout>
   );

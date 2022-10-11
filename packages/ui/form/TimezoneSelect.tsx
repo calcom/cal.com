@@ -7,7 +7,7 @@ import BaseSelect, {
   Props as SelectProps,
 } from "react-timezone-select";
 
-import { InputComponent } from "@calcom/ui/v2/core/form/Select";
+import { InputComponent } from "@calcom/ui/v2/core/form/select/components";
 
 function TimezoneSelect({ className, ...props }: SelectProps) {
   // @TODO: remove borderRadius and haveRoundedClassName logic from theme so we use only new style

@@ -1,3 +1,9 @@
+/**
+ * @deprecated modifications to this file should be v2 only
+ * Use `apps/web/pages/v2/event-types/[type].tsx` instead
+ */
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInput, MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
@@ -16,15 +22,16 @@ import { v5 as uuidv5 } from "uuid";
 import { z } from "zod";
 
 import { SelectGifInput } from "@calcom/app-store/giphy/components";
-import { getEventLocationType, EventLocationType } from "@calcom/app-store/locations";
+import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
-import { LocationObject, LocationType } from "@calcom/core/location";
+import { LocationObject } from "@calcom/core/location";
 import { parseRecurringEvent } from "@calcom/lib";
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import prisma from "@calcom/prisma";
+import { TRPCClientError } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Alert } from "@calcom/ui/Alert";
@@ -36,14 +43,12 @@ import { Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
 import Switch from "@calcom/ui/Switch";
 import { Tooltip } from "@calcom/ui/Tooltip";
-import { UpgradeToProDialog } from "@calcom/ui/UpgradeToProDialog";
 import { Form } from "@calcom/ui/form/fields";
 
 import { QueryCell } from "@lib/QueryCell";
 import { asStringOrThrow, asStringOrUndefined } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
-import { isSuccessRedirectAvailable } from "@lib/isSuccessRedirectAvailable";
 import { slugify } from "@lib/slugify";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -66,7 +71,6 @@ import * as RadioArea from "@components/ui/form/radio-area";
 import WebhookListContainer from "@components/webhook/WebhookListContainer";
 
 import { getTranslation } from "@server/lib/i18n";
-import { TRPCClientError } from "@trpc/client";
 
 const RainbowInstallForm = dynamic(() => import("@calcom/rainbow/components/RainbowInstallForm"), {
   suspense: true,
@@ -110,6 +114,7 @@ export type FormValues = {
   periodCountCalendarDays: "1" | "0";
   periodDates: { startDate: Date; endDate: Date };
   seatsPerTimeSlot: number | null;
+  seatsPerTimeSlotEnabled: boolean;
   minimumBookingNotice: number;
   beforeBufferTime: number;
   afterBufferTime: number;
@@ -132,8 +137,6 @@ const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
   formMethods: T;
 }) => {
   const { t } = useLocale();
-  const proUpgradeRequired = !isSuccessRedirectAvailable(eventType);
-  const [modalOpen, setModalOpen] = useState(false);
 
   return (
     <>
@@ -144,19 +147,12 @@ const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
             htmlFor="successRedirectUrl"
             className="flex h-full items-center text-sm font-medium text-neutral-700">
             {t("redirect_success_booking")}
-            <span className="ml-1">{proUpgradeRequired && <Badge variant="default">PRO</Badge>}</span>
           </label>
         </div>
         <div className="w-full">
           <input
             id="successRedirectUrl"
-            onClick={(e) => {
-              if (proUpgradeRequired) {
-                e.preventDefault();
-                setModalOpen(true);
-              }
-            }}
-            readOnly={proUpgradeRequired}
+            readOnly={eventType.team !== undefined}
             type="url"
             className="block w-full rounded-sm border-gray-300 text-sm"
             placeholder={t("external_redirect_url")}
@@ -164,9 +160,6 @@ const SuccessRedirectEdit = <T extends UseFormReturn<FormValues>>({
             {...formMethods.register("successRedirectUrl")}
           />
         </div>
-        <UpgradeToProDialog modalOpen={modalOpen} setModalOpen={setModalOpen}>
-          {t("redirect_url_upgrade_description")}
-        </UpgradeToProDialog>
       </div>
     </>
   );

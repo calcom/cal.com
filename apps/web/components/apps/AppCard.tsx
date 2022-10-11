@@ -32,11 +32,6 @@ export default function AppCard(props: AppCardProps) {
         </div>
         <div className="flex items-center">
           <h3 className="font-medium">{props.app.name}</h3>
-          {props.app.isProOnly && user?.plan === "FREE" ? (
-            <Badge className="ml-2" variant="default">
-              PRO
-            </Badge>
-          ) : null}
         </div>
         {/* TODO: add reviews <div className="flex text-sm text-gray-800">
           <span>{props.rating} stars</span> <StarIcon className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />

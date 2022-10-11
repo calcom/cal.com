@@ -1,7 +1,6 @@
+import dynamic from "next/dynamic";
 import { Dispatch, useState, useEffect } from "react";
 import { JSONObject } from "superjson/dist/types";
-
-import RainbowGate from "@calcom/app-store/rainbow/components/RainbowKit";
 
 export type Gate = undefined | "rainbow"; // Add more like ` | "geolocation" | "payment"`
 
@@ -15,6 +14,8 @@ type GateProps = {
   metadata: JSONObject;
   dispatch: Dispatch<Partial<GateState>>;
 };
+
+const RainbowGate = dynamic(() => import("@calcom/app-store/rainbow/components/RainbowKit"));
 
 // To add a new Gate just add the gate logic to the switch statement
 const Gates: React.FC<GateProps> = ({ children, gates, metadata, dispatch }) => {

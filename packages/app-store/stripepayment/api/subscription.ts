@@ -25,7 +25,6 @@ export enum UsernameChangeStatusEnum {
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
     const userId = req.session?.user.id;
-
     let { intentUsername = null } = req.query;
     const { action, callbackUrl } = req.query;
     if (!userId || !intentUsername) {
@@ -36,7 +35,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       intentUsername = intentUsername[0];
     }
     const customerId = await getStripeCustomerIdFromUserId(userId);
-
     if (!customerId) {
       res.status(404).json({ message: "Missing customer id" });
       return;

@@ -4,7 +4,7 @@ import { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import { JSONObject } from "superjson/dist/types";
 
@@ -182,7 +182,6 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
                         <h2 className="dark:text-darkgray-700 pr-2 text-sm font-semibold text-gray-700">
                           {type.title}
                         </h2>
-                        <p className="dark:text-darkgray-600 hidden text-sm font-normal leading-none text-gray-600 md:block">{`/${user.username}/${type.slug}`}</p>
                       </div>
                       <EventTypeDescription eventType={type} />
                     </a>
@@ -244,7 +243,6 @@ const getEventTypesWithHiddenFromDB = async (userId: number, plan: UserPlan) => 
       metadata: true,
       ...baseEventTypeSelect,
     },
-    take: plan === UserPlan.FREE ? 1 : undefined,
   });
 };
 

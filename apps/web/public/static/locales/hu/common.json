@@ -214,5 +214,7 @@
   "organizer_name_workflow": "Szervező",
   "location_workflow": "Helyszín",
   "additional_notes_workflow": "Egyéb jegyzetek",
-  "organizer_name_info": "Neved"
+  "organizer_name_info": "Neved",
+  "theme_light": "Világos",
+  "theme_dark": "Sötét"
 }

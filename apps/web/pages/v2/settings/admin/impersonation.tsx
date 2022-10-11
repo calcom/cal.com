@@ -12,7 +12,7 @@ function AdminView() {
 
   return (
     <>
-      <Meta title="admin" description="impersonation" />
+      <Meta title="Admin" description="Impersonation" />
       <form
         className="mb-6 w-full sm:w-1/2"
         onSubmit={(e) => {

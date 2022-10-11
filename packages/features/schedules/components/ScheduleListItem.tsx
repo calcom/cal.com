@@ -13,12 +13,10 @@ import Button from "@calcom/ui/v2/core/Button";
 export function ScheduleListItem({
   schedule,
   deleteFunction,
-  isDeleting = false,
   displayOptions,
 }: {
   schedule: inferQueryOutput<"viewer.availability.list">["schedules"][number];
   deleteFunction: ({ scheduleId }: { scheduleId: number }) => void;
-  isDeleting: boolean;
   displayOptions?: {
     timeZone?: string;
     hour12?: boolean;
@@ -67,7 +65,6 @@ export function ScheduleListItem({
           <DropdownMenuContent>
             <DropdownMenuItem>
               <Button
-                disabled={isDeleting}
                 onClick={() => {
                   deleteFunction({
                     scheduleId: schedule.id,
@@ -76,9 +73,8 @@ export function ScheduleListItem({
                 type="button"
                 color="destructive"
                 className="w-full font-normal"
-                StartIcon={isDeleting ? undefined : Icon.FiTrash}
-                loading={isDeleting}>
-                {isDeleting ? t("deleting") : t("delete_schedule")}
+                StartIcon={Icon.FiTrash}>
+                {t("delete_schedule")}
               </Button>
             </DropdownMenuItem>
           </DropdownMenuContent>

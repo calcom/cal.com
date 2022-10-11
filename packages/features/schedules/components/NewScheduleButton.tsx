@@ -18,11 +18,23 @@ export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) 
     name: string;
   }>();
   const { register } = form;
+  const utils = trpc.useContext();
 
   const createMutation = trpc.useMutation("viewer.availability.schedule.create", {
     onSuccess: async ({ schedule }) => {
       await router.push("/availability/" + schedule.id);
       showToast(t("schedule_created_successfully", { scheduleName: schedule.name }), "success");
+      utils.setQueryData(["viewer.availability.list"], (data) => {
+        const newSchedule = { ...schedule, isDefault: false, availability: [] };
+        if (!data)
+          return {
+            schedules: [newSchedule],
+          };
+        return {
+          ...data,
+          schedules: [...data.schedules, newSchedule],
+        };
+      });
     },
     onError: (err) => {
       if (err instanceof HttpError) {

@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInputType, WorkflowActions } from "@prisma/client";
 import { SchedulingType } from "@prisma/client";
+import { useMutation } from "@tanstack/react-query";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
@@ -9,7 +10,6 @@ import { useEffect, useMemo, useState, useReducer } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
-import { useMutation } from "react-query";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
@@ -34,11 +34,11 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { Button } from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { EmailInput, Form } from "@calcom/ui/form/fields";
+import { Button } from "@calcom/ui/v2";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -200,16 +200,12 @@ const BookingPage = ({
 
   // There should only exists one default userData variable for primaryAttendee.
   const defaultUserValues = {
-    email: booking?.attendees[0].email
-      ? booking.attendees[0].email
+    email: rescheduleUid
+      ? booking?.attendees[0].email
       : router.query.email
       ? (router.query.email as string)
       : "",
-    name: booking?.attendees[0].name
-      ? booking.attendees[0].name
-      : router.query.name
-      ? (router.query.name as string)
-      : "",
+    name: rescheduleUid ? booking?.attendees[0].name : router.query.name ? (router.query.name as string) : "",
   };
 
   const defaultValues = () => {
@@ -450,7 +446,6 @@ const BookingPage = ({
         <div
           className={classNames(
             "main overflow-hidden",
-            isEmbed ? "" : "border border-gray-200",
             isBackgroundTransparent ? "" : "dark:border-1 dark:bg-darkgray-100 bg-white",
             "dark:border-darkgray-300 rounded-md sm:border"
           )}>
@@ -563,9 +558,7 @@ const BookingPage = ({
                       required
                       className={classNames(
                         inputClassName,
-                        bookingForm.formState.errors.email
-                          ? "border-red-700 focus:ring-red-700"
-                          : " border-gray-300  dark:border-gray-900"
+                        bookingForm.formState.errors.email && "!focus:ring-red-700 !border-red-700"
                       )}
                       placeholder="you@example.com"
                       type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
@@ -687,90 +680,81 @@ const BookingPage = ({
                         />
                       )}
                       {input.type === EventTypeCustomInputType.BOOL && (
-                        <div className="flex h-5 items-center">
-                          <input
-                            type="checkbox"
-                            {...bookingForm.register(`customInputs.${input.id}`, {
-                              required: input.required,
-                            })}
-                            required={input.required}
-                            id={"custom_" + input.id}
-                            className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black disabled:bg-gray-200 ltr:mr-2 rtl:ml-2 disabled:dark:text-gray-500"
-                            placeholder=""
-                            disabled={disabledExceptForOwner}
-                          />
-                          <label
-                            htmlFor={"custom_" + input.id}
-                            className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                            {input.label}
-                          </label>
+                        <div className="my-6">
+                          <div className="flex">
+                            <input
+                              type="checkbox"
+                              {...bookingForm.register(`customInputs.${input.id}`, {
+                                required: input.required,
+                              })}
+                              required={input.required}
+                              id={"custom_" + input.id}
+                              className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black disabled:bg-gray-200 ltr:mr-2 rtl:ml-2 disabled:dark:text-gray-500"
+                              placeholder=""
+                              disabled={disabledExceptForOwner}
+                            />
+                            <label
+                              htmlFor={"custom_" + input.id}
+                              className="-mt-px block text-sm font-medium text-gray-700 dark:text-white">
+                              {input.label}
+                            </label>
+                          </div>
                         </div>
                       )}
                     </div>
                   ))}
-                {!eventType.disableGuests && (
+                {!eventType.disableGuests && guestToggle && (
                   <div className="mb-4">
-                    {!guestToggle && (
+                    <div>
                       <label
-                        onClick={() => setGuestToggle(!guestToggle)}
                         htmlFor="guests"
-                        className="mb-1 block text-sm font-medium hover:cursor-pointer dark:text-white">
-                        {/*<UserAddIcon className="inline-block w-5 h-5 mr-1 -mt-1" />*/}
-                        {t("additional_guests")}
+                        className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
+                        {t("guests")}
                       </label>
-                    )}
-                    {guestToggle && (
-                      <div>
-                        <label
-                          htmlFor="guests"
-                          className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                          {t("guests")}
-                        </label>
-                        {!disableInput && (
-                          <Controller
-                            control={bookingForm.control}
-                            name="guests"
-                            render={({ field: { onChange, value } }) => (
-                              <ReactMultiEmail
-                                className="relative"
-                                placeholder="guest@example.com"
-                                emails={value}
-                                onChange={onChange}
-                                getLabel={(
-                                  email: string,
-                                  index: number,
-                                  removeEmail: (index: number) => void
-                                ) => {
-                                  return (
-                                    <div data-tag key={index} className="cursor-pointer">
-                                      {email}
-                                      {!disableInput && (
-                                        <span data-tag-handle onClick={() => removeEmail(index)}>
-                                          ×
-                                        </span>
-                                      )}
-                                    </div>
-                                  );
-                                }}
-                              />
-                            )}
-                          />
-                        )}
-                        {/* Custom code when guest emails should not be editable */}
-                        {disableInput && guestListEmails && guestListEmails.length > 0 && (
-                          <div data-tag className="react-multi-email">
-                            {/* // @TODO: user owners are appearing as guest here when should be only user input */}
-                            {guestListEmails.map((email, index) => {
-                              return (
-                                <div key={index} className="cursor-pointer">
-                                  <span data-tag>{email}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    )}
+                      {!disableInput && (
+                        <Controller
+                          control={bookingForm.control}
+                          name="guests"
+                          render={({ field: { onChange, value } }) => (
+                            <ReactMultiEmail
+                              className="relative"
+                              placeholder={<span className="dark:text-darkgray-600">guest@example.com</span>}
+                              emails={value}
+                              onChange={onChange}
+                              getLabel={(
+                                email: string,
+                                index: number,
+                                removeEmail: (index: number) => void
+                              ) => {
+                                return (
+                                  <div data-tag key={index} className="cursor-pointer">
+                                    {email}
+                                    {!disableInput && (
+                                      <span data-tag-handle onClick={() => removeEmail(index)}>
+                                        ×
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              }}
+                            />
+                          )}
+                        />
+                      )}
+                      {/* Custom code when guest emails should not be editable */}
+                      {disableInput && guestListEmails && guestListEmails.length > 0 && (
+                        <div data-tag className="react-multi-email">
+                          {/* // @TODO: user owners are appearing as guest here when should be only user input */}
+                          {guestListEmails.map((email, index) => {
+                            return (
+                              <div key={index} className="cursor-pointer">
+                                <span data-tag>{email}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
                 {isSmsReminderNumberNeeded && selectedLocationType !== LocationType.Phone && (
@@ -826,17 +810,28 @@ const BookingPage = ({
                 </div>
 
                 <div className="flex justify-end space-x-2 rtl:space-x-reverse">
+                  {!eventType.disableGuests && !guestToggle && (
+                    <Button
+                      type="button"
+                      color="minimalSecondary"
+                      size="icon"
+                      tooltip={t("additional_guests")}
+                      StartIcon={Icon.FiUserPlus}
+                      onClick={() => setGuestToggle(!guestToggle)}
+                      className="mr-auto"
+                    />
+                  )}
                   <Button
-                    color="secondary"
+                    color="minimal"
                     type="button"
                     onClick={() => router.back()}
                     // We override this for this component only for now - as we don't support darkmode everywhere in the app
-                    className="dark:border-none">
+                    className="dark:hover:bg-darkgray-200 dark:border-none dark:text-white">
                     {t("cancel")}
                   </Button>
                   <Button
                     type="submit"
-                    className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast rounded-md"
+                    className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast dark:hover:border-darkmodebrandcontrast mr-auto dark:border-transparent"
                     data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
                     loading={mutation.isLoading || recurringMutation.isLoading}>
                     {rescheduleUid ? t("reschedule") : t("confirm")}

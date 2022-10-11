@@ -37,7 +37,7 @@ interface Props {
 }
 
 const BookingDescription: FC<Props> = (props) => {
-  const { profile, eventType, isBookingPage = false, children, isMobile = false } = props;
+  const { profile, eventType, isBookingPage = false, children } = props;
   const { t } = useLocale();
   return (
     <>
@@ -45,13 +45,13 @@ const BookingDescription: FC<Props> = (props) => {
         profile={profile}
         users={eventType.users}
         showMembers={eventType.schedulingType !== SchedulingType.ROUND_ROBIN}
-        size={isMobile ? 9 : 10}
-        truncateAfter={isMobile ? 5 : 3}
+        size={10}
+        truncateAfter={3}
       />
-      <h2 className="my-2 break-words text-sm font-medium text-gray-600 dark:text-gray-300">
+      <h2 className="mt-2 break-words text-sm font-medium text-gray-600 dark:text-gray-300">
         {profile.name}
       </h2>
-      <h1 className="font-cal dark:text-darkgray-900 mb-7 break-words text-xl font-semibold text-gray-900 md:mb-10">
+      <h1 className="font-cal dark:text-darkgray-900 mb-6 break-words text-2xl font-semibold text-gray-900">
         {eventType.title}
       </h1>
       <div className="dark:text-darkgray-600 flex flex-col space-y-3 text-sm font-medium text-gray-600">

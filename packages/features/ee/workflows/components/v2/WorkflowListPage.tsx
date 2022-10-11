@@ -6,12 +6,18 @@ import { useState } from "react";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
-import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
-import { Tooltip } from "@calcom/ui";
-import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
-import { Button, ButtonGroup } from "@calcom/ui/v2";
+import {
+  Button,
+  ButtonGroup,
+  Dropdown,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  showToast,
+  Tooltip,
+} from "@calcom/ui/v2";
 
 import { getActionIcon } from "../../lib/getActionIcon";
 import { DeleteDialog } from "./DeleteDialog";
@@ -111,17 +117,15 @@ export default function WorkflowListPage({ workflows }: Props) {
                           </li>
                           <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800 dark:bg-gray-900 dark:text-white">
                             {workflow.activeOn && workflow.activeOn.length > 0 ? (
-                              <div>
-                                <Tooltip
-                                  content={workflow.activeOn.map((activeOn, key) => (
-                                    <p key={key}>{activeOn.eventType.title}</p>
-                                  ))}>
-                                  <>
-                                    <Icon.FiLink className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
-                                    {t("active_on_event_types", { count: workflow.activeOn.length })}
-                                  </>
-                                </Tooltip>
-                              </div>
+                              <Tooltip
+                                content={workflow.activeOn.map((activeOn, key) => (
+                                  <p key={key}>{activeOn.eventType.title}</p>
+                                ))}>
+                                <div>
+                                  <Icon.FiLink className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                                  {t("active_on_event_types", { count: workflow.activeOn.length })}
+                                </div>
+                              </Tooltip>
                             ) : (
                               <div>
                                 <Icon.FiLink className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
@@ -134,26 +138,67 @@ export default function WorkflowListPage({ workflows }: Props) {
                     </a>
                   </Link>
                   <div className="flex flex-shrink-0">
-                    <ButtonGroup combined>
-                      <Button
-                        type="button"
-                        color="secondary"
-                        size="icon"
-                        combined
-                        StartIcon={Icon.FiEdit2}
-                        onClick={async () => await router.replace("/workflows/" + workflow.id)}
-                      />
-                      <Button
-                        onClick={() => {
-                          setDeleteDialogOpen(true);
-                          setwWorkflowToDeleteId(workflow.id);
-                        }}
-                        color="secondary"
-                        combined
-                        size="icon"
-                        StartIcon={Icon.FiTrash2}
-                      />
-                    </ButtonGroup>
+                    <div className="hidden sm:block">
+                      <ButtonGroup combined>
+                        <Tooltip content={t("edit") as string}>
+                          <Button
+                            type="button"
+                            color="secondary"
+                            size="icon"
+                            combined
+                            StartIcon={Icon.FiEdit2}
+                            onClick={async () => await router.replace("/workflows/" + workflow.id)}
+                          />
+                        </Tooltip>
+                        <Tooltip content={t("delete") as string}>
+                          <Button
+                            onClick={() => {
+                              setDeleteDialogOpen(true);
+                              setwWorkflowToDeleteId(workflow.id);
+                            }}
+                            color="secondary"
+                            combined
+                            size="icon"
+                            StartIcon={Icon.FiTrash2}
+                          />
+                        </Tooltip>
+                      </ButtonGroup>
+                    </div>
+                    <div className="block sm:hidden">
+                      <Dropdown>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            type="button"
+                            color="minimal"
+                            size="icon"
+                            StartIcon={Icon.FiMoreHorizontal}
+                          />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem>
+                            <Button
+                              type="button"
+                              color="minimal"
+                              combined
+                              StartIcon={Icon.FiEdit2}
+                              onClick={async () => await router.replace("/workflows/" + workflow.id)}>
+                              {t("edit")}
+                            </Button>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Button
+                              onClick={() => {
+                                setDeleteDialogOpen(true);
+                                setwWorkflowToDeleteId(workflow.id);
+                              }}
+                              color="minimal"
+                              StartIcon={Icon.FiTrash2}>
+                              {t("delete")}
+                            </Button>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </Dropdown>
+                    </div>
                   </div>
                 </div>
               </li>

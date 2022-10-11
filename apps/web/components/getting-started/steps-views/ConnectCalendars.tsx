@@ -31,7 +31,8 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
   return (
     <>
       {/* Already connected calendars  */}
-      {firstCalendar &&
+      {!queryConnectedCalendars.isLoading &&
+        firstCalendar &&
         firstCalendar.integration &&
         firstCalendar.integration.title &&
         firstCalendar.integration.imageSrc && (
@@ -52,7 +53,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
             </List>
             {/* Create event on selected calendar */}
             <CreateEventsOnCalendarSelect calendar={destinationCalendar} />
-            <p className="mt-7 text-sm text-gray-500">{t("connect_calendars_from_app_store")}</p>
+            <p className="mt-4 text-sm text-gray-500">{t("connect_calendars_from_app_store")}</p>
           </>
         )}
 
@@ -75,7 +76,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
         </List>
       )}
 
-      {queryConnectedCalendars.isLoading && (
+      {queryIntegrations.isLoading && (
         <ul className="divide-y divide-gray-200 rounded-md border border-gray-200 bg-white p-0 dark:bg-black">
           {[0, 0, 0, 0].map((_item, index) => {
             return (

@@ -2,27 +2,18 @@ import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
 import {
-  bookFirstEvent,
   bookTimeSlot,
   selectFirstAvailableTimeSlotNextMonth,
   selectSecondAvailableTimeSlotNextMonth,
 } from "./lib/testUtils";
 
-test.describe.configure({ mode: "parallel" });
+test("dynamic booking", async ({ page, users }) => {
+  const pro = await users.create();
+  await pro.login();
+  const free = await users.create({ plan: "FREE" });
+  await page.goto(`/${pro.username}+${free.username}`);
 
-test.describe("dynamic booking", () => {
-  test.beforeEach(async ({ page, users }) => {
-    const pro = await users.create();
-    await pro.login();
-    const free = await users.create({ plan: "FREE" });
-    await page.goto(`/${pro.username}+${free.username}`);
-  });
-
-  test.afterEach(async ({ users }) => {
-    await users.deleteAll();
-  });
-
-  test("book an event first day in next month", async ({ page }) => {
+  await test.step("book an event first day in next month", async () => {
     // Click first event type
     await page.click('[data-testid="event-type-link"]');
     await selectFirstAvailableTimeSlotNextMonth(page);
@@ -30,9 +21,7 @@ test.describe("dynamic booking", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 
-  test("can reschedule a booking", async ({ page }) => {
-    await bookFirstEvent(page);
-
+  await test.step("can reschedule a booking", async () => {
     // Logged in
     await page.goto("/bookings/upcoming");
     await page.locator('[data-testid="edit_booking"]').nth(0).click();
@@ -54,9 +43,7 @@ test.describe("dynamic booking", () => {
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
   });
 
-  test("Can cancel the recently created booking", async ({ page }) => {
-    await bookFirstEvent(page);
-
+  await test.step("Can cancel the recently created booking", async () => {
     await page.goto("/bookings/upcoming");
     await page.locator('[data-testid="cancel"]').first().click();
     await page.waitForNavigation({
@@ -72,4 +59,6 @@ test.describe("dynamic booking", () => {
       },
     });
   });
+
+  await users.deleteAll();
 });

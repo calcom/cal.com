@@ -15,7 +15,10 @@ export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTri
       {...props}
       className={
         props.asChild
-          ? className
+          ? classNames(
+              className,
+              "radix-state-open:bg-gray-100 radix-state-open:ring-brand-800 radix-state-open:ring-1 focus:ring-brand-800 focus:ring-1 focus-visible:outline-none"
+            )
           : `inline-flex items-center rounded-md bg-transparent px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:ring-offset-1 group-hover:text-black ${className}`
       }
       ref={forwardedRef}
@@ -24,14 +27,15 @@ export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTri
 );
 DropdownMenuTrigger.displayName = "DropdownMenuTrigger";
 
-export const DropdownMenuTriggerItem = DropdownMenuPrimitive.TriggerItem;
+export const DropdownMenuTriggerItem = DropdownMenuPrimitive.Trigger;
+
+export const DropdownMenuPortal = DropdownMenuPrimitive.Portal;
 
 type DropdownMenuContentProps = ComponentProps<typeof DropdownMenuPrimitive["Content"]>;
 export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuContentProps>(
   ({ children, align = "end", ...props }, forwardedRef) => {
     return (
       <DropdownMenuPrimitive.Content
-        portalled={props.portalled}
         align={align}
         {...props}
         className="shadow-dropdown w-50 relative z-10 mt-1 -ml-0 origin-top-right rounded-md border border-gray-200 bg-white text-sm"
@@ -52,7 +56,7 @@ type DropdownMenuItemProps = ComponentProps<typeof DropdownMenuPrimitive["Checkb
 export const DropdownMenuItem = forwardRef<HTMLDivElement, DropdownMenuItemProps>(
   ({ className = "", ...props }, forwardedRef) => (
     <DropdownMenuPrimitive.Item
-      className={`text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 ${className}`}
+      className={`focus:ring-brand-800 text-sm text-gray-700 ring-inset first-of-type:rounded-t-[inherit] last-of-type:rounded-b-[inherit] hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-1 ${className}`}
       {...props}
       ref={forwardedRef}
     />
@@ -111,7 +115,11 @@ export function ButtonOrLink({ href, ...props }: ButtonOrLinkProps) {
   const content = <ButtonOrLink {...props} />;
 
   if (isLink) {
-    return <Link href={href}>{content}</Link>;
+    return (
+      <Link href={href}>
+        <a>{content}</a>
+      </Link>
+    );
   }
 
   return content;
@@ -124,7 +132,7 @@ export const DropdownItem = (props: DropdownItemProps) => {
     <ButtonOrLink
       {...props}
       className={classNames(
-        "inline-flex items-center px-3 py-2 text-gray-700 hover:text-gray-900",
+        "inline-flex w-full items-center px-3 py-2 text-gray-700 hover:text-gray-900",
         props.color === "destructive" ? "hover:bg-red-100 hover:text-red-700" : " hover:bg-gray-100"
       )}>
       <>

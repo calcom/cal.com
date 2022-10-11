@@ -8,6 +8,8 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
+env:
+  NODE_OPTIONS: "--max-old-space-size=8192"
 jobs:
   check-types:
     runs-on: ubuntu-latest
@@ -20,8 +22,13 @@ jobs:
 
       - name: Use Node 16.x
         uses: actions/setup-node@v3
+        
         with:
           node-version: 16.x
           cache: "yarn"
+      
+      - name: Show info
+        run: node -e "console.log(require('v8').getHeapStatistics())"
+      
       - run: yarn --frozen-lockfile
       - run: yarn type-check

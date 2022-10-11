@@ -3,12 +3,14 @@ import { createElement } from "react";
 
 import classNames from "@calcom/lib/classNames";
 
-export function List(props: JSX.IntrinsicElements["ul"]) {
+export function List(props: JSX.IntrinsicElements["ul"] & { noBorderTreatment?: true }) {
+  const { noBorderTreatment, ...rest } = props;
   return (
     <ul
-      {...props}
+      {...rest}
       className={classNames(
-        "divide-y divide-neutral-200 rounded-md border border-l border-r sm:mx-0 sm:overflow-hidden",
+        "sm:mx-0 sm:overflow-hidden",
+        !noBorderTreatment && "divide-y divide-neutral-200 rounded-md border border-l border-r ",
         props.className
       )}>
       {props.children}

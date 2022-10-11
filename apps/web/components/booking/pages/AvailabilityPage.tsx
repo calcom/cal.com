@@ -1,10 +1,11 @@
 // Get router variables
+import autoAnimate from "@formkit/auto-animate";
 import { EventType } from "@prisma/client";
 import { SchedulingType } from "@prisma/client";
-import * as Collapsible from "@radix-ui/react-collapsible";
+import * as Popover from "@radix-ui/react-popover";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { useReducer, useEffect, useMemo, useState } from "react";
+import { useReducer, useEffect, useMemo, useState, useRef } from "react";
 import { Toaster } from "react-hot-toast";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
@@ -24,8 +25,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
-import { localStorage } from "@calcom/lib/webstorage";
+import { detectBrowserTimeFormat, getIs24hClockFromLocalStorage } from "@calcom/lib/timeFormat";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import DatePicker from "@calcom/ui/v2/modules/booker/DatePicker";
@@ -80,7 +80,7 @@ const useSlots = ({
   usernameList: string[];
   timeZone?: string;
 }) => {
-  const { data, isLoading, isIdle } = trpc.useQuery(
+  const { data, isLoading, isPaused } = trpc.useQuery(
     [
       "viewer.public.slots.getSchedule",
       {
@@ -102,8 +102,8 @@ const useSlots = ({
     }
   }, [data]);
 
-  // The very first time isIdle is set if auto-fetch is disabled, so isIdle should also be considered a loading state.
-  return { slots: cachedSlots, isLoading: isLoading || isIdle };
+  // The very first time isPaused is set if auto-fetch is disabled, so isPaused should also be considered a loading state.
+  return { slots: cachedSlots, isLoading: isLoading || isPaused };
 };
 
 const SlotPicker = ({
@@ -130,6 +130,11 @@ const SlotPicker = ({
   const { date, setQuery: setDate } = useRouterQuery("date");
   const { month, setQuery: setMonth } = useRouterQuery("month");
   const router = useRouter();
+  const slotPickerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    slotPickerRef.current && autoAnimate(slotPickerRef.current);
+  }, [slotPickerRef]);
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -170,17 +175,15 @@ const SlotPicker = ({
     timeZone,
   });
 
-  const slots = useMemo(() => ({ ..._1, ..._2 }), [_1, _2]);
+  const slots = useMemo(() => ({ ..._2, ..._1 }), [_1, _2]);
 
   return (
     <>
       <DatePicker
         isLoading={isLoading}
         className={classNames(
-          "mt-8 w-full px-4 sm:mt-0 sm:min-w-[455px] md:px-5",
-          selectedDate
-            ? "sm:dark:border-darkgray-200 border-gray-200 sm:w-1/2 sm:border-r sm:p-4 sm:pr-6 md:w-1/3 "
-            : "sm:p-4"
+          "mt-8 px-4 pb-4 sm:mt-0 md:min-w-[300px] md:px-5 lg:min-w-[455px]",
+          selectedDate ? "sm:dark:border-darkgray-200 border-gray-200 sm:border-r sm:p-4 sm:pr-6" : "sm:p-4"
         )}
         includedDates={Object.keys(slots).filter((k) => slots[k].length > 0)}
         locale={isLocaleReady ? i18n.language : "en"}
@@ -195,10 +198,10 @@ const SlotPicker = ({
         weekStart={weekStart}
       />
 
-      {selectedDate && (
+      <div ref={slotPickerRef}>
         <AvailableTimes
           isLoading={isLoading}
-          slots={slots[selectedDate.format("YYYY-MM-DD")]}
+          slots={selectedDate && slots[selectedDate.format("YYYY-MM-DD")]}
           date={selectedDate}
           timeFormat={timeFormat}
           eventTypeId={eventType.id}
@@ -207,7 +210,7 @@ const SlotPicker = ({
           recurringCount={recurringEventCount}
           ethSignature={ethSignature}
         />
-      )}
+      </div>
     </>
   );
 };
@@ -217,16 +220,18 @@ function TimezoneDropdown({
   onChangeTimeZone,
   timeZone,
   timeFormat,
+  hideTimeFormatToggle,
 }: {
   onChangeTimeFormat: (newTimeFormat: string) => void;
   onChangeTimeZone: (newTimeZone: string) => void;
   timeZone?: string;
   timeFormat: string;
+  hideTimeFormatToggle?: boolean;
 }) {
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
 
   useEffect(() => {
-    handleToggle24hClock(localStorage.getItem("timeOption.is24hClock") === "true");
+    handleToggle24hClock(!!getIs24hClockFromLocalStorage());
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -242,26 +247,32 @@ function TimezoneDropdown({
   };
 
   return (
-    <Collapsible.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen} className="flex">
-      <Collapsible.Trigger className="min-w-32 dark:text-darkgray-600 mb-2 -ml-2 px-2 text-left text-gray-600">
+    <Popover.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
+      <Popover.Trigger className="min-w-32 dark:text-darkgray-600 radix-state-open:bg-gray-200 dark:radix-state-open:bg-darkgray-200 group relative mb-2 -ml-2 inline-block rounded-md px-2 py-2 text-left text-gray-600">
         <p className="text-sm font-medium">
           <Icon.FiGlobe className="mr-[10px] ml-[2px] -mt-[2px] inline-block h-4 w-4" />
           {timeZone}
           {isTimeOptionsOpen ? (
-            <Icon.FiChevronUp className="ml-1 inline-block h-4 w-4 " />
+            <Icon.FiChevronUp className="ml-1 inline-block h-4 w-4" />
           ) : (
-            <Icon.FiChevronDown className="ml-1 inline-block h-4 w-4 " />
+            <Icon.FiChevronDown className="ml-1 inline-block h-4 w-4" />
           )}
         </p>
-      </Collapsible.Trigger>
-      <Collapsible.Content>
-        <TimeOptions
-          onSelectTimeZone={handleSelectTimeZone}
-          onToggle24hClock={handleToggle24hClock}
-          timeFormat={timeFormat}
-        />
-      </Collapsible.Content>
-    </Collapsible.Root>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content
+          hideWhenDetached
+          align="start"
+          className="animate-fade-in-up absolute left-0 top-2 w-80 max-w-[calc(100vw_-_1.5rem)]">
+          <TimeOptions
+            onSelectTimeZone={handleSelectTimeZone}
+            onToggle24hClock={handleToggle24hClock}
+            timeFormat={timeFormat}
+            hideTimeFormatToggle={hideTimeFormatToggle}
+          />
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }
 
@@ -290,7 +301,14 @@ const useRouterQuery = <T extends string>(name: T) => {
 
 export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
 
+const timeFormatTotimeFormatString = (timeFormat?: number | null) => {
+  if (!timeFormat) return null;
+  return timeFormat === 24 ? "HH:mm" : "h:mma";
+};
+
 const AvailabilityPage = ({ profile, eventType }: Props) => {
+  const { data: user } = trpc.useQuery(["viewer.me"]);
+  const timeFormatFromProfile = timeFormatTotimeFormatString(user?.timeFormat);
   const router = useRouter();
   const isEmbed = useIsEmbed();
   const query = dateQuerySchema.parse(router.query);
@@ -303,8 +321,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const isBackgroundTransparent = useIsBackgroundTransparent();
 
   const [timeZone, setTimeZone] = useState<string>();
-  const [timeFormat, setTimeFormat] = useState(detectBrowserTimeFormat);
-  const [isAvailableTimesVisible, setIsAvailableTimesVisible] = useState<boolean>();
+  const [timeFormat, setTimeFormat] = useState(timeFormatFromProfile || detectBrowserTimeFormat);
   const [gateState, gateDispatcher] = useReducer(
     (state: GateState, newState: Partial<GateState>) => ({
       ...state,
@@ -316,10 +333,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   useEffect(() => {
     setTimeZone(localStorageTimeZone() || dayjs.tz.guess());
   }, []);
-
-  useEffect(() => {
-    setIsAvailableTimesVisible(!!query.date);
-  }, [query.date]);
 
   // TODO: Improve this;
   useExposePlanGlobally(eventType.users.length === 1 ? eventType.users[0].plan : "PRO");
@@ -339,14 +352,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
 
   // get dynamic user list here
   const userList = eventType.users ? eventType.users.map((user) => user.username).filter(notEmpty) : [];
-  // Recurring event sidebar requires more space
-  const maxWidth = isAvailableTimesVisible
-    ? recurringEventCount
-      ? "max-w-6xl"
-      : "max-w-5xl"
-    : recurringEventCount
-    ? "max-w-4xl"
-    : "max-w-3xl";
+
   const timezoneDropdown = useMemo(
     () => (
       <TimezoneDropdown
@@ -354,9 +360,12 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
         onChangeTimeFormat={setTimeFormat}
         timeZone={timeZone}
         onChangeTimeZone={setTimeZone}
+        // Currently we don't allow the user to change the timeformat when they're logged in,
+        // the only way to change it is if they go to their profile.
+        hideTimeFormatToggle={!!timeFormatFromProfile}
       />
     ),
-    [timeZone, timeFormat]
+    [timeZone, timeFormat, timeFormatFromProfile]
   );
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
@@ -386,119 +395,75 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
       <div>
         <main
           className={classNames(
-            shouldAlignCentrally ? "mx-auto" : "",
-            isEmbed
-              ? classNames(maxWidth)
-              : classNames("transition-max-width mx-auto my-0 duration-500 ease-in-out md:my-24", maxWidth)
+            "flex flex-col",
+            shouldAlignCentrally ? "items-center" : "items-start",
+            !isEmbed && classNames("mx-auto my-0 ease-in-out md:my-24")
           )}>
-          <div
-            style={availabilityDatePickerEmbedStyles}
-            className={classNames(
-              isBackgroundTransparent ? "" : "dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-white",
-              "border-bookinglightest overflow-hidden rounded-md md:border",
-              isEmbed ? "mx-auto" : maxWidth
-            )}>
-            {/* mobile: details */}
-            <div className="block px-4 pt-4 sm:p-8 md:hidden">
-              <div>
-                <BookingDescription isMobile profile={profile} eventType={eventType}>
-                  {!rescheduleUid && eventType.recurringEvent && (
-                    <div className="dark:text-darkgray-600 flex items-center text-gray-600">
-                      <Icon.FiRefreshCcw className="float-left mr-[10px] mt-1 ml-[2px] inline-block h-4 w-4 shrink-0 text-gray-500" />
-                      <div>
-                        <p className="mb-1 -ml-2 inline px-2 py-1">
-                          {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
-                        </p>
-                        <input
-                          type="number"
-                          min="1"
-                          max={eventType.recurringEvent.count}
-                          className="w-15 dark:text-darkgray-600 h-7 rounded-sm border-gray-300 bg-white text-sm text-gray-600 [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600"
-                          defaultValue={eventType.recurringEvent.count}
-                          onChange={(event) => {
-                            setRecurringEventCount(parseInt(event?.target.value));
-                          }}
-                        />
-                        <p className="dark:text-darkgray-600 inline text-gray-600 ">
-                          {t("occurrence", {
-                            count: recurringEventCount,
-                          })}
-                        </p>
+          <div>
+            <div
+              style={availabilityDatePickerEmbedStyles}
+              className={classNames(
+                isBackgroundTransparent
+                  ? ""
+                  : "dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-white pb-4 md:pb-0",
+                "border-bookinglightest overflow-hidden rounded-md md:border",
+                isEmbed && "mx-auto"
+              )}>
+              <div className="overflow-hidden md:flex">
+                <div
+                  className={classNames(
+                    "sm:dark:border-darkgray-200 flex flex-col border-gray-200 p-5 sm:border-r",
+                    "min-w-full md:w-[280px] md:min-w-[280px]",
+                    recurringEventCount && "xl:w-[380px] xl:min-w-[380px]"
+                  )}>
+                  <BookingDescription profile={profile} eventType={eventType}>
+                    {!rescheduleUid && eventType.recurringEvent && (
+                      <div className="flex items-start text-sm font-medium">
+                        <Icon.FiRefreshCcw className="float-left mr-[10px] mt-[7px] ml-[2px] inline-block h-4 w-4 " />
+                        <div>
+                          <p className="mb-1 -ml-2 inline px-2 py-1">
+                            {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
+                          </p>
+                          <input
+                            type="number"
+                            min="1"
+                            max={eventType.recurringEvent.count}
+                            className="w-15 dark:bg-darkgray-200 h-7 rounded-sm border-gray-300 bg-white text-sm font-medium [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500"
+                            defaultValue={eventType.recurringEvent.count}
+                            onChange={(event) => {
+                              setRecurringEventCount(parseInt(event?.target.value));
+                            }}
+                          />
+                          <p className="inline">
+                            {t("occurrence", {
+                              count: recurringEventCount,
+                            })}
+                          </p>
+                        </div>
                       </div>
+                    )}
+                    {eventType.price > 0 && (
+                      <p className="-ml-2 px-2 text-sm font-medium">
+                        <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                        <IntlProvider locale="en">
+                          <FormattedNumber
+                            value={eventType.price / 100.0}
+                            style="currency"
+                            currency={eventType.currency.toUpperCase()}
+                          />
+                        </IntlProvider>
+                      </p>
+                    )}
+                    {timezoneDropdown}
+                  </BookingDescription>
+
+                  {!isEmbed && (
+                    <div className="mt-auto hidden md:block">
+                      <GoBackToPreviousPage t={t} />
                     </div>
                   )}
-                  {timezoneDropdown}
 
-                  <div className="md:hidden">
-                    {/* Temp disabled booking?.startTime && rescheduleUid && (
-                            <div>
-                              <p
-                                className="mt-8 text-gray-600 dark:text-darkgray-600"
-                                data-testid="former_time_p_mobile">
-                                {t("former_time")}
-                              </p>
-                              <p className="text-gray-500 line-through dark:text-darkgray-600">
-                                <CalendarIcon className="mr-[10px] -mt-1 inline-block h-4 w-4 text-gray-500" />
-                                {typeof booking.startTime === "string" &&
-                                  parseDate(dayjs(booking.startTime), i18n)}
-                              </p>
-                            </div>
-                          )*/}
-                  </div>
-                </BookingDescription>
-              </div>
-            </div>
-
-            <div className="overflow-hidden sm:flex">
-              <div
-                className={
-                  "sm:dark:border-darkgray-200 hidden overflow-hidden border-gray-200 p-5 sm:border-r md:flex md:flex-col " +
-                  (isAvailableTimesVisible ? "sm:w-1/3" : recurringEventCount ? "sm:w-2/3" : "sm:w-1/2")
-                }>
-                <BookingDescription profile={profile} eventType={eventType}>
-                  {!rescheduleUid && eventType.recurringEvent && (
-                    <div className="flex items-start text-sm font-medium">
-                      <Icon.FiRefreshCcw className="float-left mr-[10px] mt-[7px] ml-[2px] inline-block h-4 w-4 " />
-                      <div>
-                        <p className="mb-1 -ml-2 inline px-2 py-1">
-                          {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
-                        </p>
-                        <input
-                          type="number"
-                          min="1"
-                          max={eventType.recurringEvent.count}
-                          className="w-15 dark:bg-darkgray-200 h-7 rounded-sm border-gray-300 bg-white text-sm font-medium [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500"
-                          defaultValue={eventType.recurringEvent.count}
-                          onChange={(event) => {
-                            setRecurringEventCount(parseInt(event?.target.value));
-                          }}
-                        />
-                        <p className="inline">
-                          {t("occurrence", {
-                            count: recurringEventCount,
-                          })}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                  {eventType.price > 0 && (
-                    <p className="-ml-2 px-2 text-sm font-medium ">
-                      <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
-                      <IntlProvider locale="en">
-                        <FormattedNumber
-                          value={eventType.price / 100.0}
-                          style="currency"
-                          currency={eventType.currency.toUpperCase()}
-                        />
-                      </IntlProvider>
-                    </p>
-                  )}
-                  {timezoneDropdown}
-                </BookingDescription>
-
-                {!isEmbed && <GoBackToPreviousPage t={t} />}
-
-                {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
+                  {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
                     <div>
                       <p
                         className="mt-4 mb-3 text-gray-600 dark:text-darkgray-600"
@@ -511,26 +476,33 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       </p>
                     </div>
                   )*/}
+                </div>
+                <SlotPicker
+                  weekStart={
+                    typeof profile.weekStart === "string"
+                      ? ([
+                          "Sunday",
+                          "Monday",
+                          "Tuesday",
+                          "Wednesday",
+                          "Thursday",
+                          "Friday",
+                          "Saturday",
+                        ].indexOf(profile.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
+                      : profile.weekStart /* Allows providing weekStart as number */
+                  }
+                  eventType={eventType}
+                  timeFormat={timeFormat}
+                  timeZone={timeZone}
+                  users={userList}
+                  seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
+                  recurringEventCount={recurringEventCount}
+                  ethSignature={gateState.rainbowToken}
+                />
               </div>
-              <SlotPicker
-                weekStart={
-                  typeof profile.weekStart === "string"
-                    ? (["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
-                        profile.weekStart
-                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
-                    : profile.weekStart /* Allows providing weekStart as number */
-                }
-                eventType={eventType}
-                timeFormat={timeFormat}
-                timeZone={timeZone}
-                users={userList}
-                seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
-                recurringEventCount={recurringEventCount}
-                ethSignature={gateState.rainbowToken}
-              />
             </div>
+            {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && !isEmbed && <PoweredByCal />}
           </div>
-          {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && !isEmbed && <PoweredByCal />}
         </main>
       </div>
       <Toaster position="bottom-right" />

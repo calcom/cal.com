@@ -1,12 +1,11 @@
 import crypto from "crypto";
-import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
-import { useRef, useState, BaseSyntheticEvent } from "react";
+import { useRef, useState, BaseSyntheticEvent, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { ErrorCode, getSession } from "@calcom/lib/auth";
+import { ErrorCode } from "@calcom/lib/auth";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import prisma from "@calcom/prisma";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
@@ -15,26 +14,44 @@ import { Alert } from "@calcom/ui/Alert";
 import Avatar from "@calcom/ui/v2/core/Avatar";
 import { Button } from "@calcom/ui/v2/core/Button";
 import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
+import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { Form, Label, TextField, PasswordField } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
-
-import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { SkeletonContainer, SkeletonText, SkeletonButton, SkeletonAvatar } from "@calcom/ui/v2/core/skeleton";
 
 import TwoFactor from "@components/auth/TwoFactor";
-import ImageUploader from "@components/v2/settings/ImageUploader";
+import { UsernameAvailability } from "@components/ui/UsernameAvailability";
+
+const SkeletonLoader = () => {
+  return (
+    <SkeletonContainer>
+      <div className="mt-6 mb-8 space-y-6 divide-y">
+        <div className="flex items-center">
+          <SkeletonAvatar className=" h-12 w-12 px-4" />
+          <SkeletonButton className=" h-6 w-32 rounded-md p-5" />
+        </div>
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+
+        <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
+      </div>
+    </SkeletonContainer>
+  );
+};
 
 interface DeleteAccountValues {
   totpCode: string;
 }
 
-const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
+const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const usernameRef = useRef<HTMLInputElement>(null);
 
-  const { user } = props;
-  // const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
+  const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: () => {
       showToast(t("settings_updated_successfully"), "success");
@@ -44,11 +61,22 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
     },
   });
 
+  const [confirmPasswordOpen, setConfirmPasswordOpen] = useState(false);
+  const [confirmPasswordErrorMessage, setConfirmPasswordDeleteErrorMessage] = useState("");
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
-
+  const [currentUsername, setCurrentUsername] = useState<string | undefined>(user?.username || undefined);
+  const [inputUsernameValue, setInputUsernameValue] = useState(currentUsername);
+  useEffect(() => {
+    if (user?.username) setCurrentUsername(user?.username);
+  }, [user?.username]);
   const form = useForm<DeleteAccountValues>();
+
+  const emailMd5 = crypto
+    .createHash("md5")
+    .update(user?.email || "example@example.com")
+    .digest("hex");
 
   const onDeleteMeSuccessMutation = async () => {
     await utils.invalidateQueries(["viewer.me"]);
@@ -62,6 +90,16 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
     }
   };
 
+  const confirmPasswordMutation = trpc.useMutation("viewer.auth.verifyPassword", {
+    onSuccess() {
+      mutation.mutate(formMethods.getValues());
+      setConfirmPasswordOpen(false);
+    },
+    onError() {
+      setConfirmPasswordDeleteErrorMessage(t("incorrect_password"));
+    },
+  });
+
   const onDeleteMeErrorMutation = (error: TRPCClientErrorLike<AppRouter>) => {
     setHasDeleteErrors(true);
     setDeleteErrorMessage(errorMessages[error.message]);
@@ -73,6 +111,12 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
       await utils.invalidateQueries(["viewer.me"]);
     },
   });
+
+  const onConfirmPassword = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
+    e.preventDefault();
+    const password = passwordRef.current.value;
+    confirmPasswordMutation.mutate({ passwordInput: password });
+  };
 
   const onConfirmButton = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
     e.preventDefault();
@@ -86,14 +130,26 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
     deleteMeMutation.mutate({ password, totpCode });
   };
 
-  const formMethods = useForm({
-    defaultValues: {
-      avatar: user.avatar || "",
-      username: user?.username || "",
-      name: user?.name || "",
-      bio: user?.bio || "",
-    },
-  });
+  const formMethods = useForm<{
+    avatar?: string;
+    username?: string;
+    name?: string;
+    email?: string;
+    bio?: string;
+  }>();
+
+  const { reset } = formMethods;
+
+  useEffect(() => {
+    if (user)
+      reset({
+        avatar: user?.avatar || "",
+        username: user?.username || "",
+        name: user?.name || "",
+        email: user?.email || "",
+        bio: user?.bio || "",
+      });
+  }, [reset, user]);
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const passwordRef = useRef<HTMLInputElement>(null!);
@@ -106,23 +162,36 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
     [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
+  const onSuccessfulUsernameUpdate = async () => {
+    showToast(t("settings_updated_successfully"), "success");
+    await utils.invalidateQueries(["viewer.me"]);
+  };
+
+  const onErrorInUsernameUpdate = () => {
+    showToast(t("error_updating_settings"), "error");
+  };
+
+  if (isLoading || !user) return <SkeletonLoader />;
 
   return (
     <>
       <Form
         form={formMethods}
         handleSubmit={(values) => {
-          mutation.mutate(values);
+          if (values.email !== user?.email) {
+            setConfirmPasswordOpen(true);
+          } else {
+            mutation.mutate(values);
+          }
         }}>
-        <Meta title="profile" description="profile_description" />
+        <Meta title="Profile" description="Manage settings for your cal profile" />
         <div className="flex items-center">
-          {/* TODO upload new avatar */}
           <Controller
             control={formMethods.control}
             name="avatar"
             render={({ field: { value } }) => (
               <>
-                <Avatar alt="" imageSrc={value} gravatarFallbackMd5={user.emailMd5} size="lg" />
+                <Avatar alt="" imageSrc={value} gravatarFallbackMd5={emailMd5} size="lg" />
                 <div className="ml-4">
                   <ImageUploader
                     target="avatar"
@@ -138,56 +207,28 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
             )}
           />
         </div>
-        <Controller
-          control={formMethods.control}
-          name="username"
-          render={({ field: { value } }) => (
-            <div className="mt-8">
-              <TextField
-                name="username"
-                label={t("personal_cal_url")}
-                addOnLeading="https://"
-                value={value}
-                onChange={(e) => {
-                  formMethods.setValue("username", e?.target.value);
-                }}
-              />
-            </div>
-          )}
-        />
-        <Controller
-          control={formMethods.control}
-          name="name"
-          render={({ field: { value } }) => (
-            <div className="mt-8">
-              <TextField
-                name="username"
-                label={t("full_name")}
-                value={value}
-                onChange={(e) => {
-                  formMethods.setValue("name", e?.target.value);
-                }}
-              />
-            </div>
-          )}
-        />
-        <Controller
-          control={formMethods.control}
-          name="bio"
-          render={({ field: { value } }) => (
-            <div className="mt-8">
-              <TextField
-                name="bio"
-                label={t("about")}
-                hint={t("bio_hint")}
-                value={value}
-                onChange={(e) => {
-                  formMethods.setValue("bio", e?.target.value);
-                }}
-              />
-            </div>
-          )}
-        />
+        <div className="mt-8">
+          <UsernameAvailability
+            currentUsername={currentUsername}
+            setCurrentUsername={setCurrentUsername}
+            inputUsernameValue={inputUsernameValue}
+            usernameRef={usernameRef}
+            setInputUsernameValue={setInputUsernameValue}
+            onSuccessMutation={onSuccessfulUsernameUpdate}
+            onErrorMutation={onErrorInUsernameUpdate}
+            user={user}
+          />
+        </div>
+        <div className="mt-8">
+          <TextField label={t("full_name")} {...formMethods.register("name")} />
+        </div>
+        <div className="mt-8">
+          <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />
+        </div>
+        <div className="mt-8">
+          <TextField label={t("about")} hint={t("bio_hint")} {...formMethods.register("bio")} />
+        </div>
+
         <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
           {t("update")}
         </Button>
@@ -198,7 +239,11 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
         {/* Delete account Dialog */}
         <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
           <DialogTrigger asChild>
-            <Button color="destructive" className="mt-1 border-2" StartIcon={Icon.FiTrash2}>
+            <Button
+              data-testid="delete-account"
+              color="destructive"
+              className="mt-1 border-2"
+              StartIcon={Icon.FiTrash2}>
               {t("delete_account")}
             </Button>
           </DialogTrigger>
@@ -207,6 +252,10 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
             description={t("confirm_delete_account_modal")}
             type="creation"
             actionText={t("delete_my_account")}
+            actionProps={{
+              // @ts-expect-error data attributes aren't typed
+              "data-testid": "delete-account-confirm",
+            }}
             Icon={Icon.FiAlertTriangle}
             actionOnClick={(e) => e && onConfirmButton(e)}>
             <>
@@ -222,7 +271,7 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
                 ref={passwordRef}
               />
 
-              {user.twoFactorEnabled && (
+              {user?.twoFactorEnabled && (
                 <Form handleSubmit={onConfirm} className="pb-4" form={form}>
                   <TwoFactor center={false} />
                 </Form>
@@ -233,6 +282,32 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
           </DialogContent>
         </Dialog>
       </Form>
+
+      {/* If changing email, confirm password */}
+      <Dialog open={confirmPasswordOpen} onOpenChange={setConfirmPasswordOpen}>
+        <DialogContent
+          title={t("confirm_password")}
+          description={t("confirm_password_change_email")}
+          type="creation"
+          actionText={t("confirm")}
+          Icon={Icon.FiAlertTriangle}
+          actionOnClick={(e) => e && onConfirmPassword(e)}>
+          <>
+            <PasswordField
+              data-testid="password"
+              name="password"
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              label="Password"
+              ref={passwordRef}
+            />
+
+            {confirmPasswordErrorMessage && <Alert severity="error" title={confirmPasswordErrorMessage} />}
+          </>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
@@ -240,39 +315,3 @@ const ProfileView = (props: inferSSRProps<typeof getServerSideProps>) => {
 ProfileView.getLayout = getLayout;
 
 export default ProfileView;
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const session = await getSession(context);
-
-  if (!session?.user?.id) {
-    return { redirect: { permanent: false, destination: "/auth/login" } };
-  }
-
-  const user = await prisma.user.findUnique({
-    where: {
-      id: session.user.id,
-    },
-    select: {
-      id: true,
-      username: true,
-      email: true,
-      name: true,
-      bio: true,
-      avatar: true,
-      twoFactorEnabled: true,
-    },
-  });
-
-  if (!user) {
-    throw new Error("User seems logged in but cannot be found in the db");
-  }
-
-  return {
-    props: {
-      user: {
-        ...user,
-        emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),
-      },
-    },
-  };
-};

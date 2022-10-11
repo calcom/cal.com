@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
+import autoAnimate from "@formkit/auto-animate";
 import { EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
@@ -16,7 +18,7 @@ import prisma from "@calcom/prisma";
 import { trpc } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Form } from "@calcom/ui/form/fields";
-import { Button, showToast } from "@calcom/ui/v2";
+import { showToast } from "@calcom/ui/v2";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
@@ -35,8 +37,6 @@ import { EventTypeSingleLayout } from "@components/v2/eventtype/EventTypeSingleL
 import EventWorkflowsTab from "@components/v2/eventtype/EventWorkfowsTab";
 
 import { getTranslation } from "@server/lib/i18n";
-
-const TABS_WITHOUT_ACTION_BUTTONS = ["workflows", "availability"];
 
 export type FormValues = {
   title: string;
@@ -70,6 +70,7 @@ export type FormValues = {
   periodCountCalendarDays: "1" | "0";
   periodDates: { startDate: Date; endDate: Date };
   seatsPerTimeSlot: number | null;
+  seatsPerTimeSlotEnabled: boolean;
   minimumBookingNotice: number;
   beforeBufferTime: number;
   afterBufferTime: number;
@@ -80,6 +81,8 @@ export type FormValues = {
   };
   successRedirectUrl: string;
   giphyThankYouPage: string;
+  blockchainId: number;
+  smartContractAddress: string;
 };
 
 const querySchema = z.object({
@@ -94,12 +97,19 @@ export type EventTypeSetupInfered = inferSSRProps<typeof getServerSideProps>;
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
 
-  const { eventType, locationOptions, team, teamMembers } = props;
-
+  const { eventType: dbEventType, locationOptions, team, teamMembers } = props;
+  const [eventType, setEventType] = useState(dbEventType);
+  const animationParentRef = useRef(null);
   const router = useRouter();
   const { tabName } = querySchema.parse(router.query);
+
+  useEffect(() => {
+    animationParentRef.current && autoAnimate(animationParentRef.current);
+  }, [animationParentRef]);
+
   const updateMutation = trpc.useMutation("viewer.eventTypes.update", {
-    onSuccess: async ({ eventType }) => {
+    onSuccess: async ({ eventType: newEventType }) => {
+      setEventType({ ...eventType, slug: newEventType.slug });
       showToast(
         t("event_type_updated_successfully", {
           eventTypeTitle: eventType.title,
@@ -146,6 +156,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         endDate: periodDates.endDate,
       },
       schedulingType: eventType.schedulingType,
+      minimumBookingNotice: eventType.minimumBookingNotice,
     },
   });
 
@@ -178,6 +189,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         eventType={eventType}
         hasPaymentIntegration={props.hasPaymentIntegration}
         hasGiphyIntegration={props.hasGiphyIntegration}
+        hasRainbowIntegration={props.hasRainbowIntegration}
       />
     ),
     workflows: (
@@ -210,6 +222,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             seatsPerTimeSlot,
             recurringEvent,
             locations,
+            blockchainId,
+            smartContractAddress,
+            // We don't need to send it to the backend
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            seatsPerTimeSlotEnabled,
             ...input
           } = values;
 
@@ -226,21 +243,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             seatsPerTimeSlot,
             metadata: {
               ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
+              ...(smartContractAddress ? { smartContractAddress } : {}),
+              ...(blockchainId ? { blockchainId } : { blockchainId: 1 }),
             },
           });
-        }}
-        className="space-y-6">
-        {tabMap[tabName]}
-        {!TABS_WITHOUT_ACTION_BUTTONS.includes(tabName) && (
-          <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-            <Button href="/event-types" color="secondary" tabIndex={-1}>
-              {t("cancel")}
-            </Button>
-            <Button type="submit" data-testid="update-eventtype" disabled={updateMutation.isLoading}>
-              {t("update")}
-            </Button>
-          </div>
-        )}
+        }}>
+        <div ref={animationParentRef} className="space-y-6">
+          {tabMap[tabName]}
+        </div>
       </Form>
     </EventTypeSingleLayout>
   );
@@ -418,6 +428,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const hasGiphyIntegration = !!credentials.find((credential) => credential.type === "giphy_other");
 
+  const hasRainbowIntegration = !!credentials.find((credential) => credential.type === "rainbow_web3");
+
   // backwards compat
   if (eventType.users.length === 0 && !eventType.team) {
     const fallbackUser = await prisma.user.findUnique({
@@ -465,6 +477,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       teamMembers,
       hasPaymentIntegration,
       hasGiphyIntegration,
+      hasRainbowIntegration,
       currency,
       currentUserMembership,
     },

@@ -1,5 +1,3 @@
-import { FC } from "react";
-
 import { classNames } from "@calcom/lib";
 
 import VerticalTabItem, { VerticalTabItemProps } from "./VerticalTabItem";
@@ -11,9 +9,10 @@ export interface NavTabProps {
   children?: React.ReactNode;
   className?: string;
   sticky?: boolean;
+  linkProps?: VerticalTabItemProps["linkProps"];
 }
 
-const NavTabs: FC<NavTabProps> = ({ tabs, className = "", sticky, ...props }) => {
+const NavTabs = function ({ tabs, className = "", sticky, linkProps, ...props }: NavTabProps) {
   return (
     <nav
       className={classNames(
@@ -26,7 +25,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, className = "", sticky, ...props }) =>
       {sticky && <div className="pt-6" />}
       {props.children}
       {tabs.map((tab, idx) => (
-        <VerticalTabItem {...tab} key={idx} />
+        <VerticalTabItem {...tab} key={idx} linkProps={linkProps} />
       ))}
     </nav>
   );

@@ -1,4 +1,5 @@
 import { GetServerSidePropsContext } from "next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { z } from "zod";
@@ -91,7 +92,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="mx-auto px-4 py-24">
+      <div className="mx-auto px-4 py-6 md:py-24">
         <div className="relative">
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]">
             <div className="mx-auto sm:max-w-[520px]">
@@ -128,7 +129,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
                     event.preventDefault();
                     goToIndex(currentStepIndex + 1);
                   }}
-                  className="mt-24 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
+                  className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
                   {headers[currentStepIndex]?.skipText}
                 </Button>
               </div>
@@ -180,6 +181,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
+      ...(await serverSideTranslations(context.locale ?? "", ["common"])),
       user: {
         ...user,
         emailMd5: crypto.createHash("md5").update(user.email).digest("hex"),

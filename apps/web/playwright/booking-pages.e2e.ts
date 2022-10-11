@@ -19,12 +19,6 @@ test.describe("free user", () => {
     await users.deleteAll();
   });
 
-  test("only one visible event", async ({ page, users }) => {
-    const [free] = users.get();
-    await expect(page.locator(`[href="/${free.username}/${free.eventTypes[0].slug}"]`)).toBeVisible();
-    await expect(page.locator(`[href="/${free.username}/${free.eventTypes[1].slug}"]`)).not.toBeVisible();
-  });
-
   test("cannot book same slot multiple times", async ({ page }) => {
     // Click first event type
     await page.click('[data-testid="event-type-link"]');
@@ -55,16 +49,6 @@ test.describe("free user", () => {
 
     // check for error message
     await expect(page.locator("[data-testid=booking-fail]")).toBeVisible();
-  });
-
-  test("Second event type is not bookable", async ({ page, users }) => {
-    const [free] = users.get();
-    // Not available in listing
-    await expect(page.locator(`[href="/${free.username}/${free.eventTypes[1].slug}"]`)).toHaveCount(0);
-
-    await page.goto(`/${free.username}/${free.eventTypes[1].slug}`);
-    // Not available on a direct visit to event type page
-    await expect(page.locator('[data-testid="404-page"]')).toBeVisible();
   });
 });
 

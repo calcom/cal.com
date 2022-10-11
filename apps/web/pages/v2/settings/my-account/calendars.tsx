@@ -7,10 +7,12 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
+import { Alert } from "@calcom/ui/v2";
 import Badge from "@calcom/ui/v2/core/Badge";
 import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
+import { SkeletonContainer, SkeletonText, SkeletonButton } from "@calcom/ui/v2/core/skeleton";
 import { List, ListItem, ListItemText, ListItemTitle } from "@calcom/ui/v2/modules/List";
 import DestinationCalendarSelector from "@calcom/ui/v2/modules/event-types/DestinationCalendarSelector";
 import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
@@ -18,6 +20,21 @@ import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/Disconnect
 import { QueryCell } from "@lib/QueryCell";
 
 import { CalendarSwitch } from "@components/v2/settings/CalendarSwitch";
+
+const SkeletonLoader = () => {
+  return (
+    <SkeletonContainer>
+      <div className="mt-6 mb-8 space-y-6">
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+        <SkeletonText className="h-8 w-full" />
+
+        <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
+      </div>
+    </SkeletonContainer>
+  );
+};
 
 const CalendarsView = () => {
   const { t } = useLocale();
@@ -34,40 +51,69 @@ const CalendarsView = () => {
 
   return (
     <>
-      <Meta title="calendars" description="calendars_description" />
+      <Meta title="Calendars" description="Configure how your event types interact with your calendars" />
       <QueryCell
         query={query}
+        customLoader={<SkeletonLoader />}
         success={({ data }) => {
-          console.log("🚀 ~ file: calendars.tsx ~ line 28 ~ CalendarsView ~ data", data);
           return data.connectedCalendars.length ? (
             <div>
-              <div className="mt-4 rounded-md border-neutral-200 bg-white p-2 sm:mx-0 sm:p-10 md:border md:p-6 xl:mt-0">
-                <div className="mt-4 rounded-md  border-neutral-200 bg-white p-2 sm:mx-0 sm:p-10 md:border md:p-2 xl:mt-0">
-                  <Icon.FiCalendar className="h-5 w-5" />
+              <div className="mt-4 flex space-x-4 rounded-md border-gray-200 bg-gray-50 p-2 sm:mx-0 sm:p-10 md:border md:p-6 xl:mt-0">
+                <div className=" flex h-9 w-9 items-center justify-center rounded-md border-2 border-gray-200 bg-white p-[6px]">
+                  <Icon.FiCalendar className="h-6 w-6" />
                 </div>
-                <h4 className="leading-20 mt-2 text-xl font-semibold text-black">{t("add_to_calendar")}</h4>
-                <p className="pb-2 text-sm text-gray-600">
-                  <Trans i18nKey="add_to_calendar_description">
-                    Where to add events when you re booked. You can override this on a per-event basis in
-                    advanced settings in the event type.
-                  </Trans>
-                </p>
-                <DestinationCalendarSelector
-                  hidePlaceholder
-                  value={data.destinationCalendar?.externalId}
-                  onChange={mutation.mutate}
-                  isLoading={mutation.isLoading}
-                />
-              </div>
 
-              <h4 className="leading-20 mt-12 text-xl font-semibold text-black">
+                <div className="flex flex-col space-y-3">
+                  <div>
+                    <h4 className=" pb-2 text-base font-semibold leading-5 text-black">
+                      {t("add_to_calendar")}
+                    </h4>
+                    <p className=" text-sm leading-5 text-gray-600">
+                      <Trans i18nKey="add_to_calendar_description">
+                        Where to add events when you re booked. You can override this on a per-event basis in
+                        advanced settings in the event type.
+                      </Trans>
+                    </p>
+                  </div>
+                  <DestinationCalendarSelector
+                    hidePlaceholder
+                    value={data.destinationCalendar?.externalId}
+                    onChange={mutation.mutate}
+                    isLoading={mutation.isLoading}
+                  />
+                </div>
+              </div>
+              <h4 className="mt-12 text-base font-semibold leading-5 text-black">
                 {t("check_for_conflicts")}
               </h4>
-              <p className="pb-2 text-sm text-gray-600">{t("select_calendars")}</p>
+              <p className="pb-2 text-sm leading-5 text-gray-600">{t("select_calendars")}</p>
               <List>
                 {data.connectedCalendars.map((item) => (
                   <Fragment key={item.credentialId}>
-                    {item.calendars && (
+                    {item.error && item.error.message && (
+                      <Alert
+                        severity="warning"
+                        key={item.credentialId}
+                        title={t("calendar_connection_fail")}
+                        message={item.error.message}
+                        className="mb-4 mt-4"
+                        actions={
+                          <>
+                            {/* @TODO: add a reconnect button, that calls add api and delete old credential */}
+                            <DisconnectIntegration
+                              credentialId={item.credentialId}
+                              trashIcon
+                              onSuccess={() => query.refetch()}
+                              buttonProps={{
+                                className: "border border-gray-300 py-[2px]",
+                                color: "secondary",
+                              }}
+                            />
+                          </>
+                        }
+                      />
+                    )}
+                    {item?.error === undefined && item.calendars && (
                       <ListItem expanded className="flex-col">
                         <div className="flex w-full flex-1 items-center space-x-3 pb-5 pl-1 pt-1 rtl:space-x-reverse">
                           {
@@ -92,7 +138,11 @@ const CalendarsView = () => {
                             <ListItemText component="p">{item.integration.description}</ListItemText>
                           </div>
                           <div>
-                            <DisconnectIntegration credentialId={item.credentialId} label={t("disconnect")} />
+                            <DisconnectIntegration
+                              trashIcon
+                              credentialId={item.credentialId}
+                              buttonProps={{ size: "icon", color: "secondary" }}
+                            />
                           </div>
                         </div>
                         <div className="w-full border-t border-gray-200">
@@ -106,6 +156,7 @@ const CalendarsView = () => {
                                 externalId={cal.externalId}
                                 title={cal.name || "Nameless calendar"}
                                 type={item.integration.type}
+                                isSelected={cal.isSelected}
                                 defaultSelected={cal.externalId === data?.destinationCalendar?.externalId}
                               />
                             ))}
@@ -120,10 +171,26 @@ const CalendarsView = () => {
           ) : (
             <EmptyScreen
               Icon={Icon.FiCalendar}
-              headline="No calendar installed"
-              description="You have not yet connected any of your calendars"
-              buttonText="Add a calendar"
+              headline={t("no_calendar_installed")}
+              description={t("no_calendar_installed_description")}
+              buttonText={t("add_a_calendar")}
               buttonOnClick={() => router.push(`${WEBAPP_URL}/apps/categories/calendar`)}
+            />
+          );
+        }}
+        error={() => {
+          return (
+            <Alert
+              message={
+                <Trans i18nKey="fetching_calendars_error">
+                  An error ocurred while fetching your Calendars.
+                  <a className="cursor-pointer underline" onClick={() => query.refetch()}>
+                    try again
+                  </a>
+                  .
+                </Trans>
+              }
+              severity="error"
             />
           );
         }}

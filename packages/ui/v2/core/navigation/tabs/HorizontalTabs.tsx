@@ -1,14 +1,13 @@
-import { FC } from "react";
-
 import HorizontalTabItem, { HorizontalTabItemProps } from "./HorizontalTabItem";
 
 export { HorizontalTabItem };
 
 export interface NavTabProps {
   tabs: HorizontalTabItemProps[];
+  linkProps?: HorizontalTabItemProps["linkProps"];
 }
 
-const HorizontalTabs: FC<NavTabProps> = ({ tabs, ...props }) => {
+const HorizontalTabs = function ({ tabs, linkProps, ...props }: NavTabProps) {
   return (
     <div className="-mx-6 mb-2 w-[calc(100%+40px)]">
       <nav
@@ -16,7 +15,7 @@ const HorizontalTabs: FC<NavTabProps> = ({ tabs, ...props }) => {
         aria-label="Tabs"
         {...props}>
         {tabs.map((tab, idx) => (
-          <HorizontalTabItem {...tab} key={idx} />
+          <HorizontalTabItem {...tab} key={idx} {...linkProps} />
         ))}
       </nav>
     </div>

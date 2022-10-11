@@ -5,9 +5,10 @@ import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
+import { SkeletonText } from "@calcom/ui/v2";
 
 export default function Apps({ categories }: InferGetStaticPropsType<typeof getStaticProps>) {
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
 
   return (
     <Shell isPublic large>
@@ -15,7 +16,7 @@ export default function Apps({ categories }: InferGetStaticPropsType<typeof getS
         <Link href="/apps">
           <a className="inline-flex items-center justify-start gap-1 rounded-sm py-2 text-gray-900">
             <Icon.FiArrowLeft className="h-4 w-4" />
-            {t("app_store")}{" "}
+            {isLocaleReady ? t("app_store") : <SkeletonText className="h-6 w-24" />}{" "}
           </a>
         </Link>
       </div>

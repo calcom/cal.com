@@ -1,10 +1,10 @@
 [
   {
     "/*": "This file is auto-generated and updated by `yarn app-store create/edit`. Don't edit it manually",
-    "dirName": "routing_forms",
+    "dirName": "routing-forms",
     "categories": ["other"],
-    "slug": "routing_forms",
-    "type": "routing_forms_other"
+    "slug": "routing-forms",
+    "type": "routing-forms_other"
   },
   {
     "dirName": "whereby",
@@ -56,8 +56,14 @@
   },
   {
     "dirName": "n8n",
-    "categories": ["other"],
+    "categories": ["automation"],
     "slug": "n8n",
-    "type": "n8n_other"
+    "type": "n8n_automation"
+  },
+  {
+    "dirName": "exchangecalendar",
+    "categories": ["calendar"],
+    "slug": "exchange",
+    "type": "exchange_calendar"
   }
 ]

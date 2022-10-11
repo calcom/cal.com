@@ -28,6 +28,7 @@ const descriptionByStatus: Record<BookingListingStatus, string> = {
   recurring: "recurring_bookings",
   past: "past_bookings",
   cancelled: "cancelled_bookings",
+  unconfirmed: "unconfirmed_bookings",
 };
 
 const querySchema = z.object({
@@ -53,17 +54,6 @@ export default function Bookings() {
 
   const isEmpty = !query.data?.pages[0]?.bookings.length;
 
-  // Get all recurring events of the series with the same recurringEventId
-  const defineRecurrentBookings = (
-    booking: BookingOutput,
-    groupedBookings: Record<string, BookingOutput[]>
-  ) => {
-    let recurringBookings = undefined;
-    if (booking.recurringEventId !== null) {
-      recurringBookings = groupedBookings[booking.recurringEventId];
-    }
-    return { recurringBookings };
-  };
   const shownBookings: Record<string, BookingOutput[]> = {};
   const filterBookings = (booking: BookingOutput) => {
     if (status === "recurring" || status === "cancelled") {
@@ -91,7 +81,7 @@ export default function Bookings() {
               {query.status === "error" && (
                 <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
               )}
-              {(query.status === "loading" || query.status === "idle") && <SkeletonLoader />}
+              {(query.status === "loading" || query.isPaused) && <SkeletonLoader />}
               {query.status === "success" && !isEmpty && (
                 <>
                   <div className="mt-6 overflow-hidden rounded-sm border border-b border-gray-200">
@@ -103,7 +93,7 @@ export default function Bookings() {
                               <BookingListItem
                                 key={booking.id}
                                 listingStatus={status}
-                                {...defineRecurrentBookings(booking, shownBookings)}
+                                recurringBookings={page.recurringInfo}
                                 {...booking}
                               />
                             ))}

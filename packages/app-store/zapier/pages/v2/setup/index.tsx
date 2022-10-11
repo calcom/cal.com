@@ -23,7 +23,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
 
   const deleteApiKey = trpc.useMutation("viewer.apiKeys.delete");
   const zapierCredentials: { credentialIds: number[] } | undefined = integrations.data?.items.find(
-    (item: { type: string }) => item.type === "zapier_other"
+    (item: { type: string }) => item.type === "zapier_automation"
   );
   const [credentialId] = zapierCredentials?.credentialIds || [false];
   const showContent = integrations.data && integrations.isSuccess && credentialId;
@@ -41,11 +41,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   }
 
   if (integrations.isLoading) {
-    return (
-      <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200">
-        <Loader />
-      </div>
-    );
+    return <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200" />;
   }
 
   return (

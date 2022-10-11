@@ -2,6 +2,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
 
+import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+
 /**
  * This is an example endpoint for an app, these will run under `/api/integrations/[...args]`
  * @param req
@@ -40,5 +42,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500);
   }
 
-  return res.status(200).json({ url: "/apps/installed" });
+  return res.status(200).json({ url: getInstalledAppPath({ variant: "other", slug: "giphy" }) });
 }
