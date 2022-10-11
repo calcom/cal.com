@@ -1,6 +1,7 @@
 import { InferGetServerSidePropsType } from "next";
 import z from "zod";
 
+import { AppSettings } from "@calcom/app-store/_components/AppSettings";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { InstalledAppVariants } from "@calcom/app-store/utils";
 import { classNames } from "@calcom/lib";
@@ -117,8 +118,9 @@ const IntegrationsList = ({ data, variant }: IntegrationsListProps) => {
                   installed
                 />
               </div>
-            }
-          />
+            }>
+            <AppSettings slug={item.slug} />
+          </IntegrationListItem>
         </>
       ))}
     </List>
