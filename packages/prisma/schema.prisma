@@ -214,7 +214,7 @@ model Membership {
   userId               Int
   accepted             Boolean        @default(false)
   role                 MembershipRole
-  team                 Team           @relation(fields: [teamId], references: [id])
+  team                 Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   disableImpersonation Boolean        @default(false)
 
