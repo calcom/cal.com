@@ -174,23 +174,27 @@ function ConnectedCalendarsList(props: Props) {
                         />
                       </div>
                     }>
-                    {!fromOnboarding && (
-                      <>
-                        <p className="px-4 pt-4 text-sm text-neutral-500">{t("toggle_calendars_conflict")}</p>
-                        <ul className="space-y-2 p-4">
-                          {item.calendars.map((cal) => (
-                            <CalendarSwitch
-                              key={cal.externalId}
-                              externalId={cal.externalId}
-                              title={cal.name || "Nameless calendar"}
-                              type={item.integration.type}
-                              defaultSelected={cal.isSelected}
-                              destination={cal.externalId === props.destinationCalendarId}
-                            />
-                          ))}
-                        </ul>
-                      </>
-                    )}
+                    <div className="border-t border-gray-200">
+                      {!fromOnboarding && (
+                        <>
+                          <p className="px-4 pt-4 text-sm text-neutral-500">
+                            {t("toggle_calendars_conflict")}
+                          </p>
+                          <ul className="space-y-2 p-4">
+                            {item.calendars.map((cal) => (
+                              <CalendarSwitch
+                                key={cal.externalId}
+                                externalId={cal.externalId}
+                                title={cal.name || "Nameless calendar"}
+                                type={item.integration.type}
+                                defaultSelected={cal.isSelected}
+                                destination={cal.externalId === props.destinationCalendarId}
+                              />
+                            ))}
+                          </ul>
+                        </>
+                      )}
+                    </div>
                   </IntegrationListItem>
                 ) : (
                   <Alert

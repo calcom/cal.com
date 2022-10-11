@@ -1,3 +1,3 @@
 export default function AppSettings() {
-  return <>Zapier Templates</>;
+  return <div className="border-t border-gray-200">Zapier Templates</div>;
 }

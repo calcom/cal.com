@@ -47,7 +47,7 @@ function IntegrationListItem(props: {
         </div>
         <div>{props.actions}</div>
       </div>
-      {props.children && <div className="w-full border-t border-gray-200">{props.children}</div>}
+      {props.children && <div className="w-full">{props.children}</div>}
     </ListItem>
   );
 }
