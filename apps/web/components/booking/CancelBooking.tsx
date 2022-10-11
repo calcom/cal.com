@@ -63,7 +63,13 @@ export default function CancelBooking(props: Props) {
                 <Button
                   color="secondary"
                   className="border-0 sm:border"
-                  onClick={() => router.push("/reschedule/" + booking?.uid)}>
+                  onClick={() =>
+                    router.push(
+                      `/reschedule/${booking?.uid}${
+                        router.query.embedType ? "?embedType=" + router.query.embedType : ""
+                      }`
+                    )
+                  }>
                   {t("reschedule_this")}
                 </Button>
               </div>

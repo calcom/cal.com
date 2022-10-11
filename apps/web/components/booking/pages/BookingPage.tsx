@@ -81,9 +81,10 @@ const BookingPage = ({
   recurringEventCount,
   hasHashedBookingLink,
   hashedLink,
+  ...restProps
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
-  const isEmbed = useIsEmbed();
+  const isEmbed = useIsEmbed(restProps.isEmbed);
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const router = useRouter();
@@ -138,6 +139,7 @@ const BookingPage = ({
           eventName: profile.eventName || "",
           bookingId: id,
           isSuccessBookingPage: true,
+          ...router.query,
         },
       });
     },
@@ -170,6 +172,7 @@ const BookingPage = ({
           location,
           eventName: profile.eventName || "",
           bookingId: id,
+          ...router.query,
         },
       });
     },

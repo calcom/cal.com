@@ -155,7 +155,7 @@ export default function Success(props: SuccessProps) {
   const { eventType, bookingInfo } = props;
 
   const isBackgroundTransparent = useIsBackgroundTransparent();
-  const isEmbed = useIsEmbed();
+  const isEmbed = useIsEmbed(props.isEmbed);
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const [isCancellationMode, setIsCancellationMode] = useState(false);
@@ -284,9 +284,10 @@ export default function Success(props: SuccessProps) {
               aria-hidden="true">
               <div
                 className={classNames(
-                  "inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
+                  "inline-block transform overflow-hidden rounded-lg border sm:max-w-xl",
                   isBackgroundTransparent ? "" : "dark:bg-darkgray-100 bg-white dark:border-neutral-700",
-                  "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
+                  "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle",
+                  isEmbed ? "" : "sm:my-8"
                 )}
                 role="dialog"
                 aria-modal="true"
@@ -420,7 +421,12 @@ export default function Success(props: SuccessProps) {
                         {!props.recurringBookings && (
                           <span className="text-bookinglight inline text-gray-700">
                             <span className="underline">
-                              <Link href={"/reschedule/" + bookingInfo?.uid}>{t("reschedule")}</Link>
+                              <Link
+                                href={`/reschedule/${bookingInfo?.uid}${
+                                  router.query.embedType ? "?embedType=" + router.query.embedType : " "
+                                }`}>
+                                {t("reschedule")}
+                              </Link>
                             </span>
                             <span className="mx-2">{t("or_lowercase")}</span>
                           </span>
@@ -871,6 +877,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       trpcState: ssr.dehydrate(),
       dynamicEventName,
       bookingInfo,
+      isEmbed: typeof context.query.embed === "string",
     },
   };
 }

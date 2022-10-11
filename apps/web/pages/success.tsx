@@ -425,7 +425,12 @@ export default function Success(props: SuccessProps) {
                           <>
                             <div className="mx-2">{t("or_lowercase")}</div>
                             <div className="underline">
-                              <Link href={"/reschedule/" + bookingInfo?.uid}>{t("reschedule")}</Link>
+                              <Link
+                                href={`/reschedule/${bookingInfo?.uid}${
+                                  router.query.embedType ? "embedType=" + router.query.embedType : " "
+                                }`}>
+                                {t("reschedule")}
+                              </Link>
                             </div>
                           </>
                         )}
