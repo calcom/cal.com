@@ -1,7 +1,7 @@
 import merge from "lodash/merge";
 import { NextSeo, NextSeoProps } from "next-seo";
-import React from "react";
 
+import { constructAppImage, constructMeetingImage } from "@calcom/lib/OgImages";
 import { getBrowserInfo } from "@calcom/lib/browser/browser.utils";
 import { seoConfig, getSeoImage, HeadSeoProps } from "@calcom/lib/next-seo.config";
 
@@ -52,38 +52,6 @@ const buildSeoMeta = (pageProps: {
   };
 };
 
-interface MeetingImageProps {
-  title: string;
-  name: string;
-  usernames: string[];
-}
-
-const constructMeetingImage = ({ title, name, usernames }: MeetingImageProps): string => {
-  return [
-    `?type=meeting`,
-    `&title=${encodeURIComponent(title)}`,
-    `&name=${encodeURIComponent(name)}`,
-    `${usernames.map((username) => `&users=${encodeURIComponent(username)}`)}`,
-    // Joinining a multiline string for readability.
-  ].join("");
-};
-
-interface AppImageProps {
-  name: string;
-  slug: string;
-  description: string;
-}
-
-const constructAppImage = ({ name, slug, description }: AppImageProps): string => {
-  return [
-    `?type=app`,
-    `&name=${encodeURIComponent(name)}`,
-    `&slug=${encodeURIComponent(slug)}`,
-    `&description=${encodeURIComponent(description)}`,
-    // Joinining a multiline string for readability.
-  ].join("");
-};
-
 export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
   const defaultUrl = getBrowserInfo()?.url;
   const image = getSeoImage("default");
@@ -112,7 +80,7 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
   });
 
   if (name && usernames) {
-    const pageImage = getSeoImage("ogImage") + constructMeetingImage({ title, name, usernames });
+    const pageImage = getSeoImage("ogImage") + constructMeetingImage({ title, name, users: usernames });
     seoObject = buildSeoMeta({
       title: pageTitle,
       description: truncatedDescription,

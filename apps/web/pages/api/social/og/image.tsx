@@ -2,7 +2,7 @@ import { ImageResponse } from "@vercel/og";
 import { NextApiRequest } from "next";
 import { z } from "zod";
 
-import { Meeting, App } from "../../../../components/seo/og-images";
+import { Meeting, App } from "@calcom/lib/OgImages";
 
 const calFont = fetch(new URL("../../../../public/fonts/cal.ttf", import.meta.url)).then((res) =>
   res.arrayBuffer()

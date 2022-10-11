@@ -1,6 +1,45 @@
 import React from "react";
 
+// Ensures tw prop is typed.
+declare module "react" {
+  interface HTMLAttributes<T> {
+    tw?: string;
+  }
+}
+
 const urlPrefix = process.env.NEXT_PUBLIC_WEBSITE_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
+
+export interface MeetingImageProps {
+  name: string;
+  title: string;
+  users: string[];
+}
+
+export interface AppImageProps {
+  name: string;
+  description: string;
+  slug: string;
+}
+
+export const constructMeetingImage = ({ title, name, users }: MeetingImageProps): string => {
+  return [
+    `?type=meeting`,
+    `&title=${encodeURIComponent(title)}`,
+    `&name=${encodeURIComponent(name)}`,
+    `${users.map((username) => `&users=${encodeURIComponent(username)}`)}`,
+    // Joinining a multiline string for readability.
+  ].join("");
+};
+
+export const constructAppImage = ({ name, slug, description }: AppImageProps): string => {
+  return [
+    `?type=app`,
+    `&name=${encodeURIComponent(name)}`,
+    `&slug=${encodeURIComponent(slug)}`,
+    `&description=${encodeURIComponent(description)}`,
+    // Joinining a multiline string for readability.
+  ].join("");
+};
 
 const Wrapper = ({ children }: { children: React.ReactNode }) => (
   <div tw="flex w-full h-full">
@@ -14,12 +53,6 @@ const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <div tw="flex flex-col w-full h-full items-center justify-center">{children}</div>
   </div>
 );
-
-export interface MeetingImageProps {
-  name: string;
-  title: string;
-  users: string[];
-}
 
 export const Meeting = ({ name, title, users }: MeetingImageProps) => (
   <Wrapper>
@@ -35,7 +68,7 @@ export const Meeting = ({ name, title, users }: MeetingImageProps) => (
           <img
             tw="rounded-full mr-[-120px]"
             key={username}
-            src={`${urlPrefix}/${username}/avatar.png`}
+            src={`https://cal.com/${username}/avatar.png`}
             alt="Profile picture"
             width="200"
           />
@@ -50,12 +83,6 @@ export const Meeting = ({ name, title, users }: MeetingImageProps) => (
     </div>
   </Wrapper>
 );
-
-export interface AppImageProps {
-  name: string;
-  description: string;
-  slug: string;
-}
 
 export const App = ({ name, description, slug }: AppImageProps) => (
   <Wrapper>
