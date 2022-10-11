@@ -31,7 +31,7 @@ enum PeriodType {
 
 model EventType {
   id                      Int                     @id @default(autoincrement())
-  /// @zod.nonempty()
+  /// @zod.min(1)
   title                   String
   /// @zod.custom(imports.eventTypeSlug)
   slug                    String
@@ -192,8 +192,10 @@ model User {
 
 model Team {
   id           Int          @id @default(autoincrement())
-  name         String?
-  slug         String?      @unique
+  /// @zod.min(1)
+  name         String
+  /// @zod.min(1)
+  slug         String       @unique
   logo         String?
   bio          String?
   hideBranding Boolean      @default(false)
