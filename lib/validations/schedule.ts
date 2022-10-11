@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { _ScheduleModel as Schedule, _AvailabilityModel as Availability } from "@calcom/prisma/zod";
 
 const schemaScheduleBaseBodyParams = Schedule.omit({ id: true }).partial();
@@ -26,6 +27,13 @@ export const schemaSchedulePublic = z
     z.object({
       availability: z
         .array(Availability.pick({ id: true, eventTypeId: true, days: true, startTime: true, endTime: true }))
+        .transform((v) =>
+          v.map((item) => ({
+            ...item,
+            startTime: dayjs.utc(item.startTime).format("HH:mm:ss"),
+            endTime: dayjs.utc(item.endTime).format("HH:mm:ss"),
+          }))
+        )
         .optional(),
     })
   );
