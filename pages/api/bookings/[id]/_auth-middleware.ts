@@ -1,11 +1,10 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server";
 
 import { schemaQueryIdParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
 
-export async function authMiddleware(req: NextApiRequest) {
+async function authMiddleware(req: NextApiRequest) {
   const { userId, prisma, isAdmin, query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const userWithBookings = await prisma.user.findUnique({
@@ -22,4 +21,4 @@ export async function authMiddleware(req: NextApiRequest) {
   }
 }
 
-export default defaultResponder(authMiddleware);
+export default authMiddleware;

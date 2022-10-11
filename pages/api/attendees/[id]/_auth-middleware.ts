@@ -1,7 +1,6 @@
 import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
-import { defaultResponder } from "@calcom/lib/server";
 
 import { schemaQueryIdParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
 
@@ -18,4 +17,4 @@ async function authMiddleware(req: NextApiRequest) {
   if (!attendee) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
 }
 
-export default defaultResponder(authMiddleware);
+export default authMiddleware;

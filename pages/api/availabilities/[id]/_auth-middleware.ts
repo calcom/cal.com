@@ -1,10 +1,8 @@
 import type { NextApiRequest } from "next";
 
-import { defaultResponder } from "@calcom/lib/server";
-
 import { schemaQueryIdParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
 
-export async function authMiddleware(req: NextApiRequest) {
+async function authMiddleware(req: NextApiRequest) {
   const { userId, prisma, isAdmin, query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   /** Admins can skip the ownership verification */
@@ -18,4 +16,4 @@ export async function authMiddleware(req: NextApiRequest) {
   });
 }
 
-export default defaultResponder(authMiddleware);
+export default authMiddleware;
