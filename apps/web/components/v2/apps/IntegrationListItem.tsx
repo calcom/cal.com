@@ -16,6 +16,7 @@ function IntegrationListItem(props: {
   children?: ReactNode;
   logo: string;
   destination?: boolean;
+  seperated?: boolean;
 }): JSX.Element {
   const router = useRouter();
   const { hl } = router.query;
@@ -32,7 +33,8 @@ function IntegrationListItem(props: {
     <ListItem
       expanded={!!props.children}
       className={classNames(
-        "my-0 flex-col border transition-colors duration-500 first:rounded-t-md last:rounded-b-md",
+        props.seperated ? "rounded-md" : "first:rounded-t-md last:rounded-b-md",
+        "my-0 flex-col border transition-colors duration-500 ",
         highlight ? "bg-yellow-100" : ""
       )}>
       <div className={classNames("flex w-full flex-1 items-center space-x-2 p-4 rtl:space-x-reverse")}>

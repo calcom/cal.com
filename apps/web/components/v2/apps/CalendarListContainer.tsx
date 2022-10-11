@@ -163,6 +163,7 @@ function ConnectedCalendarsList(props: Props) {
                     title={item.integration.title}
                     logo={item.integration.logo}
                     description={item.primary?.externalId || "No external Id"}
+                    seperated={true}
                     actions={
                       <div className="flex w-32 justify-end">
                         <DisconnectIntegration
@@ -262,7 +263,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                       actions={
                         <div className="flex flex-col xl:flex-row xl:space-x-5">
                           {!!data.connectedCalendars.length && (
-                            <div className=" flex items-center">
+                            <div className="flex items-center ">
                               <AdditionalCalendarSelector isLoading={mutation.isLoading} />
                             </div>
                           )}
