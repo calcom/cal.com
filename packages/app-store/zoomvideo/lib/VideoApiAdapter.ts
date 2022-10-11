@@ -237,24 +237,30 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
       }
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
-      const response: ZoomEventResult = await fetchZoomApi("users/me/meetings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(translateEvent(event)),
-      });
-
-      const result = zoomEventResultSchema.parse(response);
-      if (result.id && result.join_url) {
-        return Promise.resolve({
-          type: "zoom_video",
-          id: result.id.toString(),
-          password: result.password || "",
-          url: result.join_url,
+      try {
+        const response: ZoomEventResult = await fetchZoomApi("users/me/meetings", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(translateEvent(event)),
         });
+
+        const result = zoomEventResultSchema.parse(response);
+        if (result.id && result.join_url) {
+          return Promise.resolve({
+            type: "zoom_video",
+            id: result.id.toString(),
+            password: result.password || "",
+            url: result.join_url,
+          });
+        }
+        return Promise.reject(new Error("Failed to create meeting. Response is " + JSON.stringify(result)));
+      } catch (err) {
+        console.error(err);
+        /* Prevents meeting creation failure when Zoom Token is expired */
+        return Promise.reject(new Error("Unexpected error"));
       }
-      return Promise.reject(new Error("Failed to create meeting. Response is " + JSON.stringify(result)));
     },
     deleteMeeting: async (uid: string): Promise<void> => {
       await fetchZoomApi(`meetings/${uid}`, {
