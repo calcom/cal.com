@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaTeamReadPublic } from "@lib/validations/team";
+import { schemaTeamsReadPublic } from "@lib/validations/team";
 
 /**
  * @swagger
@@ -23,20 +23,11 @@ import { schemaTeamReadPublic } from "@lib/validations/team";
  */
 async function getHandler(req: NextApiRequest) {
   const { userId, prisma, isAdmin } = req;
-  const membershipWhere: Prisma.MembershipWhereInput = {};
+  const where: Prisma.TeamWhereInput = {};
   // If user is not ADMIN, return only his data.
-  if (!isAdmin) membershipWhere.userId = userId;
-  const userWithMemberships = await prisma.membership.findMany({
-    where: membershipWhere,
-  });
-  const teamIds = userWithMemberships.map((membership) => membership.teamId);
-  const teamWhere: Prisma.TeamWhereInput = {};
-
-  if (!isAdmin) teamWhere.id = { in: teamIds };
-
-  const data = await prisma.team.findMany({ where: teamWhere });
-  const teams = schemaTeamReadPublic.parse(data);
-  return { teams };
+  if (!isAdmin) where.members = { some: { userId } };
+  const data = await prisma.team.findMany({ where });
+  return { teams: schemaTeamsReadPublic.parse(data) };
 }
 
 export default defaultResponder(getHandler);

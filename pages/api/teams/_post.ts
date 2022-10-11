@@ -1,6 +1,5 @@
 import type { NextApiRequest } from "next";
 
-import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
 import { schemaMembershipPublic } from "@lib/validations/membership";
@@ -24,22 +23,22 @@ import { schemaTeamBodyParams, schemaTeamReadPublic } from "@lib/validations/tea
  */
 async function postHandler(req: NextApiRequest) {
   const { prisma, body, userId } = req;
-  const safe = schemaTeamBodyParams.safeParse(body);
-  if (!safe.success) throw new HttpError({ statusCode: 400, message: "Invalid request body" });
-  const data = await prisma.team.create({ data: safe.data });
-  // We're also creating the relation membership of team ownership in this call.
-  const owner = await prisma.membership
-    .create({
-      data: { userId, teamId: data.id, role: "OWNER", accepted: true },
-    })
-    .then((owner) => schemaMembershipPublic.parse(owner));
-  const team = schemaTeamReadPublic.parse(data);
-  if (!team) throw new HttpError({ statusCode: 400, message: "We were not able to create your team" });
+  const data = schemaTeamBodyParams.parse(body);
+  const team = await prisma.team.create({
+    data: {
+      ...data,
+      members: {
+        // We're also creating the relation membership of team ownership in this call.
+        create: { userId, role: "OWNER", accepted: true },
+      },
+    },
+    include: { members: true },
+  });
   req.statusCode = 201;
   // We are also returning the new ownership relation as owner besides team.
   return {
-    team,
-    owner,
+    team: schemaTeamReadPublic.parse(team),
+    owner: schemaMembershipPublic.parse(team.members[0]),
     message: "Team created successfully, we also made you the owner of this team",
   };
 }

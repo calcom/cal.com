@@ -1,10 +1,10 @@
-import type { NextApiRequest, NextApiResponse } from "next";
+import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
 import { schemaQueryTeamId } from "@lib/validations/shared/queryTeamId";
-import { schemaTeamBodyParams, schemaTeamReadPublic } from "@lib/validations/team";
+import { schemaTeamReadPublic, schemaTeamUpdateBodyParams } from "@lib/validations/team";
 
 /**
  * @swagger
@@ -23,35 +23,23 @@ import { schemaTeamBodyParams, schemaTeamReadPublic } from "@lib/validations/tea
  *     - teams
  *     responses:
  *       201:
- *         description: OK, team edited successfuly
+ *         description: OK, team edited successfully
  *       400:
  *        description: Bad request. Team body is invalid.
  *       401:
  *        description: Authorization information is missing or invalid.
  */
-export async function patchHandler(req: NextApiRequest, res: NextApiResponse) {
-  const { prisma, isAdmin, userId, body } = req;
-  const safeBody = schemaTeamBodyParams.safeParse(body);
-
-  const query = schemaQueryTeamId.parse(req.query);
-  const userWithMemberships = await prisma.membership.findMany({
-    where: { userId: userId },
+export async function patchHandler(req: NextApiRequest) {
+  const { prisma, body, userId } = req;
+  const data = schemaTeamUpdateBodyParams.parse(body);
+  const { teamId } = schemaQueryTeamId.parse(req.query);
+  /** Only OWNERS and ADMINS can edit teams */
+  const _team = await prisma.team.findFirst({
+    where: { id: teamId, members: { some: { userId, role: { in: ["OWNER", "ADMIN"] } } } },
   });
-  const userTeamIds = userWithMemberships.map((membership) => membership.teamId);
-  // Here we only check for ownership of the user if the user is not admin, otherwise we let ADMIN's edit any user
-  if (!isAdmin || !userTeamIds.includes(query.teamId))
-    throw new HttpError({ statusCode: 401, message: "Unauthorized" });
-  if (!safeBody.success) {
-    {
-      res.status(400).json({ message: "Invalid request body" });
-      return;
-    }
-  }
-  const data = await prisma.team.update({ where: { id: query.teamId }, data: safeBody.data });
-  if (!data) throw new HttpError({ statusCode: 404, message: `Team with id: ${query.teamId} not found` });
-  const team = schemaTeamReadPublic.parse(data);
-  if (!team) throw new HttpError({ statusCode: 401, message: `Your request body wasn't valid` });
-  return { team };
+  if (!_team) throw new HttpError({ statusCode: 401, message: "Unauthorized: OWNER or ADMIN required" });
+  const team = await prisma.team.update({ where: { id: teamId }, data });
+  return { team: schemaTeamReadPublic.parse(team) };
 }
 
 export default defaultResponder(patchHandler);

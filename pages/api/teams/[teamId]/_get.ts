@@ -1,6 +1,6 @@
+import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
-import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
 import { schemaQueryTeamId } from "@lib/validations/shared/queryTeamId";
@@ -31,18 +31,12 @@ import { schemaTeamReadPublic } from "@lib/validations/team";
  */
 export async function getHandler(req: NextApiRequest) {
   const { prisma, isAdmin, userId } = req;
-
-  const query = schemaQueryTeamId.parse(req.query);
-  const userWithMemberships = await prisma.membership.findMany({
-    where: { userId: userId },
-  });
-  const userTeamIds = userWithMemberships.map((membership) => membership.teamId);
-  // Here we only check for ownership of the user if the user is not admin, otherwise we let ADMIN's edit any user
-  if (!isAdmin && !userTeamIds.includes(query.teamId))
-    throw new HttpError({ statusCode: 401, message: "Unauthorized" });
-  const data = await prisma.team.findUnique({ where: { id: query.teamId } });
-  const team = schemaTeamReadPublic.parse(data);
-  return { team };
+  const { teamId } = schemaQueryTeamId.parse(req.query);
+  const where: Prisma.TeamWhereInput = { id: teamId };
+  // Non-admins can only query the teams they're part of
+  if (!isAdmin) where.members = { some: { userId } };
+  const data = await prisma.team.findFirstOrThrow({ where });
+  return { team: schemaTeamReadPublic.parse(data) };
 }
 
 export default defaultResponder(getHandler);
