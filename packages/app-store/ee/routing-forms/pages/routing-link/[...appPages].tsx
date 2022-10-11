@@ -22,10 +22,10 @@ import { processRoute } from "../../lib/processRoute";
 import { Response, Route } from "../../types/types";
 import { getQueryBuilderConfig } from "../route-builder/[...appPages]";
 
-function RoutingForm({ form, profile }: inferSSRProps<typeof getServerSideProps>) {
+function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getServerSideProps>) {
   const [customPageMessage, setCustomPageMessage] = useState<Route["action"]["value"]>("");
   const formFillerIdRef = useRef(uuidv4());
-  const isEmbed = useIsEmbed();
+  const isEmbed = useIsEmbed(restProps.isEmbed);
   useTheme(profile.theme);
   useExposePlanGlobally(profile.plan);
   // TODO: We might want to prevent spam from a single user by having same formFillerId across pageviews
@@ -193,7 +193,7 @@ function RoutingForm({ form, profile }: inferSSRProps<typeof getServerSideProps>
   );
 }
 
-export default function RoutingLink({ form, profile }: inferSSRProps<typeof getServerSideProps>) {
+export default function RoutingLink({ form, profile, isEmbed }: inferSSRProps<typeof getServerSideProps>) {
   return <RoutingForm form={form} profile={profile} />;
 }
 
@@ -210,12 +210,14 @@ export const getServerSideProps = async function getServerSideProps(
     };
   }
   const formId = params.appPages[0];
-  if (!formId || params.appPages.length > 1) {
-    console.log(params.appPages);
+  if (!formId || params.appPages.length > 2) {
     return {
       notFound: true,
     };
   }
+  console.log("ROUTINGLINKSSR");
+  const isEmbed = params.appPages[1] === "embed";
+
   const form = await prisma.app_RoutingForms_Form.findUnique({
     where: {
       id: formId,
@@ -240,6 +242,7 @@ export const getServerSideProps = async function getServerSideProps(
 
   return {
     props: {
+      isEmbed,
       profile: {
         theme: form.user.theme,
         brandColor: form.user.brandColor,

@@ -180,6 +180,10 @@ export class Cal {
     }
 
     const urlInstance = new URL(`${config.origin}/${calLink}`);
+    if (!urlInstance.pathname.endsWith("embed")) {
+      // TODO: Make a list of patterns that are embeddable and only allow those, remaining can be allowed with a warning
+      urlInstance.pathname = `${urlInstance.pathname}/embed`;
+    }
     urlInstance.searchParams.set("embed", this.namespace);
     if (config.debug) {
       urlInstance.searchParams.set("debug", "" + config.debug);

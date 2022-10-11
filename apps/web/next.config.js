@@ -138,6 +138,10 @@ const nextConfig = {
         destination: "/apps/routing-forms/routing-link/:formId",
       },
       {
+        source: "/forms/:formId/embed",
+        destination: "/apps/routing-forms/routing-link/:formId/embed",
+      },
+      {
         source: "/router",
         destination: "/apps/routing-forms/router",
       },

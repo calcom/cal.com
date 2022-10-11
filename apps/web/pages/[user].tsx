@@ -86,7 +86,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
     </ul>
   );
 
-  const isEmbed = useIsEmbed();
+  const isEmbed = useIsEmbed(props.isEmbed);
   const eventTypeListItemEmbedStyles = useEmbedStyles("eventTypeListItem");
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;

@@ -218,6 +218,7 @@ function getEmbedType() {
 }
 
 export const useIsEmbed = (embedSsr: boolean) => {
+  const [isEmbed, setIsEmbed] = useState(embedSsr);
   useEffect(() => {
     const namespace = getNamespace();
     const _isValidNamespace = isValidNamespace(namespace);
@@ -226,8 +227,9 @@ export const useIsEmbed = (embedSsr: boolean) => {
         "Looks like you have iframed cal.com but not using Embed Snippet. Directly using an iframe isn't recommended."
       );
     }
+    setIsEmbed(window.isEmbed());
   }, []);
-  return embedSsr;
+  return isEmbed;
 };
 
 export const useEmbedType = () => {
@@ -239,7 +241,7 @@ export const useEmbedType = () => {
 };
 
 function unhideBody() {
-  document.body.style.display = "block";
+  document.body.style.visibility = "visible";
 }
 
 // If you add a method here, give type safety to parent manually by adding it to embed.ts. Look for "parentKnowsIframeReady" in it

@@ -39,14 +39,14 @@ function toRunBeforeReactOnClient() {
 
 class MyDocument extends Document<Props> {
   static async getInitialProps(ctx: DocumentContext) {
+    const isEmbed = ctx.asPath?.includes("/embed") || ctx.asPath?.includes("embedType=");
     const initialProps = await Document.getInitialProps(ctx);
-    return { ...initialProps };
+    return { isEmbed, ...initialProps };
   }
 
   render() {
     const { locale } = this.props.__NEXT_DATA__;
     const dir = locale === "ar" || locale === "he" ? "rtl" : "ltr";
-
     return (
       <Html lang={locale} dir={dir}>
         <Head>
@@ -76,21 +76,19 @@ class MyDocument extends Document<Props> {
           />
         </Head>
 
-        {/* Keep the embed hidden till parent initializes and gives it the appropriate styles */}
-        <body className="dark:bg-darkgray-50 desktop-transparent bg-gray-100">
+        <body
+          className="dark:bg-darkgray-50 desktop-transparent bg-gray-100"
+          style={
+            this.props.isEmbed
+              ? {
+                  background: "transparent",
+                  /* Keep the embed hidden till parent initializes and gives it the appropriate styles if UI instruction is there. */
+                  visibility: "hidden",
+                }
+              : {}
+          }>
           <Main />
           <NextScript />
-          {/* In case of Embed we want background to be transparent so that it merges into the website seamlessly. Also, we keep the body hidden here and embed logic would take care of showing the body when it's ready */}
-          {/* We are doing it on browser and not on server because there are some pages which are not SSRd */}
-          <script
-            dangerouslySetInnerHTML={{
-              __html: `
-                if (isEmbed()) {
-                  document.body.style.display="none";
-                  document.body.style.background="transparent";
-                }`,
-            }}
-          />
         </body>
       </Html>
     );
