@@ -3,9 +3,19 @@ import { z } from "zod";
 import { _EventTypeModel as EventType } from "@calcom/prisma/zod";
 
 import { Frequency } from "@lib/types";
-import { timeZone } from "@lib/validations/shared/timeZone";
 
 import { jsonSchema } from "./shared/jsonSchema";
+import { schemaQueryUserId } from "./shared/queryUserId";
+import { timeZone } from "./shared/timeZone";
+
+const recurringEventInputSchema = z.object({
+  dtstart: z.string().optional(),
+  interval: z.number().int().optional(),
+  count: z.number().int().optional(),
+  freq: z.nativeEnum(Frequency).optional(),
+  until: z.string().optional(),
+  tzid: timeZone.optional(),
+});
 
 export const schemaEventTypeBaseBodyParams = EventType.pick({
   title: true,
@@ -13,7 +23,6 @@ export const schemaEventTypeBaseBodyParams = EventType.pick({
   length: true,
   hidden: true,
   position: true,
-  userId: true,
   teamId: true,
   eventName: true,
   timeZone: true,
@@ -33,7 +42,10 @@ export const schemaEventTypeBaseBodyParams = EventType.pick({
   currency: true,
   slotInterval: true,
   successRedirectUrl: true,
-}).partial();
+  locations: true,
+})
+  .partial()
+  .strict();
 
 const schemaEventTypeCreateParams = z
   .object({
@@ -41,14 +53,14 @@ const schemaEventTypeCreateParams = z
     slug: z.string(),
     description: z.string().optional().nullable(),
     length: z.number().int(),
-    locations: jsonSchema.optional(),
     metadata: z.any().optional(),
-    recurringEvent: jsonSchema.optional(),
+    recurringEvent: recurringEventInputSchema.optional(),
   })
   .strict();
 
-export const schemaEventTypeCreateBodyParams =
-  schemaEventTypeBaseBodyParams.merge(schemaEventTypeCreateParams);
+export const schemaEventTypeCreateBodyParams = schemaEventTypeBaseBodyParams
+  .merge(schemaEventTypeCreateParams)
+  .merge(schemaQueryUserId.partial());
 
 const schemaEventTypeEditParams = z
   .object({
@@ -92,17 +104,6 @@ export const schemaEventTypeReadPublic = EventType.pick({
   metadata: true,
 }).merge(
   z.object({
-    recurringEvent: z
-      .object({
-        dtstart: z.date().optional(),
-        interval: z.number().int().optional(),
-        count: z.number().int().optional(),
-        freq: z.nativeEnum(Frequency).optional(),
-        until: z.date().optional(),
-        tzid: timeZone.optional(),
-      })
-      .optional()
-      .nullable(),
     locations: z
       .array(
         z.object({
