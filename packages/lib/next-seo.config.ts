@@ -8,9 +8,10 @@ export type HeadSeoProps = {
   siteName?: string;
   name?: string;
   url?: string;
-  username?: string;
+  usernames?: string[];
   canonical?: string;
   nextSeoProps?: NextSeoProps;
+  app?: { name: string; slug: string; description: string };
 };
 
 const seoImages = {

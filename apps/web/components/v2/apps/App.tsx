@@ -14,6 +14,8 @@ import { showToast, SkeletonText } from "@calcom/ui/v2";
 import { Button, SkeletonButton, Shell } from "@calcom/ui/v2";
 import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
 
+import HeadSeo from "@components/seo/head-seo";
+
 const Component = ({
   name,
   type,
@@ -276,6 +278,7 @@ const Component = ({
 
 export default function App(props: {
   name: string;
+  description: AppType["description"];
   type: AppType["type"];
   isGlobal?: AppType["isGlobal"];
   logo: string;
@@ -301,6 +304,15 @@ export default function App(props: {
 
   return (
     <Shell large isPublic heading={t("app_store")} backPath="/apps">
+      <HeadSeo
+        title={props.name}
+        description={props.description}
+        app={{ slug: props.logo, name: props.name, description: props.description }}
+        nextSeoProps={{
+          nofollow: true,
+          noindex: true,
+        }}
+      />
       {props.licenseRequired ? (
         <LicenseRequired>
           <Component {...props} />

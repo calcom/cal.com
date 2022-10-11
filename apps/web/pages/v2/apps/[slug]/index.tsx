@@ -34,6 +34,7 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
   return (
     <App
       name={data.name}
+      description={data.description}
       isGlobal={data.isGlobal}
       slug={data.slug}
       variant={data.variant}

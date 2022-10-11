@@ -392,7 +392,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
         name={profile.name || undefined}
-        username={slug || undefined}
+        usernames={[slug] || undefined}
         nextSeoProps={{
           nofollow: eventType.hidden,
           noindex: eventType.hidden,
