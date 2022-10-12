@@ -10,6 +10,7 @@ import nodemailer, { TransportOptions } from "nodemailer";
 import { authenticator } from "otplib";
 import path from "path";
 
+import dayjs from "@calcom/dayjs";
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -21,7 +22,6 @@ import prisma from "@calcom/prisma";
 
 import { ErrorCode, verifyPassword } from "@lib/auth";
 import CalComAdapter from "@lib/auth/next-auth-custom-adapter";
-import { randomString } from "@lib/random";
 import { hostedCal, isSAMLLoginEnabled, samlLoginUrl } from "@lib/saml";
 import slugify from "@lib/slugify";
 
@@ -444,6 +444,7 @@ export default NextAuth({
             identityProvider: idP,
             identityProviderId: user.id as string,
             plan: "PRO",
+            timeZone: dayjs.tz.guess(),
           },
         });
         const linkAccountNewUserData = { ...account, userId: newUser.id };

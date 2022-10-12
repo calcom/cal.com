@@ -176,6 +176,8 @@ const BookingPage = ({
   });
 
   const rescheduleUid = router.query.rescheduleUid as string;
+  const shouldDisableInput = router.query.shouldDisableInput as string;
+
   useTheme(profile.theme);
   const date = asStringOrNull(router.query.date);
 
@@ -389,7 +391,9 @@ const BookingPage = ({
   };
 
   // Should be disabled when rescheduleUid is present and data was found in defaultUserValues name/email fields.
-  const disableInput = !!rescheduleUid && !!defaultUserValues.email && !!defaultUserValues.name;
+  const disableInput =
+    (!!rescheduleUid && !!defaultUserValues.email && !!defaultUserValues.name) ||
+    (!!shouldDisableInput && !!defaultUserValues.email && !!defaultUserValues.name);
   const disableLocations = !!rescheduleUid;
   const disabledExceptForOwner = disableInput && !loggedInIsOwner;
   const inputClassName =

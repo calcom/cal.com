@@ -337,6 +337,11 @@ const requiredCredentialNavigationItems = ["Routing Forms"];
 const MORE_SEPARATOR_NAME = "more";
 const navigation: NavigationItemType[] = [
   {
+    name: "Back to Mento",
+    href: (process.env.NEXT_PUBLIC_MENTO_COACH_URL as string) || "/",
+    icon: Icon.FiArrowLeft,
+  },
+  {
     name: "event_types_page_title",
     href: "/event-types",
     icon: Icon.FiLink,
@@ -432,8 +437,8 @@ const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMor
 const Navigation = () => {
   return (
     <nav className="mt-2 flex-1 space-y-1 md:px-2 lg:mt-5 lg:px-0">
-      {desktopNavigationItems.map((item) => (
-        <NavigationItem key={item.name} item={item} />
+      {desktopNavigationItems.map((item, index) => (
+        <NavigationItem key={item.name} item={item} isApp={index === 0} />
       ))}
       <div className="text-gray-500 lg:hidden">
         <KBarTrigger />
@@ -457,8 +462,9 @@ const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, rout
 const NavigationItem: React.FC<{
   item: NavigationItemType;
   isChild?: boolean;
+  isApp?: boolean;
 }> = (props) => {
-  const { item, isChild } = props;
+  const { item, isChild, isApp } = props;
   const { t, isLocaleReady } = useLocale();
   const router = useRouter();
   const isCurrent: NavigationItemType["isCurrent"] = item.isCurrent || defaultIsCurrent;
@@ -476,7 +482,8 @@ const NavigationItem: React.FC<{
             "group flex items-center rounded-md py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100 lg:px-[14px]  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
             isChild
               ? "[&[aria-current='page']]:text-brand-900 hidden pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent"
-              : "[&[aria-current='page']]:text-brand-900 "
+              : "[&[aria-current='page']]:text-brand-900 ",
+            isApp ? "mb-4" : ""
           )}
           aria-current={current ? "page" : undefined}>
           {item.icon && (
@@ -495,7 +502,7 @@ const NavigationItem: React.FC<{
       </Link>
       {item.child &&
         isCurrent({ router, isChild, item }) &&
-        item.child.map((item) => <NavigationItem key={item.name} item={item} isChild />)}
+        item.child.map((item, index) => <NavigationItem key={item.name} item={item} isApp={index === 0} />)}
     </Fragment>
   );
 };
