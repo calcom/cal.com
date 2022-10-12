@@ -31,8 +31,8 @@ jobs:
           envkey_NEXT_PUBLIC_CALENDAR_KEY: ${{ secrets.NEXT_PUBLIC_CALENDAR_KEY }}
           envkey_NEXT_PUBLIC_MENTO_COACH_URL: ${{ secrets.NEXT_PUBLIC_MENTO_COACH_URL }}
 
-          envkey_NEXT_PUBLIC_MENTO_COACH_URLNODE_ENV: "production"
-          envkey_NEXT_PUBLIC_MENTO_COACH_URLNEXT_PUBLIC_LICENSE_CONSENT: "agree"
+          envkey_NODE_ENV: "production"
+          envkey_NEXT_PUBLIC_LICENSE_CONSENT: "agree"
           envkey_SAML_DATABASE_URL: ""
           envkey_SAML_ADMINS: ""
           envkey_PGSSLMODE: "no-verify"

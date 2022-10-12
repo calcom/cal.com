@@ -2,6 +2,7 @@
 
 # .env file
 .env
+.secrets
 !packages/prisma/.env
 
 # dependencies
