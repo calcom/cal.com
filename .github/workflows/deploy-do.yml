@@ -14,22 +14,22 @@ jobs:
       - name: Make envfile
         uses: SpicyPizza/create-envfile@v1.3
         with:
-          envkey_DATABASE_URL: ${{ env.DATABASE_URL }}
-          envkey_CALCOM_LICENSE_KEY: ${{ env.CALCOM_LICENSE_KEY }}
-          envkey_NEXT_PUBLIC_WEBAPP_URL: ${{ env.NEXT_PUBLIC_WEBAPP_URL }}
-          envkey_NEXT_PUBLIC_WEBSITE_URL: ${{ env.NEXT_PUBLIC_WEBSITE_URL }}
-          envkey_NEXT_PUBLIC_CONSOLE_URL: ${{ env.NEXT_PUBLIC_CONSOLE_URL }}
-          envkey_NEXT_PUBLIC_EMBED_LIB_URL: ${{ env.NEXT_PUBLIC_EMBED_LIB_URL }}
-          envkey_NEXTAUTH_URL: ${{ env.NEXTAUTH_URL }}
-          envkey_NEXTAUTH_SECRET: ${{ env.NEXTAUTH_SECRET }}
-          envkey_CRON_API_KEY: ${{ env.CRON_API_KEY }}
-          envkey_CALENDSO_ENCRYPTION_KEY: ${{ env.CALENDSO_ENCRYPTION_KEY }}
-          envkey_SENDGRID_API_KEY: ${{ env.SENDGRID_API_KEY }}
-          envkey_TWILIO_TOKEN: ${{ env.TWILIO_TOKEN }}
-          envkey_EMAIL_SERVER_PASSWORD: ${{ env.EMAIL_SERVER_PASSWORD }}
-          envkey_GOOGLE_API_CREDENTIALS: ${{ env.GOOGLE_API_CREDENTIALS }}
-          envkey_NEXT_PUBLIC_CALENDAR_KEY: ${{ env.NEXT_PUBLIC_CALENDAR_KEY }}
-          envkey_NEXT_PUBLIC_MENTO_COACH_URL: ${{ env.NEXT_PUBLIC_MENTO_COACH_URL }}
+          envkey_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          envkey_CALCOM_LICENSE_KEY: ${{ secrets.CALCOM_LICENSE_KEY }}
+          envkey_NEXT_PUBLIC_WEBAPP_URL: ${{ secrets.NEXT_PUBLIC_WEBAPP_URL }}
+          envkey_NEXT_PUBLIC_WEBSITE_URL: ${{ secrets.NEXT_PUBLIC_WEBSITE_URL }}
+          envkey_NEXT_PUBLIC_CONSOLE_URL: ${{ secrets.NEXT_PUBLIC_CONSOLE_URL }}
+          envkey_NEXT_PUBLIC_EMBED_LIB_URL: ${{ secrets.NEXT_PUBLIC_EMBED_LIB_URL }}
+          envkey_NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+          envkey_NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          envkey_CRON_API_KEY: ${{ secrets.CRON_API_KEY }}
+          envkey_CALENDSO_ENCRYPTION_KEY: ${{ secrets.CALENDSO_ENCRYPTION_KEY }}
+          envkey_SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          envkey_TWILIO_TOKEN: ${{ secrets.TWILIO_TOKEN }}
+          envkey_EMAIL_SERVER_PASSWORD: ${{ secrets.EMAIL_SERVER_PASSWORD }}
+          envkey_GOOGLE_API_CREDENTIALS: ${{ secrets.GOOGLE_API_CREDENTIALS }}
+          envkey_NEXT_PUBLIC_CALENDAR_KEY: ${{ secrets.NEXT_PUBLIC_CALENDAR_KEY }}
+          envkey_NEXT_PUBLIC_MENTO_COACH_URL: ${{ secrets.NEXT_PUBLIC_MENTO_COACH_URL }}
 
           envkey_NEXT_PUBLIC_MENTO_COACH_URLNODE_ENV: "production"
           envkey_NEXT_PUBLIC_MENTO_COACH_URLNEXT_PUBLIC_LICENSE_CONSENT: "agree"
