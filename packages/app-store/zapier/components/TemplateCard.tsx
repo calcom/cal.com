@@ -15,7 +15,7 @@ export default function TemplateCard({ template }: { template: Template }) {
         <p className="mt-[2px] text-xs text-gray-500 ">{template.text}</p>
       </div>
       <div className="ml-auto">
-        <Button color="secondary" className="w-[90px]">
+        <Button color="secondary" className="w-[90px]" target="_blank" href={template.link}>
           Use Zap
         </Button>
       </div>
