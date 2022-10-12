@@ -66,6 +66,8 @@ jobs:
         uses: digitalocean/action-doctl@v2
         with:
           token: ${{ secrets.DO_TOKEN }}
+      - name: Registry login
+        run: doctl registry login
       - name: Tag and push image to stage
         if: github.ref_name == 'develop'
         run: |
