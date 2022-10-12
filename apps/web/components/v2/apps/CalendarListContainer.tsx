@@ -267,7 +267,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                       actions={
                         <div className="flex flex-col xl:flex-row xl:space-x-5">
                           {!!data.connectedCalendars.length && (
-                            <div className="flex items-center ">
+                            <div className="flex items-center">
                               <AdditionalCalendarSelector isLoading={mutation.isLoading} />
                             </div>
                           )}
