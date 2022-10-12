@@ -2,8 +2,8 @@ import { Prisma } from "@prisma/client";
 import { v4 } from "uuid";
 import { z } from "zod";
 
-import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/webhooks/constants";
-import sendPayload from "@calcom/features/webhooks/webhooks/sendPayload";
+import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
+import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
 
