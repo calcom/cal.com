@@ -1,4 +1,4 @@
 export interface BufferedBusyTime {
-  start: string;
-  end: string;
+  start: string | Date;
+  end: string | Date;
 }

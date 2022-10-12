@@ -9,8 +9,8 @@ import { SkeletonText } from "@calcom/ui/v2/core/skeleton";
 type User = inferQueryOutput<"viewer.me">;
 
 export interface IBusySlot {
-  start: string;
-  end: string;
+  start: string | Date;
+  end: string | Date;
   title?: string;
   source?: string | null;
 }
@@ -62,14 +62,16 @@ const AvailabilityView = ({ user }: { user: User }) => {
             data.busy
               .sort((a: IBusySlot, b: IBusySlot) => (a.start > b.start ? -1 : 1))
               .map((slot: IBusySlot) => (
-                <div key={slot.start} className="overflow-hidden rounded-md bg-neutral-100">
+                <div
+                  key={dayjs(slot.start).format("HH:mm")}
+                  className="overflow-hidden rounded-md bg-neutral-100">
                   <div className="px-4 py-5 text-black sm:p-6">
                     {t("calendar_shows_busy_between")}{" "}
-                    <span className="font-medium text-neutral-800" title={slot.start}>
+                    <span className="font-medium text-neutral-800" title={dayjs(slot.start).format("HH:mm")}>
                       {dayjs(slot.start).format("HH:mm")}
                     </span>{" "}
                     {t("and")}{" "}
-                    <span className="font-medium text-neutral-800" title={slot.end}>
+                    <span className="font-medium text-neutral-800" title={dayjs(slot.end).format("HH:mm")}>
                       {dayjs(slot.end).format("HH:mm")}
                     </span>{" "}
                     {t("on")} {dayjs(slot.start).format("D")}{" "}

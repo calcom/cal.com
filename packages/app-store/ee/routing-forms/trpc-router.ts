@@ -175,9 +175,20 @@ const app_RoutingForms = createRouter()
               userId: user.id,
               id: input.id,
             },
+            include: {
+              _count: {
+                select: {
+                  responses: true,
+                },
+              },
+            },
           });
 
-          return form;
+          if (!form) {
+            return null;
+          }
+
+          return getSerializableForm(form);
         },
       })
       .mutation("formMutation", {

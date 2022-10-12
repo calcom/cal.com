@@ -1,3 +1,5 @@
+export { checkBookingLimits, checkLimit } from "./checkBookingLimits";
+
 export { default as defaultHandler } from "./defaultHandler";
 export { default as defaultResponder } from "./defaultResponder";
 export { getLuckyUser } from "./getLuckyUser";
