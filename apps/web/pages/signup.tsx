@@ -5,11 +5,11 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 
-import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/Alert";
-import { EmailField, PasswordField, TextField } from "@calcom/ui/form/fields";
 import Button from "@calcom/ui/v2/core/Button";
+import { EmailField, PasswordField, TextField } from "@calcom/ui/v2/core/form/fields";
 import { HeadSeo } from "@calcom/web/components/seo/head-seo";
 import { asStringOrNull } from "@calcom/web/lib/asStringOrNull";
 import { WEBAPP_URL } from "@calcom/web/lib/config/constants";
@@ -84,20 +84,11 @@ export default function Signup() {
                 {errors.apiError && <Alert severity="error" message={errors.apiError?.message} />}
                 <div className="space-y-2">
                   <TextField
-                    addOnLeading={
-                      <span className="inline-flex items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500">
-                        {process.env.NEXT_PUBLIC_WEBSITE_URL}/
-                      </span>
-                    }
-                    labelProps={{ className: "block text-sm font-medium text-gray-700" }}
-                    className="block w-full min-w-0 flex-grow rounded-none rounded-r-sm border-gray-300 lowercase focus:border-black focus:ring-black sm:text-sm"
+                    addOnLeading={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/`}
                     {...register("username")}
                     required
                   />
-                  <EmailField
-                    {...register("email")}
-                    className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
-                  />
+                  <EmailField {...register("email")} />
                   <PasswordField
                     labelProps={{
                       className: "block text-sm font-medium text-gray-700",
@@ -107,18 +98,14 @@ export default function Signup() {
                   />
                   <PasswordField
                     label={t("confirm_password")}
-                    labelProps={{
-                      className: "block text-sm font-medium text-gray-700",
-                    }}
                     {...register("passwordcheck", {
                       validate: (value) =>
                         value === methods.watch("password") || (t("error_password_mismatch") as string),
                     })}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-black focus:outline-none focus:ring-black sm:text-sm"
                   />
                 </div>
                 <div className="flex space-x-2 rtl:space-x-reverse">
-                  <Button loading={isSubmitting} className="w-7/12 justify-center">
+                  <Button type="submit" loading={isSubmitting} className="w-7/12 justify-center">
                     {t("create_account")}
                   </Button>
                   <Button
