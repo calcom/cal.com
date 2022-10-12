@@ -1,6 +1,13 @@
 import * as Popover from "@radix-ui/react-popover";
 
-import { formatTimeInTimezone } from "@calcom/lib/date-fns";
+import dayjs from "@calcom/dayjs";
+import {
+  formatTimeInTimezone,
+  isNextDayInTimezone,
+  isPreviousDayInTimezone,
+  sortByTimezone,
+} from "@calcom/lib/date-fns";
+import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 
 import { Icon } from "../../Icon";
 import { Attendee } from ".prisma/client";
@@ -27,18 +34,20 @@ const MeetingTimeInTimezones = ({
     (value, index, self) => self.indexOf(value) === index
   );
 
-  // Convert times to time in timezone, and then sort from earliest to latest time.
+  // Convert times to time in timezone, and then sort from earliest to latest time in timezone.
   const times = uniqueTimezones
     .map((timezone) => {
+      const isPreviousDay = isPreviousDayInTimezone(startTime, userTimezone, timezone);
+      const isNextDay = isNextDayInTimezone(startTime, userTimezone, timezone);
       return {
         startTime: formatTimeInTimezone(startTime, timezone, timeFormat),
         endTime: formatTimeInTimezone(endTime, timezone, timeFormat),
         timezone,
+        isPreviousDay,
+        isNextDay,
       };
     })
-    .sort((timeA, timeB) => {
-      return timeA.startTime.localeCompare(timeB.startTime);
-    });
+    .sort((timeA, timeB) => sortByTimezone(timeA.timezone, timeB.timezone));
 
   // We don't show the popover if there's only one timezone.
   if (times.length === 1) return null;
@@ -51,10 +60,17 @@ const MeetingTimeInTimezones = ({
       <Popover.Portal>
         <Popover.Content
           side="top"
-          className="slideInBottom shadow-dropdown border-5 rounded-md border-gray-200 bg-black p-3 text-sm text-white shadow-sm">
+          className="slideInBottom shadow-dropdown border-5 bg-brand-500 rounded-md border-gray-200 p-3 text-sm text-white shadow-sm">
           {times.map((time) => (
             <span className="mt-2 block first:mt-0" key={time.timezone}>
-              {time.startTime} - {time.endTime}
+              <span className="inline-flex align-baseline">
+                {time.startTime} - {time.endTime}
+                {(time.isNextDay || time.isPreviousDay) && (
+                  <span className="text-medium ml-2 inline-flex h-5 w-5 items-center justify-center rounded-full bg-gray-700 text-[10px]">
+                    {time.isNextDay ? "+1" : "-1"}
+                  </span>
+                )}
+              </span>
               <br />
               <span className="text-gray-400">{time.timezone}</span>
             </span>
