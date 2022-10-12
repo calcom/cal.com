@@ -1298,5 +1298,8 @@
   "dont_update": "Don't update",
   "email_address_action": "send email to a specific email address",
   "after_event_trigger": "after event ends",
-  "how_long_after": "How long after event ends?"
+  "how_long_after": "How long after event ends?",
+  "installed_app_automation_description": "Use apps to automize your workflows",
+  "no_category_apps_description_automation": "Add automation apps to improve your workflows.",
+  "connect_automation_apps": "Connect automation apps"
 }
