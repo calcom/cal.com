@@ -119,7 +119,7 @@ const IntegrationsList = ({ data, variant }: IntegrationsListProps) => {
                 />
               </div>
             }>
-            <AppSettings slug={item.slug} />
+            {variant === "automation" && <AppSettings slug={item.slug} />}
           </IntegrationListItem>
         </>
       ))}
