@@ -110,7 +110,7 @@ const IntegrationsList = ({ data, variant }: IntegrationsListProps) => {
             description={item.description}
             seperated={variant === "automation"}
             actions={
-              <div className="flex w-32 justify-end">
+              <div className="flex w-16 justify-end">
                 <ConnectOrDisconnectIntegrationButton
                   credentialIds={item.credentialIds}
                   type={item.type}
