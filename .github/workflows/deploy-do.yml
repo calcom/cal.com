@@ -61,8 +61,6 @@ jobs:
           envkey_EMAIL_SERVER_USER: "coaching@mento.co"
           envkey_NEXT_PUBLIC_TEAM_IMPERSONATION: "true"
           envkey_GOOGLE_LOGIN_ENABLED: "true"
-      - name: Print Env
-        run: cat .env | grep WEBAPP
       - name: Build image
         run: docker-compose build calcom
       - name: Install doctl
