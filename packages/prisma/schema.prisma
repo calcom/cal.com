@@ -31,7 +31,7 @@ enum PeriodType {
 
 model EventType {
   id                      Int                     @id @default(autoincrement())
-  /// @zod.nonempty()
+  /// @zod.min(1)
   title                   String
   /// @zod.custom(imports.eventTypeSlug)
   slug                    String
@@ -78,6 +78,8 @@ model EventType {
   /// @zod.custom(imports.successRedirectUrl)
   successRedirectUrl      String?
   workflows               WorkflowsOnEventTypes[]
+  /// @zod.custom(imports.bookingLimitsType)
+  bookingLimits           Json?
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -192,8 +194,10 @@ model User {
 
 model Team {
   id           Int          @id @default(autoincrement())
-  name         String?
-  slug         String?      @unique
+  /// @zod.min(1)
+  name         String
+  /// @zod.min(1)
+  slug         String       @unique
   logo         String?
   bio          String?
   hideBranding Boolean      @default(false)
@@ -212,7 +216,7 @@ model Membership {
   userId               Int
   accepted             Boolean        @default(false)
   role                 MembershipRole
-  team                 Team           @relation(fields: [teamId], references: [id])
+  team                 Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   disableImpersonation Boolean        @default(false)
 
@@ -232,7 +236,9 @@ model VerificationToken {
 
 model BookingReference {
   id                 Int      @id @default(autoincrement())
+  /// @zod.min(1)
   type               String
+  /// @zod.min(1)
   uid                String
   meetingId          String?
   meetingPassword    String?
@@ -531,6 +537,7 @@ enum WorkflowTriggerEvents {
   BEFORE_EVENT
   EVENT_CANCELLED
   NEW_EVENT
+  AFTER_EVENT
   RESCHEDULE_EVENT
 }
 
@@ -539,6 +546,7 @@ enum WorkflowActions {
   EMAIL_ATTENDEE
   SMS_ATTENDEE
   SMS_NUMBER
+  EMAIL_ADDRESS
 }
 
 model WorkflowStep {

@@ -8,6 +8,7 @@ import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import CustomBranding from "@calcom/lib/CustomBranding";
@@ -388,6 +389,7 @@ function UserDropdown({ small }: { small?: boolean }) {
 export type NavigationItemType = {
   name: string;
   href: string;
+  badge?: React.ReactNode;
   icon?: SVGComponent;
   child?: NavigationItemType[];
   pro?: true;
@@ -406,6 +408,7 @@ export type NavigationItemType = {
 
 const requiredCredentialNavigationItems = ["Routing Forms"];
 const MORE_SEPARATOR_NAME = "more";
+
 const navigation: NavigationItemType[] = [
   {
     name: "event_types_page_title",
@@ -416,6 +419,7 @@ const navigation: NavigationItemType[] = [
     name: "bookings",
     href: "/bookings/upcoming",
     icon: Icon.FiCalendar,
+    badge: <UnconfirmedBookingBadge />,
   },
   {
     name: "availability",
@@ -563,7 +567,10 @@ const NavigationItem: React.FC<{
             />
           )}
           {isLocaleReady ? (
-            <span className="hidden lg:inline">{t(item.name)}</span>
+            <span className="hidden w-full justify-between lg:flex">
+              <div className="flex">{t(item.name)}</div>
+              {item.badge && item.badge}
+            </span>
           ) : (
             <SkeletonText className="h-3 w-32" />
           )}
@@ -619,6 +626,7 @@ const MobileNavigationItem: React.FC<{
       <a
         className="relative my-2 min-w-0 flex-1 overflow-hidden rounded-md py-2 px-1 text-center text-xs font-medium text-neutral-400 hover:bg-gray-200 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
         aria-current={current ? "page" : undefined}>
+        {item.badge && <div className="absolute right-1 top-1">{item.badge}</div>}
         {item.icon && (
           <item.icon
             className="mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center text-inherit [&[aria-current='page']]:text-gray-900"

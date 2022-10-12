@@ -313,6 +313,7 @@
   "past_bookings": "Your past bookings will show up here.",
   "cancelled_bookings": "Your cancelled bookings will show up here.",
   "unconfirmed_bookings": "Your unconfirmed bookings will show up here.",
+  "unconfirmed_bookings_tooltip": "Unconfirmed bookings",
   "on": "on",
   "and": "and",
   "calendar_shows_busy_between": "Your calendar shows you as busy between",
@@ -1267,6 +1268,9 @@
   "seats": "seats",
   "every_app_published": "Every app published on the Cal.com App Store is open source and thoroughly tested via peer reviews. Nevertheless, Cal.com, Inc. does not endorse or certify these apps unless they are published by Cal.com. If you encounter inappropriate content or behaviour please report it.",
   "report_app": "Report app",
+  "limit_booking_frequency":"Limit booking frequency",
+  "limit_booking_frequency_description":"Limit how many times this event can be booked",
+  "add_limit":"Add Limit",
   "team_name_required": "Team name required",
   "how_additional_inputs_as_variables": "How to use Additional Inputs as Variables",
   "format": "Format",
@@ -1295,5 +1299,10 @@
   "update_timezone": "Update timezone",
   "update_timezone_question": "Update Timezone?",
   "update_timezone_description": "It seems like your local timezone has changed to {{formattedCurrentTz}}.  It's very important to have the correct timezone to prevent bookings at undesired times. Do you want to update it?",
-  "dont_update": "Don't update"
+  "dont_update": "Don't update",
+  "email_address_action": "send email to a specific email address",
+  "after_event_trigger": "after event ends",
+  "how_long_after": "How long after event ends?",
+  "no_available_slots": "No Available slots",
+  "time_available": "Time available"
 }
