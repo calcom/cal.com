@@ -802,7 +802,7 @@
   "remove": "הסר",
   "add": "הוסף",
   "installed_one": "מותקן",
-  "installed_other": "{{count}} הותקנו",
+  "installed_other": "{{count}} התקנות",
   "verify_wallet": "אימות הארנק",
   "connect_metamask": "קישור Metamask",
   "create_events_on": "יצירת אירועים ב:",

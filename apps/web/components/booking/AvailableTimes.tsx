@@ -16,7 +16,7 @@ type AvailableTimesProps = {
   eventTypeId: number;
   recurringCount: number | undefined;
   eventTypeSlug: string;
-  date: Dayjs;
+  date?: Dayjs;
   seatsPerTimeSlot?: number | null;
   slots?: Slot[];
   isLoading: boolean;
@@ -44,8 +44,10 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
     setBrand(getComputedStyle(document.documentElement).getPropertyValue("--brand-color").trim());
   }, []);
 
+  if (!date) return null;
+
   return (
-    <div className="dark:bg-darkgray-100 mt-8 flex flex-col px-4 text-center sm:mt-0 sm:w-1/3 sm:p-5 md:-mb-5">
+    <div className="dark:bg-darkgray-100 mt-8 flex h-full w-full flex-col px-4 text-center sm:mt-0 sm:p-5 md:-mb-5 md:min-w-[200px] lg:min-w-[300px]">
       <div className="mb-4 text-left text-base">
         <span className="text-bookingdarker dark:text-darkgray-800 mb-8 w-1/2 break-words font-semibold text-gray-900">
           {nameOfDay(i18n.language, Number(date.format("d")))}
@@ -149,5 +151,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
     </div>
   );
 };
+
+AvailableTimes.displayName = "AvailableTimes";
 
 export default AvailableTimes;
