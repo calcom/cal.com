@@ -18,13 +18,12 @@ import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/direc
 import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmail } from "@calcom/emails";
+import getWebhooks from "@calcom/features/webhooks/utils/getWebhooks";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import getWebhooks from "@calcom/lib/webhooks/subscriptions";
+import sendPayload from "@calcom/lib/webhooks/sendPayload";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
-
-import sendPayload from "@lib/webhooks/sendPayload";
 
 export type RescheduleResponse = Booking & {
   attendees: Attendee[];
