@@ -42,7 +42,7 @@ export const sortByTimezone = (timezoneA: string, timezoneB: string) => {
     .split("GMT")[1];
 
   if (timeAGmt === timeBGmt) return 0;
-  return timeAGmt > timeBGmt ? -1 : 1;
+  return Number(timeAGmt) < Number(timeBGmt) ? -1 : 1;
 };
 
 /**
@@ -69,6 +69,6 @@ export const isNextDayInTimezone = (time: string, timezoneA: string, timezoneB: 
   // Eg time = 12:00 and timeInTimezoneB = 09:00
   const hoursTimezoneBIsEarlier = timeInTimezoneB.localeCompare(time) === -1;
   // If it is 09:00, does timezoneA come before or after timezoneB in GMT?
-  const timezoneBIsEarlierTimezone = sortByTimezone(timezoneA, timezoneB) === -1;
-  return hoursTimezoneBIsEarlier && timezoneBIsEarlierTimezone;
+  const timezoneBIsLaterTimezone = sortByTimezone(timezoneA, timezoneB) === -1;
+  return hoursTimezoneBIsEarlier && timezoneBIsLaterTimezone;
 };
