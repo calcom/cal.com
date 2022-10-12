@@ -28,7 +28,7 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
-import { getLuckyUser } from "@calcom/lib/server";
+import { checkBookingLimits, getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { userSelect } from "@calcom/prisma";
@@ -143,6 +143,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       hideCalendarNotes: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
+      bookingLimits: true,
       workflows: {
         include: {
           workflow: {
@@ -323,6 +324,11 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   }
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+
+  if (eventType && eventType.hasOwnProperty("bookingLimits") && eventType?.bookingLimits) {
+    const startAsDate = dayjs(reqBody.start).toDate();
+    await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
+  }
 
   if (!eventType.seatsPerTimeSlot) {
     const availableUsers = await ensureAvailableUsers(
