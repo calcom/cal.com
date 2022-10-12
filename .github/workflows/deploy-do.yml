@@ -60,8 +60,8 @@ jobs:
           envkey_EMAIL_SERVER_USER: "coaching@mento.co"
           envkey_NEXT_PUBLIC_TEAM_IMPERSONATION: "true"
           envkey_GOOGLE_LOGIN_ENABLED: "true"
-#      - name: Build image
-#        run: docker-compose build calcom
+      - name: Build image
+        run: docker-compose build calcom
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
         with:
