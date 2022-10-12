@@ -38,7 +38,11 @@ import { ssrInit } from "@server/lib/ssr";
 
 const EventTypeDescription = dynamic(() => import("@calcom/ui/v2/modules/event-types/EventTypeDescription"));
 const HeadSeo = dynamic(() => import("@components/seo/head-seo"));
-export default function User(props: inferSSRProps<typeof getServerSideProps>) {
+export default function User(
+  props: inferSSRProps<typeof getServerSideProps> & {
+    isEmbed?: boolean;
+  }
+) {
   const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(user.theme);

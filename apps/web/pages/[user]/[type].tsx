@@ -1,4 +1,3 @@
-import { UserPlan } from "@prisma/client";
 import { GetStaticPaths, GetStaticPropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
@@ -14,7 +13,9 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
-export type AvailabilityPageProps = inferSSRProps<typeof getStaticProps>;
+export type AvailabilityPageProps = inferSSRProps<typeof getStaticProps> & {
+  isEmbed?: boolean;
+};
 
 export default function Type(props: AvailabilityPageProps) {
   const { t } = useLocale();

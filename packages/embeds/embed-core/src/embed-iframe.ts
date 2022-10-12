@@ -217,7 +217,7 @@ function getEmbedType() {
   }
 }
 
-export const useIsEmbed = (embedSsr: boolean) => {
+export const useIsEmbed = (embedSsr?: boolean) => {
   const [isEmbed, setIsEmbed] = useState(embedSsr);
   useEffect(() => {
     const namespace = getNamespace();

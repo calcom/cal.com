@@ -15,7 +15,9 @@ import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
 import { ssrInit } from "@server/lib/ssr";
 
-export type DynamicAvailabilityPageProps = inferSSRProps<typeof getServerSideProps>;
+export type DynamicAvailabilityPageProps = inferSSRProps<typeof getServerSideProps> & {
+  isEmbed?: boolean;
+};
 
 export default function Type(props: DynamicAvailabilityPageProps) {
   return <AvailabilityPage {...props} />;

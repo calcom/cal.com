@@ -197,8 +197,8 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
   );
 }
 
-export default function RoutingLink({ form, profile, isEmbed }: inferSSRProps<typeof getServerSideProps>) {
-  return <RoutingForm form={form} profile={profile} />;
+export default function RoutingLink(props: inferSSRProps<typeof getServerSideProps>) {
+  return <RoutingForm {...props} />;
 }
 
 RoutingLink.isThemeSupported = true;

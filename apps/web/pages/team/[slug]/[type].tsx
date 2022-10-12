@@ -15,7 +15,10 @@ import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
 import { ssgInit } from "@server/lib/ssg";
 
-export type AvailabilityTeamPageProps = inferSSRProps<typeof getServerSideProps>;
+import { getServerSideProps as getServerSidePropsEmbed } from "./[type]/embed";
+
+export type AvailabilityTeamPageProps = inferSSRProps<typeof getServerSideProps> &
+  Partial<inferSSRProps<typeof getServerSidePropsEmbed>>;
 
 export default function TeamType(props: AvailabilityTeamPageProps) {
   return <AvailabilityPage {...props} />;
