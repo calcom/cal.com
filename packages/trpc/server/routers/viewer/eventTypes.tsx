@@ -5,6 +5,7 @@ import { z } from "zod";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
+import { validateBookingLimitOrder } from "@calcom/lib";
 import { _DestinationCalendarModel, _EventTypeCustomInputModel, _EventTypeModel } from "@calcom/prisma/zod";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
@@ -257,6 +258,7 @@ export const eventTypesRouter = createProtectedRouter()
         schedule,
         periodType,
         locations,
+        bookingLimits,
         destinationCalendar,
         customInputs,
         recurringEvent,
@@ -294,6 +296,13 @@ export const eventTypesRouter = createProtectedRouter()
 
       if (customInputs) {
         data.customInputs = handleCustomInputs(customInputs, id);
+      }
+
+      if (bookingLimits) {
+        const isValid = validateBookingLimitOrder(bookingLimits);
+        if (!isValid)
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
+        data.bookingLimits = bookingLimits;
       }
 
       if (schedule) {

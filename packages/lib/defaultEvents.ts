@@ -81,6 +81,7 @@ const commons = {
   destinationCalendar: null,
   team: null,
   requiresConfirmation: false,
+  bookingLimits: null,
   hidden: false,
   userId: 0,
   workflows: [],

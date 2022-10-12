@@ -2,7 +2,7 @@ import type { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SUPPORTED_CHAINS_FOR_FORM } from "@calcom/rainbow/utils/ethereum";
-import type { FormValues } from "@calcom/web/pages/event-types/[type]";
+import type { FormValues } from "@calcom/web/pages/v2/event-types/[type]";
 
 import Select from "@components/ui/form/Select";
 
