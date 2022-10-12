@@ -1458,6 +1458,7 @@ const loggedInViewerRouter = createProtectedRouter()
           recurringEventId: { not: { equals: null } },
           status: { equals: "PENDING" },
           userId: user.id,
+          endTime: { gt: new Date() },
         },
       });
       return recurringGrouping.reduce((prev, current) => {
