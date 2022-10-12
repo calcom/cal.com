@@ -20,6 +20,7 @@ import getWebhooks from "@calcom/features/webhooks/utils/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 import { bookingConfirmPatchBodySchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
