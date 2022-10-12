@@ -131,7 +131,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const team = await getTeamWithMembers(undefined, slug);
 
-  if (!team) return { notFound: true };
+  if (!team) return { notFound: true } as { notFound: true };
 
   const members = team.members.filter((member) => member.plan !== UserPlan.FREE);
 

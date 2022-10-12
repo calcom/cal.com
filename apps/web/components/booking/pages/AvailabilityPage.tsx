@@ -1,7 +1,6 @@
 // Get router variables
 import autoAnimate from "@formkit/auto-animate";
 import { EventType } from "@prisma/client";
-import { SchedulingType } from "@prisma/client";
 import * as Popover from "@radix-ui/react-popover";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
@@ -39,15 +38,12 @@ import Gates, { Gate, GateState } from "@components/Gates";
 import AvailableTimes from "@components/booking/AvailableTimes";
 import BookingDescription from "@components/booking/BookingDescription";
 import TimeOptions from "@components/booking/TimeOptions";
-import { UserAvatars } from "@components/booking/UserAvatars";
-import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
 import { HeadSeo } from "@components/seo/head-seo";
 import PoweredByCal from "@components/ui/PoweredByCal";
 
 import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
-import { AvailableEventLocations } from "../AvailableEventLocations";
 
 const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
   const router = useRouter();

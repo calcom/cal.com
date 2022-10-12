@@ -30,6 +30,7 @@ import { BadgeCheckIcon, Icon } from "@calcom/ui/Icon";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { EmbedProps } from "@lib/withEmbedSsr";
 
 import AvatarGroup from "@components/ui/AvatarGroup";
 import { AvatarSSR } from "@components/ui/AvatarSSR";
@@ -38,11 +39,7 @@ import { ssrInit } from "@server/lib/ssr";
 
 const EventTypeDescription = dynamic(() => import("@calcom/ui/v2/modules/event-types/EventTypeDescription"));
 const HeadSeo = dynamic(() => import("@components/seo/head-seo"));
-export default function User(
-  props: inferSSRProps<typeof getServerSideProps> & {
-    isEmbed?: boolean;
-  }
-) {
+export default function User(props: inferSSRProps<typeof getServerSideProps> & EmbedProps) {
   const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(user.theme);
@@ -212,7 +209,7 @@ export default function User(
 }
 User.isThemeSupported = true;
 
-const getEventTypesWithHiddenFromDB = async (userId: number, plan: UserPlan) => {
+const getEventTypesWithHiddenFromDB = async (userId: number) => {
   return await prisma.eventType.findMany({
     where: {
       AND: [
@@ -282,6 +279,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!users.length) {
     return {
       notFound: true,
+    } as {
+      notFound: true;
     };
   }
   const isDynamicGroup = users.length > 1;
@@ -313,7 +312,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         darkBrandColor: user.darkBrandColor,
       };
 
-  const eventTypesWithHidden = isDynamicGroup ? [] : await getEventTypesWithHiddenFromDB(user.id, user.plan);
+  const eventTypesWithHidden = isDynamicGroup ? [] : await getEventTypesWithHiddenFromDB(user.id);
   const dataFetchEnd = Date.now();
   if (context.query.log === "1") {
     context.res.setHeader("X-Data-Fetch-Time", `${dataFetchEnd - dataFetchStart}ms`);

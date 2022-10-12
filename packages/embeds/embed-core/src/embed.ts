@@ -181,7 +181,7 @@ export class Cal {
 
     const urlInstance = new URL(`${config.origin}/${calLink}`);
     if (!urlInstance.pathname.endsWith("embed")) {
-      // TODO: Make a list of patterns that are embeddable and only allow those, remaining can be allowed with a warning
+      // TODO: Make a list of patterns that are embeddable. All except that should be allowed with a warning that "The page isn't optimized for embedding"
       urlInstance.pathname = `${urlInstance.pathname}/embed`;
     }
     urlInstance.searchParams.set("embed", this.namespace);

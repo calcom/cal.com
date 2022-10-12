@@ -219,7 +219,6 @@ export const getServerSideProps = async function getServerSideProps(
       notFound: true,
     };
   }
-  console.log("ROUTINGLINKSSR");
   const isEmbed = params.appPages[1] === "embed";
 
   const form = await prisma.app_RoutingForms_Form.findUnique({

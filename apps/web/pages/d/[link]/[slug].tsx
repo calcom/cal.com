@@ -10,14 +10,13 @@ import prisma from "@calcom/prisma";
 import { getWorkingHours } from "@lib/availability";
 import { GetBookingType } from "@lib/getBooking";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { EmbedProps } from "@lib/withEmbedSsr";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
 import { ssrInit } from "@server/lib/ssr";
 
-export type DynamicAvailabilityPageProps = inferSSRProps<typeof getServerSideProps> & {
-  isEmbed?: boolean;
-};
+export type DynamicAvailabilityPageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
 export default function Type(props: DynamicAvailabilityPageProps) {
   return <AvailabilityPage {...props} />;
@@ -50,11 +49,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!userId)
     return {
       notFound: true,
+    } as {
+      notFound: true;
     };
 
   if (hashedLink?.eventType.slug !== slug)
     return {
       notFound: true,
+    } as {
+      notFound: true;
     };
 
   const users = await prisma.user.findMany({
@@ -94,6 +97,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!users || !users.length) {
     return {
       notFound: true,
+    } as {
+      notFound: true;
     };
   }
 

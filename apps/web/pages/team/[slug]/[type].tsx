@@ -10,15 +10,13 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
 import getBooking, { GetBookingType } from "@lib/getBooking";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { EmbedProps } from "@lib/withEmbedSsr";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
 import { ssgInit } from "@server/lib/ssg";
 
-import { getServerSideProps as getServerSidePropsEmbed } from "./[type]/embed";
-
-export type AvailabilityTeamPageProps = inferSSRProps<typeof getServerSideProps> &
-  Partial<inferSSRProps<typeof getServerSidePropsEmbed>>;
+export type AvailabilityTeamPageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 
 export default function TeamType(props: AvailabilityTeamPageProps) {
   return <AvailabilityPage {...props} />;
@@ -102,6 +100,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!team || team.eventTypes.length != 1) {
     return {
       notFound: true,
+    } as {
+      notFound: true;
     };
   }
 

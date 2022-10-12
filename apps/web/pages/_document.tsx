@@ -3,18 +3,13 @@ import Document, { DocumentContext, Head, Html, Main, NextScript, DocumentProps 
 type Props = Record<string, unknown> & DocumentProps;
 
 function toRunBeforeReactOnClient() {
-  const calEmbedMode = location.search.includes("embed=");
-  try {
-    // eslint-disable-next-line @calcom/eslint/avoid-web-storage
-    window.sessionStorage.setItem("calEmbedMode", String(calEmbedMode));
-  } catch (e) {}
+  const calEmbedMode =
+    location.search.includes("embed=") ||
+    /* Iframe Name */
+    window.name.includes("cal-embed");
 
   window.isEmbed = () => {
-    try {
-      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
-      return window.sessionStorage.getItem("calEmbedMode") === "true";
-    } catch (e) {}
-    // If we can't use sessionStorage to retrieve embed mode, just use the variable. It would fail to detect embed if page in iframe reloads without embed query param in it.
+    // Once an embed mode always an embed mode
     return calEmbedMode;
   };
 
