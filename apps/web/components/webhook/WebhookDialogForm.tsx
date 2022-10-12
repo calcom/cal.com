@@ -2,7 +2,8 @@ import { Webhook } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import customTemplate, { hasTemplateIntegration } from "@calcom/features/webhooks/utils/integrationTemplate";
+import { WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP } from "@calcom/features/webhooks/lib/constants";
+import customTemplate, { hasTemplateIntegration } from "@calcom/features/webhooks/lib/integrationTemplate";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
@@ -10,8 +11,6 @@ import Button from "@calcom/ui/Button";
 import { DialogFooter } from "@calcom/ui/Dialog";
 import Switch from "@calcom/ui/Switch";
 import { FieldsetLegend, Form, InputGroupBox, TextArea, TextField } from "@calcom/ui/form/fields";
-
-import { WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP } from "@lib/webhooks/constants";
 
 import { TWebhook } from "@components/webhook/WebhookListItem";
 import WebhookTestDisclosure from "@components/webhook/WebhookTestDisclosure";

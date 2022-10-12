@@ -21,7 +21,7 @@ import {
   sendScheduledSeatsEmails,
 } from "@calcom/emails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
-import getWebhooks from "@calcom/features/webhooks/utils/getWebhooks";
+import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -31,12 +31,13 @@ import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
-import sendPayload, { EventTypeInfo } from "@calcom/lib/webhooks/sendPayload";
 import prisma, { userSelect } from "@calcom/prisma";
 import { extendedBookingCreateBody, requiredCustomInputSchema } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
+
+import sendPayload, { EventTypeInfo } from "../../webhooks/lib/sendPayload";
 
 const translator = short();
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });

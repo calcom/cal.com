@@ -20,12 +20,12 @@ import { sendCancelledEmails } from "@calcom/emails";
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
-import getWebhooks from "@calcom/features/webhooks/utils/getWebhooks";
+import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import sendPayload, { EventTypeInfo } from "@calcom/features/webhooks/webhooks/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getSession } from "@calcom/lib/auth";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
-import sendPayload, { EventTypeInfo } from "@calcom/lib/webhooks/sendPayload";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
