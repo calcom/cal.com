@@ -69,11 +69,11 @@ const AvailabilityView = ({ user }: { user: User }) => {
                   className="overflow-hidden rounded-sm bg-neutral-100">
                   <div className="px-4 py-5 text-black sm:p-6">
                     {t("calendar_shows_busy_between")}{" "}
-                    <span className="font-medium text-neutral-800" title={slot.start}>
+                    <span className="font-medium text-neutral-800" title={dayjs(slot.start).format("HH:mm")}>
                       {dayjs(slot.start).format("HH:mm")}
                     </span>{" "}
                     {t("and")}{" "}
-                    <span className="font-medium text-neutral-800" title={slot.end}>
+                    <span className="font-medium text-neutral-800" title={dayjs(slot.end).format("HH:mm")}>
                       {dayjs(slot.end).format("HH:mm")}
                     </span>{" "}
                     {t("on")} {dayjs(slot.start).format("D")}{" "}
