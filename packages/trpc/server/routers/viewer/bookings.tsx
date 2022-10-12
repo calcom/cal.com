@@ -20,6 +20,7 @@ import getWebhooks from "@calcom/features/webhooks/utils/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 import { bookingConfirmPatchBodySchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
@@ -461,37 +462,48 @@ export const bookingsRouter = createProtectedRouter()
         }
 
         //Workflows - set reminders for confirmed events
-        for (const updatedBooking of updatedBookings) {
-          if (updatedBooking.eventType?.workflows) {
-            const evtOfBooking = evt;
-            evtOfBooking.startTime = updatedBooking.startTime.toISOString();
-            evtOfBooking.endTime = updatedBooking.endTime.toISOString();
-            evtOfBooking.uid = updatedBooking.uid;
 
-            await scheduleWorkflowReminders(
-              updatedBooking.eventType.workflows,
-              updatedBooking.smsReminderNumber,
-              evtOfBooking,
-              false,
-              false
-            );
+        try {
+          for (const updatedBooking of updatedBookings) {
+            if (updatedBooking.eventType?.workflows) {
+              const evtOfBooking = evt;
+              evtOfBooking.startTime = updatedBooking.startTime.toISOString();
+              evtOfBooking.endTime = updatedBooking.endTime.toISOString();
+              evtOfBooking.uid = updatedBooking.uid;
+
+              await scheduleWorkflowReminders(
+                updatedBooking.eventType.workflows,
+                updatedBooking.smsReminderNumber,
+                evtOfBooking,
+                false,
+                false
+              );
+            }
           }
+        } catch (error) {
+          // Silently fail
+          console.error(error);
         }
 
-        // schedule job for zapier trigger 'when meeting ends'
-        const subscriberOptionsMeetingEnded = {
-          userId: booking.userId || 0,
-          eventTypeId: booking.eventTypeId || 0,
-          triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-        };
+        try {
+          // schedule job for zapier trigger 'when meeting ends'
+          const subscriberOptionsMeetingEnded = {
+            userId: booking.userId || 0,
+            eventTypeId: booking.eventTypeId || 0,
+            triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+          };
 
-        const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
+          const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
 
-        subscribersMeetingEnded.forEach((subscriber) => {
-          updatedBookings.forEach((booking) => {
-            scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
+          subscribersMeetingEnded.forEach((subscriber) => {
+            updatedBookings.forEach((booking) => {
+              scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
+            });
           });
-        });
+        } catch (error) {
+          // Silently fail
+          console.error(error);
+        }
       } else {
         evt.rejectionReason = rejectionReason;
         if (recurringEventId) {

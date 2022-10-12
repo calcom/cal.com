@@ -4,7 +4,6 @@ import { useRouter } from "next/router";
 
 import { getStaticProps } from "@calcom/app-store/_pages/setup/_getStaticProps";
 import { AppSetupPage } from "@calcom/app-store/_pages/v2/setup";
-import Loader from "@calcom/ui/Loader";
 
 export default function SetupInformation(props: InferGetStaticPropsType<typeof getStaticProps>) {
   const router = useRouter();
@@ -12,11 +11,7 @@ export default function SetupInformation(props: InferGetStaticPropsType<typeof g
   const { status } = useSession();
 
   if (status === "loading") {
-    return (
-      <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200">
-        <Loader />
-      </div>
-    );
+    return <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200" />;
   }
 
   if (status === "unauthenticated") {

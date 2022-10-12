@@ -22,12 +22,12 @@ import {
 } from "@calcom/emails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/utils/getWebhooks";
-import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { isPrismaObjOrUndefined, parseBookingLimit, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
-import { defaultResponder, getLuckyUser } from "@calcom/lib/server";
+import { defaultResponder, getLuckyUser, checkBookingLimits } from "@calcom/lib/server";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { userSelect } from "@calcom/prisma";
 import { extendedBookingCreateBody, requiredCustomInputSchema } from "@calcom/prisma/zod-utils";
@@ -144,6 +144,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       destinationCalendar: true,
       hideCalendarNotes: true,
       seatsPerTimeSlot: true,
+      bookingLimits: true,
       recurringEvent: true,
       workflows: {
         include: {
@@ -304,6 +305,7 @@ async function handler(req: NextApiRequest) {
         ...userSelect,
       })
     : eventType.users;
+
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
     throw new HttpError({
@@ -326,6 +328,11 @@ async function handler(req: NextApiRequest) {
   }
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
+
+  if (eventType && eventType.hasOwnProperty("bookingLimits") && eventType?.bookingLimits) {
+    const startAsDate = dayjs(reqBody.start).toDate();
+    await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
+  }
 
   if (!eventType.seatsPerTimeSlot) {
     const availableUsers = await ensureAvailableUsers(

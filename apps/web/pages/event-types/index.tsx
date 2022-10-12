@@ -13,6 +13,7 @@ import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { TRPCClientError } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
 import Badge from "@calcom/ui/Badge";
@@ -23,6 +24,7 @@ import Dropdown, {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuPortal,
 } from "@calcom/ui/Dropdown";
 import EmptyScreen from "@calcom/ui/EmptyScreen";
 import { Icon } from "@calcom/ui/Icon";
@@ -41,8 +43,6 @@ import AvatarGroup from "@components/ui/AvatarGroup";
 import { LinkText } from "@components/ui/LinkText";
 import NoCalendarConnectedAlert from "@components/ui/NoCalendarConnectedAlert";
 import SkeletonLoader from "@components/v2/eventtype/SkeletonLoader";
-
-import { TRPCClientError } from "@trpc/react";
 
 type EventTypeGroups = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
@@ -346,36 +346,70 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
                       <Button type="button" size="icon" color="minimal" StartIcon={Icon.FiMoreHorizontal} />
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent portalled>
-                      <DropdownMenuItem className="outline-none">
-                        <Link href={calLink}>
+                    <DropdownMenuPortal>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem className="outline-none">
+                          <Link href={calLink}>
+                            <Button
+                              rel="noreferrer"
+                              target="_blank"
+                              color="minimal"
+                              size="sm"
+                              StartIcon={Icon.FiExternalLink}
+                              className="w-full rounded-none">
+                              {t("preview") as string}
+                            </Button>
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="outline-none">
                           <Button
-                            rel="noreferrer"
-                            target="_blank"
+                            type="button"
                             color="minimal"
                             size="sm"
-                            StartIcon={Icon.FiExternalLink}
-                            className="w-full rounded-none">
-                            {t("preview") as string}
+                            className="w-full rounded-none text-left"
+                            data-testid={"event-type-duplicate-" + type.id}
+                            StartIcon={Icon.FiClipboard}
+                            onClick={() => {
+                              navigator.clipboard.writeText(calLink);
+                              showToast(t("link_copied"), "success");
+                            }}>
+                            {t("copy_link") as string}
                           </Button>
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="outline-none">
-                        <Button
-                          type="button"
-                          color="minimal"
-                          size="sm"
-                          className="w-full rounded-none text-left"
-                          data-testid={"event-type-duplicate-" + type.id}
-                          StartIcon={Icon.FiClipboard}
-                          onClick={() => {
-                            navigator.clipboard.writeText(calLink);
-                            showToast(t("link_copied"), "success");
-                          }}>
-                          {t("copy_link") as string}
-                        </Button>
-                      </DropdownMenuItem>
-                      {isNativeShare ? (
+                        </DropdownMenuItem>
+                        {isNativeShare ? (
+                          <DropdownMenuItem className="outline-none">
+                            <Button
+                              type="button"
+                              color="minimal"
+                              size="sm"
+                              className="w-full rounded-none"
+                              data-testid={"event-type-duplicate-" + type.id}
+                              StartIcon={Icon.FiUpload}
+                              onClick={() => {
+                                navigator
+                                  .share({
+                                    title: t("share"),
+                                    text: t("share_event"),
+                                    url: calLink,
+                                  })
+                                  .then(() => showToast(t("link_shared"), "success"))
+                                  .catch(() => showToast(t("failed"), "error"));
+                              }}>
+                              {t("share") as string}
+                            </Button>
+                          </DropdownMenuItem>
+                        ) : null}
+                        <DropdownMenuItem className="outline-none">
+                          <Button
+                            type="button"
+                            size="sm"
+                            href={"/event-types/" + type.id}
+                            color="minimal"
+                            className="w-full rounded-none"
+                            StartIcon={Icon.FiEdit2}>
+                            {t("edit") as string}
+                          </Button>
+                        </DropdownMenuItem>
                         <DropdownMenuItem className="outline-none">
                           <Button
                             type="button"
@@ -383,59 +417,27 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             size="sm"
                             className="w-full rounded-none"
                             data-testid={"event-type-duplicate-" + type.id}
-                            StartIcon={Icon.FiUpload}
-                            onClick={() => {
-                              navigator
-                                .share({
-                                  title: t("share"),
-                                  text: t("share_event"),
-                                  url: calLink,
-                                })
-                                .then(() => showToast(t("link_shared"), "success"))
-                                .catch(() => showToast(t("failed"), "error"));
-                            }}>
-                            {t("share") as string}
+                            StartIcon={Icon.FiCopy}
+                            onClick={() => openModal(group, type)}>
+                            {t("duplicate") as string}
                           </Button>
                         </DropdownMenuItem>
-                      ) : null}
-                      <DropdownMenuItem className="outline-none">
-                        <Button
-                          type="button"
-                          size="sm"
-                          href={"/event-types/" + type.id}
-                          color="minimal"
-                          className="w-full rounded-none"
-                          StartIcon={Icon.FiEdit2}>
-                          {t("edit") as string}
-                        </Button>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className="outline-none">
-                        <Button
-                          type="button"
-                          color="minimal"
-                          size="sm"
-                          className="w-full rounded-none"
-                          data-testid={"event-type-duplicate-" + type.id}
-                          StartIcon={Icon.FiCopy}
-                          onClick={() => openModal(group, type)}>
-                          {t("duplicate") as string}
-                        </Button>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator className="h-px bg-gray-200" />
-                      <DropdownMenuItem className="outline-none">
-                        <Button
-                          onClick={() => {
-                            setDeleteDialogOpen(true);
-                            setDeleteDialogTypeId(type.id);
-                          }}
-                          color="warn"
-                          size="sm"
-                          StartIcon={Icon.FiTrash}
-                          className="w-full rounded-none">
-                          {t("delete") as string}
-                        </Button>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
+                        <DropdownMenuSeparator className="h-px bg-gray-200" />
+                        <DropdownMenuItem className="outline-none">
+                          <Button
+                            onClick={() => {
+                              setDeleteDialogOpen(true);
+                              setDeleteDialogTypeId(type.id);
+                            }}
+                            color="warn"
+                            size="sm"
+                            StartIcon={Icon.FiTrash}
+                            className="w-full rounded-none">
+                            {t("delete") as string}
+                          </Button>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenuPortal>
                   </Dropdown>
                 </div>
               </div>
@@ -540,6 +542,7 @@ const EventTypesPage = () => {
         <title>Home | Cal.com</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
+
       <Shell
         heading={t("event_types_page_title") as string}
         subtitle={t("event_types_page_subtitle") as string}

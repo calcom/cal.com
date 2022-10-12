@@ -1,5 +1,4 @@
 import React from "react";
-import Select from "react-select";
 import { OptionProps } from "react-select";
 
 import { InstallAppButton } from "@calcom/app-store/components";
@@ -8,6 +7,7 @@ import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import { Button } from "@calcom/ui";
 import { Icon } from "@calcom/ui/Icon";
+import { Select } from "@calcom/ui/v2";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -65,23 +65,7 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
             name="additionalCalendar"
             placeholder={t("install_another")}
             options={options}
-            styles={{
-              placeholder: (defaultStyles) => {
-                return {
-                  ...defaultStyles,
-                  color: "#3E3E3E",
-                  marginLeft: "3px",
-                };
-              },
-              control: (defaultStyles) => {
-                return {
-                  ...defaultStyles,
-                  borderRadius: "6px",
-                };
-              },
-            }}
             isSearchable={false}
-            className="min-w-52 block w-full flex-1 rounded-none rounded-r-sm border-gray-300 text-sm font-medium text-gray-700"
             isLoading={isLoading}
             components={{ Option: ImageOption }}
           />

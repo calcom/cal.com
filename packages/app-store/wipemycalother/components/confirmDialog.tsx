@@ -1,6 +1,6 @@
 import { ClockIcon } from "@heroicons/react/outline";
+import { useMutation } from "@tanstack/react-query";
 import { Dispatch, SetStateAction, useState } from "react";
-import { useMutation } from "react-query";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

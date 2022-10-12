@@ -1,20 +1,28 @@
 import { useId } from "@radix-ui/react-id";
 import * as React from "react";
 import ReactSelect, {
-  components,
+  components as reactSelectComponents,
   GroupBase,
-  InputProps,
   Props,
   SingleValue,
   MultiValue,
-  OptionProps,
+  SelectComponentsConfig,
 } from "react-select";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/Icon";
 
-import { Label } from "./fields";
+import { Label } from "../fields";
+import {
+  ControlComponent,
+  InputComponent,
+  MenuComponent,
+  MenuListComponent,
+  OptionComponent,
+  SingleValueComponent,
+  ValueContainerComponent,
+  MultiValueComponent,
+} from "./components";
 
 export type SelectProps<
   Option,
@@ -22,85 +30,53 @@ export type SelectProps<
   Group extends GroupBase<Option> = GroupBase<Option>
 > = Props<Option, IsMulti, Group>;
 
-export const InputComponent = <Option, IsMulti extends boolean, Group extends GroupBase<Option>>({
-  inputClassName,
-  ...props
-}: InputProps<Option, IsMulti, Group>) => {
-  return (
-    <components.Input
-      // disables our default form focus hightlight on the react-select input element
-      inputClassName={classNames("focus:ring-0 focus:ring-offset-0", inputClassName)}
-      {...props}
-    />
-  );
-};
-
-const OptionComponent = <Option, IsMulti extends boolean, Group extends GroupBase<Option>>({
-  className,
-  ...props
-}: OptionProps<Option, IsMulti, Group>) => {
-  return (
-    <components.Option className={classNames("!flex justify-between", className)} {...props}>
-      <span>{props.label}</span> {props.isSelected && <Icon.FiCheck className="h-5 w-5" />}
-    </components.Option>
-  );
-};
-
-function Select<
+export const getReactSelectProps = <
   Option,
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
->({ className, ...props }: SelectProps<Option, IsMulti, Group>) {
-  return (
-    <ReactSelect
-      className={classNames(
-        "cal-react-select-container block h-[36px] w-full min-w-0 flex-1 rounded-md text-sm",
-        className
-      )}
-      classNamePrefix="cal-react-select"
-      theme={(theme) => ({
-        ...theme,
-        borderRadius: 6,
-        colors: {
-          ...theme.colors,
-          primary: "rgba(229, 231, 235, var(--tw-bg-opacity))",
-          primary50: "rgba(209 , 213, 219, var(--tw-bg-opacity))",
-          primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
-        },
-      })}
-      styles={{
-        control: (base) => ({
-          ...base,
-          // Brute force to remove focus outline of input
-          "& .react-select__input": {
-            borderWidth: 0,
-            boxShadow: "none",
-          },
-        }),
-        option: (provided, state) => ({
-          ...provided,
-          color: "black",
-          ":active": {
-            backgroundColor: state.isSelected ? "" : "rgba(229, 231, 235, var(--tw-bg-opacity))",
-            color: "rgba(51, 15, 51, var(--tw-bg-opacity))",
-          },
-        }),
-      }}
-      components={{
-        ...components,
-        IndicatorSeparator: () => null,
-        Input: InputComponent,
-        Option: OptionComponent,
-        ...props.components,
-      }}
-      {...props}
-    />
-  );
-}
+>({
+  className,
+  components,
+}: {
+  className?: string;
+  components: SelectComponentsConfig<Option, IsMulti, Group>;
+}) => ({
+  className: classNames("block h-[36px] w-full min-w-0 flex-1 rounded-md", className),
+  classNamePrefix: "cal-react-select",
+  components: {
+    ...reactSelectComponents,
+    IndicatorSeparator: () => null,
+    Input: InputComponent,
+    Option: OptionComponent,
+    Control: ControlComponent,
+    SingleValue: SingleValueComponent,
+    Menu: MenuComponent,
+    MenuList: MenuListComponent,
+    ValueContainer: ValueContainerComponent,
+    MultiValue: MultiValueComponent,
+    ...components,
+  },
+});
+
+const Select = <
+  Option,
+  IsMulti extends boolean = false,
+  Group extends GroupBase<Option> = GroupBase<Option>
+>({
+  className,
+  components,
+  ...props
+}: SelectProps<Option, IsMulti, Group>) => {
+  const reactSelectProps = React.useMemo(() => {
+    return getReactSelectProps<Option, IsMulti, Group>({ className, components: components || {} });
+  }, [className, components]);
+
+  return <ReactSelect {...reactSelectProps} {...props} />;
+};
 
 export const SelectField = function SelectField<
   Option,
-  isMulti extends boolean = false,
+  IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 >(
   props: {
@@ -110,7 +86,7 @@ export const SelectField = function SelectField<
     labelProps?: React.ComponentProps<typeof Label>;
     className?: string;
     error?: string;
-  } & SelectProps<Option, isMulti, Group>
+  } & SelectProps<Option, IsMulti, Group>
 ) {
   const { t } = useLocale();
   const { label = t(props.name || ""), containerClassName, labelProps, className, ...passThrough } = props;
@@ -134,14 +110,14 @@ export const SelectField = function SelectField<
  */
 export function SelectWithValidation<
   Option extends { label: string; value: string },
-  isMulti extends boolean = false,
+  IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 >({
   required = false,
   onChange,
   value,
   ...remainingProps
-}: SelectProps<Option, isMulti, Group> & { required?: boolean }) {
+}: SelectProps<Option, IsMulti, Group> & { required?: boolean }) {
   const [hiddenInputValue, _setHiddenInputValue] = React.useState(() => {
     if (value instanceof Array || !value) {
       return;

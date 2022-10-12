@@ -157,7 +157,7 @@ function EventTypeSingleLayout({
   return (
     <Shell
       backPath="/event-types"
-      title={t("event_type_title", { eventTypeTitle: eventType.title })}
+      title={eventType.title + " | " + t("event_type")}
       heading={eventType.title}
       subtitle={eventType.description || ""}
       CTA={
@@ -228,27 +228,29 @@ function EventTypeSingleLayout({
               <Icon.FiMoreHorizontal className="group-hover:text-gray-800" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem>
+              <DropdownMenuItem className="focus:ring-gray-100">
                 <Button
                   color="minimal"
                   StartIcon={Icon.FiExternalLink}
                   target="_blank"
                   href={permalink}
-                  rel="noreferrer">
+                  rel="noreferrer"
+                  className="min-w-full">
                   {t("preview")}
                 </Button>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem className="focus:ring-gray-100">
                 <Button color="minimal" StartIcon={Icon.FiLink}>
                   {t("copy_link")}
                 </Button>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem className="focus:ring-gray-100">
                 <Button
                   color="minimal"
                   StartIcon={Icon.FiTrash}
                   disabled={!hasPermsToDelete}
-                  onClick={() => setDeleteDialogOpen(true)}>
+                  onClick={() => setDeleteDialogOpen(true)}
+                  className="min-w-full">
                   {t("delete")}
                 </Button>
               </DropdownMenuItem>

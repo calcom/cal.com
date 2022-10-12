@@ -5,6 +5,8 @@ import { PaymentData } from "@calcom/app-store/stripepayment/lib/server";
 import prisma from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
+import { ssrInit } from "@server/lib/ssr";
+
 export type PaymentPageProps = inferSSRProps<typeof getServerSideProps>;
 
 const querySchema = z.object({
@@ -12,6 +14,8 @@ const querySchema = z.object({
 });
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
   const { uid } = querySchema.parse(context.query);
   const rawPayment = await prisma.payment.findFirst({
     where: {
@@ -102,6 +106,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       user,
       eventType,
       booking,
+      trpcState: ssr.dehydrate(),
       payment,
       profile,
     },

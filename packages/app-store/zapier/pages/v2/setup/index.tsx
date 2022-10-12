@@ -41,11 +41,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   }
 
   if (integrations.isLoading) {
-    return (
-      <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200">
-        <Loader />
-      </div>
-    );
+    return <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200" />;
   }
 
   return (
