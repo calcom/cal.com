@@ -1,0 +1,78 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - 'develop'
+      - 'release'
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Make envfile
+        uses: SpicyPizza/create-envfile@v1.3
+        with:
+          envkey_DATABASE_URL: ${{ env.DATABASE_URL }}
+          envkey_CALCOM_LICENSE_KEY: ${{ env.CALCOM_LICENSE_KEY }}
+          envkey_NEXT_PUBLIC_WEBAPP_URL: ${{ env.NEXT_PUBLIC_WEBAPP_URL }}
+          envkey_NEXT_PUBLIC_WEBSITE_URL: ${{ env.NEXT_PUBLIC_WEBSITE_URL }}
+          envkey_NEXT_PUBLIC_CONSOLE_URL: ${{ env.NEXT_PUBLIC_CONSOLE_URL }}
+          envkey_NEXT_PUBLIC_EMBED_LIB_URL: ${{ env.NEXT_PUBLIC_EMBED_LIB_URL }}
+          envkey_NEXTAUTH_URL: ${{ env.NEXTAUTH_URL }}
+          envkey_NEXTAUTH_SECRET: ${{ env.NEXTAUTH_SECRET }}
+          envkey_CRON_API_KEY: ${{ env.CRON_API_KEY }}
+          envkey_CALENDSO_ENCRYPTION_KEY: ${{ env.CALENDSO_ENCRYPTION_KEY }}
+          envkey_SENDGRID_API_KEY: ${{ env.SENDGRID_API_KEY }}
+          envkey_TWILIO_TOKEN: ${{ env.TWILIO_TOKEN }}
+          envkey_EMAIL_SERVER_PASSWORD: ${{ env.EMAIL_SERVER_PASSWORD }}
+          envkey_GOOGLE_API_CREDENTIALS: ${{ env.GOOGLE_API_CREDENTIALS }}
+          envkey_NEXT_PUBLIC_CALENDAR_KEY: ${{ env.NEXT_PUBLIC_CALENDAR_KEY }}
+          envkey_NEXT_PUBLIC_MENTO_COACH_URL: ${{ env.NEXT_PUBLIC_MENTO_COACH_URL }}
+
+          envkey_NEXT_PUBLIC_MENTO_COACH_URLNODE_ENV: "production"
+          envkey_NEXT_PUBLIC_MENTO_COACH_URLNEXT_PUBLIC_LICENSE_CONSENT: "agree"
+          envkey_SAML_DATABASE_URL: ""
+          envkey_SAML_ADMINS: ""
+          envkey_PGSSLMODE: "no-verify"
+          envkey_NEXTAUTH_COOKIE_DOMAIN: ".mento.co"
+          envkey_CALCOM_TELEMETRY_DISABLED: "1"
+          envkey_NEXT_PUBLIC_INTERCOM_APP_ID: ""
+          envkey_NEXT_PUBLIC_ZENDESK_KEY: ""
+          envkey_NEXT_PUBLIC_HELPSCOUT_KEY: ""
+          envkey_SEND_FEEDBACK_EMAIL: ""
+          envkey_SENDGRID_EMAIL: "support@mento.co"
+          envkey_TWILIO_SID: "ACf985ae393900f18e25182575f264af99"
+          envkey_TWILIO_MESSAGING_SID: "MG62e0f4a064197c3fb851f9a823f26992"
+          envkey_NEXT_PUBLIC_IS_E2E: ""
+          envkey_NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE: ""
+          envkey_NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE: ""
+          envkey_NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE: ""
+          envkey_STRIPE_WEBHOOK_SECRET: ""
+          envkey_STRIPE_PRO_PLAN_PRODUCT_ID: ""
+          envkey_STRIPE_PREMIUM_PLAN_PRODUCT_ID: ""
+          envkey_STRIPE_FREE_PLAN_PRODUCT_ID: ""
+          envkey_API_KEY_PREFIX: "cal"
+          envkey_EMAIL_FROM: "support@mento.co"
+          envkey_EMAIL_SERVER_HOST: "smtp.gmail.com"
+          envkey_EMAIL_SERVER_PORT: "465"
+          envkey_EMAIL_SERVER_USER: "coaching@mento.co"
+          envkey_NEXT_PUBLIC_TEAM_IMPERSONATION: "true"
+          envkey_GOOGLE_LOGIN_ENABLED: "true"
+#      - name: Build image
+#        run: docker-compose build calcom
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+      - name: Tag and push image to stage
+        if: github.ref_name == 'develop'
+        run: |
+          docker tag docker_calcom registry.digitalocean.com/mento/docker_calcom:stage
+          docker push registry.digitalocean.com/mento/docker_calcom:stage
+      - name: Tag and push image to prod
+        if: github.ref_name == 'release'
+        run: |
+          docker tag docker_calcom registry.digitalocean.com/mento/docker_calcom:latest
+          docker push registry.digitalocean.com/mento/docker_calcom:latest
