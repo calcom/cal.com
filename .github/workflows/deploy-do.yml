@@ -9,7 +9,7 @@ on:
 jobs:
   docker:
     runs-on: ubuntu-latest
-    environment: do_stage
+    environment: 'DO Stage'
     steps:
       - uses: actions/checkout@v3
       - name: Make envfile
@@ -62,7 +62,7 @@ jobs:
           envkey_NEXT_PUBLIC_TEAM_IMPERSONATION: "true"
           envkey_GOOGLE_LOGIN_ENABLED: "true"
       - name: Print Env
-        run: cat .env
+        run: cat .env | grep WEBAPP
       - name: Build image
         run: docker-compose build calcom
       - name: Install doctl
