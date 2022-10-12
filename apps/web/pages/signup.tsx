@@ -1,12 +1,11 @@
-// code duplicate of apps/api/auth/signup.tsx, could not find a way to import without breaking SSR
-// TODO: find a way to componentise this better and not duplicate code
-import { GetServerSidePropsContext } from "next";
+import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/v2/core/Button";
 import { EmailField, PasswordField, TextField } from "@calcom/ui/v2/core/form/fields";
@@ -26,10 +25,12 @@ type FormValues = {
   apiError: string;
 };
 
-export default function Signup() {
+export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
-  const methods = useForm<FormValues>();
+  const methods = useForm<FormValues>({
+    defaultValues: prepopulateFormValues,
+  });
   const {
     register,
     formState: { errors, isSubmitting },
@@ -131,44 +132,63 @@ export default function Signup() {
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const ssr = await ssrInit(ctx);
   const token = asStringOrNull(ctx.query.token);
-  if (token) {
-    const verificationToken = await prisma.verificationToken.findUnique({
-      where: {
-        token,
-      },
-    });
-    if (verificationToken) {
-      const existingUser = await prisma.user.findFirst({
-        where: {
-          AND: [
-            {
-              email: verificationToken?.identifier,
-            },
-            {
-              emailVerified: {
-                not: null,
-              },
-            },
-          ],
-        },
-      });
 
-      if (existingUser) {
-        return {
-          redirect: {
-            permanent: false,
-            destination: "/auth/login?callbackUrl=" + `${WEBAPP_URL}/${ctx.query.callbackUrl}`,
+  const props = {
+    isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
+    isSAMLLoginEnabled,
+    trpcState: ssr.dehydrate(),
+    prepopulateFormValues: undefined,
+  };
+
+  // no token given, treat as a normal signup without verification token
+  if (!token) {
+    return {
+      props,
+    };
+  }
+
+  const verificationToken = await prisma.verificationToken.findUnique({
+    where: {
+      token,
+    },
+  });
+
+  if (!verificationToken || verificationToken.expires < new Date()) {
+    return {
+      notFound: true,
+    };
+  }
+
+  const existingUser = await prisma.user.findFirst({
+    where: {
+      AND: [
+        {
+          email: verificationToken?.identifier,
+        },
+        {
+          emailVerified: {
+            not: null,
           },
-        };
-      }
-    }
+        },
+      ],
+    },
+  });
+
+  if (existingUser) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/auth/login?callbackUrl=" + `${WEBAPP_URL}/${ctx.query.callbackUrl}`,
+      },
+    };
   }
 
   return {
     props: {
-      isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
-      isSAMLLoginEnabled,
-      trpcState: ssr.dehydrate(),
+      ...props,
+      prepopulateFormValues: {
+        email: verificationToken.identifier,
+      },
     },
   };
 };
