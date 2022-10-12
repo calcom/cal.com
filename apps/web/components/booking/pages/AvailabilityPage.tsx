@@ -37,6 +37,7 @@ import { isBrandingHidden } from "@lib/isBrandingHidden";
 
 import Gates, { Gate, GateState } from "@components/Gates";
 import AvailableTimes from "@components/booking/AvailableTimes";
+import BookingDescription from "@components/booking/BookingDescription";
 import TimeOptions from "@components/booking/TimeOptions";
 import { UserAvatars } from "@components/booking/UserAvatars";
 import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
@@ -415,41 +416,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     "min-w-full md:w-[280px] md:min-w-[280px]",
                     recurringEventCount && "xl:w-[380px] xl:min-w-[380px]"
                   )}>
-                  <UserAvatars
-                    profile={profile}
-                    users={eventType.users}
-                    showMembers={eventType.schedulingType !== SchedulingType.ROUND_ROBIN}
-                    size={10}
-                    truncateAfter={3}
-                  />
-                  <h2 className="mt-2 break-words text-sm font-medium text-gray-600 dark:text-gray-300">
-                    {profile.name}
-                  </h2>
-                  <h1 className="font-cal dark:text-darkgray-900 mb-6 break-words text-2xl font-semibold text-gray-900">
-                    {eventType.title}
-                  </h1>
-                  <div className="dark:text-darkgray-600 flex flex-col space-y-3 text-sm font-medium text-gray-600">
-                    {eventType?.description && (
-                      <div className="flex">
-                        <div>
-                          <Icon.FiInfo className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
-                        </div>
-                        <EventTypeDescriptionSafeHTML eventType={eventType} />
-                      </div>
-                    )}
-                    {eventType?.requiresConfirmation && (
-                      <div className="flex items-center">
-                        <div>
-                          <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 " />
-                        </div>
-                        {t("requires_confirmation")}
-                      </div>
-                    )}
-                    <AvailableEventLocations locations={eventType.locations} />
-                    <p className="text-sm font-medium">
-                      <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
-                      {eventType.length} {t("minutes")}
-                    </p>
+                  <BookingDescription profile={profile} eventType={eventType}>
                     {!rescheduleUid && eventType.recurringEvent && (
                       <div className="flex items-start text-sm font-medium">
                         <Icon.FiRefreshCcw className="float-left mr-[10px] mt-[7px] ml-[2px] inline-block h-4 w-4 " />
@@ -488,7 +455,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                       </p>
                     )}
                     {timezoneDropdown}
-                  </div>
+                  </BookingDescription>
 
                   {!isEmbed && (
                     <div className="mt-auto hidden md:block">

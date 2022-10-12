@@ -175,11 +175,7 @@ const Actions = ({
   );
 };
 
-export default function SingleForm({
-  form,
-  appUrl,
-  Page,
-}: {
+type SingleFormComponentProps = {
   form: RoutingFormWithResponseCount;
   appUrl: string;
   Page: React.FC<{
@@ -187,23 +183,24 @@ export default function SingleForm({
     appUrl: string;
     hookForm: UseFormReturn<RoutingFormWithResponseCount>;
   }>;
-}) {
+};
+
+function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
+  const utils = trpc.useContext();
+
   const hookForm = useForm({
     defaultValues: form,
   });
-  const utils = trpc.useContext();
-  const router = useRouter();
 
   const mutation = trpc.useMutation("viewer.app_routing_forms.formMutation", {
     onSuccess() {
-      router.replace(router.asPath);
       showToast("Form updated successfully.", "success");
     },
     onError() {
       showToast(`Something went wrong`, "error");
     },
     onSettled() {
-      utils.invalidateQueries(["viewer.app_routing_forms.formQuery"]);
+      utils.invalidateQueries(["viewer.app_routing_forms.formQuery", { id: form.id }]);
     },
   });
   return (
@@ -261,4 +258,21 @@ export default function SingleForm({
       </FormActionsProvider>
     </Form>
   );
+}
+
+export default function SingleFormWrapper({ form: _form, ...props }: SingleFormComponentProps) {
+  const { data: form, isLoading } = trpc.useQuery(["viewer.app_routing_forms.formQuery", { id: _form.id }], {
+    initialData: _form,
+  });
+  const { t } = useLocale();
+
+  if (isLoading) {
+    // It shouldn't be possible because we are passing the data from SSR to it as initialData. So, no need for skeleton here
+    return null;
+  }
+
+  if (!form) {
+    throw new Error(t("something_went_wrong"));
+  }
+  return <SingleForm form={form} {...props} />;
 }

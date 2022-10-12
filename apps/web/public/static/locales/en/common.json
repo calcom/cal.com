@@ -313,6 +313,7 @@
   "past_bookings": "Your past bookings will show up here.",
   "cancelled_bookings": "Your cancelled bookings will show up here.",
   "unconfirmed_bookings": "Your unconfirmed bookings will show up here.",
+  "unconfirmed_bookings_tooltip": "Unconfirmed bookings",
   "on": "on",
   "and": "and",
   "calendar_shows_busy_between": "Your calendar shows you as busy between",
@@ -1267,6 +1268,9 @@
   "seats": "seats",
   "every_app_published": "Every app published on the Cal.com App Store is open source and thoroughly tested via peer reviews. Nevertheless, Cal.com, Inc. does not endorse or certify these apps unless they are published by Cal.com. If you encounter inappropriate content or behaviour please report it.",
   "report_app": "Report app",
+  "limit_booking_frequency":"Limit booking frequency",
+  "limit_booking_frequency_description":"Limit how many times this event can be booked",
+  "add_limit":"Add Limit",
   "team_name_required": "Team name required",
   "how_additional_inputs_as_variables": "How to use Additional Inputs as Variables",
   "format": "Format",
@@ -1301,5 +1305,7 @@
   "how_long_after": "How long after event ends?",
   "installed_app_automation_description": "Use apps to automize your workflows",
   "no_category_apps_description_automation": "Add automation apps to improve your workflows.",
-  "connect_automation_apps": "Connect automation apps"
+  "connect_automation_apps": "Connect automation apps",
+  "no_available_slots": "No Available slots",
+  "time_available": "Time available"
 }

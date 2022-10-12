@@ -170,7 +170,11 @@ function RoutingForm({ form, profile }: inferSSRProps<typeof getServerSideProps>
                       );
                     })}
                     <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
-                      <Button loading={responseMutation.isLoading} type="submit" color="primary">
+                      <Button
+                        className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast dark:hover:border-darkmodebrandcontrast dark:border-transparent"
+                        loading={responseMutation.isLoading}
+                        type="submit"
+                        color="primary">
                         {t("submit")}
                       </Button>
                     </div>
