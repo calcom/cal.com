@@ -6,6 +6,8 @@ const CACHING_TIME = 86400000; // 24 hours in milliseconds
 
 async function checkLicense(license: string): Promise<boolean> {
   if (!!process.env.NEXT_PUBLIC_IS_E2E) return true;
+  if (!license) return false;
+
   const url = `${CONSOLE_URL}/api/license?key=${license}`;
   const cachedResponse = cache.get(url);
   if (cachedResponse) {
