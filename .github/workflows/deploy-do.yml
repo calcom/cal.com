@@ -9,7 +9,7 @@ on:
 jobs:
   docker:
     runs-on: ubuntu-latest
-    environment: 'DO Stage'
+    environment: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v3
       - name: Make envfile
