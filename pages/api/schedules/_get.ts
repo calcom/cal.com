@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 import { z } from "zod";
 
@@ -5,6 +6,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
 import { schemaSchedulePublic } from "@lib/validations/schedule";
+import { schemaQuerySingleOrMultipleUserIds } from "@lib/validations/shared/queryUserId";
 
 export const schemaUserIds = z
   .union([z.string(), z.array(z.string())])
@@ -26,34 +28,25 @@ export const schemaUserIds = z
  *       404:
  *         description: No schedules were found
  */
-async function handler({ body, prisma, userId, isAdmin, query }: NextApiRequest) {
-  let userIds: number[] = [userId];
+async function handler(req: NextApiRequest) {
+  const { prisma, userId, isAdmin } = req;
+  const args: Prisma.ScheduleFindManyArgs = isAdmin ? {} : { where: { userId } };
+  args.include = { availability: true };
 
-  if (!isAdmin && query.userId) {
-    // throw 403 Forbidden when the userId is given but user is not an admin
-    throw new HttpError({ statusCode: 403 });
-  }
-  // When isAdmin && userId is given parse it and use it instead of the current (admin) user.
-  else if (query.userId) {
-    const result = schemaUserIds.safeParse(query.userId);
-    if (result.success && result.data) {
-      userIds = result.data;
-    }
-  }
+  if (!isAdmin && req.query.userId)
+    throw new HttpError({
+      statusCode: 401,
+      message: "Unauthorized: Only admins can query other users",
+    });
 
-  const data = await prisma.schedule.findMany({
-    where: {
-      userId: { in: userIds },
-    },
-    include: { availability: true },
-    ...(Array.isArray(body.userId) && { orderBy: { userId: "asc" } }),
-  });
-  const schedules = data.map((schedule) => schemaSchedulePublic.parse(schedule));
-  if (schedules) {
-    return { schedules };
+  if (isAdmin && req.query.userId) {
+    const query = schemaQuerySingleOrMultipleUserIds.parse(req.query);
+    const userIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
+    args.where = { userId: { in: userIds } };
+    if (Array.isArray(query.userId)) args.orderBy = { userId: "asc" };
   }
-
-  throw new HttpError({ statusCode: 404, message: "No schedules were found" });
+  const data = await prisma.schedule.findMany(args);
+  return { schedules: data.map((s) => schemaSchedulePublic.parse(s)) };
 }
 
 export default defaultResponder(handler);

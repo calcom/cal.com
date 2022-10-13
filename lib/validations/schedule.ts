@@ -3,21 +3,16 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { _ScheduleModel as Schedule, _AvailabilityModel as Availability } from "@calcom/prisma/zod";
 
-const schemaScheduleBaseBodyParams = Schedule.omit({ id: true }).partial();
+import { timeZone } from "./shared/timeZone";
 
-const schemaScheduleRequiredParams = z.object({
-  name: z.string().optional(),
-  userId: z.union([z.number(), z.array(z.number())]).optional(),
-});
-
-export const schemaScheduleBodyParams = schemaScheduleBaseBodyParams.merge(schemaScheduleRequiredParams);
+const schemaScheduleBaseBodyParams = Schedule.omit({ id: true, timeZone: true }).partial();
 
 export const schemaSingleScheduleBodyParams = schemaScheduleBaseBodyParams.merge(
-  z.object({ userId: z.number().optional() })
+  z.object({ userId: z.number().optional(), timeZone: timeZone.optional() })
 );
 
 export const schemaCreateScheduleBodyParams = schemaScheduleBaseBodyParams.merge(
-  z.object({ userId: z.number().optional(), name: z.string() })
+  z.object({ userId: z.number().optional(), name: z.string(), timeZone })
 );
 
 export const schemaSchedulePublic = z
