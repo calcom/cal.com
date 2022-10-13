@@ -49,8 +49,8 @@ const DestinationCalendarSelector = ({
   const SingleValue = (props) => {
     const { label, subtitle } = props.data;
     return (
-      <components.SingleValue {...props}>
-        {label} <span className="text-neutral-500">{subtitle}</span>
+      <components.SingleValue {...props} className="flex space-x-1">
+        <p>{label}</p> <p className=" text-neutral-500">{subtitle}</p>
       </components.SingleValue>
     );
   };
@@ -65,27 +65,28 @@ const DestinationCalendarSelector = ({
     );
   };
 
-  // useEffect(() => {
-  //   const selected = query.data?.connectedCalendars
-  //     .map((connected) => connected.calendars ?? [])
-  //     .flat()
-  //     .find((cal) => cal.externalId === value);
-  //   console.log("🚀 ~ file: DestinationCalendarSelector.tsx ~ line 53 ~ useEffect ~ selected", query.data);
+  useEffect(() => {
+    const { destinationCalendar } = query.data;
 
-  //   if (selected) {
-  //     const selectedIntegration = query.data?.connectedCalendars.find((integration) =>
-  //       integration.calendars?.some((calendar) => calendar.externalId === selected.externalId)
-  //     );
+    const selected = query.data?.connectedCalendars
+      .map((connected) => connected.calendars ?? [])
+      .flat()
+      .find((cal) => cal.externalId === destinationCalendar.externalId);
 
-  //     setSelectedOption({
-  //       value: `${selected.integration}:${selected.externalId}`,
-  //       label:
-  //         `${selected.name} (${selectedIntegration?.integration.title?.replace(/calendar/i, "")} - ${
-  //           selectedIntegration?.primary?.name
-  //         })` || "",
-  //     });
-  //   }
-  // }, [query.data?.connectedCalendars, value]);
+    if (selected) {
+      const selectedIntegration = query.data?.connectedCalendars.find((integration) =>
+        integration.calendars?.some((calendar) => calendar.externalId === selected.externalId)
+      );
+
+      setSelectedOption({
+        value: `${selected.integration}:${selected.externalId}`,
+        label: `${selected.name} ` || "",
+        subtitle: `(${selectedIntegration?.integration.title?.replace(/calendar/i, "")} - ${
+          selectedIntegration?.primary?.name
+        })`,
+      });
+    }
+  }, [query.data?.connectedCalendars]);
 
   if (!query.data?.connectedCalendars.length) {
     return null;
