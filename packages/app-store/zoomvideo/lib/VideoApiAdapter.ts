@@ -86,7 +86,6 @@ const zoomAuth = (credential: Credential) => {
       }),
     });
     const responseBody = await handleErrorsJson(response);
-    await handleErrorResponseFromZoom(responseBody, credential.id);
 
     // We check the if the new credentials matches the expected response structure
     const parsedToken = zoomRefreshedTokenSchema.safeParse(responseBody);
@@ -119,7 +118,6 @@ const zoomAuth = (credential: Credential) => {
       try {
         credentialKey = zoomTokenSchema.parse(credential.key);
       } catch (error) {
-        await invalidateCredential(credential.id);
         return Promise.reject("Zoom credential keys parsing error");
       }
 
@@ -306,41 +304,4 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
   };
 };
 
-const invalidateCredential = async (credentialId: Credential["id"]) => {
-  try {
-    const credential = await prisma.credential.findUnique({
-      where: {
-        id: credentialId,
-      },
-    });
-
-    if (credential) {
-      await prisma.credential.update({
-        where: {
-          id: credentialId,
-        },
-        data: {
-          invalid: true,
-        },
-      });
-    }
-  } catch (err) {
-    console.error(err);
-  }
-};
-
-const handleErrorResponseFromZoom = async (
-  responseBody: { reason: string; error: string; refresh_token: string },
-  credentialId: number
-) => {
-  try {
-    if (responseBody.error) {
-      if (responseBody.error === "invalid_grant") {
-        await invalidateCredential(credentialId);
-      }
-    }
-  } catch (err) {
-    console.error(err);
-  }
-};
 export default ZoomVideoApiAdapter;
