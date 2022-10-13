@@ -29,7 +29,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
       const dav = new CalendarService({
-        id: 0,
         ...data,
       });
       await dav?.listCalendars();

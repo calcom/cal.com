@@ -1,9 +1,9 @@
-import { Credential } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import CalendarService from "@calcom/lib/CalendarService";
 
 export default class AppleCalendarService extends CalendarService {
-  constructor(credential: Credential) {
+  constructor(credential: Prisma.CredentialCreateInput) {
     super(credential, "apple_calendar", "https://caldav.icloud.com");
   }
 }
