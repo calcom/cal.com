@@ -75,7 +75,7 @@ const zoomAuth = (credential: Credential) => {
     })
       .then(handleErrorsJson)
       .then(async (responseBody) => {
-        if (!responseBody.refresh_token) Promise.reject(new Error("Invalid credentials"));
+        await handleResponseBodyFromZoom(responseBody, credential.id);
         // set expiry date as offset from current time.
         responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
         delete responseBody.expires_in;
@@ -98,12 +98,8 @@ const zoomAuth = (credential: Credential) => {
       try {
         credentialKey = zoomTokenSchema.parse(credential.key);
       } catch (error) {
-        // If the parse fails, it means we have an invalid credential saved. We should delete it.
-        await prisma.credential.delete({ where: { id: credential.id } });
-        // We reject the promise, and should handle the error on the UI
-        return Promise.reject(
-          "This Zoom credential was malformed so we've removed it from the DB. Please add a new Zoom credential"
-        );
+        await invalidateCredential(credential.id);
+        return Promise.reject("Zoom credential keys parsing error");
       }
 
       return !isTokenValid(credentialKey)
@@ -288,4 +284,17 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
   };
 };
 
+const handleResponseBodyFromZoom = async (
+  responseBody: { reason: string; error: string; refresh_token: string },
+  credentialId: number
+) => {
+  if (responseBody.error) {
+    if (responseBody.error === "invalid_grant") {
+      await invalidateCredential(credentialId);
+    }
+  }
+  if (!responseBody.refresh_token) {
+    return Promise.reject(new Error("ZoomAPI: No refresh token was returned in the response"));
+  }
+};
 export default ZoomVideoApiAdapter;
