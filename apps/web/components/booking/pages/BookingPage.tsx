@@ -49,6 +49,7 @@ import { parseDate, parseRecurringDates } from "@lib/parseDate";
 import slugify from "@lib/slugify";
 
 import Gates, { Gate, GateState } from "@components/Gates";
+import BookingDescription from "@components/booking/BookingDescription";
 import { UserAvatars } from "@components/booking/UserAvatars";
 import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
 
@@ -450,40 +451,7 @@ const BookingPage = ({
           )}>
           <div className="sm:flex">
             <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
-              <UserAvatars
-                profile={profile}
-                users={eventType.users}
-                showMembers={eventType.schedulingType !== SchedulingType.ROUND_ROBIN}
-                size={10}
-                truncateAfter={3}
-              />
-              <h2 className="mt-2 break-words text-sm font-medium text-gray-500 dark:text-gray-300">
-                {profile.name}
-              </h2>
-              <h1 className="font-cal dark:text-darkgray-900 break-words text-2xl text-gray-900 ">
-                {eventType.title}
-              </h1>
-              <div className="mt-4 flex flex-col space-y-3 lg:mt-9">
-                {eventType?.description && (
-                  <div className="dark:text-darkgray-600 flex text-sm font-medium text-gray-600">
-                    <div>
-                      <Icon.FiInfo className="dark:text-darkgray-600 mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
-                    </div>
-                    <EventTypeDescriptionSafeHTML eventType={eventType} />
-                  </div>
-                )}
-                {eventType?.requiresConfirmation && (
-                  <div className="dark:text-darkgray-600 flex items-center text-sm font-medium text-gray-600">
-                    <div>
-                      <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 " />
-                    </div>
-                    {t("requires_confirmation")}
-                  </div>
-                )}
-                <p className="dark:text-darkgray-600 text-sm font-medium text-gray-600">
-                  <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
-                  {eventType.length} {t("minutes")}
-                </p>
+              <BookingDescription isBookingPage profile={profile} eventType={eventType}>
                 {eventType.price > 0 && (
                   <p className="text-bookinglight -ml-2 px-2 text-sm ">
                     <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
@@ -559,7 +527,7 @@ const BookingPage = ({
                     </p>
                   </div>
                 )}
-              </div>
+              </BookingDescription>
             </div>
             <div className="p-6 sm:w-1/2">
               <Form form={bookingForm} handleSubmit={bookEvent}>
