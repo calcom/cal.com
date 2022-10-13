@@ -27,7 +27,11 @@ const DestinationCalendarSelector = ({
 }: Props): JSX.Element | null => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.connectedCalendars"]);
-  const [selectedOption, setSelectedOption] = useState<{ value: string; label: string } | null>(null);
+  const [selectedOption, setSelectedOption] = useState<{
+    value: string;
+    label: string;
+    subtitle: string;
+  } | null>(null);
 
   // Extra styles to show prefixed text in react-select
   const content = (hidePlaceholder = false) => {
@@ -56,7 +60,6 @@ const DestinationCalendarSelector = ({
   };
 
   const Option = (props) => {
-    console.log("🚀 ~ file: DestinationCalendarSelector.tsx ~ line 49 ~ SingleValue ~ props", props);
     const { label } = props.data;
     return (
       <components.Option {...props}>
@@ -71,7 +74,7 @@ const DestinationCalendarSelector = ({
     const selected = query.data?.connectedCalendars
       .map((connected) => connected.calendars ?? [])
       .flat()
-      .find((cal) => cal.externalId === destinationCalendar.externalId);
+      .find((cal) => cal.externalId === value);
 
     if (selected) {
       const selectedIntegration = query.data?.connectedCalendars.find((integration) =>
