@@ -284,6 +284,24 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
   };
 };
 
+const invalidateCredential = async (credentialId: Credential["id"]) => {
+  const credential = await prisma.credential.findUnique({
+    where: {
+      id: credentialId,
+    },
+  });
+
+  if (credential) {
+    await prisma.credential.update({
+      where: {
+        id: credentialId,
+      },
+      data: {
+        invalid: true,
+      },
+    });
+  }
+};
 const handleResponseBodyFromZoom = async (
   responseBody: { reason: string; error: string; refresh_token: string },
   credentialId: number
