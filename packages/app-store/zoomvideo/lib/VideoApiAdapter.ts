@@ -20,6 +20,7 @@ const zoomEventResultSchema = z.object({
 
 export type ZoomEventResult = z.infer<typeof zoomEventResultSchema>;
 
+// @TODO: add link to the docs
 export const zoomMeetingsSchema = z.object({
   next_page_token: z.string(),
   page_count: z.number(),
@@ -45,6 +46,7 @@ export const zoomMeetingsSchema = z.object({
 });
 
 // Successful API response
+// @TODO: add link to the docs
 const zoomTokenSchema = z.object({
   scope: z.string().regex(new RegExp("meeting:write")),
   expiry_date: z.number(),
@@ -58,7 +60,7 @@ type ZoomToken = z.infer<typeof zoomTokenSchema>;
 
 const isTokenValid = (token: ZoomToken) => (token.expires_in || token.expiry_date) < Date.now();
 
-/** @see https://marketplace.zoom.us/docs/guides/auth/oauth/#request */
+/** @link https://marketplace.zoom.us/docs/guides/auth/oauth/#request */
 const zoomRefreshedTokenSchema = z.object({
   access_token: z.string(),
   token_type: z.literal("bearer"),
@@ -82,15 +84,24 @@ const zoomAuth = (credential: Credential) => {
         grant_type: "refresh_token",
       }),
     });
-    const responseBody = handleErrorsJson(response);
+    const responseBody = await handleErrorsJson(response);
+    await handleErrorResponseFromZoom(responseBody, credential.id);
+
     // We check the if the new credentials matches the expected response structure
     const parsedToken = zoomRefreshedTokenSchema.safeParse(responseBody);
+
     // TODO: If the new token is invalid, initiate the fallback sequence instead of throwing
-    if (!parsedToken.success) return Promise.reject(new Error("Invalid refreshed tokens were returned"));
+    // Expanding on this we can use server-to-server app and create meeting from admin calcom account
+    if (!parsedToken.success) {
+      return Promise.reject(new Error("Invalid refreshed tokens were returned"));
+    }
     const newTokens = parsedToken.data;
     const oldCredential = await prisma.credential.findUniqueOrThrow({ where: { id: credential.id } });
     const parsedKey = zoomTokenSchema.safeParse(oldCredential.key);
-    if (!parsedKey.success) return Promise.reject(new Error("Invalid credentials were saved in the DB"));
+    if (!parsedKey.success) {
+      return Promise.reject(new Error("Invalid credentials were saved in the DB"));
+    }
+
     const key = parsedKey.data;
     key.access_token = newTokens.access_token;
     key.refresh_token = newTokens.refresh_token;
@@ -294,34 +305,42 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
 };
 
 const invalidateCredential = async (credentialId: Credential["id"]) => {
-  const credential = await prisma.credential.findUnique({
-    where: {
-      id: credentialId,
-    },
-  });
-
-  if (credential) {
-    await prisma.credential.update({
+  try {
+    const credential = await prisma.credential.findUnique({
       where: {
         id: credentialId,
       },
-      data: {
-        invalid: true,
-      },
     });
+
+    if (credential) {
+      await prisma.credential.update({
+        where: {
+          id: credentialId,
+        },
+        data: {
+          invalid: true,
+        },
+      });
+    }
+  } catch (err) {
+    console.error(err);
   }
 };
-const handleResponseBodyFromZoom = async (
+const handleErrorResponseFromZoom = async (
   responseBody: { reason: string; error: string; refresh_token: string },
   credentialId: number
 ) => {
-  if (responseBody.error) {
-    if (responseBody.error === "invalid_grant") {
-      await invalidateCredential(credentialId);
+  try {
+    if (responseBody.error) {
+      if (responseBody.error === "invalid_grant") {
+        await invalidateCredential(credentialId);
+      }
     }
-  }
-  if (!responseBody.refresh_token) {
-    return Promise.reject(new Error("ZoomAPI: No refresh token was returned in the response"));
+    if (!responseBody.refresh_token) {
+      throw new Error("ZoomAPI: No refresh token was returned in the response");
+    }
+  } catch (err) {
+    console.error(err);
   }
 };
 export default ZoomVideoApiAdapter;
