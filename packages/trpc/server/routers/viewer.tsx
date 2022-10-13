@@ -1,7 +1,7 @@
 import { AppCategories, BookingStatus, IdentityProvider, MembershipRole, Prisma } from "@prisma/client";
 import _ from "lodash";
 import { authenticator } from "otplib";
-import { z } from "zod";
+import z from "zod";
 
 import app_RoutingForms from "@calcom/app-store/ee/routing-forms/trpc-router";
 import ethRouter from "@calcom/app-store/rainbow/trpc/router";
@@ -55,11 +55,6 @@ import { workflowsRouter } from "./viewer/workflows";
 
 // things that unauthenticated users can query about themselves
 const publicViewerRouter = createRouter()
-  .query("session", {
-    resolve({ ctx }) {
-      return ctx.session;
-    },
-  })
   .query("i18n", {
     async resolve({ ctx }) {
       const { locale, i18n } = ctx;
@@ -459,20 +454,12 @@ const loggedInViewerRouter = createProtectedRouter()
           // handled separately for each occurrence
           OR: [
             {
-              AND: [
-                { NOT: { recurringEventId: { equals: null } } },
-                {
-                  status: {
-                    notIn: [BookingStatus.PENDING, BookingStatus.CANCELLED, BookingStatus.REJECTED],
-                  },
-                },
-              ],
+              recurringEventId: { not: null },
+              status: { notIn: [BookingStatus.PENDING, BookingStatus.CANCELLED, BookingStatus.REJECTED] },
             },
             {
-              AND: [
-                { recurringEventId: { equals: null } },
-                { status: { notIn: [BookingStatus.CANCELLED, BookingStatus.REJECTED] } },
-              ],
+              recurringEventId: { equals: null },
+              status: { notIn: [BookingStatus.CANCELLED, BookingStatus.REJECTED] },
             },
           ],
         },
@@ -498,7 +485,15 @@ const loggedInViewerRouter = createProtectedRouter()
         },
         unconfirmed: {
           endTime: { gte: new Date() },
-          status: { equals: BookingStatus.PENDING },
+          OR: [
+            {
+              recurringEventId: { not: null },
+              status: { equals: BookingStatus.PENDING },
+            },
+            {
+              status: { equals: BookingStatus.PENDING },
+            },
+          ],
         },
       };
       const bookingListingOrderby: Record<
@@ -577,7 +572,26 @@ const loggedInViewerRouter = createProtectedRouter()
         skip,
       });
 
-      let bookings = bookingsQuery.map((booking) => {
+      const recurringInfo = await prisma.booking.groupBy({
+        by: ["recurringEventId"],
+        _min: {
+          startTime: true,
+        },
+        _count: {
+          recurringEventId: true,
+        },
+        where: {
+          recurringEventId: {
+            not: { equals: null },
+          },
+          status: {
+            notIn: [BookingStatus.CANCELLED],
+          },
+          userId: user.id,
+        },
+      });
+
+      const bookings = bookingsQuery.map((booking) => {
         return {
           ...booking,
           eventType: {
@@ -588,26 +602,8 @@ const loggedInViewerRouter = createProtectedRouter()
           endTime: booking.endTime.toISOString(),
         };
       });
+
       const bookingsFetched = bookings.length;
-      const seenBookings: Record<string, boolean> = {};
-
-      // Remove duplicate recurring bookings for upcoming status.
-      // Couldn't use distinct in query because the distinct column would be different for recurring and non recurring event.
-      // We might be actually sending less then the limit, due to this filter
-      // TODO: Figure out a way to fix it.
-      if (bookingListingByStatus === "upcoming") {
-        bookings = bookings.filter((booking) => {
-          if (!booking.recurringEventId) {
-            return true;
-          }
-          if (seenBookings[booking.recurringEventId]) {
-            return false;
-          }
-          seenBookings[booking.recurringEventId] = true;
-          return true;
-        });
-      }
-
       let nextCursor: typeof skip | null = skip;
       if (bookingsFetched > take) {
         nextCursor += bookingsFetched;
@@ -617,6 +613,7 @@ const loggedInViewerRouter = createProtectedRouter()
 
       return {
         bookings,
+        recurringInfo,
         nextCursor,
       };
     },
@@ -625,7 +622,7 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ ctx }) {
       const { user } = ctx;
       // get user's credentials + their connected integrations
-      const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
+      const calendarCredentials = getCalendarCredentials(user.credentials);
 
       // get all the connected integrations' calendars (from third party)
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
@@ -691,7 +688,7 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const { user } = ctx;
       const { integration, externalId, eventTypeId } = input;
-      const calendarCredentials = getCalendarCredentials(user.credentials, user.id);
+      const calendarCredentials = getCalendarCredentials(user.credentials);
       const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
       const allCals = connectedCalendars.map((cal) => cal.calendars ?? []).flat();
 
@@ -769,7 +766,7 @@ const loggedInViewerRouter = createProtectedRouter()
       const apps = getApps(credentials);
       const appFromDb = apps.find((app) => app.credential?.appId === appId);
       if (!appFromDb) {
-        return appFromDb;
+        return null;
       }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { credential: _, credentials: _1, ...app } = appFromDb;
@@ -1440,6 +1437,35 @@ const loggedInViewerRouter = createProtectedRouter()
           id: id,
         },
       });
+    },
+  })
+  .query("bookingUnconfirmedCount", {
+    async resolve({ ctx }) {
+      const { prisma, user } = ctx;
+      const count = await prisma.booking.count({
+        where: {
+          status: BookingStatus.PENDING,
+          userId: user.id,
+          endTime: { gt: new Date() },
+        },
+      });
+      const recurringGrouping = await prisma.booking.groupBy({
+        by: ["recurringEventId"],
+        _count: {
+          recurringEventId: true,
+        },
+        where: {
+          recurringEventId: { not: { equals: null } },
+          status: { equals: "PENDING" },
+          userId: user.id,
+          endTime: { gt: new Date() },
+        },
+      });
+      return recurringGrouping.reduce((prev, current) => {
+        // recurringEventId is the total number of recurring instances for a booking
+        // we need to substract all but one, to represent a single recurring booking
+        return prev - (current._count?.recurringEventId - 1);
+      }, count);
     },
   });
 

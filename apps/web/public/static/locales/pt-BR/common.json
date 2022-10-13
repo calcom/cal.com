@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "Use o link abaixo para redefinir a sua senha",
   "hey_there": "Olá,",
   "forgot_your_password_calcom": "Esqueceu sua senha? - Cal.com",
-  "event_type_title": "{{eventTypeTitle}} | Tipo de evento",
   "delete_webhook_confirmation_message": "Você tem certeza que quer remover este Webhook? Você não receberá mais dados de reuniões de Cal.com na URL especificada, em tempo real, quando um evento for agendado ou cancelado.",
   "confirm_delete_webhook": "Sim, remover o Webhook",
   "edit_webhook": "Editar Webhook",
@@ -633,7 +632,6 @@
   "billing": "Faturamento",
   "manage_your_billing_info": "Gerenciar as suas informações de faturamento e cancelar a sua assinatura.",
   "availability": "Disponibilidade",
-  "availability_title": "{{availabilityTitle}} | Disponibilidade",
   "edit_availability": "Editar disponibilidade",
   "configure_availability": "Configure os horários em que estiver disponível para reservas.",
   "copy_times_to": "Copiar horários para",
@@ -839,7 +837,6 @@
   "redirect_success_booking": "Redirecionar após a reserva ",
   "you_are_being_redirected": "Você está sendo redirecionado para {{ url }} em $t(second, {\"count\": {{seconds}} }).",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
-  "redirect_url_upgrade_description": "Para usar este recurso, atualize para uma conta Pro.",
   "duplicate": "Duplicar",
   "offer_seats": "Oferecer assentos",
   "offer_seats_description": "Oferecer lugares para reserva (isso desativa convidados e confirmações de reserva)",
@@ -1268,5 +1265,9 @@
   "confirm_password_change_email": "Confirme sua senha antes de alterar o endereço de e-mail",
   "seats": "assentos",
   "every_app_published": "Todos os aplicativos publicados na App Store da Cal.com são de código aberto e testados minuciosamente por meio de avaliações por pares. No entanto, a Cal.com, Inc. não endossa ou certifica esses aplicativos a não ser que sejam publicados pela Cal.com. Se você encontrar conteúdo ou comportamento inadequado, denuncie.",
-  "report_app": "Denunciar aplicativo"
+  "report_app": "Denunciar aplicativo",
+  "billing_manage_details_title": "Visualizar e gerenciar os seus detalhes de faturamento",
+  "billing_manage_details_description": "Ver e editar os seus dados de faturamento, bem como cancelar a sua assinatura.",
+  "billing_help_title": "Precisa de algo mais?",
+  "billing_help_description": "Se precisar de mais ajuda com o faturamento, o nosso time de suporte está aqui para ajudar."
 }

@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "使用以下連結重置密碼",
   "hey_there": "哈囉，",
   "forgot_your_password_calcom": "忘記密碼了？ - Cal.com",
-  "event_type_title": "{{eventTypeTitle}} | 活動類型",
   "delete_webhook_confirmation_message": "您確定要刪除這組 Webhook 嗎？之後活動預定或取消的時候，您就不會即時經特定連結收到 Cal.com 的會議資料。",
   "confirm_delete_webhook": "是的，刪除 Webhook",
   "edit_webhook": "編輯 Webhook",
@@ -633,7 +632,6 @@
   "billing": "付費",
   "manage_your_billing_info": "管理付費資訊，以及取消訂閱。",
   "availability": "開放時間",
-  "availability_title": "{{availabilityTitle}} | 開放時間",
   "edit_availability": "編輯開放時間",
   "configure_availability": "設定開放接受預約的時段。",
   "copy_times_to": "將時間複製到",
@@ -839,7 +837,6 @@
   "redirect_success_booking": "在預約時重新導向 ",
   "you_are_being_redirected": "將於 $t(second, {\"count\": {{seconds}} }) 秒後將您重新導向至 {{ url }}。",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
-  "redirect_url_upgrade_description": "您必須升級至專業版帳號才能使用此功能。",
   "duplicate": "複製",
   "offer_seats": "提供座位",
   "offer_seats_description": "為預約提供席次 (這將停用賓客和主動加入的預約)",
@@ -1267,5 +1264,9 @@
   "confirm_password_change_email": "請先確認密碼，再變更電子郵件地址",
   "seats": "座位",
   "every_app_published": "Cal.com App Store 上發佈的每個應用程式皆為開放原始碼，並經過同業審查仔細測試過。不過除了 Cal.com 發佈的應用程式外，Cal.com, Inc. 無法為其他應用程式背書或提出擔保。若您發現這些應用程式有不當內容或行為，請立即回報。",
-  "report_app": "回報應用程式"
+  "report_app": "回報應用程式",
+  "billing_manage_details_title": "檢視與管理付費細節",
+  "billing_manage_details_description": "檢視與編輯付費細節，以及取消訂閱。",
+  "billing_help_title": "還要什麼嗎？",
+  "billing_help_description": "如果有關於付費的進一步需求，我們的支援團隊隨時上前幫忙。"
 }

@@ -47,9 +47,7 @@ const tabs: VerticalTabItemProps[] = [
     name: "billing",
     href: "/settings/billing",
     icon: Icon.FiCreditCard,
-    children: [
-      { name: "Manage Billing", href: "/api/integrations/stripepayment/portal", isExternalLink: true },
-    ],
+    children: [{ name: "manage_billing", href: "/settings/billing" }],
   },
   {
     name: "developer",
@@ -118,15 +116,12 @@ const SettingsSidebarContainer = ({ className = "" }) => {
       aria-label="Tabs">
       <>
         <div className="desktop-only pt-4" />
-        <div>
-          <VerticalTabItem
-            name="Back"
-            href="/"
-            icon={Icon.FiArrowLeft}
-            textClassNames="text-md font-medium leading-none text-black"
-            className="my-6"
-          />
-        </div>
+        <VerticalTabItem
+          name="Back"
+          href="/."
+          icon={Icon.FiArrowLeft}
+          textClassNames="text-md font-medium leading-none text-black"
+        />
         {tabsWithPermissions.map((tab) => {
           return tab.name !== "teams" ? (
             <React.Fragment key={tab.href}>
@@ -334,7 +329,7 @@ export default function SettingsLayout({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="mx-auto max-w-xs justify-center md:max-w-3xl">
+        <div className="mx-auto max-w-full justify-center md:max-w-3xl">
           <ShellHeader />
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
@@ -349,7 +344,7 @@ function ShellHeader() {
   const { meta } = useMeta();
   const { t, isLocaleReady } = useLocale();
   return (
-    <header className="mx-auto block max-w-xs justify-between pt-12 sm:flex sm:pt-8 md:max-w-3xl">
+    <header className="mx-auto block justify-between pt-12 sm:flex sm:pt-8">
       <div className="mb-8 flex w-full items-center border-b border-gray-200 pb-8">
         {meta.backButton && (
           <a href="javascript:history.back()">
@@ -358,9 +353,7 @@ function ShellHeader() {
         )}
         <div>
           {meta.title && isLocaleReady ? (
-            <h1 className="font-cal mb-1 text-xl font-bold capitalize tracking-wide text-black">
-              {t(meta.title)}
-            </h1>
+            <h1 className="font-cal mb-1 text-xl font-bold tracking-wide text-black">{t(meta.title)}</h1>
           ) : (
             <div className="mb-1 h-6 w-24 animate-pulse rounded-md bg-gray-200" />
           )}

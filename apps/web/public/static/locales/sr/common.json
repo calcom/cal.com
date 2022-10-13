@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "Resetujte lozinku koristeći link ispod",
   "hey_there": "Zdravo,",
   "forgot_your_password_calcom": "Zaboravili ste lozinku? - Cal.com",
-  "event_type_title": "{{eventTypeTitle}} | Tip Dogadjaja",
   "delete_webhook_confirmation_message": "Da li ste sigurni da želite da obrišete ovaj webhook? Nećete više dobijati Cal.com podatke o sastancima preko naznačenog URL, istovremeno kad je dogadjaj zakazan ili otkazan.",
   "confirm_delete_webhook": "Da, obriši webhook",
   "edit_webhook": "Uredi Webhook",
@@ -633,7 +632,6 @@
   "billing": "Naplate",
   "manage_your_billing_info": "Upravljajte svojim informacijama za plaćanje i otkažite pretplatu.",
   "availability": "Dostupnost",
-  "availability_title": "{{availabilityTitle}} | Dostupnost",
   "edit_availability": "Uredi dostupnost",
   "configure_availability": "Konfigurišite vreme kada ste dostupni za rezervacije.",
   "copy_times_to": "Kopiraj vremena u",
@@ -839,7 +837,6 @@
   "redirect_success_booking": "Preusmeri na rezervaciju ",
   "you_are_being_redirected": "Preusmeravamo vas na {{ url }} za $t(second, {\"count\": {{seconds}} }).",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
-  "redirect_url_upgrade_description": "Da biste koristili ovu funkciju, morate izvršiti nadogradnju na Pro nalog.",
   "duplicate": "Dupliraj",
   "offer_seats": "Ponudi mesta",
   "offer_seats_description": "Ponudi mesta za zakazivanje (ovo onemogućava gostujuća i opciona zakazivanja)",
@@ -1267,5 +1264,9 @@
   "confirm_password_change_email": "Potvrdite svoju lozinku pre promene imejl adrese",
   "seats": "sedišta",
   "every_app_published": "Svaka aplikacija objavljena na Cal.com prodavnici je otvorenog tipa i detaljno je testirana kroz recenzije saradnika. Bez obzira na to, Cal.com, Inc. ne podržava ni sertifikuje ove aplikacije osim ako ih nije objavio Cal.com. Ako naiđete na neprikladan sardžaj ili ponašanje, molimo vas da to prijavite.",
-  "report_app": "Prijavite aplikaciju"
+  "report_app": "Prijavite aplikaciju",
+  "billing_manage_details_title": "Pogledajte i upravljate vaše detalje naplate",
+  "billing_manage_details_description": "Pogledajte i uredite vaše detalje naplate, a i otkažite vašu pretplatu.",
+  "billing_help_title": "Treba li vam još nešto?",
+  "billing_help_description": "Ako vam treba pomoć sa naplatom, naš tim podrške je tu da pomogne."
 }

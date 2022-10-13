@@ -112,7 +112,6 @@
   "use_link_to_reset_password": "Utilizați linkul de mai jos pentru a vă reseta parola",
   "hey_there": "Bună,",
   "forgot_your_password_calcom": "Ți-ai uitat parola? - Cal.com",
-  "event_type_title": "{{eventTypeTitle}} Tip de Eveniment",
   "delete_webhook_confirmation_message": "Ești sigur că vrei să ștergi acest webhook? Nu vei mai primi Cal.com date de întâlnire la un URL specificat, în timp real, atunci când un eveniment este programat sau anulat.",
   "confirm_delete_webhook": "Da, șterge webhook",
   "edit_webhook": "Editează Webhook",
@@ -633,7 +632,6 @@
   "billing": "Facturare",
   "manage_your_billing_info": "Gestionați informațiile de facturare și anulați abonamentul.",
   "availability": "Disponibilitate",
-  "availability_title": "{{availabilityTitle}} | Disponibilitate",
   "edit_availability": "Editează disponibilitatea",
   "configure_availability": "Configurați orele când sunteți disponibil pentru rezervări.",
   "copy_times_to": "Copiază orele la",
@@ -839,7 +837,6 @@
   "redirect_success_booking": "Redirecționare la rezervare ",
   "you_are_being_redirected": "Sunteți redirecționat către {{ url }} în $t(second, {\"count\": {{seconds}} }).",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
-  "redirect_url_upgrade_description": "Pentru a utiliza această caracteristică, trebuie să faceți upgrade la un cont Pro.",
   "duplicate": "Duplicare",
   "offer_seats": "Oferiți locuri",
   "offer_seats_description": "Oferiți locuri pentru rezervări (se dezactivează astfel oaspeții și rezervările la alegere)",
@@ -1267,5 +1264,9 @@
   "confirm_password_change_email": "Te rugăm să confirmi parola înainte de a-ți schimba adresa de e-mail",
   "seats": "locuri",
   "every_app_published": "Fiecare aplicație publicată pe Cal.com App Store este open source și testată temeinic prin evaluări inter pares. Cu toate acestea, Cal.com, Inc. nu susține sau certifică aceste aplicații decât dacă sunt publicate de Cal.com. Dacă întâmpini un conținut sau un comportament necorespunzător, te rugăm să îl raportezi.",
-  "report_app": "Raportează aplicația"
+  "report_app": "Raportează aplicația",
+  "billing_manage_details_title": "Vizualizați și gestionați detaliile de facturare",
+  "billing_manage_details_description": "Vizualizați și editați detaliile de facturare, precum și anulați abonarea.",
+  "billing_help_title": "Aveți nevoie de altceva?",
+  "billing_help_description": "Dacă ai nevoie de ajutor suplimentar pentru facturare, echipa noastră de asistență este aici pentru a te ajuta."
 }
