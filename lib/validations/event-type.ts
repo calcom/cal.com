@@ -19,6 +19,7 @@ const recurringEventInputSchema = z.object({
 
 export const schemaEventTypeBaseBodyParams = EventType.pick({
   title: true,
+  description: true,
   slug: true,
   length: true,
   hidden: true,
