@@ -97,8 +97,9 @@ interface IntegrationsListProps {
 }
 
 const IntegrationsList = ({ data, variant }: IntegrationsListProps) => {
+  const seperatedItems = variant === "automation";
   return (
-    <List className={classNames(variant === "automation" ? "flex flex-col gap-6" : "")} noBorderTreatment>
+    <List className={classNames(seperatedItems ? "flex flex-col gap-6" : "")} noBorderTreatment>
       {data.items.map((item) => (
         <>
           <IntegrationListItem
@@ -108,7 +109,7 @@ const IntegrationsList = ({ data, variant }: IntegrationsListProps) => {
             title={item.title}
             logo={item.logo}
             description={item.description}
-            seperated={variant === "automation"}
+            seperated={seperatedItems}
             actions={
               <div className="flex w-16 justify-end">
                 <ConnectOrDisconnectIntegrationButton
@@ -119,7 +120,7 @@ const IntegrationsList = ({ data, variant }: IntegrationsListProps) => {
                 />
               </div>
             }>
-            {variant === "automation" && <AppSettings slug={item.slug} />}
+            {seperatedItems && <AppSettings slug={item.slug} />}
           </IntegrationListItem>
         </>
       ))}
