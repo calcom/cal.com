@@ -56,7 +56,7 @@ const meetingTokenSchema = z.object({
 export const FAKE_DAILY_CREDENTIAL: Credential = {
   id: +new Date().getTime(),
   type: "daily_video",
-  key: { apikey: process.env.DAILY_API_KEY },
+  key: { api_key: process.env.DAILY_API_KEY },
   userId: +new Date().getTime(),
   appId: "daily-video",
 };

@@ -28,7 +28,7 @@ export const metadata = {
       label: "Cal Video",
     },
   },
-  key: { apikey: process.env.DAILY_API_KEY },
+  key: { api_key: process.env.DAILY_API_KEY },
 } as AppMeta;
 
 export default metadata;
