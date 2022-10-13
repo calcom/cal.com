@@ -1,8 +1,12 @@
 import { z } from "zod";
 
 import { _BookingModel as Booking } from "@calcom/prisma/zod";
+import { extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
+
+import { schemaQueryUserId } from "./shared/queryUserId";
 
 const schemaBookingBaseBodyParams = Booking.pick({
+  uid: true,
   userId: true,
   eventTypeId: true,
   title: true,
@@ -10,17 +14,7 @@ const schemaBookingBaseBodyParams = Booking.pick({
   endTime: true,
 }).partial();
 
-const schemaBookingCreateParams = z
-  .object({
-    eventTypeId: z.number(),
-    title: z.string(),
-    startTime: z.date().or(z.string()),
-    endTime: z.date().or(z.string()),
-    recurringCount: z.number().optional(),
-  })
-  .strict();
-
-export const schemaBookingCreateBodyParams = schemaBookingBaseBodyParams.merge(schemaBookingCreateParams);
+export const schemaBookingCreateBodyParams = extendedBookingCreateBody.merge(schemaQueryUserId.partial());
 
 const schemaBookingEditParams = z
   .object({

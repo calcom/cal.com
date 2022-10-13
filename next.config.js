@@ -14,9 +14,11 @@ const withTM = require("next-transpile-modules")([
   "@calcom/ui",
 ]);
 const { withAxiom } = require("next-axiom");
+const { i18n } = require("./next-i18next.config");
 
 module.exports = withAxiom(
   withTM({
+    i18n,
     async rewrites() {
       return {
         afterFiles: [

@@ -39,7 +39,7 @@ import { schemaQueryIdParseInt } from "@lib/validations/shared/queryIdTransformP
  *     - bookings
  *     responses:
  *       201:
- *         description: OK, booking edited successfuly
+ *         description: OK, booking edited successfully
  *       400:
  *        description: Bad request. Booking body is invalid.
  *       401:
