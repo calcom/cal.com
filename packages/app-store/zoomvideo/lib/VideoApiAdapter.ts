@@ -326,6 +326,7 @@ const invalidateCredential = async (credentialId: Credential["id"]) => {
     console.error(err);
   }
 };
+
 const handleErrorResponseFromZoom = async (
   responseBody: { reason: string; error: string; refresh_token: string },
   credentialId: number
@@ -335,9 +336,6 @@ const handleErrorResponseFromZoom = async (
       if (responseBody.error === "invalid_grant") {
         await invalidateCredential(credentialId);
       }
-    }
-    if (!responseBody.refresh_token) {
-      throw new Error("ZoomAPI: No refresh token was returned in the response");
     }
   } catch (err) {
     console.error(err);
