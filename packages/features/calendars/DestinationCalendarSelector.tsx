@@ -1,5 +1,6 @@
 import classNames from "classnames";
 import React, { useEffect, useState } from "react";
+import { components } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { DestinationCalendar } from "@calcom/prisma/client";
@@ -45,25 +46,46 @@ const DestinationCalendarSelector = ({
     return {};
   };
 
-  useEffect(() => {
-    const selected = query.data?.connectedCalendars
-      .map((connected) => connected.calendars ?? [])
-      .flat()
-      .find((cal) => cal.externalId === value);
+  const SingleValue = (props) => {
+    const { label, subtitle } = props.data;
+    return (
+      <components.SingleValue {...props}>
+        {label} <span className="text-neutral-500">{subtitle}</span>
+      </components.SingleValue>
+    );
+  };
 
-    if (selected) {
-      const selectedIntegration = query.data?.connectedCalendars.find((integration) =>
-        integration.calendars?.some((calendar) => calendar.externalId === selected.externalId)
-      );
+  const Option = (props) => {
+    console.log("🚀 ~ file: DestinationCalendarSelector.tsx ~ line 49 ~ SingleValue ~ props", props);
+    const { label } = props.data;
+    return (
+      <components.Option {...props}>
+        <span>{label}</span>
+      </components.Option>
+    );
+  };
 
-      setSelectedOption({
-        value: `${selected.integration}:${selected.externalId}`,
-        label:
-          `${selected.name} (${selectedIntegration?.integration.title} - ${selectedIntegration?.primary?.name})` ||
-          "",
-      });
-    }
-  }, [query.data?.connectedCalendars, value]);
+  // useEffect(() => {
+  //   const selected = query.data?.connectedCalendars
+  //     .map((connected) => connected.calendars ?? [])
+  //     .flat()
+  //     .find((cal) => cal.externalId === value);
+  //   console.log("🚀 ~ file: DestinationCalendarSelector.tsx ~ line 53 ~ useEffect ~ selected", query.data);
+
+  //   if (selected) {
+  //     const selectedIntegration = query.data?.connectedCalendars.find((integration) =>
+  //       integration.calendars?.some((calendar) => calendar.externalId === selected.externalId)
+  //     );
+
+  //     setSelectedOption({
+  //       value: `${selected.integration}:${selected.externalId}`,
+  //       label:
+  //         `${selected.name} (${selectedIntegration?.integration.title?.replace(/calendar/i, "")} - ${
+  //           selectedIntegration?.primary?.name
+  //         })` || "",
+  //     });
+  //   }
+  // }, [query.data?.connectedCalendars, value]);
 
   if (!query.data?.connectedCalendars.length) {
     return null;
@@ -71,11 +93,16 @@ const DestinationCalendarSelector = ({
   const options =
     query.data.connectedCalendars.map((selectedCalendar) => ({
       key: selectedCalendar.credentialId,
-      label: `${selectedCalendar.integration.title} (${selectedCalendar.primary?.name})`,
+      label: `${selectedCalendar.integration.title?.replace(/calendar/i, "")} (${
+        selectedCalendar.primary?.name
+      })`,
       options: (selectedCalendar.calendars ?? [])
         .filter((cal) => cal.readOnly === false)
         .map((cal) => ({
-          label: cal.name || "",
+          label: ` ${cal.name} `,
+          subtitle: `(${selectedCalendar?.integration.title?.replace(/calendar/i, "")} - ${
+            selectedCalendar?.primary?.name
+          })`,
           value: `${cal.integration}:${cal.externalId}`,
         })),
     })) ?? [];
@@ -136,6 +163,7 @@ const DestinationCalendarSelector = ({
         }}
         isLoading={isLoading}
         value={selectedOption}
+        components={{ SingleValue, Option }}
       />
     </div>
   );
