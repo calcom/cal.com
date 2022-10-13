@@ -30,7 +30,8 @@ export const scheduleWorkflowReminders = async (
       if (
         workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT ||
         (workflow.trigger === WorkflowTriggerEvents.NEW_EVENT && !isRescheduleEvent) ||
-        (workflow.trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT && isRescheduleEvent)
+        (workflow.trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT && isRescheduleEvent) ||
+        workflow.trigger === WorkflowTriggerEvents.AFTER_EVENT
       ) {
         workflow.steps.forEach(async (step) => {
           if (step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER) {
@@ -50,10 +51,21 @@ export const scheduleWorkflowReminders = async (
             );
           } else if (
             step.action === WorkflowActions.EMAIL_ATTENDEE ||
-            step.action === WorkflowActions.EMAIL_HOST
+            step.action === WorkflowActions.EMAIL_HOST ||
+            step.action === WorkflowActions.EMAIL_ADDRESS
           ) {
-            const sendTo =
-              step.action === WorkflowActions.EMAIL_HOST ? evt.organizer.email : evt.attendees[0].email;
+            let sendTo = "";
+
+            switch (step.action) {
+              case WorkflowActions.EMAIL_HOST:
+                sendTo = evt.organizer.email;
+                break;
+              case WorkflowActions.EMAIL_ATTENDEE:
+                sendTo = evt.attendees[0].email;
+                break;
+              case WorkflowActions.EMAIL_ADDRESS:
+                sendTo = step.sendTo || "";
+            }
             scheduleEmailReminder(
               evt,
               workflow.trigger,
@@ -107,10 +119,21 @@ export const sendCancelledReminders = async (
             );
           } else if (
             step.action === WorkflowActions.EMAIL_ATTENDEE ||
-            step.action === WorkflowActions.EMAIL_HOST
+            step.action === WorkflowActions.EMAIL_HOST ||
+            step.action === WorkflowActions.EMAIL_ADDRESS
           ) {
-            const sendTo =
-              step.action === WorkflowActions.EMAIL_HOST ? evt.organizer.email : evt.attendees[0].email;
+            let sendTo = "";
+
+            switch (step.action) {
+              case WorkflowActions.EMAIL_HOST:
+                sendTo = evt.organizer.email;
+                break;
+              case WorkflowActions.EMAIL_ATTENDEE:
+                sendTo = evt.attendees[0].email;
+                break;
+              case WorkflowActions.EMAIL_ADDRESS:
+                sendTo = step.sendTo || "";
+            }
             scheduleEmailReminder(
               evt,
               workflow.trigger,

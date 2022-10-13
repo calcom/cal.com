@@ -16,7 +16,7 @@ import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
 import { sendDeclinedEmails, sendLocationChangeEmails, sendScheduledEmails } from "@calcom/emails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
-import getWebhooks from "@calcom/features/webhooks/utils/getWebhooks";
+import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";

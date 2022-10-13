@@ -66,10 +66,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   for (const reminder of unscheduledReminders) {
     if (dayjs(reminder.scheduledDate).isBefore(dateInSeventyTwoHours)) {
       try {
-        const sendTo =
-          reminder.workflowStep.action === WorkflowActions.EMAIL_HOST
-            ? reminder.booking?.user?.email
-            : reminder.booking?.attendees[0].email;
+        let sendTo;
+
+        switch (reminder.workflowStep.action) {
+          case WorkflowActions.EMAIL_HOST:
+            sendTo = reminder.booking?.user?.email;
+            break;
+          case WorkflowActions.EMAIL_ATTENDEE:
+            sendTo = reminder.booking?.attendees[0].email;
+            break;
+          case WorkflowActions.EMAIL_ADDRESS:
+            sendTo = reminder.workflowStep.sendTo;
+        }
 
         const name =
           reminder.workflowStep.action === WorkflowActions.EMAIL_ATTENDEE
