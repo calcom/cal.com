@@ -8,6 +8,7 @@ import getApps from "@calcom/app-store/utils";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
+import { App } from "@calcom/types/App";
 import type { CalendarEvent, EventBusyDate, NewCalendarEventType } from "@calcom/types/Calendar";
 import type { EventResult } from "@calcom/types/EventManager";
 
