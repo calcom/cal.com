@@ -1,6 +1,6 @@
-import { Template } from "zapier/components/AppSettings";
-
 import { Button } from "@calcom/ui/v2";
+
+import { Template } from "./AppSettings";
 
 export default function TemplateCard({ template }: { template: Template }) {
   return (
