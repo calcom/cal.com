@@ -58,11 +58,20 @@ type ZoomToken = z.infer<typeof zoomTokenSchema>;
 
 const isTokenValid = (token: ZoomToken) => (token.expires_in || token.expiry_date) < Date.now();
 
+/** @see https://marketplace.zoom.us/docs/guides/auth/oauth/#request */
+const zoomRefreshedTokenSchema = z.object({
+  access_token: z.string(),
+  token_type: z.literal("bearer"),
+  refresh_token: z.string(),
+  expires_in: z.number(),
+  scope: z.string(),
+});
+
 const zoomAuth = (credential: Credential) => {
   const refreshAccessToken = async (refreshToken: string) => {
     const { client_id, client_secret } = await getZoomAppKeys();
     const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
-    return fetch("https://zoom.us/oauth/token", {
+    const response = await fetch("https://zoom.us/oauth/token", {
       method: "POST",
       headers: {
         Authorization: authHeader,
@@ -72,24 +81,24 @@ const zoomAuth = (credential: Credential) => {
         refresh_token: refreshToken,
         grant_type: "refresh_token",
       }),
-    })
-      .then(handleErrorsJson)
-      .then(async (responseBody) => {
-        await handleResponseBodyFromZoom(responseBody, credential.id);
-        // set expiry date as offset from current time.
-        responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
-        delete responseBody.expires_in;
-        // Store new tokens in database.
-        await prisma.credential.update({
-          where: {
-            id: credential.id,
-          },
-          data: {
-            key: responseBody,
-          },
-        });
-        return responseBody.access_token;
-      });
+    });
+    const responseBody = handleErrorsJson(response);
+    // We check the if the new credentials matches the expected response structure
+    const parsedToken = zoomRefreshedTokenSchema.safeParse(responseBody);
+    // TODO: If the new token is invalid, initiate the fallback sequence instead of throwing
+    if (!parsedToken.success) return Promise.reject(new Error("Invalid refreshed tokens were returned"));
+    const newTokens = parsedToken.data;
+    const oldCredential = await prisma.credential.findUniqueOrThrow({ where: { id: credential.id } });
+    const parsedKey = zoomTokenSchema.safeParse(oldCredential.key);
+    if (!parsedKey.success) return Promise.reject(new Error("Invalid credentials were saved in the DB"));
+    const key = parsedKey.data;
+    key.access_token = newTokens.access_token;
+    key.refresh_token = newTokens.refresh_token;
+    // set expiry date as offset from current time.
+    key.expiry_date = Math.round(Date.now() + newTokens.expires_in * 1000);
+    // Store new tokens in database.
+    await prisma.credential.update({ where: { id: credential.id }, data: { key } });
+    return newTokens.access_token;
   };
 
   return {
