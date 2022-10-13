@@ -1,6 +1,6 @@
 import { Prisma, UserPlan } from "@prisma/client";
 
-import prisma, { minimalEventTypeSelect } from "@calcom/prisma";
+import prisma, { minimalEventTypeSelect, baseEventTypeSelect } from "@calcom/prisma";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
 
