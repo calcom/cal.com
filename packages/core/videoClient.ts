@@ -44,18 +44,28 @@ const createMeeting = async (credential: Credential, calEvent: CalendarEvent) =>
 
   const videoAdapters = getVideoAdapters([credential]);
   const [firstVideoAdapter] = videoAdapters;
-  const createdMeeting = await firstVideoAdapter?.createMeeting(calEvent).catch(async (e) => {
-    await sendBrokenIntegrationEmail(calEvent, "video");
-    console.error("createMeeting failed", e, calEvent);
-  });
+  let createdMeeting;
+  try {
+    createdMeeting = await firstVideoAdapter?.createMeeting(calEvent);
 
-  if (!createdMeeting) {
-    return {
-      type: credential.type,
-      success: false,
-      uid,
-      originalEvent: calEvent,
-    };
+    if (!createdMeeting) {
+      return {
+        type: credential.type,
+        success: false,
+        uid,
+        originalEvent: calEvent,
+      };
+    }
+  } catch (err) {
+    await sendBrokenIntegrationEmail(calEvent, "video");
+    console.error("createMeeting failed", err, calEvent);
+
+    // Default to calVideo
+    const defaultMeeting = await createMeetingWithCalVideo(calEvent);
+    if (defaultMeeting) {
+      createdMeeting = defaultMeeting;
+      calEvent.location = "integrations:dailyvideo";
+    }
   }
 
   return {
@@ -115,6 +125,24 @@ const deleteMeeting = (credential: Credential, uid: string): Promise<unknown> =>
   }
 
   return Promise.resolve({});
+};
+
+// @TODO: This is a temporary solution to create a meeting with cal.com video as fallback url
+const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
+  const calVideoMetadata = appStore.dailyvideo.metadata;
+  const calVideoMetadataKeys = calVideoMetadata.key as { [key: string]: Credential };
+  const dailyCredential = {
+    id: 0,
+    appId: calVideoMetadata.slug,
+    type: calVideoMetadata.type,
+    userId: null,
+    key: calVideoMetadataKeys,
+    invalid: false,
+  };
+
+  const videoAdapters = getVideoAdapters([dailyCredential]);
+  const [firstVideoAdapter] = videoAdapters;
+  return await firstVideoAdapter?.createMeeting(calEvent);
 };
 
 export { getBusyVideoTimes, createMeeting, updateMeeting, deleteMeeting };

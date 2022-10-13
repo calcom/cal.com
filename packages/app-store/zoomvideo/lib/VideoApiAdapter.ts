@@ -73,6 +73,7 @@ const zoomAuth = (credential: Credential) => {
   const refreshAccessToken = async (refreshToken: string) => {
     const { client_id, client_secret } = await getZoomAppKeys();
     const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
+
     const response = await fetch("https://zoom.us/oauth/token", {
       method: "POST",
       headers: {
@@ -263,19 +264,20 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
         });
 
         const result = zoomEventResultSchema.parse(response);
+
         if (result.id && result.join_url) {
-          return Promise.resolve({
+          return {
             type: "zoom_video",
             id: result.id.toString(),
             password: result.password || "",
             url: result.join_url,
-          });
+          };
         }
-        return Promise.reject(new Error("Failed to create meeting. Response is " + JSON.stringify(result)));
+        throw new Error("Failed to create meeting. Response is " + JSON.stringify(result));
       } catch (err) {
         console.error(err);
         /* Prevents meeting creation failure when Zoom Token is expired */
-        return Promise.reject(new Error("Unexpected error"));
+        throw new Error("Unexpected error");
       }
     },
     deleteMeeting: async (uid: string): Promise<void> => {
