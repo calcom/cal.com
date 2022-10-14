@@ -25,7 +25,7 @@ const MembersView = () => {
     onError: () => {
       router.push("/settings");
     },
-    enabled: !!router.query.id,
+    enabled: !!router.isReady,
   });
 
   const {
@@ -36,7 +36,7 @@ const MembersView = () => {
     isFetchingNextPage,
   } = trpc.useInfiniteQuery(["viewer.teams.getMembers", { teamId: Number(router.query.id), limit: 5 }], {
     getNextPageParam: (lastPage) => lastPage.nextCursor,
-    enabled: !!router.query.id,
+    enabled: !!router.isReady,
   });
 
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
