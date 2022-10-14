@@ -15,7 +15,7 @@ export const getIs24hClockFromLocalStorage = () => {
   const is24hFromLocalstorage = localStorage.getItem(is24hLocalstorageKey);
   if (is24hFromLocalstorage === null) return null;
 
-  return is24hFromLocalstorage;
+  return is24hFromLocalstorage === "true";
 };
 
 export const isBrowserLocale24h = () => {
