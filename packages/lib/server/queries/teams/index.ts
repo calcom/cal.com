@@ -37,6 +37,7 @@ const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
         select: userSelect,
       },
       ...baseEventTypeSelect,
+      metadata: true,
     },
   },
 });
