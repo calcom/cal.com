@@ -19,6 +19,7 @@ declare global {
     resetEmbedStatus: () => void;
     getEmbedNamespace: () => string | null;
     getEmbedTheme: () => "dark" | "light" | null;
+    isPageOptimizedForEmbed: (calLink: string) => boolean;
   }
 }
 
@@ -280,7 +281,7 @@ export const methods = {
         return;
       }
       // No UI change should happen in sight. Let the parent height adjust and in next cycle show it.
-      requestAnimationFrame(unhideBody);
+      unhideBody();
       sdkActionManager?.fire("linkReady", {});
     });
   },

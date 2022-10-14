@@ -155,6 +155,11 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: "/auth/signup",
+        destination: "/signup",
+        permanent: true,
+      },
+      {
         source: "/settings",
         destination: "/settings/my-account/profile",
         permanent: true,
