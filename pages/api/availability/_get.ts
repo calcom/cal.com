@@ -43,7 +43,7 @@ async function handler(req: NextApiRequest) {
     where: { id: { in: allMemberIds } },
     select: availabilityUserSelect,
   });
-  if (!isAdmin) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
+  if (!isAdmin) throw new HttpError({ statusCode: 403, message: "Forbidden" });
   const availabilities = members.map(async (user) => {
     return {
       userId: user.id,

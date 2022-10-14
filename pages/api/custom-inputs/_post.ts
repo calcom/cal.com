@@ -32,7 +32,7 @@ async function postHandler(req: NextApiRequest) {
     const eventType = await prisma.eventType.findFirst({
       where: { id: eventTypeId, userId },
     });
-    if (!eventType) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
+    if (!eventType) throw new HttpError({ statusCode: 403, message: "Forbidden" });
   }
 
   const data = await prisma.eventTypeCustomInput.create({

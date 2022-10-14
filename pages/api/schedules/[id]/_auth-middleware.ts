@@ -13,7 +13,7 @@ async function authMiddleware(req: NextApiRequest) {
   const schedule = await prisma.schedule.findFirst({
     where: { id, userId },
   });
-  if (!schedule) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
+  if (!schedule) throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 
 export default authMiddleware;

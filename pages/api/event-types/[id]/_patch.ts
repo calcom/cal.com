@@ -48,7 +48,7 @@ async function checkPermissions(req: NextApiRequest) {
   if (isAdmin) return;
   /** Only event type owners can modify it */
   const eventType = await prisma.eventType.findFirst({ where: { id, userId } });
-  if (!eventType) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
+  if (!eventType) throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 
 export default defaultResponder(patchHandler);

@@ -11,7 +11,7 @@ async function authMiddleware(req: NextApiRequest) {
   const eventType = await prisma.eventType.findFirst({
     where: { id, users: { some: { id: userId } } },
   });
-  if (!eventType) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
+  if (!eventType) throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 
 export default authMiddleware;

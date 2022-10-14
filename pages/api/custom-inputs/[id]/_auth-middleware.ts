@@ -13,7 +13,7 @@ async function authMiddleware(req: NextApiRequest) {
   const eventTypeCustomInput = await prisma.eventTypeCustomInput.findFirst({
     where: { id, eventType: { userId } },
   });
-  if (!eventTypeCustomInput) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
+  if (!eventTypeCustomInput) throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 
 export default authMiddleware;

@@ -14,7 +14,7 @@ async function authMiddleware(req: NextApiRequest) {
     where: { id: query.id, booking: { userId } },
   });
   // Flatten and merge all the attendees in one array
-  if (!attendee) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
+  if (!attendee) throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 
 export default authMiddleware;

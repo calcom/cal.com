@@ -13,7 +13,7 @@ async function authMiddleware(req: NextApiRequest) {
   const bookingReference = await prisma.bookingReference.findFirst({
     where: { id, booking: { userId } },
   });
-  if (!bookingReference) throw new HttpError({ statusCode: 401, message: "Unauthorized" });
+  if (!bookingReference) throw new HttpError({ statusCode: 403, message: "Forbidden" });
 }
 
 export default authMiddleware;
