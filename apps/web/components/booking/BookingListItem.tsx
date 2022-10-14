@@ -257,8 +257,13 @@ function BookingListItem(booking: BookingItemProps) {
           <div className="cursor-pointer py-4">
             <div className="text-sm leading-6 text-gray-900">{startTime}</div>
             <div className="text-sm text-gray-500">
-              {dayjs(booking.startTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")} -{" "}
-              {dayjs(booking.endTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
+              {dayjs(booking.startTime)
+                .tz(user?.timeZone)
+                .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}{" "}
+              -{" "}
+              {dayjs(booking.endTime)
+                .tz(user?.timeZone)
+                .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
             </div>
 
             {isPending && (
@@ -293,8 +298,13 @@ function BookingListItem(booking: BookingItemProps) {
             <div className="flex w-full items-center justify-between sm:hidden">
               <div className="text-sm leading-6 text-gray-900">{startTime}</div>
               <div className="pr-2 text-sm text-gray-500">
-                {dayjs(booking.startTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")} -{" "}
-                {dayjs(booking.endTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
+                {dayjs(booking.startTime)
+                  .tz(user?.timeZone)
+                  .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}{" "}
+                -{" "}
+                {dayjs(booking.endTime)
+                  .tz(user?.timeZone)
+                  .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
               </div>
             </div>
 
