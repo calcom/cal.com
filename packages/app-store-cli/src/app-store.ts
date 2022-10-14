@@ -60,6 +60,7 @@ function getAppName(candidatePath) {
 
 function generateFiles() {
   const browserOutput = [`import dynamic from "next/dynamic"`];
+  const metadataOutput = [];
   const schemasOutput = [];
   const serverOutput = [];
   const appDirs: { name: string; path: string }[] = [];
@@ -162,7 +163,7 @@ function generateFiles() {
     })
   );
 
-  browserOutput.push(
+  metadataOutput.push(
     ...getObjectExporter("appStoreMetadata", {
       fileToBeImported: "_metadata.ts",
       // Import path must have / even for windows and not \
@@ -211,6 +212,7 @@ function generateFiles() {
 **/
 `;
   const filesToGenerate: [string, string[]][] = [
+    ["apps.metadata.generated.ts", metadataOutput],
     ["apps.server.generated.ts", serverOutput],
     ["apps.browser.generated.tsx", browserOutput],
     ["apps.schemas.generated.ts", schemasOutput],
