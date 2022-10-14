@@ -828,7 +828,7 @@ function MainContainer({
       {/* The following is used for settings navigation on medium and smaller screens */}
       <div
         className={classNames(
-          "absolute z-40 m-0 h-screen w-screen bg-black opacity-50",
+          "overflow-none fixed z-40 m-0 h-screen w-screen overscroll-none bg-black opacity-50",
           sideContainerOpen ? "" : "hidden"
         )}
         onClick={() => {
