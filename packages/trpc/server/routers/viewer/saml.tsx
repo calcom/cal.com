@@ -62,19 +62,19 @@ export const samlRouter = createProtectedRouter()
       const SPConfig = samlSPConfig.get();
 
       const response = {
-        provider: null,
+        provider: "",
         acsUrl: SPConfig.acsUrl,
         entityId: SPConfig.entityId,
       };
 
       try {
-        const result = await connectionController.getConnections({
+        const connections = await connectionController.getConnections({
           tenant: teamId ? tenantPrefix + teamId : samlTenantID,
           product: samlProductID,
         });
 
-        if (result && result.length > 0) {
-          response["provider"] = result[0].idpMetadata.provider;
+        if (connections.length > 0 && "idpMetadata" in connections[0]) {
+          response["provider"] = connections[0].idpMetadata.provider;
         }
       } catch (err) {
         console.error("Error getting SAML config", err);

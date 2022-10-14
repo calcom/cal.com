@@ -39,7 +39,7 @@ const SAMLSSO = () => {
     <>
       <Meta title="SAML SSO" description="Allow team members to login using an Identity Provider." />
       {hasErrors && <Alert severity="error" title={errorMessage} />}
-      {saml && saml.enabled ? <SAMLConfiguration teamsView={teamsView} teamId={null} /> : null}
+      {saml && saml.enabled && <SAMLConfiguration teamsView={teamsView} teamId={null} />}
     </>
   );
 };

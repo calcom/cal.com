@@ -61,7 +61,6 @@ export const samlTenantProduct = async (prisma: PrismaClient, email: string) => 
 };
 
 export const canAccess = (email: string, plan: string, teamsView: boolean) => {
-  // SAML SSO disabled for the following conditions
   if ((teamsView && !HOSTED_CAL_FEATURES) || (!teamsView && HOSTED_CAL_FEATURES)) {
     return false;
   }
