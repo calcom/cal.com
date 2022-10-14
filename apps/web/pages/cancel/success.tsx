@@ -60,14 +60,6 @@ export default function CancelSuccess() {
                 <div className="mt-5 text-center sm:mt-6">
                   <div className="mt-5">
                     {!loading && !session?.user && <Button href={eventUrl}>Pick another</Button>}
-                    {!loading && session?.user && (
-                      <Button
-                        data-testid="back-to-bookings"
-                        href={isRecurringEvent ? "/bookings/recurring" : "/bookings/upcoming"}
-                        StartIcon={Icon.FiArrowLeft}>
-                        {t("back_to_bookings")}
-                      </Button>
-                    )}
                   </div>
                 </div>
               </div>

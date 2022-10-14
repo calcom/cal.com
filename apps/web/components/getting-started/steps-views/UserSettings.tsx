@@ -23,7 +23,7 @@ type FormData = {
 const UserSettings = (props: IUserSettingsProps) => {
   const { user, nextStep } = props;
   const { t } = useLocale();
-  const [selectedTimeZone, setSelectedTimeZone] = useState(user.timeZone ?? dayjs.tz.guess());
+  const [selectedTimeZone, setSelectedTimeZone] = useState(dayjs.tz.guess());
   const { handleSubmit } = useForm<FormData>({
     defaultValues: {
       name: user?.name || undefined,

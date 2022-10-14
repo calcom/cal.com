@@ -461,21 +461,21 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                             <p className="mb-1 -ml-2 inline px-2 py-1">
                               {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
                             </p>
-                            <input
-                              type="number"
-                              min="1"
-                              max={eventType.recurringEvent.count}
-                              className="w-15 dark:text-darkgray-600 h-7 rounded-sm border-gray-300 bg-white text-sm text-gray-600 [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600"
-                              defaultValue={eventType.recurringEvent.count}
-                              onChange={(event) => {
-                                setRecurringEventCount(parseInt(event?.target.value));
-                              }}
-                            />
-                            <p className="dark:text-darkgray-600 inline text-gray-600">
-                              {t("occurrence", {
-                                count: recurringEventCount,
-                              })}
-                            </p>
+                            {/*<input*/}
+                            {/*  type="number"*/}
+                            {/*  min="1"*/}
+                            {/*  max={eventType.recurringEvent.count}*/}
+                            {/*  className="w-15 dark:text-darkgray-600 h-7 rounded-sm border-gray-300 bg-white text-sm text-gray-600 [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500 dark:bg-gray-600"*/}
+                            {/*  defaultValue={eventType.recurringEvent.count}*/}
+                            {/*  onChange={(event) => {*/}
+                            {/*    setRecurringEventCount(parseInt(event?.target.value));*/}
+                            {/*  }}*/}
+                            {/*/>*/}
+                            {/*<p className="dark:text-darkgray-600 inline text-gray-600">*/}
+                            {/*  {t("occurrence", {*/}
+                            {/*    count: recurringEventCount,*/}
+                            {/*  })}*/}
+                            {/*</p>*/}
                           </div>
                         </div>
                       )}
@@ -551,21 +551,21 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                         <p className="mb-1 -ml-2 inline px-2 py-1">
                           {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
                         </p>
-                        <input
-                          type="number"
-                          min="1"
-                          max={eventType.recurringEvent.count}
-                          className="w-15 dark:bg-darkgray-200 h-7 rounded-sm border-gray-300 bg-white text-sm font-medium [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500"
-                          defaultValue={eventType.recurringEvent.count}
-                          onChange={(event) => {
-                            setRecurringEventCount(parseInt(event?.target.value));
-                          }}
-                        />
-                        <p className="inline">
-                          {t("occurrence", {
-                            count: recurringEventCount,
-                          })}
-                        </p>
+                        {/*<input*/}
+                        {/*  type="number"*/}
+                        {/*  min="1"*/}
+                        {/*  max={eventType.recurringEvent.count}*/}
+                        {/*  className="w-15 dark:bg-darkgray-200 h-7 rounded-sm border-gray-300 bg-white text-sm font-medium [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500"*/}
+                        {/*  defaultValue={eventType.recurringEvent.count}*/}
+                        {/*  onChange={(event) => {*/}
+                        {/*    setRecurringEventCount(parseInt(event?.target.value));*/}
+                        {/*  }}*/}
+                        {/*/>*/}
+                        {/*<p className="inline">*/}
+                        {/*  {t("occurrence", {*/}
+                        {/*    count: recurringEventCount,*/}
+                        {/*  })}*/}
+                        {/*</p>*/}
                       </div>
                     </div>
                   )}
