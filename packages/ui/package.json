@@ -15,7 +15,7 @@
     "@tanstack/react-query": "^4.3.9",
     "@calcom/lib": "*",
     "@calcom/trpc": "*",
-    "@radix-ui/react-dialog": "^0.1.0",
+    "@radix-ui/react-dialog": "^1.0.0",
     "@radix-ui/react-portal": "^1.0.0",
     "@radix-ui/react-select": "^0.1.1",
     "downshift": "^6.1.9",

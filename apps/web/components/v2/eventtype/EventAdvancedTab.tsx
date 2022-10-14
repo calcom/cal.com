@@ -378,8 +378,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               fitToHeight={true}
             />
             <div className="flex flex-col">
-              <Label className="text-sm font-semibold leading-none text-black">{t("offer_seats")}</Label>
-              <p className="-mt-2 text-sm leading-normal text-gray-600">{t("offer_seats_description")}</p>
+              <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
+                {t("offer_seats")}
+              </Skeleton>
+              <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
+                {t("offer_seats_description")}
+              </Skeleton>
             </div>
           </div>
         )}

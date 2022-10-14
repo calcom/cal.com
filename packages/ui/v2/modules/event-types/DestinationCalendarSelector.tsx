@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { DestinationCalendar } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import Select from "@calcom/ui/v2/core/form/Select";
+import Select from "@calcom/ui/v2/core/form/select";
 
 interface Props {
   onChange: (value: { externalId: string; integration: string }) => void;

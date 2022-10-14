@@ -278,7 +278,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               combined
                             />
                           </Tooltip>
-                          <Dropdown>
+                          <Dropdown modal={false}>
                             <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
                               <Button
                                 type="button"

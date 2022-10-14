@@ -8,10 +8,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput } from "@calcom/trpc/react";
 import Button from "@calcom/ui/v2/core/Button";
 import Switch from "@calcom/ui/v2/core/Switch";
-import Select from "@calcom/ui/v2/core/form/Select";
 import { Form, Label, TextArea, TextField } from "@calcom/ui/v2/core/form/fields";
+import Select from "@calcom/ui/v2/core/form/select";
 
-import customTemplate, { hasTemplateIntegration } from "../utils/integrationTemplate";
+import customTemplate, { hasTemplateIntegration } from "../lib/integrationTemplate";
 import WebhookTestDisclosure from "./WebhookTestDisclosure";
 
 export type TWebhook = inferQueryOutput<"viewer.webhook.list">[number];

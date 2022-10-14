@@ -10,14 +10,14 @@ import { z } from "zod";
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getEventTypeAppData, getLocationOptions } from "@calcom/app-store/utils";
 import { LocationObject, EventLocationType } from "@calcom/core/location";
-import { parseRecurringEvent } from "@calcom/lib";
+import { parseRecurringEvent, parseBookingLimit, validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import type { RecurringEvent } from "@calcom/types/Calendar";
+import type { BookingLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form } from "@calcom/ui/form/fields";
 import { showToast } from "@calcom/ui/v2";
 
@@ -80,6 +80,7 @@ export type FormValues = {
     externalId: string;
   };
   successRedirectUrl: string;
+  bookingLimits?: BookingLimit;
 };
 
 const querySchema = z.object({
@@ -155,6 +156,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       recurringEvent: eventType.recurringEvent || null,
       description: eventType.description ?? undefined,
       schedule: eventType.schedule || undefined,
+      bookingLimits: eventType.bookingLimits || undefined,
       hidden: eventType.hidden,
       periodDates: {
         startDate: periodDates.startDate,
@@ -226,6 +228,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             beforeBufferTime,
             afterBufferTime,
             seatsPerTimeSlot,
+            bookingLimits,
             recurringEvent,
             locations,
             metadata,
@@ -234,6 +237,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             seatsPerTimeSlotEnabled,
             ...input
           } = values;
+
+          if (bookingLimits) {
+            const isValid = validateBookingLimitOrder(bookingLimits);
+            if (!isValid) throw new Error("Booking limits must be in accending order. [day,week,month,year]");
+          }
 
           updateMutation.mutate({
             ...input,
@@ -245,6 +253,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             id: eventType.id,
             beforeEventBuffer: beforeBufferTime,
             afterEventBuffer: afterBufferTime,
+            bookingLimits,
             seatsPerTimeSlot,
             metadata,
           });
@@ -345,6 +354,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       afterEventBuffer: true,
       slotInterval: true,
       hashedLink: true,
+      bookingLimits: true,
       successRedirectUrl: true,
       currency: true,
       team: {
@@ -446,6 +456,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     ...restEventType,
     schedule: rawEventType.schedule?.id || rawEventType.users[0].defaultScheduleId,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
+    bookingLimits: parseBookingLimit(restEventType.bookingLimits),
     locations: locations as unknown as LocationObject[],
     metadata: parsedMetaData,
   };
