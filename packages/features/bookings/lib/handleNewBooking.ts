@@ -8,6 +8,7 @@ import { v5 as uuidv5 } from "uuid";
 import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
 import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
 import { handlePayment } from "@calcom/app-store/stripepayment/lib/server";
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
@@ -25,6 +26,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -32,6 +34,7 @@ import { checkBookingLimits, getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { userSelect } from "@calcom/prisma";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { extendedBookingCreateBody, requiredCustomInputSchema } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
@@ -174,6 +177,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
 
   return {
     ...eventType,
+    metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
     locations: (eventType.locations ?? []) as LocationObject[],
   };
@@ -252,6 +256,8 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     !eventTypeId && !!eventTypeSlug ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
 
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
+
+  const stripeAppData = getStripeAppData(eventType);
 
   // Check if required custom inputs exist
   if (eventType.customInputs) {
@@ -355,12 +361,12 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       users = availableUsers;
     }
   }
-
   console.log("available users", users);
+  const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
 
   // @TODO: use the returned address somewhere in booking creation?
   // const address: string | undefined = await ...
-  await handleEthSignature(eventType.metadata, reqBody.ethSignature);
+  await handleEthSignature(rainbowAppData, reqBody.ethSignature);
 
   const [organizerUser] = users;
   const tOrganizer = await getTranslation(organizerUser.locale ?? "en", "common");
@@ -589,7 +595,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     // Otherwise, an owner rescheduling should be always accepted.
     const userReschedulingIsOwner = originalRescheduledBooking?.user?.id === userId;
     const isConfirmedByDefault =
-      (!eventType.requiresConfirmation && !eventType.price) || userReschedulingIsOwner;
+      (!eventType.requiresConfirmation && !stripeAppData.price) || userReschedulingIsOwner;
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
       title: evt.title,
@@ -663,7 +669,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       }
     }
 
-    if (typeof eventType.price === "number" && eventType.price > 0) {
+    if (typeof stripeAppData.price === "number" && stripeAppData.price > 0) {
       /* Validate if there is any stripe_payment credential for this user */
       /*  note: removes custom error message about stripe */
       await prisma.credential.findFirstOrThrow({
@@ -755,7 +761,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
-  } else if (!eventType.requiresConfirmation && !eventType.price) {
+  } else if (!eventType.requiresConfirmation && !stripeAppData.price) {
     // Use EventManager to conditionally use all needed integrations.
     const createManager = await eventManager.create(evt);
 
@@ -798,8 +804,8 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   }
 
   if (
-    !Number.isNaN(eventType.price) &&
-    eventType.price > 0 &&
+    !Number.isNaN(stripeAppData.price) &&
+    stripeAppData.price > 0 &&
     !originalRescheduledBooking?.paid &&
     !!booking
   ) {
@@ -855,7 +861,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     eventTitle: eventType.title,
     eventDescription: eventType.description,
     requiresConfirmation: eventType.requiresConfirmation || null,
-    price: eventType.price,
+    price: stripeAppData.price,
     currency: eventType.currency,
     length: eventType.length,
   };

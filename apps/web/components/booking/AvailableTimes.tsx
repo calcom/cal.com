@@ -57,7 +57,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
           {date.toDate().toLocaleString(i18n.language, { month: "long" })}
         </span>
       </div>
-      <div className="grid flex-grow grid-cols-1 gap-x-2 overflow-y-auto sm:block md:h-[364px]">
+      <div className="-mb-5 grid flex-grow grid-cols-1 gap-x-2 overflow-y-auto sm:block md:h-[364px]">
         {slots.length > 0 &&
           slots.map((slot) => {
             type BookingURL = {

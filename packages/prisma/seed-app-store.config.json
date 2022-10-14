@@ -65,5 +65,11 @@
     "categories": ["calendar"],
     "slug": "exchange",
     "type": "exchange_calendar"
+  },
+  {
+    "dirName": "fathom",
+    "categories": ["analytics"],
+    "slug": "fathom",
+    "type": "fathom_analytics"
   }
 ]

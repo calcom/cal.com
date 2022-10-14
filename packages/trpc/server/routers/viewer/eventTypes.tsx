@@ -7,7 +7,7 @@ import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import { validateBookingLimitOrder } from "@calcom/lib";
 import { _DestinationCalendarModel, _EventTypeCustomInputModel, _EventTypeModel } from "@calcom/prisma/zod";
-import { stringOrNumber } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, stringOrNumber } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 
 import { TRPCError } from "@trpc/server";
@@ -77,6 +77,9 @@ const EventTypeUpdateInput = _EventTypeModel
     hashedLink: z.string(),
   })
   .partial()
+  .extend({
+    metadata: EventTypeMetaDataSchema.optional(),
+  })
   .merge(
     _EventTypeModel
       /** Required fields */
@@ -267,7 +270,10 @@ export const eventTypesRouter = createProtectedRouter()
         hashedLink,
         ...rest
       } = input;
-      const data: Prisma.EventTypeUpdateInput = rest;
+      const data: Prisma.EventTypeUpdateInput = {
+        ...rest,
+        metadata: rest.metadata === null ? Prisma.DbNull : rest.metadata,
+      };
       data.locations = locations ?? undefined;
       if (periodType) {
         data.periodType = handlePeriodType(periodType);

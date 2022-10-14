@@ -1,11 +1,11 @@
 import { GetServerSidePropsContext } from "next";
-import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import { privacyFilteredLocations, LocationObject } from "@calcom/core/location";
 import { parseRecurringEvent } from "@calcom/lib";
 import { availiblityPageEventTypeSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { getWorkingHours } from "@lib/availability";
 import { GetBookingType } from "@lib/getBooking";
@@ -100,7 +100,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     : [];
 
   const eventTypeObject = Object.assign({}, hashedLink.eventType, {
-    metadata: {} as JSONObject,
+    metadata: EventTypeMetaDataSchema.parse(hashedLink.eventType.metadata || {}),
     recurringEvent: parseRecurringEvent(hashedLink.eventType.recurringEvent),
     periodStartDate: hashedLink.eventType.periodStartDate?.toString() ?? null,
     periodEndDate: hashedLink.eventType.periodEndDate?.toString() ?? null,
