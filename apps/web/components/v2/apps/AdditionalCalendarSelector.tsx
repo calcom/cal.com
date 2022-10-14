@@ -27,7 +27,7 @@ const ImageOption = (optionProps: OptionProps<{ [key: string]: string; type: App
             {data.image && (
               <img className="float-left mr-3 inline h-5 w-5" src={data.image} alt={data.label} />
             )}
-            <p>{data.label}</p>
+            <p>{`${t("add")} ${data.label}`}</p>
           </Button>
         );
       }}
