@@ -227,7 +227,7 @@ function TimezoneDropdown({
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
 
   useEffect(() => {
-    handleToggle24hClock(getIs24hClockFromLocalStorage() === "HH:mm");
+    handleToggle24hClock(!!getIs24hClockFromLocalStorage());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -316,7 +316,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const isBackgroundTransparent = useIsBackgroundTransparent();
 
   const [timeZone, setTimeZone] = useState<string>();
-  const [timeFormat, setTimeFormat] = useState<string>();
+  const [timeFormat, setTimeFormat] = useState<string>("HH:mm");
 
   const [gateState, gateDispatcher] = useReducer(
     (state: GateState, newState: Partial<GateState>) => ({
