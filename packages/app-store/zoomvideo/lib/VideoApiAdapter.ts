@@ -20,6 +20,7 @@ const zoomEventResultSchema = z.object({
 
 export type ZoomEventResult = z.infer<typeof zoomEventResultSchema>;
 
+// @TODO: add link to the docs
 export const zoomMeetingsSchema = z.object({
   next_page_token: z.string(),
   page_count: z.number(),
@@ -45,6 +46,7 @@ export const zoomMeetingsSchema = z.object({
 });
 
 // Successful API response
+// @TODO: add link to the docs
 const zoomTokenSchema = z.object({
   scope: z.string().regex(new RegExp("meeting:write")),
   expiry_date: z.number(),
@@ -58,11 +60,21 @@ type ZoomToken = z.infer<typeof zoomTokenSchema>;
 
 const isTokenValid = (token: ZoomToken) => (token.expires_in || token.expiry_date) < Date.now();
 
+/** @link https://marketplace.zoom.us/docs/guides/auth/oauth/#request */
+const zoomRefreshedTokenSchema = z.object({
+  access_token: z.string(),
+  token_type: z.literal("bearer"),
+  refresh_token: z.string(),
+  expires_in: z.number(),
+  scope: z.string(),
+});
+
 const zoomAuth = (credential: Credential) => {
   const refreshAccessToken = async (refreshToken: string) => {
     const { client_id, client_secret } = await getZoomAppKeys();
     const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
-    return fetch("https://zoom.us/oauth/token", {
+
+    const response = await fetch("https://zoom.us/oauth/token", {
       method: "POST",
       headers: {
         Authorization: authHeader,
@@ -72,24 +84,32 @@ const zoomAuth = (credential: Credential) => {
         refresh_token: refreshToken,
         grant_type: "refresh_token",
       }),
-    })
-      .then(handleErrorsJson)
-      .then(async (responseBody) => {
-        if (!responseBody.refresh_token) Promise.reject(new Error("Invalid credentials"));
-        // set expiry date as offset from current time.
-        responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
-        delete responseBody.expires_in;
-        // Store new tokens in database.
-        await prisma.credential.update({
-          where: {
-            id: credential.id,
-          },
-          data: {
-            key: responseBody,
-          },
-        });
-        return responseBody.access_token;
-      });
+    });
+    const responseBody = await handleErrorsJson(response);
+
+    // We check the if the new credentials matches the expected response structure
+    const parsedToken = zoomRefreshedTokenSchema.safeParse(responseBody);
+
+    // TODO: If the new token is invalid, initiate the fallback sequence instead of throwing
+    // Expanding on this we can use server-to-server app and create meeting from admin calcom account
+    if (!parsedToken.success) {
+      return Promise.reject(new Error("Invalid refreshed tokens were returned"));
+    }
+    const newTokens = parsedToken.data;
+    const oldCredential = await prisma.credential.findUniqueOrThrow({ where: { id: credential.id } });
+    const parsedKey = zoomTokenSchema.safeParse(oldCredential.key);
+    if (!parsedKey.success) {
+      return Promise.reject(new Error("Invalid credentials were saved in the DB"));
+    }
+
+    const key = parsedKey.data;
+    key.access_token = newTokens.access_token;
+    key.refresh_token = newTokens.refresh_token;
+    // set expiry date as offset from current time.
+    key.expiry_date = Math.round(Date.now() + newTokens.expires_in * 1000);
+    // Store new tokens in database.
+    await prisma.credential.update({ where: { id: credential.id }, data: { key } });
+    return newTokens.access_token;
   };
 
   return {
@@ -98,12 +118,7 @@ const zoomAuth = (credential: Credential) => {
       try {
         credentialKey = zoomTokenSchema.parse(credential.key);
       } catch (error) {
-        // If the parse fails, it means we have an invalid credential saved. We should delete it.
-        await prisma.credential.delete({ where: { id: credential.id } });
-        // We reject the promise, and should handle the error on the UI
-        return Promise.reject(
-          "This Zoom credential was malformed so we've removed it from the DB. Please add a new Zoom credential"
-        );
+        return Promise.reject("Zoom credential keys parsing error");
       }
 
       return !isTokenValid(credentialKey)
@@ -237,24 +252,31 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
       }
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
-      const response: ZoomEventResult = await fetchZoomApi("users/me/meetings", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(translateEvent(event)),
-      });
-
-      const result = zoomEventResultSchema.parse(response);
-      if (result.id && result.join_url) {
-        return Promise.resolve({
-          type: "zoom_video",
-          id: result.id.toString(),
-          password: result.password || "",
-          url: result.join_url,
+      try {
+        const response: ZoomEventResult = await fetchZoomApi("users/me/meetings", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(translateEvent(event)),
         });
+
+        const result = zoomEventResultSchema.parse(response);
+
+        if (result.id && result.join_url) {
+          return {
+            type: "zoom_video",
+            id: result.id.toString(),
+            password: result.password || "",
+            url: result.join_url,
+          };
+        }
+        throw new Error("Failed to create meeting. Response is " + JSON.stringify(result));
+      } catch (err) {
+        console.error(err);
+        /* Prevents meeting creation failure when Zoom Token is expired */
+        throw new Error("Unexpected error");
       }
-      return Promise.reject(new Error("Failed to create meeting. Response is " + JSON.stringify(result)));
     },
     deleteMeeting: async (uid: string): Promise<void> => {
       await fetchZoomApi(`meetings/${uid}`, {
