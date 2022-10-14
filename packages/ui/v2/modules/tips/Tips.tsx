@@ -31,6 +31,14 @@ const tips = [
     description: "Ask screening questions of potential bookers to connect them with the right person",
     href: "https://cal.com/blog/cal-v-1-8",
   },
+  {
+    id: 4,
+    thumbnailUrl: "https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg",
+    mediaLink: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    title: "Get Rick Rolled",
+    description: "I'm never gonna give you up",
+    href: "https://docs.cal.com/rick-rolled",
+  },
 ];
 
 export default function Tips() {
