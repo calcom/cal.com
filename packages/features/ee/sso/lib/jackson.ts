@@ -20,8 +20,6 @@ const opts: JacksonOption = {
     url: samlDatabaseUrl,
     encryptionKey: process.env.CALENDSO_ENCRYPTION_KEY,
   },
-  oidcPath: "/abc",
-  openid: {},
 };
 
 let connectionController: IConnectionAPIController;
