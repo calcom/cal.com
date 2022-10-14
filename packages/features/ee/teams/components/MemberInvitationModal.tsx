@@ -1,4 +1,4 @@
-import { MembershipRole } from "@prisma/client";
+import { MembershipRole, Team } from "@prisma/client";
 import React, { useState, SyntheticEvent, useMemo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -7,7 +7,7 @@ import { Button, Dialog, DialogContent, DialogFooter, Select, TextField } from "
 
 type MemberInvitationModalProps = {
   isOpen: boolean;
-  teamId: number | null;
+  teamId: Team["id"] | null;
   currentMember: MembershipRole;
   onExit: () => void;
 };

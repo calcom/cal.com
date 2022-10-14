@@ -28,7 +28,7 @@ const MembersView = () => {
   });
 
   const {
-    data: teamMemebers,
+    data: teamMembers,
     isLoading: memberLoading,
     hasNextPage,
     fetchNextPage,
@@ -121,10 +121,10 @@ const MembersView = () => {
                 </Button>
               </div>
             )}
-            {teamMemebers && team && (
+            {teamMembers && team && (
               <div>
                 <ul className="divide-y divide-gray-200 rounded-md border ">
-                  {teamMemebers.pages.map((page, index) => (
+                  {teamMembers.pages.map((page, index) => (
                     <Fragment key={index}>
                       {page.members.map((member) => (
                         <MemberListItem key={member.id} team={team} member={member} />
