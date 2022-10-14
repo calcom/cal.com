@@ -1,10 +1,11 @@
-import child_process from "child_process";
 import fs from "fs";
 import { Box, Text } from "ink";
 import SelectInput from "ink-select-input";
 import TextInput from "ink-text-input";
 import path from "path";
 import React, { FC, useEffect, useState } from "react";
+
+import execSync from "./execSync";
 
 const slugify = (str: string) => {
   // It is to be a valid dir name, a valid JS variable name and a valid URL path
@@ -24,14 +25,7 @@ function getAppDirPath(slug: any) {
 
 const appStoreDir = path.resolve(__dirname, "..", "..", "app-store");
 const workspaceDir = path.resolve(__dirname, "..", "..", "..");
-const execSync = (...args) => {
-  const result = child_process.execSync(...args).toString();
-  if (process.env.DEBUG === "1") {
-    console.log(`$: ${args[0]}`);
-    console.log(result);
-  }
-  return args[0];
-};
+
 function absolutePath(appRelativePath) {
   return path.join(appStoreDir, appRelativePath);
 }
@@ -53,6 +47,7 @@ const BaseAppFork = {
     slug,
     publisherName,
     publisherEmail,
+    extendsFeature,
   }) {
     const appDirPath = getAppDirPath(slug);
     let message = !editMode ? "Forking base app" : "Updating app";
@@ -106,6 +101,7 @@ const BaseAppFork = {
       publisher: publisherName,
       email: publisherEmail,
       description: appDescription,
+      extendsFeature: extendsFeature,
       // TODO: Use this to avoid edit and delete on the apps created outside of cli
       __createdUsingCli: true,
       ...dataFromCategory,
@@ -211,9 +207,21 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
         { label: "Messaging", value: "messaging" },
         { label: "Web3", value: "web3" },
         { label: "Automation", value: "automation" },
+        { label: "Analytics", value: "analytics" },
         { label: "Other", value: "other" },
       ],
       explainer: "This is how apps are categorized in App Store.",
+    },
+    {
+      label: "What kind of app would you consider it?",
+      name: "extendsFeature",
+      options: [
+        { label: "User", value: "User" },
+        {
+          label: "Event Type(Available for configuration in Apps tab for all Event Types)",
+          value: "EventType",
+        },
+      ],
     },
     { label: "Publisher Name", name: "publisherName", type: "text", explainer: "Let users know who you are" },
     {
@@ -232,6 +240,11 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
   const appDescription = appInputData["appDescription"];
   const publisherName = appInputData["publisherName"];
   const publisherEmail = appInputData["publisherEmail"];
+  let extendsFeature = appInputData["extendsFeature"] || [];
+  if (rawCategory === "analytics") {
+    // Analytics only means EventType Analytics as of now
+    extendsFeature = "EventType";
+  }
   const [status, setStatus] = useState<"inProgress" | "done">("inProgress");
   const allFieldsFilled = inputIndex === fields.length;
   const [progressUpdate, setProgressUpdate] = useState("");
@@ -251,6 +264,7 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
         slug,
         publisherName,
         publisherEmail,
+        extendsFeature,
       });
       for (const item of it) {
         setProgressUpdate(item);
@@ -284,7 +298,7 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
             <Text bold italic>
               Just wait for a few seconds for process to exit and then you are good to go. Your App code
               exists at ${getAppDirPath(slug)}
-              Tip: Go and change the logo of your app by replacing {getAppDirPath(slug) + "/static/icon.svg"}
+              Tip : Go and change the logo of your app by replacing {getAppDirPath(slug) + "/static/icon.svg"}
             </Text>
             <Text bold italic>
               App Summary:

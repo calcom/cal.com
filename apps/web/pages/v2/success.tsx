@@ -10,7 +10,9 @@ import { useEffect, useRef, useState } from "react";
 import { RRule } from "rrule";
 import { z } from "zod";
 
+import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { getEventLocationValue, getSuccessPageLocationMessage } from "@calcom/app-store/locations";
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
 import {
@@ -28,7 +30,8 @@ import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
-import prisma from "@calcom/prisma";
+import prisma, { baseUserSelect } from "@calcom/prisma";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 import { EmailInput } from "@calcom/ui/form/fields";
@@ -170,8 +173,9 @@ export default function Success(props: SuccessProps) {
     location: location,
     t,
   };
-  const metadata = props.eventType?.metadata as { giphyThankYouPage: string };
-  const giphyImage = metadata?.giphyThankYouPage;
+
+  const giphyAppData = getEventTypeAppData(eventType, "giphy");
+  const giphyImage = giphyAppData?.thankYouPage;
 
   const eventName = getEventName(eventNameObject, true);
   const needsConfirmation = eventType.requiresConfirmation && reschedule != "true";
@@ -270,6 +274,7 @@ export default function Success(props: SuccessProps) {
         </div>
       )}
       <HeadSeo title={title} description={title} />
+      <BookingPageTagManager eventType={eventType} />
       <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
         <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
@@ -688,6 +693,8 @@ const getEventTypesFromDB = async (id: number) => {
       userId: true,
       successRedirectUrl: true,
       locations: true,
+      price: true,
+      currency: true,
       users: {
         select: {
           id: true,
@@ -717,9 +724,12 @@ const getEventTypesFromDB = async (id: number) => {
     return eventType;
   }
 
+  const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+
   return {
     isDynamic: false,
     ...eventType,
+    metadata,
   };
 };
 
@@ -771,18 +781,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       where: {
         id: eventTypeRaw.userId,
       },
-      select: {
-        id: true,
-        name: true,
-        username: true,
-        hideBranding: true,
-        plan: true,
-        theme: true,
-        brandColor: true,
-        darkBrandColor: true,
-        email: true,
-        timeZone: true,
-      },
+      select: baseUserSelect,
     });
     if (user) {
       eventTypeRaw.users.push(user);
@@ -797,6 +796,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventType = {
     ...eventTypeRaw,
+    metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
   };
 
