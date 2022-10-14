@@ -6,5 +6,5 @@
   },
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "spellright.language": ["en"],
-  "spellright.documentTypes": ["markdown"]
+  "spellright.documentTypes": ["markdown", "typescript"]
 }

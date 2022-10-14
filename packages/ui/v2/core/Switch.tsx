@@ -21,7 +21,8 @@ const Switch = (
     <div className={classNames("flex h-auto w-auto flex-row items-center", props.fitToHeight && "h-fit")}>
       <PrimitiveSwitch.Root
         className={classNames(
-          props.checked ? "bg-gray-900" : "bg-gray-200 hover:bg-gray-300",
+          props.checked ? "bg-gray-900" : "bg-gray-200",
+          primitiveProps.disabled ? "cursor-not-allowed" : "hover:bg-gray-300",
           "focus:ring-brand-800 h-5 w-[34px] rounded-full shadow-none",
           props.className
         )}
@@ -42,7 +43,10 @@ const Switch = (
       {label && (
         <Label.Root
           htmlFor={id}
-          className="ml-2 cursor-pointer align-text-top text-sm font-medium text-gray-900 ltr:ml-3 rtl:mr-3 dark:text-white">
+          className={classNames(
+            "ml-2 align-text-top text-sm font-medium text-gray-900 ltr:ml-3 rtl:mr-3 dark:text-white",
+            primitiveProps.disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer "
+          )}>
           {label}
         </Label.Root>
       )}

@@ -2,7 +2,7 @@ import type { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SUPPORTED_CHAINS_FOR_FORM } from "@calcom/rainbow/utils/ethereum";
-import type { FormValues } from "@calcom/web/pages/event-types/[type]";
+import type { FormValues } from "@calcom/web/pages/v2/event-types/[type]";
 
 import Select from "@components/ui/form/Select";
 
@@ -21,9 +21,7 @@ const RainbowInstallForm: React.FC<RainbowInstallFormProps> = ({
 
   return (
     <>
-      <hr className="my-2 border-neutral-200" />
-
-      <div className="block items-center sm:flex">
+      <div className="mt-4 block items-center sm:flex">
         <div className="min-w-48 mb-4 sm:mb-0">
           <label htmlFor="blockchainId" className="flex text-sm font-medium text-neutral-700">
             {t("Blockchain")}
