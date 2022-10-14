@@ -6,12 +6,16 @@ import useEmbed from "./useEmbed";
 type CalProps = {
   calOrigin?: string;
   calLink: string;
+  initConfig?: {
+    debug?: boolean;
+    uiDebug?: boolean;
+  };
   config?: any;
   embedJsUrl?: string;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 const Cal = function Cal(props: CalProps) {
-  const { calLink, calOrigin, config, embedJsUrl, ...restProps } = props;
+  const { calLink, calOrigin, config, initConfig = {}, embedJsUrl, ...restProps } = props;
   if (!calLink) {
     throw new Error("calLink is required");
   }
@@ -24,20 +28,19 @@ const Cal = function Cal(props: CalProps) {
     }
     initializedRef.current = true;
     const element = ref.current;
-    let initConfig = {};
-    if (calOrigin) {
-      (initConfig as any).origin = calOrigin;
-    }
-    Cal("init", initConfig);
+    Cal("init", {
+      ...initConfig,
+      origin: calOrigin,
+    });
     Cal("inline", {
       elementOrSelector: element,
       calLink,
       config,
     });
-  }, [Cal, calLink, config, calOrigin]);
+  }, [Cal, calLink, config, calOrigin, initConfig]);
 
   if (!Cal) {
-    return <div {...restProps}>Loading {calLink} </div>;
+    return null;
   }
 
   return <div ref={ref} {...restProps} />;
