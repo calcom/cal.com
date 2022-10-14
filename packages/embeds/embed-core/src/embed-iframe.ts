@@ -19,6 +19,7 @@ declare global {
     resetEmbedStatus: () => void;
     getEmbedNamespace: () => string | null;
     getEmbedTheme: () => "dark" | "light" | null;
+    isPageOptimizedForEmbed: (calLink: string) => boolean;
   }
 }
 
@@ -221,7 +222,8 @@ export const useIsEmbed = () => {
   // We can't simply return isEmbed() from this method.
   // isEmbed() returns different values on server and browser, which messes up the hydration.
   // TODO: We can avoid using document.URL and instead use Router.
-  const [isEmbed, setIsEmbed] = useState<boolean | null>(null);
+  const router = useRouter();
+  const [isEmbed, setIsEmbed] = useState<boolean | null>(typeof router.query.embed === "string");
   useEffect(() => {
     const namespace = getNamespace();
     const _isValidNamespace = isValidNamespace(namespace);
@@ -283,7 +285,11 @@ export const methods = {
         return;
       }
       // No UI change should happen in sight. Let the parent height adjust and in next cycle show it.
-      requestAnimationFrame(unhideBody);
+      // HACK: React components take time to commit their updates of isEmbed=true to DOM, so add this random 500ms delay which seems to work
+      // TODO: Optimize page by page and then remove this unnecessary delay
+      setTimeout(() => {
+        unhideBody();
+      }, 500);
       sdkActionManager?.fire("linkReady", {});
     });
   },
