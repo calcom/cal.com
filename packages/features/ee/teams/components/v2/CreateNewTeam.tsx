@@ -9,6 +9,14 @@ import { Button, Avatar } from "@calcom/ui/v2";
 import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
 import { Form, TextField } from "@calcom/ui/v2/core/form/fields";
 
+// transform text to url
+const transformTextToUrl = (text: string) => {
+  return text
+    .toLowerCase()
+    .replace(/ /g, "-")
+    .replace(/[^\w-]+/g, "");
+};
+
 const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: number) => void }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
@@ -22,8 +30,6 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
   });
 
   const formMethods = useForm();
-  const [nameCopy, setNameCopy] = useState("");
-  const [isSlugTouched, setSlugTouched] = useState(false);
 
   return (
     <Form
@@ -47,9 +53,10 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
               label={t("team_name")}
               value={value}
               onChange={(e) => {
-                setNameCopy(e?.target.value);
                 formMethods.setValue("name", e?.target.value);
+                formMethods.setValue("slug", transformTextToUrl(e?.target.value));
               }}
+              autoComplete="off"
             />
           )}
         />
@@ -65,10 +72,9 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
               name="slug"
               label={t("team_url")}
               addOnLeading={`${WEBAPP_URL}/`}
-              value={isSlugTouched ? value : nameCopy}
+              value={value}
               onChange={(e) => {
-                setSlugTouched(true);
-                formMethods.setValue("slug", e?.target.value);
+                formMethods.setValue("slug", transformTextToUrl(e?.target.value));
               }}
             />
           )}
