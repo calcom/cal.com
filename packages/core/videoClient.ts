@@ -3,6 +3,7 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import appStore from "@calcom/app-store";
+import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
@@ -129,19 +130,16 @@ const deleteMeeting = (credential: Credential, uid: string): Promise<unknown> =>
 
 // @TODO: This is a temporary solution to create a meeting with cal.com video as fallback url
 const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
-  const calVideoMetadata = appStore.dailyvideo.metadata;
-  const calVideoMetadataKeys = calVideoMetadata.key as { [key: string]: Credential };
-  const dailyCredential = {
-    id: 0,
-    appId: calVideoMetadata.slug,
-    type: calVideoMetadata.type,
-    userId: null,
-    key: calVideoMetadataKeys,
-  };
-
-  const videoAdapters = getVideoAdapters([dailyCredential]);
-  const [firstVideoAdapter] = videoAdapters;
-  return await firstVideoAdapter?.createMeeting(calEvent);
+  const [videoAdapter] = getVideoAdapters([
+    {
+      id: 0,
+      appId: "daily-video",
+      type: "daily_video",
+      userId: null,
+      key: await getDailyAppKeys(),
+    },
+  ]);
+  return videoAdapter?.createMeeting(calEvent);
 };
 
 export { getBusyVideoTimes, createMeeting, updateMeeting, deleteMeeting };
