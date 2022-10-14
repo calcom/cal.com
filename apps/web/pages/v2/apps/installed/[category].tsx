@@ -92,7 +92,7 @@ interface IntegrationsContainerProps {
 }
 
 interface IntegrationsListProps {
-  variant?: "calendar" | "conferencing" | "payment" | "automation";
+  variant?: IntegrationsContainerProps["variant"];
   data: inferQueryOutput<"viewer.integrations">;
 }
 
@@ -101,28 +101,26 @@ const IntegrationsList = ({ data, variant }: IntegrationsListProps) => {
   return (
     <List className={classNames(separateItems ? "flex flex-col gap-6" : "")} noBorderTreatment>
       {data.items.map((item) => (
-        <>
-          <IntegrationListItem
-            name={item.name}
-            slug={item.slug}
-            key={item.title}
-            title={item.title}
-            logo={item.logo}
-            description={item.description}
-            separate={separateItems}
-            actions={
-              <div className="flex w-16 justify-end">
-                <ConnectOrDisconnectIntegrationButton
-                  credentialIds={item.credentialIds}
-                  type={item.type}
-                  isGlobal={item.isGlobal}
-                  installed
-                />
-              </div>
-            }>
-            {separateItems && <AppSettings slug={item.slug} />}
-          </IntegrationListItem>
-        </>
+        <IntegrationListItem
+          name={item.name}
+          slug={item.slug}
+          key={item.title}
+          title={item.title}
+          logo={item.logo}
+          description={item.description}
+          separate={separateItems}
+          actions={
+            <div className="flex w-16 justify-end">
+              <ConnectOrDisconnectIntegrationButton
+                credentialIds={item.credentialIds}
+                type={item.type}
+                isGlobal={item.isGlobal}
+                installed
+              />
+            </div>
+          }>
+          {separateItems && <AppSettings slug={item.slug} />}
+        </IntegrationListItem>
       ))}
     </List>
   );
