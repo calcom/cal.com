@@ -16,6 +16,7 @@ import classNames from "@calcom/lib/classNames";
 import { JOIN_SLACK, ROADMAP, DESKTOP_APP_LINK, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import isCalcom from "@calcom/lib/isCalcom";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
@@ -35,7 +36,7 @@ import pkg from "../../../../apps/web/package.json";
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
-// TODO: re-introduce in 2.1 import Tips from "../modules/tips/Tips";
+import Tips from "../modules/tips/Tips";
 import HeadSeo from "./head-seo";
 import { SkeletonText } from "./skeleton";
 
@@ -736,9 +737,7 @@ function SideBar() {
         <Navigation />
       </div>
 
-      {/* TODO @Peer_Rich: reintroduce in 2.1
-      <Tips />
-      */}
+      {isCalcom && <Tips />}
       {/* Save it for next preview version
        <div className="mb-4 hidden lg:block">
         <UserV2OptInBanner />
