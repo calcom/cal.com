@@ -99,3 +99,6 @@ export const InstallAppButtonMap = {
   zapier: dynamic(() => import("./zapier/components/InstallAppButton")),
   zoomvideo: dynamic(() => import("./zoomvideo/components/InstallAppButton")),
 };
+export const AppSettingsComponentsMap = {
+  zapier: dynamic(() => import("./zapier/components/AppSettings")),
+};
