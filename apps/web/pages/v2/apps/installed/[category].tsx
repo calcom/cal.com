@@ -104,7 +104,7 @@ const IntegrationsList = ({ data, variant }: IntegrationsListProps) => {
         <IntegrationListItem
           name={item.name}
           slug={item.slug}
-          key={item.title}
+          key={item.name}
           title={item.title}
           logo={item.logo}
           description={item.description}
