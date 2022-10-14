@@ -60,6 +60,7 @@ function getAppName(candidatePath) {
 
 function generateFiles() {
   const browserOutput = [`import dynamic from "next/dynamic"`];
+  const schemasOutput = [];
   const serverOutput = [];
   const appDirs: { name: string; path: string }[] = [];
 
@@ -174,7 +175,7 @@ function generateFiles() {
     })
   );
 
-  browserOutput.push(
+  schemasOutput.push(
     ...getObjectExporter("appDataSchemas", {
       fileToBeImported: "zod.ts",
       // Import path must have / even for windows and not \
@@ -209,15 +210,15 @@ function generateFiles() {
     Don't modify this file manually.
 **/
 `;
-  fs.writeFileSync(
-    `${APP_STORE_PATH}/apps.server.generated.ts`,
-    formatOutput(`${banner}${serverOutput.join("\n")}`)
-  );
-  fs.writeFileSync(
-    `${APP_STORE_PATH}/apps.browser.generated.tsx`,
-    formatOutput(`${banner}${browserOutput.join("\n")}`)
-  );
-  console.log("Generated `apps.server.generated.ts` and `apps.browser.generated.tsx`");
+  const filesToGenerate: [string, string[]][] = [
+    ["apps.server.generated.ts", serverOutput],
+    ["apps.browser.generated.tsx", browserOutput],
+    ["apps.schemas.generated.ts", schemasOutput],
+  ];
+  filesToGenerate.forEach(([fileName, output]) => {
+    fs.writeFileSync(`${APP_STORE_PATH}/${fileName}`, formatOutput(`${banner}${output.join("\n")}`));
+  });
+  console.log(`Generated ${filesToGenerate.map(([fileName]) => fileName).join(", ")}`);
 }
 
 const debouncedGenerateFiles = debounce(generateFiles);
