@@ -4,8 +4,19 @@ import { debounce } from "lodash";
 import path from "path";
 import prettier from "prettier";
 
-import prettierConfig from "../../config/prettier-preset";
+import { AppMeta } from "@calcom/types/App";
 
+import prettierConfig from "../../config/prettier-preset";
+import execSync from "./execSync";
+
+function isFileThere(path) {
+  try {
+    fs.statSync(path);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
 let isInWatchMode = false;
 if (process.argv[2] === "--watch") {
   isInWatchMode = true;
@@ -13,12 +24,17 @@ if (process.argv[2] === "--watch") {
 
 const formatOutput = (source: string) => prettier.format(source, prettierConfig);
 
-const getVariableName = function (appName) {
+const getVariableName = function (appName: string) {
   return appName.replace("-", "_");
 };
 
+const getAppId = function (app: { name: string }) {
+  // Handle stripe separately as it's an old app with different dirName than slug/appId
+  return app.name === "stripepayment" ? "stripe" : app.name;
+};
+
 const APP_STORE_PATH = path.join(__dirname, "..", "..", "app-store");
-type App = {
+type App = Partial<AppMeta> & {
   name: string;
   path: string;
 };
@@ -45,7 +61,7 @@ function getAppName(candidatePath) {
 function generateFiles() {
   const browserOutput = [`import dynamic from "next/dynamic"`];
   const serverOutput = [];
-  const appDirs: App[] = [];
+  const appDirs: { name: string; path: string }[] = [];
 
   fs.readdirSync(`${APP_STORE_PATH}`).forEach(function (dir) {
     if (dir === "ee") {
@@ -74,9 +90,34 @@ function generateFiles() {
 
   function forEachAppDir(callback: (arg: App) => void) {
     for (let i = 0; i < appDirs.length; i++) {
-      callback(appDirs[i]);
+      const configPath = path.join(APP_STORE_PATH, appDirs[i].path, "config.json");
+      let app;
+
+      if (fs.existsSync(configPath)) {
+        app = JSON.parse(fs.readFileSync(configPath).toString());
+      } else {
+        app = {};
+      }
+
+      callback({
+        ...app,
+        name: appDirs[i].name,
+        path: appDirs[i].path,
+      });
     }
   }
+
+  forEachAppDir((app) => {
+    const templateDestinationDir = path.join(APP_STORE_PATH, app.path, "extensions");
+    const templateDestinationFilePath = path.join(templateDestinationDir, "EventTypeAppCard.tsx");
+    const zodDestinationFilePath = path.join(APP_STORE_PATH, app.path, "zod.ts");
+
+    if (app.extendsFeature === "EventType" && !isFileThere(templateDestinationFilePath)) {
+      execSync(`mkdir -p ${templateDestinationDir}`);
+      execSync(`cp ../app-store/_templates/extensions/EventTypeAppCard.tsx ${templateDestinationFilePath}`);
+      execSync(`cp ../app-store/_templates/zod.ts ${zodDestinationFilePath}`);
+    }
+  });
 
   function getObjectExporter(
     objectName,
@@ -134,10 +175,32 @@ function generateFiles() {
   );
 
   browserOutput.push(
+    ...getObjectExporter("appDataSchemas", {
+      fileToBeImported: "zod.ts",
+      // Import path must have / even for windows and not \
+      importBuilder: (app) =>
+        `import { appDataSchema as ${getVariableName(app.name)}_schema } from "./${app.path.replace(
+          /\\/g,
+          "/"
+        )}/zod";`,
+      // Key must be appId as this is used by eventType metadata and lookup is by appId
+      entryBuilder: (app) => `  "${getAppId(app)}":${getVariableName(app.name)}_schema ,`,
+    })
+  );
+
+  browserOutput.push(
     ...getObjectExporter("InstallAppButtonMap", {
       fileToBeImported: "components/InstallAppButton.tsx",
       entryBuilder: (app) =>
         `  ${app.name}: dynamic(() =>import("./${app.path}/components/InstallAppButton")),`,
+    })
+  );
+
+  browserOutput.push(
+    ...getObjectExporter("EventTypeAddonMap", {
+      fileToBeImported: path.join("extensions", "EventTypeAppCard.tsx"),
+      entryBuilder: (app) =>
+        `  ${app.name}: dynamic(() =>import("./${app.path}/extensions/EventTypeAppCard")),`,
     })
   );
 

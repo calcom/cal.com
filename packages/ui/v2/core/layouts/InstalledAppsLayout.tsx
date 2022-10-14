@@ -27,6 +27,16 @@ const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
     icon: Icon.FiCreditCard,
   },
   {
+    name: "Automation",
+    href: "/apps/installed/automation",
+    icon: Icon.FiShare2,
+  },
+  {
+    name: "Analytics",
+    href: "/apps/installed/analytics",
+    icon: Icon.FiBarChart,
+  },
+  {
     name: "other",
     href: "/apps/installed/other",
     icon: Icon.FiGrid,

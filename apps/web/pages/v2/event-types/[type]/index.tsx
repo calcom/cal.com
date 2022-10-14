@@ -5,16 +5,17 @@ import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
-import getApps, { getLocationOptions } from "@calcom/app-store/utils";
+import getApps, { getEventTypeAppData, getLocationOptions } from "@calcom/app-store/utils";
 import { LocationObject, EventLocationType } from "@calcom/core/location";
 import { parseRecurringEvent, parseBookingLimit, validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
+import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { BookingLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form } from "@calcom/ui/form/fields";
@@ -49,8 +50,6 @@ export type FormValues = {
   requiresConfirmation: boolean;
   recurringEvent: RecurringEvent | null;
   schedulingType: SchedulingType | null;
-  price: number;
-  currency: string;
   hidden: boolean;
   hideCalendarNotes: boolean;
   hashedLink: string | undefined;
@@ -75,14 +74,12 @@ export type FormValues = {
   beforeBufferTime: number;
   afterBufferTime: number;
   slotInterval: number | null;
+  metadata: z.infer<typeof EventTypeMetaDataSchema>;
   destinationCalendar: {
     integration: string;
     externalId: string;
   };
   successRedirectUrl: string;
-  giphyThankYouPage: string;
-  blockchainId: number;
-  smartContractAddress: string;
   bookingLimits?: BookingLimit;
 };
 
@@ -97,8 +94,16 @@ export type EventTypeSetupInfered = inferSSRProps<typeof getServerSideProps>;
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
+  const { data: eventTypeApps } = trpc.useQuery([
+    "viewer.apps",
+    {
+      extendsFeature: "EventType",
+    },
+  ]);
 
   const { eventType: dbEventType, locationOptions, team, teamMembers } = props;
+  // TODO: It isn't a good idea to maintain state using setEventType. If we want to connect the SSR'd data to tRPC, we should useQuery(["viewer.eventTypes.get"]) with initialData
+  // Due to this change, when Form is saved, there is no way to propagate that info to eventType (e.g. disabling stripe app doesn't allow recurring tab to be enabled without refresh).
   const [eventType, setEventType] = useState(dbEventType);
   const animationParentRef = useRef(null);
   const router = useRouter();
@@ -159,8 +164,19 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       },
       schedulingType: eventType.schedulingType,
       minimumBookingNotice: eventType.minimumBookingNotice,
+      metadata: eventType.metadata,
     },
   });
+
+  const appsMetadata = formMethods.getValues("metadata")?.apps;
+  const numberOfInstalledApps = eventTypeApps?.filter((app) => app.isInstalled).length || 0;
+  let numberOfActiveApps = 0;
+
+  if (appsMetadata) {
+    numberOfActiveApps = Object.entries(appsMetadata).filter(
+      ([appId, appData]) => eventTypeApps?.find((app) => app.slug === appId)?.isInstalled && appData.enabled
+    ).length;
+  }
 
   const tabMap = {
     setup: (
@@ -182,18 +198,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     ),
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
-    recurring: (
-      <EventRecurringTab eventType={eventType} hasPaymentIntegration={props.hasPaymentIntegration} />
-    ),
-    apps: (
-      <EventAppsTab
-        currency={props.currency}
-        eventType={eventType}
-        hasPaymentIntegration={props.hasPaymentIntegration}
-        hasGiphyIntegration={props.hasGiphyIntegration}
-        hasRainbowIntegration={props.hasRainbowIntegration}
-      />
-    ),
+    recurring: <EventRecurringTab eventType={eventType} />,
+    apps: <EventAppsTab eventType={eventType} />,
     workflows: (
       <EventWorkflowsTab
         eventType={eventType}
@@ -204,7 +210,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   return (
     <EventTypeSingleLayout
-      enabledAppsNumber={[props.hasGiphyIntegration, props.hasPaymentIntegration].filter(Boolean).length}
+      enabledAppsNumber={numberOfActiveApps}
+      installedAppsNumber={numberOfInstalledApps}
       enabledWorkflowsNumber={eventType.workflows.length}
       eventType={eventType}
       team={team}
@@ -218,15 +225,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
           const {
             periodDates,
             periodCountCalendarDays,
-            giphyThankYouPage,
             beforeBufferTime,
             afterBufferTime,
             seatsPerTimeSlot,
             bookingLimits,
             recurringEvent,
             locations,
-            blockchainId,
-            smartContractAddress,
+            metadata,
             // We don't need to send it to the backend
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             seatsPerTimeSlotEnabled,
@@ -250,11 +255,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             afterEventBuffer: afterBufferTime,
             bookingLimits,
             seatsPerTimeSlot,
-            metadata: {
-              ...(giphyThankYouPage ? { giphyThankYouPage } : {}),
-              ...(smartContractAddress ? { smartContractAddress } : {}),
-              ...(blockchainId ? { blockchainId } : { blockchainId: 1 }),
-            },
+            metadata,
           });
         }}>
         <div ref={animationParentRef} className="space-y-6">
@@ -355,6 +356,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hashedLink: true,
       bookingLimits: true,
       successRedirectUrl: true,
+      currency: true,
       team: {
         select: {
           id: true,
@@ -383,7 +385,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       },
       userId: true,
       price: true,
-      currency: true,
       destinationCalendar: true,
       seatsPerTimeSlot: true,
       workflows: {
@@ -428,18 +429,37 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   });
 
   const { locations, metadata, ...restEventType } = rawEventType;
+
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const newMetadata = EventTypeMetaDataSchema.parse(metadata || {})!;
+  const apps = newMetadata.apps || {};
+  const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
+  newMetadata.apps = {
+    ...apps,
+    stripe: {
+      ...getStripeAppData(eventTypeWithParsedMetadata, true),
+      currency:
+        (
+          credentials.find((integration) => integration.type === "stripe_payment")
+            ?.key as unknown as StripeData
+        )?.default_currency || "usd",
+    },
+    giphy: getEventTypeAppData(eventTypeWithParsedMetadata, "giphy", true),
+    rainbow: getEventTypeAppData(eventTypeWithParsedMetadata, "rainbow", true),
+  };
+
+  // TODO: How to extract metadata schema from _EventTypeModel to be able to parse it?
+  // const parsedMetaData = _EventTypeModel.parse(newMetadata);
+  const parsedMetaData = newMetadata;
+
   const eventType = {
     ...restEventType,
     schedule: rawEventType.schedule?.id || rawEventType.users[0].defaultScheduleId,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
     bookingLimits: parseBookingLimit(restEventType.bookingLimits),
     locations: locations as unknown as LocationObject[],
-    metadata: (metadata || {}) as JSONObject,
+    metadata: parsedMetaData,
   };
-
-  const hasGiphyIntegration = !!credentials.find((credential) => credential.type === "giphy_other");
-
-  const hasRainbowIntegration = !!credentials.find((credential) => credential.type === "rainbow_web3");
 
   // backwards compat
   if (eventType.users.length === 0 && !eventType.team) {
@@ -456,10 +476,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
   const integrations = getApps(credentials);
   const locationOptions = getLocationOptions(integrations, t);
-  const hasPaymentIntegration = !!credentials.find((credential) => credential.type === "stripe_payment");
-  const currency =
-    (credentials.find((integration) => integration.type === "stripe_payment")?.key as unknown as StripeData)
-      ?.default_currency || "usd";
 
   const eventTypeObject = Object.assign({}, eventType, {
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
@@ -486,10 +502,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       locationOptions,
       team: eventTypeObject.team || null,
       teamMembers,
-      hasPaymentIntegration,
-      hasGiphyIntegration,
-      hasRainbowIntegration,
-      currency,
       currentUserMembership,
     },
   };
