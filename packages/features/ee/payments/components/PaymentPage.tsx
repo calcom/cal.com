@@ -9,6 +9,7 @@ import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBSITE_URL } from "@calcom/lib/constants";
+import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
@@ -25,6 +26,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   const [timezone, setTimezone] = useState<string | null>(null);
   useTheme(props.profile.theme);
   const isEmbed = useIsEmbed();
+  const stripeAppData = getStripeAppData(props.eventType);
   useEffect(() => {
     let embedIframeWidth = 0;
     const _timezone = localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess();
@@ -113,9 +115,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       <div className="col-span-2 mb-6">
                         <IntlProvider locale="en">
                           <FormattedNumber
-                            value={props.eventType.price / 100.0}
+                            value={stripeAppData.price / 100.0}
                             style="currency"
-                            currency={props.eventType.currency.toUpperCase()}
+                            currency={stripeAppData.currency.toUpperCase()}
                           />
                         </IntlProvider>
                       </div>
