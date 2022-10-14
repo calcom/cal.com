@@ -60,7 +60,6 @@ export default function Tips() {
 
   useEffect(() => {
     const reversedTips = tips.slice(0).reverse();
-
     const removedTipsString = localStorage.getItem("removedTipsIds") || "";
     const removedTipsIds = removedTipsString.split(",").map((id) => parseInt(id, 10));
     const filteredTips = reversedTips.filter((tip) => removedTipsIds.indexOf(tip.id) === -1);
@@ -74,7 +73,7 @@ export default function Tips() {
       style={{
         gridTemplateColumns: "1fr",
       }}>
-      {list.map((tip, index) => {
+      {list.map((tip) => {
         return (
           <div
             className="relative"
