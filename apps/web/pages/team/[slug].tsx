@@ -28,7 +28,7 @@ import AvatarGroup from "@components/ui/AvatarGroup";
 import { ssrInit } from "@server/lib/ssr";
 
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
-function TeamPage({ team }: TeamPageProps) {
+function TeamPage({ team, ...restProps }: TeamPageProps) {
   useTheme();
   const showMembers = useToggleQuery("members");
   const { t } = useLocale();
@@ -94,7 +94,7 @@ function TeamPage({ team }: TeamPageProps) {
           </p>
           <p className="dark:text-darkgray-500 mt-2 text-sm font-normal text-gray-500">{team.bio}</p>
         </div>
-        {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
+        {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} {...restProps} />}
         {!showMembers.isOn && team.eventTypes.length > 0 && (
           <div className="mx-auto max-w-3xl ">
             <div className="dark:border-darkgray-300 rounded-md border">
