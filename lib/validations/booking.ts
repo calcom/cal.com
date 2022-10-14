@@ -10,6 +10,7 @@ const schemaBookingBaseBodyParams = Booking.pick({
   userId: true,
   eventTypeId: true,
   title: true,
+  description: true,
   startTime: true,
   endTime: true,
 }).partial();

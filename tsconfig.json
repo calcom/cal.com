@@ -2,14 +2,29 @@
   "extends": "@calcom/tsconfig/nextjs.json",
   "compilerOptions": {
     "strict": true,
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     "baseUrl": ".",
     "paths": {
-      "@api/*": ["pages/api/*"],
-      "@lib/*": ["lib/*"],
-      "@/*": ["*"]
+      "@api/*": [
+        "pages/api/*"
+      ],
+      "@lib/*": [
+        "lib/*"
+      ],
+      "@/*": [
+        "*"
+      ]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "../../packages/types/next-auth.d.ts"],
-  "exclude": ["node_modules", "templates", "auth"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "../../packages/types/next-auth.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "templates",
+    "auth"
+  ]
 }
