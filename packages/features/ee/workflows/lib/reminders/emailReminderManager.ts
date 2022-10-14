@@ -61,9 +61,26 @@ export const scheduleEmailReminder = async (
     method: "POST",
   });
 
-  const name = action === WorkflowActions.EMAIL_HOST ? evt.organizer.name : evt.attendees[0].name;
-  const attendeeName = action === WorkflowActions.EMAIL_HOST ? evt.attendees[0].name : evt.organizer.name;
-  const timeZone = action === WorkflowActions.EMAIL_HOST ? evt.organizer.timeZone : evt.attendees[0].timeZone;
+  let name = "";
+  let attendeeName = "";
+  let timeZone = "";
+
+  switch (action) {
+    case WorkflowActions.EMAIL_HOST:
+      name = evt.organizer.name;
+      attendeeName = evt.attendees[0].name;
+      timeZone = evt.organizer.timeZone;
+      break;
+    case WorkflowActions.EMAIL_ATTENDEE:
+      name = evt.attendees[0].name;
+      attendeeName = evt.organizer.name;
+      timeZone = evt.attendees[0].timeZone;
+      break;
+    case WorkflowActions.EMAIL_ADDRESS:
+      name = "";
+      attendeeName = evt.attendees[0].name;
+      timeZone = evt.organizer.timeZone;
+  }
 
   let emailContent = {
     emailSubject,
