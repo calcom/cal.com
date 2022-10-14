@@ -40,9 +40,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
   const { t } = useLocale();
   const [showEventNameTip, setShowEventNameTip] = useState(false);
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
+  const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!eventType.successRedirectUrl);
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
   const [seatsInputVisible, setSeatsInputVisible] = useState(!!eventType.seatsPerTimeSlot);
-  const [seatsPerTimeSlot, setSeatsPerTimeSlot] = useState(eventType.seatsPerTimeSlot || 2);
   const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
@@ -51,7 +51,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
 
   const animationRef = useRef(null);
-  const seatsEnabled = !!eventType.seatsPerTimeSlot;
+  const seatsEnabled = formMethods.getValues("seatsPerTimeSlotEnabled");
 
   useEffect(() => {
     animationRef.current && autoAnimate(animationRef.current);
@@ -249,6 +249,48 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
         )}
       />
       <hr />
+
+      <Controller
+        name="successRedirectUrl"
+        control={formMethods.control}
+        defaultValue={hashedUrl}
+        render={({ field: { value, onChange } }) => (
+          <>
+            <div className="flex space-x-3 ">
+              <Switch
+                name="successRedirectUrlCheck"
+                fitToHeight={true}
+                defaultChecked={redirectUrlVisible}
+                onCheckedChange={(e) => {
+                  setRedirectUrlVisible(e);
+                  onChange(e ? value : "");
+                }}
+              />
+              <div className="flex flex-col">
+                <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
+                  {t("redirect_success_booking")}
+                </Skeleton>
+                <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
+                  {t("redirect_url_description")}
+                </Skeleton>
+              </div>
+            </div>
+            {redirectUrlVisible && (
+              <div className="">
+                <TextField
+                  label={t("redirect_success_booking")}
+                  placeholder={t("external_redirect_url")}
+                  required={redirectUrlVisible}
+                  type="text"
+                  defaultValue={eventType.successRedirectUrl || ""}
+                  {...formMethods.register("successRedirectUrl")}
+                />
+              </div>
+            )}
+          </>
+        )}
+      />
+      <hr />
       <Controller
         name="hashedLink"
         control={formMethods.control}
@@ -313,45 +355,61 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
       />
       <hr />
       <Controller
-        name="seatsPerTimeSlot"
+        name="seatsPerTimeSlotEnabled"
         control={formMethods.control}
-        defaultValue={seatsPerTimeSlot}
+        defaultValue={!!eventType.seatsPerTimeSlot}
         render={({ field: { value, onChange } }) => (
-          <>
-            <div className="flex space-x-3">
-              <Switch
-                name="seatsPerTimeSlot"
-                checked={seatsInputVisible}
-                onCheckedChange={(e) => {
-                  setSeatsInputVisible(e);
-                  formMethods.setValue("seatsPerTimeSlot", seatsPerTimeSlot);
-                  onChange(e ? seatsPerTimeSlot : null);
-                }}
-                fitToHeight={true}
-              />
-              <div className="flex flex-col">
-                <Label className="text-sm font-semibold leading-none text-black">{t("offer_seats")}</Label>
-                <p className="-mt-2 text-sm leading-normal text-gray-600">{t("offer_seats_description")}</p>
-              </div>
+          <div className="flex space-x-3">
+            <Switch
+              name="seatsPerTimeSlotEnabled"
+              checked={value}
+              onCheckedChange={(e) => {
+                setSeatsInputVisible(e);
+                // Enabling seats will disable guests and requiring confimation until fully supported
+                if (e) {
+                  formMethods.setValue("disableGuests", true);
+                  formMethods.setValue("requiresConfirmation", false);
+                  formMethods.setValue("seatsPerTimeSlot", 2);
+                } else {
+                  formMethods.setValue("seatsPerTimeSlot", null);
+                }
+                onChange(e);
+              }}
+              fitToHeight={true}
+            />
+            <div className="flex flex-col">
+              <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
+                {t("offer_seats")}
+              </Skeleton>
+              <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
+                {t("offer_seats_description")}
+              </Skeleton>
             </div>
-            {seatsInputVisible && (
-              <div className="">
-                <TextField
-                  required
-                  name="seatsPerTimeSlot"
-                  label={t("number_of_seats")}
-                  type="number"
-                  defaultValue={seatsPerTimeSlot || 2}
-                  addOnSuffix={<>{t("seats")}</>}
-                  onChange={(e) => {
-                    formMethods.setValue("seatsPerTimeSlot", Number(e.target.value));
-                  }}
-                />
-              </div>
-            )}
-          </>
+          </div>
         )}
       />
+      {seatsInputVisible && (
+        <Controller
+          name="seatsPerTimeSlot"
+          control={formMethods.control}
+          defaultValue={eventType.seatsPerTimeSlot}
+          render={({ field: { value, onChange } }) => (
+            <div className="">
+              <TextField
+                required
+                name="seatsPerTimeSlot"
+                label={t("number_of_seats")}
+                type="number"
+                defaultValue={value || 2}
+                addOnSuffix={<>{t("seats")}</>}
+                onChange={(e) => {
+                  onChange(Number(e.target.value));
+                }}
+              />
+            </div>
+          )}
+        />
+      )}
       {showEventNameTip && (
         <Dialog open={showEventNameTip} onOpenChange={setShowEventNameTip}>
           <DialogContent

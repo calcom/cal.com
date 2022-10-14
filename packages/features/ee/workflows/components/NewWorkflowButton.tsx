@@ -43,7 +43,7 @@ export function NewWorkflowButton() {
   const timeUnitOptions = getWorkflowTimeUnitOptions(t);
 
   const formSchema = z.object({
-    name: z.string().nonempty(),
+    name: z.string().min(1),
     trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
     action: z.enum(WORKFLOW_ACTIONS),
     time: z.number().min(1).optional(),

@@ -5,7 +5,7 @@ import { Props } from "react-select";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import Select from "./Select";
+import Select from "./select";
 
 export type Option = {
   value: string;
@@ -18,22 +18,21 @@ const InputOption: React.FC<OptionProps<any, boolean, GroupBase<any>>> = ({
   isSelected,
   children,
   innerProps,
+  className,
   ...rest
 }) => {
-  const style = {
-    alignItems: "center",
-    backgroundColor: isFocused ? "rgba(244, 245, 246, var(--tw-bg-opacity))" : "transparent",
-    color: "inherit",
-    display: "flex ",
-  };
-
   const props = {
     ...innerProps,
-    style,
   };
 
   return (
     <components.Option
+      className={classNames(
+        className,
+        "dark:bg-darkgray-100 text-[inherit] !flex !cursor-pointer !py-3",
+        isFocused && "dark:!bg-darkgray-200 !bg-gray-100",
+        isSelected && "dark:!bg-darkgray-300 !bg-neutral-900"
+      )}
       {...rest}
       isDisabled={isDisabled}
       isFocused={isFocused}
@@ -75,17 +74,6 @@ export default function MultiSelectCheckboxes({
 
   return (
     <Select
-      theme={(theme) => ({
-        ...theme,
-        borderRadius: 6,
-        colors: {
-          ...theme.colors,
-          primary: "var(--brand-color)",
-
-          primary50: "rgba(209 , 213, 219, var(--tw-bg-opacity))",
-          primary25: "rgba(244, 245, 246, var(--tw-bg-opacity))",
-        },
-      })}
       value={selected}
       onChange={(s: any) => {
         setSelected(s);
