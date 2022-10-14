@@ -401,7 +401,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
       <div>
         <main
           className={classNames(
-            "flex flex-col",
+            "flex-col md:mx-4 lg:flex",
             shouldAlignCentrally ? "items-center" : "items-start",
             !isEmbed && classNames("mx-auto my-0 ease-in-out md:my-24")
           )}>
@@ -412,7 +412,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                 isBackgroundTransparent
                   ? ""
                   : "dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-white pb-4 md:pb-0",
-                "border-bookinglightest overflow-hidden rounded-md md:border",
+                "border-bookinglightest overflow-hidden md:rounded-md md:border",
                 isEmbed && "mx-auto"
               )}>
               <div className="overflow-hidden md:flex">
