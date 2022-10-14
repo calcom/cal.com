@@ -42,6 +42,7 @@ type Props = {
   team: EventTypeSetupInfered["team"];
   disableBorder?: boolean;
   enabledAppsNumber: number;
+  installedAppsNumber: number;
   enabledWorkflowsNumber: number;
   formMethods: UseFormReturn<FormValues>;
 };
@@ -51,8 +52,9 @@ function getNavigation(props: {
   eventType: Props["eventType"];
   enabledAppsNumber: number;
   enabledWorkflowsNumber: number;
+  installedAppsNumber: number;
 }) {
-  const { eventType, t, enabledAppsNumber, enabledWorkflowsNumber } = props;
+  const { eventType, t, enabledAppsNumber, installedAppsNumber, enabledWorkflowsNumber } = props;
   return [
     {
       name: "event_setup_tab_title",
@@ -88,7 +90,8 @@ function getNavigation(props: {
       name: "apps",
       href: `/event-types/${eventType.id}?tabName=apps`,
       icon: Icon.FiGrid,
-      info: `${enabledAppsNumber} ${t("active")}`,
+      //TODO: Handle proper translation with count handling
+      info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
     },
     {
       name: "workflows",
@@ -106,6 +109,7 @@ function EventTypeSingleLayout({
   team,
   disableBorder,
   enabledAppsNumber,
+  installedAppsNumber,
   enabledWorkflowsNumber,
   formMethods,
 }: Props) {
@@ -136,7 +140,13 @@ function EventTypeSingleLayout({
 
   // Define tab navigation here
   const EventTypeTabs = useMemo(() => {
-    const navigation = getNavigation({ t, eventType, enabledAppsNumber, enabledWorkflowsNumber });
+    const navigation = getNavigation({
+      t,
+      eventType,
+      enabledAppsNumber,
+      installedAppsNumber,
+      enabledWorkflowsNumber,
+    });
     // If there is a team put this navigation item within the tabs
     if (team)
       navigation.splice(2, 0, {
@@ -146,7 +156,7 @@ function EventTypeSingleLayout({
         info: eventType.schedulingType === "COLLECTIVE" ? "collective" : "round_robin",
       });
     return navigation;
-  }, [t, eventType, enabledAppsNumber, enabledWorkflowsNumber, team]);
+  }, [t, eventType, installedAppsNumber, enabledAppsNumber, enabledWorkflowsNumber, team]);
 
   const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
     eventType.slug

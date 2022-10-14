@@ -71,9 +71,12 @@ model EventType {
   schedulingType          SchedulingType?
   schedule                Schedule?               @relation(fields: [scheduleId], references: [id])
   scheduleId              Int?
+  // price is deprecated. It has now moved to metadata.apps.stripe.price. Plan to drop this column.
   price                   Int                     @default(0)
+  // currency is deprecated. It has now moved to metadata.apps.stripe.currency. Plan to drop this column.
   currency                String                  @default("usd")
   slotInterval            Int?
+  /// @zod.custom(imports.EventTypeMetaDataSchema)
   metadata                Json?
   /// @zod.custom(imports.successRedirectUrl)
   successRedirectUrl      String?
@@ -481,6 +484,7 @@ enum AppCategories {
   video
   web3
   automation
+  analytics
 }
 
 model App {
