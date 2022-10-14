@@ -527,7 +527,7 @@ function useShouldDisplayNavigationItem(item: NavigationItemType) {
   const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing-forms" }], {
     enabled: status === "authenticated" && requiredCredentialNavigationItems.includes(item.name),
   });
-  return !requiredCredentialNavigationItems.includes(item.name) || !!routingForms;
+  return !requiredCredentialNavigationItems.includes(item.name) || routingForms?.isInstalled;
 }
 
 const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, router }) => {

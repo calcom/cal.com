@@ -1,10 +1,10 @@
 import { UserPlan } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
-import { JSONObject } from "superjson/dist/types";
 
 import { privacyFilteredLocations, LocationObject } from "@calcom/core/location";
 import { parseRecurringEvent } from "@calcom/lib";
 import prisma from "@calcom/prisma";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
@@ -116,9 +116,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   eventType.schedule = null;
 
   const locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
-  console.log("locations", locations);
   const eventTypeObject = Object.assign({}, eventType, {
-    metadata: (eventType.metadata || {}) as JSONObject,
+    metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
     periodStartDate: eventType.periodStartDate?.toString() ?? null,
     periodEndDate: eventType.periodEndDate?.toString() ?? null,
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),

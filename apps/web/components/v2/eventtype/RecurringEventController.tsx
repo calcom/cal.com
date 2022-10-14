@@ -11,13 +11,11 @@ import { Label, Select, Switch } from "@calcom/ui/v2";
 type RecurringEventControllerProps = {
   recurringEvent: RecurringEvent | null;
   paymentEnabled: boolean;
-  onRecurringEventDefined: (value: boolean) => void;
 };
 
 export default function RecurringEventController({
   recurringEvent,
   paymentEnabled,
-  onRecurringEventDefined,
 }: RecurringEventControllerProps) {
   const { t } = useLocale();
   const [recurringEventState, setRecurringEventState] = useState<RecurringEvent | null>(recurringEvent);
