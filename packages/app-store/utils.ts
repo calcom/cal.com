@@ -9,7 +9,7 @@ import type { App, AppMeta } from "@calcom/types/App";
 
 // If you import this file on any app it should produce circular dependency
 // import appStore from "./index";
-import { appStoreMetadata } from "./apps.browser.generated";
+import { appStoreMetadata } from "./apps.metadata.generated";
 
 export type EventTypeApps = NonNullable<NonNullable<z.infer<typeof EventTypeMetaDataSchema>>["apps"]>;
 export type EventTypeAppsList = keyof EventTypeApps;

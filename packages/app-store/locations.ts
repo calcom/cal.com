@@ -5,7 +5,7 @@ import logger from "@calcom/lib/logger";
 import { Ensure, Optional } from "@calcom/types/utils";
 
 import type { EventLocationTypeFromAppMeta } from "../types/App";
-import { appStoreMetadata } from "./apps.browser.generated";
+import { appStoreMetadata } from "./apps.metadata.generated";
 
 export type DefaultEventLocationType = {
   default: true;
