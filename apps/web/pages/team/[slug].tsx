@@ -25,6 +25,8 @@ import { HeadSeo } from "@components/seo/head-seo";
 import Team from "@components/team/screens/Team";
 import AvatarGroup from "@components/ui/AvatarGroup";
 
+import { ssrInit } from "@server/lib/ssr";
+
 export type TeamPageProps = inferSSRProps<typeof getServerSideProps>;
 function TeamPage({ team }: TeamPageProps) {
   useTheme();
@@ -127,6 +129,7 @@ function TeamPage({ team }: TeamPageProps) {
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
   const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
 
   const team = await getTeamWithMembers(undefined, slug);
@@ -148,6 +151,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       team,
+      trpcState: ssr.dehydrate(),
     },
   };
 };
