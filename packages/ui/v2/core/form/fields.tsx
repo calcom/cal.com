@@ -13,10 +13,11 @@ import {
 import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Skeleton, Tooltip } from "@calcom/ui/v2";
-import showToast from "@calcom/ui/v2/core/notifications";
 
 import { Alert } from "../../../Alert";
+import Tooltip from "../../../Tooltip";
+import showToast from "../notifications";
+import { Skeleton } from "../skeleton";
 
 type InputProps = JSX.IntrinsicElements["input"];
 
