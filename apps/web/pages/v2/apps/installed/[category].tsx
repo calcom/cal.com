@@ -133,7 +133,7 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
     calendar: Icon.FiCalendar,
     conferencing: Icon.FiVideo,
     payment: Icon.FiCreditCard,
-    automation: Icon.FiZap,
+    automation: Icon.FiShare2,
     other: Icon.FiGrid,
   };
   return (

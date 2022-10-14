@@ -29,7 +29,7 @@ const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
   {
     name: "automation",
     href: "/apps/installed/automation",
-    icon: Icon.FiZap,
+    icon: Icon.FiShare2,
   },
   {
     name: "other",
