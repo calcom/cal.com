@@ -10,7 +10,7 @@ import type {
   ZodTypeAny,
 } from "zod";
 
-import { appDataSchemas } from "@calcom/app-store/apps.browser.generated";
+import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import dayjs from "@calcom/dayjs";
 import { slugify } from "@calcom/lib/slugify";
 
