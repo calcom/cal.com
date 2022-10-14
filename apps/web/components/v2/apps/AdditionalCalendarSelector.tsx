@@ -75,6 +75,9 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
             styles={{
               menu: (defaultStyles) => ({
                 ...defaultStyles,
+                "@media only screen and (max-width: 640px)": {
+                  left: "0",
+                },
                 width: "max-content",
                 right: "0",
               }),
