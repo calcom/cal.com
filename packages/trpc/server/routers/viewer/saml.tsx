@@ -8,6 +8,10 @@ import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter } from "../../createRouter";
 
+// TODO: Update the message after talking to the Cal.com team
+const message =
+  "You don't have enough permission. Please get in touch with the administrator or make sure you have enabled the SAML SSO.";
+
 export const samlRouter = createProtectedRouter()
   // Retrieve SAML SSO access
   .query("access", {
@@ -19,6 +23,13 @@ export const samlRouter = createProtectedRouter()
       const { email, plan } = ctx.user;
 
       const enabled = canAccess(email, plan, teamsView);
+
+      if (!enabled) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message,
+        });
+      }
 
       return { enabled };
     },
@@ -37,10 +48,15 @@ export const samlRouter = createProtectedRouter()
       const { teamsView, teamId } = input;
 
       if (!canAccess(email, plan, teamsView)) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message,
+        });
       }
 
-      if (teamId && !(await isTeamOwner(ctx.user?.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+      if (teamId && !(await isTeamOwner(ctx.user?.id, teamId))) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
 
       // Retrieve the SP SAML Config
       const SPConfig = samlSPConfig.get();
@@ -84,10 +100,15 @@ export const samlRouter = createProtectedRouter()
       const teamsView = teamId ? true : false;
 
       if (!canAccess(email, plan, teamsView)) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message,
+        });
       }
 
-      if (teamId && !(await isTeamOwner(ctx.user?.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+      if (teamId && !(await isTeamOwner(ctx.user?.id, teamId))) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
 
       try {
         return await connectionController.createSAMLConnection({
@@ -112,9 +133,21 @@ export const samlRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const { connectionController } = await jackson();
 
+      const { email, plan } = ctx.user;
       const { teamId } = input;
 
-      if (teamId && !(await isTeamOwner(ctx.user?.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+      const teamsView = teamId ? true : false;
+
+      if (!canAccess(email, plan, teamsView)) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message,
+        });
+      }
+
+      if (teamId && !(await isTeamOwner(ctx.user?.id, teamId))) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
 
       try {
         return await connectionController.deleteConnections({

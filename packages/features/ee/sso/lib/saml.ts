@@ -66,9 +66,9 @@ export const canAccess = (email: string, plan: string, teamsView: boolean) => {
     return false;
   }
 
-  if (teamsView) {
-    return isSAMLLoginEnabled && plan === UserPlan.PRO;
-  } else {
-    return isSAMLLoginEnabled && isSAMLAdmin(email);
+  if (!isSAMLLoginEnabled) {
+    return false;
   }
+
+  return teamsView ? plan === UserPlan.PRO : isSAMLAdmin(email);
 };
