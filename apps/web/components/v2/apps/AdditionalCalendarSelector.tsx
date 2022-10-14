@@ -35,7 +35,7 @@ const ImageOption = (optionProps: OptionProps<{ [key: string]: string; type: App
   ) : (
     <Button className="w-full" color="minimal" href="/apps/categories/calendar">
       <Icon.FiPlus className="text-color mr-3 ml-1 h-4 w-4" />
-      <p>{t("add_new_calendar")}...</p>
+      <p>{t("install_new_calendar_app")}</p>
     </Button>
   );
 };
@@ -63,11 +63,40 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
         return (
           <Select
             name="additionalCalendar"
-            placeholder={t("install_another")}
+            placeholder={
+              <Button className="rounded-md" StartIcon={Icon.FiPlus} color="secondary">
+                {t("add")}
+              </Button>
+            }
             options={options}
             isSearchable={false}
             isLoading={isLoading}
             components={{ Option: ImageOption }}
+            styles={{
+              menu: (defaultStyles) => ({
+                ...defaultStyles,
+                width: "max-content",
+                right: "0",
+              }),
+              control: (defaultStyles) => ({
+                ...defaultStyles,
+                padding: "0",
+                border: "0",
+                borderRadius: "inherit",
+              }),
+              dropdownIndicator: (defaultStyles) => ({
+                ...defaultStyles,
+                display: "none",
+              }),
+              valueContainer: (defaultStyles) => ({
+                ...defaultStyles,
+                padding: "0",
+              }),
+              placeholder: (defaultStyles) => ({
+                ...defaultStyles,
+                margin: "0",
+              }),
+            }}
           />
         );
       }}
