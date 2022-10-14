@@ -30,6 +30,7 @@ export const schemaBookingEditBodyParams = schemaBookingBaseBodyParams.merge(sch
 export const schemaBookingReadPublic = Booking.pick({
   id: true,
   userId: true,
+  description: true,
   eventTypeId: true,
   uid: true,
   title: true,
