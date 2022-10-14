@@ -20,6 +20,7 @@ type Namespace = string;
 type Config = {
   origin: string;
   debug?: boolean;
+  uiDebug?: boolean;
 };
 
 const globalCal = (window as CalWindow).Cal;
@@ -184,6 +185,9 @@ export class Cal {
     if (config.debug) {
       urlInstance.searchParams.set("debug", "" + config.debug);
     }
+    if (config.uiDebug) {
+      iframe.style.border = "1px solid green";
+    }
 
     // Merge searchParams from config onto the URL which might have query params already
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -199,10 +203,11 @@ export class Cal {
     if (typeof namespaceOrConfig !== "string") {
       config = (namespaceOrConfig || {}) as Config;
     }
-    if (config?.origin) {
-      this.__config.origin = config.origin;
+    const { origin, ...restConfig } = config;
+    if (origin) {
+      this.__config.origin = origin;
     }
-    this.__config.debug = config.debug;
+    this.__config = { ...this.__config, ...restConfig };
   }
 
   getConfig() {
@@ -242,8 +247,8 @@ export class Cal {
         },
       },
     });
+    const isCalPageOptimized = calLink.includes("forms/");
     config = config || {};
-
     // Keeping auto-scroll disabled for two reasons:
     // - If user scrolls the content to an appropriate position, it again resets it to default position which might not be for the liking of the user
     // - Sometimes, the position can be wrong(e.g. if there is a fixed position header on top coming above the iframe content).
@@ -263,7 +268,9 @@ export class Cal {
       throw new Error("Element not found");
     }
     const template = document.createElement("template");
-    template.innerHTML = `<cal-inline style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%"></cal-inline>`;
+    template.innerHTML = `<cal-inline ${
+      isCalPageOptimized ? 'loading="done"' : ""
+    } style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%"></cal-inline>`;
     this.inlineEl = template.content.children[0];
     (this.inlineEl as unknown as any).__CalAutoScroll = config.__autoScroll;
     this.inlineEl.appendChild(iframe);
@@ -483,8 +490,11 @@ export class Cal {
     });
 
     this.actionManager.on("__routeChanged", () => {
-      if (this.inlineEl && (this.inlineEl as unknown as any).__CalAutoScroll) {
-        this.inlineEl.scrollIntoView();
+      const { top, height } = this.inlineEl.getBoundingClientRect();
+      // Try to readjust and scroll into view if more than 25% is hidden.
+      // Otherwise we assume that user might have positioned the content appropriately already
+      if (top < 0 && Math.abs(top / height) >= 0.25) {
+        this.inlineEl.scrollIntoView({ behavior: "smooth" });
       }
     });
 
