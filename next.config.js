@@ -26,11 +26,13 @@ module.exports = withAxiom(
           {
             source: "/v:version/:rest*",
             destination: "/api/v:version/:rest*",
+            locale: false,
           },
           // This redirects requests to api/v*/ to /api/ passing version as a query parameter.
           {
             source: "/api/v:version/:rest*",
             destination: "/api/:rest*?version=:version",
+            locale: false,
           },
         ],
         fallback: [
@@ -39,6 +41,7 @@ module.exports = withAxiom(
           {
             source: "/:path*",
             destination: `/api/:path*`,
+            locale: false,
           },
         ],
       };
