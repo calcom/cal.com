@@ -93,7 +93,7 @@ const Actions = ({
           type="button"
           tooltip={t("delete")}
         />
-        {typeformApp ? (
+        {typeformApp?.isInstalled ? (
           <FormActionsDropdown form={form}>
             <FormAction
               routingForm={form}
