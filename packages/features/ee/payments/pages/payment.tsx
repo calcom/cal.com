@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { PaymentData } from "@calcom/app-store/stripepayment/lib/server";
 import prisma from "@calcom/prisma";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -50,6 +51,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
               eventName: true,
               requiresConfirmation: true,
               userId: true,
+              metadata: true,
               users: {
                 select: {
                   name: true,
@@ -104,7 +106,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       user,
-      eventType,
+      eventType: {
+        ...eventType,
+        metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+      },
       booking,
       trpcState: ssr.dehydrate(),
       payment,

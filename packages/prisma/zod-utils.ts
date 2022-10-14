@@ -10,6 +10,7 @@ import type {
   ZodTypeAny,
 } from "zod";
 
+import { appDataSchemas } from "@calcom/app-store/apps.browser.generated";
 import dayjs from "@calcom/dayjs";
 import { slugify } from "@calcom/lib/slugify";
 
@@ -23,6 +24,15 @@ export enum Frequency {
   MINUTELY = 5,
   SECONDLY = 6,
 }
+
+export const EventTypeMetaDataSchema = z
+  .object({
+    smartContractAddress: z.string().optional(),
+    blockchainId: z.number().optional(),
+    giphyThankYouPage: z.string().optional(),
+    apps: z.object(appDataSchemas).partial().optional(),
+  })
+  .nullable();
 
 export const eventTypeLocations = z.array(
   z.object({

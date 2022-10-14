@@ -54,6 +54,7 @@ export interface App {
     | `${string}_web3`
     | `${string}_other`
     | `${string}_automation`
+    | `${string}_analytics`
     | `${string}_other_calendar`;
 
   /**
@@ -84,7 +85,11 @@ export interface App {
 
   /** The category to which this app belongs, currently we have `calendar`, `payment` or `video`  */
   categories?: string[];
-
+  /**
+   * `User` is the broadest category. `EventType` is when you want to add features to EventTypes.
+   * See https://app.gitbook.com/o/6snd8PyPYMhg0wUw6CeQ/s/VXRprBTuMlihk37NQgUU/~/changes/6xkqZ4qvJ3Xh9k8UaWaZ/engineering/product-specs/app-store#user-apps for more details
+   */
+  extendsFeature?: "EventType" | "User";
   /** An absolute url to the app logo */
   logo: string;
   /** Company or individual publishing this app */
