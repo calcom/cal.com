@@ -8,7 +8,7 @@ export default function TemplateCard({ template }: { template: Template }) {
       <div className="flex items-center justify-center">
         <div>
           <div className="mr-4 flex h-12 w-12 items-center justify-center rounded-md border p-1 ">
-            <img className="h-8" src={`/api/app-store/zapier/${template.icon}`} />
+            <img className="h-8" alt={template.app} src={`/api/app-store/zapier/${template.icon}`} />
           </div>
         </div>
         <div className="mr-4 ">
