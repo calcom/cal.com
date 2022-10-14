@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -21,6 +22,8 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
   });
 
   const formMethods = useForm();
+  const [nameCopy, setNameCopy] = useState("");
+  const [isSlugTouched, setSlugTouched] = useState(false);
 
   return (
     <Form
@@ -44,6 +47,7 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
               label={t("team_name")}
               value={value}
               onChange={(e) => {
+                setNameCopy(e?.target.value);
                 formMethods.setValue("name", e?.target.value);
               }}
             />
@@ -61,8 +65,9 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
               name="slug"
               label={t("team_url")}
               addOnLeading={`${WEBAPP_URL}/`}
-              value={value}
+              value={isSlugTouched ? value : nameCopy}
               onChange={(e) => {
+                setSlugTouched(true);
                 formMethods.setValue("slug", e?.target.value);
               }}
             />

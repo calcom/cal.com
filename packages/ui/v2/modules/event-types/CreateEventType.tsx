@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SchedulingType } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
@@ -49,6 +49,8 @@ interface CreateEventTypeBtnProps {
 export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
   const { t } = useLocale();
   const router = useRouter();
+  const [titleCopy, setTitleCopy] = useState("");
+  const [isSlugTouched, setSlugTouched] = useState(false);
 
   // URL encoded params
   const teamId: number | undefined =
@@ -202,7 +204,15 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
                 value={teamId}
               />
             )}
-            <TextField label={t("title")} placeholder={t("quick_chat")} {...register("title")} />
+            <TextField
+              label={t("title")}
+              placeholder={t("quick_chat")}
+              {...register("title")}
+              onChange={(e) => {
+                form.setValue("title", e?.target.value);
+                setTitleCopy(e?.target.value);
+              }}
+            />
 
             {process.env.NEXT_PUBLIC_WEBSITE_URL !== undefined &&
             process.env.NEXT_PUBLIC_WEBSITE_URL?.length >= 21 ? (
@@ -211,6 +221,11 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
                 required
                 addOnLeading={<>/{pageSlug}/</>}
                 {...register("slug")}
+                value={isSlugTouched ? watch("slug") : titleCopy}
+                onChange={(e) => {
+                  setSlugTouched(true);
+                  form.setValue("slug", e?.target.value);
+                }}
               />
             ) : (
               <TextField
