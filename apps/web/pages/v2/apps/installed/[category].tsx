@@ -96,7 +96,7 @@ const IntegrationsList = ({ data }: { data: inferQueryOutput<"viewer.integration
         <IntegrationListItem
           name={item.name}
           slug={item.slug}
-          key={item.title}
+          key={item.name}
           title={item.title}
           logo={item.logo}
           description={item.description}
