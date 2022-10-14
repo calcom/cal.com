@@ -27,7 +27,9 @@ import { schemaQuerySingleOrMultipleUserIds } from "@lib/validations/shared/quer
  */
 async function getHandler(req: NextApiRequest) {
   const { userId, isAdmin, prisma } = req;
-  const args: Prisma.EventTypeFindManyArgs = isAdmin ? {} : { where: { userId } };
+  const args: Prisma.EventTypeFindManyArgs = isAdmin
+    ? {}
+    : { where: { userId }, include: { customInputs: true } };
   /** Only admins can query other users */
   if (!isAdmin && req.query.userId) throw new HttpError({ statusCode: 401, message: "ADMIN required" });
   if (isAdmin && req.query.userId) {

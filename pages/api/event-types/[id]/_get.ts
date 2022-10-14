@@ -36,7 +36,7 @@ import { schemaQueryIdParseInt } from "@lib/validations/shared/queryIdTransformP
 export async function getHandler(req: NextApiRequest) {
   const { prisma, query } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
-  const event_type = await prisma.eventType.findUnique({ where: { id } });
+  const event_type = await prisma.eventType.findUnique({ where: { id }, include: { customInputs: true } });
   return { event_type: schemaEventTypeReadPublic.parse(event_type) };
 }
 

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { _EventTypeModel as EventType } from "@calcom/prisma/zod";
+import { _EventTypeCustomInputModel, _EventTypeModel as EventType } from "@calcom/prisma/zod";
 
 import { Frequency } from "@lib/types";
 
@@ -116,5 +116,6 @@ export const schemaEventTypeReadPublic = EventType.pick({
       )
       .nullable(),
     metadata: jsonSchema.nullable(),
+    customInputs: _EventTypeCustomInputModel.array().optional(),
   })
 );
