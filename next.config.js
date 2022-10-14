@@ -14,14 +14,9 @@ const withTM = require("next-transpile-modules")([
   "@calcom/ui",
 ]);
 const { withAxiom } = require("next-axiom");
-const { i18n } = require("./next-i18next.config");
 
 module.exports = withAxiom(
   withTM({
-    i18n: {
-      ...i18n,
-      localeDetection: false,
-    },
     async rewrites() {
       return {
         afterFiles: [
@@ -29,13 +24,11 @@ module.exports = withAxiom(
           {
             source: "/v:version/:rest*",
             destination: "/api/v:version/:rest*",
-            locale: false,
           },
           // This redirects requests to api/v*/ to /api/ passing version as a query parameter.
           {
             source: "/api/v:version/:rest*",
             destination: "/api/:rest*?version=:version",
-            locale: false,
           },
         ],
         fallback: [
@@ -44,7 +37,6 @@ module.exports = withAxiom(
           {
             source: "/:path*",
             destination: `/api/:path*`,
-            locale: false,
           },
         ],
       };
