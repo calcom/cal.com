@@ -18,7 +18,10 @@ const { i18n } = require("./next-i18next.config");
 
 module.exports = withAxiom(
   withTM({
-    i18n,
+    i18n: {
+      ...i18n,
+      localeDetection: false,
+    },
     async rewrites() {
       return {
         afterFiles: [
