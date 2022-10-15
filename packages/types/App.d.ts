@@ -73,7 +73,15 @@ export interface App {
    */
   imageSrc?: string;
   /** TODO determine if we should use this instead of category */
-  variant: "calendar" | "payment" | "conferencing" | "video" | "other" | "other_calendar" | "web3";
+  variant:
+    | "calendar"
+    | "payment"
+    | "conferencing"
+    | "video"
+    | "other"
+    | "other_calendar"
+    | "web3"
+    | "automation";
   /** The slug for the app store public page inside `/apps/[slug] */
   slug: string;
 

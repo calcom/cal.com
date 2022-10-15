@@ -163,6 +163,7 @@ function ConnectedCalendarsList(props: Props) {
                     title={item.integration.title}
                     logo={item.integration.logo}
                     description={item.primary?.externalId || "No external Id"}
+                    separate={true}
                     actions={
                       <div className="flex w-32 justify-end">
                         <DisconnectIntegration
@@ -173,23 +174,27 @@ function ConnectedCalendarsList(props: Props) {
                         />
                       </div>
                     }>
-                    {!fromOnboarding && (
-                      <>
-                        <p className="px-4 pt-4 text-sm text-neutral-500">{t("toggle_calendars_conflict")}</p>
-                        <ul className="space-y-2 p-4">
-                          {item.calendars.map((cal) => (
-                            <CalendarSwitch
-                              key={cal.externalId}
-                              externalId={cal.externalId}
-                              title={cal.name || "Nameless calendar"}
-                              type={item.integration.type}
-                              defaultSelected={cal.isSelected}
-                              destination={cal.externalId === props.destinationCalendarId}
-                            />
-                          ))}
-                        </ul>
-                      </>
-                    )}
+                    <div className="border-t border-gray-200">
+                      {!fromOnboarding && (
+                        <>
+                          <p className="px-4 pt-4 text-sm text-neutral-500">
+                            {t("toggle_calendars_conflict")}
+                          </p>
+                          <ul className="space-y-2 p-4">
+                            {item.calendars.map((cal) => (
+                              <CalendarSwitch
+                                key={cal.externalId}
+                                externalId={cal.externalId}
+                                title={cal.name || "Nameless calendar"}
+                                type={item.integration.type}
+                                defaultSelected={cal.isSelected}
+                                destination={cal.externalId === props.destinationCalendarId}
+                              />
+                            ))}
+                          </ul>
+                        </>
+                      )}
+                    </div>
                   </IntegrationListItem>
                 ) : (
                   <Alert
@@ -262,7 +267,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                       actions={
                         <div className="flex flex-col xl:flex-row xl:space-x-5">
                           {!!data.connectedCalendars.length && (
-                            <div className=" flex items-center">
+                            <div className="flex items-center">
                               <AdditionalCalendarSelector isLoading={mutation.isLoading} />
                             </div>
                           )}
