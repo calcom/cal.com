@@ -29,6 +29,10 @@ export const InstallAppButtonMap = {
   zapier: dynamic(() => import("./zapier/components/InstallAppButton")),
   zoomvideo: dynamic(() => import("./zoomvideo/components/InstallAppButton")),
 };
+export const AppSettingsComponentsMap = {
+  weather_in_your_calendar: dynamic(() => import("./weather_in_your_calendar/components/AppSettings")),
+  zapier: dynamic(() => import("./zapier/components/AppSettings")),
+};
 export const EventTypeAddonMap = {
   fathom: dynamic(() => import("./fathom/extensions/EventTypeAppCard")),
   giphy: dynamic(() => import("./giphy/extensions/EventTypeAppCard")),
