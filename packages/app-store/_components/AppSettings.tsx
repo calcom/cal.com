@@ -4,6 +4,10 @@ import { DynamicComponent } from "./DynamicComponent";
 
 export const AppSettings = (props: { slug: string }) => {
   return (
-    <DynamicComponent<typeof AppSettingsComponentsMap> componentMap={AppSettingsComponentsMap} {...props} />
+    <DynamicComponent<typeof AppSettingsComponentsMap>
+      wrapperClassName="border-t border-gray-200"
+      componentMap={AppSettingsComponentsMap}
+      {...props}
+    />
   );
 };
