@@ -319,7 +319,7 @@ export default class EventManager {
         const destinationCalendarCredentials = this.calendarCredentials.filter(
           (c) => c.type === event.destinationCalendar?.integration
         );
-        createdEvents.concat(
+        createdEvents = createdEvents.concat(
           await Promise.all(destinationCalendarCredentials.map(async (c) => await createEvent(c, event)))
         );
       }
