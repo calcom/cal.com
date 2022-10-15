@@ -3,19 +3,12 @@ import { useForm, Controller } from "react-hook-form";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Button, Avatar } from "@calcom/ui/v2";
 import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
 import { Form, TextField } from "@calcom/ui/v2/core/form/fields";
-
-// transform text to url
-const transformTextToUrl = (text: string) => {
-  return text
-    .toLowerCase()
-    .replace(/ /g, "-")
-    .replace(/[^\w-]+/g, "");
-};
 
 const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: number) => void }) => {
   const { t } = useLocale();
@@ -54,7 +47,7 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
               value={value}
               onChange={(e) => {
                 formMethods.setValue("name", e?.target.value);
-                formMethods.setValue("slug", transformTextToUrl(e?.target.value));
+                formMethods.setValue("slug", slugify(e?.target.value));
               }}
               autoComplete="off"
             />
@@ -74,7 +67,7 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
               addOnLeading={`${WEBAPP_URL}/`}
               value={value}
               onChange={(e) => {
-                formMethods.setValue("slug", transformTextToUrl(e?.target.value));
+                formMethods.setValue("slug", slugify(e?.target.value));
               }}
             />
           )}
