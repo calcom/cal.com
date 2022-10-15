@@ -1,8 +1,10 @@
 import { InferGetServerSidePropsType } from "next";
 import z from "zod";
 
+import { AppSettings } from "@calcom/app-store/_components/AppSettings";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { InstalledAppVariants } from "@calcom/app-store/utils";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { App } from "@calcom/types/App";
@@ -89,9 +91,15 @@ interface IntegrationsContainerProps {
   exclude?: (keyof typeof InstalledAppVariants)[];
 }
 
-const IntegrationsList = ({ data }: { data: inferQueryOutput<"viewer.integrations"> }) => {
+interface IntegrationsListProps {
+  variant?: IntegrationsContainerProps["variant"];
+  data: inferQueryOutput<"viewer.integrations">;
+}
+
+const IntegrationsList = ({ data, variant }: IntegrationsListProps) => {
+  const separateItems = variant === "automation";
   return (
-    <List noBorderTreatment>
+    <List className={classNames(separateItems ? "flex flex-col gap-6" : "")} noBorderTreatment>
       {data.items.map((item) => (
         <IntegrationListItem
           name={item.name}
@@ -100,8 +108,9 @@ const IntegrationsList = ({ data }: { data: inferQueryOutput<"viewer.integration
           title={item.title}
           logo={item.logo}
           description={item.description}
+          separate={separateItems}
           actions={
-            <div className="flex w-32 justify-end">
+            <div className="flex w-16 justify-end">
               <ConnectOrDisconnectIntegrationButton
                 credentialIds={item.credentialIds}
                 type={item.type}
@@ -109,8 +118,9 @@ const IntegrationsList = ({ data }: { data: inferQueryOutput<"viewer.integration
                 installed
               />
             </div>
-          }
-        />
+          }>
+          {separateItems && <AppSettings slug={item.slug} />}
+        </IntegrationListItem>
       ))}
     </List>
   );
@@ -153,7 +163,7 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
                     </Button>
                   }
                 />
-                <IntegrationsList data={data} />
+                <IntegrationsList data={data} variant={variant} />
               </div>
             ) : (
               <EmptyScreen
