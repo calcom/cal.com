@@ -96,19 +96,18 @@ interface IntegrationsListProps {
   data: inferQueryOutput<"viewer.integrations">;
 }
 
-const IntegrationsList = ({ data, variant }: IntegrationsListProps) => {
-  const separateItems = variant === "automation";
+const IntegrationsList = ({ data }: IntegrationsListProps) => {
   return (
-    <List className={classNames(separateItems ? "flex flex-col gap-6" : "")} noBorderTreatment>
+    <List className="flex flex-col gap-6" noBorderTreatment>
       {data.items.map((item) => (
         <IntegrationListItem
           name={item.name}
           slug={item.slug}
-          key={item.name}
+          key={item.title}
           title={item.title}
           logo={item.logo}
           description={item.description}
-          separate={separateItems}
+          separate={true}
           actions={
             <div className="flex w-16 justify-end">
               <ConnectOrDisconnectIntegrationButton
@@ -119,7 +118,9 @@ const IntegrationsList = ({ data, variant }: IntegrationsListProps) => {
               />
             </div>
           }>
-          {separateItems && <AppSettings slug={item.slug} />}
+          <div className="border-t border-gray-200">
+            <AppSettings slug={item.slug} />
+          </div>
         </IntegrationListItem>
       ))}
     </List>
