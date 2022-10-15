@@ -1,9 +1,17 @@
-import { BookingStatus, Credential, Prisma, SchedulingType, WebhookTriggerEvents } from "@prisma/client";
+import {
+  BookingStatus,
+  Credential,
+  EventTypeCustomInput,
+  Prisma,
+  SchedulingType,
+  WebhookTriggerEvents,
+} from "@prisma/client";
 import async from "async";
 import type { NextApiRequest } from "next";
 import { RRule } from "rrule";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
+import z from "zod";
 
 import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
 import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
@@ -34,8 +42,7 @@ import { checkBookingLimits, getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { userSelect } from "@calcom/prisma";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { extendedBookingCreateBody, requiredCustomInputSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
@@ -259,15 +266,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   const stripeAppData = getStripeAppData(eventType);
 
   // Check if required custom inputs exist
-  if (eventType.customInputs) {
-    eventType.customInputs.forEach((customInput) => {
-      if (customInput.required) {
-        requiredCustomInputSchema.parse(
-          reqBody.customInputs.find((userInput) => userInput.label === customInput.label)?.value
-        );
-      }
-    });
-  }
+  handleCustomInputs(eventType.customInputs, reqBody.customInputs);
 
   let timeOutOfBounds = false;
   try {
@@ -920,3 +919,29 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 }
 
 export default handler;
+
+function handleCustomInputs(
+  eventTypeCustomInputs: EventTypeCustomInput[],
+  reqCustomInputs: {
+    value: string | boolean;
+    label: string;
+  }[]
+) {
+  eventTypeCustomInputs.forEach((etcInput) => {
+    if (etcInput.required) {
+      const input = reqCustomInputs.find((i) => i.label === etcInput.label);
+      if (etcInput.type === "BOOL") {
+        z.literal(true, {
+          errorMap: () => ({ message: `Missing ${etcInput.type} customInput: '${etcInput.label}'` }),
+        }).parse(input?.value);
+      } else {
+        // type: NUMBER are also passed as string
+        z.string({
+          errorMap: () => ({ message: `Missing ${etcInput.type} customInput: '${etcInput.label}'` }),
+        })
+          .min(1)
+          .parse(input?.value);
+      }
+    }
+  });
+}

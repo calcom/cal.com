@@ -406,6 +406,7 @@ model Webhook {
   id              String                 @id @unique
   userId          Int?
   eventTypeId     Int?
+  /// @zod.url()
   subscriberUrl   String
   payloadTemplate String?
   createdAt       DateTime               @default(now())
