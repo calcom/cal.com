@@ -60,7 +60,7 @@ const templates: Template[] = [
 
 export default function AppSettings() {
   return (
-    <div className="grid gap-4 border-t border-gray-200 p-4 md:grid-cols-2">
+    <div className="grid gap-4 p-4 md:grid-cols-2">
       {templates.map((template, index) => (
         <TemplateCard key={index} template={template} />
       ))}

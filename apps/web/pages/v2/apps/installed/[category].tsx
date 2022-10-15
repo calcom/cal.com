@@ -118,7 +118,9 @@ const IntegrationsList = ({ data }: IntegrationsListProps) => {
               />
             </div>
           }>
-          <AppSettings slug={item.slug} />
+          <div className="border-t border-gray-200">
+            <AppSettings slug={item.slug} />
+          </div>
         </IntegrationListItem>
       ))}
     </List>
