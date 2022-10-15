@@ -1,3 +1,8 @@
+import React from "react";
+import { z } from "zod";
+
+import { _EventTypeModel } from "@calcom/prisma/zod";
+import { inferQueryOutput } from "@calcom/trpc/react";
 import { ButtonBaseProps } from "@calcom/ui/Button";
 import { ButtonBaseProps as v2ButtonBaseProps } from "@calcom/ui/v2/core/Button";
 
@@ -17,3 +22,9 @@ export interface InstallAppButtonProps {
   ) => JSX.Element;
   onChanged?: () => unknown;
 }
+
+export type EventTypeAppCardComponent = React.FC<{
+  // Limit what data should be accessible to apps
+  eventType: Pick<z.infer<typeof _EventTypeModel>, "id", "title" | "description" | "teamId" | "length">;
+  app: inferQueryOutput<"viewer.apps">[number];
+}>;

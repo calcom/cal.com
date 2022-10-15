@@ -164,7 +164,7 @@ function ConnectedCalendarsList(props: Props) {
                     title={item.integration.title}
                     logo={item.integration.logo}
                     description={item.primary?.externalId || "No external Id"}
-                    seperated={true}
+                    separate={true}
                     actions={
                       <div className="flex w-32 justify-end">
                         <DisconnectIntegration

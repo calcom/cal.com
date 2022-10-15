@@ -1,208 +1,131 @@
 import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
-import React, { useState } from "react";
+import React from "react";
 import { useFormContext } from "react-hook-form";
-import { Controller } from "react-hook-form";
-import { FormattedNumber, IntlProvider } from "react-intl";
 
-import { SelectGifInput } from "@calcom/app-store/giphy/components";
-import RainbowInstallForm from "@calcom/app-store/rainbow/components/RainbowInstallForm";
+import EventTypeAppContext, { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppContext";
+import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
+import { EventTypeAppsList } from "@calcom/app-store/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Alert, Button, EmptyScreen, Select, Switch, TextField } from "@calcom/ui/v2";
+import ErrorBoundary from "@calcom/ui/ErrorBoundary";
+import { Button, EmptyScreen } from "@calcom/ui/v2";
 
-const AppCard = ({
-  logo,
-  name,
-  description,
-  switchOnClick,
-  switchChecked,
-  children,
-}: {
-  logo: string;
-  name: string;
-  description: React.ReactNode;
-  switchChecked?: boolean;
-  switchOnClick?: (e: boolean) => void;
-  children?: React.ReactNode;
-}) => {
-  return (
-    <div className="mb-4 rounded-md border border-gray-200 p-8">
-      <div className="flex w-full">
-        <img src={logo} alt={name} className="mr-3 h-auto w-[42px] rounded-sm" />
-        <div className="flex flex-col">
-          <span className="font-semibold leading-none text-black">{name}</span>
-          <p className="pt-2 text-sm font-normal text-gray-600">{description}</p>
-        </div>
-        <div className="ml-auto flex items-center">
-          <Switch onCheckedChange={switchOnClick} checked={switchChecked} />
-        </div>
-      </div>
-      {children}
-    </div>
-  );
-};
-
-export const EventAppsTab = ({
-  hasPaymentIntegration,
-  currency,
+type EventType = Pick<EventTypeSetupInfered, "eventType">["eventType"];
+function AppCardWrapper({
+  app,
   eventType,
-  hasGiphyIntegration,
-  hasRainbowIntegration,
-}: Pick<
-  EventTypeSetupInfered,
-  "eventType" | "hasPaymentIntegration" | "hasGiphyIntegration" | "hasRainbowIntegration" | "currency"
->) => {
-  const formMethods = useFormContext<FormValues>();
-  const [showGifSelection, setShowGifSelection] = useState(
-    hasGiphyIntegration && !!eventType.metadata["giphyThankYouPage"]
-  );
-  const [showRainbowSection, setShowRainbowSection] = useState(
-    hasRainbowIntegration &&
-      !!eventType.metadata["blockchainId"] &&
-      !!eventType.metadata["smartContractAddress"]
-  );
-  const [requirePayment, setRequirePayment] = useState(eventType.price > 0);
-  const recurringEventDefined = eventType.recurringEvent?.count !== undefined;
+  getAppData,
+  setAppData,
+}: {
+  app: inferQueryOutput<"viewer.apps">[number];
+  eventType: EventType;
+  getAppData: GetAppData;
+  setAppData: SetAppData;
+}) {
+  const dirName = app.slug === "stripe" ? "stripepayment" : app.slug;
+  const Component = EventTypeAddonMap[dirName as keyof typeof EventTypeAddonMap];
 
-  const getCurrencySymbol = (locale: string, currency: string) =>
-    (0)
-      .toLocaleString(locale, {
-        style: "currency",
-        currency,
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      })
-      .replace(/\d/g, "")
-      .trim();
-
-  const { t } = useLocale();
-
-  const installedApps = [hasPaymentIntegration, hasGiphyIntegration].filter(Boolean).length;
-
-  if (installedApps === 0) {
-    return (
-      <div className="pt-4 before:border-0">
-        <EmptyScreen
-          Icon={Icon.FiGrid}
-          headline={t("empty_installed_apps_headline")}
-          description={t("empty_installed_apps_description")}
-          buttonRaw={
-            <Button target="_blank" color="secondary" href="/apps">
-              {t("empty_installed_apps_button")}{" "}
-            </Button>
-          }
-        />
-      </div>
-    );
+  if (!Component) {
+    throw new Error('No component found for "' + dirName + '"');
   }
   return (
-    <div className="pt-4 before:border-0">
-      {/* TODO:Strip isnt fully setup yet  */}
-      {hasPaymentIntegration && (
-        <AppCard
-          name="Stripe"
-          switchChecked={requirePayment}
-          switchOnClick={(e) => {
-            if (!e) {
-              formMethods.setValue("price", 0);
-              setRequirePayment(false);
-            } else {
-              setRequirePayment(true);
-            }
-          }}
-          description={
-            <>
-              <div className="">
-                {t("require_payment")} (0.5% +{" "}
-                <IntlProvider locale="en">
-                  <FormattedNumber value={0.1} style="currency" currency={currency} />
-                </IntlProvider>{" "}
-                {t("commission_per_transaction")})
-              </div>
-            </>
-          }
-          logo="/api/app-store/stripepayment/icon.svg">
-          <>
-            {recurringEventDefined ? (
-              <Alert severity="warning" title={t("warning_recurring_event_payment")} />
-            ) : (
-              requirePayment && (
-                <div className="block items-center sm:flex">
-                  <Controller
-                    defaultValue={eventType.price}
-                    control={formMethods.control}
-                    name="price"
-                    render={({ field }) => (
-                      <TextField
-                        label=""
-                        addOnLeading={<>{getCurrencySymbol("en", currency)}</>}
-                        {...field}
-                        step="0.01"
-                        min="0.5"
-                        type="number"
-                        required
-                        className="block w-full rounded-sm border-gray-300 pl-2 pr-12 text-sm"
-                        placeholder="Price"
-                        onChange={(e) => {
-                          field.onChange(e.target.valueAsNumber * 100);
-                        }}
-                        value={field.value > 0 ? field.value / 100 : undefined}
-                      />
-                    )}
-                  />
-                </div>
-              )
-            )}
-          </>
-        </AppCard>
-      )}
-      {hasGiphyIntegration && (
-        <AppCard
-          name="Giphy"
-          description={t("confirmation_page_gif")}
-          logo="/api/app-store/giphy/icon.svg"
-          switchOnClick={(e) => {
-            if (!e) {
-              setShowGifSelection(false);
-              formMethods.setValue("giphyThankYouPage", "");
-            } else {
-              setShowGifSelection(true);
-            }
-          }}
-          switchChecked={showGifSelection}>
-          {showGifSelection && (
-            <SelectGifInput
-              defaultValue={eventType.metadata["giphyThankYouPage"] as string}
-              onChange={(url: string) => {
-                formMethods.setValue("giphyThankYouPage", url);
-              }}
-            />
-          )}
-        </AppCard>
-      )}
-      {hasRainbowIntegration && (
-        <AppCard
-          name="Rainbow"
-          description={t("confirmation_page_rainbow")}
-          logo="/api/app-store/rainbow/icon.svg"
-          switchOnClick={(e) => {
-            if (!e) {
-              formMethods.setValue("blockchainId", 1);
-              formMethods.setValue("smartContractAddress", "");
-            }
+    <ErrorBoundary message={`There is some problem with ${app.name} App`}>
+      <EventTypeAppContext.Provider value={[getAppData, setAppData]}>
+        <Component key={app.slug} app={app} eventType={eventType} />
+      </EventTypeAppContext.Provider>
+    </ErrorBoundary>
+  );
+}
 
-            setShowRainbowSection(e);
-          }}
-          switchChecked={showRainbowSection}>
-          {showRainbowSection && (
-            <RainbowInstallForm
-              formMethods={formMethods}
-              blockchainId={(eventType.metadata.blockchainId as number) || 1}
-              smartContractAddress={(eventType.metadata.smartContractAddress as string) || ""}
+export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
+  const { t } = useLocale();
+  const { data: eventTypeApps, isLoading } = trpc.useQuery([
+    "viewer.apps",
+    {
+      extendsFeature: "EventType",
+    },
+  ]);
+  const methods = useFormContext<FormValues>();
+  const installedApps = eventTypeApps?.filter((app) => app.credentials.length);
+  const notInstalledApps = eventTypeApps?.filter((app) => !app.credentials.length);
+  const allAppsData = methods.watch("metadata")?.apps || {};
+
+  const setAllAppsData = (_allAppsData: typeof allAppsData) => {
+    methods.setValue("metadata", {
+      ...methods.getValues("metadata"),
+      apps: _allAppsData,
+    });
+  };
+
+  const getAppDataGetter = (appId: EventTypeAppsList): GetAppData => {
+    return function (key) {
+      const appData = allAppsData[appId as keyof typeof allAppsData] || {};
+      if (key) {
+        return appData[key as keyof typeof appData];
+      }
+      return appData;
+    };
+  };
+
+  const getAppDataSetter = (appId: EventTypeAppsList): SetAppData => {
+    return function (key, value) {
+      // Always get latest data available in Form because consequent calls to setData would update the Form but not allAppsData(it would update during next render)
+      const allAppsDataFromForm = methods.getValues("metadata")?.apps || {};
+      const appData = allAppsDataFromForm[appId];
+      setAllAppsData({
+        ...allAppsDataFromForm,
+        [appId]: {
+          ...appData,
+          [key]: value,
+        },
+      });
+    };
+  };
+
+  return (
+    <>
+      <div>
+        <div className="before:border-0">
+          {!isLoading && !installedApps?.length ? (
+            <EmptyScreen
+              Icon={Icon.FiGrid}
+              headline={t("empty_installed_apps_headline")}
+              description={t("empty_installed_apps_description")}
+              buttonRaw={
+                <Button target="_blank" color="secondary" href="/apps">
+                  {t("empty_installed_apps_button")}{" "}
+                </Button>
+              }
             />
-          )}
-        </AppCard>
-      )}
-    </div>
+          ) : null}
+          {installedApps?.map((app) => (
+            <AppCardWrapper
+              getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
+              setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
+              key={app.slug}
+              app={app}
+              eventType={eventType}
+            />
+          ))}
+        </div>
+      </div>
+      <div>
+        {!isLoading && notInstalledApps?.length ? (
+          <h2 className="mt-0 mb-2 text-lg font-semibold text-gray-900">Available Apps</h2>
+        ) : null}
+        <div className="before:border-0">
+          {notInstalledApps?.map((app) => (
+            <AppCardWrapper
+              getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
+              setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
+              key={app.slug}
+              app={app}
+              eventType={eventType}
+            />
+          ))}
+        </div>
+      </div>
+    </>
   );
 };

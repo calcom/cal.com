@@ -87,12 +87,12 @@ function ConnectOrDisconnectIntegrationButton(props: {
 }
 
 interface IntegrationsContainerProps {
-  variant?: "calendar" | "conferencing" | "payment" | "automation";
-  exclude?: App["variant"][];
+  variant?: keyof typeof InstalledAppVariants;
+  exclude?: (keyof typeof InstalledAppVariants)[];
 }
 
 interface IntegrationsListProps {
-  variant?: "calendar" | "conferencing" | "payment" | "automation";
+  variant?: IntegrationsContainerProps["variant"];
   data: inferQueryOutput<"viewer.integrations">;
 }
 
@@ -100,28 +100,26 @@ const IntegrationsList = ({ data }: IntegrationsListProps) => {
   return (
     <List className="flex flex-col gap-6" noBorderTreatment>
       {data.items.map((item) => (
-        <>
-          <IntegrationListItem
-            name={item.name}
-            slug={item.slug}
-            key={item.title}
-            title={item.title}
-            logo={item.logo}
-            description={item.description}
-            separate={true}
-            actions={
-              <div className="flex w-16 justify-end">
-                <ConnectOrDisconnectIntegrationButton
-                  credentialIds={item.credentialIds}
-                  type={item.type}
-                  isGlobal={item.isGlobal}
-                  installed
-                />
-              </div>
-            }>
-            <AppSettings slug={item.slug} />
-          </IntegrationListItem>
-        </>
+        <IntegrationListItem
+          name={item.name}
+          slug={item.slug}
+          key={item.title}
+          title={item.title}
+          logo={item.logo}
+          description={item.description}
+          separate={true}
+          actions={
+            <div className="flex w-16 justify-end">
+              <ConnectOrDisconnectIntegrationButton
+                credentialIds={item.credentialIds}
+                type={item.type}
+                isGlobal={item.isGlobal}
+                installed
+              />
+            </div>
+          }>
+          <AppSettings slug={item.slug} />
+        </IntegrationListItem>
       ))}
     </List>
   );
@@ -133,8 +131,9 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
   const emptyIcon = {
     calendar: Icon.FiCalendar,
     conferencing: Icon.FiVideo,
+    automation: Icon.FiShare2,
+    analytics: Icon.FiBarChart,
     payment: Icon.FiCreditCard,
-    automation: Icon.FiZap,
     other: Icon.FiGrid,
   };
   return (
@@ -195,19 +194,23 @@ export default function InstalledApps({ category }: InferGetServerSidePropsType<
 
   return (
     <InstalledAppsLayout heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
-      {(category === InstalledAppVariants.payment ||
-        category === InstalledAppVariants.conferencing ||
-        category === InstalledAppVariants.automation) && <IntegrationsContainer variant={category} />}
-      {category === InstalledAppVariants.other && (
-        <IntegrationsContainer
-          exclude={
-            Object.keys(InstalledAppVariants).filter(
-              (variant) => variant !== InstalledAppVariants.other
-            ) as App["variant"][]
-          }
-        />
+      {(category === InstalledAppVariants.payment || category === InstalledAppVariants.conferencing) && (
+        <IntegrationsContainer variant={category} />
+      )}
+      {(category === InstalledAppVariants.automation || category === InstalledAppVariants.analytics) && (
+        <IntegrationsContainer variant={category} />
       )}
       {category === InstalledAppVariants.calendar && <CalendarListContainer />}
+      {category === InstalledAppVariants.other && (
+        <IntegrationsContainer
+          exclude={[
+            InstalledAppVariants.conferencing,
+            InstalledAppVariants.calendar,
+            InstalledAppVariants.analytics,
+            InstalledAppVariants.automation,
+          ]}
+        />
+      )}
     </InstalledAppsLayout>
   );
 }
