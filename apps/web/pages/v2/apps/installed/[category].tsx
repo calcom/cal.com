@@ -87,8 +87,8 @@ function ConnectOrDisconnectIntegrationButton(props: {
 }
 
 interface IntegrationsContainerProps {
-  variant?: "calendar" | "conferencing" | "payment" | "automation";
-  exclude?: App["variant"][];
+  variant?: keyof typeof InstalledAppVariants;
+  exclude?: (keyof typeof InstalledAppVariants)[];
 }
 
 interface IntegrationsListProps {
@@ -132,8 +132,9 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
   const emptyIcon = {
     calendar: Icon.FiCalendar,
     conferencing: Icon.FiVideo,
-    payment: Icon.FiCreditCard,
     automation: Icon.FiShare2,
+    analytics: Icon.FiBarChart,
+    payment: Icon.FiCreditCard,
     other: Icon.FiGrid,
   };
   return (
@@ -194,19 +195,23 @@ export default function InstalledApps({ category }: InferGetServerSidePropsType<
 
   return (
     <InstalledAppsLayout heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
-      {(category === InstalledAppVariants.payment ||
-        category === InstalledAppVariants.conferencing ||
-        category === InstalledAppVariants.automation) && <IntegrationsContainer variant={category} />}
-      {category === InstalledAppVariants.other && (
-        <IntegrationsContainer
-          exclude={
-            Object.keys(InstalledAppVariants).filter(
-              (variant) => variant !== InstalledAppVariants.other
-            ) as App["variant"][]
-          }
-        />
+      {(category === InstalledAppVariants.payment || category === InstalledAppVariants.conferencing) && (
+        <IntegrationsContainer variant={category} />
+      )}
+      {(category === InstalledAppVariants.automation || category === InstalledAppVariants.analytics) && (
+        <IntegrationsContainer variant={category} />
       )}
       {category === InstalledAppVariants.calendar && <CalendarListContainer />}
+      {category === InstalledAppVariants.other && (
+        <IntegrationsContainer
+          exclude={[
+            InstalledAppVariants.conferencing,
+            InstalledAppVariants.calendar,
+            InstalledAppVariants.analytics,
+            InstalledAppVariants.automation,
+          ]}
+        />
+      )}
     </InstalledAppsLayout>
   );
 }

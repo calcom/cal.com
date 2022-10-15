@@ -12,6 +12,7 @@ export const apiHandlers = {
   exchange2013calendar: import("./exchange2013calendar/api"),
   exchange2016calendar: import("./exchange2016calendar/api"),
   exchangecalendar: import("./exchangecalendar/api"),
+  fathom: import("./fathom/api"),
   giphy: import("./giphy/api"),
   googlecalendar: import("./googlecalendar/api"),
   hubspotothercalendar: import("./hubspotothercalendar/api"),
