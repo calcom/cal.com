@@ -786,7 +786,7 @@
   "installed_app_payment_description": "Configure which payment processing services to use when charging your clients.",
   "installed_app_analytics_description": "Configure which analytics apps to use for your booking pages",
   "installed_app_other_description": "All your installed apps from other categories.",
-  "installed_app_automation_description": "Configure which automations apps to use",
+  "installed_app_automation_description": "Configure which automation apps to use",
   "analytics": "Analytics",
   "empty_installed_apps_headline": "No apps installed",
   "empty_installed_apps_description": "Apps enable you to enhance your workflow and improve your scheduling life significantly.",
