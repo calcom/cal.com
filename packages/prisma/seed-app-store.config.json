@@ -89,6 +89,12 @@
     "type": "exchange_calendar"
   },
   {
+    "dirName": "weather_in_your_calendar",
+    "categories": ["other"],
+    "slug": "weather_in_your_calendar",
+    "type": "weather_in_your_calendar_other"
+  },
+  {
     "dirName": "fathom",
     "categories": ["analytics"],
     "slug": "fathom",
