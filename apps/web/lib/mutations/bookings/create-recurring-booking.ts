@@ -16,7 +16,7 @@ const createRecurringBooking = async (data: ExtendedBookingCreateBody[]) => {
     // emailed booking taking into account accumulated results to send app status accurately
     data.reverse().map(async (booking, key) => {
       // We only want to send the first occurrence of the meeting at the moment, not all at once
-      if (key === data.length) {
+      if (key === data.length - 1) {
         const calcAppsStatus = createdBookings
           .flatMap((book) => book.appsStatus)
           .reduce((prev, curr) => {

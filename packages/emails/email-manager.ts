@@ -28,7 +28,7 @@ export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
     ...calEvent.attendees.map((attendee) => {
       return new Promise((resolve, reject) => {
         try {
-          const scheduledEmail = new AttendeeScheduledEmail(calEvent, attendee);
+          const scheduledEmail = new AttendeeScheduledEmail({ ...calEvent, appsStatus: undefined }, attendee);
           resolve(scheduledEmail.sendEmail());
         } catch (e) {
           reject(console.error("AttendeeRescheduledEmail.sendEmail failed", e));
@@ -94,7 +94,7 @@ export const sendScheduledSeatsEmails = async (
   emailsToSend.push(
     new Promise((resolve, reject) => {
       try {
-        const scheduledEmail = new AttendeeScheduledEmail(calEvent, invitee);
+        const scheduledEmail = new AttendeeScheduledEmail({ ...calEvent, appsStatus: undefined }, invitee);
         resolve(scheduledEmail.sendEmail());
       } catch (e) {
         reject(console.error("AttendeeRescheduledEmail.sendEmail failed", e));
@@ -130,7 +130,7 @@ export const sendOrganizerRequestEmail = async (calEvent: CalendarEvent) => {
 export const sendAttendeeRequestEmail = async (calEvent: CalendarEvent, attendee: Person) => {
   await new Promise((resolve, reject) => {
     try {
-      const attendeeRequestEmail = new AttendeeRequestEmail(calEvent, attendee);
+      const attendeeRequestEmail = new AttendeeRequestEmail({ ...calEvent, appsStatus: undefined }, attendee);
       resolve(attendeeRequestEmail.sendEmail());
     } catch (e) {
       reject(console.error("AttendRequestEmail.sendEmail failed", e));
@@ -145,7 +145,7 @@ export const sendDeclinedEmails = async (calEvent: CalendarEvent) => {
     ...calEvent.attendees.map((attendee) => {
       return new Promise((resolve, reject) => {
         try {
-          const declinedEmail = new AttendeeDeclinedEmail(calEvent, attendee);
+          const declinedEmail = new AttendeeDeclinedEmail({ ...calEvent, appsStatus: undefined }, attendee);
           resolve(declinedEmail.sendEmail());
         } catch (e) {
           reject(console.error("AttendeeRescheduledEmail.sendEmail failed", e));
@@ -164,7 +164,7 @@ export const sendCancelledEmails = async (calEvent: CalendarEvent) => {
     ...calEvent.attendees.map((attendee) => {
       return new Promise((resolve, reject) => {
         try {
-          const scheduledEmail = new AttendeeCancelledEmail(calEvent, attendee);
+          const scheduledEmail = new AttendeeCancelledEmail({ ...calEvent, appsStatus: undefined }, attendee);
           resolve(scheduledEmail.sendEmail());
         } catch (e) {
           reject(console.error("AttendeeCancelledEmail.sendEmail failed", e));
@@ -205,7 +205,10 @@ export const sendAwaitingPaymentEmail = async (calEvent: CalendarEvent) => {
     ...calEvent.attendees.map((attendee) => {
       return new Promise((resolve, reject) => {
         try {
-          const paymentEmail = new AttendeeAwaitingPaymentEmail(calEvent, attendee);
+          const paymentEmail = new AttendeeAwaitingPaymentEmail(
+            { ...calEvent, appsStatus: undefined },
+            attendee
+          );
           resolve(paymentEmail.sendEmail());
         } catch (e) {
           reject(console.error("AttendeeAwaitingPaymentEmail.sendEmail failed", e));
@@ -258,7 +261,10 @@ export const sendRequestRescheduleEmail = async (
   emailsToSend.push(
     new Promise((resolve, reject) => {
       try {
-        const requestRescheduleEmail = new AttendeeWasRequestedToRescheduleEmail(calEvent, metadata);
+        const requestRescheduleEmail = new AttendeeWasRequestedToRescheduleEmail(
+          { ...calEvent, appsStatus: undefined },
+          metadata
+        );
         resolve(requestRescheduleEmail.sendEmail());
       } catch (e) {
         reject(console.error("AttendeeWasRequestedToRescheduleEmail.sendEmail failed", e));
@@ -287,7 +293,10 @@ export const sendLocationChangeEmails = async (calEvent: CalendarEvent) => {
     ...calEvent.attendees.map((attendee) => {
       return new Promise((resolve, reject) => {
         try {
-          const scheduledEmail = new AttendeeLocationChangeEmail(calEvent, attendee);
+          const scheduledEmail = new AttendeeLocationChangeEmail(
+            { ...calEvent, appsStatus: undefined },
+            attendee
+          );
           resolve(scheduledEmail.sendEmail());
         } catch (e) {
           reject(console.error("AttendeeLocationChangeEmail.sendEmail failed", e));
