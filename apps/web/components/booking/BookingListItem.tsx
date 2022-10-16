@@ -192,7 +192,7 @@ function BookingListItem(booking: BookingItemProps) {
         // TODO: Booking when fetched should have id 0 already(for Dynamic Events).
         type: booking.eventType.id || 0,
         eventSlug: booking.eventType.slug,
-        user: user?.username || "",
+        username: user?.username || "",
         name: booking.attendees[0] ? booking.attendees[0].name : undefined,
         email: booking.attendees[0] ? booking.attendees[0].email : undefined,
         location: location,
