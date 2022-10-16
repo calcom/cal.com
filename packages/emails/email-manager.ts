@@ -58,7 +58,10 @@ export const sendRescheduledEmails = async (calEvent: CalendarEvent) => {
     ...calEvent.attendees.map((attendee) => {
       return new Promise((resolve, reject) => {
         try {
-          const scheduledEmail = new AttendeeRescheduledEmail(calEvent, attendee);
+          const scheduledEmail = new AttendeeRescheduledEmail(
+            { ...calEvent, appsStatus: undefined },
+            attendee
+          );
           resolve(scheduledEmail.sendEmail());
         } catch (e) {
           reject(console.error("AttendeeRescheduledEmail.sendEmail failed", e));

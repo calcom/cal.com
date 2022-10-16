@@ -112,6 +112,13 @@ export interface BookingLimit {
   PER_YEAR?: number | undefined;
 }
 
+export type AppsStatus = {
+  appName: string;
+  type: typeof App["type"];
+  success: number;
+  failures: number;
+};
+
 // If modifying this interface, probably should update builders/calendarEvent files
 export interface CalendarEvent {
   type: string;
@@ -141,6 +148,7 @@ export interface CalendarEvent {
   recurrence?: string;
   recurringEvent?: RecurringEvent | null;
   eventTypeId?: number | null;
+  appsStatus?: AppsStatus[];
 }
 
 export interface EntryPoint {

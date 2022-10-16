@@ -1,4 +1,5 @@
 import { Credential } from "@prisma/client";
+import { ExtendedCredential } from "EventManager";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -34,7 +35,7 @@ const getBusyVideoTimes = (withCredentials: Credential[]) =>
     results.reduce((acc, availability) => acc.concat(availability), [] as (EventBusyDate | undefined)[])
   );
 
-const createMeeting = async (credential: Credential, calEvent: CalendarEvent) => {
+const createMeeting = async (credential: ExtendedCredential, calEvent: CalendarEvent) => {
   const uid: string = getUid(calEvent);
 
   if (!credential) {
@@ -51,6 +52,7 @@ const createMeeting = async (credential: Credential, calEvent: CalendarEvent) =>
 
     if (!createdMeeting) {
       return {
+        appName: credential.appName,
         type: credential.type,
         success: false,
         uid,
@@ -70,6 +72,7 @@ const createMeeting = async (credential: Credential, calEvent: CalendarEvent) =>
   }
 
   return {
+    appName: credential.appName,
     type: credential.type,
     success: true,
     uid,
@@ -79,7 +82,7 @@ const createMeeting = async (credential: Credential, calEvent: CalendarEvent) =>
 };
 
 const updateMeeting = async (
-  credential: Credential,
+  credential: ExtendedCredential,
   calEvent: CalendarEvent,
   bookingRef: PartialReference | null
 ): Promise<EventResult<VideoCallData>> => {
@@ -100,6 +103,7 @@ const updateMeeting = async (
 
   if (!updatedMeeting) {
     return {
+      appName: credential.appName,
       type: credential.type,
       success,
       uid,
@@ -108,6 +112,7 @@ const updateMeeting = async (
   }
 
   return {
+    appName: credential.appName,
     type: credential.type,
     success,
     uid,

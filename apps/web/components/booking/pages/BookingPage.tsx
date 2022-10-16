@@ -128,14 +128,14 @@ const BookingPage = ({
           })
         );
       }
-
+      debugger;
       return router.push({
         pathname: "/success",
         query: {
           date,
           type: eventType.id,
           eventSlug: eventType.slug,
-          user: profile.slug,
+          username: profile.slug,
           reschedule: !!rescheduleUid,
           name: attendees[0].name,
           email: attendees[0].email,
@@ -168,7 +168,7 @@ const BookingPage = ({
           type: eventType.id,
           eventSlug: eventType.slug,
           recur: recurringEventId,
-          user: profile.slug,
+          username: profile.slug,
           reschedule: !!rescheduleUid,
           name: attendees[0].name,
           email: attendees[0].email,
