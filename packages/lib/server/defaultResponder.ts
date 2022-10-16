@@ -15,8 +15,11 @@ function defaultResponder<T>(f: Handle<T>) {
       ok = true;
       if (result) res.json(result);
     } catch (err) {
-      console.error(err);
       const error = getServerErrorFromUnknown(err);
+      // user errors should not end up in stdout.
+      if (error.statusCode < 400 || error.statusCode >= 500) {
+        console.error(err);
+      }
       res.statusCode = error.statusCode;
       res.json({ message: error.message });
     } finally {
