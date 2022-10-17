@@ -21,12 +21,15 @@ const MembersView = () => {
   const router = useRouter();
   const session = useSession();
 
-  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
-    onError: () => {
-      router.push("/settings");
-    },
-    enabled: !!router.isReady,
-  });
+  const { data: team, isLoading } = trpc.useQuery(
+    ["viewer.teams.get", { teamId: parseInt(router.query.id as string) }],
+    {
+      onError: () => {
+        router.push("/settings");
+      },
+      enabled: !!router.isReady,
+    }
+  );
 
   const {
     data: teamMembers,

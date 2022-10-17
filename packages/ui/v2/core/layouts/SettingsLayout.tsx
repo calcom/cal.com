@@ -97,6 +97,7 @@ const useTabs = () => {
 
 const SettingsSidebarContainer = ({ className = "" }) => {
   const { t } = useLocale();
+  const router = useRouter();
   const tabsWithPermissions = useTabs();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
@@ -105,11 +106,14 @@ const SettingsSidebarContainer = ({ className = "" }) => {
   const { data: teams } = trpc.useQuery(["viewer.teams.list"]);
 
   useEffect(() => {
-    if (teams) {
-      const teamStates = teams?.map((team) => ({ teamId: team.id, teamMenuOpen: false }));
+    if (teams && router.isReady) {
+      const teamStates = teams?.map((team) => ({
+        teamId: team.id,
+        teamMenuOpen: parseInt(router.query.teamId as string) === team.id,
+      }));
       setTeamMenuState(teamStates);
     }
-  }, [teams]);
+  }, [teams, router.isReady]);
 
   return (
     <nav
