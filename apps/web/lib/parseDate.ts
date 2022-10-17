@@ -39,10 +39,20 @@ export const parseRecurringDates = (
   const rule = new RRule({
     ...restRecurringEvent,
     count: recurringCount,
-    dtstart: dayjs(startDate).toDate(),
+    dtstart: new Date(
+      Date.UTC(
+        dayjs.utc(startDate).get("year"),
+        dayjs.utc(startDate).get("month"),
+        dayjs.utc(startDate).get("date"),
+        dayjs.utc(startDate).get("hour"),
+        dayjs.utc(startDate).get("minute")
+      )
+    ),
   });
+
+  const utcOffset = dayjs(startDate).tz(timeZone).utcOffset();
   const dateStrings = rule.all().map((r) => {
-    return processDate(dayjs(r).tz(timeZone), i18n);
+    return processDate(dayjs.utc(r).utcOffset(utcOffset), i18n);
   });
   return [dateStrings, rule.all()];
 };
@@ -66,8 +76,9 @@ export const extractRecurringDates = (
     count: recurringInfo?._count.recurringEventId,
     dtstart: recurringInfo?._min.startTime,
   }).all();
+  const utcOffset = dayjs(recurringInfo?._min.startTime).tz(timeZone).utcOffset();
   const dateStrings = allDates.map((r) => {
-    return processDate(dayjs(r).tz(timeZone), i18n);
+    return processDate(dayjs.utc(r).utcOffset(utcOffset), i18n);
   });
   return [dateStrings, allDates];
 };

@@ -17,8 +17,8 @@ import Badge from "@calcom/ui/v2/core/Badge";
 import Button from "@calcom/ui/v2/core/Button";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
-import { extractRecurringDates } from "@lib/parseDate";
 
+// import { extractRecurringDates } from "@lib/parseDate";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 import TableActions, { ActionType } from "@components/ui/TableActions";
@@ -175,12 +175,13 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   // Calculate the booking date(s) and setup recurring event data to show
-  let recurringStrings: string[] = [];
-  let recurringDates: Date[] = [];
+  const recurringStrings: string[] = [];
+  const recurringDates: Date[] = [];
 
-  if (booking.recurringBookings !== undefined && booking.eventType.recurringEvent?.freq !== undefined) {
-    [recurringStrings, recurringDates] = extractRecurringDates(booking, user?.timeZone, i18n);
-  }
+  // @FIXME: This is importing the RRULE library which is already heavy. Find out a more optimal way do this.
+  // if (booking.recurringBookings !== undefined && booking.eventType.recurringEvent?.freq !== undefined) {
+  //   [recurringStrings, recurringDates] = extractRecurringDates(booking, user?.timeZone, i18n);
+  // }
 
   const location = booking.location || "";
 
@@ -205,6 +206,9 @@ function BookingListItem(booking: BookingItemProps) {
       },
     });
   };
+
+  const utcOffset = dayjs().tz(user?.timeZone).utcOffset();
+
   return (
     <>
       <RescheduleDialog
@@ -257,12 +261,14 @@ function BookingListItem(booking: BookingItemProps) {
           <div className="cursor-pointer py-4">
             <div className="text-sm leading-6 text-gray-900">{startTime}</div>
             <div className="text-sm text-gray-500">
-              {dayjs(booking.startTime)
-                .tz(user?.timeZone)
+              {dayjs
+                .utc(booking.startTime)
+                .utcOffset(utcOffset)
                 .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}{" "}
               -{" "}
-              {dayjs(booking.endTime)
-                .tz(user?.timeZone)
+              {dayjs
+                .utc(booking.endTime)
+                .utcOffset(utcOffset)
                 .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
             </div>
 
@@ -298,12 +304,14 @@ function BookingListItem(booking: BookingItemProps) {
             <div className="flex w-full items-center justify-between sm:hidden">
               <div className="text-sm leading-6 text-gray-900">{startTime}</div>
               <div className="pr-2 text-sm text-gray-500">
-                {dayjs(booking.startTime)
-                  .tz(user?.timeZone)
+                {dayjs
+                  .utc(booking.startTime)
+                  .utcOffset(utcOffset)
                   .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}{" "}
                 -{" "}
-                {dayjs(booking.endTime)
-                  .tz(user?.timeZone)
+                {dayjs
+                  .utc(booking.endTime)
+                  .utcOffset(utcOffset)
                   .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
               </div>
             </div>

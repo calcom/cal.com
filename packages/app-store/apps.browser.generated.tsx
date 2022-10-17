@@ -36,6 +36,7 @@ export const AppSettingsComponentsMap = {
 export const EventTypeAddonMap = {
   fathom: dynamic(() => import("./fathom/extensions/EventTypeAppCard")),
   giphy: dynamic(() => import("./giphy/extensions/EventTypeAppCard")),
+  qr_code: dynamic(() => import("./qr_code/extensions/EventTypeAppCard")),
   rainbow: dynamic(() => import("./rainbow/extensions/EventTypeAppCard")),
   stripepayment: dynamic(() => import("./stripepayment/extensions/EventTypeAppCard")),
 };
