@@ -1311,5 +1311,6 @@
   "after_event_trigger": "after event ends",
   "how_long_after": "How long after event ends?",
   "no_available_slots": "No Available slots",
-  "time_available": "Time available"
+  "time_available": "Time available",
+  "install_new_calendar_app": "Install new calendar app"
 }
