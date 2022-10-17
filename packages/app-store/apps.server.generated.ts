@@ -23,6 +23,7 @@ export const apiHandlers = {
   office365calendar: import("./office365calendar/api"),
   office365video: import("./office365video/api"),
   ping: import("./ping/api"),
+  qr_code: import("./qr_code/api"),
   rainbow: import("./rainbow/api"),
   raycast: import("./raycast/api"),
   riverside: import("./riverside/api"),
