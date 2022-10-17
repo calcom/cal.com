@@ -31,6 +31,7 @@ export const apiHandlers = {
   tandemvideo: import("./tandemvideo/api"),
   typeform: import("./typeform/api"),
   vital: import("./vital/api"),
+  weather_in_your_calendar: import("./weather_in_your_calendar/api"),
   whereby: import("./whereby/api"),
   wipemycalother: import("./wipemycalother/api"),
   zapier: import("./zapier/api"),

@@ -116,7 +116,7 @@ export function ShellSubHeading(props: {
         </h2>
         {props.subtitle && <p className="text-sm text-neutral-500 ltr:mr-4">{props.subtitle}</p>}
       </div>
-      {props.actions && <div className="flex-shrink-0">{props.actions}</div>}
+      {props.actions && <div className="mt-2 flex-shrink-0 sm:mt-0">{props.actions}</div>}
     </header>
   );
 }
@@ -657,7 +657,7 @@ const MobileNavigationMoreItem: React.FC<{
         <a className="flex items-center justify-between p-5 hover:bg-gray-100">
           <span className="flex items-center font-semibold text-gray-700 ">
             {item.icon && (
-              <item.icon className="h-5 w-5 flex-shrink-0  ltr:mr-3 rtl:ml-3" aria-hidden="true" />
+              <item.icon className="h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />
             )}
             {isLocaleReady ? t(item.name) : <SkeletonText />}
           </span>
@@ -712,13 +712,13 @@ function SideBar() {
             <button
               color="minimal"
               onClick={() => window.history.back()}
-              className="desktop-only group flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
+              className="desktop-only group flex text-sm font-medium text-neutral-500 hover:text-neutral-900">
               <Icon.FiArrowLeft className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
             </button>
             <button
               color="minimal"
               onClick={() => window.history.forward()}
-              className="desktop-only group flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
+              className="desktop-only group flex text-sm font-medium text-neutral-500 hover:text-neutral-900">
               <Icon.FiArrowRight className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
             </button>
             <KBarTrigger />
@@ -739,7 +739,7 @@ function SideBar() {
 
       {isCalcom && <Tips />}
       {/* Save it for next preview version
-       <div className="mb-4 hidden lg:block">
+       <div className="hidden mb-4 lg:block">
         <UserV2OptInBanner />
       </div> */}
 
@@ -781,7 +781,7 @@ export function ShellMain(props: LayoutProps) {
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className="w-full ltr:mr-4 rtl:ml-4 sm:block">
               {props.heading && (
-                <h1 className="font-cal  mb-1 text-xl font-bold tracking-wide text-black">
+                <h1 className="font-cal mb-1 text-xl font-bold tracking-wide text-black">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
               )}

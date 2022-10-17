@@ -1,4 +1,4 @@
-import { EventTypeSetupInfered } from "pages/v2/event-types/[type]";
+import { EventTypeSetupInfered } from "pages/event-types/[type]";
 import { useState } from "react";
 
 import getStripeAppData from "@calcom/lib/getStripeAppData";

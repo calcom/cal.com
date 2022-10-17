@@ -1007,7 +1007,7 @@
   "remove_app": "Удалить приложение",
   "yes_remove_app": "Да, удалить приложение",
   "are_you_sure_you_want_to_remove_this_app": "Удалить это приложение?",
-  "app_removed_successfully": "Приложение удалено",
+  "app_removed_successfully": "Приложение успешно удалено",
   "error_removing_app": "Ошибка при удалении приложения",
   "web_conference": "Веб-конференция",
   "number_for_sms_reminders": "Номер телефона (для SMS-напоминаний)",

@@ -760,7 +760,7 @@ const strToNumber = z.string().transform((val, ctx) => {
 const schema = z.object({
   type: strToNumber,
   date: z.string().optional(),
-  user: z.string().optional(),
+  username: z.string().optional(),
   reschedule: z.string().optional(),
   name: z.string().optional(),
   email: z.string().optional(),
@@ -781,7 +781,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     eventSlug: eventTypeSlug,
     eventName: dynamicEventName,
     bookingId,
-    user: username,
+    username,
     name,
     email,
   } = parsedQuery.data;

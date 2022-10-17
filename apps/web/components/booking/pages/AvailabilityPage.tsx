@@ -419,7 +419,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     "min-w-full md:w-[280px] md:min-w-[280px]",
                     recurringEventCount && "xl:w-[380px] xl:min-w-[380px]"
                   )}>
-                  <BookingDescription profile={profile} eventType={eventType}>
+                  <BookingDescription profile={profile} eventType={eventType} rescheduleUid={rescheduleUid}>
                     {!rescheduleUid && eventType.recurringEvent && (
                       <div className="flex items-start text-sm font-medium">
                         <Icon.FiRefreshCcw className="float-left mr-[10px] mt-[7px] ml-[2px] inline-block h-4 w-4 " />
