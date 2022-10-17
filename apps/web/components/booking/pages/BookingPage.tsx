@@ -815,6 +815,7 @@ const BookingPage = ({
                   ) : (
                     <textarea
                       {...bookingForm.register("notes")}
+                      required={!!eventType.metadata.additionalNotesRequired}
                       id="notes"
                       name="notes"
                       rows={3}
