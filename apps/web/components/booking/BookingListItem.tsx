@@ -205,6 +205,9 @@ function BookingListItem(booking: BookingItemProps) {
       },
     });
   };
+
+  const utcOffset = dayjs().tz(user?.timeZone).utcOffset();
+
   return (
     <>
       <RescheduleDialog
@@ -257,12 +260,14 @@ function BookingListItem(booking: BookingItemProps) {
           <div className="cursor-pointer py-4">
             <div className="text-sm leading-6 text-gray-900">{startTime}</div>
             <div className="text-sm text-gray-500">
-              {dayjs(booking.startTime)
-                .tz(user?.timeZone)
+              {dayjs
+                .utc(booking.startTime)
+                .utcOffset(utcOffset)
                 .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}{" "}
               -{" "}
-              {dayjs(booking.endTime)
-                .tz(user?.timeZone)
+              {dayjs
+                .utc(booking.endTime)
+                .utcOffset(utcOffset)
                 .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
             </div>
 
