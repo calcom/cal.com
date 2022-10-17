@@ -10,6 +10,7 @@ async function getBooking(prisma: PrismaClient, uid: string) {
       description: true,
       customInputs: true,
       smsReminderNumber: true,
+      location: true,
       attendees: {
         select: {
           email: true,
