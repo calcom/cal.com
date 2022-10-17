@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import objectKeys from "@calcom/lib/objectKeys";
@@ -173,7 +174,7 @@ const ProfileView = () => {
                       name="url"
                       label={t("team_url")}
                       value={value}
-                      addOnLeading="https://cal.com/"
+                      addOnLeading={`${WEBAPP_URL}/team/`}
                       onChange={(e) => {
                         form.setValue("url", e?.target.value);
                       }}

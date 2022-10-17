@@ -1,5 +1,5 @@
 import { SchedulingType } from "@prisma/client/";
-import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
+import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
 import { useMemo } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
