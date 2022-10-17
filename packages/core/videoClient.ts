@@ -1,10 +1,10 @@
 import { Credential } from "@prisma/client";
-import { ExtendedCredential } from "EventManager";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import appStore from "@calcom/app-store";
 import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
+import type { ExtendedCredential } from "@calcom/core/EventManager";
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";

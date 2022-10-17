@@ -1,11 +1,11 @@
 import { Credential, SelectedCalendar } from "@prisma/client";
-import { ExtendedCredential } from "EventManager";
 import { createHash } from "crypto";
 import _ from "lodash";
 import cache from "memory-cache";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
+import type { ExtendedCredential } from "@calcom/core/EventManager";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
