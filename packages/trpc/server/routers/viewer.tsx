@@ -9,7 +9,6 @@ import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/custom
 import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
 import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
-import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { DailyLocationType } from "@calcom/core/location";
@@ -39,7 +38,7 @@ import {
   updateWebUser as syncServicesUpdateWebUser,
 } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { baseEventTypeSelect, baseUserSelect, bookingMinimalSelect } from "@calcom/prisma";
-import { userMetadata, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 
 import { TRPCError } from "@trpc/server";
@@ -349,10 +348,13 @@ const loggedInViewerRouter = createProtectedRouter()
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
 
-      const userEventTypes = user.eventTypes.map((eventType) => ({
+      const mapEventType = (eventType: typeof user.eventTypes[number]) => ({
         ...eventType,
-        metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-      }));
+        // @FIXME: cc @hariombalhara This is failing with production data
+        // metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+      });
+
+      const userEventTypes = user.eventTypes.map(mapEventType);
       // backwards compatibility, TMP:
       const typesRaw = (
         await prisma.eventType.findMany({
@@ -369,10 +371,7 @@ const loggedInViewerRouter = createProtectedRouter()
             },
           ],
         })
-      ).map((eventType) => ({
-        ...eventType,
-        metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-      }));
+      ).map(mapEventType);
 
       type EventTypeGroup = {
         teamId?: number | null;
@@ -420,10 +419,7 @@ const loggedInViewerRouter = createProtectedRouter()
             membershipCount: membership.team.members.length,
             readOnly: membership.role === MembershipRole.MEMBER,
           },
-          eventTypes: membership.team.eventTypes.map((eventType) => ({
-            ...eventType,
-            metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-          })),
+          eventTypes: membership.team.eventTypes.map(mapEventType),
         }))
       );
       return {
