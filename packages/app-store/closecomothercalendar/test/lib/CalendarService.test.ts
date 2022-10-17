@@ -1,4 +1,5 @@
 import CloseCom from "@calcom/lib/CloseCom";
+import type { CloseComAttendees, CloseComCalendarEvent } from "@calcom/lib/CloseCom";
 import {
   getCloseComContactIds,
   getCustomActivityTypeInstanceData,
@@ -55,7 +56,7 @@ test("retrieve contact IDs: all exist", async () => {
 
   const event = {
     attendees,
-  } as CalendarEvent;
+  } as CloseComAttendees;
 
   CloseCom.prototype.contact = {
     search: () => ({ data: attendees }),
@@ -168,7 +169,7 @@ test("prepare data to create custom activity type instance: two attendees, no ad
   const event = {
     attendees,
     startTime: now.toISOString(),
-  } as CalendarEvent;
+  } as CloseComCalendarEvent;
 
   CloseCom.prototype.activity = {
     type: {
@@ -225,7 +226,7 @@ test("prepare data to create custom activity type instance: one attendees, with 
     attendees,
     startTime: now.toISOString(),
     additionalNotes: "Some comment!",
-  } as CalendarEvent;
+  } as CloseComCalendarEvent;
 
   CloseCom.prototype.activity = {
     type: {
