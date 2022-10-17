@@ -24,7 +24,10 @@ export interface InstallAppButtonProps {
 }
 export type EventTypeAppCardComponentProps = {
   // Limit what data should be accessible to apps
-  eventType: Pick<z.infer<typeof _EventTypeModel>, "id" | "title" | "description" | "teamId" | "length"> & {
+  eventType: Pick<
+    z.infer<typeof _EventTypeModel>,
+    "id" | "title" | "description" | "teamId" | "length" | "recurringEvent"
+  > & {
     URL: string;
   };
   app: inferQueryOutput<"viewer.apps">[number];
