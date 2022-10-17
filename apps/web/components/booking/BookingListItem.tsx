@@ -192,7 +192,7 @@ function BookingListItem(booking: BookingItemProps) {
         // TODO: Booking when fetched should have id 0 already(for Dynamic Events).
         type: booking.eventType.id || 0,
         eventSlug: booking.eventType.slug,
-        user: user?.username || "",
+        username: user?.username || "",
         name: booking.attendees[0] ? booking.attendees[0].name : undefined,
         email: booking.attendees[0] ? booking.attendees[0].email : undefined,
         location: location,
@@ -257,8 +257,13 @@ function BookingListItem(booking: BookingItemProps) {
           <div className="cursor-pointer py-4">
             <div className="text-sm leading-6 text-gray-900">{startTime}</div>
             <div className="text-sm text-gray-500">
-              {dayjs(booking.startTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")} -{" "}
-              {dayjs(booking.endTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
+              {dayjs(booking.startTime)
+                .tz(user?.timeZone)
+                .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}{" "}
+              -{" "}
+              {dayjs(booking.endTime)
+                .tz(user?.timeZone)
+                .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
             </div>
 
             {isPending && (
@@ -293,8 +298,13 @@ function BookingListItem(booking: BookingItemProps) {
             <div className="flex w-full items-center justify-between sm:hidden">
               <div className="text-sm leading-6 text-gray-900">{startTime}</div>
               <div className="pr-2 text-sm text-gray-500">
-                {dayjs(booking.startTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")} -{" "}
-                {dayjs(booking.endTime).format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
+                {dayjs(booking.startTime)
+                  .tz(user?.timeZone)
+                  .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}{" "}
+                -{" "}
+                {dayjs(booking.endTime)
+                  .tz(user?.timeZone)
+                  .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
               </div>
             </div>
 

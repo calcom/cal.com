@@ -21,12 +21,12 @@ import Dropdown, {
 } from "@calcom/ui/v2/core/Dropdown";
 import Shell from "@calcom/ui/v2/core/Shell";
 import CreateEventTypeButton from "@calcom/ui/v2/modules/event-types/CreateEventType";
+import EventTypeDescription from "@calcom/ui/v2/modules/event-types/EventTypeDescription";
 
 import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
-import EventTypeDescription from "@components/eventtype/EventTypeDescription";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import SkeletonLoader from "@components/v2/eventtype/SkeletonLoader";
@@ -278,7 +278,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               combined
                             />
                           </Tooltip>
-                          <Dropdown>
+                          <Dropdown modal={false}>
                             <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
                               <Button
                                 type="button"
