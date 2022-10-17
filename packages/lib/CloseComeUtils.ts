@@ -6,11 +6,10 @@ import CloseCom, {
   CloseComCustomContactFieldGet,
   CloseComFieldOptions,
   CloseComLead,
-  CloseComCalendarEvent,
 } from "./CloseCom";
 
 export async function getCloseComContactIds(
-  persons: { email: string; name?: string | null }[],
+  persons: { email: string; name: string | null }[],
   closeCom: CloseCom,
   leadFromCalComId?: string
 ): Promise<string[]> {
@@ -52,7 +51,7 @@ export async function getCloseComContactIds(
 }
 
 export async function getCustomActivityTypeInstanceData(
-  event: CloseComCalendarEvent,
+  event: CalendarEvent,
   customFields: CloseComFieldOptions,
   closeCom: CloseCom
 ): Promise<CloseComCustomActivityCreate> {

@@ -137,16 +137,6 @@ export type typeCloseComCustomActivityGet = {
   [key: CloseComCustomActivityCustomField<string>]: string;
 };
 
-export type CloseComAttendees = {
-  attendees: { email: string; id: string; timeZone?: string }[];
-};
-
-export type CloseComCalendarEvent = {
-  attendees?: CloseComAttendees["attendees"];
-  startTime: string;
-  additionalNotes?: string;
-};
-
 type CloseComCustomActivityCustomField<T extends string> = `custom.${T}`;
 
 const environmentApiKey = process.env.CLOSECOM_API_KEY || "";
@@ -181,7 +171,7 @@ export default class CloseCom {
       });
     },
     create: async (data: {
-      person: { name?: string | null; email: string };
+      person: { name: string | null; email: string };
       leadId: string;
     }): Promise<CloseComContactSearch["data"][number]> => {
       return this._post({ urlPath: "/contact/", data: closeComQueries.contact.create(data) });
