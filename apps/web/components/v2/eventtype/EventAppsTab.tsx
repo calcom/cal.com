@@ -4,6 +4,7 @@ import { useFormContext } from "react-hook-form";
 
 import EventTypeAppContext, { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppContext";
 import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
+import { EventTypeAppCardComponentProps } from "@calcom/app-store/types";
 import { EventTypeAppsList } from "@calcom/app-store/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
@@ -11,7 +12,9 @@ import { Icon } from "@calcom/ui";
 import ErrorBoundary from "@calcom/ui/ErrorBoundary";
 import { Button, EmptyScreen } from "@calcom/ui/v2";
 
-type EventType = Pick<EventTypeSetupInfered, "eventType">["eventType"];
+type EventType = Pick<EventTypeSetupInfered, "eventType">["eventType"] &
+  EventTypeAppCardComponentProps["eventType"];
+
 function AppCardWrapper({
   app,
   eventType,

@@ -89,6 +89,12 @@
     "type": "exchange_calendar"
   },
   {
+    "dirName": "qr_code",
+    "categories": ["other"],
+    "slug": "qr_code",
+    "type": "qr_code_other"
+  },
+  {
     "dirName": "weather_in_your_calendar",
     "categories": ["other"],
     "slug": "weather_in_your_calendar",
