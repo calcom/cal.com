@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -47,7 +46,9 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
               value={value}
               onChange={(e) => {
                 formMethods.setValue("name", e?.target.value);
-                formMethods.setValue("slug", slugify(e?.target.value));
+                if (formMethods.formState.touchedFields["slug"] === undefined) {
+                  formMethods.setValue("slug", slugify(e?.target.value));
+                }
               }}
               autoComplete="off"
             />
@@ -67,7 +68,7 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
               addOnLeading={`${WEBAPP_URL}/`}
               value={value}
               onChange={(e) => {
-                formMethods.setValue("slug", slugify(e?.target.value));
+                formMethods.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
               }}
             />
           )}
