@@ -1223,7 +1223,7 @@
   "exchange_authentication": "طريقة المصادقة",
   "exchange_authentication_standard": "المصادقة الأساسية",
   "exchange_authentication_ntlm": "مصادقة NTLM",
-  "exchange_compression": "ضغط وفق Gzip",
+  "exchange_compression": "ضغط Gzip",
   "routing_forms_description": "يمكنك هنا رؤية جميع النماذج والمسارات التي أنشأتها.",
   "add_new_form": "إضافة استمارة جديدة",
   "form_description": "إنشاء استمارتك لتوجيه طالب حجز",
