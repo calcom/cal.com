@@ -1,6 +1,6 @@
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
+import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
 import { useMemo, useState } from "react";
 import { Loader } from "react-feather";
 import { UseFormReturn } from "react-hook-form";
