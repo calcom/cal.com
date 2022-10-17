@@ -22,9 +22,11 @@ export interface InstallAppButtonProps {
   ) => JSX.Element;
   onChanged?: () => unknown;
 }
-
-export type EventTypeAppCardComponent = React.FC<{
+export type EventTypeAppCardComponentProps = {
   // Limit what data should be accessible to apps
-  eventType: Pick<z.infer<typeof _EventTypeModel>, "id", "title" | "description" | "teamId" | "length">;
+  eventType: Pick<z.infer<typeof _EventTypeModel>, "id" | "title" | "description" | "teamId" | "length"> & {
+    URL: string;
+  };
   app: inferQueryOutput<"viewer.apps">[number];
-}>;
+};
+export type EventTypeAppCardComponent = React.FC<EventTypeAppCardComponentProps>;
