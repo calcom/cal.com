@@ -11,7 +11,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
   const [enabled, setEnabled] = useState(getAppData("enabled"));
 
-  const eventTypeURL = "https://cal.dev/pro/30min"; // TODO: eventType.URL
+  const eventTypeURL = eventType.URL;
 
   function QRCode({ size, data }: { size: number; data: string }) {
     const QR_URL = "https://api.qrserver.com/v1/create-qr-code/?size=" + size + "&data=" + data;
