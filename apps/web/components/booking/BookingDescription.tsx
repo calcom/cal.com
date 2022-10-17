@@ -34,7 +34,7 @@ interface Props {
   isBookingPage?: boolean;
   children: ReactNode;
   isMobile?: boolean;
-  rescheduleUid?: number;
+  rescheduleUid?: string;
 }
 
 const BookingDescription: FC<Props> = (props) => {
