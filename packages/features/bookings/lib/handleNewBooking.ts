@@ -752,7 +752,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
           ...evt,
           additionalInformation: metadata,
           additionalNotes, // Resets back to the additionalNote input and not the override value
-          cancellationReason: reqBody.rescheduleReason,
+          cancellationReason: "$RCH$" + reqBody.rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
         });
       }
     }

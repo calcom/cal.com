@@ -65,7 +65,7 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
               className="mt-2"
               name="slug"
               label={t("team_url")}
-              addOnLeading={`${WEBAPP_URL}/`}
+              addOnLeading={`${WEBAPP_URL}/team/`}
               value={value}
               onChange={(e) => {
                 formMethods.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
