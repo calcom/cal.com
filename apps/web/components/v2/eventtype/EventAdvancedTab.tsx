@@ -250,7 +250,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
       />
       <hr />
       <Controller
-        name="additionalNotesRequired"
+        name="metadata.additionalNotesRequired"
         control={formMethods.control}
         defaultValue={!!eventType.metadata.additionalNotesRequired}
         render={({ field: { value, onChange } }) => (
