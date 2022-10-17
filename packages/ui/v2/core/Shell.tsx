@@ -233,7 +233,7 @@ function UserDropdown({ small }: { small?: boolean }) {
     return null;
   }
   return (
-    <Dropdown open={menuOpen} onOpenChange={() => setHelpOpen(false)}>
+    <Dropdown open={menuOpen}>
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen(true)}>
         <button className="group flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-100 sm:pl-3 md:rounded-none lg:pl-2">
           <span
@@ -280,7 +280,10 @@ function UserDropdown({ small }: { small?: boolean }) {
       </DropdownMenuTrigger>
       <DropdownMenuPortal>
         <DropdownMenuContent
-          onInteractOutside={() => setMenuOpen(false)}
+          onInteractOutside={() => {
+            setMenuOpen(false);
+            setHelpOpen(false);
+          }}
           className="overflow-hidden rounded-md">
           {helpOpen ? (
             <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
@@ -338,21 +341,21 @@ function UserDropdown({ small }: { small?: boolean }) {
                   <Icon.FiMap className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" /> {t("visit_roadmap")}
                 </a>
               </DropdownMenuItem>
+              <DropdownMenuItem>
+                <button
+                  onClick={() => setHelpOpen(true)}
+                  className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                  <Icon.FiHelpCircle
+                    className={classNames(
+                      "text-gray-500 group-hover:text-neutral-500",
+                      "h-4 w-4 flex-shrink-0 ltr:mr-2"
+                    )}
+                    aria-hidden="true"
+                  />
 
-              <button
-                className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                onClick={() => setHelpOpen(true)}>
-                <Icon.FiHelpCircle
-                  className={classNames(
-                    "text-gray-500 group-hover:text-neutral-500",
-                    "h-4 w-4 flex-shrink-0 ltr:mr-2"
-                  )}
-                  aria-hidden="true"
-                />
-
-                {t("help")}
-              </button>
-
+                  {t("help")}
+                </button>
+              </DropdownMenuItem>
               <DropdownMenuItem>
                 <a
                   target="_blank"
