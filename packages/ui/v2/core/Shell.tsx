@@ -126,16 +126,14 @@ const Layout = (props: LayoutProps) => {
 
   return (
     <>
-      {!props.withoutSeo && (
-        <HeadSeo
-          title={pageTitle ?? "Cal.com"}
-          description={props.subtitle ? props.subtitle?.toString() : ""}
-          nextSeoProps={{
-            nofollow: true,
-            noindex: true,
-          }}
-        />
-      )}
+      <HeadSeo
+        title={pageTitle ?? "Cal.com"}
+        description={props.subtitle ? props.subtitle?.toString() : ""}
+        nextSeoProps={{
+          nofollow: true,
+          noindex: true,
+        }}
+      />
       <div>
         <Toaster position="bottom-right" />
       </div>
@@ -170,13 +168,11 @@ type LayoutProps = {
   TopNavContainer?: ReactNode;
   drawerState?: DrawerState;
   HeadingLeftIcon?: ReactNode;
-  backPath?: string | boolean; // renders back button to specified path
+  backPath?: string; // renders back button to specified path
   // use when content needs to expand with flex
   flexChildrenContainer?: boolean;
   isPublic?: boolean;
   withoutMain?: boolean;
-  // Gives you the option to skip HeadSEO and render your own.
-  withoutSeo?: boolean;
 };
 
 const CustomBrandingContainer = () => {
@@ -238,7 +234,7 @@ function UserDropdown({ small }: { small?: boolean }) {
   }
   return (
     <Dropdown open={menuOpen}>
-      <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
+      <DropdownMenuTrigger asChild onClick={() => setMenuOpen(true)}>
         <button className="group flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-100 sm:pl-3 md:rounded-none lg:pl-2">
           <span
             className={classNames(
@@ -773,9 +769,7 @@ export function ShellMain(props: LayoutProps) {
           <Button
             size="icon"
             color="minimal"
-            onClick={() =>
-              typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
-            }
+            onClick={() => router.push(props.backPath as string)}
             StartIcon={Icon.FiArrowLeft}
             aria-label="Go Back"
             className="ltr:mr-2 rtl:ml-2"
