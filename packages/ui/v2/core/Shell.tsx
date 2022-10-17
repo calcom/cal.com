@@ -333,12 +333,14 @@ export type NavigationItemType = {
   }) => boolean;
 };
 
+const backToMento: string = process.env?.NEXT_PUBLIC_MENTO_COACH_URL as string;
+
 const requiredCredentialNavigationItems = ["Routing Forms"];
 const MORE_SEPARATOR_NAME = "more";
 const navigation: NavigationItemType[] = [
   {
     name: "Back to Mento",
-    href: (process.env.NEXT_PUBLIC_MENTO_COACH_URL as string) || "/",
+    href: backToMento,
     icon: Icon.FiArrowLeft,
   },
   {
