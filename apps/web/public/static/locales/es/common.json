@@ -805,7 +805,7 @@
   "installed_other": "{{count}} instaladas",
   "verify_wallet": "Verificar billetera",
   "connect_metamask": "Conectar Metamask",
-  "create_events_on": "Crear eventos en:",
+  "create_events_on": "Crear eventos en",
   "missing_license": "Falta la licencia",
   "signup_requires": "Licencia comercial requerida",
   "signup_requires_description": "Actualmente, Cal.com, Inc. no ofrece una versión gratuita de código abierto de la página de registro. Para recibir acceso completo a los componentes de registro es necesario adquirir una licencia comercial. Para uso personal, recomendamos la Plataforma de Datos Prisma o cualquier otra interfaz Postgres para crear cuentas.",

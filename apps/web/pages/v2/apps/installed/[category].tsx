@@ -4,7 +4,6 @@ import z from "zod";
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { InstalledAppVariants } from "@calcom/app-store/utils";
-import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { App } from "@calcom/types/App";
@@ -118,9 +117,7 @@ const IntegrationsList = ({ data }: IntegrationsListProps) => {
               />
             </div>
           }>
-          <div className="border-t border-gray-200">
-            <AppSettings slug={item.slug} />
-          </div>
+          <AppSettings slug={item.slug} />
         </IntegrationListItem>
       ))}
     </List>
