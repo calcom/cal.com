@@ -16,6 +16,7 @@ import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
+import { CAL_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -275,7 +276,16 @@ const loggedInViewerRouter = createProtectedRouter()
       const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
         hashedLink: true,
         destinationCalendar: true,
-        team: true,
+        team: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            // logo: true, // Skipping to avoid 4mb limit
+            bio: true,
+            hideBranding: true,
+          },
+        },
         metadata: true,
         users: {
           select: baseUserSelect,
@@ -306,7 +316,6 @@ const loggedInViewerRouter = createProtectedRouter()
                   id: true,
                   name: true,
                   slug: true,
-                  logo: true,
                   members: {
                     select: {
                       userId: true,
@@ -412,7 +421,7 @@ const loggedInViewerRouter = createProtectedRouter()
           teamId: membership.team.id,
           profile: {
             name: membership.team.name,
-            image: membership.team.logo || "",
+            image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
             slug: "team/" + membership.team.slug,
           },
           metadata: {
