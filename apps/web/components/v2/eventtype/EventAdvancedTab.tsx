@@ -1,7 +1,7 @@
 import autoAnimate from "@formkit/auto-animate";
 import { EventTypeCustomInput } from "@prisma/client/";
 import Link from "next/link";
-import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
+import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
 import { useEffect, useRef, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import short from "short-uuid";
