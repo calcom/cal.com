@@ -587,6 +587,9 @@ const BookingPage = ({
                       const locationString = locationKeyToString(location);
                       // TODO: Right now selectedLocationType isn't send by getSSP. Once that's available defaultChecked should work and show the location in the original booking
                       const defaultChecked = rescheduleUid ? selectedLocationType === location.type : i === 0;
+                      if (!selectedLocationType) {
+                        bookingForm.setValue("locationType", locations[0].type);
+                      }
                       if (typeof locationString !== "string") {
                         // It's possible that location app got uninstalled
                         return null;
