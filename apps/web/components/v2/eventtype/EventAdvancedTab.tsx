@@ -249,7 +249,30 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
         )}
       />
       <hr />
-
+      <Controller
+        name="metadata.additionalNotesRequired"
+        control={formMethods.control}
+        defaultValue={!!eventType.metadata.additionalNotesRequired}
+        render={({ field: { value, onChange } }) => (
+          <div className="flex space-x-3 ">
+            <Switch
+              name="additionalNotesRequired"
+              fitToHeight={true}
+              checked={value}
+              onCheckedChange={(e) => onChange(e)}
+            />
+            <div className="flex flex-col">
+              <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
+                {t("require_additional_notes")}
+              </Skeleton>
+              <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
+                {t("require_additional_notes_description")}
+              </Skeleton>
+            </div>
+          </div>
+        )}
+      />
+      <hr />
       <Controller
         name="successRedirectUrl"
         control={formMethods.control}
