@@ -1307,6 +1307,8 @@
   "update_timezone_question": "Update Timezone?",
   "update_timezone_description": "It seems like your local timezone has changed to {{formattedCurrentTz}}.  It's very important to have the correct timezone to prevent bookings at undesired times. Do you want to update it?",
   "dont_update": "Don't update",
+  "require_additional_notes": "Require additional notes",
+  "require_additional_notes_description": "Require additional notes to be filled out when booking",
   "email_address_action": "send email to a specific email address",
   "after_event_trigger": "after event ends",
   "how_long_after": "How long after event ends?",
