@@ -7,7 +7,7 @@ export const _WebhookModel = z.object({
   id: z.string(),
   userId: z.number().int().nullish(),
   eventTypeId: z.number().int().nullish(),
-  subscriberUrl: z.string(),
+  subscriberUrl: z.string().url(),
   payloadTemplate: z.string().nullish(),
   createdAt: z.date(),
   active: z.boolean(),
