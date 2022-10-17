@@ -1,5 +1,5 @@
 import { App_RoutingForms_Form } from "@prisma/client";
-import { useRouter } from "next/router";
+import { useEffect } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
 
 import useApp from "@calcom/lib/hooks/useApp";
@@ -191,6 +191,10 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
   const hookForm = useForm({
     defaultValues: form,
   });
+
+  useEffect(() => {
+    hookForm.reset(form);
+  }, [form, hookForm]);
 
   const mutation = trpc.useMutation("viewer.app_routing_forms.formMutation", {
     onSuccess() {
