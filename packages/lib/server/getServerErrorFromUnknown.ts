@@ -19,7 +19,7 @@ function parseZodErrorIssues(issues: ZodIssue[]): string {
         ? i.unionErrors.map((ue) => parseZodErrorIssues(ue.issues)).join("; ")
         : i.code === "unrecognized_keys"
         ? i.message
-        : `'${i.code}' in '${i.path}': ${i.message}`
+        : `${i.path.length ? `${i.code} in '${i.path}': ` : ""}${i.message}`
     )
     .join("; ");
 }

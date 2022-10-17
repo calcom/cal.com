@@ -37,7 +37,9 @@ export function WhenInfo(props: { calEvent: CalendarEvent; timeZone: string; t: 
     <div>
       <Info
         label={`${t("when")} ${getRecurringWhen(props)}`}
-        lineThrough={!!props.calEvent.cancellationReason}
+        lineThrough={
+          !!props.calEvent.cancellationReason && !props.calEvent.cancellationReason.includes("$RCH$")
+        }
         description={
           <>
             {recurringEvent?.count ? `${t("starting")} ` : ""}
