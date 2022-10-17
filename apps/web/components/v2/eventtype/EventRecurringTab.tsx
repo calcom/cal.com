@@ -1,25 +1,18 @@
-import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
+import { EventTypeSetupInfered } from "pages/v2/event-types/[type]";
 import { useState } from "react";
-import { useFormContext } from "react-hook-form";
+
+import getStripeAppData from "@calcom/lib/getStripeAppData";
 
 import RecurringEventController from "./RecurringEventController";
 
-export const EventRecurringTab = ({
-  eventType,
-  hasPaymentIntegration,
-}: Pick<EventTypeSetupInfered, "eventType" | "hasPaymentIntegration">) => {
-  const requirePayment = eventType.price > 0;
-  const [recurringEventDefined, setRecurringEventDefined] = useState(
-    eventType.recurringEvent?.count !== undefined
-  );
+export const EventRecurringTab = ({ eventType }: Pick<EventTypeSetupInfered, "eventType">) => {
+  const stripeAppData = getStripeAppData(eventType);
+
+  const requirePayment = stripeAppData.price > 0;
 
   return (
     <div className="">
-      <RecurringEventController
-        paymentEnabled={hasPaymentIntegration && requirePayment}
-        onRecurringEventDefined={setRecurringEventDefined}
-        recurringEvent={eventType.recurringEvent}
-      />
+      <RecurringEventController paymentEnabled={requirePayment} recurringEvent={eventType.recurringEvent} />
     </div>
   );
 };

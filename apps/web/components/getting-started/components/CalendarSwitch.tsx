@@ -1,4 +1,4 @@
-import { useMutation } from "react-query";
+import { useMutation } from "@tanstack/react-query";
 
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";

@@ -54,7 +54,11 @@ export const Day = ({
       data-disabled={props.disabled}
       {...props}>
       {date.date()}
-      {date.isToday() && <span className="absolute left-0 bottom-0 mx-auto -mb-px w-full text-4xl">.</span>}
+      {date.isToday() && (
+        <span className="absolute left-0 bottom-0 mx-auto -mb-px w-full text-4xl md:-bottom-1 lg:bottom-0">
+          .
+        </span>
+      )}
     </button>
   );
 };
@@ -167,7 +171,7 @@ const DatePicker = ({
           </button>
         </div>
       </div>
-      <div className="border-bookinglightest mb-2 grid grid-cols-7 gap-4 border-t border-b text-center dark:border-gray-800 md:mb-0 md:border-0">
+      <div className="border-bookinglightest mb-2 grid grid-cols-7 gap-4 border-t border-b text-center dark:border-neutral-900 md:mb-0 md:border-0">
         {weekdayNames(locale, weekStart, "short").map((weekDay) => (
           <div
             key={weekDay}

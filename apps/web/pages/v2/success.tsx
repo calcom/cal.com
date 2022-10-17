@@ -10,7 +10,9 @@ import { useEffect, useRef, useState } from "react";
 import { RRule } from "rrule";
 import { z } from "zod";
 
+import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { getEventLocationValue, getSuccessPageLocationMessage } from "@calcom/app-store/locations";
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
 import {
@@ -26,9 +28,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
+import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
-import prisma from "@calcom/prisma";
+import prisma, { baseUserSelect } from "@calcom/prisma";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 import { EmailInput } from "@calcom/ui/form/fields";
@@ -170,8 +173,9 @@ export default function Success(props: SuccessProps) {
     location: location,
     t,
   };
-  const metadata = props.eventType?.metadata as { giphyThankYouPage: string };
-  const giphyImage = metadata?.giphyThankYouPage;
+
+  const giphyAppData = getEventTypeAppData(eventType, "giphy");
+  const giphyImage = giphyAppData?.thankYouPage;
 
   const eventName = getEventName(eventNameObject, true);
   const needsConfirmation = eventType.requiresConfirmation && reschedule != "true";
@@ -201,7 +205,7 @@ export default function Success(props: SuccessProps) {
       // TODO: Add payment details
     });
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
-    setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
+    setIs24h(!!getIs24hClockFromLocalStorage());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventType, needsConfirmation]);
 
@@ -263,13 +267,14 @@ export default function Success(props: SuccessProps) {
       {userIsOwner && !isEmbed && (
         <div className="mt-2 ml-4 -mb-4">
           <Link href={eventType.recurringEvent?.count ? "/bookings/recurring" : "/bookings/upcoming"}>
-            <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
+            <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-transparent dark:hover:text-white">
               <Icon.FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
             </a>
           </Link>
         </div>
       )}
       <HeadSeo title={title} description={title} />
+      <BookingPageTagManager eventType={eventType} />
       <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
         <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
@@ -411,7 +416,7 @@ export default function Success(props: SuccessProps) {
                   !isCancelled &&
                   (!isCancellationMode ? (
                     <>
-                      <hr className="border-bookinglightest" />
+                      <hr className="border-bookinglightest dark:border-darkgray-300" />
                       <div className="py-8 text-center last:pb-0">
                         <span className="text-gray-900 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                           {t("need_to_make_a_change")}
@@ -448,7 +453,7 @@ export default function Success(props: SuccessProps) {
                   ))}
                 {userIsOwner && !needsConfirmation && !isCancellationMode && !isCancelled && (
                   <>
-                    <hr className="border-bookinglightest" />
+                    <hr className="border-bookinglightest dark:border-darkgray-300" />
                     <div className="text-bookingdark align-center flex flex-row justify-center pt-8">
                       <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                         {t("add_to_calendar")}
@@ -688,6 +693,8 @@ const getEventTypesFromDB = async (id: number) => {
       userId: true,
       successRedirectUrl: true,
       locations: true,
+      price: true,
+      currency: true,
       users: {
         select: {
           id: true,
@@ -717,9 +724,12 @@ const getEventTypesFromDB = async (id: number) => {
     return eventType;
   }
 
+  const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+
   return {
     isDynamic: false,
     ...eventType,
+    metadata,
   };
 };
 
@@ -771,18 +781,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       where: {
         id: eventTypeRaw.userId,
       },
-      select: {
-        id: true,
-        name: true,
-        username: true,
-        hideBranding: true,
-        plan: true,
-        theme: true,
-        brandColor: true,
-        darkBrandColor: true,
-        email: true,
-        timeZone: true,
-      },
+      select: baseUserSelect,
     });
     if (user) {
       eventTypeRaw.users.push(user);
@@ -797,6 +796,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventType = {
     ...eventTypeRaw,
+    metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
   };
 

@@ -8,6 +8,7 @@ import React, { useEffect } from "react";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -17,7 +18,6 @@ import { Button } from "@calcom/ui/v2/core";
 import EventTypeDescription from "@calcom/ui/v2/modules/event-types/EventTypeDescription";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
-import { useLocale } from "@lib/hooks/useLocale";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -56,7 +56,6 @@ function TeamPage({ team }: TeamPageProps) {
               <div className="flex-shrink">
                 <div className="flex flex-wrap items-center space-x-2">
                   <h2 className="dark:text-darkgray-700 text-sm font-semibold text-gray-700">{type.title}</h2>
-                  <p className="dark:text-darkgray-600 hidden text-sm font-normal leading-none text-gray-600 md:block">{`/${team.slug}/${type.slug}`}</p>
                 </div>
                 <EventTypeDescription className="text-sm" eventType={type} />
               </div>

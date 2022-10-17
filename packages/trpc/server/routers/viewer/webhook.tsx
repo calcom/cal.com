@@ -2,10 +2,10 @@ import { Prisma } from "@prisma/client";
 import { v4 } from "uuid";
 import { z } from "zod";
 
+import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/features/webhooks/lib/constants";
+import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { WEBHOOK_TRIGGER_EVENTS } from "@calcom/lib/webhooks/constants";
-import sendPayload from "@calcom/lib/webhooks/sendPayload";
 
 import { TRPCError } from "@trpc/server";
 
@@ -96,8 +96,8 @@ export const webhookRouter = createProtectedRouter()
     input: z.object({
       webhookId: z.string().optional(),
     }),
-    resolve({ ctx, input }) {
-      return ctx.prisma.webhook.findUniqueOrThrow({
+    async resolve({ ctx, input }) {
+      return await ctx.prisma.webhook.findUniqueOrThrow({
         where: {
           id: input.webhookId,
         },

@@ -19,8 +19,8 @@ import { Icon } from "@calcom/ui/Icon";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { Button, DialogClose, DialogContent } from "@calcom/ui/v2";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
-import Select from "@calcom/ui/v2/core/form/Select";
-import { Label, TextArea } from "@calcom/ui/v2/core/form/fields";
+import { EmailField, Label, TextArea } from "@calcom/ui/v2/core/form/fields";
+import Select from "@calcom/ui/v2/core/form/select";
 
 import { AddVariablesDropdown } from "../../components/v2/AddVariablesDropdown";
 import {
@@ -49,18 +49,29 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
   );
 
+  const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(
+    step?.action === WorkflowActions.EMAIL_ADDRESS ? true : false
+  );
+
   const [isCustomReminderBodyNeeded, setIsCustomReminderBodyNeeded] = useState(
     step?.template === WorkflowTemplates.CUSTOM ? true : false
   );
 
   const [isEmailSubjectNeeded, setIsEmailSubjectNeeded] = useState(
-    step?.action === WorkflowActions.EMAIL_ATTENDEE || step?.action === WorkflowActions.EMAIL_HOST
+    step?.action === WorkflowActions.EMAIL_ATTENDEE ||
+      step?.action === WorkflowActions.EMAIL_HOST ||
+      step?.action === WorkflowActions.EMAIL_ADDRESS
       ? true
       : false
   );
 
   const [showTimeSection, setShowTimeSection] = useState(
-    form.getValues("trigger") === WorkflowTriggerEvents.BEFORE_EVENT ? true : false
+    form.getValues("trigger") === WorkflowTriggerEvents.BEFORE_EVENT ||
+      form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
+  );
+
+  const [showTimeSectionAfter, setShowTimeSectionAfter] = useState(
+    form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
   );
 
   const actionOptions = getWorkflowActionOptions(t);
@@ -86,14 +97,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         const cursorPosition = refEmailSubject?.current?.selectionStart || currentEmailSubject.length;
         const subjectWithAddedVariable = `${currentEmailSubject.substring(0, cursorPosition)}{${variable
           .toUpperCase()
-          .replace(" ", "_")}}${currentEmailSubject.substring(cursorPosition)}`;
+          .replace(/ /g, "_")}}${currentEmailSubject.substring(cursorPosition)}`;
         form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectWithAddedVariable);
       } else {
         const currentMessageBody = refReminderBody?.current?.value || "";
         const cursorPosition = refReminderBody?.current?.selectionStart || currentMessageBody.length;
         const messageWithAddedVariable = `${currentMessageBody.substring(0, cursorPosition)}{${variable
           .toUpperCase()
-          .replace(" ", "_")}}${currentMessageBody.substring(cursorPosition)}`;
+          .replace(/ /g, "_")}}${currentMessageBody.substring(cursorPosition)}`;
         form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, messageWithAddedVariable);
       }
     }
@@ -147,12 +158,21 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     onChange={(val) => {
                       if (val) {
                         form.setValue("trigger", val.value);
-                        if (val.value === WorkflowTriggerEvents.BEFORE_EVENT) {
+                        if (
+                          val.value === WorkflowTriggerEvents.BEFORE_EVENT ||
+                          val.value === WorkflowTriggerEvents.AFTER_EVENT
+                        ) {
                           setShowTimeSection(true);
+                          if (val.value === WorkflowTriggerEvents.AFTER_EVENT) {
+                            setShowTimeSectionAfter(true);
+                          } else {
+                            setShowTimeSectionAfter(false);
+                          }
                           form.setValue("time", 24);
                           form.setValue("timeUnit", TimeUnit.HOUR);
                         } else {
                           setShowTimeSection(false);
+                          setShowTimeSectionAfter(false);
                           form.unregister("time");
                           form.unregister("timeUnit");
                         }
@@ -166,7 +186,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             />
             {showTimeSection && (
               <div className="mt-5">
-                <Label>{t("how_long_before")}</Label>
+                <Label>{showTimeSectionAfter ? t("how_long_after") : t("how_long_before")}</Label>
                 <TimeTimeUnitInput form={form} />
               </div>
             )}
@@ -256,12 +276,20 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           if (val) {
                             if (val.value === WorkflowActions.SMS_NUMBER) {
                               setIsPhoneNumberNeeded(true);
+                              setIsEmailAddressNeeded(false);
+                            } else if (val.value === WorkflowActions.EMAIL_ADDRESS) {
+                              setIsEmailAddressNeeded(true);
+                              setIsPhoneNumberNeeded(false);
                             } else {
+                              setIsEmailAddressNeeded(false);
                               setIsPhoneNumberNeeded(false);
                             }
+                            form.unregister(`steps.${step.stepNumber - 1}.sendTo`);
+                            form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
                             if (
                               val.value === WorkflowActions.EMAIL_ATTENDEE ||
-                              val.value === WorkflowActions.EMAIL_HOST
+                              val.value === WorkflowActions.EMAIL_HOST ||
+                              val.value === WorkflowActions.EMAIL_ADDRESS
                             ) {
                               setIsEmailSubjectNeeded(true);
                             } else {
@@ -302,6 +330,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     )}
                 </div>
               )}
+              {isEmailAddressNeeded && (
+                <div className="mt-5 rounded-md bg-gray-50 p-4">
+                  <EmailField
+                    required
+                    label={t("email_address")}
+                    {...form.register(`steps.${step.stepNumber - 1}.sendTo`)}
+                  />
+                </div>
+              )}
               <div className="mt-5">
                 <Label>{t("message_template")}</Label>
                 <Controller
@@ -327,11 +364,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 />
               </div>
               {isCustomReminderBodyNeeded && (
-                <div className="mt-2 rounded-md bg-gray-50 p-2 md:p-4">
+                <div className="mt-2 rounded-md bg-gray-50 p-4 pt-2 md:p-6 md:pt-4">
                   {isEmailSubjectNeeded && (
                     <div className="mb-5">
-                      <div className="flex">
-                        <Label className="flex-none">{t("subject")}</Label>
+                      <div className="mb-2 flex items-center">
+                        <Label className="mb-0 flex-none">{t("subject")}</Label>
                         <div className="flex-grow text-right">
                           <AddVariablesDropdown addVariable={addVariable} isEmailSubject={true} />
                         </div>
@@ -353,8 +390,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         )}
                     </div>
                   )}
-                  <div className="flex">
-                    <Label className="flex-none">
+                  <div className="mb-2 flex items-center">
+                    <Label className="mb-0 flex-none">
                       {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                     </Label>
                     <div className="flex-grow text-right">
@@ -437,16 +474,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         reminderBody,
                         template: step.template,
                       });
-                    }
+                    } else {
+                      const isNumberValid =
+                        form.formState.errors.steps &&
+                        form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo
+                          ? false
+                          : true;
 
-                    const isNumberValid =
-                      form.formState.errors.steps &&
-                      form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo
-                        ? false
-                        : true;
-
-                    if (isPhoneNumberNeeded && isNumberValid && !isEmpty) {
-                      setConfirmationDialogOpen(true);
+                      if (isPhoneNumberNeeded && isNumberValid && !isEmpty) {
+                        setConfirmationDialogOpen(true);
+                      }
                     }
                   }}
                   color="secondary">
@@ -481,15 +518,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           </ConfirmationDialogContent>
         </Dialog>
         <Dialog open={isAdditionalInputsDialogOpen} onOpenChange={setIsAdditionalInputsDialogOpen}>
-          <DialogContent useOwnActionButtons type="creation" className="sm:max-w-[600px] md:h-[570px]">
-            <div className="-m-3 h-[440px] overflow-x-hidden overflow-y-scroll sm:m-0">
+          <DialogContent useOwnActionButtons type="creation" className="sm:max-w-[610px] md:h-[570px]">
+            <div className="-m-3 h-[430px] overflow-x-hidden overflow-y-scroll sm:m-0">
               <h1 className="w-full text-xl font-semibold ">{t("how_additional_inputs_as_variables")}</h1>
-              <div className="mt-7 rounded-md bg-gray-50 p-3 sm:p-5">
+              <div className="mb-7 mt-7 rounded-md bg-gray-50 p-3 sm:p-4">
                 <p className="test-sm font-medium">{t("format")}</p>
                 <ul className="mt-2 ml-5 list-disc text-gray-900">
                   <li>{t("uppercase_for_letters")}</li>
                   <li>{t("replace_whitespaces_underscores")}</li>
-                  <li>{t("ingore_special_characters")}</li>
+                  <li>{t("ignore_special_characters")}</li>
                 </ul>
                 <div className="mt-6">
                   <p className="test-sm w-full font-medium">{t("example_1")}</p>
@@ -526,7 +563,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
               </div>
             </div>
-            <div className="mt-3 -mb-7 flex flex-row-reverse gap-x-2">
+            <div className="flex flex-row-reverse">
               <DialogClose asChild>
                 <Button color="primary" type="button">
                   {t("close")}

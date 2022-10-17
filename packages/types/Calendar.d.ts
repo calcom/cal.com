@@ -105,6 +105,13 @@ export interface RecurringEvent {
   tzid?: string | undefined;
 }
 
+export interface BookingLimit {
+  PER_DAY?: number | undefined;
+  PER_WEEK?: number | undefined;
+  PER_MONTH?: number | undefined;
+  PER_YEAR?: number | undefined;
+}
+
 // If modifying this interface, probably should update builders/calendarEvent files
 export interface CalendarEvent {
   type: string;
