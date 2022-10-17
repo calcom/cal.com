@@ -620,52 +620,60 @@ export function RecurringBookings({
     ? recurringBookings.sort((a, b) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
     : null;
 
-  return recurringBookingsSorted && listingStatus === "recurring" ? (
-    <>
-      {eventType.recurringEvent?.count && (
-        <span className="font-medium">
-          {getEveryFreqFor({
-            t,
-            recurringEvent: eventType.recurringEvent,
-            recurringCount: recurringBookings?.length ?? undefined,
-          })}
-        </span>
-      )}
-      {eventType.recurringEvent?.count &&
-        recurringBookingsSorted.slice(0, 4).map((dateStr, idx) => (
-          <div key={idx} className="mb-2">
-            {dayjs(dateStr).format("MMMM DD, YYYY")}
-            <br />
-            {dayjs(dateStr).format("LT")} - {dayjs(dateStr).add(eventType.length, "m").format("LT")}{" "}
-            <span className="text-bookinglight">
-              ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-            </span>
-          </div>
-        ))}
-      {recurringBookingsSorted.length > 4 && (
-        <Collapsible open={moreEventsVisible} onOpenChange={() => setMoreEventsVisible(!moreEventsVisible)}>
-          <CollapsibleTrigger
-            type="button"
-            className={classNames("flex w-full", moreEventsVisible ? "hidden" : "")}>
-            {t("plus_more", { count: recurringBookingsSorted.length - 4 })}
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            {eventType.recurringEvent?.count &&
-              recurringBookingsSorted.slice(4).map((dateStr, idx) => (
-                <div key={idx} className="mb-2">
-                  {dayjs(dateStr).format("MMMM DD, YYYY")}
-                  <br />
-                  {dayjs(dateStr).format("LT")} - {dayjs(dateStr).add(eventType.length, "m").format("LT")}{" "}
-                  <span className="text-bookinglight">
-                    ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-                  </span>
-                </div>
-              ))}
-          </CollapsibleContent>
-        </Collapsible>
-      )}
-    </>
-  ) : (
+  if (recurringBookingsSorted && listingStatus === "recurring") {
+    // recurring bookings should only be adjusted to the start date.
+    const utcOffset = dayjs(recurringBookingsSorted[0]).utcOffset();
+    return (
+      <>
+        {eventType.recurringEvent?.count && (
+          <span className="font-medium">
+            {getEveryFreqFor({
+              t,
+              recurringEvent: eventType.recurringEvent,
+              recurringCount: recurringBookings?.length ?? undefined,
+            })}
+          </span>
+        )}
+        {eventType.recurringEvent?.count &&
+          recurringBookingsSorted.slice(0, 4).map((dateStr, idx) => (
+            <div key={idx} className="mb-2">
+              {dayjs(dateStr).utcOffset(utcOffset).format("MMMM DD, YYYY")}
+              <br />
+              {dayjs(dateStr).utcOffset(utcOffset).format("LT")} -{" "}
+              {dayjs(dateStr).utcOffset(utcOffset).add(eventType.length, "m").format("LT")}{" "}
+              <span className="text-bookinglight">
+                ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
+              </span>
+            </div>
+          ))}
+        {recurringBookingsSorted.length > 4 && (
+          <Collapsible open={moreEventsVisible} onOpenChange={() => setMoreEventsVisible(!moreEventsVisible)}>
+            <CollapsibleTrigger
+              type="button"
+              className={classNames("flex w-full", moreEventsVisible ? "hidden" : "")}>
+              {t("plus_more", { count: recurringBookingsSorted.length - 4 })}
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              {eventType.recurringEvent?.count &&
+                recurringBookingsSorted.slice(4).map((dateStr, idx) => (
+                  <div key={idx} className="mb-2">
+                    {dayjs(dateStr).utcOffset(utcOffset).format("MMMM DD, YYYY")}
+                    <br />
+                    {dayjs(dateStr).utcOffset(utcOffset).format("LT")} -{" "}
+                    {dayjs(dateStr).utcOffset(utcOffset).add(eventType.length, "m").format("LT")}{" "}
+                    <span className="text-bookinglight">
+                      ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
+                    </span>
+                  </div>
+                ))}
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+      </>
+    );
+  }
+
+  return (
     <>
       {date.format("MMMM DD, YYYY")}
       <br />
