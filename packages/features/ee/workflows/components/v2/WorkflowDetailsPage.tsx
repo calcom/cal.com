@@ -49,7 +49,7 @@ export default function WorkflowDetailsPage(props: Props) {
     [data]
   );
 
-  const addAction = (action: WorkflowActions, sendTo?: string) => {
+  const addAction = (action: WorkflowActions, sendTo?: string, numberRequired?: boolean) => {
     const steps = form.getValues("steps");
     const id =
       steps?.length > 0
@@ -72,6 +72,7 @@ export default function WorkflowDetailsPage(props: Props) {
       reminderBody: null,
       emailSubject: null,
       template: WorkflowTemplates.CUSTOM,
+      numberRequired: numberRequired || false,
     };
     steps?.push(step);
     form.setValue("steps", steps);
