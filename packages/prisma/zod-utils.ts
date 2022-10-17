@@ -31,6 +31,7 @@ export const EventTypeMetaDataSchema = z
     blockchainId: z.number().optional(),
     giphyThankYouPage: z.string().optional(),
     apps: z.object(appDataSchemas).partial().optional(),
+    additionalNotesRequired: z.boolean().optional(),
   })
   .nullable();
 
