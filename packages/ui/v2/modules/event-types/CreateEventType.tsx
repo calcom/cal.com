@@ -84,16 +84,6 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
     // If query params change, update the form
   }, [router.isReady, router.query, setValue]);
 
-  useEffect(() => {
-    const subscription = watch((value, { name, type }) => {
-      if (name === "title" && type === "change") {
-        if (value.title) setValue("slug", slugify(value.title));
-        else setValue("slug", "");
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [watch, setValue]);
-
   const createMutation = trpc.useMutation("viewer.eventTypes.create", {
     onSuccess: async ({ eventType }) => {
       await router.replace("/event-types/" + eventType.id);
@@ -207,8 +197,10 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
               placeholder={t("quick_chat")}
               {...register("title")}
               onChange={(e) => {
-                form.setValue("slug", slugify(e?.target.value));
                 form.setValue("title", e?.target.value);
+                if (form.formState.touchedFields["slug"] === undefined) {
+                  form.setValue("slug", slugify(e?.target.value));
+                }
               }}
             />
 
@@ -219,6 +211,9 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
                 required
                 addOnLeading={<>/{pageSlug}/</>}
                 {...register("slug")}
+                onChange={(e) => {
+                  form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
+                }}
               />
             ) : (
               <TextField
