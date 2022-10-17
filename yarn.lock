@@ -6960,10 +6960,15 @@
   dependencies:
     "@types/node" "*"
 
-"@types/node@*", "@types/node@16.9.1", "@types/node@>=12.0.0", "@types/node@>=8.1.0", "@types/node@^12.12.54", "@types/node@^12.12.6", "@types/node@^14.0.10 || ^16.0.0", "@types/node@^14.14.20 || ^16.0.0":
+"@types/node@*", "@types/node@16.9.1", "@types/node@>=12.0.0", "@types/node@>=8.1.0", "@types/node@^14.0.10 || ^16.0.0", "@types/node@^14.14.20 || ^16.0.0":
   version "16.9.1"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-16.9.1.tgz#0611b37db4246c937feef529ddcc018cf8e35708"
   integrity sha512-QpLcX9ZSsq3YYUUnD3nFDY8H7wctAhQj/TFKL8Ya8v5fMm3CFXxo8zStsLAl780ltoYoo1WvKUVGBQK+1ifr7g==
+
+"@types/node@^12.12.54", "@types/node@^12.12.6":
+  version "12.20.55"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.20.55.tgz#c329cbd434c42164f846b909bd6f85b5537f6240"
+  integrity sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==
 
 "@types/nodemailer@^6.4.5":
   version "6.4.5"
@@ -7453,13 +7458,13 @@
     clsx "^1.1.1"
     next-transpile-modules "^8.0.0"
 
-"@vercel/og@^0.0.15":
-  version "0.0.15"
-  resolved "https://registry.yarnpkg.com/@vercel/og/-/og-0.0.15.tgz#af1c55b39e1f03ddf5926263371d0af920a62a7a"
-  integrity sha512-AHa25M8Hxt+83aSAY+GPFYuE1oTNGzbw1sJZBa9AsYNUW6vmXPTGW9jJmOUnkjp2dp+wyY3gtAZRa26HjSeNSw==
+"@vercel/og@^0.0.19":
+  version "0.0.19"
+  resolved "https://registry.yarnpkg.com/@vercel/og/-/og-0.0.19.tgz#f0a796244c90b14aca40ee26225f2e046ccfda08"
+  integrity sha512-1LrPUlCoe8T+aEI1fGdvJDhwewK1/wpYlQnF+E9ERgJMFCnmWH4FA+NYBkQaJqxUUeHoutIxNZTHQFT39+I+BQ==
   dependencies:
     "@resvg/resvg-wasm" "2.0.0-alpha.4"
-    satori "0.0.38"
+    satori "0.0.42"
     yoga-wasm-web "0.1.2"
 
 "@vitejs/plugin-react@^1.3.2":
@@ -22060,10 +22065,10 @@ sass-loader@^12.4.0:
     klona "^2.0.4"
     neo-async "^2.6.2"
 
-satori@0.0.38:
-  version "0.0.38"
-  resolved "https://registry.yarnpkg.com/satori/-/satori-0.0.38.tgz#9d5ff4cf7f5be1f181e495c10e80f77e78412bd9"
-  integrity sha512-o8nMTp5IiLKi3oOw80Y3LdDAReGS+UfC1StQBAwlnFNzHmY1A3JGFT+9gam6x8I6uMDFrs82FnG9R/kI9iONdg==
+satori@0.0.42:
+  version "0.0.42"
+  resolved "https://registry.yarnpkg.com/satori/-/satori-0.0.42.tgz#3cc4d7522e9264d1769a35f8da413811bb3b9752"
+  integrity sha512-ZZaNp2Ya1ACJ4Yf++e9Ccc1Rb6GcKjC9Nhcl4SQFcdM4VqCLfWHR6Iq7AdRCTcJDDuO8u/qGE2Cs+McVoqJenw==
   dependencies:
     "@shuding/opentype.js" "1.4.0-beta.0"
     css-background-parser "^0.1.0"

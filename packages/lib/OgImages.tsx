@@ -41,65 +41,73 @@ export const constructAppImage = ({ name, slug, description }: AppImageProps): s
   ].join("");
 };
 
-const Wrapper = ({ children }: { children: React.ReactNode }) => (
+const Wrapper = ({
+  children,
+  variant = "light",
+}: {
+  children: React.ReactNode;
+  variant?: "light" | "dark";
+}) => (
   <div tw="flex w-full h-full">
     <img
       tw="flex absolute left-0 top-0 w-full h-[110%]"
-      src={`${urlPrefix}/bg-grid.jpg`}
+      src={`${urlPrefix}/social-bg-${variant}.jpg`}
       alt="background"
       width="1200"
       height="300"
     />
-    <div tw="flex flex-col w-full h-full items-center justify-center">{children}</div>
+    <div tw="flex flex-col w-full h-full items-start justify-center max-w-[80%] mx-auto">{children}</div>
   </div>
 );
 
 export const Meeting = ({ name, title, users }: MeetingImageProps) => (
   <Wrapper>
-    <div tw="flex items-center justify-center font-regular" style={{ fontFamily: "cal", fontWeight: "300" }}>
-      <img src={`${urlPrefix}/cal-logo-word-dark.svg`} width="300" alt="Logo" />
-      <div tw="font-bold text-[#f9fafb] text-[100px] mx-8">/</div>
-      <div tw="flex flex-row-reverse">
-        {/* We reverse the array because we aboce we also use flex-row-reverse.
-        This makes sure the users are rendered in the correct order again, but with
-        the added benefit of the first image being on top of the second, without
-        needing to mess with z-index. */}
-        {users.reverse().map((username) => (
-          <img
-            tw="rounded-full mr-[-120px]"
-            key={username}
-            src={`https://cal.com/${username}/avatar.png`}
-            alt="Profile picture"
-            width="200"
-          />
-        ))}
+    <div tw="min-h-[500px] flex flex-col justify-start">
+      <div
+        tw="flex items-center justify-center font-regular"
+        style={{ fontFamily: "cal", fontWeight: "300" }}>
+        <img src={`${urlPrefix}/cal-logo-word-black.svg`} width="300" alt="Logo" />
+        <div tw="font-bold text-black text-[80px] mx-8">/</div>
+        <div tw="flex flex-row">
+          {users.map((username) => (
+            <img
+              tw="rounded-full mr-[-36px] border-[6px] border-black"
+              key={username}
+              src={`https://cal.com/${username}/avatar.png`}
+              alt="Profile picture"
+              width="200"
+            />
+          ))}
+        </div>
       </div>
-    </div>
-    <div tw="flex text-[72px] w-full flex-col p-8 text-[#f9fafb]">
-      <div tw="flex">
-        Meet <strong tw="flex font-bold ml-4">{name}</strong>
+      <div tw="flex text-[54px] w-full flex-col text-black mt-auto">
+        <div tw="flex">
+          Meet <strong tw="flex ml-4 font-medium">{name}</strong>
+        </div>
+        <div tw="flex">{title}</div>
       </div>
-      <div tw="flex text-[32px]">{title}</div>
     </div>
   </Wrapper>
 );
 
 export const App = ({ name, description, slug }: AppImageProps) => (
-  <Wrapper>
+  <Wrapper variant="dark">
     <img
       src={`${urlPrefix}/cal-logo-word-dark.svg`}
       width="150"
       alt="Logo"
       tw="absolute right-[40px] top-[40px]"
     />
-    <div tw="flex items-center justify-center font-regular" style={{ fontFamily: "cal", fontWeight: "300" }}>
-      <div tw="flex flex-row-reverse bg-white p-8 rounded-md">
-        <img src={`${urlPrefix}${slug}`} alt="App icon" width="75" />
+    <div tw="flex items-center justify-center">
+      <div tw="flex items-center justify-center flex-row-reverse bg-[#1E1F23] p-8 rounded-md w-[172px] h-[172px]">
+        <img src={`${urlPrefix}${slug}`} alt="App icon" width="125" />
       </div>
     </div>
-    <div tw="flex mt-8 items-center justify-center w-full flex-col p-8 text-[#f9fafb]">
-      <div tw="flex text-[72px]">{name}</div>
-      <div tw="flex text-[32px]">{description}</div>
+    <div tw="flex mt-10 text-center items-center justify-center w-[80%] flex-col text-[#f9fafb]">
+      <div tw="flex text-[56px] mb-6" style={{ fontFamily: "cal", fontWeight: "300" }}>
+        {name}
+      </div>
+      <div tw="flex text-[40px] font-[inter]">{description}</div>
     </div>
   </Wrapper>
 );
