@@ -127,7 +127,6 @@ const BookingPage = ({
           })
         );
       }
-      debugger;
       return router.push({
         pathname: "/success",
         query: {
@@ -148,7 +147,7 @@ const BookingPage = ({
   });
 
   const recurringMutation = useMutation(createRecurringBooking, {
-    onSuccess: async (responseData = []) => {
+    onSuccess: async (responseData) => {
       const { attendees = [], id, recurringEventId } = responseData[0] || {};
       const location = (function humanReadableLocation(location) {
         if (!location) {

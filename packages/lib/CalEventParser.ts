@@ -80,8 +80,8 @@ export const getAppsStatus = (calEvent: CalendarEvent) => {
   return `\n${calEvent.attendees[0].language.translate("apps_status")}
       \n${calEvent.appsStatus.map(
         (app) =>
-          `\t${app.appName} ${app.success >= 1 && `✅ ${app.success > 1 ? `x ${app.success}` : ""}`} ${
-            app.failures >= 1 && `❌ ${app.failures > 1 ? `x ${app.failures}` : ""}`
+          `\t${app.appName} ${app.success >= 1 && `✅ ${app.success > 1 ? `(x${app.success})` : ""}`} ${
+            app.failures >= 1 && `❌ ${app.failures > 1 ? `(x${app.failures})` : ""}`
           }`
       )}
     `;

@@ -254,7 +254,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     eventTypeId,
     hasHashedBookingLink,
     language,
-    appsStatus,
+    appsStatus: reqAppsStatus,
     ...reqBody
   } = extendedBookingCreateBody.parse(req.body);
 
@@ -731,10 +731,10 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       failures: !app.success ? 1 : 0,
     }));
 
-    if (appsStatus !== undefined) {
+    if (reqAppsStatus !== undefined) {
       // Other status exist, so this is the last booking of a series,
       // proceeding to prepare the info for the event
-      const calcAppsStatus = appsStatus.concat(resultStatus).reduce((prev, curr) => {
+      const calcAppsStatus = reqAppsStatus.concat(resultStatus).reduce((prev, curr) => {
         if (prev[curr.type]) {
           prev[curr.type].success += curr.success;
         } else {

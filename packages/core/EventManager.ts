@@ -446,7 +446,6 @@ export default class EventManager {
           .filter((cred) => cred.type.includes("other_calendar"))
           .map(async (cred) => {
             const calendarReference = booking.references.find((ref) => ref.type === cred.type);
-            debugger;
             if (!calendarReference)
               return {
                 appName: cred.appName,
