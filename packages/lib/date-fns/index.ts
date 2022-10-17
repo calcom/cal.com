@@ -11,17 +11,16 @@ export const daysInMonth = (date: Date | Dayjs) =>
  * Expects timeFormat to be either 12 or 24, if null or undefined
  * is passed in, we always default back to 24 hour notation.
  */
-export const formatTime = (date: string | Date | Dayjs, timeFormat?: number | null) =>
-  dayjs(date).format(timeFormat === 12 ? "h:mma" : "HH:mm");
-
-export const formatTimeInTimezone = (
+export const formatTime = (
   date: string | Date | Dayjs,
-  timezone: string,
-  timeFormat?: number | null
-) => formatTime(convertDateToTimezone(date, timezone), timeFormat);
-
-export const convertDateToTimezone = (date: string | Date | Dayjs, timezone: string) =>
-  dayjs(date).tz(timezone);
+  timeFormat?: number | null,
+  timeZone?: string | null
+) =>
+  timeZone
+    ? dayjs(date)
+        .tz(timeZone)
+        .format(timeFormat === 12 ? "h:mma" : "HH:mm")
+    : dayjs(date).format(timeFormat === 12 ? "h:mma" : "HH:mm");
 
 /**
  * Sorts two timezones by their offset from GMT.
@@ -49,7 +48,7 @@ export const sortByTimezone = (timezoneA: string, timezoneB: string) => {
  * Verifies given time is a day before in timezoneB.
  */
 export const isPreviousDayInTimezone = (time: string, timezoneA: string, timezoneB: string) => {
-  const timeInTimezoneB = formatTimeInTimezone(time, timezoneB);
+  const timeInTimezoneB = formatTime(time, 24, timezoneB);
   if (time === timeInTimezoneB) return false;
 
   // Eg time = 12:00 and timeInTimezoneB = 23:00
@@ -63,7 +62,7 @@ export const isPreviousDayInTimezone = (time: string, timezoneA: string, timezon
  * Verifies given time is a day after in timezoneB.
  */
 export const isNextDayInTimezone = (time: string, timezoneA: string, timezoneB: string) => {
-  const timeInTimezoneB = formatTimeInTimezone(time, timezoneB);
+  const timeInTimezoneB = formatTime(time, 24, timezoneB);
   if (time === timeInTimezoneB) return false;
 
   // Eg time = 12:00 and timeInTimezoneB = 09:00

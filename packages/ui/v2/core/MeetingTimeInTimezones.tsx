@@ -1,13 +1,11 @@
 import * as Popover from "@radix-ui/react-popover";
 
-import dayjs from "@calcom/dayjs";
 import {
-  formatTimeInTimezone,
+  formatTime,
   isNextDayInTimezone,
   isPreviousDayInTimezone,
   sortByTimezone,
 } from "@calcom/lib/date-fns";
-import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 
 import { Icon } from "../../Icon";
 import { Attendee } from ".prisma/client";
@@ -40,8 +38,8 @@ const MeetingTimeInTimezones = ({
       const isPreviousDay = isPreviousDayInTimezone(startTime, userTimezone, timezone);
       const isNextDay = isNextDayInTimezone(startTime, userTimezone, timezone);
       return {
-        startTime: formatTimeInTimezone(startTime, timezone, timeFormat),
-        endTime: formatTimeInTimezone(endTime, timezone, timeFormat),
+        startTime: formatTime(startTime, timeFormat, timezone),
+        endTime: formatTime(endTime, timeFormat, timezone),
         timezone,
         isPreviousDay,
         isNextDay,

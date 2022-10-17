@@ -16,6 +16,7 @@ import classNames from "@calcom/lib/classNames";
 import { JOIN_SLACK, ROADMAP, DESKTOP_APP_LINK, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import isCalcom from "@calcom/lib/isCalcom";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
@@ -35,7 +36,7 @@ import pkg from "../../../../apps/web/package.json";
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
-// TODO: re-introduce in 2.1 import Tips from "../modules/tips/Tips";
+import Tips from "../modules/tips/Tips";
 import HeadSeo from "./head-seo";
 import { SkeletonText } from "./skeleton";
 
@@ -115,7 +116,7 @@ export function ShellSubHeading(props: {
         </h2>
         {props.subtitle && <p className="text-sm text-neutral-500 ltr:mr-4">{props.subtitle}</p>}
       </div>
-      {props.actions && <div className="flex-shrink-0">{props.actions}</div>}
+      {props.actions && <div className="mt-2 flex-shrink-0 sm:mt-0">{props.actions}</div>}
     </header>
   );
 }
@@ -527,7 +528,7 @@ function useShouldDisplayNavigationItem(item: NavigationItemType) {
   const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing-forms" }], {
     enabled: status === "authenticated" && requiredCredentialNavigationItems.includes(item.name),
   });
-  return !requiredCredentialNavigationItems.includes(item.name) || !!routingForms;
+  return !requiredCredentialNavigationItems.includes(item.name) || routingForms?.isInstalled;
 }
 
 const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, router }) => {
@@ -656,7 +657,7 @@ const MobileNavigationMoreItem: React.FC<{
         <a className="flex items-center justify-between p-5 hover:bg-gray-100">
           <span className="flex items-center font-semibold text-gray-700 ">
             {item.icon && (
-              <item.icon className="h-5 w-5 flex-shrink-0  ltr:mr-3 rtl:ml-3" aria-hidden="true" />
+              <item.icon className="h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />
             )}
             {isLocaleReady ? t(item.name) : <SkeletonText />}
           </span>
@@ -711,13 +712,13 @@ function SideBar() {
             <button
               color="minimal"
               onClick={() => window.history.back()}
-              className="desktop-only group flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
+              className="desktop-only group flex text-sm font-medium text-neutral-500 hover:text-neutral-900">
               <Icon.FiArrowLeft className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
             </button>
             <button
               color="minimal"
               onClick={() => window.history.forward()}
-              className="desktop-only group flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
+              className="desktop-only group flex text-sm font-medium text-neutral-500 hover:text-neutral-900">
               <Icon.FiArrowRight className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
             </button>
             <KBarTrigger />
@@ -736,11 +737,9 @@ function SideBar() {
         <Navigation />
       </div>
 
-      {/* TODO @Peer_Rich: reintroduce in 2.1
-      <Tips />
-      */}
+      {isCalcom && <Tips />}
       {/* Save it for next preview version
-       <div className="mb-4 hidden lg:block">
+       <div className="hidden mb-4 lg:block">
         <UserV2OptInBanner />
       </div> */}
 
@@ -782,7 +781,7 @@ export function ShellMain(props: LayoutProps) {
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className="w-full ltr:mr-4 rtl:ml-4 sm:block">
               {props.heading && (
-                <h1 className="font-cal  mb-1 text-xl font-bold tracking-wide text-black">
+                <h1 className="font-cal mb-1 text-xl font-bold tracking-wide text-black">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
               )}
@@ -828,7 +827,7 @@ function MainContainer({
       {/* The following is used for settings navigation on medium and smaller screens */}
       <div
         className={classNames(
-          "absolute z-40 m-0 h-screen w-screen bg-black opacity-50",
+          "overflow-none fixed z-40 m-0 h-screen w-screen overscroll-none bg-black opacity-50",
           sideContainerOpen ? "" : "hidden"
         )}
         onClick={() => {
