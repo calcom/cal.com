@@ -1278,6 +1278,7 @@
   "limit_booking_frequency_description":"Limit how many times this event can be booked",
   "add_limit":"Add Limit",
   "team_name_required": "Team name required",
+  "show_attendees": "Share attendee information between guests",
   "how_additional_inputs_as_variables": "How to use Additional Inputs as Variables",
   "format": "Format",
   "uppercase_for_letters": "Use uppercase for all letters",
