@@ -584,48 +584,51 @@ const BookingPage = ({
                     )}
                   </div>
                 </div>
-                <div className="mb-4">
-                  <>
-                    <span className="block text-sm font-medium text-gray-700 dark:text-white">
-                      {t("location")}
-                    </span>
-                    {rescheduleUid ? (
+                <>
+                  {rescheduleUid ? (
+                    <div className="mb-4">
+                      <span className="block text-sm font-medium text-gray-700 dark:text-white">
+                        {t("location")}
+                      </span>
                       <p className="mt-1 text-sm text-gray-500">
                         {getHumanReadableLocationValue(booking?.location, t)}
                       </p>
-                    ) : (
-                      locations.length > 1 && (
-                        <>
-                          {locations.map((location, i) => {
-                            const locationString = locationKeyToString(location);
-                            if (!selectedLocationType) {
-                              bookingForm.setValue("locationType", locations[0].type);
-                            }
-                            if (typeof locationString !== "string") {
-                              // It's possible that location app got uninstalled
-                              return null;
-                            }
-                            return (
-                              <label key={i} className="block">
-                                <input
-                                  type="radio"
-                                  disabled={!!disableLocations}
-                                  className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
-                                  {...bookingForm.register("locationType", { required: true })}
-                                  value={location.type}
-                                  defaultChecked={i === 0}
-                                />
-                                <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-white">
-                                  {locationKeyToString(location)}
-                                </span>
-                              </label>
-                            );
-                          })}
-                        </>
-                      )
-                    )}
-                  </>
-                </div>
+                    </div>
+                  ) : (
+                    locations.length > 1 && (
+                      <div className="mb-4">
+                        <span className="block text-sm font-medium text-gray-700 dark:text-white">
+                          {t("location")}
+                        </span>
+                        {locations.map((location, i) => {
+                          const locationString = locationKeyToString(location);
+                          if (!selectedLocationType) {
+                            bookingForm.setValue("locationType", locations[0].type);
+                          }
+                          if (typeof locationString !== "string") {
+                            // It's possible that location app got uninstalled
+                            return null;
+                          }
+                          return (
+                            <label key={i} className="block">
+                              <input
+                                type="radio"
+                                disabled={!!disableLocations}
+                                className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
+                                {...bookingForm.register("locationType", { required: true })}
+                                value={location.type}
+                                defaultChecked={i === 0}
+                              />
+                              <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-white">
+                                {locationKeyToString(location)}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )
+                  )}
+                </>
                 {/* TODO: Change name and id ="phone" to something generic */}
                 {AttendeeInput && (
                   <div className="mb-4">
