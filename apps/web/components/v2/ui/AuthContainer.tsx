@@ -21,7 +21,7 @@ export default function AuthContainer(props: React.PropsWithChildren<Props>) {
       <HeadSeo title={props.title} description={props.description} />
       {props.showLogo && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img className="mb-auto h-4" src={LOGO} alt="Cal.com Logo" />
+        <img className="mx-auto mb-auto h-4 w-auto" src="/pesto-logo-black.png" alt="Pesto Logo" />
       )}
       <div className={classNames(props.showLogo ? "text-center" : "", "sm:mx-auto sm:w-full sm:max-w-md")}>
         {props.heading && <h2 className="font-cal text-center text-3xl text-neutral-900">{props.heading}</h2>}

@@ -114,7 +114,7 @@ export default function Verify() {
             ? "Your payment failed"
             : sessionId
             ? "Payment successful!"
-            : "Verify your email" + " | Cal.com"}
+            : "Verify your email" + " | Pesto"}
         </title>
       </Head>
       <div className="flex min-h-screen flex-col items-center justify-center px-6">

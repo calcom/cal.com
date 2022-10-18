@@ -436,7 +436,7 @@ const BookingPage = ({
                 eventTypeTitle: eventType.title,
                 profileName: profile.name,
               })}{" "}
-          | Cal.com
+          | Pesto
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>

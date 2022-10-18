@@ -88,7 +88,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
       data-testid="onboarding"
       key={router.asPath}>
       <Head>
-        <title>Cal.com - {t("getting_started")}</title>
+        <title>Pesto - {t("getting_started")}</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
