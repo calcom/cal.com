@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import React, { useEffect, useState } from "react";
 import { components } from "react-select";
-import type { SingleValueProps, OptionProps } from "react-select";
+import type { SingleValueProps, OptionProps, SingleValue, ValueType, ActionMeta } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { DestinationCalendar } from "@calcom/prisma/client";
@@ -19,19 +19,17 @@ interface Props {
 }
 
 interface CustomSingleValueProps extends SingleValueProps {
-  data: {
-    label: string;
-    value: string;
-    subtitle: string;
-  };
+  data: Option;
+}
+
+interface Option {
+  label: string;
+  value: string;
+  subtitle: string;
 }
 
 interface CustomOptionProps extends OptionProps {
-  data: {
-    label: string;
-    value: string;
-    subtitle: string;
-  };
+  data: Option;
 }
 
 const DestinationCalendarSelector = ({
@@ -67,7 +65,7 @@ const DestinationCalendarSelector = ({
     return {};
   };
 
-  const SingleValue = (props: CustomSingleValueProps) => {
+  const SingleValueComponent = (props: CustomSingleValueProps) => {
     const { label, subtitle } = props.data;
     return (
       <components.SingleValue {...props} className="flex space-x-1">
@@ -76,7 +74,7 @@ const DestinationCalendarSelector = ({
     );
   };
 
-  const Option = (props: CustomOptionProps) => {
+  const OptionComponent = (props: CustomOptionProps) => {
     const { label } = props.data;
     return (
       <components.Option {...props}>
@@ -166,14 +164,14 @@ const DestinationCalendarSelector = ({
         className={classNames(
           "mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 text-sm"
         )}
-        onChange={(option) => {
-          setSelectedOption(option);
-          if (!option) {
+        onChange={(newValue: ValueType) => {
+          setSelectedOption(newValue);
+          if (!newValue) {
             return;
           }
 
           /* Split only the first `:`, since Apple uses the full URL as externalId */
-          const [integration, externalId] = option.value.split(/:(.+)/);
+          const [integration, externalId] = newValue.value.split(/:(.+)/);
 
           onChange({
             integration,
@@ -182,7 +180,7 @@ const DestinationCalendarSelector = ({
         }}
         isLoading={isLoading}
         value={selectedOption}
-        components={{ SingleValue, Option }}
+        components={{ SingleValueComponent, OptionComponent }}
       />
     </div>
   );
