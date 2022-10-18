@@ -474,18 +474,14 @@ const NavigationItem: React.FC<{
 
   if (!shouldDisplayNavigationItem) return null;
 
-  // Total HACK: Since adding process.env was failing
-  let mentoUrl = "https://coaching.mento.co";
-  if (window?.location?.origin) {
-    if (window?.location?.origin === "http://localhost:3000") {
-      mentoUrl = "http://localhost:3002";
-    } else if (window?.location?.origin === "https://cal.staging.mento.co")
-      mentoUrl = "https://coaching.mento.co";
-  }
-
   return (
     <Fragment>
-      <Link href={item.href === "MENTO_URL" ? mentoUrl : item.href}>
+      <Link
+        href={
+          item.href === "MENTO_URL"
+            ? process?.env?.NEXT_PUBLIC_MENTO_COACH_URL || "https://coaching.mento.co"
+            : item.href
+        }>
         <a
           aria-label={t(item.name)}
           className={classNames(
