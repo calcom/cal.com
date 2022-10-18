@@ -1,7 +1,12 @@
 import merge from "lodash/merge";
 import { NextSeo, NextSeoProps } from "next-seo";
 
-import { constructAppImage, constructMeetingImage } from "@calcom/lib/OgImages";
+import {
+  AppImageProps,
+  constructAppImage,
+  constructMeetingImage,
+  MeetingImageProps,
+} from "@calcom/lib/OgImages";
 
 import { getSeoImage, seoConfig } from "@lib/config/next-seo.config";
 import { getBrowserInfo } from "@lib/core/browser/browser.utils";
@@ -10,12 +15,11 @@ export type HeadSeoProps = {
   title: string;
   description: string;
   siteName?: string;
-  name?: string;
   url?: string;
-  usernames?: string[];
   canonical?: string;
   nextSeoProps?: NextSeoProps;
-  app?: { name: string; slug: string; description: string };
+  app?: AppImageProps;
+  meeting?: MeetingImageProps;
 };
 
 /**
@@ -69,16 +73,7 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
   const defaultUrl = getBrowserInfo()?.url;
   const image = getSeoImage("default");
 
-  const {
-    title,
-    description,
-    name = null,
-    usernames = null,
-    siteName,
-    canonical = defaultUrl,
-    nextSeoProps = {},
-    app,
-  } = props;
+  const { title, description, siteName, canonical = defaultUrl, nextSeoProps = {}, app, meeting } = props;
 
   const truncatedDescription = description.length > 24 ? description.substring(0, 23) + "..." : description;
   const longerTruncatedDescription =
@@ -92,8 +87,8 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
     siteName,
   });
 
-  if (name && usernames) {
-    const pageImage = getSeoImage("ogImage") + constructMeetingImage({ title, name, users: usernames });
+  if (meeting) {
+    const pageImage = getSeoImage("ogImage") + constructMeetingImage(meeting);
     seoObject = buildSeoMeta({
       title: pageTitle,
       description: truncatedDescription,

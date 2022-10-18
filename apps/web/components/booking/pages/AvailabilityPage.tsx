@@ -18,7 +18,7 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { CAL_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import notEmpty from "@calcom/lib/notEmpty";
@@ -376,7 +376,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   );
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
-  const slug = rawSlug.join("/");
 
   // Define conditional gates here
   const gates = [
@@ -391,8 +390,16 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
-        name={profile.name || undefined}
-        usernames={[slug] || undefined}
+        meeting={{
+          title: eventType.title,
+          meeting: { name: `${profile.name}`, image: profile.image },
+          users: [
+            ...(eventType.users || []).map((user) => ({
+              name: `${user.name}`,
+              username: `${user.username}`,
+            })),
+          ],
+        }}
         nextSeoProps={{
           nofollow: eventType.hidden,
           noindex: eventType.hidden,

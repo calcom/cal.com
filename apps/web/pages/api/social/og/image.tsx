@@ -22,9 +22,11 @@ export const config = {
 
 const meetingSchema = z.object({
   imageType: z.literal("meeting"),
-  name: z.string(),
   title: z.string(),
-  users: z.string().array(),
+  names: z.string().array(),
+  usernames: z.string().array(),
+  meetingProfileName: z.string(),
+  meetingImage: z.string().nullable().optional(),
 });
 
 const appSchema = z.object({
@@ -53,13 +55,24 @@ export default async function handler(req: NextApiRequest) {
 
   switch (imageType) {
     case "meeting": {
-      const { name, users, title } = meetingSchema.parse({
-        name: searchParams.get("name"),
-        users: searchParams.getAll("users"),
+      const { names, usernames, title, meetingProfileName, meetingImage } = meetingSchema.parse({
+        names: searchParams.getAll("names"),
+        usernames: searchParams.getAll("usernames"),
         title: searchParams.get("title"),
+        meetingProfileName: searchParams.get("meetingProfileName"),
+        meetingImage: searchParams.get("meetingImage"),
         imageType,
       });
-      return new ImageResponse(<Meeting name={name} title={title} users={users} />, ogConfig);
+      return new ImageResponse(
+        (
+          <Meeting
+            title={title}
+            meeting={{ name: meetingProfileName, image: meetingImage }}
+            users={names.map((name, index) => ({ name, username: usernames[index] }))}
+          />
+        ),
+        ogConfig
+      );
     }
     case "app": {
       const { name, description, slug } = appSchema.parse({
