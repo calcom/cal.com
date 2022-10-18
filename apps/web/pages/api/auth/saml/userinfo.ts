@@ -1,58 +1,34 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiRequest } from "next";
 import z from "zod";
 
 import jackson from "@calcom/features/ee/sso/lib/jackson";
-
-import { HttpError } from "@lib/core/http/error";
+import { HttpError } from "@calcom/lib/http-error";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
 const extractAuthToken = (req: NextApiRequest) => {
   const authHeader = req.headers["authorization"];
   const parts = (authHeader || "").split(" ");
+  if (parts.length > 1) return parts[1];
 
-  if (parts.length > 1) {
-    return parts[1];
-  }
+  // check for query param
+  let arr: string[] = [];
+  const { access_token } = requestQuery.parse(req.query);
+  arr = arr.concat(access_token);
+  if (arr[0].length > 0) return arr[0];
 
-  return null;
+  throw new HttpError({ statusCode: 401, message: "Unauthorized" });
 };
 
 const requestQuery = z.object({
   access_token: z.string(),
 });
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function getHandler(req: NextApiRequest) {
   const { oauthController } = await jackson();
-
-  if (req.method !== "GET") {
-    return res.status(400).json({ message: "Method not allowed" });
-  }
-
-  let token: string | null = extractAuthToken(req);
-
-  // check for query param
-  if (!token) {
-    let arr: string[] = [];
-
-    const { access_token } = requestQuery.parse(req.query);
-
-    arr = arr.concat(access_token);
-
-    if (arr[0].length > 0) {
-      token = arr[0];
-    }
-  }
-
-  if (!token) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-
-  try {
-    const profile = await oauthController.userInfo(token);
-
-    return res.json(profile);
-  } catch (err) {
-    const { message, statusCode = 500 } = err as HttpError;
-
-    return res.status(statusCode).json({ message });
-  }
+  const token = extractAuthToken(req);
+  return await oauthController.userInfo(token);
 }
+
+export default defaultHandler({
+  GET: Promise.resolve({ default: defaultResponder(getHandler) }),
+});
