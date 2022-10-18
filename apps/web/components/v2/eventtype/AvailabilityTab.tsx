@@ -66,11 +66,17 @@ const format = (date: Date) =>
     new Date(dayjs.utc(date).format("YYYY-MM-DDTHH:mm:ss"))
   );
 
-export const AvailabilityTab = ({ eventTypeTitle }: { eventTypeTitle: string }) => {
+export const AvailabilityTab = ({
+  eventTypeTitle,
+  eventTypeId,
+}: {
+  eventTypeTitle: string;
+  eventTypeId: number;
+}) => {
   const { t, i18n } = useLocale();
   const { watch } = useFormContext<FormValues>();
   const router = useRouter();
-  const utils = trpc.useContext();
+  // const utils = trpc.useContext();
 
   const scheduleId = watch("schedule");
   const { isLoading, data: schedule } = trpc.useQuery(["viewer.availability.schedule", { scheduleId }]);
@@ -79,17 +85,17 @@ export const AvailabilityTab = ({ eventTypeTitle }: { eventTypeTitle: string }) 
     onSuccess: async ({ schedule }) => {
       await router.push("/availability/" + schedule.id);
       showToast(t("schedule_created_successfully", { scheduleName: schedule.name }), "success");
-      utils.setQueryData(["viewer.availability.list"], (data) => {
-        const newSchedule = { ...schedule, isDefault: false, availability: [] };
-        if (!data)
-          return {
-            schedules: [newSchedule],
-          };
-        return {
-          ...data,
-          schedules: [...data.schedules, newSchedule],
-        };
-      });
+      // utils.setQueryData(["viewer.availability.list"], (data) => {
+      //   const newSchedule = { ...schedule, isDefault: false, availability: [] };
+      //   if (!data)
+      //     return {
+      //       schedules: [newSchedule],
+      //     };
+      //   return {
+      //     ...data,
+      //     schedules: [...data.schedules, newSchedule],
+      //   };
+      // });
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -111,7 +117,10 @@ export const AvailabilityTab = ({ eventTypeTitle }: { eventTypeTitle: string }) 
     if (!schedule) showToast(t("error_editing_availability"), "error");
 
     if (schedule?.isDefault) {
-      createScheduleMutation.mutate({ name: t("new_event_type_availability", { eventTypeTitle }) });
+      createScheduleMutation.mutate({
+        name: t("new_event_type_availability", { eventTypeTitle }),
+        eventTypeId,
+      });
     } else {
       router.push(`/availability/${schedule?.schedule.id}`);
     }
@@ -175,7 +184,6 @@ export const AvailabilityTab = ({ eventTypeTitle }: { eventTypeTitle: string }) 
             {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
           </span>
           <Button
-            // href={`/availability/${schedule?.schedule.id}`}
             onClick={onEditAvailability}
             color="minimal"
             EndIcon={Icon.FiExternalLink}
