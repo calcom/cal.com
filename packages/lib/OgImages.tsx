@@ -48,6 +48,10 @@ export const constructMeetingImage = ({ title, users, meeting }: MeetingImagePro
   ].join("");
 };
 
+/**
+ * Test url:
+ * http://localhost:3000/api/social/og/image?type=app&name=Huddle01&slug=/api/app-store/huddle01video/icon.svg&description=Huddle01%20is%20a%20new%20video%20conferencing%20software%20native%20to%20Web3%20and%20is%20comparable%20to%20a%20decentralized%20version%20of%20Zoom.%20It%20supports%20conversations%20for...
+ */
 export const constructAppImage = ({ name, slug, description }: AppImageProps): string => {
   return [
     `?type=app`,
@@ -155,13 +159,13 @@ export const App = ({ name, description, slug }: AppImageProps) => (
       alt="Logo"
       tw="absolute right-[40px] top-[40px]"
     />
-    <div tw="flex items-center justify-center">
-      <div tw="flex items-center justify-center flex-row-reverse bg-[#1E1F23] p-8 rounded-md w-[172px] h-[172px]">
+    <div tw="flex items-center justify-center w-full">
+      <div tw="flex items-center justify-center flex-row-reverse bg-[rgba(255,255,255,0.7)] p-8 rounded-lg w-[172px] h-[172px]">
         <img src={`${urlPrefix}${slug}`} alt="App icon" width="125" />
       </div>
     </div>
-    <div tw="flex mt-10 text-center items-center justify-center w-[80%] flex-col text-[#f9fafb]">
-      <div tw="flex text-[56px] mb-6" style={{ fontFamily: "cal", fontWeight: "300" }}>
+    <div tw="flex mt-7 text-center items-center justify-center w-full flex-col text-[#f9fafb]">
+      <div tw="flex text-[56px] mb-7" style={{ fontFamily: "cal", fontWeight: "300" }}>
         {name}
       </div>
       <div tw="flex text-[40px] font-[inter]">{description}</div>
