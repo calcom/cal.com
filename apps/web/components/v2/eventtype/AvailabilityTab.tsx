@@ -76,7 +76,6 @@ export const AvailabilityTab = ({
   const { t, i18n } = useLocale();
   const { watch } = useFormContext<FormValues>();
   const router = useRouter();
-  // const utils = trpc.useContext();
 
   const scheduleId = watch("schedule");
   const { isLoading, data: schedule } = trpc.useQuery(["viewer.availability.schedule", { scheduleId }]);
@@ -85,17 +84,6 @@ export const AvailabilityTab = ({
     onSuccess: async ({ schedule }) => {
       await router.push("/availability/" + schedule.id);
       showToast(t("schedule_created_successfully", { scheduleName: schedule.name }), "success");
-      // utils.setQueryData(["viewer.availability.list"], (data) => {
-      //   const newSchedule = { ...schedule, isDefault: false, availability: [] };
-      //   if (!data)
-      //     return {
-      //       schedules: [newSchedule],
-      //     };
-      //   return {
-      //     ...data,
-      //     schedules: [...data.schedules, newSchedule],
-      //   };
-      // });
     },
     onError: (err) => {
       if (err instanceof HttpError) {
