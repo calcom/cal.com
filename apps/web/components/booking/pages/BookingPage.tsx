@@ -115,14 +115,14 @@ const BookingPage = ({
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
-      const { id, attendees, paymentUid } = responseData;
+      const { id, paymentUid } = responseData;
       if (paymentUid) {
         return await router.push(
           createPaymentLink({
             paymentUid,
             date,
-            name: attendees[0].name,
-            email: attendees[0].email,
+            name: bookingForm.getValues("name"),
+            email: bookingForm.getValues("email"),
             absolute: false,
           })
         );
@@ -136,8 +136,8 @@ const BookingPage = ({
           eventSlug: eventType.slug,
           username: profile.slug,
           reschedule: !!rescheduleUid,
-          name: attendees[0].name,
-          email: attendees[0].email,
+          name: bookingForm.getValues("name"),
+          email: bookingForm.getValues("email"),
           location: responseData.location,
           eventName: profile.eventName || "",
           bookingId: id,
@@ -523,7 +523,15 @@ const BookingPage = ({
                 )}
                 {!!eventType.seatsPerTimeSlot && (
                   <div className="text-bookinghighlight flex items-start text-sm">
-                    <Icon.FiUser className="mr-[10px] ml-[2px] mt-[2px] inline-block h-4 w-4" />
+                    <Icon.FiUser
+                      className={`mr-[10px] ml-[2px] mt-[2px] inline-block h-4 w-4 ${
+                        booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
+                          ? "text-rose-600"
+                          : booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
+                          ? "text-yellow-500"
+                          : "text-bookinghighlight"
+                      }`}
+                    />
                     <p
                       className={`${
                         booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
