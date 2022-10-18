@@ -9,8 +9,6 @@ declare module "react" {
   }
 }
 
-const urlPrefix = process.env.NEXT_PUBLIC_WEBSITE_URL || process.env.NEXT_PUBLIC_WEBAPP_URL;
-
 export interface MeetingImageProps {
   title: string;
   meeting: { name: string; image?: string | null };
@@ -72,7 +70,7 @@ const Wrapper = ({
   <div tw="flex w-full h-full">
     <img
       tw="flex absolute left-0 top-0 w-full h-[110%]"
-      src={`${urlPrefix}/social-bg-${variant}.jpg`}
+      src={`${CAL_URL}/social-bg-${variant}.jpg`}
       alt="background"
       width="1200"
       height="300"
@@ -107,7 +105,7 @@ export const Meeting = ({ title, users, meeting }: MeetingImageProps) => {
     <Wrapper>
       <div tw="min-h-[470px] flex flex-col justify-start">
         <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: "300" }}>
-          <img src={`${urlPrefix}/cal-logo-word-black.svg`} width="350" alt="Logo" />
+          <img src={`${CAL_URL}/cal-logo-word-black.svg`} width="350" alt="Logo" />
           {avatars.length > 0 && <div tw="font-bold text-black text-[92px] mx-8 bottom-2">/</div>}
           <div tw="flex flex-row">
             {avatars.slice(0, 3).map((avatar) => (
@@ -154,14 +152,14 @@ export const Meeting = ({ title, users, meeting }: MeetingImageProps) => {
 export const App = ({ name, description, slug }: AppImageProps) => (
   <Wrapper variant="dark">
     <img
-      src={`${urlPrefix}/cal-logo-word-dark.svg`}
+      src={`${CAL_URL}/cal-logo-word-dark.svg`}
       width="150"
       alt="Logo"
       tw="absolute right-[40px] top-[40px]"
     />
     <div tw="flex items-center justify-center w-full">
       <div tw="flex items-center justify-center flex-row-reverse bg-[rgba(255,255,255,0.7)] p-8 rounded-lg w-[172px] h-[172px]">
-        <img src={`${urlPrefix}${slug}`} alt="App icon" width="125" />
+        <img src={`${CAL_URL}${slug}`} alt="App icon" width="125" />
       </div>
     </div>
     <div tw="flex mt-7 text-center items-center justify-center w-full flex-col text-[#f9fafb]">
