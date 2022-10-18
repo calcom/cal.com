@@ -1,4 +1,4 @@
-import { PrismaClient, UserPlan, User } from "@prisma/client";
+import { PrismaClient, UserPlan } from "@prisma/client";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
@@ -14,7 +14,7 @@ export const samlProductID = "Cal.com";
 export const samlAudience = "https://saml.cal.com";
 export const samlPath = "/api/auth/saml/callback";
 
-export const hostedCal = HOSTED_CAL_FEATURES;
+export const hostedCal = Boolean(HOSTED_CAL_FEATURES);
 export const tenantPrefix = "team-";
 
 const samlAdmins = (process.env.SAML_ADMINS || "").split(",");
