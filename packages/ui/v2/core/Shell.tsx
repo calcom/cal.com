@@ -126,14 +126,16 @@ const Layout = (props: LayoutProps) => {
 
   return (
     <>
-      <HeadSeo
-        title={pageTitle ?? "Cal.com"}
-        description={props.subtitle ? props.subtitle?.toString() : ""}
-        nextSeoProps={{
-          nofollow: true,
-          noindex: true,
-        }}
-      />
+      {!props.withoutSeo && (
+        <HeadSeo
+          title={pageTitle ?? "Cal.com"}
+          description={props.subtitle ? props.subtitle?.toString() : ""}
+          nextSeoProps={{
+            nofollow: true,
+            noindex: true,
+          }}
+        />
+      )}
       <div>
         <Toaster position="bottom-right" />
       </div>
@@ -173,6 +175,8 @@ type LayoutProps = {
   flexChildrenContainer?: boolean;
   isPublic?: boolean;
   withoutMain?: boolean;
+  // Gives you the option to skip HeadSEO and render your own.
+  withoutSeo?: boolean;
 };
 
 const CustomBrandingContainer = () => {
