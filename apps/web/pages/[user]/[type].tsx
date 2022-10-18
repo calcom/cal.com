@@ -1,4 +1,3 @@
-import { UserPlan } from "@prisma/client";
 import { GetStaticPaths, GetStaticPropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
@@ -9,6 +8,7 @@ import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defa
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import prisma from "@calcom/prisma";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -148,7 +148,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
   //TODO: Use zodSchema to verify it instead of using Type Assertion
   const locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
   const eventTypeObject = Object.assign({}, eventType, {
-    metadata: (eventType.metadata || {}) as JSONObject,
+    metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
     locations: privacyFilteredLocations(locations),
     users: eventType.users.map((user) => ({

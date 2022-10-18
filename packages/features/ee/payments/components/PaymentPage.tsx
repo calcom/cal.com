@@ -9,9 +9,11 @@ import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBSITE_URL } from "@calcom/lib/constants";
+import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
+import { localStorage } from "@calcom/lib/webstorage";
 import { Icon } from "@calcom/ui/Icon";
 
 import type { PaymentPageProps } from "../pages/payment";
@@ -21,11 +23,15 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t } = useLocale();
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const [date, setDate] = useState(dayjs.utc(props.booking.startTime));
+  const [timezone, setTimezone] = useState<string | null>(null);
   useTheme(props.profile.theme);
   const isEmbed = useIsEmbed();
+  const stripeAppData = getStripeAppData(props.eventType);
   useEffect(() => {
     let embedIframeWidth = 0;
-    setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
+    const _timezone = localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess();
+    setTimezone(_timezone);
+    setDate(date.tz(_timezone));
     setIs24h(!!getIs24hClockFromLocalStorage());
     if (isEmbed) {
       requestAnimationFrame(function fixStripeIframe() {
@@ -95,9 +101,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         {date.format("dddd, DD MMMM YYYY")}
                         <br />
                         {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
-                        <span className="text-gray-500">
-                          ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-                        </span>
+                        <span className="text-gray-500">({timezone})</span>
                       </div>
                       {props.booking.location && (
                         <>
@@ -111,9 +115,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       <div className="col-span-2 mb-6">
                         <IntlProvider locale="en">
                           <FormattedNumber
-                            value={props.eventType.price / 100.0}
+                            value={stripeAppData.price / 100.0}
                             style="currency"
-                            currency={props.eventType.currency.toUpperCase()}
+                            currency={stripeAppData.currency.toUpperCase()}
                           />
                         </IntlProvider>
                       </div>

@@ -17,6 +17,6 @@ jobs:
     steps:
       - uses: actions/add-to-project@v0.1.0
         with:
-          project-url: https://github.com/orgs/calcom/projects/1
+          project-url: https://github.com/orgs/calcom/projects/9
           github-token: ${{ secrets.GH_ACCESS_TOKEN }}
-          labeled: 🐛 bug, 🎨 needs design, 🙋🏻‍♂️help wanted, 🚨 urgent
+          labeled:  🙋🏻‍♂️help wanted

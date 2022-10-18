@@ -2,11 +2,12 @@ import { Prisma, WebhookTriggerEvents } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
-import getWebhooks from "@calcom/features/webhooks/utils/getWebhooks";
-import { sendGenericWebhookPayload } from "@calcom/lib/webhooks/sendPayload";
+import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { TRPCError } from "@calcom/trpc/server";
 import { createProtectedRouter, createRouter } from "@calcom/trpc/server/createRouter";
 
+import { getSerializableForm } from "./lib/getSerializableForm";
 import { isAllowed } from "./lib/isAllowed";
 import { zodFields, zodRoutes } from "./zod";
 
@@ -144,14 +145,24 @@ const app_RoutingForms = createRouter()
     createProtectedRouter()
       .query("forms", {
         async resolve({ ctx: { user, prisma } }) {
-          return await prisma.app_RoutingForms_Form.findMany({
+          const forms = await prisma.app_RoutingForms_Form.findMany({
             where: {
               userId: user.id,
             },
             orderBy: {
-              createdAt: "asc",
+              createdAt: "desc",
+            },
+            include: {
+              _count: {
+                select: {
+                  responses: true,
+                },
+              },
             },
           });
+
+          const serializableForms = forms.map((form) => getSerializableForm(form));
+          return serializableForms;
         },
       })
       .query("formQuery", {
@@ -164,9 +175,20 @@ const app_RoutingForms = createRouter()
               userId: user.id,
               id: input.id,
             },
+            include: {
+              _count: {
+                select: {
+                  responses: true,
+                },
+              },
+            },
           });
 
-          return form;
+          if (!form) {
+            return null;
+          }
+
+          return getSerializableForm(form);
         },
       })
       .mutation("formMutation", {
