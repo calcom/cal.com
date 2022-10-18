@@ -112,7 +112,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
         }
         meeting={{
           title: isDynamicGroup ? "" : `${user.bio}`,
-          profile: { name: `${profile.name}`, image: profile.image },
+          profile: { name: `${profile.name}`, image: null },
           users: isDynamicGroup
             ? dynamicUsernames.map((username, index) => ({ username, name: dynamicNames[index] }))
             : [{ username: `${user.username}`, name: `${user.name}` }],

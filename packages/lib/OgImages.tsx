@@ -12,7 +12,7 @@ declare module "react" {
 export interface MeetingImageProps {
   title: string;
   profile: { name: string; image?: string | null };
-  users: { name: string; username: string }[];
+  users?: { name: string; username: string }[];
 }
 
 export interface AppImageProps {
@@ -34,7 +34,7 @@ const joinMultipleNames = (names: string[] = []) => {
  * 4. Team event (round robin) http://localhost:3000/api/social/og/image?type=meeting&title=Round%20Robin%20Seeded%20Team%20Event&meetingProfileName=Seeded%20Team
  * 5. Dynamic collective (2 persons) http://localhost:3000/api/social/og/image?type=meeting&title=15min&meetingProfileName=Team%20Pro%20Example,%20Pro%20Example&names=Team%20Pro%20Example&names=Pro%20Example&usernames=teampro&usernames=pro
  */
-export const constructMeetingImage = ({ title, users, profile }: MeetingImageProps): string => {
+export const constructMeetingImage = ({ title, users = [], profile }: MeetingImageProps): string => {
   return [
     `?type=meeting`,
     `&title=${encodeURIComponent(title)}`,
@@ -79,7 +79,7 @@ const Wrapper = ({
   </div>
 );
 
-export const Meeting = ({ title, users, profile }: MeetingImageProps) => {
+export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
   // We filter attendees here based on whether they have an image and filter duplicates.
   // Users ALWAYS have an image (albeit a gray empty person avatar), so this mainly filters out
   // any non existing images for dynamic collectives, while at the same time removing them from
