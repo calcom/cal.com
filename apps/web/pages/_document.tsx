@@ -86,6 +86,7 @@ class MyDocument extends Document<Props> {
                   // Keep the embed hidden till parent initializes and
                   // - gives it the appropriate styles if UI instruction is there.
                   // - gives iframe the appropriate height(equal to document height) which can only be known after loading the page once in browser.
+                  // - Tells iframe which mode it should be in (dark/light) - if there is a a UI instruction for that
                   visibility: "hidden",
                 }
               : {}
