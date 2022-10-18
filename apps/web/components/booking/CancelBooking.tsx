@@ -12,7 +12,6 @@ type Props = {
   booking: {
     title?: string;
     uid?: string;
-    id?: number;
   };
   profile: {
     name: string | null;
@@ -64,7 +63,7 @@ export default function CancelBooking(props: Props) {
                 <Button
                   color="secondary"
                   className="border-0 sm:border"
-                  onClick={() => router.push(`/reschedule/${booking?.uid}`)}>
+                  onClick={() => router.push("/reschedule/" + booking?.uid)}>
                   {t("reschedule_this")}
                 </Button>
               </div>
@@ -80,7 +79,7 @@ export default function CancelBooking(props: Props) {
                   setLoading(true);
 
                   const payload = {
-                    id: booking?.id,
+                    uid: booking?.uid,
                     cancellationReason: cancellationReason,
                   };
 
