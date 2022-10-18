@@ -37,10 +37,13 @@ const MembersView = () => {
     hasNextPage,
     fetchNextPage,
     isFetchingNextPage,
-  } = trpc.useInfiniteQuery(["viewer.teams.getMembers", { teamId: Number(router.query.id), limit: 5 }], {
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-    enabled: !!router.isReady,
-  });
+  } = trpc.useInfiniteQuery(
+    ["viewer.teams.getMembers", { teamId: parseInt(router.query.id as string), limit: 5 }],
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      enabled: !!router.isReady,
+    }
+  );
 
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
 

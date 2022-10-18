@@ -29,16 +29,20 @@ const ProfileView = () => {
 
   const form = useForm<TeamAppearanceValues>();
 
-  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
-    onError: () => {
-      router.push("/settings");
-    },
-    onSuccess: (team) => {
-      if (team) {
-        form.setValue("hideBranding", team.hideBranding);
-      }
-    },
-  });
+  const { data: team, isLoading } = trpc.useQuery(
+    ["viewer.teams.get", { teamId: parseInt(router.query.id as string) }],
+    {
+      onError: () => {
+        router.push("/settings");
+      },
+      onSuccess: (team) => {
+        if (team) {
+          form.setValue("hideBranding", team.hideBranding);
+        }
+      },
+      enabled: !!router.isReady,
+    }
+  );
 
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);

@@ -101,19 +101,19 @@ const SettingsSidebarContainer = ({ className = "" }) => {
   const tabsWithPermissions = useTabs();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
-  const [isLoading, setIsLoading] = useState(true);
 
-  const { data: teams } = trpc.useQuery(["viewer.teams.list"]);
+  const { data: teams } = trpc.useQuery(["viewer.teams.list"], { enabled: !!router.isReady });
 
   useEffect(() => {
-    if (teams && router.isReady) {
+    if (teams) {
       const teamStates = teams?.map((team) => ({
         teamId: team.id,
-        teamMenuOpen: parseInt(router.query.teamId as string) === team.id,
+        teamMenuOpen: parseInt(router.query.id as string) === team.id,
       }));
       setTeamMenuState(teamStates);
     }
-  }, [teams, router.isReady]);
+    // eslint-disable-next-line
+  }, [teams]);
 
   return (
     <nav
@@ -161,8 +161,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                   )}
                   <p className="text-sm font-medium leading-5">{t(tab.name)}</p>
                 </div>
-                {teams &&
-                  teamMenuState &&
+                {teams && teamMenuState ? (
                   teams.map((team, index: number) => {
                     if (teamMenuState.some((teamState) => teamState.teamId === team.id))
                       return (
@@ -252,7 +251,10 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                           </CollapsibleContent>
                         </Collapsible>
                       );
-                  })}
+                  })
+                ) : (
+                  <p>Team</p>
+                )}
                 <VerticalTabItem
                   name={t("add_a_team")}
                   href={`${WEBAPP_URL}/settings/teams/new`}

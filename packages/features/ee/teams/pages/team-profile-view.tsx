@@ -51,19 +51,23 @@ const ProfileView = () => {
 
   const form = useForm<TeamProfileValues>();
 
-  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
-    onError: () => {
-      router.push("/settings");
-    },
-    onSuccess: (team) => {
-      if (team) {
-        form.setValue("name", team.name || "");
-        form.setValue("url", team.slug || "");
-        form.setValue("logo", team.logo || "");
-        form.setValue("bio", team.bio || "");
-      }
-    },
-  });
+  const { data: team, isLoading } = trpc.useQuery(
+    ["viewer.teams.get", { teamId: parseInt(router.query.id as string) }],
+    {
+      onError: () => {
+        router.push("/settings");
+      },
+      onSuccess: (team) => {
+        if (team) {
+          form.setValue("name", team.name || "");
+          form.setValue("url", team.slug || "");
+          form.setValue("logo", team.logo || "");
+          form.setValue("bio", team.bio || "");
+        }
+      },
+      enabled: !!router.isReady,
+    }
+  );
 
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
