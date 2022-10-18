@@ -68,7 +68,7 @@ export default async function handler(req: NextApiRequest) {
         (
           <Meeting
             title={title}
-            meeting={{ name: meetingProfileName, image: meetingImage }}
+            profile={{ name: meetingProfileName, image: meetingImage }}
             users={names.map((name, index) => ({ name, username: usernames[index] }))}
           />
         ),
