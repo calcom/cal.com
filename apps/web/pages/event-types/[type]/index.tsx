@@ -191,7 +191,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         teamMembers={teamMembers}
       />
     ),
-    availability: <AvailabilityTab />,
+    availability: <AvailabilityTab eventTypeTitle={eventType.title} />,
     team: (
       <EventTeamTab
         eventType={eventType}

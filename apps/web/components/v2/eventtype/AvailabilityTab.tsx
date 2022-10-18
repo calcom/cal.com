@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import { FormValues } from "pages/event-types/[type]";
 import { Controller, useFormContext } from "react-hook-form";
 
@@ -7,9 +8,12 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
+import { showToast } from "@calcom/ui/v2";
 import Button from "@calcom/ui/v2/core/Button";
 import Select from "@calcom/ui/v2/core/form/select";
 import { SkeletonText } from "@calcom/ui/v2/core/skeleton";
+
+import { HttpError } from "@lib/core/http/error";
 
 import { SelectSkeletonLoader } from "@components/v2/availability/SkeletonLoader";
 
@@ -62,15 +66,56 @@ const format = (date: Date) =>
     new Date(dayjs.utc(date).format("YYYY-MM-DDTHH:mm:ss"))
   );
 
-export const AvailabilityTab = () => {
+export const AvailabilityTab = ({ eventTypeTitle }: { eventTypeTitle: string }) => {
   const { t, i18n } = useLocale();
   const { watch } = useFormContext<FormValues>();
+  const router = useRouter();
+  const utils = trpc.useContext();
 
   const scheduleId = watch("schedule");
   const { isLoading, data: schedule } = trpc.useQuery(["viewer.availability.schedule", { scheduleId }]);
 
+  const createScheduleMutation = trpc.useMutation("viewer.availability.schedule.create", {
+    onSuccess: async ({ schedule }) => {
+      await router.push("/availability/" + schedule.id);
+      showToast(t("schedule_created_successfully", { scheduleName: schedule.name }), "success");
+      utils.setQueryData(["viewer.availability.list"], (data) => {
+        const newSchedule = { ...schedule, isDefault: false, availability: [] };
+        if (!data)
+          return {
+            schedules: [newSchedule],
+          };
+        return {
+          ...data,
+          schedules: [...data.schedules, newSchedule],
+        };
+      });
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+
+      if (err.data?.code === "UNAUTHORIZED") {
+        const message = `${err.data.code}: You are not able to create this event`;
+        showToast(message, "error");
+      }
+    },
+  });
+
   const filterDays = (dayNum: number) =>
     schedule?.schedule.availability.filter((item) => item.days.includes((dayNum + 1) % 7)) || [];
+
+  const onEditAvailability = () => {
+    if (!schedule) showToast(t("error_editing_availability"), "error");
+
+    if (schedule?.isDefault) {
+      createScheduleMutation.mutate({ name: t("new_event_type_availability", { eventTypeTitle }) });
+    } else {
+      router.push(`/availability/${schedule?.schedule.id}`);
+    }
+  };
 
   return (
     <>
@@ -130,7 +175,8 @@ export const AvailabilityTab = () => {
             {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
           </span>
           <Button
-            href={`/availability/${scheduleId}`}
+            // href={`/availability/${schedule?.schedule.id}`}
+            onClick={onEditAvailability}
             color="minimal"
             EndIcon={Icon.FiExternalLink}
             target="_blank"

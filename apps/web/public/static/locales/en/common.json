@@ -1314,5 +1314,7 @@
   "no_available_slots": "No Available slots",
   "time_available": "Time available",
   "install_new_calendar_app": "Install new calendar app",
-  "make_phone_number_required": "Make phone number required for booking event"
+  "make_phone_number_required": "Make phone number required for booking event",
+  "new_event_type_availability": "{{eventTypeTitle}} Availability",
+  "error_editing_availability": "Error editing availability"
 }
