@@ -98,13 +98,34 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   });
 
   const setHiddenMutation = trpc.useMutation("viewer.eventTypes.update", {
-    onError: async (err) => {
-      console.error(err.message);
+    onMutate: async ({ id }) => {
       await utils.cancelQuery(["viewer.eventTypes"]);
-      await utils.invalidateQueries(["viewer.eventTypes"]);
+      const previousValue = utils.getQueryData(["viewer.eventTypes"]);
+      if (previousValue) {
+        const newList = [...types];
+        const itemIndex = newList.findIndex((item) => item.id === id);
+        if (itemIndex !== -1 && newList[itemIndex]) {
+          newList[itemIndex].hidden = !newList[itemIndex].hidden;
+        }
+        utils.setQueryData(["viewer.eventTypes"], {
+          ...previousValue,
+          eventTypeGroups: [
+            ...previousValue.eventTypeGroups.slice(0, groupIndex),
+            { ...group, eventTypes: newList },
+            ...previousValue.eventTypeGroups.slice(groupIndex + 1),
+          ],
+        });
+      }
+      return { previousValue };
     },
-    onSettled: async () => {
-      await utils.invalidateQueries(["viewer.eventTypes"]);
+    onError: async (err, _, context) => {
+      if (context?.previousValue) {
+        utils.setQueryData(["viewer.eventTypes"], context.previousValue);
+      }
+      console.error(err.message);
+    },
+    onSettled: () => {
+      utils.invalidateQueries(["viewer.eventTypes"]);
     },
   });
 
@@ -169,12 +190,31 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   };
 
   const deleteMutation = trpc.useMutation("viewer.eventTypes.delete", {
-    onSuccess: async () => {
-      await utils.invalidateQueries(["viewer.eventTypes"]);
+    onSuccess: () => {
       showToast(t("event_type_deleted_successfully"), "success");
       setDeleteDialogOpen(false);
     },
-    onError: (err) => {
+    onMutate: async ({ id }) => {
+      await utils.cancelQuery(["viewer.eventTypes"]);
+      const previousValue = utils.getQueryData(["viewer.eventTypes"]);
+      if (previousValue) {
+        const newList = types.filter((item) => item.id !== id);
+
+        utils.setQueryData(["viewer.eventTypes"], {
+          ...previousValue,
+          eventTypeGroups: [
+            ...previousValue.eventTypeGroups.slice(0, groupIndex),
+            { ...group, eventTypes: newList },
+            ...previousValue.eventTypeGroups.slice(groupIndex + 1),
+          ],
+        });
+      }
+      return { previousValue };
+    },
+    onError: (err, _, context) => {
+      if (context?.previousValue) {
+        utils.setQueryData(["viewer.eventTypes"], context.previousValue);
+      }
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
@@ -182,6 +222,9 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       } else if (err instanceof TRPCClientError) {
         showToast(err.message, "error");
       }
+    },
+    onSettled: () => {
+      utils.invalidateQueries(["viewer.eventTypes"]);
     },
   });
 
@@ -439,7 +482,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       </ul>
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <ConfirmationDialogContent
-          isLoading={deleteMutation.isLoading}
           variety="danger"
           title={t("delete_event_type")}
           confirmBtnText={t("confirm_delete_event_type")}
