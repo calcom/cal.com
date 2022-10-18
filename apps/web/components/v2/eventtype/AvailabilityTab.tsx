@@ -129,29 +129,33 @@ export const AvailabilityTab = () => {
         />
       </div>
 
-      <div className="space-y-4 rounded border p-8 py-6 pt-2">
+      <div className="space-y-4 rounded border p-4 py-6 pt-2 md:p-8">
         <ol className="table border-collapse text-sm">
           {weekdayNames(i18n.language, 1, "long").map((day, index) => {
             const isAvailable = !!filterDays(index).length;
             return (
               <li key={day} className="my-6 flex border-transparent last:mb-2">
-                <span className={classNames("w-32 font-medium", !isAvailable && "text-gray-500 opacity-50")}>
+                <span
+                  className={classNames(
+                    "w-20 font-medium sm:w-32",
+                    !isAvailable && "text-gray-500 opacity-50"
+                  )}>
                   {day}
                 </span>
                 {isLoading ? (
                   <SkeletonText className="block h-5 w-60" />
                 ) : isAvailable ? (
-                  <div className="space-y-3">
+                  <div className="space-y-3 text-right">
                     {filterDays(index).map((dayRange, i) => (
                       <div key={i} className="flex items-center leading-4">
-                        <span className="w-28">{format(dayRange.startTime)}</span>
-                        <span className="">-</span>
+                        <span className="w-16 sm:w-28 sm:text-left">{format(dayRange.startTime)}</span>
+                        <span className="ml-4">-</span>
                         <div className="ml-6">{format(dayRange.endTime)}</div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <span className="text-gray-500 opacity-50 ">{t("unavailable")}</span>
+                  <span className="ml-6 text-gray-500 opacity-50 sm:ml-0">{t("unavailable")}</span>
                 )}
               </li>
             );
@@ -168,6 +172,7 @@ export const AvailabilityTab = () => {
             color="minimal"
             EndIcon={Icon.FiExternalLink}
             target="_blank"
+            className="whitespace-nowrap"
             rel="noopener noreferrer">
             {t("edit_availability")}
           </Button>

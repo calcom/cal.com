@@ -231,7 +231,7 @@ function EventTypeSingleLayout({
             />
           </ButtonGroup>
 
-          <VerticalDivider />
+          <VerticalDivider className="hidden lg:block" />
 
           <Dropdown>
             <DropdownMenuTrigger className="block h-9 w-9 justify-center rounded-md border border-gray-200 bg-transparent text-gray-700 lg:hidden">
