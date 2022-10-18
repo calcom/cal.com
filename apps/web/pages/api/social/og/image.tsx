@@ -1,5 +1,6 @@
 import { ImageResponse } from "@vercel/og";
 import { NextApiRequest } from "next";
+import type { SatoriOptions } from "satori";
 import { z } from "zod";
 
 import { Meeting, App } from "@calcom/lib/OgImages";
@@ -50,7 +51,7 @@ export default async function handler(req: NextApiRequest) {
       { name: "inter", data: interFontData, weight: 400 },
       { name: "inter", data: interFontMediumData, weight: 500 },
       { name: "cal", data: calFontData, weight: 400 },
-    ],
+    ] as SatoriOptions["fonts"],
   };
 
   switch (imageType) {
