@@ -1,6 +1,5 @@
 import { getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
 import { classNames } from "@calcom/lib";
-import Tooltip from "@calcom/ui/v2/core/Tooltip";
 
 import { Props } from "./pages/AvailabilityPage";
 
@@ -23,16 +22,10 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
               )}
               alt={`${eventLocationType.label} icon`}
             />
-            <Tooltip content={locationKeyToString(location)}>
-              <a
-                target="_blank"
-                href={locationKeyToString(location) ?? "/"}
-                className="truncate"
-                key={location.type}
-                rel="noreferrer">
-                {locationKeyToString(location)}
-              </a>
-            </Tooltip>
+
+            <span className="max-w-full pr-4" key={location.type}>
+              {locationKeyToString(location)}
+            </span>
           </div>
         );
       })}
