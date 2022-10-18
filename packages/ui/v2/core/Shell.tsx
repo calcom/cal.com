@@ -333,16 +333,9 @@ export type NavigationItemType = {
   }) => boolean;
 };
 
-const backToMento: string = process.env?.NEXT_PUBLIC_MENTO_COACH_URL as string;
-
 const requiredCredentialNavigationItems = ["Routing Forms"];
 const MORE_SEPARATOR_NAME = "more";
 const navigation: NavigationItemType[] = [
-  {
-    name: "Back to Mento",
-    href: backToMento,
-    icon: Icon.FiArrowLeft,
-  },
   {
     name: "event_types_page_title",
     href: "/event-types",
@@ -418,6 +411,15 @@ const navigation: NavigationItemType[] = [
     icon: Icon.FiSettings,
   },
 ];
+
+const backToMento: string = (process?.env?.NEXT_PUBLIC_MENTO_COACH_URL as string) || "";
+if (backToMento) {
+  navigation?.unshift({
+    name: "Back to Mento",
+    href: backToMento,
+    icon: Icon.FiArrowLeft,
+  });
+}
 
 const moreSeparatorIndex = navigation.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
 // We create all needed navigation items for the different use cases
