@@ -162,8 +162,8 @@ export const AvailabilityTab = () => {
           })}
         </ol>
         <hr />
-        <div className="flex justify-between">
-          <span className="flex items-center text-sm text-gray-600">
+        <div className="flex flex-col justify-center gap-2 sm:flex-row sm:justify-between">
+          <span className="flex items-center justify-center text-sm text-gray-600 sm:justify-start">
             <Icon.FiGlobe className="mr-2" />
             {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
           </span>
@@ -172,7 +172,7 @@ export const AvailabilityTab = () => {
             color="minimal"
             EndIcon={Icon.FiExternalLink}
             target="_blank"
-            className="whitespace-nowrap"
+            className="justify-center border sm:border-0"
             rel="noopener noreferrer">
             {t("edit_availability")}
           </Button>
