@@ -57,9 +57,9 @@ export default function CancelBooking(props: Props) {
             className="mt-2 mb-3 w-full dark:border-gray-900 dark:bg-gray-700 dark:text-white sm:mb-3 "
             rows={3}
           />
-          <div className=" flex flex-col-reverse rtl:space-x-reverse sm:flex-row">
+          <div className="flex flex-col-reverse rtl:space-x-reverse sm:flex-row">
             {!props.recurringEvent && (
-              <div className=" border-bookinglightest mt-5 flex w-full justify-center border-t pt-3 sm:mt-0  sm:justify-start sm:border-0 sm:pt-0">
+              <div className="border-bookinglightest mt-5 flex w-full justify-center border-t pt-3 sm:mt-0 sm:justify-start sm:border-0 sm:pt-0">
                 <Button
                   color="secondary"
                   className="border-0 sm:border"
@@ -80,7 +80,7 @@ export default function CancelBooking(props: Props) {
 
                   const payload = {
                     uid: booking?.uid,
-                    reason: cancellationReason,
+                    cancellationReason: cancellationReason,
                   };
 
                   telemetry.event(telemetryEventTypes.bookingCancelled, collectPageParameters());

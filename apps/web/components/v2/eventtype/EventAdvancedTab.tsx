@@ -7,6 +7,7 @@ import { Controller, useFormContext } from "react-hook-form";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -14,7 +15,6 @@ import { Icon } from "@calcom/ui";
 import {
   Button,
   CustomInputItem,
-  DestinationCalendarSelector,
   Dialog,
   DialogContent,
   Label,
@@ -24,6 +24,7 @@ import {
   TextField,
   Tooltip,
 } from "@calcom/ui/v2";
+import CheckboxField from "@calcom/ui/v2/core/form/Checkbox";
 
 import CustomInputTypeForm from "@components/v2/eventtype/CustomInputTypeForm";
 
@@ -429,6 +430,13 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                   onChange(Number(e.target.value));
                 }}
               />
+              <div className="mt-6">
+                <CheckboxField
+                  description={t("show_attendees")}
+                  onChange={(e) => formMethods.setValue("seatsShowAttendees", e.target.checked)}
+                  defaultChecked={!!eventType.seatsShowAttendees}
+                />
+              </div>
             </div>
           )}
         />

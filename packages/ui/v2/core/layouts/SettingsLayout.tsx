@@ -6,6 +6,7 @@ import React, { ComponentProps, useEffect, useState } from "react";
 
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -39,7 +40,6 @@ const tabs: VerticalTabItemProps[] = [
     href: "/settings/security",
     icon: Icon.FiKey,
     children: [
-      //
       { name: "password", href: "/settings/security/password" },
       { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
     ],
@@ -81,6 +81,13 @@ const tabs: VerticalTabItemProps[] = [
   },
 ];
 
+tabs.find((tab) => {
+  // Add "SAML SSO" to the tab
+  if (tab.name === "security" && !HOSTED_CAL_FEATURES) {
+    tab.children?.push({ name: "saml_config", href: "/settings/security/sso" });
+  }
+});
+
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
 
@@ -100,7 +107,6 @@ const SettingsSidebarContainer = ({ className = "" }) => {
   const tabsWithPermissions = useTabs();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
-  const [isLoading, setIsLoading] = useState(true);
 
   const { data: teams } = trpc.useQuery(["viewer.teams.list"]);
 
@@ -236,13 +242,14 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                                   textClassNames="px-3 text-gray-900 font-medium text-sm"
                                   disableChevron
                                 />
-                                {/* TODO: Implement saml configuration page */}
-                                {/* <VerticalTabItem
-                              name={t("saml_config")}
-                              href={`${WEBAPP_URL}/settings/teams/${team.id}/samlConfig`}
-                              textClassNames="px-3 text-gray-900 font-medium text-sm"
-                              disableChevron
-                            /> */}
+                                {HOSTED_CAL_FEATURES && (
+                                  <VerticalTabItem
+                                    name={t("saml_config")}
+                                    href={`/settings/teams/${team.id}/sso`}
+                                    textClassNames="px-3 text-gray-900 font-medium text-sm"
+                                    disableChevron
+                                  />
+                                )}
                               </>
                             )}
                           </CollapsibleContent>

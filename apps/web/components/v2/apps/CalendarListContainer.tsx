@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Fragment } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
+import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
@@ -18,7 +19,6 @@ import { QueryCell } from "@lib/QueryCell";
 
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
 import AdditionalCalendarSelector from "@components/v2/apps/AdditionalCalendarSelector";
-import DestinationCalendarSelector from "@components/v2/apps/DestinationCalendarSelector";
 import IntegrationListItem from "@components/v2/apps/IntegrationListItem";
 
 type Props = {
@@ -287,7 +287,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                           <h1 className="text-sm font-semibold">{t("create_events_on")}</h1>
                           <p className="text-sm font-normal">{t("set_calendar")}</p>
                         </div>
-                        <div className="flex justify-end md:w-6/12">
+                        <div className="justify-end md:w-6/12">
                           <DestinationCalendarSelector
                             onChange={mutation.mutate}
                             hidePlaceholder
