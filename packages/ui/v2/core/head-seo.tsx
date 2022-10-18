@@ -56,20 +56,22 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
   const defaultUrl = getBrowserInfo()?.url;
   const image = getSeoImage("default");
 
-  const {
-    title,
-    description,
-    name = null,
-    usernames = null,
-    siteName,
-    canonical = defaultUrl,
-    nextSeoProps = {},
-    app,
-  } = props;
+  const { title, description, siteName, canonical = defaultUrl, nextSeoProps = {}, app, meeting } = props;
 
   const truncatedDescription = description.length > 24 ? description.substring(0, 23) + "..." : description;
-  const longerTruncatedDescription =
-    description.length > 48 ? description.substring(0, 47) + "..." : description;
+  let longerTruncatedDescriptionOnWords = description;
+  if (description.length > 148) {
+    // First split on 148 chars
+    longerTruncatedDescriptionOnWords = description.substring(0, 148);
+    // Then split on the last space, this way we split on the last word,
+    // which looks just a bit nicer.
+    longerTruncatedDescriptionOnWords = longerTruncatedDescriptionOnWords.substring(
+      0,
+      Math.min(longerTruncatedDescriptionOnWords.length, longerTruncatedDescriptionOnWords.lastIndexOf(" "))
+    );
+    longerTruncatedDescriptionOnWords += "...";
+  }
+
   const pageTitle = title + " | Cal.com";
   let seoObject = buildSeoMeta({
     title: pageTitle,
@@ -79,8 +81,8 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
     siteName,
   });
 
-  if (name && usernames) {
-    const pageImage = getSeoImage("ogImage") + constructMeetingImage({ title, name, users: usernames });
+  if (meeting) {
+    const pageImage = getSeoImage("ogImage") + constructMeetingImage(meeting);
     seoObject = buildSeoMeta({
       title: pageTitle,
       description: truncatedDescription,
@@ -92,7 +94,7 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
 
   if (app) {
     const pageImage =
-      getSeoImage("ogImage") + constructAppImage({ ...app, description: longerTruncatedDescription });
+      getSeoImage("ogImage") + constructAppImage({ ...app, description: longerTruncatedDescriptionOnWords });
     seoObject = buildSeoMeta({
       title: pageTitle,
       description: truncatedDescription,
