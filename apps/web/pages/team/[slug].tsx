@@ -84,6 +84,14 @@ function TeamPage({ team }: TeamPageProps) {
   return (
     <div>
       <HeadSeo title={teamName} description={teamName} />
+      <HeadSeo
+        title={teamName}
+        description={teamName}
+        meeting={{
+          title: team?.bio || "",
+          profile: { name: `${team.name}`, image: getPlaceholderAvatar(team.logo, team.name) },
+        }}
+      />
       <div className="dark:bg-darkgray-50 h-screen rounded-md bg-gray-100 px-4 pt-12 pb-12">
         <div className="max-w-96 mx-auto mb-8 text-center">
           <Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />

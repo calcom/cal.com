@@ -17,7 +17,7 @@ export const metadata = {
   trending: true,
   type: "zapier_automation",
   url: "https://cal.com/apps/zapier",
-  variant: "other",
+  variant: "automation",
   verified: true,
   email: "help@cal.com",
 } as AppMeta;

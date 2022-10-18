@@ -11,7 +11,7 @@ import Switch from "@calcom/ui/v2/core/Switch";
 import { Form, Label, TextArea, TextField } from "@calcom/ui/v2/core/form/fields";
 import Select from "@calcom/ui/v2/core/form/select";
 
-import customTemplate, { hasTemplateIntegration } from "../utils/integrationTemplate";
+import customTemplate, { hasTemplateIntegration } from "../lib/integrationTemplate";
 import WebhookTestDisclosure from "./WebhookTestDisclosure";
 
 export type TWebhook = inferQueryOutput<"viewer.webhook.list">[number];
