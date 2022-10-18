@@ -732,24 +732,24 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     }));
 
     if (reqAppsStatus === undefined) {
-        if (booking !== null) {
-          booking.appsStatus = resultStatus;
-        }
-        evt.appsStatus = resultStatus;
-        return; 
+      if (booking !== null) {
+        booking.appsStatus = resultStatus;
       }
-      // From down here we can assume reqAppsStatus is not undefined anymore
-      // Other status exist, so this is the last booking of a series,
-      // proceeding to prepare the info for the event
-      const calcAppsStatus = reqAppsStatus.concat(resultStatus).reduce((prev, curr) => {
-        if (prev[curr.type]) {
-          prev[curr.type].success += curr.success;
-        } else {
-          prev[curr.type] = curr;
-        }
-        return prev;
-      }, {} as { [key: string]: AppsStatus });
-      evt.appsStatus = Object.values(calcAppsStatus);
+      evt.appsStatus = resultStatus;
+      return;
+    }
+    // From down here we can assume reqAppsStatus is not undefined anymore
+    // Other status exist, so this is the last booking of a series,
+    // proceeding to prepare the info for the event
+    const calcAppsStatus = reqAppsStatus.concat(resultStatus).reduce((prev, curr) => {
+      if (prev[curr.type]) {
+        prev[curr.type].success += curr.success;
+      } else {
+        prev[curr.type] = curr;
+      }
+      return prev;
+    }, {} as { [key: string]: AppsStatus });
+    evt.appsStatus = Object.values(calcAppsStatus);
   }
 
   if (originalRescheduledBooking?.uid) {
