@@ -478,6 +478,7 @@ const NavigationItem: React.FC<{
     <Fragment>
       <Link
         href={
+          // HACK
           item.href === "MENTO_URL"
             ? process?.env?.NEXT_PUBLIC_MENTO_COACH_URL || "https://coaching.mento.co"
             : item.href
