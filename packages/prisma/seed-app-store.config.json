@@ -90,25 +90,19 @@
   },
   {
     "dirName": "qr_code",
-    "categories": [
-      "other"
-    ],
+    "categories": ["other"],
     "slug": "qr_code",
     "type": "qr_code_other"
   },
   {
     "dirName": "weather_in_your_calendar",
-    "categories": [
-      "other"
-    ],
+    "categories": ["other"],
     "slug": "weather_in_your_calendar",
     "type": "weather_in_your_calendar_other"
   },
   {
     "dirName": "fathom",
-    "categories": [
-      "analytics"
-    ],
+    "categories": ["analytics"],
     "slug": "fathom",
     "type": "fathom_analytics"
   }
