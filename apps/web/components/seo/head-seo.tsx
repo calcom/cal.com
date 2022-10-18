@@ -78,13 +78,17 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
   const truncatedDescription = description.length > 24 ? description.substring(0, 23) + "..." : description;
   let longerTruncatedDescriptionOnWords = description;
   if (description.length > 148) {
+    // First split on 148 chars
     longerTruncatedDescriptionOnWords = description.substring(0, 148);
+    // Then split on the last space, this way we split on the last word,
+    // which looks just a bit nicer.
     longerTruncatedDescriptionOnWords = longerTruncatedDescriptionOnWords.substring(
       0,
       Math.min(longerTruncatedDescriptionOnWords.length, longerTruncatedDescriptionOnWords.lastIndexOf(" "))
     );
     longerTruncatedDescriptionOnWords += "...";
   }
+
   const pageTitle = title + " | Cal.com";
   let seoObject = buildSeoMeta({
     title: pageTitle,
