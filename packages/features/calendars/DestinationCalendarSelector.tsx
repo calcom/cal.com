@@ -1,6 +1,7 @@
 import classNames from "classnames";
 import React, { useEffect, useState } from "react";
 import { components } from "react-select";
+import type { SingleValueProps, OptionProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { DestinationCalendar } from "@calcom/prisma/client";
@@ -15,6 +16,22 @@ interface Props {
   destinationCalendar?: DestinationCalendar | null;
   value: string | undefined;
   maxWidth?: number;
+}
+
+interface CustomSingleValueProps extends SingleValueProps {
+  data: {
+    label: string;
+    value: string;
+    subtitle: string;
+  };
+}
+
+interface CustomOptionProps extends OptionProps {
+  data: {
+    label: string;
+    value: string;
+    subtitle: string;
+  };
 }
 
 const DestinationCalendarSelector = ({
@@ -50,7 +67,7 @@ const DestinationCalendarSelector = ({
     return {};
   };
 
-  const SingleValue = (props) => {
+  const SingleValue = (props: CustomSingleValueProps) => {
     const { label, subtitle } = props.data;
     return (
       <components.SingleValue {...props} className="flex space-x-1">
@@ -59,7 +76,7 @@ const DestinationCalendarSelector = ({
     );
   };
 
-  const Option = (props) => {
+  const Option = (props: CustomOptionProps) => {
     const { label } = props.data;
     return (
       <components.Option {...props}>
@@ -69,8 +86,6 @@ const DestinationCalendarSelector = ({
   };
 
   useEffect(() => {
-    const { destinationCalendar } = query.data;
-
     const selected = query.data?.connectedCalendars
       .map((connected) => connected.calendars ?? [])
       .flat()
