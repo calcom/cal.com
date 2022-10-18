@@ -161,7 +161,8 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                   )}
                   <p className="text-sm font-medium leading-5">{t(tab.name)}</p>
                 </div>
-                {teams && teamMenuState ? (
+                {teams &&
+                  teamMenuState &&
                   teams.map((team, index: number) => {
                     if (teamMenuState.some((teamState) => teamState.teamId === team.id))
                       return (
@@ -251,10 +252,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                           </CollapsibleContent>
                         </Collapsible>
                       );
-                  })
-                ) : (
-                  <p>Team</p>
-                )}
+                  })}
                 <VerticalTabItem
                   name={t("add_a_team")}
                   href={`${WEBAPP_URL}/settings/teams/new`}
