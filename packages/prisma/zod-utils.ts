@@ -10,6 +10,7 @@ import type {
   ZodTypeAny,
 } from "zod";
 
+import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import dayjs from "@calcom/dayjs";
 import { slugify } from "@calcom/lib/slugify";
 
@@ -23,6 +24,16 @@ export enum Frequency {
   MINUTELY = 5,
   SECONDLY = 6,
 }
+
+export const EventTypeMetaDataSchema = z
+  .object({
+    smartContractAddress: z.string().optional(),
+    blockchainId: z.number().optional(),
+    giphyThankYouPage: z.string().optional(),
+    apps: z.object(appDataSchemas).partial().optional(),
+    additionalNotesRequired: z.boolean().optional(),
+  })
+  .nullable();
 
 export const eventTypeLocations = z.array(
   z.object({
@@ -47,6 +58,20 @@ export const recurringEventType = z
     tzid: z.string().optional(),
   })
   .nullable();
+
+// dayjs iso parsing is very buggy - cant use :( - turns ISO string into Date object
+export const iso8601 = z.string().transform((val, ctx) => {
+  const time = Date.parse(val);
+  if (!time) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Invalid ISO Date",
+    });
+  }
+  const d = new Date();
+  d.setTime(time);
+  return d;
+});
 
 export const bookingLimitsType = z
   .object({

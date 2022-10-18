@@ -1,6 +1,6 @@
 import autoAnimate from "@formkit/auto-animate";
 import * as RadioGroup from "@radix-ui/react-radio-group";
-import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
+import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
 import { useEffect, useRef, useState } from "react";
 import { useFormContext, Controller, useWatch } from "react-hook-form";
 

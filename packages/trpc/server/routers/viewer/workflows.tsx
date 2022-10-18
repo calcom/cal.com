@@ -229,6 +229,7 @@ export const workflowsRouter = createProtectedRouter()
           reminderBody: z.string().optional().nullable(),
           emailSubject: z.string().optional().nullable(),
           template: z.enum(WORKFLOW_TEMPLATES),
+          numberRequired: z.boolean().nullable(),
         })
         .array(),
       trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
@@ -249,7 +250,12 @@ export const workflowsRouter = createProtectedRouter()
         },
       });
 
-      if (!userWorkflow || userWorkflow.userId !== user.id) throw new TRPCError({ code: "UNAUTHORIZED" });
+      if (
+        !userWorkflow ||
+        userWorkflow.userId !== user.id ||
+        steps.filter((step) => step.workflowId != id).length > 0
+      )
+        throw new TRPCError({ code: "UNAUTHORIZED" });
 
       const oldActiveOnEventTypes = await ctx.prisma.workflowsOnEventTypes.findMany({
         where: {
@@ -290,7 +296,7 @@ export const workflowsRouter = createProtectedRouter()
         if (
           newEventType &&
           newEventType.userId !== user.id &&
-          newEventType?.team?.members.filter((membership) => membership.userId === user.id).length === 0
+          !newEventType?.team?.members.filter((membership) => membership.userId === user.id).length
         ) {
           throw new TRPCError({ code: "UNAUTHORIZED" });
         }
@@ -523,6 +529,7 @@ export const workflowsRouter = createProtectedRouter()
               reminderBody: newStep.template === WorkflowTemplates.CUSTOM ? newStep.reminderBody : null,
               emailSubject: newStep.template === WorkflowTemplates.CUSTOM ? newStep.emailSubject : null,
               template: newStep.template,
+              numberRequired: newStep.numberRequired,
             },
           });
           //cancel all reminders of step and create new ones (not for newEventTypes)
@@ -644,11 +651,7 @@ export const workflowsRouter = createProtectedRouter()
       const addedSteps = steps.map((s) => {
         if (s.id <= 0) {
           const { id: stepId, ...stepToAdd } = s;
-          if (stepToAdd.workflowId === id) {
-            return stepToAdd;
-          } else {
-            throw new TRPCError({ code: "UNAUTHORIZED" });
-          }
+          return stepToAdd;
         }
       });
 

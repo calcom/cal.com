@@ -25,11 +25,10 @@ import dayjs from "@calcom/dayjs";
 import { sendRequestRescheduleEmail } from "@calcom/emails";
 import { sendDeclinedEmails, sendLocationChangeEmails, sendScheduledEmails } from "@calcom/emails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
-import getWebhooks from "@calcom/features/webhooks/utils/getWebhooks";
+import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
-import prisma from "@calcom/prisma";
 import { bookingConfirmPatchBodySchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, Person } from "@calcom/types/Calendar";
 

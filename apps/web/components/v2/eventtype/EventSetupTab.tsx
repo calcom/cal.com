@@ -1,7 +1,7 @@
 import autoAnimate from "@formkit/auto-animate";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
+import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
 import { useEffect, useRef, useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
