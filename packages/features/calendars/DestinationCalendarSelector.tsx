@@ -1,5 +1,7 @@
 import classNames from "classnames";
 import React, { useEffect, useState } from "react";
+import { components } from "react-select";
+import { SingleValueProps, OptionProps, SingleValue, ActionMeta } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { DestinationCalendar } from "@calcom/prisma/client";
@@ -16,6 +18,30 @@ interface Props {
   maxWidth?: number;
 }
 
+interface Option {
+  label: string;
+  value: string;
+  subtitle: string;
+}
+
+const SingleValueComponent = ({ ...props }: SingleValueProps<Option>) => {
+  const { label, subtitle } = props.data;
+  return (
+    <components.SingleValue {...props} className="flex space-x-1">
+      <p>{label}</p> <p className=" text-neutral-500">{subtitle}</p>
+    </components.SingleValue>
+  );
+};
+
+const OptionComponent = ({ ...props }: OptionProps<Option>) => {
+  const { label } = props.data;
+  return (
+    <components.Option {...props}>
+      <span>{label}</span>
+    </components.Option>
+  );
+};
+
 const DestinationCalendarSelector = ({
   onChange,
   isLoading,
@@ -26,13 +52,18 @@ const DestinationCalendarSelector = ({
 }: Props): JSX.Element | null => {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.connectedCalendars"]);
-  const [selectedOption, setSelectedOption] = useState<{ value: string; label: string } | null>(null);
+  const [selectedOption, setSelectedOption] = useState<{
+    value: string;
+    label: string;
+    subtitle: string;
+  } | null>(null);
 
   // Extra styles to show prefixed text in react-select
   const content = (hidePlaceholder = false) => {
     if (!hidePlaceholder) {
       return {
         alignItems: "center",
+        width: "100%",
         display: "flex",
         ":before": {
           content: `'${t("select_destination_calendar")}:'`,
@@ -51,12 +82,19 @@ const DestinationCalendarSelector = ({
       .find((cal) => cal.externalId === value);
 
     if (selected) {
+      const selectedIntegration = query.data?.connectedCalendars.find((integration) =>
+        integration.calendars?.some((calendar) => calendar.externalId === selected.externalId)
+      );
+
       setSelectedOption({
         value: `${selected.integration}:${selected.externalId}`,
-        label: selected.name || "",
+        label: `${selected.name} ` || "",
+        subtitle: `(${selectedIntegration?.integration.title?.replace(/calendar/i, "")} - ${
+          selectedIntegration?.primary?.name
+        })`,
       });
     }
-  }, [query.data?.connectedCalendars, value]);
+  }, [query.data?.connectedCalendars]);
 
   if (!query.data?.connectedCalendars.length) {
     return null;
@@ -64,11 +102,16 @@ const DestinationCalendarSelector = ({
   const options =
     query.data.connectedCalendars.map((selectedCalendar) => ({
       key: selectedCalendar.credentialId,
-      label: `${selectedCalendar.integration.title} (${selectedCalendar.primary?.name})`,
+      label: `${selectedCalendar.integration.title?.replace(/calendar/i, "")} (${
+        selectedCalendar.primary?.name
+      })`,
       options: (selectedCalendar.calendars ?? [])
         .filter((cal) => cal.readOnly === false)
         .map((cal) => ({
-          label: cal.name || "",
+          label: ` ${cal.name} `,
+          subtitle: `(${selectedCalendar?.integration.title?.replace(/calendar/i, "")} - ${
+            selectedCalendar?.primary?.name
+          })`,
           value: `${cal.integration}:${cal.externalId}`,
         })),
     })) ?? [];
@@ -113,14 +156,14 @@ const DestinationCalendarSelector = ({
         className={classNames(
           "mt-1 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 text-sm"
         )}
-        onChange={(option) => {
-          setSelectedOption(option);
-          if (!option) {
+        onChange={(newValue) => {
+          setSelectedOption(newValue);
+          if (!newValue) {
             return;
           }
 
           /* Split only the first `:`, since Apple uses the full URL as externalId */
-          const [integration, externalId] = option.value.split(/:(.+)/);
+          const [integration, externalId] = newValue.value.split(/:(.+)/);
 
           onChange({
             integration,
@@ -129,6 +172,8 @@ const DestinationCalendarSelector = ({
         }}
         isLoading={isLoading}
         value={selectedOption}
+        components={{ SingleValue: SingleValueComponent, Option: OptionComponent }}
+        isMulti={false}
       />
     </div>
   );
