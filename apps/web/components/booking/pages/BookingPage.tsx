@@ -376,7 +376,7 @@ const BookingPage = ({
         bookingUid: router.query.bookingUid as string,
         user: router.query.user,
         location: getEventLocationValue(locations, {
-          type: (booking.locationType ? booking.locationType : selectedLocationType) || undefined,
+          type: (booking.locationType ? booking.locationType : selectedLocationType) || "",
           phone: booking.phone,
         }),
         metadata,
