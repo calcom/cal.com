@@ -420,7 +420,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { locations, metadata, ...restEventType } = rawEventType;
   const eventType = {
     ...restEventType,
-    schedule: rawEventType.schedule?.id || rawEventType.users[0].defaultScheduleId,
+    schedule:
+      rawEventType.schedule?.id ||
+      rawEventType.users.find((user) => user.defaultScheduleId)?.defaultScheduleId,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
     locations: locations as unknown as LocationObject[],
     metadata: (metadata || {}) as JSONObject,
