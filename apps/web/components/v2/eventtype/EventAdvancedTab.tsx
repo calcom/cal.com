@@ -24,6 +24,7 @@ import {
   TextField,
   Tooltip,
 } from "@calcom/ui/v2";
+import CheckboxField from "@calcom/ui/v2/core/form/Checkbox";
 
 import CustomInputTypeForm from "@components/v2/eventtype/CustomInputTypeForm";
 
@@ -429,6 +430,13 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                   onChange(Number(e.target.value));
                 }}
               />
+              <div className="mt-6">
+                <CheckboxField
+                  description={t("show_attendees")}
+                  onChange={(e) => formMethods.setValue("seatsShowAttendees", e.target.checked)}
+                  defaultChecked={!!eventType.seatsShowAttendees}
+                />
+              </div>
             </div>
           )}
         />
