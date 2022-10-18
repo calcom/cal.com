@@ -335,7 +335,13 @@ export type NavigationItemType = {
 
 const requiredCredentialNavigationItems = ["Routing Forms"];
 const MORE_SEPARATOR_NAME = "more";
+
 const navigation: NavigationItemType[] = [
+  {
+    name: "Back to Mento",
+    href: "MENTO_URL",
+    icon: Icon.FiArrowLeft,
+  },
   {
     name: "event_types_page_title",
     href: "/event-types",
@@ -412,15 +418,6 @@ const navigation: NavigationItemType[] = [
   },
 ];
 
-const backToMento: string = (process?.env?.NEXT_PUBLIC_MENTO_COACH_URL as string) || "";
-if (backToMento) {
-  navigation?.unshift({
-    name: "Back to Mento",
-    href: backToMento,
-    icon: Icon.FiArrowLeft,
-  });
-}
-
 const moreSeparatorIndex = navigation.findIndex((item) => item.name === MORE_SEPARATOR_NAME);
 // We create all needed navigation items for the different use cases
 const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMoreItems } = navigation.reduce<
@@ -477,9 +474,18 @@ const NavigationItem: React.FC<{
 
   if (!shouldDisplayNavigationItem) return null;
 
+  // Total HACK: Since adding process.env was failing
+  let mentoUrl = "https://coaching.mento.co";
+  if (window?.location?.origin) {
+    if (window?.location?.origin === "http://localhost:3000") {
+      mentoUrl = "http://localhost:3002";
+    } else if (window?.location?.origin === "https://cal.staging.mento.co")
+      mentoUrl = "https://coaching.mento.co";
+  }
+
   return (
     <Fragment>
-      <Link href={item.href}>
+      <Link href={item.href === "MENTO_URL" ? mentoUrl : item.href}>
         <a
           aria-label={t(item.name)}
           className={classNames(
