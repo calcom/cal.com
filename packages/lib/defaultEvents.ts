@@ -3,6 +3,8 @@ import { PeriodType, Prisma, SchedulingType, UserPlan } from "@prisma/client";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { userSelect } from "@calcom/prisma/selects";
+import { _EventTypeModel } from "@calcom/prisma/zod";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 
@@ -80,11 +82,12 @@ const commons = {
   destinationCalendar: null,
   team: null,
   requiresConfirmation: false,
+  bookingLimits: null,
   hidden: false,
   userId: 0,
   workflows: [],
   users: [user],
-  metadata: {},
+  metadata: EventTypeMetaDataSchema.parse({}),
 };
 
 const min15Event = {

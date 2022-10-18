@@ -8,6 +8,7 @@
   "url": "https://cal.com/apps/rainbow",
   "variant": "web3",
   "categories": ["web3"],
+  "extendsFeature": "EventType",
   "publisher": "hexcowboy",
   "email": "",
   "description": "Web3 integration for token gating on Fungible Tokens, NFTs, and DAOs.",

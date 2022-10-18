@@ -2,8 +2,8 @@ import { Prisma, WebhookTriggerEvents } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
-import getWebhooks from "@calcom/features/webhooks/utils/getWebhooks";
-import { sendGenericWebhookPayload } from "@calcom/lib/webhooks/sendPayload";
+import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { TRPCError } from "@calcom/trpc/server";
 import { createProtectedRouter, createRouter } from "@calcom/trpc/server/createRouter";
 
@@ -175,9 +175,20 @@ const app_RoutingForms = createRouter()
               userId: user.id,
               id: input.id,
             },
+            include: {
+              _count: {
+                select: {
+                  responses: true,
+                },
+              },
+            },
           });
 
-          return form;
+          if (!form) {
+            return null;
+          }
+
+          return getSerializableForm(form);
         },
       })
       .mutation("formMutation", {

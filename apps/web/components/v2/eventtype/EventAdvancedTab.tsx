@@ -1,7 +1,7 @@
 import autoAnimate from "@formkit/auto-animate";
 import { EventTypeCustomInput } from "@prisma/client/";
 import Link from "next/link";
-import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
+import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
 import { useEffect, useRef, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import short from "short-uuid";
@@ -249,7 +249,30 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
         )}
       />
       <hr />
-
+      <Controller
+        name="metadata.additionalNotesRequired"
+        control={formMethods.control}
+        defaultValue={!!eventType.metadata.additionalNotesRequired}
+        render={({ field: { value, onChange } }) => (
+          <div className="flex space-x-3 ">
+            <Switch
+              name="additionalNotesRequired"
+              fitToHeight={true}
+              checked={value}
+              onCheckedChange={(e) => onChange(e)}
+            />
+            <div className="flex flex-col">
+              <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
+                {t("require_additional_notes")}
+              </Skeleton>
+              <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
+                {t("require_additional_notes_description")}
+              </Skeleton>
+            </div>
+          </div>
+        )}
+      />
+      <hr />
       <Controller
         name="successRedirectUrl"
         control={formMethods.control}
@@ -378,8 +401,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               fitToHeight={true}
             />
             <div className="flex flex-col">
-              <Label className="text-sm font-semibold leading-none text-black">{t("offer_seats")}</Label>
-              <p className="-mt-2 text-sm leading-normal text-gray-600">{t("offer_seats_description")}</p>
+              <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
+                {t("offer_seats")}
+              </Skeleton>
+              <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
+                {t("offer_seats_description")}
+              </Skeleton>
             </div>
           </div>
         )}

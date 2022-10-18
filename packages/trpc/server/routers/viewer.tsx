@@ -16,7 +16,9 @@ import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
+import { CAL_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
+import getStripeAppData from "@calcom/lib/getStripeAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import jackson from "@calcom/lib/jackson";
 import {
@@ -36,8 +38,8 @@ import {
   deleteWebUser as syncServicesDeleteWebUser,
   updateWebUser as syncServicesUpdateWebUser,
 } from "@calcom/lib/sync/SyncServiceManager";
-import prisma, { baseEventTypeSelect, bookingMinimalSelect } from "@calcom/prisma";
-import { userMetadata } from "@calcom/prisma/zod-utils";
+import prisma, { baseEventTypeSelect, baseUserSelect, bookingMinimalSelect } from "@calcom/prisma";
+import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 
 import { TRPCError } from "@trpc/server";
@@ -272,17 +274,21 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ ctx }) {
       const { prisma } = ctx;
       const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
-        position: true,
-        successRedirectUrl: true,
         hashedLink: true,
         destinationCalendar: true,
-        team: true,
-        users: {
+        team: {
           select: {
             id: true,
-            username: true,
             name: true,
+            slug: true,
+            // logo: true, // Skipping to avoid 4mb limit
+            bio: true,
+            hideBranding: true,
           },
+        },
+        metadata: true,
+        users: {
+          select: baseUserSelect,
         },
         ...baseEventTypeSelect,
       });
@@ -310,7 +316,6 @@ const loggedInViewerRouter = createProtectedRouter()
                   id: true,
                   name: true,
                   slug: true,
-                  logo: true,
                   members: {
                     select: {
                       userId: true,
@@ -352,21 +357,30 @@ const loggedInViewerRouter = createProtectedRouter()
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
 
-      // backwards compatibility, TMP:
-      const typesRaw = await prisma.eventType.findMany({
-        where: {
-          userId: ctx.user.id,
-        },
-        select: eventTypeSelect,
-        orderBy: [
-          {
-            position: "desc",
-          },
-          {
-            id: "asc",
-          },
-        ],
+      const mapEventType = (eventType: typeof user.eventTypes[number]) => ({
+        ...eventType,
+        // @FIXME: cc @hariombalhara This is failing with production data
+        // metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
       });
+
+      const userEventTypes = user.eventTypes.map(mapEventType);
+      // backwards compatibility, TMP:
+      const typesRaw = (
+        await prisma.eventType.findMany({
+          where: {
+            userId: ctx.user.id,
+          },
+          select: eventTypeSelect,
+          orderBy: [
+            {
+              position: "desc",
+            },
+            {
+              id: "asc",
+            },
+          ],
+        })
+      ).map(mapEventType);
 
       type EventTypeGroup = {
         teamId?: number | null;
@@ -378,11 +392,11 @@ const loggedInViewerRouter = createProtectedRouter()
           membershipCount: number;
           readOnly: boolean;
         };
-        eventTypes: typeof user.eventTypes[number][];
+        eventTypes: typeof userEventTypes;
       };
 
       let eventTypeGroups: EventTypeGroup[] = [];
-      const eventTypesHashMap = user.eventTypes.concat(typesRaw).reduce((hashMap, newItem) => {
+      const eventTypesHashMap = userEventTypes.concat(typesRaw).reduce((hashMap, newItem) => {
         const oldItem = hashMap[newItem.id];
         hashMap[newItem.id] = { ...oldItem, ...newItem };
         return hashMap;
@@ -407,17 +421,16 @@ const loggedInViewerRouter = createProtectedRouter()
           teamId: membership.team.id,
           profile: {
             name: membership.team.name,
-            image: membership.team.logo || "",
+            image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
             slug: "team/" + membership.team.slug,
           },
           metadata: {
             membershipCount: membership.team.members.length,
             readOnly: membership.role === MembershipRole.MEMBER,
           },
-          eventTypes: membership.team.eventTypes,
+          eventTypes: membership.team.eventTypes.map(mapEventType),
         }))
       );
-
       return {
         viewer: {
           plan: user.plan,
@@ -587,6 +600,7 @@ const loggedInViewerRouter = createProtectedRouter()
           status: {
             notIn: [BookingStatus.CANCELLED],
           },
+          userId: user.id,
         },
       });
 
@@ -763,15 +777,37 @@ const loggedInViewerRouter = createProtectedRouter()
       const appId = input.appId;
       const { credentials } = user;
       const apps = getApps(credentials);
-      const appFromDb = apps.find((app) => app.credential?.appId === appId);
+      const appFromDb = apps.find((app) => app.slug === appId);
       if (!appFromDb) {
-        return null;
+        throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find app ${appId}` });
       }
+
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { credential: _, credentials: _1, ...app } = appFromDb;
-      return app;
+      return {
+        isInstalled: appFromDb.credentials.length,
+        ...app,
+      };
     },
   })
+  .query("apps", {
+    input: z.object({
+      extendsFeature: z.literal("EventType"),
+    }),
+    async resolve({ ctx, input }) {
+      const { user } = ctx;
+      const { credentials } = user;
+
+      const apps = getApps(credentials);
+      return apps
+        .filter((app) => app.extendsFeature?.includes(input.extendsFeature))
+        .map((app) => ({
+          ...app,
+          isInstalled: !!app.credentials.length,
+        }));
+    },
+  })
+
   .query("appCredentialsByType", {
     input: z.object({
       appType: z.string(),
@@ -1187,9 +1223,12 @@ const loggedInViewerRouter = createProtectedRouter()
           locations: true,
           destinationCalendar: true,
           price: true,
+          currency: true,
+          metadata: true,
         },
       });
 
+      // TODO: Improve this uninstallation cleanup per event by keeping a relation of EventType to App which has the data.
       for (const eventType of eventTypes) {
         if (eventType.locations) {
           // If it's a video, replace the location with Cal video
@@ -1262,9 +1301,13 @@ const loggedInViewerRouter = createProtectedRouter()
           }
         }
 
+        const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+
+        const stripeAppData = getStripeAppData({ ...eventType, metadata });
+
         // If it's a payment, hide the event type and set the price to 0. Also cancel all pending bookings
         if (credential.app?.categories.includes(AppCategories.payment)) {
-          if (eventType.price) {
+          if (stripeAppData.price) {
             await prisma.$transaction(async () => {
               await prisma.eventType.update({
                 where: {
@@ -1272,7 +1315,16 @@ const loggedInViewerRouter = createProtectedRouter()
                 },
                 data: {
                   hidden: true,
-                  price: 0,
+                  metadata: {
+                    ...metadata,
+                    apps: {
+                      ...metadata?.apps,
+                      stripe: {
+                        ...metadata?.apps?.stripe,
+                        price: 0,
+                      },
+                    },
+                  },
                 },
               });
 
@@ -1436,6 +1488,35 @@ const loggedInViewerRouter = createProtectedRouter()
           id: id,
         },
       });
+    },
+  })
+  .query("bookingUnconfirmedCount", {
+    async resolve({ ctx }) {
+      const { prisma, user } = ctx;
+      const count = await prisma.booking.count({
+        where: {
+          status: BookingStatus.PENDING,
+          userId: user.id,
+          endTime: { gt: new Date() },
+        },
+      });
+      const recurringGrouping = await prisma.booking.groupBy({
+        by: ["recurringEventId"],
+        _count: {
+          recurringEventId: true,
+        },
+        where: {
+          recurringEventId: { not: { equals: null } },
+          status: { equals: "PENDING" },
+          userId: user.id,
+          endTime: { gt: new Date() },
+        },
+      });
+      return recurringGrouping.reduce((prev, current) => {
+        // recurringEventId is the total number of recurring instances for a booking
+        // we need to substract all but one, to represent a single recurring booking
+        return prev - (current._count?.recurringEventId - 1);
+      }, count);
     },
   });
 
