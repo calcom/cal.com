@@ -146,6 +146,7 @@ ${getLocation(calEvent)}
 ${getDescription(calEvent)}
 ${getAdditionalNotes(calEvent)}
 ${getCustomInputs(calEvent)}
+${getAppsStatus(calEvent)}
 ${
   // TODO: Only the original attendee can make changes to the event
   // Guests cannot
