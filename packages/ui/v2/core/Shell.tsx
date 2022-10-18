@@ -430,12 +430,12 @@ const navigation: NavigationItemType[] = [
     href: "/availability",
     icon: Icon.FiClock,
   },
-  {
-    name: "teams",
-    href: "/teams",
-    icon: Icon.FiUsers,
-    onlyDesktop: true,
-  },
+  // {
+  //   name: "teams",
+  //   href: "/teams",
+  //   icon: Icon.FiUsers,
+  //   onlyDesktop: true,
+  // },
   {
     name: "apps",
     href: "/apps",
@@ -484,11 +484,11 @@ const navigation: NavigationItemType[] = [
       return router.asPath.startsWith("/apps/routing-forms/");
     },
   },
-  {
-    name: "workflows",
-    href: "/workflows",
-    icon: Icon.FiZap,
-  },
+  // {
+  //   name: "workflows",
+  //   href: "/workflows",
+  //   icon: Icon.FiZap,
+  // },
   {
     name: "settings",
     href: "/settings",
