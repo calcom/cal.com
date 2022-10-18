@@ -565,6 +565,7 @@ model WorkflowStep {
   emailSubject      String?
   template          WorkflowTemplates  @default(REMINDER)
   workflowReminders WorkflowReminder[]
+  numberRequired    Boolean?
 }
 
 model Workflow {
