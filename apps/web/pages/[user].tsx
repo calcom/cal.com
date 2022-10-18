@@ -110,9 +110,13 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
         description={
           isDynamicGroup ? `Book events with ${dynamicUsernames.join(", ")}` : (user.bio as string) || ""
         }
-        name={isDynamicGroup ? dynamicNames.join(", ") : nameOrUsername}
-        username={isDynamicGroup ? dynamicUsernames.join(", ") : (user.username as string) || ""}
-        // avatar={user.avatar || undefined}
+        meeting={{
+          title: isDynamicGroup ? "" : `${user.bio}`,
+          profile: { name: `${profile.name}`, image: null },
+          users: isDynamicGroup
+            ? dynamicUsernames.map((username, index) => ({ username, name: dynamicNames[index] }))
+            : [{ username: `${user.username}`, name: `${user.name}` }],
+        }}
       />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
 
