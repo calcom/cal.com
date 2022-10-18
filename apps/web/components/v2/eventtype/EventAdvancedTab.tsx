@@ -7,6 +7,7 @@ import { Controller, useFormContext } from "react-hook-form";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
+import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -14,7 +15,6 @@ import { Icon } from "@calcom/ui";
 import {
   Button,
   CustomInputItem,
-  DestinationCalendarSelector,
   Dialog,
   DialogContent,
   Label,
