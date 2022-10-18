@@ -5,25 +5,33 @@ import ConfigDialogForm from "@calcom/features/ee/sso/components/ConfigDialogFor
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
+import { Alert } from "@calcom/ui/Alert";
 import { ClipboardCopyIcon } from "@calcom/ui/Icon";
 import { Button, showToast, Label } from "@calcom/ui/v2";
 import Badge from "@calcom/ui/v2/core/Badge";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import { Dialog, DialogTrigger, DialogContent } from "@calcom/ui/v2/core/Dialog";
+import Meta from "@calcom/ui/v2/core/Meta";
+import SkeletonLoader from "@calcom/ui/v2/core/apps/SkeletonLoader";
 
-export default function SAMLConfiguration({
-  teamsView,
-  teamId,
-}: {
-  teamsView: boolean;
-  teamId: number | null;
-}) {
+export default function SAMLConfiguration({ teamId }: { teamId: number | null }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
+  const [hasError, setHasError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [configModal, setConfigModal] = useState(false);
 
-  const { data: connection } = trpc.useQuery(["viewer.saml.get", { teamsView, teamId }]);
+  const { data: connection, isLoading } = trpc.useQuery(["viewer.saml.get", { teamId }], {
+    onError: (err) => {
+      setHasError(true);
+      setErrorMessage(err.message);
+    },
+    onSuccess: () => {
+      setHasError(false);
+      setErrorMessage("");
+    },
+  });
 
   const mutation = trpc.useMutation("viewer.saml.delete", {
     async onSuccess() {
@@ -41,18 +49,32 @@ export default function SAMLConfiguration({
     });
   };
 
+  if (isLoading) {
+    return <SkeletonLoader />;
+  }
+
+  if (hasError) {
+    return (
+      <>
+        <Meta title={t("saml_config")} description={t("saml_description")} />
+        <Alert severity="warning" message={t(errorMessage)} className="mb-4 " />
+      </>
+    );
+  }
+
   return (
     <>
+      <Meta title={t("saml_config")} description={t("saml_description")} />
       <LicenseRequired>
         <div className="flex flex-col justify-between md:flex-row">
           <div className="mb-3">
             {connection && connection.provider ? (
               <Badge variant="green" bold>
-                SAML SSO Enabled via {connection.provider}
+                SAML SSO enabled via {connection.provider}
               </Badge>
             ) : (
               <Badge variant="gray" bold>
-                Not Enabled
+                {t("saml_not_configured_yet")}
               </Badge>
             )}
           </div>
@@ -63,7 +85,7 @@ export default function SAMLConfiguration({
               onClick={() => {
                 setConfigModal(true);
               }}>
-              Configure
+              {t("saml_btn_configure")}
             </Button>
           </div>
         </div>
@@ -72,14 +94,13 @@ export default function SAMLConfiguration({
         {connection && connection.provider && (
           <>
             <hr className="border-1 my-8 border-gray-200" />
-            <div className="mb-3 text-base font-semibold">Service Provider Details</div>
+            <div className="mb-3 text-base font-semibold">{t("saml_sp_title")}</div>
             <p className="mt-3 text-sm font-normal leading-6 text-gray-700 dark:text-gray-300">
-              Your Identity Provider (IdP) will ask you for the following details to complete the SAML
-              application configuration.
+              {t("saml_sp_description")}
             </p>
             <div className="mt-5 flex flex-col">
               <div className="flex">
-                <Label>ACS URL</Label>
+                <Label>{t("saml_sp_acs_url")}</Label>
               </div>
               <div className="flex">
                 <code className="mr-1 w-full truncate rounded-sm bg-gray-100 py-2 px-3 font-mono text-gray-800">
@@ -88,7 +109,7 @@ export default function SAMLConfiguration({
                 <Button
                   onClick={() => {
                     navigator.clipboard.writeText(connection.acsUrl);
-                    showToast("ACS URL copied!", "success");
+                    showToast(t("saml_sp_acs_url_copied"), "success");
                   }}
                   type="button"
                   className="px-4 text-base">
@@ -99,7 +120,7 @@ export default function SAMLConfiguration({
             </div>
             <div className="mt-5 flex flex-col">
               <div className="flex">
-                <Label>SP Entity ID</Label>
+                <Label>{t("saml_sp_entity_id")}</Label>
               </div>
               <div className="flex">
                 <code className="mr-1 w-full truncate rounded-sm bg-gray-100 py-2 px-3 font-mono text-gray-800">
@@ -108,7 +129,7 @@ export default function SAMLConfiguration({
                 <Button
                   onClick={() => {
                     navigator.clipboard.writeText(connection.entityId);
-                    showToast("SP Entity ID copied!", "success");
+                    showToast(t("saml_sp_entity_id_copied"), "success");
                   }}
                   type="button"
                   className="px-4 text-base">

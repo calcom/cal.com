@@ -1,7 +1,8 @@
-import { PrismaClient, UserPlan } from "@prisma/client";
+import { PrismaClient, UserPlan, User } from "@prisma/client";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
+import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { TRPCError } from "@calcom/trpc/server";
 
 export const samlDatabaseUrl = process.env.SAML_DATABASE_URL || "";
@@ -13,7 +14,7 @@ export const samlProductID = "Cal.com";
 export const samlAudience = "https://saml.cal.com";
 export const samlPath = "/api/auth/saml/callback";
 
-export const hostedCal = WEBAPP_URL === "https://app.cal.com";
+export const hostedCal = HOSTED_CAL_FEATURES;
 export const tenantPrefix = "team-";
 
 const samlAdmins = (process.env.SAML_ADMINS || "").split(",");
@@ -60,14 +61,48 @@ export const samlTenantProduct = async (prisma: PrismaClient, email: string) => 
   };
 };
 
-export const canAccess = (email: string, plan: string, teamsView: boolean) => {
-  if ((teamsView && !HOSTED_CAL_FEATURES) || (!teamsView && HOSTED_CAL_FEATURES)) {
-    return false;
-  }
+export const canAccess = async (
+  user: { id: number; plan: UserPlan; email: string },
+  teamId: number | null
+) => {
+  const { id: userId, plan, email } = user;
 
   if (!isSAMLLoginEnabled) {
-    return false;
+    return {
+      message: "To enable this feature, add value for `SAML_DATABASE_URL` and `SAML_ADMINS` to your `.env`",
+      access: false,
+    };
   }
 
-  return teamsView ? plan === UserPlan.PRO : isSAMLAdmin(email);
+  // Hosted
+  if (HOSTED_CAL_FEATURES) {
+    if (teamId === null || !(await isTeamAdmin(userId, teamId))) {
+      return {
+        message: "dont_have_permission",
+        access: false,
+      };
+    }
+
+    if (plan != UserPlan.PRO) {
+      return {
+        message: "app_upgrade_description",
+        access: false,
+      };
+    }
+  }
+
+  // Self-hosted
+  if (!HOSTED_CAL_FEATURES) {
+    if (!isSAMLAdmin(email)) {
+      return {
+        message: "dont_have_permission",
+        access: false,
+      };
+    }
+  }
+
+  return {
+    message: "success",
+    access: true,
+  };
 };
