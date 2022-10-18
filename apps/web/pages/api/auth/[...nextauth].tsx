@@ -12,7 +12,7 @@ import path from "path";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
-import { hostedCal, isSAMLLoginEnabled, samlLoginUrl } from "@calcom/features/ee/sso/lib/saml";
+import { hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
@@ -135,7 +135,7 @@ if (isSAMLLoginEnabled) {
     version: "2.0",
     checks: ["pkce", "state"],
     authorization: {
-      url: `${samlLoginUrl}/api/auth/saml/authorize`,
+      url: `${WEBAPP_URL}/api/auth/saml/authorize`,
       params: {
         scope: "",
         response_type: "code",
@@ -143,10 +143,10 @@ if (isSAMLLoginEnabled) {
       },
     },
     token: {
-      url: `${samlLoginUrl}/api/auth/saml/token`,
+      url: `${WEBAPP_URL}/api/auth/saml/token`,
       params: { grant_type: "authorization_code" },
     },
-    userinfo: `${samlLoginUrl}/api/auth/saml/userinfo`,
+    userinfo: `${WEBAPP_URL}/api/auth/saml/userinfo`,
     profile: (profile) => {
       return {
         id: profile.id || "",

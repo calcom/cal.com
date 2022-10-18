@@ -1,12 +1,10 @@
 import { PrismaClient, UserPlan } from "@prisma/client";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { TRPCError } from "@calcom/trpc/server";
 
 export const samlDatabaseUrl = process.env.SAML_DATABASE_URL || "";
-export const samlLoginUrl = WEBAPP_URL;
 export const isSAMLLoginEnabled = samlDatabaseUrl.length > 0;
 
 export const samlTenantID = "Cal.com";
