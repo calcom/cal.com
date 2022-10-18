@@ -81,7 +81,7 @@ export default function Availability({ schedule }: { schedule: number }) {
 
   return (
     <Shell
-      backPath="/availability"
+      backPath
       title={data?.schedule.name && data.schedule.name + " | " + t("availability")}
       heading={
         <Controller
