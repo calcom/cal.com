@@ -359,7 +359,9 @@ const BookingPage = ({
         hasHashedBookingLink,
         hashedLink,
         smsReminderNumber:
-          selectedLocationType === LocationType.Phone ? booking.phone : booking.smsReminderNumber || undefined,
+          selectedLocationType === LocationType.Phone
+            ? booking.phone
+            : booking.smsReminderNumber || undefined,
         ethSignature: gateState.rainbowToken,
       }));
       recurringMutation.mutate(recurringBookings);
@@ -387,7 +389,9 @@ const BookingPage = ({
         hasHashedBookingLink,
         hashedLink,
         smsReminderNumber:
-          selectedLocationType === LocationType.Phone ? booking.phone : booking.smsReminderNumber || undefined,
+          selectedLocationType === LocationType.Phone
+            ? booking.phone
+            : booking.smsReminderNumber || undefined,
         ethSignature: gateState.rainbowToken,
       });
     }
@@ -458,10 +462,10 @@ const BookingPage = ({
             "dark:border-darkgray-300 rounded-md sm:border"
           )}>
           <div className="sm:flex">
-            <div className="flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:dark:border-darkgray-300 dark:text-darkgray-600 sm:w-1/2 sm:border-r sm:pb-6">
+            <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
               <BookingDescription isBookingPage profile={profile} eventType={eventType}>
                 {stripeAppData.price > 0 && (
-                  <p className="px-2 -ml-2 text-sm text-bookinglight ">
+                  <p className="text-bookinglight -ml-2 px-2 text-sm ">
                     <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                     <IntlProvider locale="en">
                       <FormattedNumber
@@ -475,7 +479,7 @@ const BookingPage = ({
                 {!rescheduleUid && eventType.recurringEvent?.freq && recurringEventCount && (
                   <div className="items-start text-sm font-medium text-gray-600 dark:text-white">
                     <Icon.FiRefreshCw className="mr-[10px] ml-[2px] inline-block h-4 w-4" />
-                    <p className="items-center inline-block px-2 -ml-2">
+                    <p className="-ml-2 inline-block items-center px-2">
                       {getEveryFreqFor({
                         t,
                         recurringEvent: eventType.recurringEvent,
@@ -484,7 +488,7 @@ const BookingPage = ({
                     </p>
                   </div>
                 )}
-                <div className="flex items-start text-sm text-bookinghighlight">
+                <div className="text-bookinghighlight flex items-start text-sm">
                   <Icon.FiCalendar className="mr-[10px] ml-[2px] mt-[2px] inline-block h-4 w-4" />
                   <div className="text-sm font-medium">
                     {(rescheduleUid || !eventType.recurringEvent?.freq) &&
@@ -498,7 +502,7 @@ const BookingPage = ({
                           content={recurringStrings.slice(5).map((aDate, key) => (
                             <p key={key}>{aDate}</p>
                           ))}>
-                          <p className="text-sm dark:text-darkgray-600">
+                          <p className="dark:text-darkgray-600 text-sm">
                             {t("plus_more", { count: recurringStrings.length - 5 })}
                           </p>
                         </Tooltip>
@@ -518,7 +522,7 @@ const BookingPage = ({
                   </div>
                 )}
                 {!!eventType.seatsPerTimeSlot && (
-                  <div className="flex items-start text-sm text-bookinghighlight">
+                  <div className="text-bookinghighlight flex items-start text-sm">
                     <Icon.FiUser className="mr-[10px] ml-[2px] mt-[2px] inline-block h-4 w-4" />
                     <p
                       className={`${
@@ -573,8 +577,8 @@ const BookingPage = ({
                       disabled={disableInput}
                     />
                     {bookingForm.formState.errors.email && (
-                      <div className="flex items-center mt-2 text-sm text-red-700 ">
-                        <Icon.FiInfo className="w-3 h-3 mr-2" />
+                      <div className="mt-2 flex items-center text-sm text-red-700 ">
+                        <Icon.FiInfo className="mr-2 h-3 w-3" />
                         <p>{t("email_validation_error")}</p>
                       </div>
                     )}
@@ -606,7 +610,7 @@ const BookingPage = ({
                                 <input
                                   type="radio"
                                   disabled={!!disableLocations}
-                                  className="w-4 h-4 text-black border-gray-300 location dark:bg-darkgray-300 dark:border-darkgray-300 focus:ring-black ltr:mr-2 rtl:ml-2"
+                                  className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
                                   {...bookingForm.register("locationType", { required: true })}
                                   value={location.type}
                                   defaultChecked={i === 0}
@@ -641,8 +645,8 @@ const BookingPage = ({
                       />
                     </div>
                     {bookingForm.formState.errors.phone && (
-                      <div className="flex items-center mt-2 text-sm text-red-700 ">
-                        <Icon.FiInfo className="w-3 h-3 mr-2" />
+                      <div className="mt-2 flex items-center text-sm text-red-700 ">
+                        <Icon.FiInfo className="mr-2 h-3 w-3" />
                         <p>{t("invalid_number")}</p>
                       </div>
                     )}
@@ -655,7 +659,7 @@ const BookingPage = ({
                       {input.type !== EventTypeCustomInputType.BOOL && (
                         <label
                           htmlFor={"custom_" + input.id}
-                          className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
+                          className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
                           {input.label}
                         </label>
                       )}
@@ -708,13 +712,13 @@ const BookingPage = ({
                               })}
                               required={input.required}
                               id={"custom_" + input.id}
-                              className="w-4 h-4 text-black border-gray-300 rounded focus:ring-black disabled:bg-gray-200 ltr:mr-2 rtl:ml-2 disabled:dark:text-gray-500"
+                              className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black disabled:bg-gray-200 ltr:mr-2 rtl:ml-2 disabled:dark:text-gray-500"
                               placeholder=""
                               disabled={disabledExceptForOwner}
                             />
                             <label
                               htmlFor={"custom_" + input.id}
-                              className="block -mt-px text-sm font-medium text-gray-700 dark:text-white">
+                              className="-mt-px block text-sm font-medium text-gray-700 dark:text-white">
                               {input.label}
                             </label>
                           </div>
@@ -727,7 +731,7 @@ const BookingPage = ({
                     <div>
                       <label
                         htmlFor="guests"
-                        className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
+                        className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
                         {t("guests")}
                       </label>
                       {!disableInput && (
@@ -793,8 +797,8 @@ const BookingPage = ({
                       />
                     </div>
                     {bookingForm.formState.errors.smsReminderNumber && (
-                      <div className="flex items-center mt-2 text-sm text-red-700 ">
-                        <Icon.FiInfo className="w-3 h-3 mr-2" />
+                      <div className="mt-2 flex items-center text-sm text-red-700 ">
+                        <Icon.FiInfo className="mr-2 h-3 w-3" />
                         <p>{t("invalid_number")}</p>
                       </div>
                     )}
@@ -803,7 +807,7 @@ const BookingPage = ({
                 <div className="mb-4">
                   <label
                     htmlFor="notes"
-                    className="block mb-1 text-sm font-medium text-gray-700 dark:text-white">
+                    className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
                     {rescheduleUid ? t("reschedule_optional") : t("additional_notes")}
                   </label>
                   {rescheduleUid ? (
@@ -851,7 +855,7 @@ const BookingPage = ({
                   </Button>
                   <Button
                     type="submit"
-                    className="mr-auto dark:bg-darkmodebrand dark:text-darkmodebrandcontrast dark:hover:border-darkmodebrandcontrast dark:border-transparent"
+                    className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast dark:hover:border-darkmodebrandcontrast mr-auto dark:border-transparent"
                     data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
                     loading={mutation.isLoading || recurringMutation.isLoading}>
                     {rescheduleUid ? t("reschedule") : t("confirm")}
@@ -876,10 +880,10 @@ function ErrorMessage({ error }: { error: unknown }) {
   const { query: { rescheduleUid } = {} } = useRouter();
 
   return (
-    <div data-testid="booking-fail" className="p-4 mt-2 border-l-4 border-yellow-400 bg-yellow-50">
+    <div data-testid="booking-fail" className="mt-2 border-l-4 border-yellow-400 bg-yellow-50 p-4">
       <div className="flex">
         <div className="flex-shrink-0">
-          <Icon.FiAlertTriangle className="w-5 h-5 text-yellow-400" aria-hidden="true" />
+          <Icon.FiAlertTriangle className="h-5 w-5 text-yellow-400" aria-hidden="true" />
         </div>
         <div className="ltr:ml-3 rtl:mr-3">
           <p className="text-sm text-yellow-700">
