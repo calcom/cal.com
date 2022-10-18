@@ -186,7 +186,7 @@ function BookingListItem(booking: BookingItemProps) {
 
   const location = booking.location || "";
 
-  const onClickTableData = (ev: React.MouseEvent<HTMLDivElement>) => {
+  const onClickTableData = () => {
     router.push({
       pathname: "/success",
       query: {
