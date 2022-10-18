@@ -303,6 +303,7 @@ export default class EventManager {
   private async createAllCalendarEvents(event: CalendarEvent) {
     /** Can I use destinationCalendar here? */
     /* How can I link a DC to a cred? */
+    let createdEvents: EventResult<NewCalendarEventType>[] = [];
     if (event.destinationCalendar) {
       if (event.destinationCalendar.credentialId) {
         const credential = await prisma.credential.findFirst({
@@ -312,25 +313,38 @@ export default class EventManager {
         });
 
         if (credential) {
-          return [await createEvent(credential, event)];
+          createdEvents.push(await createEvent(credential, event));
         }
+      } else {
+        const destinationCalendarCredentials = this.calendarCredentials.filter(
+          (c) => c.type === event.destinationCalendar?.integration
+        );
+        createdEvents = createdEvents.concat(
+          await Promise.all(destinationCalendarCredentials.map(async (c) => await createEvent(c, event)))
+        );
       }
-
-      const destinationCalendarCredentials = this.calendarCredentials.filter(
-        (c) => c.type === event.destinationCalendar?.integration
-      );
-      return Promise.all(destinationCalendarCredentials.map(async (c) => await createEvent(c, event)));
+    } else {
+      /**
+       *  Not ideal but, if we don't find a destination calendar,
+       * fallback to the first connected calendar
+       */
+      const [credential] = this.calendarCredentials;
+      if (!credential) {
+        return [];
+      }
+      createdEvents.push(await createEvent(credential, event));
     }
 
-    /**
-     *  Not ideal but, if we don't find a destination calendar,
-     * fallback to the first connected calendar
-     */
-    const [credential] = this.calendarCredentials;
-    if (!credential) {
-      return [];
-    }
-    return [await createEvent(credential, event)];
+    // Taking care of non-traditional calendar integrations
+    createdEvents = createdEvents.concat(
+      await Promise.all(
+        this.calendarCredentials
+          .filter((cred) => cred.type.includes("other_calendar"))
+          .map(async (cred) => await createEvent(cred, event))
+      )
+    );
+
+    return createdEvents;
   }
 
   /**

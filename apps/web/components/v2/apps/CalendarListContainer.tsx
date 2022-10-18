@@ -7,10 +7,9 @@ import DestinationCalendarSelector from "@calcom/features/calendars/DestinationC
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
-import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
-import { Alert, EmptyScreen } from "@calcom/ui/v2";
+import { Alert, Button, EmptyScreen } from "@calcom/ui/v2";
 import { List } from "@calcom/ui/v2/core/List";
 import { ShellSubHeading } from "@calcom/ui/v2/core/Shell";
 import Switch from "@calcom/ui/v2/core/Switch";
@@ -141,6 +140,7 @@ function CalendarList(props: Props) {
   );
 }
 
+// todo: @hariom extract this into packages/apps-store as "GeneralAppSettings"
 function ConnectedCalendarsList(props: Props) {
   const { t } = useLocale();
   const query = trpc.useQuery(["viewer.connectedCalendars"], { suspense: true });
@@ -163,6 +163,7 @@ function ConnectedCalendarsList(props: Props) {
                     title={item.integration.title}
                     logo={item.integration.logo}
                     description={item.primary?.externalId || "No external Id"}
+                    separate={true}
                     actions={
                       <div className="flex w-32 justify-end">
                         <DisconnectIntegration
@@ -173,23 +174,27 @@ function ConnectedCalendarsList(props: Props) {
                         />
                       </div>
                     }>
-                    {!fromOnboarding && (
-                      <>
-                        <p className="px-4 pt-4 text-sm text-neutral-500">{t("toggle_calendars_conflict")}</p>
-                        <ul className="space-y-2 p-4">
-                          {item.calendars.map((cal) => (
-                            <CalendarSwitch
-                              key={cal.externalId}
-                              externalId={cal.externalId}
-                              title={cal.name || "Nameless calendar"}
-                              type={item.integration.type}
-                              defaultSelected={cal.isSelected}
-                              destination={cal.externalId === props.destinationCalendarId}
-                            />
-                          ))}
-                        </ul>
-                      </>
-                    )}
+                    <div className="border-t border-gray-200">
+                      {!fromOnboarding && (
+                        <>
+                          <p className="px-4 pt-4 text-sm text-neutral-500">
+                            {t("toggle_calendars_conflict")}
+                          </p>
+                          <ul className="space-y-2 p-4">
+                            {item.calendars.map((cal) => (
+                              <CalendarSwitch
+                                key={cal.externalId}
+                                externalId={cal.externalId}
+                                title={cal.name || "Nameless calendar"}
+                                type={item.integration.type}
+                                defaultSelected={cal.isSelected}
+                                destination={cal.externalId === props.destinationCalendarId}
+                              />
+                            ))}
+                          </ul>
+                        </>
+                      )}
+                    </div>
                   </IntegrationListItem>
                 ) : (
                   <Alert
@@ -258,11 +263,11 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                     <ShellSubHeading
                       title={t("calendar")}
                       subtitle={t("installed_app_calendar_description")}
-                      className="mb-0 flex flex-wrap items-center gap-4 md:mb-3 md:gap-0"
+                      className="mb-0 flex flex-wrap items-center gap-4 sm:flex-nowrap md:mb-3 md:gap-0"
                       actions={
                         <div className="flex flex-col xl:flex-row xl:space-x-5">
                           {!!data.connectedCalendars.length && (
-                            <div className=" flex items-center">
+                            <div className="flex items-center">
                               <AdditionalCalendarSelector isLoading={mutation.isLoading} />
                             </div>
                           )}

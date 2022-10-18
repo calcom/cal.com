@@ -406,6 +406,7 @@ model Webhook {
   id              String                 @id @unique
   userId          Int?
   eventTypeId     Int?
+  /// @zod.url()
   subscriberUrl   String
   payloadTemplate String?
   createdAt       DateTime               @default(now())
@@ -564,6 +565,7 @@ model WorkflowStep {
   emailSubject      String?
   template          WorkflowTemplates  @default(REMINDER)
   workflowReminders WorkflowReminder[]
+  numberRequired    Boolean?
 }
 
 model Workflow {

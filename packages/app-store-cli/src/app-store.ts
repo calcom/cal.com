@@ -198,6 +198,15 @@ function generateFiles() {
     })
   );
 
+  // TODO: Make a component map creator that accepts ComponentName and does the rest.
+  // TODO: dailyvideo has a slug of daily-video, so that mapping needs to be taken care of. But it is an old app, so it doesn't need AppSettings
+  browserOutput.push(
+    ...getObjectExporter("AppSettingsComponentsMap", {
+      fileToBeImported: "components/AppSettings.tsx",
+      entryBuilder: (app) => `  ${app.name}: dynamic(() =>import("./${app.path}/components/AppSettings")),`,
+    })
+  );
+
   browserOutput.push(
     ...getObjectExporter("EventTypeAddonMap", {
       fileToBeImported: path.join("extensions", "EventTypeAppCard.tsx"),

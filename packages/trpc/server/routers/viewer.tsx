@@ -9,7 +9,6 @@ import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/custom
 import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
 import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
-import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { DailyLocationType } from "@calcom/core/location";
@@ -17,6 +16,7 @@ import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
+import { CAL_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -39,7 +39,7 @@ import {
   updateWebUser as syncServicesUpdateWebUser,
 } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { baseEventTypeSelect, baseUserSelect, bookingMinimalSelect } from "@calcom/prisma";
-import { userMetadata, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 
 import { TRPCError } from "@trpc/server";
@@ -276,7 +276,16 @@ const loggedInViewerRouter = createProtectedRouter()
       const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
         hashedLink: true,
         destinationCalendar: true,
-        team: true,
+        team: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            // logo: true, // Skipping to avoid 4mb limit
+            bio: true,
+            hideBranding: true,
+          },
+        },
         metadata: true,
         users: {
           select: baseUserSelect,
@@ -307,7 +316,6 @@ const loggedInViewerRouter = createProtectedRouter()
                   id: true,
                   name: true,
                   slug: true,
-                  logo: true,
                   members: {
                     select: {
                       userId: true,
@@ -349,10 +357,13 @@ const loggedInViewerRouter = createProtectedRouter()
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
 
-      const userEventTypes = user.eventTypes.map((eventType) => ({
+      const mapEventType = (eventType: typeof user.eventTypes[number]) => ({
         ...eventType,
-        metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-      }));
+        // @FIXME: cc @hariombalhara This is failing with production data
+        // metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+      });
+
+      const userEventTypes = user.eventTypes.map(mapEventType);
       // backwards compatibility, TMP:
       const typesRaw = (
         await prisma.eventType.findMany({
@@ -369,10 +380,7 @@ const loggedInViewerRouter = createProtectedRouter()
             },
           ],
         })
-      ).map((eventType) => ({
-        ...eventType,
-        metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-      }));
+      ).map(mapEventType);
 
       type EventTypeGroup = {
         teamId?: number | null;
@@ -413,17 +421,14 @@ const loggedInViewerRouter = createProtectedRouter()
           teamId: membership.team.id,
           profile: {
             name: membership.team.name,
-            image: membership.team.logo || "",
+            image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
             slug: "team/" + membership.team.slug,
           },
           metadata: {
             membershipCount: membership.team.members.length,
             readOnly: membership.role === MembershipRole.MEMBER,
           },
-          eventTypes: membership.team.eventTypes.map((eventType) => ({
-            ...eventType,
-            metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-          })),
+          eventTypes: membership.team.eventTypes.map(mapEventType),
         }))
       );
       return {

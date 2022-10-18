@@ -19,6 +19,7 @@ import { Icon } from "@calcom/ui/Icon";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { Button, DialogClose, DialogContent } from "@calcom/ui/v2";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
+import CheckboxField from "@calcom/ui/v2/core/form/Checkbox";
 import { EmailField, Label, TextArea } from "@calcom/ui/v2/core/form/fields";
 import Select from "@calcom/ui/v2/core/form/select";
 
@@ -305,9 +306,22 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   }}
                 />
                 {form.getValues(`steps.${step.stepNumber - 1}.action`) === WorkflowActions.SMS_ATTENDEE && (
-                  <div className="mt-2 flex items-center text-sm text-gray-600">
-                    <Icon.FiInfo className="mr-2 h-3 w-3" />
-                    <p>{t("attendee_required_enter_number")}</p>
+                  <div className="mt-5">
+                    <Controller
+                      name={`steps.${step.stepNumber - 1}.numberRequired`}
+                      control={form.control}
+                      render={() => (
+                        <CheckboxField
+                          defaultChecked={
+                            form.getValues(`steps.${step.stepNumber - 1}.numberRequired`) || false
+                          }
+                          description={t("make_phone_number_required")}
+                          onChange={(e) =>
+                            form.setValue(`steps.${step.stepNumber - 1}.numberRequired`, e.target.checked)
+                          }
+                        />
+                      )}
+                    />
                   </div>
                 )}
               </div>

@@ -19,6 +19,7 @@ import {
   getEventLocationValue,
   getEventLocationType,
   EventLocationType,
+  getHumanReadableLocationValue,
 } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
@@ -53,8 +54,6 @@ import slugify from "@lib/slugify";
 
 import Gates, { Gate, GateState } from "@components/Gates";
 import BookingDescription from "@components/booking/BookingDescription";
-import { UserAvatars } from "@components/booking/UserAvatars";
-import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";
@@ -135,7 +134,7 @@ const BookingPage = ({
           date,
           type: eventType.id,
           eventSlug: eventType.slug,
-          user: profile.slug,
+          username: profile.slug,
           reschedule: !!rescheduleUid,
           name: attendees[0].name,
           email: attendees[0].email,
@@ -168,7 +167,7 @@ const BookingPage = ({
           type: eventType.id,
           eventSlug: eventType.slug,
           recur: recurringEventId,
-          user: profile.slug,
+          username: profile.slug,
           reschedule: !!rescheduleUid,
           name: attendees[0].name,
           email: attendees[0].email,
@@ -267,7 +266,8 @@ const BookingPage = ({
       smsReminderNumber: z
         .string()
         .refine((val) => isValidPhoneNumber(val))
-        .optional(),
+        .optional()
+        .nullable(),
     })
     .passthrough();
 
@@ -359,7 +359,9 @@ const BookingPage = ({
         hasHashedBookingLink,
         hashedLink,
         smsReminderNumber:
-          selectedLocationType === LocationType.Phone ? booking.phone : booking.smsReminderNumber,
+          selectedLocationType === LocationType.Phone
+            ? booking.phone
+            : booking.smsReminderNumber || undefined,
         ethSignature: gateState.rainbowToken,
       }));
       recurringMutation.mutate(recurringBookings);
@@ -387,7 +389,9 @@ const BookingPage = ({
         hasHashedBookingLink,
         hashedLink,
         smsReminderNumber:
-          selectedLocationType === LocationType.Phone ? booking.phone : booking.smsReminderNumber,
+          selectedLocationType === LocationType.Phone
+            ? booking.phone
+            : booking.smsReminderNumber || undefined,
         ethSignature: gateState.rainbowToken,
       });
     }
@@ -401,6 +405,7 @@ const BookingPage = ({
     "dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500";
 
   let isSmsReminderNumberNeeded = false;
+  let isSmsReminderNumberRequired = false;
 
   if (eventType.workflows.length > 0) {
     eventType.workflows.forEach((workflowReference) => {
@@ -408,6 +413,7 @@ const BookingPage = ({
         workflowReference.workflow.steps.forEach((step) => {
           if (step.action === WorkflowActions.SMS_ATTENDEE) {
             isSmsReminderNumberNeeded = true;
+            isSmsReminderNumberRequired = step.numberRequired || false;
             return;
           }
         });
@@ -578,37 +584,48 @@ const BookingPage = ({
                     )}
                   </div>
                 </div>
-                {locations.length > 1 && (
-                  <div className="mb-4">
+                <div className="mb-4">
+                  <>
                     <span className="block text-sm font-medium text-gray-700 dark:text-white">
                       {t("location")}
                     </span>
-                    {locations.map((location, i) => {
-                      const locationString = locationKeyToString(location);
-                      // TODO: Right now selectedLocationType isn't send by getSSP. Once that's available defaultChecked should work and show the location in the original booking
-                      const defaultChecked = rescheduleUid ? selectedLocationType === location.type : i === 0;
-                      if (typeof locationString !== "string") {
-                        // It's possible that location app got uninstalled
-                        return null;
-                      }
-                      return (
-                        <label key={i} className="block">
-                          <input
-                            type="radio"
-                            disabled={!!disableLocations}
-                            className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
-                            {...bookingForm.register("locationType", { required: true })}
-                            value={location.type}
-                            defaultChecked={defaultChecked}
-                          />
-                          <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-white">
-                            {locationKeyToString(location)}
-                          </span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                )}
+                    {rescheduleUid ? (
+                      <p className="mt-1 text-sm text-gray-500">
+                        {getHumanReadableLocationValue(booking?.location, t)}
+                      </p>
+                    ) : (
+                      locations.length > 1 && (
+                        <>
+                          {locations.map((location, i) => {
+                            const locationString = locationKeyToString(location);
+                            if (!selectedLocationType) {
+                              bookingForm.setValue("locationType", locations[0].type);
+                            }
+                            if (typeof locationString !== "string") {
+                              // It's possible that location app got uninstalled
+                              return null;
+                            }
+                            return (
+                              <label key={i} className="block">
+                                <input
+                                  type="radio"
+                                  disabled={!!disableLocations}
+                                  className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
+                                  {...bookingForm.register("locationType", { required: true })}
+                                  value={location.type}
+                                  defaultChecked={i === 0}
+                                />
+                                <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-white">
+                                  {locationKeyToString(location)}
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </>
+                      )
+                    )}
+                  </>
+                </div>
                 {/* TODO: Change name and id ="phone" to something generic */}
                 {AttendeeInput && (
                   <div className="mb-4">
@@ -776,7 +793,7 @@ const BookingPage = ({
                         name="smsReminderNumber"
                         placeholder={t("enter_phone_number")}
                         id="smsReminderNumber"
-                        required
+                        required={isSmsReminderNumberRequired}
                       />
                     </div>
                     {bookingForm.formState.errors.smsReminderNumber && (
@@ -805,6 +822,7 @@ const BookingPage = ({
                   ) : (
                     <textarea
                       {...bookingForm.register("notes")}
+                      required={!!eventType.metadata.additionalNotesRequired}
                       id="notes"
                       name="notes"
                       rows={3}

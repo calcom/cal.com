@@ -178,6 +178,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     ).length;
   }
 
+  const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
+    eventType.slug
+  }`;
+
   const tabMap = {
     setup: (
       <EventSetupTab
@@ -199,7 +203,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
-    apps: <EventAppsTab eventType={eventType} />,
+    apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
     workflows: (
       <EventWorkflowsTab
         eventType={eventType}
