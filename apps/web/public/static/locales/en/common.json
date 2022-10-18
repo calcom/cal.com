@@ -1191,7 +1191,6 @@
   "additional_notes_info": "The Additional notes of booking",
   "attendee_name_info": "The person booking's name",
   "to": "To",
-  "attendee_required_enter_number": "This will require the attendee to enter a phone number when booking",
   "workflow_turned_on_successfully": "{{workflowName}} workflow turned {{offOn}} successfully",
   "download_responses": "Download Responses",
   "create_your_first_form": "Create your first form",
@@ -1314,5 +1313,6 @@
   "how_long_after": "How long after event ends?",
   "no_available_slots": "No Available slots",
   "time_available": "Time available",
-  "install_new_calendar_app": "Install new calendar app"
+  "install_new_calendar_app": "Install new calendar app",
+  "make_phone_number_required": "Make phone number required for booking event"
 }
