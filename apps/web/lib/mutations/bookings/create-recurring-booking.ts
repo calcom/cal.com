@@ -12,10 +12,11 @@ const createRecurringBooking = async (data: ExtendedBookingCreateBody[]) => {
   const createdBookings: BookingResponse[] = [];
   // Reversing to accumulate results for noEmail instances first, to then lastly, create the
   // emailed booking taking into account accumulated results to send app status accurately
-  for (const [key, booking] of data.reverse().entries()) {
+  for (let key = 0; key < data.length; key++) {
+    const booking = data[key];
     if (key === data.length - 1) {
-      const calcAppsStatus = createdBookings
-        .flatMap((book) => book.appsStatus)
+      const calcAppsStatus: { [key: string]: AppsStatus } = createdBookings
+        .flatMap((book) => (book.appsStatus !== undefined ? book.appsStatus : []))
         .reduce((prev, curr) => {
           if (prev[curr.type]) {
             prev[curr.type].failures += curr.failures;
