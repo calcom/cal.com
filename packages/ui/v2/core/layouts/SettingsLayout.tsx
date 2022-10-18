@@ -44,12 +44,12 @@ const tabs: VerticalTabItemProps[] = [
       { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
     ],
   },
-  {
-    name: "billing",
-    href: "/settings/billing",
-    icon: Icon.FiCreditCard,
-    children: [{ name: "manage_billing", href: "/settings/billing" }],
-  },
+  // {
+  //   name: "billing",
+  //   href: "/settings/billing",
+  //   icon: Icon.FiCreditCard,
+  //   children: [{ name: "manage_billing", href: "/settings/billing" }],
+  // },
   {
     name: "developer",
     href: "/settings/developer",
@@ -62,12 +62,12 @@ const tabs: VerticalTabItemProps[] = [
       // { name: "embeds", href: "/v2/settings/developer/embeds" },
     ],
   },
-  {
-    name: "teams",
-    href: "/settings/teams",
-    icon: Icon.FiUsers,
-    children: [],
-  },
+  // {
+  //   name: "teams",
+  //   href: "/settings/teams",
+  //   icon: Icon.FiUsers,
+  //   children: [],
+  // },
   {
     name: "admin",
     href: "/settings/admin",
