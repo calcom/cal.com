@@ -247,7 +247,6 @@ export class Cal {
         },
       },
     });
-    const isCalPageOptimized = calLink.includes("forms/");
     config = config || {};
     // Keeping auto-scroll disabled for two reasons:
     // - If user scrolls the content to an appropriate position, it again resets it to default position which might not be for the liking of the user
@@ -268,9 +267,7 @@ export class Cal {
       throw new Error("Element not found");
     }
     const template = document.createElement("template");
-    template.innerHTML = `<cal-inline ${
-      isCalPageOptimized ? 'loading="done"' : ""
-    } style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%"></cal-inline>`;
+    template.innerHTML = `<cal-inline style="max-height:inherit;height:inherit;min-height:inherit;display:flex;position:relative;flex-wrap:wrap;width:100%"></cal-inline>`;
     this.inlineEl = template.content.children[0];
     (this.inlineEl as unknown as any).__CalAutoScroll = config.__autoScroll;
     this.inlineEl.appendChild(iframe);
