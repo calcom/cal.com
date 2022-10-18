@@ -1,14 +1,14 @@
 import {
+  BookingReference,
   BookingStatus,
+  EventType,
   Prisma,
   SchedulingType,
+  User,
   WebhookTriggerEvents,
   Workflow,
   WorkflowsOnEventTypes,
   WorkflowStep,
-  BookingReference,
-  EventType,
-  User,
 } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 import { z } from "zod";
@@ -22,17 +22,20 @@ import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builde
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
-import { sendRequestRescheduleEmail } from "@calcom/emails";
-import { sendDeclinedEmails, sendLocationChangeEmails, sendScheduledEmails } from "@calcom/emails";
+import {
+  sendDeclinedEmails,
+  sendLocationChangeEmails,
+  sendRequestRescheduleEmail,
+  sendScheduledEmails,
+} from "@calcom/emails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { bookingConfirmPatchBodySchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, Person } from "@calcom/types/Calendar";
-
-import sendPayload from "@lib/webhooks/sendPayload";
 
 import { TRPCError } from "@trpc/server";
 
