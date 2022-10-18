@@ -16,16 +16,16 @@ const PoweredByCal = () => {
             // eslint-disable-next-line @next/next/no-img-element
             <img
               className="relative -mt-px inline h-[10px] w-auto dark:hidden"
-              src="/cal-logo-word.svg"
-              alt="Cal.com Logo"
+              src="/favicon.png"
+              alt="Pesto Logo"
             />
           }
           {
             // eslint-disable-next-line @next/next/no-img-element
             <img
               className="relativ -mt-px hidden h-[10px] w-auto dark:inline"
-              src="/cal-logo-word-dark.svg"
-              alt="Cal.com Logo"
+              src="/favicon.png"
+              alt="Pesto Logo"
             />
           }
         </a>

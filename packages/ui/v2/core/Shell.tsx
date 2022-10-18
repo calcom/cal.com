@@ -430,47 +430,47 @@ const navigation: NavigationItemType[] = [
     href: "/availability",
     icon: Icon.FiClock,
   },
-  {
-    name: "teams",
-    href: "/teams",
-    icon: Icon.FiUsers,
-    onlyDesktop: true,
-  },
-  {
-    name: "apps",
-    href: "/apps",
-    icon: Icon.FiGrid,
-    isCurrent: ({ router, item }) => {
-      const path = router.asPath.split("?")[0];
-      // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-      return (
-        (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) && !path.includes("routing-forms/")
-      );
-    },
-    child: [
-      {
-        name: "app_store",
-        href: "/apps",
-        isCurrent: ({ router, item }) => {
-          const path = router.asPath.split("?")[0];
-          // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
-          return (
-            (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) &&
-            !path.includes("routing-forms/") &&
-            !path.includes("/installed")
-          );
-        },
-      },
-      {
-        name: "installed_apps",
-        href: "/apps/installed/calendar",
-        isCurrent: ({ router }) => {
-          const path = router.asPath;
-          return path.startsWith("/apps/installed/") || path.startsWith("/v2/apps/installed/");
-        },
-      },
-    ],
-  },
+  // {
+  //   name: "teams",
+  //   href: "/teams",
+  //   icon: Icon.FiUsers,
+  //   onlyDesktop: true,
+  // },
+  // {
+  //   name: "apps",
+  //   href: "/apps",
+  //   icon: Icon.FiGrid,
+  //   isCurrent: ({ router, item }) => {
+  //     const path = router.asPath.split("?")[0];
+  //     // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
+  //     return (
+  //       (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) && !path.includes("routing-forms/")
+  //     );
+  //   },
+  //   child: [
+  //     {
+  //       name: "app_store",
+  //       href: "/apps",
+  //       isCurrent: ({ router, item }) => {
+  //         const path = router.asPath.split("?")[0];
+  //         // During Server rendering path is /v2/apps but on client it becomes /apps(weird..)
+  //         return (
+  //           (path.startsWith(item.href) || path.startsWith("/v2" + item.href)) &&
+  //           !path.includes("routing-forms/") &&
+  //           !path.includes("/installed")
+  //         );
+  //       },
+  //     },
+  //     {
+  //       name: "installed_apps",
+  //       href: "/apps/installed/calendar",
+  //       isCurrent: ({ router }) => {
+  //         const path = router.asPath;
+  //         return path.startsWith("/apps/installed/") || path.startsWith("/v2/apps/installed/");
+  //       },
+  //     },
+  //   ],
+  // },
   {
     name: MORE_SEPARATOR_NAME,
     href: "/more",
@@ -484,11 +484,11 @@ const navigation: NavigationItemType[] = [
       return router.asPath.startsWith("/apps/routing-forms/");
     },
   },
-  {
-    name: "workflows",
-    href: "/workflows",
-    icon: Icon.FiZap,
-  },
+  // {
+  //   name: "workflows",
+  //   href: "/workflows",
+  //   icon: Icon.FiZap,
+  // },
   {
     name: "settings",
     href: "/settings",
@@ -681,8 +681,9 @@ function DeploymentInfo() {
         fontSize: "0.5rem",
       }}
       className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
-      &copy; {new Date().getFullYear()} Cal.com, Inc. v.{pkg.version + "-"}
-      {process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"}
+      &copy; {new Date().getFullYear()} Pesto
+      {/* , Inc. v.{pkg.version + "-"} */}
+      {/* {process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"} */}
       <span className="lowercase" data-testid={`plan-${user?.plan.toLowerCase()}`}>
         -{user?.plan}
       </span>

@@ -34,14 +34,14 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
     //   perform: () => alert("Hello World"),
     // },
 
-    {
-      id: "workflows",
-      name: "Workflows",
-      section: "Workflows",
-      shortcut: ["w", "f"],
-      keywords: "workflows automation",
-      perform: () => router.push("/workflows"),
-    },
+    // {
+    //   id: "workflows",
+    //   name: "Workflows",
+    //   section: "Workflows",
+    //   shortcut: ["w", "f"],
+    //   keywords: "workflows automation",
+    //   perform: () => router.push("/workflows"),
+    // },
     {
       id: "event-types",
       name: "Event Types",

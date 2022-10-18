@@ -233,11 +233,11 @@ const ProfileView = () => {
           {t("update")}
         </Button>
 
-        <hr className="my-6  border-neutral-200" />
+        {/* <hr className="my-6  border-neutral-200" /> */}
 
-        <Label>{t("danger_zone")}</Label>
+        {/* <Label>{t("danger_zone")}</Label> */}
         {/* Delete account Dialog */}
-        <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
+        {/* <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
           <DialogTrigger asChild>
             <Button
               data-testid="delete-account"
@@ -280,7 +280,7 @@ const ProfileView = () => {
               {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
             </>
           </DialogContent>
-        </Dialog>
+        </Dialog> */}
       </Form>
 
       {/* If changing email, confirm password */}

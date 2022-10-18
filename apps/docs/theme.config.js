@@ -3,7 +3,7 @@ import { SEO_IMG_DEFAULT, DOCS_URL } from "@calcom/lib/constants";
 const themeConfig = {
   github: "https://github.com/calcom/cal.com",
   docsRepositoryBase: "https://github.com/calcom/cal.com/blob/main/apps/docs/pages",
-  titleSuffix: " | Cal.com",
+  titleSuffix: " | Pesto",
   logo: <h4 className="m-0">Cal.com</h4>,
   head: (
     <>
