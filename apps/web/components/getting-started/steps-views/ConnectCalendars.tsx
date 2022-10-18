@@ -23,6 +23,8 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
     { variant: "calendar", onlyInstalled: false },
   ]);
 
+  console.log(queryIntegrations);
+
   const firstCalendar = queryConnectedCalendars.data?.connectedCalendars.find(
     (item) => item.calendars && item.calendars?.length > 0
   );
@@ -61,18 +63,20 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
       {firstCalendar === undefined && queryIntegrations.data && queryIntegrations.data.items.length > 0 && (
         <List className="mx-1 divide-y divide-gray-200 rounded-md border border-gray-200 bg-white p-0 dark:bg-black sm:mx-0">
           {queryIntegrations.data &&
-            queryIntegrations.data.items.map((item) => (
-              <li key={item.title}>
-                {item.title && item.imageSrc && (
-                  <CalendarItem
-                    type={item.type}
-                    title={item.title}
-                    description={item.description}
-                    imageSrc={item.imageSrc}
-                  />
-                )}
-              </li>
-            ))}
+            queryIntegrations.data.items
+              .filter((item) => item.type === "google_calendar" || item.type === "office365_calendar")
+              .map((item) => (
+                <li key={item.title}>
+                  {item.title && item.imageSrc && (
+                    <CalendarItem
+                      type={item.type}
+                      title={item.title}
+                      description={item.description}
+                      imageSrc={item.imageSrc}
+                    />
+                  )}
+                </li>
+              ))}
         </List>
       )}
 

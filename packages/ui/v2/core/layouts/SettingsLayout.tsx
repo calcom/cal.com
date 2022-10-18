@@ -28,8 +28,8 @@ const tabs: VerticalTabItemProps[] = [
       { name: "profile", href: "/settings/my-account/profile" },
       { name: "general", href: "/settings/my-account/general" },
       { name: "calendars", href: "/settings/my-account/calendars" },
-      { name: "conferencing", href: "/settings/my-account/conferencing" },
-      { name: "appearance", href: "/settings/my-account/appearance" },
+      // { name: "conferencing", href: "/settings/my-account/conferencing" },
+      // { name: "appearance", href: "/settings/my-account/appearance" },
       // TODO
       // { name: "referrals", href: "/settings/my-account/referrals" },
     ],
@@ -41,7 +41,7 @@ const tabs: VerticalTabItemProps[] = [
     children: [
       //
       { name: "password", href: "/settings/security/password" },
-      { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
+      // { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
     ],
   },
   // {
@@ -50,18 +50,18 @@ const tabs: VerticalTabItemProps[] = [
   //   icon: Icon.FiCreditCard,
   //   children: [{ name: "manage_billing", href: "/settings/billing" }],
   // },
-  {
-    name: "developer",
-    href: "/settings/developer",
-    icon: Icon.FiTerminal,
-    children: [
-      //
-      { name: "webhooks", href: "/settings/developer/webhooks" },
-      { name: "api_keys", href: "/settings/developer/api-keys" },
-      // TODO: Add profile level for embeds
-      // { name: "embeds", href: "/v2/settings/developer/embeds" },
-    ],
-  },
+  // {
+  //   name: "developer",
+  //   href: "/settings/developer",
+  //   icon: Icon.FiTerminal,
+  //   children: [
+  //     //
+  //     { name: "webhooks", href: "/settings/developer/webhooks" },
+  //     { name: "api_keys", href: "/settings/developer/api-keys" },
+  //     // TODO: Add profile level for embeds
+  //     // { name: "embeds", href: "/v2/settings/developer/embeds" },
+  //   ],
+  // },
   // {
   //   name: "teams",
   //   href: "/settings/teams",
