@@ -57,6 +57,7 @@ const MeetingTimeInTimezones = ({
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content
+          onClick={(e) => e.stopPropagation()}
           side="top"
           className="slideInBottom shadow-dropdown border-5 bg-brand-500 rounded-md border-gray-200 p-3 text-sm text-white shadow-sm">
           {times.map((time) => (

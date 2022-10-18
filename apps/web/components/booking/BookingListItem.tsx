@@ -20,7 +20,6 @@ import MeetingTimeInTimezones from "@calcom/ui/v2/core/MeetingTimeInTimezones";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
-// import { extractRecurringDates } from "@lib/parseDate";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 import TableActions, { ActionType } from "@components/ui/TableActions";
@@ -187,15 +186,7 @@ function BookingListItem(booking: BookingItemProps) {
 
   const location = booking.location || "";
 
-  const onClick = (ev: React.MouseEvent<HTMLDivElement>) => {
-    // If user clicked on (a child of) the popover, we won't navigate to the detail page.
-    if (
-      ev.target instanceof Element &&
-      (ev.target.closest(".popover-button") || ev.target.classList.contains("popover-button"))
-    ) {
-      return;
-    }
-
+  const onClickTableData = (ev: React.MouseEvent<HTMLDivElement>) => {
     router.push({
       pathname: "/success",
       query: {
@@ -265,7 +256,9 @@ function BookingListItem(booking: BookingItemProps) {
       </Dialog>
 
       <tr className="flex flex-col hover:bg-neutral-50 sm:flex-row">
-        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:min-w-[12rem]" onClick={onClick}>
+        <td
+          className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:min-w-[12rem]"
+          onClick={onClickTableData}>
           <div className="cursor-pointer py-4">
             <div className="text-sm leading-6 text-gray-900">{startTime}</div>
             <div className="text-sm text-gray-500">
@@ -306,7 +299,7 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
           </div>
         </td>
-        <td className={"w-full px-4" + (isRejected ? " line-through" : "")} onClick={onClick}>
+        <td className={"w-full px-4" + (isRejected ? " line-through" : "")} onClick={onClickTableData}>
           {/* Time and Badges for mobile */}
           <div className="w-full pt-4 pb-2 sm:hidden">
             <div className="flex w-full items-center justify-between sm:hidden">
