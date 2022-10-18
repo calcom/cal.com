@@ -21,7 +21,6 @@ export const InstallAppButtonMap = {
   office365video: dynamic(() => import("./office365video/components/InstallAppButton")),
   riverside: dynamic(() => import("./riverside/components/InstallAppButton")),
   slackmessaging: dynamic(() => import("./slackmessaging/components/InstallAppButton")),
-  stripepayment: dynamic(() => import("./stripepayment/components/InstallAppButton")),
   tandemvideo: dynamic(() => import("./tandemvideo/components/InstallAppButton")),
   vital: dynamic(() => import("./vital/components/InstallAppButton")),
   whereby: dynamic(() => import("./whereby/components/InstallAppButton")),
