@@ -168,7 +168,7 @@ export const App = ({ name, description, slug }: AppImageProps) => (
       <div tw="flex text-[56px] mb-7" style={{ fontFamily: "cal", fontWeight: "300" }}>
         {name}
       </div>
-      <div tw="flex text-[40px] font-[inter]">{description}</div>
+      <div tw="flex text-[40px]">{description}</div>
     </div>
   </Wrapper>
 );
