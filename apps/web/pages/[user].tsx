@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
-import { JSONObject } from "superjson/dist/types";
 
 import {
   sdkActionManager,
@@ -26,6 +25,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { BadgeCheckIcon, Icon } from "@calcom/ui/Icon";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
@@ -210,41 +210,46 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
 User.isThemeSupported = true;
 
 const getEventTypesWithHiddenFromDB = async (userId: number) => {
-  return await prisma.eventType.findMany({
-    where: {
-      AND: [
-        {
-          teamId: null,
-        },
-        {
-          OR: [
-            {
-              userId,
-            },
-            {
-              users: {
-                some: {
-                  id: userId,
+  return (
+    await prisma.eventType.findMany({
+      where: {
+        AND: [
+          {
+            teamId: null,
+          },
+          {
+            OR: [
+              {
+                userId,
+              },
+              {
+                users: {
+                  some: {
+                    id: userId,
+                  },
                 },
               },
-            },
-          ],
+            ],
+          },
+        ],
+      },
+      orderBy: [
+        {
+          position: "desc",
+        },
+        {
+          id: "asc",
         },
       ],
-    },
-    orderBy: [
-      {
-        position: "desc",
+      select: {
+        ...baseEventTypeSelect,
+        metadata: true,
       },
-      {
-        id: "asc",
-      },
-    ],
-    select: {
-      metadata: true,
-      ...baseEventTypeSelect,
-    },
-  });
+    })
+  ).map((eventType) => ({
+    ...eventType,
+    metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+  }));
 };
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
@@ -321,7 +326,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const eventTypes = eventTypesRaw.map((eventType) => ({
     ...eventType,
-    metadata: (eventType.metadata || {}) as JSONObject,
+    metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
   }));
 
   const isSingleUser = users.length === 1;

@@ -9,6 +9,8 @@ import { Toaster } from "react-hot-toast";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
 
+import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
@@ -19,6 +21,7 @@ import {
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { WEBSITE_URL } from "@calcom/lib/constants";
+import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import notEmpty from "@calcom/lib/notEmpty";
@@ -228,7 +231,6 @@ function TimezoneDropdown({
 
   useEffect(() => {
     handleToggle24hClock(!!getIs24hClockFromLocalStorage());
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -317,7 +319,8 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const isBackgroundTransparent = useIsBackgroundTransparent();
 
   const [timeZone, setTimeZone] = useState<string>();
-  const [timeFormat, setTimeFormat] = useState(timeFormatFromProfile || detectBrowserTimeFormat);
+  const [timeFormat, setTimeFormat] = useState<string>("HH:mm");
+
   const [gateState, gateDispatcher] = useReducer(
     (state: GateState, newState: Partial<GateState>) => ({
       ...state,
@@ -328,7 +331,8 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
 
   useEffect(() => {
     setTimeZone(localStorageTimeZone() || dayjs.tz.guess());
-  }, []);
+    setTimeFormat(timeFormatFromProfile || detectBrowserTimeFormat);
+  }, [timeFormatFromProfile]);
 
   // TODO: Improve this;
   useExposePlanGlobally(eventType.users.length === 1 ? eventType.users[0].plan : "PRO");
@@ -363,6 +367,8 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
     ),
     [timeZone, timeFormat, timeFormatFromProfile]
   );
+  const stripeAppData = getStripeAppData(eventType);
+  const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
   const slug = rawSlug.join("/");
@@ -370,13 +376,13 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   // Define conditional gates here
   const gates = [
     // Rainbow gate is only added if the event has both a `blockchainId` and a `smartContractAddress`
-    eventType.metadata && eventType.metadata.blockchainId && eventType.metadata.smartContractAddress
+    rainbowAppData && rainbowAppData.blockchainId && rainbowAppData.smartContractAddress
       ? ("rainbow" as Gate)
       : undefined,
   ];
 
   return (
-    <Gates gates={gates} metadata={eventType.metadata} dispatch={gateDispatcher}>
+    <Gates gates={gates} appData={rainbowAppData} dispatch={gateDispatcher}>
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
@@ -387,11 +393,12 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
           noindex: eventType.hidden,
         }}
       />
+      <BookingPageTagManager eventType={eventType} />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <div>
         <main
           className={classNames(
-            "flex flex-col",
+            "flex-col md:mx-4 lg:flex",
             shouldAlignCentrally ? "items-center" : "items-start",
             !isEmbed && classNames("mx-auto my-0 ease-in-out md:my-24")
           )}>
@@ -402,7 +409,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                 isBackgroundTransparent
                   ? ""
                   : "dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-white pb-4 md:pb-0",
-                "border-bookinglightest overflow-hidden rounded-md md:border",
+                "border-bookinglightest overflow-hidden md:rounded-md md:border",
                 isEmbed && "mx-auto"
               )}>
               <div className="overflow-hidden md:flex">
@@ -412,7 +419,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                     "min-w-full md:w-[280px] md:min-w-[280px]",
                     recurringEventCount && "xl:w-[380px] xl:min-w-[380px]"
                   )}>
-                  <BookingDescription profile={profile} eventType={eventType}>
+                  <BookingDescription profile={profile} eventType={eventType} rescheduleUid={rescheduleUid}>
                     {!rescheduleUid && eventType.recurringEvent && (
                       <div className="flex items-start text-sm font-medium">
                         <Icon.FiRefreshCcw className="float-left mr-[10px] mt-[7px] ml-[2px] inline-block h-4 w-4 " />
@@ -438,14 +445,14 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                         </div>
                       </div>
                     )}
-                    {eventType.price > 0 && (
+                    {stripeAppData.price > 0 && (
                       <p className="-ml-2 px-2 text-sm font-medium">
                         <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                         <IntlProvider locale="en">
                           <FormattedNumber
-                            value={eventType.price / 100.0}
+                            value={stripeAppData.price / 100.0}
                             style="currency"
-                            currency={eventType.currency.toUpperCase()}
+                            currency={stripeAppData.currency.toUpperCase()}
                           />
                         </IntlProvider>
                       </p>

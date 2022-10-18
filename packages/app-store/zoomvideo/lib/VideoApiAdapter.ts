@@ -85,7 +85,8 @@ const zoomAuth = (credential: Credential) => {
         grant_type: "refresh_token",
       }),
     });
-    const responseBody = await handleErrorsJson(response);
+
+    const responseBody = await handleZoomResponse(response);
 
     // We check the if the new credentials matches the expected response structure
     const parsedToken = zoomRefreshedTokenSchema.safeParse(responseBody);
@@ -223,15 +224,15 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
   const fetchZoomApi = async (endpoint: string, options?: RequestInit) => {
     const auth = zoomAuth(credential);
     const accessToken = await auth.getToken();
-    const responseBody = await fetch(`https://api.zoom.us/v2/${endpoint}`, {
+    const response = await fetch(`https://api.zoom.us/v2/${endpoint}`, {
       method: "GET",
       ...options,
       headers: {
         Authorization: "Bearer " + accessToken,
         ...options?.headers,
       },
-    }).then(handleErrorsJson);
-
+    });
+    const responseBody = await handleErrorsJson(response);
     return responseBody;
   };
 
@@ -302,6 +303,19 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
       });
     },
   };
+};
+
+const handleZoomResponse = async (response: Response) => {
+  if (response.headers.get("content-encoding") === "gzip") {
+    const responseString = await response.text();
+    return JSON.parse(responseString);
+  }
+  if (!response.ok && response.status < 200 && response.status >= 300) {
+    response.json().then(console.log);
+    throw Error(response.statusText);
+  }
+
+  return response.json();
 };
 
 export default ZoomVideoApiAdapter;

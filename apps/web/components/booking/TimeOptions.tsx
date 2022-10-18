@@ -28,6 +28,7 @@ const TimeOptions: FC<Props> = ({ onToggle24hClock, onSelectTimeZone, timeFormat
       onSelectTimeZone(timeZone(selectedTimeZone));
     }
   }, [selectedTimeZone, onSelectTimeZone]);
+
   const handle24hClockToggle = (is24hClock: boolean) => {
     setIs24hClock(is24hClock);
     onToggle24hClock(is24h(is24hClock));
