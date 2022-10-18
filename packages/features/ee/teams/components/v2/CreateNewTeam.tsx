@@ -2,6 +2,7 @@ import { useForm, Controller } from "react-hook-form";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Button, Avatar } from "@calcom/ui/v2";
@@ -45,7 +46,11 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
               value={value}
               onChange={(e) => {
                 formMethods.setValue("name", e?.target.value);
+                if (formMethods.formState.touchedFields["slug"] === undefined) {
+                  formMethods.setValue("slug", slugify(e?.target.value));
+                }
               }}
+              autoComplete="off"
             />
           )}
         />
@@ -63,7 +68,7 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
               addOnLeading={`${WEBAPP_URL}/team/`}
               value={value}
               onChange={(e) => {
-                formMethods.setValue("slug", e?.target.value);
+                formMethods.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
               }}
             />
           )}
