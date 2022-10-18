@@ -3,10 +3,7 @@ import { AppsStatus } from "@calcom/types/Calendar";
 import * as fetch from "@lib/core/http/fetch-wrapper";
 import { BookingCreateBody, BookingResponse } from "@lib/types/booking";
 
-type ExtendedBookingCreateBody = BookingCreateBody & {
-  noEmail?: boolean;
-  recurringCount?: number;
-};
+type ExtendedBookingCreateBody = BookingCreateBody & { noEmail?: boolean; recurringCount?: number };
 
 const createRecurringBooking = async (data: ExtendedBookingCreateBody[]) => {
   const createdBookings: BookingResponse[] = [];
