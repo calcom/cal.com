@@ -731,7 +731,14 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       failures: !app.success ? 1 : 0,
     }));
 
-    if (reqAppsStatus !== undefined) {
+    if (reqAppsStatus === undefined) {
+        if (booking !== null) {
+          booking.appsStatus = resultStatus;
+        }
+        evt.appsStatus = resultStatus;
+        return; 
+      }
+      // From down here we can assume reqAppsStatus is not undefined anymore
       // Other status exist, so this is the last booking of a series,
       // proceeding to prepare the info for the event
       const calcAppsStatus = reqAppsStatus.concat(resultStatus).reduce((prev, curr) => {
@@ -743,12 +750,6 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         return prev;
       }, {} as { [key: string]: AppsStatus });
       evt.appsStatus = Object.values(calcAppsStatus);
-    } else {
-      if (booking !== null) {
-        booking.appsStatus = resultStatus;
-      }
-      evt.appsStatus = resultStatus;
-    }
   }
 
   if (originalRescheduledBooking?.uid) {
