@@ -371,7 +371,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
-  const slug = rawSlug.join("/");
 
   // Define conditional gates here
   const gates = [
@@ -386,8 +385,16 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
-        name={profile.name || undefined}
-        username={slug || undefined}
+        meeting={{
+          title: eventType.title,
+          profile: { name: `${profile.name}`, image: profile.image },
+          users: [
+            ...(eventType.users || []).map((user) => ({
+              name: `${user.name}`,
+              username: `${user.username}`,
+            })),
+          ],
+        }}
         nextSeoProps={{
           nofollow: eventType.hidden,
           noindex: eventType.hidden,
