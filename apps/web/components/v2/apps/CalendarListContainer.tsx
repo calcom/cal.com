@@ -6,10 +6,9 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
-import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
-import { Alert, EmptyScreen } from "@calcom/ui/v2";
+import { Alert, Button, EmptyScreen } from "@calcom/ui/v2";
 import { List } from "@calcom/ui/v2/core/List";
 import { ShellSubHeading } from "@calcom/ui/v2/core/Shell";
 import Switch from "@calcom/ui/v2/core/Switch";
@@ -264,7 +263,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                     <ShellSubHeading
                       title={t("calendar")}
                       subtitle={t("installed_app_calendar_description")}
-                      className="mb-0 flex flex-wrap items-center gap-4 md:mb-3 md:gap-0"
+                      className="mb-0 flex flex-wrap items-center gap-4 sm:flex-nowrap md:mb-3 md:gap-0"
                       actions={
                         <div className="flex flex-col xl:flex-row xl:space-x-5">
                           {!!data.connectedCalendars.length && (

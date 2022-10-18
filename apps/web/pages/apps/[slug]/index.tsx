@@ -10,11 +10,9 @@ import path from "path";
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
 import prisma from "@calcom/prisma";
 
-import useMediaQuery from "@lib/hooks/useMediaQuery";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import App from "@components/App";
-import Slider from "@components/apps/Slider";
+import App from "@components/v2/apps/App";
 
 const components = {
   a: ({ href = "", ...otherProps }: JSX.IntrinsicElements["a"]) => (
@@ -25,42 +23,11 @@ const components = {
   img: ({ src = "", alt = "", placeholder, ...rest }: JSX.IntrinsicElements["img"]) => (
     <Image src={src} alt={alt} {...rest} />
   ),
-  Slider: ({ items }: { items: string[] }) => {
-    const isTabletAndUp = useMediaQuery("(min-width: 960px)");
-    return (
-      <Slider<string>
-        items={items}
-        title="Screenshots"
-        options={{
-          perView: 1,
-        }}
-        renderItem={(item) =>
-          isTabletAndUp ? (
-            <Image
-              src={item}
-              alt=""
-              loading="eager"
-              layout="fixed"
-              objectFit="contain"
-              objectPosition="center center"
-              width={573}
-              height={382}
-            />
-          ) : (
-            <Image
-              src={item}
-              alt=""
-              layout="responsive"
-              objectFit="contain"
-              objectPosition="center center"
-              width={573}
-              height={382}
-            />
-          )
-        }
-      />
-    );
-  },
+  // @TODO: In v2 the slider isn't shown anymore. However, to ensure the v1 pages keep
+  // working, this component is still rendered in the MDX content. To skip them in the v2
+  // content we have to render null here. In v2 the gallery is shown by directly
+  // using the `items` property from the MDX's meta data.
+  Slider: () => <></>,
 };
 
 function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
@@ -68,6 +35,8 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
     <App
       name={data.name}
       isGlobal={data.isGlobal}
+      slug={data.slug}
+      variant={data.variant}
       type={data.type}
       logo={data.logo}
       categories={data.categories ?? [data.category]}
@@ -80,6 +49,7 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
       email={data.email}
       licenseRequired={data.licenseRequired}
       isProOnly={data.isProOnly}
+      images={source?.scope?.items as string[] | undefined}
       //   tos="https://zoom.us/terms"
       //   privacy="https://zoom.us/privacy"
       body={<MDXRemote {...source} components={components} />}

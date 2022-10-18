@@ -34,6 +34,7 @@ interface Props {
   isBookingPage?: boolean;
   children: ReactNode;
   isMobile?: boolean;
+  rescheduleUid?: string;
 }
 
 const BookingDescription: FC<Props> = (props) => {
@@ -84,7 +85,7 @@ const BookingDescription: FC<Props> = (props) => {
             {t("requires_confirmation")}
           </div>
         )}
-        {!isBookingPage ? (
+        {!isBookingPage && !props.rescheduleUid ? (
           <AvailableEventLocations
             locations={eventType.locations as AvailabilityPageProps["eventType"]["locations"]}
           />
