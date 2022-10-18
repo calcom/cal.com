@@ -1,4 +1,4 @@
-import type { FormValues } from "pages/v2/event-types/[type]";
+import type { FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 
@@ -11,13 +11,11 @@ import { Label, Select, Switch } from "@calcom/ui/v2";
 type RecurringEventControllerProps = {
   recurringEvent: RecurringEvent | null;
   paymentEnabled: boolean;
-  onRecurringEventDefined: (value: boolean) => void;
 };
 
 export default function RecurringEventController({
   recurringEvent,
   paymentEnabled,
-  onRecurringEventDefined,
 }: RecurringEventControllerProps) {
   const { t } = useLocale();
   const [recurringEventState, setRecurringEventState] = useState<RecurringEvent | null>(recurringEvent);

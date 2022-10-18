@@ -168,8 +168,11 @@ expect.extend({
         initialValuesSet: window.initialValuesSet,
       };
     });
+    const isOptimizedPage = u.pathname.includes("forms/");
     expect(initialValuesSet).toBe(true);
-    expect(displayBefore).toBe("none");
+    if (!isOptimizedPage) {
+      expect(displayBefore).toBe("none");
+    }
     expect(backgroundBefore).toBe("transparent");
 
     const { display: displayAfter, background: backgroundAfter } = await iframe.evaluate(() => {

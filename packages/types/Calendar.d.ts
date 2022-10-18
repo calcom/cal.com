@@ -22,7 +22,9 @@ export type Person = {
   timeZone: string;
   language: { translate: TFunction; locale: string };
   username?: string;
-  id?: string;
+  id?: number;
+  bookingId?: number;
+  locale?: string;
 };
 
 export type EventBusyDate = {
@@ -141,6 +143,7 @@ export interface CalendarEvent {
   recurrence?: string;
   recurringEvent?: RecurringEvent | null;
   eventTypeId?: number | null;
+  seatsShowAttendees?: boolean | null;
 }
 
 export interface EntryPoint {
