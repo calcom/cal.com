@@ -17,6 +17,8 @@ jobs:
       ENVIRONMENT: ${{ github.ref == 'refs/heads/staging' && 'staging' || 'production' }}
       NEXT_PUBLIC_WEBAPP_URL: ${{ github.ref == 'refs/heads/staging' && secrets.PUBLIC_WEBAPP_URL_STAGING || secrets.PUBLIC_WEBAPP_URL_PRODUCTION }}
       NEXT_PUBLIC_WEBSITE_URL: ${{ github.ref == 'refs/heads/staging' && secrets.PUBLIC_WEBAPP_URL_STAGING || secrets.PUBLIC_WEBAPP_URL_PRODUCTION }}
+      NEXT_PUBLIC_SLOTS_PROXY_URL: ${{ github.ref == 'refs/heads/staging' && secrets.PUBLIC_SLOTS_PROXY_URL_STAGING || secrets.PUBLIC_SLOTS_PROXY_URL_PRODUCTION }}
+      GLOBAL_WEBHOOK_URL: ${{ github.ref == 'refs/heads/staging' && secrets.GLOBAL_WEBHOOK_URL_STAGING || secrets.GLOBAL_WEBHOOK_URL_PRODUCTION }}
       NEXTAUTH_SECRET: secret
       CALENDSO_ENCRYPTION_KEY: secret
       GOOGLE_API_CREDENTIALS: ${{ secrets.GOOGLE_API_CREDENTIALS }}
