@@ -33,7 +33,7 @@ const ProfileImpersonationView = () => {
 
   return (
     <>
-      <Meta title="Two-Factor Authentication" description="Manage settings for your account passwords" />
+      <Meta title="Impersonation Settings" description="" />
       <Form
         form={formMethods}
         handleSubmit={({ disableImpersonation }) => {
