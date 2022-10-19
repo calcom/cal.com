@@ -30,6 +30,7 @@ import {
 } from "../../lib/getOptions";
 import { translateVariablesToEnglish } from "../../lib/variableTranslations";
 import type { FormValues } from "../../pages/v2/workflow";
+import TextEditor from "./TextEditor";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
 type WorkflowStepProps = {
@@ -413,6 +414,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
                       </p>
                     )}
+                  <div className="mt-2">
+                    <TextEditor />
+                  </div>
                   <div className="mt-3 ">
                     <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
                       <div className="mt-2 flex text-sm text-gray-600">
@@ -421,6 +425,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       </div>
                     </button>
                   </div>
+                  <div className="mt-2"></div>
                 </div>
               )}
               {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
