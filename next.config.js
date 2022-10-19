@@ -30,6 +30,11 @@ module.exports = withAxiom(
             source: "/api/v:version/:rest*",
             destination: "/api/:rest*?version=:version",
           },
+          // Keeps backwards compatibility with old webhook URLs
+          {
+            source: "/api/hooks/:rest*",
+            destination: "/api/webhooks/:rest*",
+          },
         ],
         fallback: [
           // These rewrites are checked after both pages/public files
