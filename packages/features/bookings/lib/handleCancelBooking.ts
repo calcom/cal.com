@@ -92,15 +92,15 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   });
 
   if (!bookingToDelete || !bookingToDelete.user) {
-    throw new HttpError({ statusCode: 404, message: "Booking not found" });
+    throw new HttpError({ statusCode: 400, message: "Booking not found" });
   }
 
   if (userId !== bookingToDelete.user?.id && bookingToDelete.startTime < new Date()) {
-    throw new HttpError({ statusCode: 403, message: "Cannot cancel past events" });
+    throw new HttpError({ statusCode: 400, message: "Cannot cancel past events" });
   }
 
   if (!bookingToDelete.userId) {
-    throw new HttpError({ statusCode: 404, message: "User not found" });
+    throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
   const organizer = await prisma.user.findFirstOrThrow({
