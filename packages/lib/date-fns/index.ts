@@ -26,33 +26,24 @@ export const formatTime = (
  * Sorts two timezones by their offset from GMT.
  */
 export const sortByTimezone = (timezoneA: string, timezoneB: string) => {
-  const timeAGmt = Intl.DateTimeFormat("en", {
-    timeZone: timezoneA,
-    timeZoneName: "shortOffset",
-  })
-    .format(new Date())
-    .split("GMT")[1];
+  const timezoneAGmtOffset = dayjs.utc().tz(timezoneA).utcOffset();
+  const timezoneBGmtOffset = dayjs.utc().tz(timezoneB).utcOffset();
 
-  const timeBGmt = Intl.DateTimeFormat("en", {
-    timeZone: timezoneB,
-    timeZoneName: "shortOffset",
-  })
-    .format(new Date())
-    .split("GMT")[1];
+  if (timezoneAGmtOffset === timezoneBGmtOffset) return 0;
 
-  if (timeAGmt === timeBGmt) return 0;
-  return Number(timeAGmt) < Number(timeBGmt) ? -1 : 1;
+  return timezoneAGmtOffset < timezoneBGmtOffset ? -1 : 1;
 };
 
 /**
  * Verifies given time is a day before in timezoneB.
  */
 export const isPreviousDayInTimezone = (time: string, timezoneA: string, timezoneB: string) => {
+  const timeInTimezoneA = formatTime(time, 24, timezoneA);
   const timeInTimezoneB = formatTime(time, 24, timezoneB);
   if (time === timeInTimezoneB) return false;
 
-  // Eg time = 12:00 and timeInTimezoneB = 23:00
-  const hoursTimezoneBIsLater = timeInTimezoneB.localeCompare(time) === 1;
+  // Eg timeInTimezoneA = 12:00 and timeInTimezoneB = 23:00
+  const hoursTimezoneBIsLater = timeInTimezoneB.localeCompare(timeInTimezoneA) === 1;
   // If it is 23:00, does timezoneA come before or after timezoneB in GMT?
   const timezoneBIsEarlierTimezone = sortByTimezone(timezoneA, timezoneB) === 1;
   return hoursTimezoneBIsLater && timezoneBIsEarlierTimezone;
@@ -62,11 +53,12 @@ export const isPreviousDayInTimezone = (time: string, timezoneA: string, timezon
  * Verifies given time is a day after in timezoneB.
  */
 export const isNextDayInTimezone = (time: string, timezoneA: string, timezoneB: string) => {
+  const timeInTimezoneA = formatTime(time, 24, timezoneA);
   const timeInTimezoneB = formatTime(time, 24, timezoneB);
   if (time === timeInTimezoneB) return false;
 
-  // Eg time = 12:00 and timeInTimezoneB = 09:00
-  const hoursTimezoneBIsEarlier = timeInTimezoneB.localeCompare(time) === -1;
+  // Eg timeInTimezoneA = 12:00 and timeInTimezoneB = 09:00
+  const hoursTimezoneBIsEarlier = timeInTimezoneB.localeCompare(timeInTimezoneA) === -1;
   // If it is 09:00, does timezoneA come before or after timezoneB in GMT?
   const timezoneBIsLaterTimezone = sortByTimezone(timezoneA, timezoneB) === -1;
   return hoursTimezoneBIsEarlier && timezoneBIsLaterTimezone;
