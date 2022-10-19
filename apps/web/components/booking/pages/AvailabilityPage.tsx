@@ -329,6 +329,11 @@ const timeFormatTotimeFormatString = (timeFormat?: number | null) => {
   return timeFormat === 24 ? "HH:mm" : "h:mma";
 };
 
+const timeFormatTotimeFormatString = (timeFormat?: number | null) => {
+  if (!timeFormat) return null;
+  return timeFormat === 24 ? "HH:mm" : "h:mma";
+};
+
 const AvailabilityPage = ({ profile, eventType }: Props) => {
   const { data: user } = trpc.useQuery(["viewer.me"]);
   const timeFormatFromProfile = timeFormatTotimeFormatString(user?.timeFormat);
