@@ -15,18 +15,12 @@ export const formatTime = (
   date: string | Date | Dayjs,
   timeFormat?: number | null,
   timeZone?: string | null
-) => {
-  const utcOffset = dayjs()
-    .tz(timeZone || undefined)
-    .utcOffset();
-
-  return timeZone
-    ? dayjs
-        .utc(date)
-        .utcOffset(utcOffset)
+) =>
+  timeZone
+    ? dayjs(date)
+        .tz(timeZone)
         .format(timeFormat === 12 ? "h:mma" : "HH:mm")
     : dayjs(date).format(timeFormat === 12 ? "h:mma" : "HH:mm");
-};
 
 /**
  * Sorts two timezones by their offset from GMT.
