@@ -322,7 +322,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 </DropdownMenuItem>
               )}
               <DropdownMenuSeparator className="h-px bg-gray-200" />
-              <DropdownMenuItem>
+              {/* <DropdownMenuItem>
                 <a
                   href={JOIN_SLACK}
                   target="_blank"
@@ -367,7 +367,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 </a>
               </DropdownMenuItem>
 
-              <DropdownMenuSeparator className="h-px bg-gray-200" />
+              <DropdownMenuSeparator className="h-px bg-gray-200" /> */}
               <DropdownMenuItem>
                 <a
                   onClick={() => signOut({ callbackUrl: "/auth/logout" })}
