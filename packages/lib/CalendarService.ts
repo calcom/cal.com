@@ -53,7 +53,7 @@ const buildUtcOffset = (minutes: number): string => {
       ? "+" + (Math.floor(minutes / 60) < 10 ? "0" + Math.floor(minutes / 60) : Math.floor(minutes / 60))
       : "-" +
         (Math.ceil(minutes / 60) > -10 ? "0" + Math.ceil(minutes / 60) * -1 : Math.ceil(minutes / 60) * -1);
-  const m = minutes > 0 ? minutes % 60 : (minutes % 60) * -1;
+  const m = Math.abs(minutes % 60);
   const offset = `${h}:${m}`;
   return offset;
 };
