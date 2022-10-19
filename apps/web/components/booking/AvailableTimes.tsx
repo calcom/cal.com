@@ -74,7 +74,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
               ethSignature,
               rescheduleUid,
               bookingUid: slot.bookingUid,
-              user: slot.users?.[0],
+              username: slot.users?.[0],
             });
 
             const bookingUrl = `book?${new URLSearchParams(bookingParams).toString()}`;
