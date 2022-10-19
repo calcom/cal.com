@@ -32,7 +32,7 @@ deploy_to_staging:
 		--service ${SERVICE} \
 		--branch staging \
 		--cluster staging \
-		--environment NEXT_PUBLIC_WEBAPP_URL=${NEXT_PUBLIC_WEBAPP_URL},GOOGLE_LOGIN_ENABLED=true \
+		--environment NEXT_PUBLIC_WEBAPP_URL=${NEXT_PUBLIC_WEBAPP_URL},GOOGLE_LOGIN_ENABLED=true,NEXT_PUBLIC_SLOTS_PROXY_URL=https://firefly-staging.tlservers.com/calcom/trpc \
 		--secrets DATABASE_URL=${SSM_STAGING}/DATABASE_URL,NEXTAUTH_SECRET=${SSM_STAGING}/NEXTAUTH_SECRET,CALENDSO_ENCRYPTION_KEY=${SSM_STAGING}/CALENDSO_ENCRYPTION_KEY,GOOGLE_API_CREDENTIALS=${SSM_SHARED}/GOOGLE_API_CREDENTIALS \
 		--image ${IMAGE} \
 		--command "sh /calcom/scripts/start.sh" \
@@ -48,7 +48,7 @@ deploy_to_production:
 		--service ${SERVICE} \
 		--branch master \
 		--cluster production \
-		--environment NEXT_PUBLIC_WEBAPP_URL=${NEXT_PUBLIC_WEBAPP_URL},GOOGLE_LOGIN_ENABLED=true \
+		--environment NEXT_PUBLIC_WEBAPP_URL=${NEXT_PUBLIC_WEBAPP_URL},GOOGLE_LOGIN_ENABLED=true,NEXT_PUBLIC_SLOTS_PROXY_URL=https://firefly.tlservers.com/calcom/trpc \
 		--secrets DATABASE_URL=${SSM_PRODUCTION}/DATABASE_URL,NEXTAUTH_SECRET=${SSM_PRODUCTION}/NEXTAUTH_SECRET,CALENDSO_ENCRYPTION_KEY=${SSM_PRODUCTION}/CALENDSO_ENCRYPTION_KEY,GOOGLE_API_CREDENTIALS=${SSM_SHARED}/GOOGLE_API_CREDENTIALS \
 		--image ${IMAGE} \
 		--command "sh /calcom/scripts/start.sh" \
