@@ -4,7 +4,6 @@ import { useRouter } from "next/router";
 import { Fragment } from "react";
 
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
-import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
@@ -190,7 +189,7 @@ const CalendarsView = () => {
               headline={t("no_calendar_installed")}
               description={t("no_calendar_installed_description")}
               buttonText={t("add_a_calendar")}
-              buttonOnClick={() => router.push(`${CAL_URL}/apps/categories/calendar`)}
+              buttonOnClick={() => router.push("/apps/categories/calendar")}
             />
           );
         }}
