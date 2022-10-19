@@ -99,6 +99,7 @@ model Credential {
   // How to make it a required column?
   appId                String?
   destinationCalendars DestinationCalendar[]
+  invalid              Boolean?
 }
 
 enum UserPlan {

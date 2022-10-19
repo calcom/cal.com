@@ -221,7 +221,7 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
     };
   };
 
-  const fetchZoomApi = async (endpoint: string, options?: RequestInit) => {
+  const fetchZoomApi = async <T>(endpoint: string, options?: RequestInit) => {
     const auth = zoomAuth(credential);
     const accessToken = await auth.getToken();
     const response = await fetch(`https://api.zoom.us/v2/${endpoint}`, {
@@ -232,7 +232,7 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
         ...options?.headers,
       },
     });
-    const responseBody = await handleErrorsJson(response);
+    const responseBody = await handleErrorsJson<T>(response);
     return responseBody;
   };
 
@@ -254,7 +254,11 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
       try {
-        const response: ZoomEventResult = await fetchZoomApi("users/me/meetings", {
+        const response = await fetchZoomApi<{
+          id: number;
+          join_url: string;
+          start_url: string;
+        }>("users/me/meetings", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

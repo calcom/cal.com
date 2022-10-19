@@ -13,14 +13,17 @@ const Huddle01VideoApiAdapter = (): VideoApiAdapter => {
         "https://wpss2zlpb9.execute-api.us-east-1.amazonaws.com/new-meeting?utmCampaign=cal.com&utmSource=partner&utmMedium=calendar"
       );
 
-      const { url } = await handleErrorsJson(res);
-
-      return Promise.resolve({
-        type: "huddle01_video",
-        id: randomString(21),
-        password: "",
-        url,
-      });
+      const result = await handleErrorsJson<{ url: string }>(res);
+      if (result && result?.url) {
+        const { url } = result;
+        return Promise.resolve({
+          type: "huddle01_video",
+          id: randomString(21),
+          password: "",
+          url,
+        });
+      }
+      return Promise.reject("Url was not received in response body.");
     },
     deleteMeeting: async (): Promise<void> => {
       Promise.resolve();

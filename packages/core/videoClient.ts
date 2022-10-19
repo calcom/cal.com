@@ -1,4 +1,4 @@
-import { Credential } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -15,8 +15,23 @@ const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
 
 const translator = short();
 
+/*
+ * The logic on this it's just using Credential Type doesn't reflect that some fields can be
+ * null sometimes, so with this we should get correct type.
+ * Also there may be a better place to save this.
+ */
+export type CredentialPayload = Prisma.CredentialGetPayload<{
+  select: {
+    id: true;
+    appId: true;
+    type: true;
+    userId: true;
+    key: true;
+  };
+}>;
+
 // factory
-const getVideoAdapters = (withCredentials: Credential[]): VideoApiAdapter[] =>
+const getVideoAdapters = (withCredentials: CredentialPayload[]): VideoApiAdapter[] =>
   withCredentials.reduce<VideoApiAdapter[]>((acc, cred) => {
     const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
     const app = appStore[appName as keyof typeof appStore];
@@ -29,12 +44,12 @@ const getVideoAdapters = (withCredentials: Credential[]): VideoApiAdapter[] =>
     return acc;
   }, []);
 
-const getBusyVideoTimes = (withCredentials: Credential[]) =>
+const getBusyVideoTimes = (withCredentials: CredentialPayload[]) =>
   Promise.all(getVideoAdapters(withCredentials).map((c) => c?.getAvailability())).then((results) =>
     results.reduce((acc, availability) => acc.concat(availability), [] as (EventBusyDate | undefined)[])
   );
 
-const createMeeting = async (credential: Credential, calEvent: CalendarEvent) => {
+const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEvent) => {
   const uid: string = getUid(calEvent);
 
   if (!credential) {
@@ -79,7 +94,7 @@ const createMeeting = async (credential: Credential, calEvent: CalendarEvent) =>
 };
 
 const updateMeeting = async (
-  credential: Credential,
+  credential: CredentialPayload,
   calEvent: CalendarEvent,
   bookingRef: PartialReference | null
 ): Promise<EventResult<VideoCallData>> => {
@@ -116,7 +131,7 @@ const updateMeeting = async (
   };
 };
 
-const deleteMeeting = (credential: Credential, uid: string): Promise<unknown> => {
+const deleteMeeting = (credential: CredentialPayload, uid: string): Promise<unknown> => {
   if (credential) {
     const videoAdapter = getVideoAdapters([credential])[0];
     // There are certain video apps with no video adapter defined. e.g. riverby,whereby

@@ -1,5 +1,4 @@
 import { Credential, DestinationCalendar } from "@prisma/client";
-import async from "async";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 import { z } from "zod";
