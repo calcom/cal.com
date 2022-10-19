@@ -1,10 +1,11 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState, useRef, FormEvent } from "react";
+import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 
-import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -52,6 +53,11 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
     });
     decidedActionRef.current = decidedAction;
   };
+
+  useEffect(() => {
+    // Custom Page doesn't actually change Route, so fake it so that embed can adjust the scroll to make the content visible
+    sdkActionManager.fire("__routeChanged");
+  }, [customPageMessage]);
 
   const responseMutation = trpc.useMutation("viewer.app_routing_forms.public.response", {
     onSuccess: () => {
@@ -186,7 +192,7 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
         ) : (
           <div className="mx-auto my-0 max-w-3xl md:my-24">
             <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">
-              <div className="-mx-4 rounded-sm border border-neutral-200 bg-white p-4 py-6 sm:mx-0 sm:px-8">
+              <div className="main -mx-4 rounded-md border border-neutral-200 bg-white p-4 py-6 sm:mx-0 sm:px-8">
                 <div>{customPageMessage}</div>
               </div>
             </div>
