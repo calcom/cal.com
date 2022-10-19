@@ -12,6 +12,7 @@ type Props = {
   booking: {
     title?: string;
     uid?: string;
+    id?: number;
   };
   profile: {
     name: string | null;
@@ -79,7 +80,7 @@ export default function CancelBooking(props: Props) {
                   setLoading(true);
 
                   const payload = {
-                    uid: booking?.uid,
+                    id: booking?.id,
                     cancellationReason: cancellationReason,
                   };
 

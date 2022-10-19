@@ -31,11 +31,11 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 async function handler(req: NextApiRequest & { userId?: number }) {
   const { userId } = req;
 
-  const { uid, allRemainingBookings, cancellationReason } = schemaBookingCancelParams.parse(req.body);
+  const { id, allRemainingBookings, cancellationReason } = schemaBookingCancelParams.parse(req.body);
 
   const bookingToDelete = await prisma.booking.findUnique({
     where: {
-      uid,
+      id,
     },
     select: {
       ...bookingMinimalSelect,
@@ -232,7 +232,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   } else {
     const updatedBooking = await prisma.booking.update({
       where: {
-        uid,
+        id,
       },
       data: {
         status: BookingStatus.CANCELLED,
@@ -302,7 +302,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     bookingToDelete.user.credentials
       .filter((credential) => credential.type.endsWith("_video"))
       .forEach((credential) => {
-        apiDeletes.push(deleteMeeting(credential, uid));
+        apiDeletes.push(deleteMeeting(credential, bookingToDelete.uid));
       });
   }
 
@@ -383,7 +383,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
   await sendCancelledEmails(evt);
 
-  req.statusCode = 204;
+  req.statusCode = 200;
   return { message: "Booking successfully cancelled." };
 }
 
