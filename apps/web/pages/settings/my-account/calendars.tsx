@@ -37,10 +37,12 @@ const SkeletonLoader = () => {
 };
 
 const AddCalendarButton = () => {
+  const { t } = useLocale();
+
   return (
     <>
-      <Button color="secondary" StartIcon={Icon.FiPlus} href={`${CAL_URL}/apps/categories/calendar`}>
-        Add Calendar
+      <Button color="secondary" StartIcon={Icon.FiPlus} href="/apps/categories/calendar">
+        {t("add_calendar")}
       </Button>
     </>
   );
