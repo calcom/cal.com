@@ -141,7 +141,15 @@ type SuccessProps = inferSSRProps<typeof getServerSideProps>;
 export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
-  const { location: _location, name, reschedule, listingStatus, status, isSuccessBookingPage } = router.query;
+  const {
+    location: _location,
+    name,
+    email,
+    reschedule,
+    listingStatus,
+    status,
+    isSuccessBookingPage,
+  } = router.query;
   const location: ReturnType<typeof getEventLocationValue> = Array.isArray(_location)
     ? _location[0] || ""
     : _location || "";
@@ -357,14 +365,23 @@ export default function Success(props: SuccessProps) {
                               <p className="text-bookinglight">{bookingInfo.user.email}</p>
                             </div>
                           )}
-                          {bookingInfo?.attendees.map((attendee, index) => (
-                            <div
-                              key={attendee.name}
-                              className={index === bookingInfo.attendees.length - 1 ? "" : "mb-3"}>
-                              <p>{attendee.name}</p>
-                              <p className="text-bookinglight">{attendee.email}</p>
-                            </div>
-                          ))}
+                          {!!eventType.seatsShowAttendees
+                            ? bookingInfo?.attendees
+                                .filter((attendee) => attendee.email === email)
+                                .map((attendee) => (
+                                  <div key={attendee.name} className="mb-3">
+                                    <p>{attendee.name}</p>
+                                    <p className="text-bookinglight">{attendee.email}</p>
+                                  </div>
+                                ))
+                            : bookingInfo?.attendees.map((attendee, index) => (
+                                <div
+                                  key={attendee.name}
+                                  className={index === bookingInfo.attendees.length - 1 ? "" : "mb-3"}>
+                                  <p>{attendee.name}</p>
+                                  <p className="text-bookinglight">{attendee.email}</p>
+                                </div>
+                              ))}
                         </div>
                       </>
                     )}
@@ -725,6 +742,7 @@ const getEventTypesFromDB = async (id: number) => {
         },
       },
       metadata: true,
+      seatsShowAttendees: true,
     },
   });
 

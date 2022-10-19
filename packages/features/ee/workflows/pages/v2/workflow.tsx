@@ -18,7 +18,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Option } from "@calcom/ui/form/MultiSelectCheckboxes";
 import { Alert, Button, Form, showToast } from "@calcom/ui/v2";
 import Shell from "@calcom/ui/v2/core/Shell";
@@ -53,6 +52,7 @@ const formSchema = z.object({
       reminderBody: z.string().nullable(),
       emailSubject: z.string().nullable(),
       template: z.nativeEnum(WorkflowTemplates),
+      numberRequired: z.boolean().nullable(),
       sendTo: z
         .string()
         .refine((val) => isValidPhoneNumber(val) || val.includes("@"))

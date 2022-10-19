@@ -69,6 +69,7 @@ export type FormValues = {
   periodCountCalendarDays: "1" | "0";
   periodDates: { startDate: Date; endDate: Date };
   seatsPerTimeSlot: number | null;
+  seatsShowAttendees: boolean | null;
   seatsPerTimeSlotEnabled: boolean;
   minimumBookingNotice: number;
   beforeBufferTime: number;
@@ -232,6 +233,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             beforeBufferTime,
             afterBufferTime,
             seatsPerTimeSlot,
+            seatsShowAttendees,
             bookingLimits,
             recurringEvent,
             locations,
@@ -259,6 +261,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             afterEventBuffer: afterBufferTime,
             bookingLimits,
             seatsPerTimeSlot,
+            seatsShowAttendees,
             metadata,
           });
         }}>
@@ -391,6 +394,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       price: true,
       destinationCalendar: true,
       seatsPerTimeSlot: true,
+      seatsShowAttendees: true,
       workflows: {
         include: {
           workflow: {
