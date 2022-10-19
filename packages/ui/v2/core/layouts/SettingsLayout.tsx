@@ -243,6 +243,12 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                                   textClassNames="px-3 text-gray-900 font-medium text-sm"
                                   disableChevron
                                 />
+                                <VerticalTabItem
+                                  name={t("billing")}
+                                  href={`/settings/teams/${team.id}/billing`}
+                                  textClassNames="px-3 text-gray-900 font-medium text-sm"
+                                  disableChevron
+                                />
                                 {HOSTED_CAL_FEATURES && (
                                   <VerticalTabItem
                                     name={t("saml_config")}
