@@ -1,12 +1,13 @@
 import { BookingStatus } from "@prisma/client";
 import { useRouter } from "next/router";
-import { useState, useMemo } from "react";
+import { useState, useRef } from "react";
 
 import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import showToast from "@calcom/lib/notification";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
@@ -16,10 +17,8 @@ import { TextArea } from "@calcom/ui/form/fields";
 import Badge from "@calcom/ui/v2/core/Badge";
 import Button from "@calcom/ui/v2/core/Button";
 import MeetingTimeInTimezones from "@calcom/ui/v2/core/MeetingTimeInTimezones";
-import showToast from "@calcom/ui/v2/core/notifications";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
-import { extractRecurringDates } from "@lib/parseDate";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
@@ -176,16 +175,14 @@ function BookingListItem(booking: BookingItemProps) {
     setLocationMutation.mutate({ bookingId: booking.id, newLocation });
   };
 
-  // Extract recurring dates is intensive to run, so use useMemo.
   // Calculate the booking date(s) and setup recurring event data to show
+  const recurringStrings: string[] = [];
+  const recurringDates: Date[] = [];
+
   // @FIXME: This is importing the RRULE library which is already heavy. Find out a more optimal way do this.
-  const [recurringStrings, recurringDates] = useMemo(() => {
-    if (booking.recurringBookings !== undefined && booking.eventType.recurringEvent?.freq !== undefined) {
-      return extractRecurringDates(booking, user?.timeZone, i18n);
-    }
-    return [[], []];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.timeZone, i18n.language, booking.recurringBookings]);
+  // if (booking.recurringBookings !== undefined && booking.eventType.recurringEvent?.freq !== undefined) {
+  //   [recurringStrings, recurringDates] = extractRecurringDates(booking, user?.timeZone, i18n);
+  // }
 
   const location = booking.location || "";
 
@@ -294,7 +291,11 @@ function BookingListItem(booking: BookingItemProps) {
             )}
 
             <div className="mt-2 text-sm text-gray-400">
-              <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
+              <RecurringBookingsTooltip
+                booking={booking}
+                recurringStrings={recurringStrings}
+                recurringDates={recurringDates}
+              />
             </div>
           </div>
         </td>
@@ -332,7 +333,11 @@ function BookingListItem(booking: BookingItemProps) {
               </Badge>
             )}
             <div className="text-sm text-gray-400 sm:hidden">
-              <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
+              <RecurringBookingsTooltip
+                booking={booking}
+                recurringStrings={recurringStrings}
+                recurringDates={recurringDates}
+              />
             </div>
           </div>
 
@@ -393,18 +398,17 @@ function BookingListItem(booking: BookingItemProps) {
 
 interface RecurringBookingsTooltipProps {
   booking: BookingItemProps;
+  recurringStrings: string[];
   recurringDates: Date[];
 }
 
-const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookingsTooltipProps) => {
-  // Get user so we can determine 12/24 hour format preferences
-  const query = useMeQuery();
-  const user = query.data;
+const RecurringBookingsTooltip = ({
+  booking,
+  recurringStrings,
+  recurringDates,
+}: RecurringBookingsTooltipProps) => {
   const { t } = useLocale();
   const now = new Date();
-  const recurringCount = recurringDates.filter((date) => {
-    return date >= now;
-  }).length;
 
   return (
     (booking.recurringBookings &&
@@ -415,11 +419,9 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
         <div className="underline decoration-gray-400 decoration-dashed underline-offset-2">
           <div className="flex">
             <Tooltip
-              content={recurringDates.map((aDate, key) => (
+              content={recurringStrings.map((aDate, key) => (
                 <p key={key} className={classNames(recurringDates[key] < now && "line-through")}>
-                  {formatTime(booking.startTime, user?.timeFormat, user?.timeZone)}
-                  {" - "}
-                  {dayjs(aDate).format("D MMMM YYYY")}
+                  {aDate}
                 </p>
               ))}>
               <div className="text-gray-600 dark:text-white">
@@ -430,12 +432,14 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
                 <p className="mt-1 pl-5 text-xs">
                   {booking.status === BookingStatus.ACCEPTED
                     ? `${t("event_remaining", {
-                        count: recurringCount,
+                        count: recurringDates.length,
                       })}`
                     : getEveryFreqFor({
                         t,
                         recurringEvent: booking.eventType.recurringEvent,
-                        recurringCount,
+                        recurringCount: recurringDates.filter((date) => {
+                          return date >= now;
+                        }).length,
                       })}
                 </p>
               </div>
