@@ -89,12 +89,6 @@ const UserProfile = (props: IUserProfile) => {
       title: t("30min_meeting"),
       slug: "30min",
       length: 30,
-      description: "A 30min meet created by default",
-      locations: [
-        {
-          type: "integrations:google:meet",
-        },
-      ],
     },
     // {
     //   title: t("secret_meeting"),
