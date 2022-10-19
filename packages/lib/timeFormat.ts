@@ -28,9 +28,11 @@ export const isBrowserLocale24h = () => {
   }
 
   let locale = "en-US";
-  if (typeof window !== "undefined" && navigator) locale = window.navigator?.language;
+  if (typeof window !== "undefined" && navigator) {
+    locale = window.navigator?.language;
+  }
 
-  if (!new Intl.DateTimeFormat(locale, { hour: "numeric" }).format(0).match(/M/)) {
+  if (!!new Intl.DateTimeFormat(locale, { hour: "numeric" }).format(0).match(/M/i)) {
     setIs24hClockInLocalStorage(false);
     return false;
   } else {
@@ -39,4 +41,4 @@ export const isBrowserLocale24h = () => {
   }
 };
 
-export const detectBrowserTimeFormat = isBrowserLocale24h() ? "H:mm" : "h:mma";
+export const detectBrowserTimeFormat = isBrowserLocale24h() ? "HH:mm" : "h:mma";

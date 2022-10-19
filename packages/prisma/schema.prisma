@@ -31,7 +31,7 @@ enum PeriodType {
 
 model EventType {
   id                      Int                     @id @default(autoincrement())
-  /// @zod.nonempty()
+  /// @zod.min(1)
   title                   String
   /// @zod.custom(imports.eventTypeSlug)
   slug                    String
@@ -68,16 +68,22 @@ model EventType {
   beforeEventBuffer       Int                     @default(0)
   afterEventBuffer        Int                     @default(0)
   seatsPerTimeSlot        Int?
+  seatsShowAttendees      Boolean?
   schedulingType          SchedulingType?
   schedule                Schedule?               @relation(fields: [scheduleId], references: [id])
   scheduleId              Int?
+  // price is deprecated. It has now moved to metadata.apps.stripe.price. Plan to drop this column.
   price                   Int                     @default(0)
+  // currency is deprecated. It has now moved to metadata.apps.stripe.currency. Plan to drop this column.
   currency                String                  @default("usd")
   slotInterval            Int?
+  /// @zod.custom(imports.EventTypeMetaDataSchema)
   metadata                Json?
   /// @zod.custom(imports.successRedirectUrl)
   successRedirectUrl      String?
   workflows               WorkflowsOnEventTypes[]
+  /// @zod.custom(imports.bookingLimitsType)
+  bookingLimits           Json?
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -192,8 +198,10 @@ model User {
 
 model Team {
   id           Int          @id @default(autoincrement())
-  name         String?
-  slug         String?      @unique
+  /// @zod.min(1)
+  name         String
+  /// @zod.min(1)
+  slug         String       @unique
   logo         String?
   bio          String?
   hideBranding Boolean      @default(false)
@@ -212,7 +220,7 @@ model Membership {
   userId               Int
   accepted             Boolean        @default(false)
   role                 MembershipRole
-  team                 Team           @relation(fields: [teamId], references: [id])
+  team                 Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   disableImpersonation Boolean        @default(false)
 
@@ -232,7 +240,9 @@ model VerificationToken {
 
 model BookingReference {
   id                 Int      @id @default(autoincrement())
+  /// @zod.min(1)
   type               String
+  /// @zod.min(1)
   uid                String
   meetingId          String?
   meetingPassword    String?
@@ -397,6 +407,7 @@ model Webhook {
   id              String                 @id @unique
   userId          Int?
   eventTypeId     Int?
+  /// @zod.url()
   subscriberUrl   String
   payloadTemplate String?
   createdAt       DateTime               @default(now())
@@ -475,6 +486,7 @@ enum AppCategories {
   video
   web3
   automation
+  analytics
 }
 
 model App {
@@ -531,6 +543,7 @@ enum WorkflowTriggerEvents {
   BEFORE_EVENT
   EVENT_CANCELLED
   NEW_EVENT
+  AFTER_EVENT
   RESCHEDULE_EVENT
 }
 
@@ -539,6 +552,7 @@ enum WorkflowActions {
   EMAIL_ATTENDEE
   SMS_ATTENDEE
   SMS_NUMBER
+  EMAIL_ADDRESS
 }
 
 model WorkflowStep {
@@ -552,6 +566,7 @@ model WorkflowStep {
   emailSubject      String?
   template          WorkflowTemplates  @default(REMINDER)
   workflowReminders WorkflowReminder[]
+  numberRequired    Boolean?
 }
 
 model Workflow {

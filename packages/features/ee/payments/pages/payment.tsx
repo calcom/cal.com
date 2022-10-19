@@ -3,7 +3,10 @@ import { z } from "zod";
 
 import { PaymentData } from "@calcom/app-store/stripepayment/lib/server";
 import prisma from "@calcom/prisma";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
+
+import { ssrInit } from "@server/lib/ssr";
 
 export type PaymentPageProps = inferSSRProps<typeof getServerSideProps>;
 
@@ -12,6 +15,8 @@ const querySchema = z.object({
 });
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
   const { uid } = querySchema.parse(context.query);
   const rawPayment = await prisma.payment.findFirst({
     where: {
@@ -46,6 +51,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
               eventName: true,
               requiresConfirmation: true,
               userId: true,
+              metadata: true,
               users: {
                 select: {
                   name: true,
@@ -100,8 +106,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     props: {
       user,
-      eventType,
+      eventType: {
+        ...eventType,
+        metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+      },
       booking,
+      trpcState: ssr.dehydrate(),
       payment,
       profile,
     },

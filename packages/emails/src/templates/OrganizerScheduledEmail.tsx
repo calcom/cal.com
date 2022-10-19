@@ -33,6 +33,7 @@ export const OrganizerScheduledEmail = (
       t={t}
       subject={t(subject)}
       title={t(title)}
+      includeAppsStatus
       {...props}
     />
   );

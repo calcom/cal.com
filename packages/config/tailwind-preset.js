@@ -209,6 +209,7 @@ module.exports = {
     require("@tailwindcss/forms"),
     require("@tailwindcss/typography"),
     require("@tailwindcss/line-clamp"),
+    require("tailwind-scrollbar"),
     require("tailwindcss-radix")(),
     plugin(({ addVariant }) => {
       addVariant("mac", ".mac &");
@@ -216,4 +217,7 @@ module.exports = {
       addVariant("ios", ".ios &");
     }),
   ],
+  variants: {
+    scrollbar: ["rounded", "dark"],
+  },
 };

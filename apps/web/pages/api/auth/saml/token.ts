@@ -1,21 +1,13 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiRequest } from "next";
 
-import jackson from "@lib/jackson";
+import jackson from "@calcom/features/ee/sso/lib/jackson";
+import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  try {
-    if (req.method !== "POST") {
-      throw new Error("Method not allowed");
-    }
-
-    const { oauthController } = await jackson();
-    const result = await oauthController.token(req.body);
-
-    res.json(result);
-  } catch (err: any) {
-    console.error("token error:", err);
-    const { message, statusCode = 500 } = err;
-
-    res.status(statusCode).send(message);
-  }
+async function postHandler(req: NextApiRequest) {
+  const { oauthController } = await jackson();
+  return await oauthController.token(req.body);
 }
+
+export default defaultHandler({
+  POST: Promise.resolve({ default: defaultResponder(postHandler) }),
+});

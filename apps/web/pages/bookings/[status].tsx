@@ -1,27 +1,26 @@
+import autoAnimate from "@formkit/auto-animate";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
-import { Fragment } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
-import Button from "@calcom/ui/Button";
-import EmptyScreen from "@calcom/ui/EmptyScreen";
 import { Icon } from "@calcom/ui/Icon";
-import Shell from "@calcom/ui/Shell";
+import { Button, EmptyScreen } from "@calcom/ui/v2";
+import BookingLayout from "@calcom/ui/v2/core/layouts/BookingLayout";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
-import BookingsShell from "@components/BookingsShell";
 import BookingListItem from "@components/booking/BookingListItem";
-import SkeletonLoader from "@components/booking/SkeletonLoader";
+import SkeletonLoader from "@components/v2/bookings/SkeletonLoader";
 
 type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
 type BookingOutput = inferQueryOutput<"viewer.bookings">["bookings"][0];
 
-const validStatuses = ["upcoming", "recurring", "past", "cancelled"] as const;
+const validStatuses = ["upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
 
 const descriptionByStatus: Record<BookingListingStatus, string> = {
   upcoming: "upcoming_bookings",
@@ -46,6 +45,8 @@ export default function Bookings() {
     getNextPageParam: (lastPage) => lastPage.nextCursor,
   });
 
+  // Animate page (tab) tranistions to look smoothing
+  const animationParentRef = useRef(null);
   const buttonInView = useInViewObserver(() => {
     if (!query.isFetching && query.hasNextPage && query.status === "success") {
       query.fetchNextPage();
@@ -56,7 +57,7 @@ export default function Bookings() {
 
   const shownBookings: Record<string, BookingOutput[]> = {};
   const filterBookings = (booking: BookingOutput) => {
-    if (status === "recurring" || status === "cancelled") {
+    if (status === "recurring" || status == "unconfirmed" || status === "cancelled") {
       if (!booking.recurringEventId) {
         return true;
       }
@@ -71,63 +72,68 @@ export default function Bookings() {
     }
     return true;
   };
+
+  useEffect(() => {
+    animationParentRef.current && autoAnimate(animationParentRef.current);
+  }, [animationParentRef]);
+
   return (
-    <Shell heading={t("bookings")} subtitle={t("bookings_description")}>
-      <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
-      <BookingsShell>
-        <div className="-mx-4 flex flex-col sm:mx-auto">
-          <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-              {query.status === "error" && (
-                <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
-              )}
-              {(query.status === "loading" || query.isPaused) && <SkeletonLoader />}
-              {query.status === "success" && !isEmpty && (
-                <>
-                  <div className="mt-6 overflow-hidden rounded-sm border border-b border-gray-200">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <tbody className="divide-y divide-gray-200 bg-white" data-testid="bookings">
-                        {query.data.pages.map((page, index) => (
-                          <Fragment key={index}>
-                            {page.bookings.filter(filterBookings).map((booking: BookingOutput) => (
-                              <BookingListItem
-                                key={booking.id}
-                                listingStatus={status}
-                                recurringBookings={page.recurringInfo}
-                                {...booking}
-                              />
-                            ))}
-                          </Fragment>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className="p-4 text-center" ref={buttonInView.ref}>
-                    <Button
-                      color="minimal"
-                      loading={query.isFetchingNextPage}
-                      disabled={!query.hasNextPage}
-                      onClick={() => query.fetchNextPage()}>
-                      {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
-                    </Button>
-                  </div>
-                </>
-              )}
-              {query.status === "success" && isEmpty && (
-                <EmptyScreen
-                  Icon={Icon.FiCalendar}
-                  headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
-                  description={t("no_status_bookings_yet_description", {
-                    status: t(status).toLowerCase(),
-                    description: t(descriptionByStatus[status]),
-                  })}
-                />
-              )}
+    <BookingLayout heading={t("bookings")} subtitle={t("bookings_description")}>
+      <div className="flex w-full flex-col" ref={animationParentRef}>
+        {query.status === "error" && (
+          <Alert severity="error" title={t("something_went_wrong")} message={query.error.message} />
+        )}
+        {(query.status === "loading" || query.isPaused) && <SkeletonLoader />}
+        {query.status === "success" && !isEmpty && (
+          <div className="pt-2 xl:pt-0">
+            <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
+            {/* TODO: add today only for the current day
+            <p className="pb-3 text-xs font-medium leading-4 text-gray-500 uppercase">{t("today")}</p>
+             */}
+
+            <div className="overflow-hidden rounded-md border border-gray-200">
+              <table className="w-full max-w-full table-fixed">
+                <tbody className="divide-y divide-gray-200 bg-white" data-testid="bookings">
+                  {query.data.pages.map((page, index) => (
+                    <Fragment key={index}>
+                      {page.bookings.filter(filterBookings).map((booking: BookingOutput) => (
+                        <BookingListItem
+                          key={booking.id}
+                          listingStatus={status}
+                          recurringBookings={page.recurringInfo}
+                          {...booking}
+                        />
+                      ))}
+                    </Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="p-4 text-center" ref={buttonInView.ref}>
+              <Button
+                color="minimal"
+                loading={query.isFetchingNextPage}
+                disabled={!query.hasNextPage}
+                onClick={() => query.fetchNextPage()}>
+                {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
+              </Button>
             </div>
           </div>
-        </div>
-      </BookingsShell>
-    </Shell>
+        )}
+        {query.status === "success" && isEmpty && (
+          <div className="flex items-center justify-center pt-2 xl:mx-6 xl:pt-0">
+            <EmptyScreen
+              Icon={Icon.FiCalendar}
+              headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}
+              description={t("no_status_bookings_yet_description", {
+                status: t(status).toLowerCase(),
+                description: t(descriptionByStatus[status]),
+              })}
+            />
+          </div>
+        )}
+      </div>
+    </BookingLayout>
   );
 }
 
