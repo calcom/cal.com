@@ -41,7 +41,7 @@ export const samlTenantProduct = async (prisma: PrismaClient, email: string) => 
   if (!user) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: "Unauthorized Request",
+      message: "no_account_exists",
     });
   }
 
