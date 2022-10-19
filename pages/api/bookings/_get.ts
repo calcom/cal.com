@@ -29,6 +29,10 @@ import { schemaQuerySingleOrMultipleUserIds } from "@lib/validations/shared/quer
 async function handler(req: NextApiRequest) {
   const { userId, isAdmin, prisma } = req;
   const args: Prisma.BookingFindManyArgs = isAdmin ? {} : { where: { userId } };
+  args.include = {
+    attendees: true,
+    user: true,
+  };
   /** Only admins can query other users */
   if (isAdmin && req.query.userId) {
     const query = schemaQuerySingleOrMultipleUserIds.parse(req.query);
