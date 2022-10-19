@@ -42,6 +42,7 @@ const tabs: VerticalTabItemProps[] = [
     children: [
       { name: "password", href: "/settings/security/password" },
       { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
+      { name: "impersonation", href: "/settings/security/impersonation" },
     ],
   },
   {
