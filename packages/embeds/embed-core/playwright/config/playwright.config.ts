@@ -109,7 +109,7 @@ expect.extend({
       };
     }
     const pathname = u.pathname;
-    const expectedPathname = expectedUrlDetails.pathname;
+    const expectedPathname = expectedUrlDetails.pathname + "/embed";
     if (expectedPathname && expectedPathname !== pathname) {
       return {
         pass: false,
@@ -150,16 +150,16 @@ expect.extend({
       }, 500);
     });
 
-    //At this point we know that window.initialBodyDisplay would be set as DOM would already have been ready(because linkReady event can only fire after that)
+    //At this point we know that window.initialBodyVisibility would be set as DOM would already have been ready(because linkReady event can only fire after that)
     const {
-      display: displayBefore,
+      visibility: visibilityBefore,
       background: backgroundBefore,
       initialValuesSet,
     } = await iframe.evaluate(() => {
       return {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
-        display: window.initialBodyDisplay,
+        visibility: window.initialBodyVisibility,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
         background: window.initialBodyBackground,
@@ -168,21 +168,18 @@ expect.extend({
         initialValuesSet: window.initialValuesSet,
       };
     });
-    const isOptimizedPage = u.pathname.includes("forms/");
     expect(initialValuesSet).toBe(true);
-    if (!isOptimizedPage) {
-      expect(displayBefore).toBe("none");
-    }
+    expect(visibilityBefore).toBe("hidden");
     expect(backgroundBefore).toBe("transparent");
 
-    const { display: displayAfter, background: backgroundAfter } = await iframe.evaluate(() => {
+    const { visibility: visibilityAfter, background: backgroundAfter } = await iframe.evaluate(() => {
       return {
-        display: document.body.style.display,
+        visibility: document.body.style.visibility,
         background: document.body.style.background,
       };
     });
 
-    expect(displayAfter).not.toBe("none");
+    expect(visibilityAfter).toBe("visible");
     expect(backgroundAfter).toBe("transparent");
     if (!iframeReadyEventDetail) {
       return {
