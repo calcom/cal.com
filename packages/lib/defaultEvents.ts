@@ -76,6 +76,7 @@ const commons = {
   currency: "usd",
   schedulingType: SchedulingType.COLLECTIVE,
   seatsPerTimeSlot: null,
+  seatsShowAttendees: null,
   id: 0,
   hideCalendarNotes: false,
   recurringEvent: null,

@@ -1,10 +1,11 @@
 import { BookingStatus } from "@prisma/client";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
+import { formatTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import showToast from "@calcom/lib/notification";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
@@ -15,9 +16,9 @@ import { Tooltip } from "@calcom/ui/Tooltip";
 import { TextArea } from "@calcom/ui/form/fields";
 import Badge from "@calcom/ui/v2/core/Badge";
 import Button from "@calcom/ui/v2/core/Button";
+import MeetingTimeInTimezones from "@calcom/ui/v2/core/MeetingTimeInTimezones";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
-import { extractRecurringDates } from "@lib/parseDate";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
@@ -175,16 +176,17 @@ function BookingListItem(booking: BookingItemProps) {
   };
 
   // Calculate the booking date(s) and setup recurring event data to show
-  let recurringStrings: string[] = [];
-  let recurringDates: Date[] = [];
+  const recurringStrings: string[] = [];
+  const recurringDates: Date[] = [];
 
-  if (booking.recurringBookings !== undefined && booking.eventType.recurringEvent?.freq !== undefined) {
-    [recurringStrings, recurringDates] = extractRecurringDates(booking, user?.timeZone, i18n);
-  }
+  // @FIXME: This is importing the RRULE library which is already heavy. Find out a more optimal way do this.
+  // if (booking.recurringBookings !== undefined && booking.eventType.recurringEvent?.freq !== undefined) {
+  //   [recurringStrings, recurringDates] = extractRecurringDates(booking, user?.timeZone, i18n);
+  // }
 
   const location = booking.location || "";
 
-  const onClick = () => {
+  const onClickTableData = () => {
     router.push({
       pathname: "/success",
       query: {
@@ -205,6 +207,7 @@ function BookingListItem(booking: BookingItemProps) {
       },
     });
   };
+
   return (
     <>
       <RescheduleDialog
@@ -253,17 +256,21 @@ function BookingListItem(booking: BookingItemProps) {
       </Dialog>
 
       <tr className="flex flex-col hover:bg-neutral-50 sm:flex-row">
-        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:min-w-[10rem]" onClick={onClick}>
+        <td
+          className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:min-w-[12rem]"
+          onClick={onClickTableData}>
           <div className="cursor-pointer py-4">
             <div className="text-sm leading-6 text-gray-900">{startTime}</div>
             <div className="text-sm text-gray-500">
-              {dayjs(booking.startTime)
-                .tz(user?.timeZone)
-                .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}{" "}
-              -{" "}
-              {dayjs(booking.endTime)
-                .tz(user?.timeZone)
-                .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
+              {formatTime(booking.startTime, user?.timeFormat, user?.timeZone)} -{" "}
+              {formatTime(booking.endTime, user?.timeFormat, user?.timeZone)}
+              <MeetingTimeInTimezones
+                timeFormat={user?.timeFormat}
+                userTimezone={user?.timeZone}
+                startTime={booking.startTime}
+                endTime={booking.endTime}
+                attendees={booking.attendees}
+              />
             </div>
 
             {isPending && (
@@ -292,19 +299,21 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
           </div>
         </td>
-        <td className={"w-full px-4" + (isRejected ? " line-through" : "")} onClick={onClick}>
+        <td className={"w-full px-4" + (isRejected ? " line-through" : "")} onClick={onClickTableData}>
           {/* Time and Badges for mobile */}
           <div className="w-full pt-4 pb-2 sm:hidden">
             <div className="flex w-full items-center justify-between sm:hidden">
               <div className="text-sm leading-6 text-gray-900">{startTime}</div>
               <div className="pr-2 text-sm text-gray-500">
-                {dayjs(booking.startTime)
-                  .tz(user?.timeZone)
-                  .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}{" "}
-                -{" "}
-                {dayjs(booking.endTime)
-                  .tz(user?.timeZone)
-                  .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
+                {formatTime(booking.startTime, user?.timeFormat, user?.timeZone)} -{" "}
+                {formatTime(booking.endTime, user?.timeFormat, user?.timeZone)}
+                <MeetingTimeInTimezones
+                  timeFormat={user?.timeFormat}
+                  userTimezone={user?.timeZone}
+                  startTime={booking.startTime}
+                  endTime={booking.endTime}
+                  attendees={booking.attendees}
+                />
               </div>
             </div>
 

@@ -371,7 +371,6 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
-  const slug = rawSlug.join("/");
 
   // Define conditional gates here
   const gates = [
@@ -386,8 +385,16 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
-        name={profile.name || undefined}
-        username={slug || undefined}
+        meeting={{
+          title: eventType.title,
+          profile: { name: `${profile.name}`, image: profile.image },
+          users: [
+            ...(eventType.users || []).map((user) => ({
+              name: `${user.name}`,
+              username: `${user.username}`,
+            })),
+          ],
+        }}
         nextSeoProps={{
           nofollow: eventType.hidden,
           noindex: eventType.hidden,
@@ -419,7 +426,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                     "min-w-full md:w-[280px] md:min-w-[280px]",
                     recurringEventCount && "xl:w-[380px] xl:min-w-[380px]"
                   )}>
-                  <BookingDescription profile={profile} eventType={eventType}>
+                  <BookingDescription profile={profile} eventType={eventType} rescheduleUid={rescheduleUid}>
                     {!rescheduleUid && eventType.recurringEvent && (
                       <div className="flex items-start text-sm font-medium">
                         <Icon.FiRefreshCcw className="float-left mr-[10px] mt-[7px] ml-[2px] inline-block h-4 w-4 " />

@@ -1,4 +1,4 @@
-import type { FormValues } from "pages/v2/event-types/[type]";
+import type { FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 

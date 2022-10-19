@@ -1,7 +1,7 @@
 import type { TFunction } from "next-i18next";
 
 import dayjs from "@calcom/dayjs";
-import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { AppsStatus as AppsStatusType, CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import {
   BaseEmailHtml,
@@ -11,6 +11,7 @@ import {
   ManageLink,
   WhenInfo,
   WhoInfo,
+  AppsStatus,
 } from "../components";
 
 export const BaseScheduledEmail = (
@@ -18,6 +19,7 @@ export const BaseScheduledEmail = (
     calEvent: CalendarEvent;
     attendee: Person;
     timeZone: string;
+    includeAppsStatus?: boolean;
     t: TFunction;
   } & Partial<React.ComponentProps<typeof BaseEmailHtml>>
 ) => {
@@ -70,6 +72,7 @@ export const BaseScheduledEmail = (
       <LocationInfo calEvent={props.calEvent} t={t} />
       <Info label={t("description")} description={props.calEvent.description} withSpacer />
       <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer />
+      {props.includeAppsStatus && <AppsStatus calEvent={props.calEvent} t={t} />}
       <CustomInputs calEvent={props.calEvent} />
     </BaseEmailHtml>
   );
