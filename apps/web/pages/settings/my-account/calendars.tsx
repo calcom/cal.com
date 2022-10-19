@@ -4,11 +4,11 @@ import { useRouter } from "next/router";
 import { Fragment } from "react";
 
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Alert } from "@calcom/ui/v2";
+import { Alert, Button } from "@calcom/ui/v2";
 import Badge from "@calcom/ui/v2/core/Badge";
 import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
 import Meta from "@calcom/ui/v2/core/Meta";
@@ -36,6 +36,16 @@ const SkeletonLoader = () => {
   );
 };
 
+const AddCalendarButton = () => {
+  return (
+    <>
+      <Button color="secondary" StartIcon={Icon.FiPlus} href={`${CAL_URL}/apps/categories/calendar`}>
+        Add Calendar
+      </Button>
+    </>
+  );
+};
+
 const CalendarsView = () => {
   const { t } = useLocale();
   const router = useRouter();
@@ -51,7 +61,11 @@ const CalendarsView = () => {
 
   return (
     <>
-      <Meta title="Calendars" description="Configure how your event types interact with your calendars" />
+      <Meta
+        title="Calendars"
+        description="Configure how your event types interact with your calendars"
+        CTA={AddCalendarButton}
+      />
       <QueryCell
         query={query}
         customLoader={<SkeletonLoader />}
@@ -174,7 +188,7 @@ const CalendarsView = () => {
               headline={t("no_calendar_installed")}
               description={t("no_calendar_installed_description")}
               buttonText={t("add_a_calendar")}
-              buttonOnClick={() => router.push(`${WEBAPP_URL}/apps/categories/calendar`)}
+              buttonOnClick={() => router.push(`${CAL_URL}/apps/categories/calendar`)}
             />
           );
         }}
