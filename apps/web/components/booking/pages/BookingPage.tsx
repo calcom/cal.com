@@ -89,9 +89,6 @@ const BookingPage = ({
   ...restProps
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
-  // Get user so we can determine 12/24 hour format preferences
-  const query = useMeQuery();
-  const user = query.data;
   const isEmbed = useIsEmbed(restProps.isEmbed);
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
