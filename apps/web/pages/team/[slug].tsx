@@ -84,7 +84,7 @@ function TeamPage({ team }: TeamPageProps) {
   return (
     <div>
       <HeadSeo title={teamName} description={teamName} />
-      <div className="dark:bg-darkgray-50 h-screen rounded-md bg-gray-100 px-4 pt-12 pb-12">
+      <main className="dark:bg-darkgray-50 mx-auto max-w-3xl rounded-md bg-gray-100 px-4 pt-12 pb-12">
         <div className="max-w-96 mx-auto mb-8 text-center">
           <Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />
           <p className="font-cal dark:text-darkgray-900 mb-2 text-2xl tracking-wider text-gray-900">
@@ -109,7 +109,7 @@ function TeamPage({ team }: TeamPageProps) {
               </div>
             </div>
 
-            <aside className="mt-8 mb-16 flex justify-center text-center dark:text-white">
+            <aside className="mt-8 flex justify-center text-center dark:text-white">
               <Button
                 color="minimal"
                 EndIcon={Icon.FiArrowRight}
@@ -121,7 +121,7 @@ function TeamPage({ team }: TeamPageProps) {
             </aside>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }
