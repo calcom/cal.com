@@ -59,6 +59,18 @@ export default function AllApps({ apps }: AllAppsPropsType) {
     setSelectedCategory(queryCategory);
   }, [router.query.category]);
 
+  const handleLeft = () => {
+    if (ref.current) {
+      ref.current.scrollLeft -= 100;
+    }
+  };
+
+  const handleRight = () => {
+    if (ref.current) {
+      ref.current.scrollLeft += 100;
+    }
+  };
+
   return (
     <div className="mb-16">
       <div className="relative mb-4 flex flex-col justify-between lg:flex-row lg:items-center">
@@ -70,12 +82,12 @@ export default function AllApps({ apps }: AllAppsPropsType) {
           })}
         </h2>
         {leftVisible && (
-          <div className="absolute top-9 flex md:left-1/2 md:-top-1">
+          <button onClick={handleLeft} className="absolute top-9 flex md:left-1/2 md:-top-1">
             <div className="flex h-12 w-5 items-center justify-end bg-white">
               <ChevronLeft className="h-4 w-4 text-gray-500" />
             </div>
             <div className="flex h-12 w-5 bg-gradient-to-l from-transparent to-white" />
-          </div>
+          </button>
         )}
         <ul
           className="no-scrollbar mt-3 flex max-w-full space-x-1 overflow-x-auto lg:mt-0 lg:max-w-[50%]"
@@ -112,12 +124,12 @@ export default function AllApps({ apps }: AllAppsPropsType) {
           ))}
         </ul>
         {rightVisible && (
-          <div className="absolute top-9 right-0 flex md:-top-1">
+          <button onClick={handleRight} className="absolute top-9 right-0 flex md:-top-1">
             <div className="flex h-12 w-5 bg-gradient-to-r from-transparent to-white" />
             <div className="flex h-12 w-5 items-center justify-end bg-white">
               <ChevronRight className="h-4 w-4 text-gray-500" />
             </div>
-          </div>
+          </button>
         )}
       </div>
       <div
