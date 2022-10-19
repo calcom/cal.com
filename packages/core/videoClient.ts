@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
@@ -8,27 +7,13 @@ import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoApiAdapterFactory, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
 const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
 
 const translator = short();
-
-/*
- * The logic on this it's just using Credential Type doesn't reflect that some fields can be
- * null sometimes, so with this we should get correct type.
- * Also there may be a better place to save this.
- */
-export type CredentialPayload = Prisma.CredentialGetPayload<{
-  select: {
-    id: true;
-    appId: true;
-    type: true;
-    userId: true;
-    key: true;
-  };
-}>;
 
 // factory
 const getVideoAdapters = (withCredentials: CredentialPayload[]): VideoApiAdapter[] =>

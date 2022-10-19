@@ -1,4 +1,4 @@
-import { Credential, DestinationCalendar } from "@prisma/client";
+import { DestinationCalendar } from "@prisma/client";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 import { z } from "zod";
@@ -9,6 +9,7 @@ import getApps from "@calcom/app-store/utils";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 import type { Event } from "@calcom/types/Event";
 import type {
   CreateUpdateResult,
@@ -58,15 +59,15 @@ export const processLocation = (event: CalendarEvent): CalendarEvent => {
 };
 
 type EventManagerUser = {
-  credentials: Credential[];
+  credentials: CredentialPayload[];
   destinationCalendar: DestinationCalendar | null;
 };
 
 type createdEventSchema = z.infer<typeof createdEventSchema>;
 
 export default class EventManager {
-  calendarCredentials: Credential[];
-  videoCredentials: Credential[];
+  calendarCredentials: CredentialPayload[];
+  videoCredentials: CredentialPayload[];
 
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
@@ -353,7 +354,7 @@ export default class EventManager {
    * @private
    */
 
-  private getVideoCredential(event: CalendarEvent): Credential | undefined {
+  private getVideoCredential(event: CalendarEvent): CredentialPayload | undefined {
     if (!event.location) {
       return undefined;
     }
@@ -367,7 +368,7 @@ export default class EventManager {
       .sort((a, b) => {
         return b.id - a.id;
       })
-      .find((credential: Credential) => credential.type.includes(integrationName));
+      .find((credential: CredentialPayload) => credential.type.includes(integrationName));
 
     /**
      * This might happen if someone tries to use a location with a missing credential, so we fallback to Cal Video.

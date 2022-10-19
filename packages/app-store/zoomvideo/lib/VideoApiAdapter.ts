@@ -1,11 +1,11 @@
-import { Credential } from "@prisma/client";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { handleErrorsJson } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
+import { Credential } from "@calcom/prisma/client";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
@@ -69,7 +69,7 @@ const zoomRefreshedTokenSchema = z.object({
   scope: z.string(),
 });
 
-const zoomAuth = (credential: Credential) => {
+const zoomAuth = (credential: CredentialPayload) => {
   const refreshAccessToken = async (refreshToken: string) => {
     const { client_id, client_secret } = await getZoomAppKeys();
     const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
@@ -138,7 +138,7 @@ type ZoomRecurrence = {
   monthly_day?: number; // 1-31
 };
 
-const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
+const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
   const translateEvent = (event: CalendarEvent) => {
     const getRecurrence = ({
       recurringEvent,

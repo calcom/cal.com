@@ -1,5 +1,4 @@
 import { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-beta";
-import { Credential } from "@prisma/client";
 
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
@@ -13,6 +12,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 
 import { O365AuthCredentials } from "../types/Office365Calendar";
 import { getOfficeAppKeys } from "./getOfficeAppKeys";
@@ -45,7 +45,7 @@ export default class Office365CalendarService implements Calendar {
   auth: { getToken: () => Promise<string> };
   private apiGraphUrl = "https://graph.microsoft.com/v1.0";
 
-  constructor(credential: Credential) {
+  constructor(credential: CredentialPayload) {
     this.integrationName = "office365_calendar";
     this.auth = this.o365Auth(credential);
 
@@ -175,7 +175,7 @@ export default class Office365CalendarService implements Calendar {
     });
   }
 
-  private o365Auth = (credential: Credential) => {
+  private o365Auth = (credential: CredentialPayload) => {
     const isExpired = (expiryDate: number) => expiryDate < Math.round(+new Date() / 1000);
     const o365AuthCredentials = credential.key as O365AuthCredentials;
 

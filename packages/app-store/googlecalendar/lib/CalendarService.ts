@@ -1,4 +1,4 @@
-import { Credential, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { calendar_v3, google } from "googleapis";
 
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
@@ -12,6 +12,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
 import { googleCredentialSchema } from "./googleCredentialSchema";
@@ -25,13 +26,13 @@ export default class GoogleCalendarService implements Calendar {
   private auth: { getToken: () => Promise<MyGoogleAuth> };
   private log: typeof logger;
 
-  constructor(credential: Credential) {
+  constructor(credential: CredentialPayload) {
     this.integrationName = "google_calendar";
     this.auth = this.googleAuth(credential);
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
-  private googleAuth = (credential: Credential) => {
+  private googleAuth = (credential: CredentialPayload) => {
     const googleCredentials = googleCredentialSchema.parse(credential.key);
 
     async function getGoogleAuth() {
