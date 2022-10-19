@@ -1,10 +1,9 @@
-// Get router variables
-import autoAnimate from "@formkit/auto-animate";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventType } from "@prisma/client";
 import * as Popover from "@radix-ui/react-popover";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { useReducer, useEffect, useMemo, useState, useRef } from "react";
+import { useReducer, useEffect, useMemo, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
@@ -47,6 +46,8 @@ import PoweredByCal from "@components/ui/PoweredByCal";
 import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
+
+// Get router variables
 
 const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
   const router = useRouter();
@@ -129,11 +130,8 @@ const SlotPicker = ({
   const { date, setQuery: setDate } = useRouterQuery("date");
   const { month, setQuery: setMonth } = useRouterQuery("month");
   const router = useRouter();
-  const slotPickerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    slotPickerRef.current && autoAnimate(slotPickerRef.current);
-  }, [slotPickerRef]);
+  const [slotPickerRef] = useAutoAnimate<HTMLDivElement>();
 
   useEffect(() => {
     if (!router.isReady) return;
