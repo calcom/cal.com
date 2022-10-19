@@ -134,8 +134,8 @@ const nextConfig = {
         destination: "/api/user/avatar?teamname=:teamname",
       },
       {
-        source: "/forms/:formId",
-        destination: "/apps/routing-forms/routing-link/:formId",
+        source: "/forms/:formQuery*",
+        destination: "/apps/routing-forms/routing-link/:formQuery*",
       },
       {
         source: "/router",

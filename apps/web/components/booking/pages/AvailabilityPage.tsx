@@ -304,11 +304,11 @@ const timeFormatTotimeFormatString = (timeFormat?: number | null) => {
   return timeFormat === 24 ? "HH:mm" : "h:mma";
 };
 
-const AvailabilityPage = ({ profile, eventType }: Props) => {
+const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const { data: user } = trpc.useQuery(["viewer.me"]);
   const timeFormatFromProfile = timeFormatTotimeFormatString(user?.timeFormat);
   const router = useRouter();
-  const isEmbed = useIsEmbed();
+  const isEmbed = useIsEmbed(restProps.isEmbed);
   const query = dateQuerySchema.parse(router.query);
   const { rescheduleUid } = query;
   useTheme(profile.theme);
