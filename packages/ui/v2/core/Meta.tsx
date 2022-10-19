@@ -1,20 +1,18 @@
 import Head from "next/head";
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
-
 type MetaType = {
   title: string;
   description: string;
   backButton?: boolean;
-  CTA?: React.Element;
+  CTA?: React.ReactNode;
 };
 
-const initialMeta = {
+const initialMeta: MetaType = {
   title: "",
   description: "",
   backButton: false,
-  CTA: () => <></>,
+  CTA: null,
 };
 
 const MetaContext = createContext({
@@ -28,6 +26,7 @@ export function useMeta() {
 }
 
 export function MetaProvider({ children }: { children: React.ReactNode }) {
+  console.log(typeof initialMeta.CTA);
   const [value, setValue] = useState(initialMeta);
   const setMeta = (newMeta: Partial<MetaType>) => {
     setValue((v) => ({ ...v, ...newMeta }));

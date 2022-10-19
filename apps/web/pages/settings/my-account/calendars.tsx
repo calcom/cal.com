@@ -64,7 +64,7 @@ const CalendarsView = () => {
       <Meta
         title="Calendars"
         description="Configure how your event types interact with your calendars"
-        CTA={AddCalendarButton}
+        CTA={<AddCalendarButton />}
       />
       <QueryCell
         query={query}
