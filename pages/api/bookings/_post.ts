@@ -26,7 +26,7 @@ import { defaultResponder } from "@calcom/lib/server";
  *               endTime:
  *                 type: string
  *                 example: 1970-01-01T17:00:00.000Z
- *              recurringCount:
+ *               recurringCount:
  *                 type: number
  *                 example: 8
  *     tags:

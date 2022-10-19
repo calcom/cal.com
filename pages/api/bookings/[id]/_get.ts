@@ -23,6 +23,10 @@ import { schemaQueryIdParseInt } from "@lib/validations/shared/queryIdTransformP
  *     responses:
  *       200:
  *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/Booking"
  *       401:
  *        description: Authorization information is missing or invalid.
  *       404:

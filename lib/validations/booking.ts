@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { _BookingModel as Booking } from "@calcom/prisma/zod";
+import { _BookingModel as Booking, _AttendeeModel, _UserModel } from "@calcom/prisma/zod";
 import { extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
 
 import { schemaQueryUserId } from "./shared/queryUserId";
@@ -27,7 +27,22 @@ const schemaBookingEditParams = z
 
 export const schemaBookingEditBodyParams = schemaBookingBaseBodyParams.merge(schemaBookingEditParams);
 
-export const schemaBookingReadPublic = Booking.pick({
+export const schemaBookingReadPublic = Booking.extend({
+  attendees: z.array(
+    _AttendeeModel.pick({
+      email: true,
+      name: true,
+      timeZone: true,
+      locale: true,
+    })
+  ),
+  user: _UserModel.pick({
+    email: true,
+    name: true,
+    timeZone: true,
+    locale: true,
+  }),
+}).pick({
   id: true,
   userId: true,
   description: true,
@@ -36,4 +51,8 @@ export const schemaBookingReadPublic = Booking.pick({
   title: true,
   startTime: true,
   endTime: true,
+  timeZone: true,
+  attendees: true,
+  user: true,
+  metadata: true,
 });

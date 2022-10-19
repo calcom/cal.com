@@ -22,6 +22,87 @@ const swaggerHandler = withSwagger({
     },
     components: {
       securitySchemes: { ApiKeyAuth: { type: "apiKey", in: "query", name: "apiKey" } },
+      schemas: {
+        ArrayOfBookings: {
+          type: "array",
+          items: {
+            $ref: "#/components/schemas/Booking",
+          },
+        },
+        Booking: {
+          properties: {
+            id: {
+              type: "number",
+            },
+            description: {
+              type: "string",
+            },
+            eventTypeId: {
+              type: "number",
+            },
+            uid: {
+              type: "string",
+              format: "uuid",
+            },
+            title: {
+              type: "string",
+            },
+            startTime: {
+              type: "string",
+              format: "date-time",
+            },
+            endTime: {
+              type: "string",
+              format: "date-time",
+            },
+            timeZone: {
+              type: "string",
+              example: "Europe/London",
+            },
+            attendees: {
+              type: "array",
+              items: {
+                properties: {
+                  email: {
+                    type: "string",
+                    example: "example@cal.com",
+                  },
+                  name: {
+                    type: "string",
+                  },
+                  timeZone: {
+                    type: "string",
+                    example: "Europe/London",
+                  },
+                  locale: {
+                    type: "string",
+                    example: "en",
+                  },
+                },
+              },
+            },
+            user: {
+              properties: {
+                email: {
+                  type: "string",
+                  example: "example@cal.com",
+                },
+                name: {
+                  type: "string",
+                },
+                timeZone: {
+                  type: "string",
+                  example: "Europe/London",
+                },
+                locale: {
+                  type: "string",
+                  example: "en",
+                },
+              },
+            },
+          },
+        },
+      },
     },
     security: [{ ApiKeyAuth: [] }],
     tags: [

@@ -17,6 +17,10 @@ import { schemaQuerySingleOrMultipleUserIds } from "@lib/validations/shared/quer
  *     responses:
  *       200:
  *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: "#/components/schemas/ArrayOfBookings"
  *       401:
  *        description: Authorization information is missing or invalid.
  *       404:
