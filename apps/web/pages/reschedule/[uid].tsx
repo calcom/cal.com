@@ -65,8 +65,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     redirect: {
-      destination:
-        "/" + eventPage + (context.query.embedType ? "/embed" : "") + "?rescheduleUid=" + context.query.uid,
+      destination: "/" + eventPage + "?rescheduleUid=" + context.query.uid,
       permanent: false,
     },
   };
