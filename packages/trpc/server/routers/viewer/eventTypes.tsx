@@ -125,6 +125,14 @@ export const eventTypesRouter = createProtectedRouter()
         },
       };
 
+      // Uncomment to add google meet and successRedirect by default on all meetings
+      data.locations = [
+        {
+          type: "integrations:google:meet",
+        },
+      ];
+      // data.successRedirectUrl = "https://www.pesto.tech";
+
       const appKeys = await getAppKeysFromSlug("daily-video");
       if (typeof appKeys.api_key === "string") {
         data.locations = [{ type: DailyLocationType }];
