@@ -1,5 +1,7 @@
 import { Attendee, Booking } from "@prisma/client";
 
+import { AppsStatus } from "@calcom/types/Calendar";
+
 export type BookingCreateBody = {
   email: string;
   end: string;
@@ -33,4 +35,5 @@ export type BookingCreateBody = {
 export type BookingResponse = Booking & {
   paymentUid?: string;
   attendees: Attendee[];
+  appsStatus?: AppsStatus[];
 };

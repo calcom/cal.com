@@ -5,6 +5,7 @@ import cache from "memory-cache";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
+import type { ExtendedCredential } from "@calcom/core/EventManager";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
@@ -184,7 +185,7 @@ export const getBusyCalendarTimes = async (
 };
 
 export const createEvent = async (
-  credential: Credential,
+  credential: ExtendedCredential,
   calEvent: CalendarEvent
 ): Promise<EventResult<NewCalendarEventType>> => {
   const uid: string = getUid(calEvent);
@@ -217,6 +218,7 @@ export const createEvent = async (
     : undefined;
 
   return {
+    appName: credential.appName,
     type: credential.type,
     success,
     uid,
@@ -226,7 +228,7 @@ export const createEvent = async (
 };
 
 export const updateEvent = async (
-  credential: Credential,
+  credential: ExtendedCredential,
   calEvent: CalendarEvent,
   bookingRefUid: string | null,
   externalCalendarId: string | null
@@ -255,6 +257,7 @@ export const updateEvent = async (
       : undefined;
 
   return {
+    appName: credential.appName,
     type: credential.type,
     success,
     uid,

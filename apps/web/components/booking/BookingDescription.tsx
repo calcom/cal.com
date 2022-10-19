@@ -85,11 +85,9 @@ const BookingDescription: FC<Props> = (props) => {
             {t("requires_confirmation")}
           </div>
         )}
-        {!isBookingPage && !props.rescheduleUid ? (
-          <AvailableEventLocations
-            locations={eventType.locations as AvailabilityPageProps["eventType"]["locations"]}
-          />
-        ) : null}
+        <AvailableEventLocations
+          locations={eventType.locations as AvailabilityPageProps["eventType"]["locations"]}
+        />
         <p
           className={classNames(
             "text-sm font-medium",

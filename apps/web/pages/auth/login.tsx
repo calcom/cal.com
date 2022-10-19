@@ -4,17 +4,17 @@ import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { FaGoogle } from "react-icons/fa";
 
-import { hostedCal, isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
+import { isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { Icon } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
-import { Button, EmailField, Form, PasswordField } from "@calcom/ui/v2";
+import { Button, EmailField, PasswordField } from "@calcom/ui/v2";
 import SAMLLogin from "@calcom/ui/v2/modules/auth/SAMLLogin";
 
 import { ErrorCode, getSession } from "@lib/auth";
@@ -39,15 +39,14 @@ export default function Login({
   csrfToken,
   isGoogleLoginEnabled,
   isSAMLLoginEnabled,
-  hostedCal,
   samlTenantID,
   samlProductID,
 }: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
-  const form = useForm<LoginValues>();
-  const { formState } = form;
-  const { isSubmitting } = formState;
+  const methods = useForm<LoginValues>();
+
+  const { register, formState } = methods;
 
   const [twoFactorRequired, setTwoFactorRequired] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -86,13 +85,30 @@ export default function Login({
     <Button
       onClick={() => {
         setTwoFactorRequired(false);
-        form.setValue("totpCode", "");
+        methods.setValue("totpCode", "");
       }}
       StartIcon={Icon.FiArrowLeft}
       color="minimal">
       {t("go_back")}
     </Button>
   );
+
+  const onSubmit = async (values: LoginValues) => {
+    setErrorMessage(null);
+    telemetry.event(telemetryEventTypes.login, collectPageParameters());
+    const res = await signIn<"credentials">("credentials", {
+      ...values,
+      callbackUrl,
+      redirect: false,
+    });
+    if (!res) setErrorMessage(errorMessages[ErrorCode.InternalServerError]);
+    // we're logged in! let's do a hard refresh to the desired url
+    else if (!res.error) router.push(callbackUrl);
+    // reveal two factor input if required
+    else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
+    // fallback if error not found
+    else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
+  };
 
   return (
     <>
@@ -102,100 +118,81 @@ export default function Login({
         showLogo
         heading={twoFactorRequired ? t("2fa_code") : t("welcome_back")}
         footerText={twoFactorRequired ? TwoFactorFooter : LoginFooter}>
-        <Form
-          form={form}
-          handleSubmit={async (values) => {
-            setErrorMessage(null);
-            telemetry.event(telemetryEventTypes.login, collectPageParameters());
-            const res = await signIn<"credentials">("credentials", {
-              ...values,
-              callbackUrl,
-              redirect: false,
-            });
-            if (!res) setErrorMessage(errorMessages[ErrorCode.InternalServerError]);
-            // we're logged in! let's do a hard refresh to the desired url
-            else if (!res.error) router.push(callbackUrl);
-            // reveal two factor input if required
-            else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
-            // fallback if error not found
-            else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
-          }}
-          data-testid="login-form">
-          <div>
-            <input
-              defaultValue={csrfToken || undefined}
-              type="hidden"
-              hidden
-              {...form.register("csrfToken")}
-            />
-          </div>
-          <div className="space-y-6">
-            <div className={classNames("space-y-6", { hidden: twoFactorRequired })}>
-              <EmailField
-                id="email"
-                label={t("email_address")}
-                defaultValue={router.query.email as string}
-                placeholder="john.doe@example.com"
-                required
-                {...form.register("email")}
-              />
-              <div className="relative">
-                <div className="absolute right-0 -top-[6px] z-10">
-                  <Link href="/auth/forgot-password">
-                    <a tabIndex={-1} className="text-sm font-medium text-gray-600">
-                      {t("forgot")}
-                    </a>
-                  </Link>
-                </div>
-                <PasswordField
-                  id="password"
-                  autoComplete="current-password"
+        <FormProvider {...methods}>
+          <form onSubmit={methods.handleSubmit(onSubmit)} data-testid="login-form">
+            <div>
+              <input defaultValue={csrfToken || undefined} type="hidden" hidden {...register("csrfToken")} />
+            </div>
+            <div className="space-y-6">
+              <div className={classNames("space-y-6", { hidden: twoFactorRequired })}>
+                <EmailField
+                  id="email"
+                  label={t("email_address")}
+                  defaultValue={router.query.email as string}
+                  placeholder="john.doe@example.com"
                   required
-                  className="mb-0"
-                  {...form.register("password")}
+                  {...register("email")}
                 />
+                <div className="relative">
+                  <div className="absolute right-0 -top-[6px] z-10">
+                    <Link href="/auth/forgot-password">
+                      <a tabIndex={-1} className="text-sm font-medium text-gray-600">
+                        {t("forgot")}
+                      </a>
+                    </Link>
+                  </div>
+                  <PasswordField
+                    id="password"
+                    autoComplete="current-password"
+                    required
+                    className="mb-0"
+                    {...register("password")}
+                  />
+                </div>
               </div>
-            </div>
 
-            {twoFactorRequired && <TwoFactor center />}
+              {twoFactorRequired && <TwoFactor center />}
 
-            {errorMessage && <Alert severity="error" title={errorMessage} />}
-            <Button type="submit" color="primary" disabled={isSubmitting} className="w-full justify-center">
-              {twoFactorRequired ? t("submit") : t("sign_in")}
-            </Button>
-          </div>
-        </Form>
-        {!twoFactorRequired && (
-          <>
-            {(isGoogleLoginEnabled || isSAMLLoginEnabled) && <hr className="my-8" />}
-            <div className="space-y-3">
-              {isGoogleLoginEnabled && (
-                <Button
-                  color="secondary"
-                  className="w-full justify-center"
-                  data-testid="google"
-                  StartIcon={FaGoogle}
-                  onClick={async (e) => {
-                    e.preventDefault();
-                    // track Google logins. Without personal data/payload
-                    telemetry.event(telemetryEventTypes.googleLogin, collectPageParameters());
-                    await signIn("google");
-                  }}>
-                  {t("signin_with_google")}
-                </Button>
-              )}
-              {isSAMLLoginEnabled && (
-                <SAMLLogin
-                  email={form.getValues("email")}
-                  samlTenantID={samlTenantID}
-                  samlProductID={samlProductID}
-                  hostedCal={hostedCal}
-                  setErrorMessage={setErrorMessage}
-                />
-              )}
+              {errorMessage && <Alert severity="error" title={errorMessage} />}
+              <Button
+                type="submit"
+                color="primary"
+                disabled={formState.isSubmitting}
+                className="w-full justify-center">
+                {twoFactorRequired ? t("submit") : t("sign_in")}
+              </Button>
             </div>
-          </>
-        )}
+          </form>
+          {!twoFactorRequired && (
+            <>
+              {(isGoogleLoginEnabled || isSAMLLoginEnabled) && <hr className="my-8" />}
+              <div className="space-y-3">
+                {isGoogleLoginEnabled && (
+                  <Button
+                    color="secondary"
+                    className="w-full justify-center"
+                    data-testid="google"
+                    StartIcon={FaGoogle}
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      // track Google logins. Without personal data/payload
+                      telemetry.event(telemetryEventTypes.googleLogin, collectPageParameters());
+                      await signIn("google");
+                    }}>
+                    {t("signin_with_google")}
+                  </Button>
+                )}
+                {isSAMLLoginEnabled && (
+                  <SAMLLogin
+                    samlTenantID={samlTenantID}
+                    samlProductID={samlProductID}
+                    setErrorMessage={setErrorMessage}
+                  />
+                )}
+              </div>
+            </>
+          )}
+        </FormProvider>
       </AuthContainer>
       <AddToHomescreen />
     </>
@@ -233,7 +230,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       trpcState: ssr.dehydrate(),
       isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
       isSAMLLoginEnabled,
-      hostedCal,
       samlTenantID,
       samlProductID,
     },
