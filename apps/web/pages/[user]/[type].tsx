@@ -11,10 +11,11 @@ import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { EmbedProps } from "@lib/withEmbedSsr";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
 
-export type AvailabilityPageProps = inferSSRProps<typeof getStaticProps>;
+export type AvailabilityPageProps = inferSSRProps<typeof getStaticProps> & EmbedProps;
 
 export default function Type(props: AvailabilityPageProps) {
   const { t } = useLocale();
