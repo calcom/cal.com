@@ -27,6 +27,7 @@ export const formatTime = (
         .format(timeFormat === 12 ? "h:mma" : "HH:mm")
     : dayjs(date).format(timeFormat === 12 ? "h:mma" : "HH:mm");
 };
+
 /**
  * Sorts two timezones by their offset from GMT.
  */
