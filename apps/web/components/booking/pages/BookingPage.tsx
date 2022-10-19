@@ -13,13 +13,16 @@ import { ReactMultiEmail } from "react-multi-email";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
+import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import {
   locationKeyToString,
   getEventLocationValue,
   getEventLocationType,
   EventLocationType,
+  getHumanReadableLocationValue,
 } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { LocationObject, LocationType } from "@calcom/core/location";
 import dayjs from "@calcom/dayjs";
 import {
@@ -29,6 +32,7 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
+import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
@@ -49,8 +53,7 @@ import { parseDate, parseRecurringDates } from "@lib/parseDate";
 import slugify from "@lib/slugify";
 
 import Gates, { Gate, GateState } from "@components/Gates";
-import { UserAvatars } from "@components/booking/UserAvatars";
-import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
+import BookingDescription from "@components/booking/BookingDescription";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";
@@ -97,6 +100,7 @@ const BookingPage = ({
     }),
     {}
   );
+  const stripeAppData = getStripeAppData(eventType);
 
   useEffect(() => {
     if (top !== window) {
@@ -130,7 +134,7 @@ const BookingPage = ({
           date,
           type: eventType.id,
           eventSlug: eventType.slug,
-          user: profile.slug,
+          username: profile.slug,
           reschedule: !!rescheduleUid,
           name: attendees[0].name,
           email: attendees[0].email,
@@ -163,7 +167,7 @@ const BookingPage = ({
           type: eventType.id,
           eventSlug: eventType.slug,
           recur: recurringEventId,
-          user: profile.slug,
+          username: profile.slug,
           reschedule: !!rescheduleUid,
           name: attendees[0].name,
           email: attendees[0].email,
@@ -409,17 +413,18 @@ const BookingPage = ({
       }
     });
   }
+  const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
 
   // Define conditional gates here
   const gates = [
     // Rainbow gate is only added if the event has both a `blockchainId` and a `smartContractAddress`
-    eventType.metadata && eventType.metadata.blockchainId && eventType.metadata.smartContractAddress
+    rainbowAppData && rainbowAppData.blockchainId && rainbowAppData.smartContractAddress
       ? ("rainbow" as Gate)
       : undefined,
   ];
 
   return (
-    <Gates gates={gates} metadata={eventType.metadata} dispatch={gateDispatcher}>
+    <Gates gates={gates} appData={rainbowAppData} dispatch={gateDispatcher}>
       <Head>
         <title>
           {rescheduleUid
@@ -435,6 +440,7 @@ const BookingPage = ({
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      <BookingPageTagManager eventType={eventType} />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <main
         className={classNames(
@@ -450,48 +456,15 @@ const BookingPage = ({
           )}>
           <div className="sm:flex">
             <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
-              <UserAvatars
-                profile={profile}
-                users={eventType.users}
-                showMembers={eventType.schedulingType !== SchedulingType.ROUND_ROBIN}
-                size={10}
-                truncateAfter={3}
-              />
-              <h2 className="mt-2 break-words text-sm font-medium text-gray-500 dark:text-gray-300">
-                {profile.name}
-              </h2>
-              <h1 className="font-cal dark:text-darkgray-900 break-words text-2xl text-gray-900 ">
-                {eventType.title}
-              </h1>
-              <div className="mt-4 flex flex-col space-y-3 lg:mt-9">
-                {eventType?.description && (
-                  <div className="dark:text-darkgray-600 flex text-sm font-medium text-gray-600">
-                    <div>
-                      <Icon.FiInfo className="dark:text-darkgray-600 mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 text-gray-500" />
-                    </div>
-                    <EventTypeDescriptionSafeHTML eventType={eventType} />
-                  </div>
-                )}
-                {eventType?.requiresConfirmation && (
-                  <div className="dark:text-darkgray-600 flex items-center text-sm font-medium text-gray-600">
-                    <div>
-                      <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 " />
-                    </div>
-                    {t("requires_confirmation")}
-                  </div>
-                )}
-                <p className="dark:text-darkgray-600 text-sm font-medium text-gray-600">
-                  <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
-                  {eventType.length} {t("minutes")}
-                </p>
-                {eventType.price > 0 && (
+              <BookingDescription isBookingPage profile={profile} eventType={eventType}>
+                {stripeAppData.price > 0 && (
                   <p className="text-bookinglight -ml-2 px-2 text-sm ">
                     <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                     <IntlProvider locale="en">
                       <FormattedNumber
-                        value={eventType.price / 100.0}
+                        value={stripeAppData.price / 100.0}
                         style="currency"
-                        currency={eventType.currency.toUpperCase()}
+                        currency={stripeAppData.currency.toUpperCase()}
                       />
                     </IntlProvider>
                   </p>
@@ -559,7 +532,7 @@ const BookingPage = ({
                     </p>
                   </div>
                 )}
-              </div>
+              </BookingDescription>
             </div>
             <div className="p-6 sm:w-1/2">
               <Form form={bookingForm} handleSubmit={bookEvent}>
@@ -604,37 +577,48 @@ const BookingPage = ({
                     )}
                   </div>
                 </div>
-                {locations.length > 1 && (
-                  <div className="mb-4">
+                <div className="mb-4">
+                  <>
                     <span className="block text-sm font-medium text-gray-700 dark:text-white">
                       {t("location")}
                     </span>
-                    {locations.map((location, i) => {
-                      const locationString = locationKeyToString(location);
-                      // TODO: Right now selectedLocationType isn't send by getSSP. Once that's available defaultChecked should work and show the location in the original booking
-                      const defaultChecked = rescheduleUid ? selectedLocationType === location.type : i === 0;
-                      if (typeof locationString !== "string") {
-                        // It's possible that location app got uninstalled
-                        return null;
-                      }
-                      return (
-                        <label key={i} className="block">
-                          <input
-                            type="radio"
-                            disabled={!!disableLocations}
-                            className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
-                            {...bookingForm.register("locationType", { required: true })}
-                            value={location.type}
-                            defaultChecked={defaultChecked}
-                          />
-                          <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-white">
-                            {locationKeyToString(location)}
-                          </span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                )}
+                    {rescheduleUid ? (
+                      <p className="mt-1 text-sm text-gray-500">
+                        {getHumanReadableLocationValue(booking?.location, t)}
+                      </p>
+                    ) : (
+                      locations.length > 1 && (
+                        <>
+                          {locations.map((location, i) => {
+                            const locationString = locationKeyToString(location);
+                            if (!selectedLocationType) {
+                              bookingForm.setValue("locationType", locations[0].type);
+                            }
+                            if (typeof locationString !== "string") {
+                              // It's possible that location app got uninstalled
+                              return null;
+                            }
+                            return (
+                              <label key={i} className="block">
+                                <input
+                                  type="radio"
+                                  disabled={!!disableLocations}
+                                  className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
+                                  {...bookingForm.register("locationType", { required: true })}
+                                  value={location.type}
+                                  defaultChecked={i === 0}
+                                />
+                                <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-white">
+                                  {locationKeyToString(location)}
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </>
+                      )
+                    )}
+                  </>
+                </div>
                 {/* TODO: Change name and id ="phone" to something generic */}
                 {AttendeeInput && (
                   <div className="mb-4">
@@ -712,23 +696,25 @@ const BookingPage = ({
                         />
                       )}
                       {input.type === EventTypeCustomInputType.BOOL && (
-                        <div className="flex h-5 items-center">
-                          <input
-                            type="checkbox"
-                            {...bookingForm.register(`customInputs.${input.id}`, {
-                              required: input.required,
-                            })}
-                            required={input.required}
-                            id={"custom_" + input.id}
-                            className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black disabled:bg-gray-200 ltr:mr-2 rtl:ml-2 disabled:dark:text-gray-500"
-                            placeholder=""
-                            disabled={disabledExceptForOwner}
-                          />
-                          <label
-                            htmlFor={"custom_" + input.id}
-                            className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                            {input.label}
-                          </label>
+                        <div className="my-6">
+                          <div className="flex">
+                            <input
+                              type="checkbox"
+                              {...bookingForm.register(`customInputs.${input.id}`, {
+                                required: input.required,
+                              })}
+                              required={input.required}
+                              id={"custom_" + input.id}
+                              className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black disabled:bg-gray-200 ltr:mr-2 rtl:ml-2 disabled:dark:text-gray-500"
+                              placeholder=""
+                              disabled={disabledExceptForOwner}
+                            />
+                            <label
+                              htmlFor={"custom_" + input.id}
+                              className="-mt-px block text-sm font-medium text-gray-700 dark:text-white">
+                              {input.label}
+                            </label>
+                          </div>
                         </div>
                       )}
                     </div>
@@ -829,6 +815,7 @@ const BookingPage = ({
                   ) : (
                     <textarea
                       {...bookingForm.register("notes")}
+                      required={!!eventType.metadata.additionalNotesRequired}
                       id="notes"
                       name="notes"
                       rows={3}

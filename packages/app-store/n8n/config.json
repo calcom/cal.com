@@ -6,7 +6,7 @@
   "imageSrc": "/api/app-store/n8n/icon.svg",
   "logo": "/api/app-store/n8n/icon.svg",
   "url": "https://cal.com/apps/n8n",
-  "variant": "other",
+  "variant": "automation",
   "categories": ["automation"],
   "publisher": "Cal.com, Inc.",
   "email": "help@cal.com",

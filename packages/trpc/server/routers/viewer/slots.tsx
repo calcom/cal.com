@@ -11,6 +11,7 @@ import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import getTimeSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
+import { EventBusyDate } from "@calcom/types/Calendar";
 import { TimeRange } from "@calcom/types/schedule";
 
 import { TRPCError } from "@trpc/server";
@@ -55,7 +56,7 @@ const checkIfIsAvailable = ({
   currentSeats,
 }: {
   time: Dayjs;
-  busy: (TimeRange | { start: string; end: string })[];
+  busy: (TimeRange | { start: string; end: string } | EventBusyDate)[];
   eventLength: number;
   beforeBufferTime: number;
   currentSeats?: CurrentSeats;
@@ -120,6 +121,7 @@ async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeo
       slotInterval: true,
       beforeEventBuffer: true,
       afterEventBuffer: true,
+      bookingLimits: true,
       schedulingType: true,
       periodType: true,
       periodStartDate: true,
