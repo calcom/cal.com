@@ -56,7 +56,7 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
 
   useEffect(() => {
     // Custom Page doesn't actually change Route, so fake it so that embed can adjust the scroll to make the content visible
-    sdkActionManager.fire("__routeChanged");
+    sdkActionManager?.fire("__routeChanged", {});
   }, [customPageMessage]);
 
   const responseMutation = trpc.useMutation("viewer.app_routing_forms.public.response", {
