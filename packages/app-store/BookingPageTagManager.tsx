@@ -15,11 +15,36 @@ import { getEventTypeAppData } from "@calcom/app-store/utils";
 </script>
 </>
  */
-
-const trackingApps: Record<string, Record<string, unknown>> = {
+type AppScript = {attrs?: Record<string, string>, content?: string}
+const trackingApps: Record<string, {
+  scripts: AppScript[]
+}> = {
   fathom: {
-    src: "https://cdn.usefathom.com/script.js",
-    "data-site": "{TRACKING_ID}",
+    scripts: [
+      {
+        attrs: {
+          src: "https://cdn.usefathom.com/script.js",
+          "data-site": "{TRACKING_ID}",
+        },
+      },
+    ],
+  },
+  ga4: {
+    scripts: [
+      {
+        attrs: {
+          src: "https://www.googletagmanager.com/gtag/js?id={TRACKING_ID}",
+        },
+      },
+      {
+        content: `
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{TRACKING_ID}');
+      `,
+      },
+    ],
   },
 };
 
@@ -31,18 +56,28 @@ export default function BookingPageTagManager({
   return (
     <>
       {Object.entries(trackingApps).map(([appId, scriptConfig]) => {
-        const trackingId = getEventTypeAppData(eventType, "fathom")?.trackingId;
+        const trackingId = getEventTypeAppData(eventType, appId)?.trackingId;
         if (!trackingId) {
           return null;
         }
-        const parsedScriptConfig: Record<string, unknown> = {};
-        Object.entries(scriptConfig).forEach(([name, value]) => {
-          if (typeof value === "string") {
-            value = value.replace("{TRACKING_ID}", trackingId);
-          }
-          parsedScriptConfig[name] = value;
-        });
-        return <Script key={appId} {...parsedScriptConfig} defer />;
+        return scriptConfig.scripts.map((script, index)=>{
+          const parsedScript: AppScript = {};
+          const attrs = script.attrs || {};
+          Object.entries(attrs).forEach(([name, value]) => {
+            if (typeof value === "string") {
+              value = value.replace(/\{TRACKING_ID\}/g, trackingId);
+            }
+            parsedScript[name] = value;
+          });
+  
+          const dangerouslySetInnerHTML = script.content
+            ? {
+                __html: script.content.replace(/\{TRACKING_ID\}/g, trackingId),
+              }
+            : null;
+  
+          return <Script key={`${appId}-${index}`} {...{dangerouslySetInnerHTML, ...parsedScript}} defer />;
+        })
       })}
     </>
   );
