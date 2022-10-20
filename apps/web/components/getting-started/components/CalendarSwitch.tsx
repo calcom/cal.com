@@ -13,9 +13,10 @@ interface ICalendarSwitchProps {
   isChecked: boolean;
   name: string;
   isLastItemInList?: boolean;
+  isFirstItemInList?: boolean;
 }
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
-  const { title, externalId, type, isChecked, name, isLastItemInList = false } = props;
+  const { title, externalId, type, isChecked, name, isLastItemInList = false, isFirstItemInList } = props;
   const utils = trpc.useContext();
   const mutation = useMutation<
     unknown,
@@ -70,7 +71,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       <div className="flex pl-2">
         <Switch
           id={externalId}
-          defaultChecked={isChecked}
+          defaultChecked={isFirstItemInList || isChecked}
           onCheckedChange={(isOn: boolean) => {
             mutation.mutate({ isOn });
           }}
