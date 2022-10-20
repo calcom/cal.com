@@ -31,11 +31,12 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 async function handler(req: NextApiRequest & { userId?: number }) {
   const { userId } = req;
 
-  const { id, allRemainingBookings, cancellationReason } = schemaBookingCancelParams.parse(req.body);
+  const { id, uid, allRemainingBookings, cancellationReason } = schemaBookingCancelParams.parse(req.body);
 
   const bookingToDelete = await prisma.booking.findUnique({
     where: {
       id,
+      uid,
     },
     select: {
       ...bookingMinimalSelect,
@@ -233,6 +234,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     const updatedBooking = await prisma.booking.update({
       where: {
         id,
+        uid,
       },
       data: {
         status: BookingStatus.CANCELLED,
