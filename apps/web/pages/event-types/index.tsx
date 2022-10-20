@@ -322,7 +322,10 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             />
                           </Tooltip>
                           <Dropdown modal={false}>
-                            <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
+                            <DropdownMenuTrigger
+                              asChild
+                              data-testid={"event-type-options-" + type.id}
+                              className="radix-state-open:rounded-r-md">
                               <Button
                                 type="button"
                                 size="icon"
