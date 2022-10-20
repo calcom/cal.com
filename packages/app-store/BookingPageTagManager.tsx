@@ -2,19 +2,6 @@ import Script from "next/script";
 
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 
-// TODO: Maintain it from config.json to avoid hardcoding scripts and to add Google Analytics GA4 script
-/*
-<>
-<script async src="https://www.googletagmanager.com/gtag/js?id="{TRACKING_ID}", />
-<script>{`
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', '{TRACKING_ID}');
-`}
-</script>
-</>
- */
 type AppScript = {attrs?: Record<string, string>, content?: string}
 const trackingApps: Record<string, {
   scripts: AppScript[]
