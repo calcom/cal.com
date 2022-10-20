@@ -1,8 +1,8 @@
-import autoAnimate from "@formkit/auto-animate";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventTypeCustomInput } from "@prisma/client/";
 import Link from "next/link";
 import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
@@ -51,12 +51,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
   const [selectedCustomInputModalOpen, setSelectedCustomInputModalOpen] = useState(false);
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
 
-  const animationRef = useRef(null);
   const seatsEnabled = formMethods.getValues("seatsPerTimeSlotEnabled");
 
-  useEffect(() => {
-    animationRef.current && autoAnimate(animationRef.current);
-  }, [animationRef]);
+  const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
   const removeCustom = (index: number) => {
     formMethods.getValues("customInputs").splice(index, 1);
