@@ -9,7 +9,7 @@ import getApps from "@calcom/app-store/utils";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
+import { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { Event } from "@calcom/types/Event";
 import type {
   CreateUpdateResult,
@@ -65,11 +65,9 @@ type EventManagerUser = {
 
 type createdEventSchema = z.infer<typeof createdEventSchema>;
 
-export type ExtendedCredential = Credential & { appName: string };
-
 export default class EventManager {
-  calendarCredentials: ExtendedCredential[];
-  videoCredentials: ExtendedCredential[];
+  calendarCredentials: CredentialWithAppName[];
+  videoCredentials: CredentialWithAppName[];
 
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
@@ -356,7 +354,7 @@ export default class EventManager {
    * @private
    */
 
-  private getVideoCredential(event: CalendarEvent): ExtendedCredential | undefined {
+  private getVideoCredential(event: CalendarEvent): CredentialWithAppName | undefined {
     if (!event.location) {
       return undefined;
     }

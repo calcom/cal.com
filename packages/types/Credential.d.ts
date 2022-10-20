@@ -14,3 +14,5 @@ export type CredentialPayload = Prisma.CredentialGetPayload<{
     key: true;
   };
 }>;
+
+export type CredentialWithAppName = CredentialPayload & { appName: string };

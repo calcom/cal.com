@@ -3,12 +3,11 @@ import { v5 as uuidv5 } from "uuid";
 
 import appStore from "@calcom/app-store";
 import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
-import type { ExtendedCredential } from "@calcom/core/EventManager";
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
-import { CredentialPayload } from "@calcom/types/Credential";
+import { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoApiAdapterFactory, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
@@ -35,7 +34,7 @@ const getBusyVideoTimes = (withCredentials: CredentialPayload[]) =>
     results.reduce((acc, availability) => acc.concat(availability), [] as (EventBusyDate | undefined)[])
   );
 
-const createMeeting = async (credential: ExtendedCredential, calEvent: CalendarEvent) => {
+const createMeeting = async (credential: CredentialWithAppName, calEvent: CalendarEvent) => {
   const uid: string = getUid(calEvent);
 
   if (!credential) {
@@ -82,7 +81,7 @@ const createMeeting = async (credential: ExtendedCredential, calEvent: CalendarE
 };
 
 const updateMeeting = async (
-  credential: ExtendedCredential,
+  credential: CredentialWithAppName,
   calEvent: CalendarEvent,
   bookingRef: PartialReference | null
 ): Promise<EventResult<VideoCallData>> => {
