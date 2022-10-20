@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
+import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
 import { schemaBookingReadPublic } from "@lib/validations/booking";
@@ -28,16 +29,57 @@ import { schemaQuerySingleOrMultipleUserIds } from "@lib/validations/shared/quer
  */
 async function handler(req: NextApiRequest) {
   const { userId, isAdmin, prisma } = req;
-  const args: Prisma.BookingFindManyArgs = isAdmin ? {} : { where: { userId } };
+  const args: Prisma.BookingFindManyArgs = {};
   args.include = {
     attendees: true,
     user: true,
   };
+
   /** Only admins can query other users */
   if (isAdmin && req.query.userId) {
     const query = schemaQuerySingleOrMultipleUserIds.parse(req.query);
     const userIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
-    args.where = { userId: { in: userIds } };
+    const users = await prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { email: true },
+    });
+    const userEmails = users.map((u) => u.email);
+    args.where = {
+      OR: [
+        { userId: { in: userIds } },
+        {
+          attendees: {
+            some: {
+              email: { in: userEmails },
+            },
+          },
+        },
+      ],
+    };
+  } else if (!isAdmin) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        email: true,
+      },
+    });
+    if (!user) {
+      throw new HttpError({ message: "User not found", statusCode: 500 });
+    }
+    args.where = {
+      OR: [
+        {
+          userId,
+        },
+        {
+          attendees: {
+            some: {
+              email: user.email,
+            },
+          },
+        },
+      ],
+    };
   }
   const data = await prisma.booking.findMany(args);
   return { bookings: data.map((booking) => schemaBookingReadPublic.parse(booking)) };
