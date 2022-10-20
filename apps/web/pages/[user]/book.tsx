@@ -197,6 +197,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       isDynamicGroupBooking,
       hasHashedBookingLink: false,
       hashedLink: null,
+      isEmbed: typeof context.query.embed === "string",
     },
   };
 }

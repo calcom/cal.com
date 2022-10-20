@@ -2,7 +2,6 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { parseRecurringEvent } from "@calcom/lib";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { bookEventTypeSelect } from "@calcom/prisma/selects";
 
@@ -124,6 +123,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       isDynamicGroupBooking: false,
       hasHashedBookingLink: true,
       hashedLink: link,
+      isEmbed: typeof context.query.embed === "string",
     },
   };
 }

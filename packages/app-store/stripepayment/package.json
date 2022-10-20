@@ -21,7 +21,7 @@
     "@stripe/stripe-js": "^1.35.0",
     "stripe": "^9.16.0",
     "uuid": "^8.3.2",
-    "zod": "^3.18.0"
+    "zod": "^3.19.1"
   },
   "devDependencies": {
     "@calcom/types": "*",

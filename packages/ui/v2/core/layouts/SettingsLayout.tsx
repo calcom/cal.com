@@ -42,6 +42,7 @@ const tabs: VerticalTabItemProps[] = [
     children: [
       { name: "password", href: "/settings/security/password" },
       { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
+      { name: "impersonation", href: "/settings/security/impersonation" },
     ],
   },
   {
@@ -376,6 +377,7 @@ function ShellHeader() {
             <div className="mb-1 h-6 w-32 animate-pulse rounded-md bg-gray-200" />
           )}
         </div>
+        <div className="ml-auto">{meta.CTA}</div>
       </div>
     </header>
   );

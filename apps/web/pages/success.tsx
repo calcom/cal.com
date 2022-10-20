@@ -442,7 +442,7 @@ export default function Success(props: SuccessProps) {
                         {!props.recurringBookings && (
                           <span className="text-bookinglight inline text-gray-700">
                             <span className="underline">
-                              <Link href={"/reschedule/" + bookingInfo?.uid}>{t("reschedule")}</Link>
+                              <Link href={`/reschedule/${bookingInfo?.uid}`}>{t("reschedule")}</Link>
                             </span>
                             <span className="mx-2">{t("or_lowercase")}</span>
                           </span>
