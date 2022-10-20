@@ -83,5 +83,11 @@
     "categories": ["analytics"],
     "slug": "fathom",
     "type": "fathom_analytics"
+  },
+  {
+    "dirName": "ga4",
+    "categories": ["analytics"],
+    "slug": "ga4",
+    "type": "ga4_analytics"
   }
 ]
