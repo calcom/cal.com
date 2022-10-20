@@ -1,7 +1,7 @@
-import autoAnimate from "@formkit/auto-animate";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useFormContext, Controller, useWatch } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
@@ -311,12 +311,9 @@ type BookingLimitsKey = keyof BookingLimit;
 const BookingLimits = () => {
   const { watch, setValue, control } = useFormContext<FormValues>();
   const watchBookingLimits = watch("bookingLimits");
-  const animateRef = useRef(null);
   const { t } = useLocale();
 
-  useEffect(() => {
-    animateRef.current && autoAnimate(animateRef.current);
-  }, [animateRef]);
+  const [animateRef] = useAutoAnimate<HTMLUListElement>();
 
   const BOOKING_LIMIT_OPTIONS: {
     value: keyof BookingLimit;
