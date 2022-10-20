@@ -2,15 +2,22 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
 
-import { Response } from "../../types/types";
+import { getSerializableForm } from "../../lib/getSerializableForm";
+import { Response, SerializableForm } from "../../types/types";
+import { App_RoutingForms_Form } from ".prisma/client";
 
 function escapeCsvText(str: string) {
   return str.replace(/,/, "%2C");
 }
-async function* getResponses(formId: string) {
+async function* getResponses(
+  formId: string,
+  headerFields: NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>
+) {
   let responses;
   let skip = 0;
-  const take = 100;
+  // Let's keep it high and observe at what point Vercel serverless fn limits are hit
+  // There is an RFC to take care of things after that: https://linear.app/calcom/issue/CAL-204/rfc-routing-form-improved-csv-exports
+  const take = 10000;
   while (
     (responses = await prisma.app_RoutingForms_FormResponse.findMany({
       where: {
@@ -22,15 +29,20 @@ async function* getResponses(formId: string) {
     responses.length
   ) {
     const csv: string[] = [];
-    // Because fields can be added or removed at any time we can't have fixed columns.
-    // Because there can be huge amount of data we can't keep all that in memory to identify columns from all the data at once.
-    // TODO: So, for now add the field label in front of it. It certainly needs improvement.
-    // TODO: Email CSV when we need to scale it.
+
     responses.forEach((response) => {
       const fieldResponses = response.response as Response;
-      const csvLineColumns = [];
-      for (const [, fieldResponse] of Object.entries(fieldResponses)) {
-        const label = escapeCsvText(fieldResponse.label);
+      const csvCells: string[] = [];
+      const foundFields = {};
+      headerFields.forEach((headerField) => {
+        foundFields[headerField.id] = 1;
+        const fieldResponse = fieldResponses[headerField.id];
+        // if (fieldResponse) {
+        //   csvLineColumns.push(escapeCsvText(fieldResponse.label));
+        // } else {
+        //   csvLineColumns.push("");
+        // }
+        // const label = escapeCsvText(fieldResponse.label);
         const value = fieldResponse.value;
         let serializedValue = "";
         if (value instanceof Array) {
@@ -38,9 +50,10 @@ async function* getResponses(formId: string) {
         } else {
           serializedValue = escapeCsvText(value);
         }
-        csvLineColumns.push(`"${label} :=> ${serializedValue}"`);
-      }
-      csv.push(csvLineColumns.join(","));
+        csvCells.push(serializedValue);
+      });
+
+      csv.push(csvCells.join(","));
     });
     skip += take;
     yield csv.join("\n");
@@ -63,13 +76,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: formId,
     },
   });
+
   if (!form) {
     throw new Error("Form not found");
   }
+  const serializableForm = getSerializableForm(form, true);
   res.setHeader("Content-Type", "text/csv; charset=UTF-8");
-  res.setHeader("Content-Disposition", `attachment; filename="${form.name}-${form.id}.csv"`);
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="${serializableForm.name}-${serializableForm.id}.csv"`
+  );
   res.setHeader("Transfer-Encoding", "chunked");
-  const csvIterator = getResponses(formId);
+  const headerFields = serializableForm.fields || [];
+  const csvIterator = getResponses(formId, headerFields);
+
+  // Make Header
+  res.write(
+    headerFields.map((field) => `${field.label}${field.deleted ? "(Deleted)" : ""}`).join(",") + "\n"
+  );
+
   for await (const partialCsv of csvIterator) {
     res.write(partialCsv);
     res.write("\n");

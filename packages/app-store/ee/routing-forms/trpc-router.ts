@@ -210,7 +210,7 @@ const app_RoutingForms = createRouter()
             });
           }
           let { routes } = input;
-          let { fields } = input;
+          let { fields = [] } = input;
 
           if (duplicateFrom) {
             const sourceForm = await prisma.app_RoutingForms_Form.findFirst({
@@ -244,7 +244,38 @@ const app_RoutingForms = createRouter()
           }
 
           fields = fields || [];
+          const form = await prisma.app_RoutingForms_Form.findUnique({
+            where: {
+              id: id,
+            },
+            select: {
+              id: true,
+              user: true,
+              name: true,
+              description: true,
+              userId: true,
+              disabled: true,
+              createdAt: true,
+              updatedAt: true,
+              routes: true,
+              fields: true,
+            },
+          });
+          if (form) {
+            const serializedForm = getSerializableForm(form);
+            const deletedFields =
+              serializedForm.fields?.filter((f) => !fields!.find((field) => field.id === f.id)) || [];
 
+            fields = fields.concat(
+              deletedFields.map((f) => {
+                f.deleted = true;
+                return f;
+              })
+            );
+          }
+
+          if (!form) {
+          }
           if (addFallback) {
             const uuid = uuidv4();
             routes = routes || [];
