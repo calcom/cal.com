@@ -1,6 +1,5 @@
-import autoAnimate from "@formkit/auto-animate";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
 
 import { inferQueryOutput } from "@calcom/trpc/react";
 import { Switch } from "@calcom/ui/v2";
@@ -24,11 +23,7 @@ export default function AppCard({
   children?: React.ReactNode;
   setAppData: SetAppDataGeneric<typeof eventTypeAppCardZod>;
 }) {
-  const animationRef = useRef(null);
-
-  useEffect(() => {
-    animationRef.current && autoAnimate(animationRef.current);
-  }, [animationRef]);
+  const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
   return (
     <div ref={animationRef} className="mb-4 mt-2 rounded-md border border-gray-200 p-8 text-sm">

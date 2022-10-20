@@ -51,7 +51,19 @@ export default class HubspotOtherCalendarService implements Calendar {
       };
     });
     return Promise.all(
-      simplePublicObjectInputs.map((contact) => hubspotClient.crm.contacts.basicApi.create(contact))
+      simplePublicObjectInputs.map((contact) =>
+        hubspotClient.crm.contacts.basicApi.create(contact).catch((error) => {
+          // If multiple events are created, subsequent events may fail due to
+          // contact was created by previous event creation, so we introduce a
+          // fallback taking advantage of the error message providing the contact id
+          if (error.body.message.includes("Contact already exists. Existing ID:")) {
+            const split = error.body.message.split("Contact already exists. Existing ID: ");
+            return { id: split[1] };
+          } else {
+            throw error;
+          }
+        })
+      )
     );
   };
 
@@ -233,7 +245,10 @@ export default class HubspotOtherCalendarService implements Calendar {
         // Continue with meeting creation and association only when all contacts are present in HubSpot
         if (createContacts.length) {
           this.log.debug("contact:creation:ok");
-          return await this.handleMeetingCreation(event, createContacts.concat(contacts));
+          return await this.handleMeetingCreation(
+            event,
+            createContacts.concat(contacts) as SimplePublicObjectInput[]
+          );
         }
         return Promise.reject("Something went wrong when creating non-existing attendees in HubSpot");
       }
@@ -243,7 +258,7 @@ export default class HubspotOtherCalendarService implements Calendar {
       this.log.debug("contact:created", { createContacts });
       if (createContacts.length) {
         this.log.debug("contact:creation:ok");
-        return await this.handleMeetingCreation(event, createContacts);
+        return await this.handleMeetingCreation(event, createContacts as SimplePublicObjectInput[]);
       }
     }
     return Promise.reject("Something went wrong when searching/creating the attendees in HubSpot");

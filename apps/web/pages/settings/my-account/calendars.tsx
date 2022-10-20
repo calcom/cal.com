@@ -3,18 +3,17 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Alert } from "@calcom/ui/v2";
+import { Alert, Button } from "@calcom/ui/v2";
 import Badge from "@calcom/ui/v2/core/Badge";
 import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import { SkeletonContainer, SkeletonText, SkeletonButton } from "@calcom/ui/v2/core/skeleton";
 import { List, ListItem, ListItemText, ListItemTitle } from "@calcom/ui/v2/modules/List";
-import DestinationCalendarSelector from "@calcom/ui/v2/modules/event-types/DestinationCalendarSelector";
 import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -36,6 +35,18 @@ const SkeletonLoader = () => {
   );
 };
 
+const AddCalendarButton = () => {
+  const { t } = useLocale();
+
+  return (
+    <>
+      <Button color="secondary" StartIcon={Icon.FiPlus} href="/apps/categories/calendar">
+        {t("add_calendar")}
+      </Button>
+    </>
+  );
+};
+
 const CalendarsView = () => {
   const { t } = useLocale();
   const router = useRouter();
@@ -51,7 +62,11 @@ const CalendarsView = () => {
 
   return (
     <>
-      <Meta title="Calendars" description="Configure how your event types interact with your calendars" />
+      <Meta
+        title="Calendars"
+        description="Configure how your event types interact with your calendars"
+        CTA={<AddCalendarButton />}
+      />
       <QueryCell
         query={query}
         customLoader={<SkeletonLoader />}
@@ -63,7 +78,7 @@ const CalendarsView = () => {
                   <Icon.FiCalendar className="h-6 w-6" />
                 </div>
 
-                <div className="flex flex-col space-y-3">
+                <div className="flex w-full flex-col space-y-3">
                   <div>
                     <h4 className=" pb-2 text-base font-semibold leading-5 text-black">
                       {t("add_to_calendar")}
@@ -174,7 +189,7 @@ const CalendarsView = () => {
               headline={t("no_calendar_installed")}
               description={t("no_calendar_installed_description")}
               buttonText={t("add_a_calendar")}
-              buttonOnClick={() => router.push(`${WEBAPP_URL}/apps/categories/calendar`)}
+              buttonOnClick={() => router.push("/apps/categories/calendar")}
             />
           );
         }}

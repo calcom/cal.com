@@ -147,6 +147,16 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
     recurringCount: z.number().optional(),
     rescheduleReason: z.string().optional(),
     smsReminderNumber: z.string().optional(),
+    appsStatus: z
+      .array(
+        z.object({
+          appName: z.string(),
+          success: z.number(),
+          failures: z.number(),
+          type: z.string(),
+        })
+      )
+      .optional(),
   })
 );
 

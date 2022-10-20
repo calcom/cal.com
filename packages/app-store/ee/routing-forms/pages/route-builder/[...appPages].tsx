@@ -1,6 +1,6 @@
-import autoAnimate from "@formkit/auto-animate";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { App_RoutingForms_Form } from "@prisma/client";
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { Query, Config, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
 import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
@@ -326,11 +326,8 @@ const Routes = ({
 
     return transformRoutes().map((route) => deserializeRoute(route, config));
   });
-  const animationRef = useRef(null);
 
-  useEffect(() => {
-    animationRef.current && autoAnimate(animationRef.current);
-  }, [animationRef]);
+  const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
   const mainRoutes = routes.filter((route) => !route.isFallback);
   let fallbackRoute = routes.find((route) => route.isFallback);

@@ -44,7 +44,7 @@ import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/Syn
 import prisma, { userSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema, extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
-import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
+import type { AdditionalInformation, AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import sendPayload, { EventTypeInfo } from "../../webhooks/lib/sendPayload";
@@ -153,6 +153,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       hideCalendarNotes: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
+      seatsShowAttendees: true,
       bookingLimits: true,
       workflows: {
         include: {
@@ -247,8 +248,16 @@ async function ensureAvailableUsers(
 async function handler(req: NextApiRequest & { userId?: number }) {
   const { userId } = req;
 
-  const { recurringCount, noEmail, eventTypeSlug, eventTypeId, hasHashedBookingLink, language, ...reqBody } =
-    extendedBookingCreateBody.parse(req.body);
+  const {
+    recurringCount,
+    noEmail,
+    eventTypeSlug,
+    eventTypeId,
+    hasHashedBookingLink,
+    language,
+    appsStatus: reqAppsStatus,
+    ...reqBody
+  } = extendedBookingCreateBody.parse(req.body);
 
   // handle dynamic user
   const dynamicUserList = Array.isArray(reqBody.user)
@@ -442,6 +451,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     hideCalendarNotes: eventType.hideCalendarNotes,
     requiresConfirmation: eventType.requiresConfirmation ?? false,
     eventTypeId: eventType.id,
+    seatsShowAttendees: !!eventType.seatsShowAttendees,
   };
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
@@ -502,7 +512,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
     const newSeat = booking.attendees.length !== 0;
 
-    await sendScheduledSeatsEmails(evt, invitee[0], newSeat);
+    await sendScheduledSeatsEmails(evt, invitee[0], newSeat, !!eventType.seatsShowAttendees);
 
     const credentials = await refreshCredentials(organizerUser.credentials);
     const eventManager = new EventManager({ ...organizerUser, credentials });
@@ -687,7 +697,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   let referencesToCreate: PartialReference[] = [];
 
   type Booking = Prisma.PromiseReturnType<typeof createBooking>;
-  let booking: Booking | null = null;
+  let booking: (Booking & { appsStatus?: AppsStatus[] }) | null = null;
   try {
     booking = await createBooking();
     // Sync Services
@@ -710,6 +720,39 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
   const credentials = await refreshCredentials(organizerUser.credentials);
   const eventManager = new EventManager({ ...organizerUser, credentials });
+
+  function handleAppsStatus(
+    results: EventResult<AdditionalInformation>[],
+    booking: (Booking & { appsStatus?: AppsStatus[] }) | null
+  ) {
+    // Taking care of apps status
+    const resultStatus: AppsStatus[] = results.map((app) => ({
+      appName: app.appName,
+      type: app.type,
+      success: app.success ? 1 : 0,
+      failures: !app.success ? 1 : 0,
+    }));
+
+    if (reqAppsStatus === undefined) {
+      if (booking !== null) {
+        booking.appsStatus = resultStatus;
+      }
+      evt.appsStatus = resultStatus;
+      return;
+    }
+    // From down here we can assume reqAppsStatus is not undefined anymore
+    // Other status exist, so this is the last booking of a series,
+    // proceeding to prepare the info for the event
+    const calcAppsStatus = reqAppsStatus.concat(resultStatus).reduce((prev, curr) => {
+      if (prev[curr.type]) {
+        prev[curr.type].success += curr.success;
+      } else {
+        prev[curr.type] = curr;
+      }
+      return prev;
+    }, {} as { [key: string]: AppsStatus });
+    evt.appsStatus = Object.values(calcAppsStatus);
+  }
 
   if (originalRescheduledBooking?.uid) {
     // Use EventManager to conditionally use all needed integrations.
@@ -744,6 +787,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
           metadata.hangoutLink = updatedEvent.hangoutLink;
           metadata.conferenceData = updatedEvent.conferenceData;
           metadata.entryPoints = updatedEvent.entryPoints;
+          handleAppsStatus(results, booking);
         }
       }
 
@@ -783,6 +827,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
+        handleAppsStatus(results, booking);
       }
       if (noEmail !== true) {
         await sendScheduledEmails({
