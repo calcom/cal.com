@@ -118,17 +118,15 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
               />
             ))}
             {avatars.length > 3 && (
-              <div
-                tw="flex items-center top-[50%] justify-center w-32 h-32 rounded-full bg-black text-white text-4xl font-bold"
-                style={{ transform: "translateY(-50%)" }}>
-                +{avatars.length - 3}
+              <div tw="flex items-center justify-center w-[160px] h-[160px] rounded-full bg-black text-white text-[54px] font-bold">
+                <span tw="flex top-[-5px] left-[-5px]">+{avatars.length - 3}</span>
               </div>
             )}
           </div>
         </div>
         <div tw="relative flex text-[54px] w-full flex-col text-black mt-auto">
           <div
-            tw="flex w-[1040px] overfl-whidden"
+            tw="flex w-[1040px] overflow-hidden"
             style={{ whiteSpace: "nowrap", fontFamily: "cal", textOverflow: "ellipsis" }}>
             Meet {joinMultipleNames(names)}
           </div>
