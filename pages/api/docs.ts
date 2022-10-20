@@ -114,7 +114,10 @@ const swaggerHandler = withSwagger({
       { name: "schedules" },
       { name: "teams" },
       { name: "memberships" },
-      { name: "availabilities" },
+      {
+        name: "availabilities",
+        description: "Allows modifying unique availabilities tied to a schedule.",
+      },
       { name: "custom-inputs" },
       { name: "event-references" },
       { name: "booking-references" },
