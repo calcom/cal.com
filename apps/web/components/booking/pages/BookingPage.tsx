@@ -262,7 +262,8 @@ const BookingPage = ({
       phone: z
         .string()
         .refine((val) => isValidPhoneNumber(val))
-        .optional(),
+        .optional()
+        .nullable(),
       smsReminderNumber: z
         .string()
         .refine((val) => isValidPhoneNumber(val))
