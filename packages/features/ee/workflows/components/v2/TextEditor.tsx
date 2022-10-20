@@ -1,10 +1,15 @@
-import { EditorState, convertToRaw, ContentState } from "draft-js";
-import draftToHtml from "draftjs-to-html";
+import { EditorState, Modifier, ContentState, convertToRaw } from "draft-js";
+import { UseFormReturn } from "react-hook-form";
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useState, Dispatch, SetStateAction } from "react";
 import { EditorProps } from "react-draft-wysiwyg";
+import { RichUtils } from 'draft-js';
 
 import "./styles.css";
+import { AddVariablesDropdown } from "../../components/v2/AddVariablesDropdown";
+import { FormValues } from "ee/workflows/pages/v2/workflow";
+import draftToHtml from 'draftjs-to-html';
+
 
 const Editor = dynamic<EditorProps>(() => import("react-draft-wysiwyg").then((mod) => mod.Editor), {
   ssr: false,
@@ -12,13 +17,18 @@ const Editor = dynamic<EditorProps>(() => import("react-draft-wysiwyg").then((mo
 
 const htmlToDraft = typeof window === "object" && require("html-to-draftjs").default;
 
-function TextEditor() {
-  const html = "<p>Hey this <strong>editor</strong> rocks 😀</p>";
+type TextEditorProps = {
+  addVariable: (isEmailSubject: boolean, variable: string) => void,
+  form: UseFormReturn<FormValues>
+  stepNumber: number,
+}
 
-  const contentBlock = htmlToDraft(html);
+function TextEditor(props: TextEditorProps) {
+  const contentBlock = htmlToDraft(props.form.getValues(`steps.${props.stepNumber - 1}.reminderBody` || ""));
   const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks);
 
   const [editorState, setEditorState] = useState(EditorState.createWithContent(contentState));
+
 
   return (
     <div>
@@ -27,6 +37,8 @@ function TextEditor() {
         wrapperClassName="border border-gray-300 rounded-md"
         editorClassName=" p-3 -mt-3 bg-white rounded-md text-sm"
         onEditorStateChange={setEditorState}
+        onChange={() => {props.form.setValue(`steps.${props.stepNumber - 1}.reminderBody`, draftToHtml(convertToRaw(editorState.getCurrentContent())))} }
+        toolbarCustomButtons={[<CustomOption editorState={editorState} setEditorState={setEditorState} addVariable={props.addVariable} />]}
         toolbar={{
           options: ["inline", "fontSize", "list"],
           inline: {
@@ -37,12 +49,47 @@ function TextEditor() {
             options: ["unordered", "ordered"],
           },
         }}
+        handleReturn={(event) => {
+          // override behavior for enter key
+          var newEditorState = null;
+          if (event.keyCode === 13 ) {
+              // with shift, make a new block
+              newEditorState = RichUtils.insertSoftNewline(editorState);
+          }
+          if (newEditorState) {
+              setEditorState(newEditorState)
+              return true;
+          }
+          return false;
+      }}
       />
-      {/* <textarea
-        disabled
-        value={draftToHtml(convertToRaw(editorState.getCurrentContent()))}
-      /> */}
     </div>
+  );
+}
+
+type Props = {
+  editorState: EditorState,
+  setEditorState: Dispatch<SetStateAction<EditorState>>,
+  addVariable: (isEmailSubject: boolean, variable: string) => void;
+}
+
+function CustomOption({ editorState, setEditorState }: Props) {
+
+  const addVariable = (isEmailSubject: boolean, variable: string) => {
+
+    const contentState = Modifier.replaceText(
+      editorState.getCurrentContent(),
+      editorState.getSelection(),
+      `{${variable
+        .toUpperCase()
+        .replace(/ /g, "_")}}`,
+      editorState.getCurrentInlineStyle(),
+    );
+    setEditorState(EditorState.push(editorState, contentState, 'insert-characters'));
+  }
+
+  return (
+    <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} />
   );
 }
 
