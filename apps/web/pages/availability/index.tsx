@@ -1,5 +1,4 @@
-import autoAnimate from "@formkit/auto-animate";
-import { useRef, useEffect } from "react";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -16,7 +15,6 @@ import SkeletonLoader from "@components/v2/availability/SkeletonLoader";
 export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availability.list">) {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const animationParentRef = useRef(null);
 
   const meQuery = trpc.useQuery(["viewer.me"]);
 
@@ -50,9 +48,8 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
   });
 
   // Adds smooth delete button - item fades and old item slides into place
-  useEffect(() => {
-    animationParentRef.current && autoAnimate(animationParentRef.current);
-  }, [animationParentRef]);
+
+  const [animationParentRef] = useAutoAnimate<HTMLUListElement>();
 
   return (
     <>
