@@ -82,6 +82,7 @@ export const viewerTeamsRouter = createProtectedRouter()
       name: z.string(),
       slug: z.string().optional().nullable(),
       logo: z.string().optional().nullable(),
+      billingFrequency: z.union([z.literal("monthly"), z.literal("yearly")]),
     }),
     async resolve({ ctx, input }) {
       const slug = input.slug || slugify(input.name);
@@ -94,11 +95,32 @@ export const viewerTeamsRouter = createProtectedRouter()
 
       if (nameCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "Team name already taken." });
 
+      // Create Stripe customer
+      const customer = await stripe.customers.create({
+        name: input.name,
+      });
+
+      if (!customer) throw new TRPCError({ code: "BAD_REQUEST", message: "Can not create Stripe customer" });
+
+      const subscription = await stripe.subscriptions.create({
+        customer: customer.id,
+        items: [
+          {
+            price:
+              input.billingFrequency === "monthly"
+                ? process.env.STRIPE_TEAM_MONTHLY_PRICE_ID
+                : process.env.STRIPE_TEAM_YEARLY_PRICE_ID,
+          },
+        ],
+      });
+
       const createTeam = await ctx.prisma.team.create({
         data: {
           name: input.name,
           slug: slug,
           logo: input.logo || null,
+          stripeCustomerId: customer.id,
+          stripeSubscriptionId: subscription.id,
         },
       });
 
@@ -109,12 +131,6 @@ export const viewerTeamsRouter = createProtectedRouter()
           role: MembershipRole.OWNER,
           accepted: true,
         },
-      });
-
-      // Create Stripe customer
-      const customer = await stripe.customers.create({
-        name: createTeam.name,
-        metadata: { teamId: createTeam.id },
       });
 
       // Sync Services: Close.com
@@ -175,9 +191,9 @@ export const viewerTeamsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       if (!(await isTeamOwner(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-      if (process.env.STRIPE_PRIVATE_KEY) {
-        await downgradeTeamMembers(input.teamId);
-      }
+      // if (process.env.STRIPE_PRIVATE_KEY) {
+      //   await downgradeTeamMembers(input.teamId);
+      // }
 
       // delete all memberships
       await ctx.prisma.membership.deleteMany({
@@ -185,6 +201,21 @@ export const viewerTeamsRouter = createProtectedRouter()
           teamId: input.teamId,
         },
       });
+
+      // Delete customer from Stripe
+      try {
+        const stripeCustomerId = await ctx.prisma.team.findFirst({
+          where: {
+            id: input.teamId,
+          },
+          select: { stripeCustomerId: true },
+        });
+        console.log("🚀 ~ file: teams.tsx ~ line 213 ~ resolve ~ teamStripeCustomerId", stripeCustomerId);
+        const response = await stripe.customers.del(stripeCustomerId.stripeCustomerId);
+        console.log("🚀 ~ file: teams.tsx ~ line 214 ~ resolve ~ response", response);
+      } catch {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Could not delete customer from Stripe" });
+      }
 
       const deletedTeam = await ctx.prisma.team.delete({
         where: {

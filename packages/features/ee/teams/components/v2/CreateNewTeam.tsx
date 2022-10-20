@@ -1,5 +1,6 @@
 import { useForm, Controller } from "react-hook-form";
 
+import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
@@ -7,7 +8,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Button, Avatar } from "@calcom/ui/v2";
 import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
-import { Form, TextField } from "@calcom/ui/v2/core/form/fields";
+import { Form, TextField, Label } from "@calcom/ui/v2/core/form/fields";
 
 const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: number) => void }) => {
   const { t } = useLocale();
@@ -31,6 +32,7 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
           name: values.name,
           slug: values.slug || null,
           logo: values.logo || null,
+          billingFrequency: values.billingFrequency,
         });
       }}>
       <div className="mb-8">
@@ -93,6 +95,42 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
                 />
               </div>
             </div>
+          )}
+        />
+      </div>
+      <div className="mb-8">
+        <Controller
+          control={formMethods.control}
+          name="billingFrequency"
+          defaultValue="monthly"
+          render={({ field: { value } }) => (
+            <>
+              <Label className="font-sm mt-8 text-gray-900">
+                <>{t("event_triggers")}</>
+              </Label>
+              <div className="flex rounded-md border">
+                <div
+                  className={classNames(
+                    "px-1/2 w-1/2 rounded-md  py-2.5 text-center font-medium text-gray-900",
+                    value === "monthly" && "bg-gray-200"
+                  )}
+                  onClick={() => {
+                    formMethods.setValue("billingFrequency", "monthly");
+                  }}>
+                  <p>{t("monthly")}</p>
+                </div>
+                <div
+                  className={classNames(
+                    "px-1/2 w-1/2 rounded-md  py-2.5 text-center font-medium text-gray-900",
+                    value === "yearly" && "bg-gray-200"
+                  )}
+                  onClick={() => {
+                    formMethods.setValue("billingFrequency", "yearly");
+                  }}>
+                  <p>{t("yearly")}</p>
+                </div>
+              </div>
+            </>
           )}
         />
       </div>

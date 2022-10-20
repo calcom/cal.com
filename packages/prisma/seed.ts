@@ -538,6 +538,9 @@ async function main() {
           ],
         },
       },
+      // Teams need a stripe id
+      stripeCustomerId: "testId",
+      stripeSubscriptionId: "testId",
     },
     [
       {

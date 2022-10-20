@@ -73,7 +73,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         description={
           <span className=" text-sm leading-tight text-gray-500">
             Note: This will <span className="font-medium text-gray-900">cost an extra seat ($12/m)</span> on
-            your subscription if this invitee does not have a TEAM account.
+            your subscription once this member accepts your invite.
           </span>
         }>
         <form onSubmit={inviteMember}>
