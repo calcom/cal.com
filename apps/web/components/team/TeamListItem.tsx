@@ -153,7 +153,7 @@ export default function TeamListItem(props: Props) {
                   />
                 </Tooltip>
                 <Dropdown>
-                  <DropdownMenuTrigger asChild>
+                  <DropdownMenuTrigger asChild className="radix-state-open:rounded-r-md">
                     <Button type="button" color="secondary" size="icon" StartIcon={Icon.FiMoreHorizontal} />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent hidden={hideDropdown}>
