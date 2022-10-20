@@ -49,19 +49,6 @@ function TextEditor(props: TextEditorProps) {
             options: ["unordered", "ordered"],
           },
         }}
-        handleReturn={(event) => {
-          // override behavior for enter key
-          var newEditorState = null;
-          if (event.keyCode === 13 ) {
-              // with shift, make a new block
-              newEditorState = RichUtils.insertSoftNewline(editorState);
-          }
-          if (newEditorState) {
-              setEditorState(newEditorState)
-              return true;
-          }
-          return false;
-      }}
       />
     </div>
   );

@@ -55,7 +55,7 @@ const customTemplate = async (text: string, variables: VariablesType, locale: st
     }
   });
 
-  const textHtml = `<body style="white-space: pre-wrap;">${dynamicText}</body>`;
+  const textHtml = `<body>${dynamicText}</body>`;
   return { text: dynamicText, html: textHtml };
 };
 
