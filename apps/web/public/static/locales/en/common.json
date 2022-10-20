@@ -1324,5 +1324,6 @@
   "saml_sp_entity_id": "SP Entity ID",
   "saml_sp_acs_url_copied": "ACS URL copied!",
   "saml_sp_entity_id_copied": "SP Entity ID copied!",
-  "saml_btn_configure": "Configure"
+  "saml_btn_configure": "Configure",
+  "add_calendar": "Add Calendar"
 }

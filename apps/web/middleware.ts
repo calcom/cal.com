@@ -23,6 +23,13 @@ const middleware: NextMiddleware = async (req) => {
     }
   }
 
+  // Ensure that embed query param is there in when /embed is added.
+  // query param is the way in which client side code knows that it is in embed mode.
+  if (url.pathname.endsWith("/embed") && typeof url.searchParams.get("embed") !== "string") {
+    url.searchParams.set("embed", "");
+    return NextResponse.redirect(url);
+  }
+
   // Don't 404 old routing_forms links
   if (url.pathname.startsWith("/apps/routing_forms")) {
     url.pathname = url.pathname.replace("/apps/routing_forms", "/apps/routing-forms");

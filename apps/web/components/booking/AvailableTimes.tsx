@@ -65,7 +65,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
               query: Record<string, string | number | string[] | undefined>;
             };
             const bookingUrl: BookingURL = {
-              pathname: "book",
+              pathname: router.pathname.endsWith("/embed") ? "../book" : "book",
               query: {
                 ...router.query,
                 date: dayjs(slot.time).format(),

@@ -1,6 +1,6 @@
-import autoAnimate from "@formkit/auto-animate";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { App_RoutingForms_Form } from "@prisma/client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useFieldArray } from "react-hook-form";
 import { UseFormReturn } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
@@ -197,11 +197,7 @@ const FormEdit = ({
     name: fieldsNamespace,
   });
 
-  const animationRef = useRef(null);
-
-  useEffect(() => {
-    animationRef.current && autoAnimate(animationRef.current);
-  }, [animationRef]);
+  const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
   const addField = () => {
     appendHookFormField({
