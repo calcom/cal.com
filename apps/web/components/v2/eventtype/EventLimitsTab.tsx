@@ -9,7 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PeriodType } from "@calcom/prisma/client";
 import type { BookingLimit } from "@calcom/types/Calendar";
 import { Icon } from "@calcom/ui";
-import { Select, Switch, Label, Input, MinutesField, Button } from "@calcom/ui/v2";
+import { Select, Switch, Label, Input, MinutesField, Button, SettingsToggle } from "@calcom/ui/v2";
 import DateRangePicker from "@calcom/ui/v2/core/form/date-range-picker/DateRangePicker";
 
 export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) => {
@@ -159,43 +159,28 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
 
       <hr className="my-8" />
 
-      <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
-        <fieldset className="block flex-col sm:flex">
-          <div className="flex space-x-3">
-            <Controller
-              name="bookingLimits"
-              control={formMethods.control}
-              render={({ field: { value } }) => (
-                <Switch
-                  fitToHeight={true}
-                  checked={Object.keys(value ?? {}).length > 0}
-                  onCheckedChange={(active) => {
-                    if (active) {
-                      formMethods.setValue("bookingLimits", {
-                        PER_DAY: 1,
-                      });
-                    } else {
-                      formMethods.setValue("bookingLimits", undefined);
-                    }
-                  }}
-                />
-              )}
-            />
-
-            <div className="">
-              <Label className="text-sm font-semibold leading-none text-black">
-                {t("limit_booking_frequency")}
-              </Label>
-              <p className="-mt-2 text-sm leading-normal text-gray-600">
-                {t("limit_booking_frequency_description")}
-              </p>
-            </div>
-          </div>
-          <div className="mt-4 lg:ml-14">
+      <Controller
+        name="bookingLimits"
+        control={formMethods.control}
+        render={({ field: { value } }) => (
+          <SettingsToggle
+            title={t("limit_booking_frequency")}
+            description={t("limit_booking_frequency_description")}
+            checked={Object.keys(value ?? {}).length > 0}
+            onCheckedChange={(active) => {
+              console.log({ value, active });
+              if (active) {
+                formMethods.setValue("bookingLimits", {
+                  PER_DAY: 1,
+                });
+              } else {
+                formMethods.setValue("bookingLimits", {});
+              }
+            }}>
             <BookingLimits />
-          </div>
-        </fieldset>
-      </div>
+          </SettingsToggle>
+        )}
+      />
 
       <hr className="my-8" />
 
