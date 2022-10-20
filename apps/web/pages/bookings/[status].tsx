@@ -1,7 +1,7 @@
-import autoAnimate from "@formkit/auto-animate";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { GetStaticPaths, GetStaticProps } from "next";
 import { useRouter } from "next/router";
-import { Fragment, useEffect, useRef } from "react";
+import { Fragment } from "react";
 import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
@@ -46,7 +46,7 @@ export default function Bookings() {
   });
 
   // Animate page (tab) tranistions to look smoothing
-  const animationParentRef = useRef(null);
+
   const buttonInView = useInViewObserver(() => {
     if (!query.isFetching && query.hasNextPage && query.status === "success") {
       query.fetchNextPage();
@@ -73,9 +73,7 @@ export default function Bookings() {
     return true;
   };
 
-  useEffect(() => {
-    animationParentRef.current && autoAnimate(animationParentRef.current);
-  }, [animationParentRef]);
+  const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
   return (
     <BookingLayout heading={t("bookings")} subtitle={t("bookings_description")}>

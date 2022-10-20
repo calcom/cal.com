@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInputType, WorkflowActions } from "@prisma/client";
-import { SchedulingType } from "@prisma/client";
 import { useMutation } from "@tanstack/react-query";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
@@ -84,9 +83,10 @@ const BookingPage = ({
   recurringEventCount,
   hasHashedBookingLink,
   hashedLink,
+  ...restProps
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
-  const isEmbed = useIsEmbed();
+  const isEmbed = useIsEmbed(restProps.isEmbed);
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const router = useRouter();
@@ -115,14 +115,14 @@ const BookingPage = ({
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
-      const { id, attendees, paymentUid } = responseData;
+      const { id, paymentUid } = responseData;
       if (paymentUid) {
         return await router.push(
           createPaymentLink({
             paymentUid,
             date,
-            name: attendees[0].name,
-            email: attendees[0].email,
+            name: bookingForm.getValues("name"),
+            email: bookingForm.getValues("email"),
             absolute: false,
           })
         );
@@ -136,8 +136,8 @@ const BookingPage = ({
           eventSlug: eventType.slug,
           username: profile.slug,
           reschedule: !!rescheduleUid,
-          name: attendees[0].name,
-          email: attendees[0].email,
+          name: bookingForm.getValues("name"),
+          email: bookingForm.getValues("email"),
           location: responseData.location,
           eventName: profile.eventName || "",
           bookingId: id,
@@ -266,7 +266,8 @@ const BookingPage = ({
       smsReminderNumber: z
         .string()
         .refine((val) => isValidPhoneNumber(val))
-        .optional(),
+        .optional()
+        .nullable(),
     })
     .passthrough();
 
@@ -358,7 +359,9 @@ const BookingPage = ({
         hasHashedBookingLink,
         hashedLink,
         smsReminderNumber:
-          selectedLocationType === LocationType.Phone ? booking.phone : booking.smsReminderNumber,
+          selectedLocationType === LocationType.Phone
+            ? booking.phone
+            : booking.smsReminderNumber || undefined,
         ethSignature: gateState.rainbowToken,
       }));
       recurringMutation.mutate(recurringBookings);
@@ -386,7 +389,9 @@ const BookingPage = ({
         hasHashedBookingLink,
         hashedLink,
         smsReminderNumber:
-          selectedLocationType === LocationType.Phone ? booking.phone : booking.smsReminderNumber,
+          selectedLocationType === LocationType.Phone
+            ? booking.phone
+            : booking.smsReminderNumber || undefined,
         ethSignature: gateState.rainbowToken,
       });
     }
@@ -400,6 +405,7 @@ const BookingPage = ({
     "dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500";
 
   let isSmsReminderNumberNeeded = false;
+  let isSmsReminderNumberRequired = false;
 
   if (eventType.workflows.length > 0) {
     eventType.workflows.forEach((workflowReference) => {
@@ -407,6 +413,7 @@ const BookingPage = ({
         workflowReference.workflow.steps.forEach((step) => {
           if (step.action === WorkflowActions.SMS_ATTENDEE) {
             isSmsReminderNumberNeeded = true;
+            isSmsReminderNumberRequired = step.numberRequired || false;
             return;
           }
         });
@@ -516,7 +523,15 @@ const BookingPage = ({
                 )}
                 {!!eventType.seatsPerTimeSlot && (
                   <div className="text-bookinghighlight flex items-start text-sm">
-                    <Icon.FiUser className="mr-[10px] ml-[2px] mt-[2px] inline-block h-4 w-4" />
+                    <Icon.FiUser
+                      className={`mr-[10px] ml-[2px] mt-[2px] inline-block h-4 w-4 ${
+                        booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
+                          ? "text-rose-600"
+                          : booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
+                          ? "text-yellow-500"
+                          : "text-bookinghighlight"
+                      }`}
+                    />
                     <p
                       className={`${
                         booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
@@ -577,48 +592,51 @@ const BookingPage = ({
                     )}
                   </div>
                 </div>
-                <div className="mb-4">
-                  <>
-                    <span className="block text-sm font-medium text-gray-700 dark:text-white">
-                      {t("location")}
-                    </span>
-                    {rescheduleUid ? (
+                <>
+                  {rescheduleUid ? (
+                    <div className="mb-4">
+                      <span className="block text-sm font-medium text-gray-700 dark:text-white">
+                        {t("location")}
+                      </span>
                       <p className="mt-1 text-sm text-gray-500">
                         {getHumanReadableLocationValue(booking?.location, t)}
                       </p>
-                    ) : (
-                      locations.length > 1 && (
-                        <>
-                          {locations.map((location, i) => {
-                            const locationString = locationKeyToString(location);
-                            if (!selectedLocationType) {
-                              bookingForm.setValue("locationType", locations[0].type);
-                            }
-                            if (typeof locationString !== "string") {
-                              // It's possible that location app got uninstalled
-                              return null;
-                            }
-                            return (
-                              <label key={i} className="block">
-                                <input
-                                  type="radio"
-                                  disabled={!!disableLocations}
-                                  className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
-                                  {...bookingForm.register("locationType", { required: true })}
-                                  value={location.type}
-                                  defaultChecked={i === 0}
-                                />
-                                <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-white">
-                                  {locationKeyToString(location)}
-                                </span>
-                              </label>
-                            );
-                          })}
-                        </>
-                      )
-                    )}
-                  </>
-                </div>
+                    </div>
+                  ) : (
+                    locations.length > 1 && (
+                      <div className="mb-4">
+                        <span className="block text-sm font-medium text-gray-700 dark:text-white">
+                          {t("location")}
+                        </span>
+                        {locations.map((location, i) => {
+                          const locationString = locationKeyToString(location);
+                          if (!selectedLocationType) {
+                            bookingForm.setValue("locationType", locations[0].type);
+                          }
+                          if (typeof locationString !== "string") {
+                            // It's possible that location app got uninstalled
+                            return null;
+                          }
+                          return (
+                            <label key={i} className="block">
+                              <input
+                                type="radio"
+                                disabled={!!disableLocations}
+                                className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
+                                {...bookingForm.register("locationType", { required: true })}
+                                value={location.type}
+                                defaultChecked={i === 0}
+                              />
+                              <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-white">
+                                {locationKeyToString(location)}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )
+                  )}
+                </>
                 {/* TODO: Change name and id ="phone" to something generic */}
                 {AttendeeInput && (
                   <div className="mb-4">
@@ -786,7 +804,7 @@ const BookingPage = ({
                         name="smsReminderNumber"
                         placeholder={t("enter_phone_number")}
                         id="smsReminderNumber"
-                        required
+                        required={isSmsReminderNumberRequired}
                       />
                     </div>
                     {bookingForm.formState.errors.smsReminderNumber && (

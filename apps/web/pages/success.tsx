@@ -141,7 +141,15 @@ type SuccessProps = inferSSRProps<typeof getServerSideProps>;
 export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
-  const { location: _location, name, reschedule, listingStatus, status, isSuccessBookingPage } = router.query;
+  const {
+    location: _location,
+    name,
+    email,
+    reschedule,
+    listingStatus,
+    status,
+    isSuccessBookingPage,
+  } = router.query;
   const location: ReturnType<typeof getEventLocationValue> = Array.isArray(_location)
     ? _location[0] || ""
     : _location || "";
@@ -357,14 +365,23 @@ export default function Success(props: SuccessProps) {
                               <p className="text-bookinglight">{bookingInfo.user.email}</p>
                             </div>
                           )}
-                          {bookingInfo?.attendees.map((attendee, index) => (
-                            <div
-                              key={attendee.name}
-                              className={index === bookingInfo.attendees.length - 1 ? "" : "mb-3"}>
-                              <p>{attendee.name}</p>
-                              <p className="text-bookinglight">{attendee.email}</p>
-                            </div>
-                          ))}
+                          {!!eventType.seatsShowAttendees
+                            ? bookingInfo?.attendees
+                                .filter((attendee) => attendee.email === email)
+                                .map((attendee) => (
+                                  <div key={attendee.name} className="mb-3">
+                                    <p>{attendee.name}</p>
+                                    <p className="text-bookinglight">{attendee.email}</p>
+                                  </div>
+                                ))
+                            : bookingInfo?.attendees.map((attendee, index) => (
+                                <div
+                                  key={attendee.name}
+                                  className={index === bookingInfo.attendees.length - 1 ? "" : "mb-3"}>
+                                  <p>{attendee.name}</p>
+                                  <p className="text-bookinglight">{attendee.email}</p>
+                                </div>
+                              ))}
                         </div>
                       </>
                     )}
@@ -425,7 +442,7 @@ export default function Success(props: SuccessProps) {
                         {!props.recurringBookings && (
                           <span className="text-bookinglight inline text-gray-700">
                             <span className="underline">
-                              <Link href={"/reschedule/" + bookingInfo?.uid}>{t("reschedule")}</Link>
+                              <Link href={`/reschedule/${bookingInfo?.uid}`}>{t("reschedule")}</Link>
                             </span>
                             <span className="mx-2">{t("or_lowercase")}</span>
                           </span>
@@ -620,52 +637,60 @@ export function RecurringBookings({
     ? recurringBookings.sort((a, b) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
     : null;
 
-  return recurringBookingsSorted && listingStatus === "recurring" ? (
-    <>
-      {eventType.recurringEvent?.count && (
-        <span className="font-medium">
-          {getEveryFreqFor({
-            t,
-            recurringEvent: eventType.recurringEvent,
-            recurringCount: recurringBookings?.length ?? undefined,
-          })}
-        </span>
-      )}
-      {eventType.recurringEvent?.count &&
-        recurringBookingsSorted.slice(0, 4).map((dateStr, idx) => (
-          <div key={idx} className="mb-2">
-            {dayjs(dateStr).format("MMMM DD, YYYY")}
-            <br />
-            {dayjs(dateStr).format("LT")} - {dayjs(dateStr).add(eventType.length, "m").format("LT")}{" "}
-            <span className="text-bookinglight">
-              ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-            </span>
-          </div>
-        ))}
-      {recurringBookingsSorted.length > 4 && (
-        <Collapsible open={moreEventsVisible} onOpenChange={() => setMoreEventsVisible(!moreEventsVisible)}>
-          <CollapsibleTrigger
-            type="button"
-            className={classNames("flex w-full", moreEventsVisible ? "hidden" : "")}>
-            {t("plus_more", { count: recurringBookingsSorted.length - 4 })}
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            {eventType.recurringEvent?.count &&
-              recurringBookingsSorted.slice(4).map((dateStr, idx) => (
-                <div key={idx} className="mb-2">
-                  {dayjs(dateStr).format("MMMM DD, YYYY")}
-                  <br />
-                  {dayjs(dateStr).format("LT")} - {dayjs(dateStr).add(eventType.length, "m").format("LT")}{" "}
-                  <span className="text-bookinglight">
-                    ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-                  </span>
-                </div>
-              ))}
-          </CollapsibleContent>
-        </Collapsible>
-      )}
-    </>
-  ) : (
+  if (recurringBookingsSorted && listingStatus === "recurring") {
+    // recurring bookings should only be adjusted to the start date.
+    const utcOffset = dayjs(recurringBookingsSorted[0]).utcOffset();
+    return (
+      <>
+        {eventType.recurringEvent?.count && (
+          <span className="font-medium">
+            {getEveryFreqFor({
+              t,
+              recurringEvent: eventType.recurringEvent,
+              recurringCount: recurringBookings?.length ?? undefined,
+            })}
+          </span>
+        )}
+        {eventType.recurringEvent?.count &&
+          recurringBookingsSorted.slice(0, 4).map((dateStr, idx) => (
+            <div key={idx} className="mb-2">
+              {dayjs(dateStr).utcOffset(utcOffset).format("MMMM DD, YYYY")}
+              <br />
+              {dayjs(dateStr).utcOffset(utcOffset).format("LT")} -{" "}
+              {dayjs(dateStr).utcOffset(utcOffset).add(eventType.length, "m").format("LT")}{" "}
+              <span className="text-bookinglight">
+                ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
+              </span>
+            </div>
+          ))}
+        {recurringBookingsSorted.length > 4 && (
+          <Collapsible open={moreEventsVisible} onOpenChange={() => setMoreEventsVisible(!moreEventsVisible)}>
+            <CollapsibleTrigger
+              type="button"
+              className={classNames("flex w-full", moreEventsVisible ? "hidden" : "")}>
+              {t("plus_more", { count: recurringBookingsSorted.length - 4 })}
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              {eventType.recurringEvent?.count &&
+                recurringBookingsSorted.slice(4).map((dateStr, idx) => (
+                  <div key={idx} className="mb-2">
+                    {dayjs(dateStr).utcOffset(utcOffset).format("MMMM DD, YYYY")}
+                    <br />
+                    {dayjs(dateStr).utcOffset(utcOffset).format("LT")} -{" "}
+                    {dayjs(dateStr).utcOffset(utcOffset).add(eventType.length, "m").format("LT")}{" "}
+                    <span className="text-bookinglight">
+                      ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
+                    </span>
+                  </div>
+                ))}
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+      </>
+    );
+  }
+
+  return (
     <>
       {date.format("MMMM DD, YYYY")}
       <br />
@@ -717,6 +742,7 @@ const getEventTypesFromDB = async (id: number) => {
         },
       },
       metadata: true,
+      seatsShowAttendees: true,
     },
   });
 

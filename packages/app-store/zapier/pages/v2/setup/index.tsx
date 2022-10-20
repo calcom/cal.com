@@ -18,7 +18,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   const [newApiKey, setNewApiKey] = useState("");
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const integrations = trpc.useQuery(["viewer.integrations", { variant: "other" }]);
+  const integrations = trpc.useQuery(["viewer.integrations", { variant: "automation" }]);
   const oldApiKey = trpc.useQuery(["viewer.apiKeys.findKeyOfType", { appId: ZAPIER }]);
 
   const deleteApiKey = trpc.useMutation("viewer.apiKeys.delete");
