@@ -15,9 +15,9 @@ async function* getResponses(
 ) {
   let responses;
   let skip = 0;
-  // Let's keep it high and observe at what point Vercel serverless fn limits are hit
-  // There is an RFC to take care of things after that: https://linear.app/calcom/issue/CAL-204/rfc-routing-form-improved-csv-exports
-  const take = 10000;
+  // Keep it small enough to be in Vercel limits of Serverless Function in terms of memory.
+  // To avoid limit in terms of execution time there is an RFC https://linear.app/calcom/issue/CAL-204/rfc-routing-form-improved-csv-exports
+  const take = 100;
   while (
     (responses = await prisma.app_RoutingForms_FormResponse.findMany({
       where: {
@@ -29,20 +29,11 @@ async function* getResponses(
     responses.length
   ) {
     const csv: string[] = [];
-
     responses.forEach((response) => {
       const fieldResponses = response.response as Response;
       const csvCells: string[] = [];
-      const foundFields = {};
       headerFields.forEach((headerField) => {
-        foundFields[headerField.id] = 1;
         const fieldResponse = fieldResponses[headerField.id];
-        // if (fieldResponse) {
-        //   csvLineColumns.push(escapeCsvText(fieldResponse.label));
-        // } else {
-        //   csvLineColumns.push("");
-        // }
-        // const label = escapeCsvText(fieldResponse.label);
         const value = fieldResponse.value;
         let serializedValue = "";
         if (value instanceof Array) {

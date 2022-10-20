@@ -218,9 +218,10 @@ test.describe("Routing Forms", () => {
 
       expect(csv.trim()).toEqual(
         `
-"Test field :=> event-routing"
-"Test field :=> external-redirect"
-"Test field :=> custom-page"`.trim()
+"Test field"
+"event-routing"
+"external-redirect"
+"custom-page"`.trim()
       );
     });
 

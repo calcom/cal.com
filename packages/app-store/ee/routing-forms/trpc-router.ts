@@ -210,7 +210,7 @@ const app_RoutingForms = createRouter()
             });
           }
           let { routes } = input;
-          let { fields = [] } = input;
+          let { fields } = input;
 
           if (duplicateFrom) {
             const sourceForm = await prisma.app_RoutingForms_Form.findFirst({
@@ -244,6 +244,7 @@ const app_RoutingForms = createRouter()
           }
 
           fields = fields || [];
+
           const form = await prisma.app_RoutingForms_Form.findUnique({
             where: {
               id: id,
@@ -261,6 +262,8 @@ const app_RoutingForms = createRouter()
               fields: true,
             },
           });
+
+          // Add back deleted fields in the end. Fields can't be deleted to make sure columns never decrease hugely simplifying CSV generation
           if (form) {
             const serializedForm = getSerializableForm(form);
             const deletedFields =
@@ -274,8 +277,6 @@ const app_RoutingForms = createRouter()
             );
           }
 
-          if (!form) {
-          }
           if (addFallback) {
             const uuid = uuidv4();
             routes = routes || [];
