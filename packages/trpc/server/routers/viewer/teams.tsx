@@ -2,6 +2,7 @@ import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 
+import stripe from "@calcom/app-store/stripepayment/lib/server";
 import {
   addSeat,
   downgradeTeamMembers,
@@ -83,20 +84,15 @@ export const viewerTeamsRouter = createProtectedRouter()
       logo: z.string().optional().nullable(),
     }),
     async resolve({ ctx, input }) {
-      if (ctx.user.plan === "FREE") {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "You need a team plan." });
-      }
-
       const slug = input.slug || slugify(input.name);
 
-      const nameCollisions = await ctx.prisma.team.count({
+      const nameCollisions = await ctx.prisma.team.findFirst({
         where: {
           OR: [{ name: input.name }, { slug: slug }],
         },
       });
 
-      if (nameCollisions > 0)
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Team name already taken." });
+      if (nameCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "Team name already taken." });
 
       const createTeam = await ctx.prisma.team.create({
         data: {
@@ -113,6 +109,12 @@ export const viewerTeamsRouter = createProtectedRouter()
           role: MembershipRole.OWNER,
           accepted: true,
         },
+      });
+
+      // Create Stripe customer
+      const customer = await stripe.customers.create({
+        name: createTeam.name,
+        metadata: { teamId: createTeam.id },
       });
 
       // Sync Services: Close.com
