@@ -266,23 +266,21 @@ function EventTypeSingleLayout({
                 </Button>
               </DropdownMenuItem>
               <Divider />
-              <DropdownMenuItem className="focus:ring-gray-100">
-                <div className="flex items-center rounded-md py-1.5 px-4 sm:hidden sm:hover:bg-gray-100">
-                  <Skeleton
-                    as={Label}
-                    htmlFor="hiddenSwitch"
-                    className="mt-2 inline cursor-pointer self-center pr-2 sm:hidden">
-                    {t("hide_from_profile")}
-                  </Skeleton>
-                  <Switch
-                    id="hiddenSwitch"
-                    defaultChecked={formMethods.getValues("hidden")}
-                    onCheckedChange={(e) => {
-                      formMethods.setValue("hidden", e);
-                    }}
-                  />
-                </div>
-              </DropdownMenuItem>
+              <div className="flex items-center rounded-md py-1.5 px-4 sm:hidden sm:hover:bg-gray-100">
+                <Skeleton
+                  as={Label}
+                  htmlFor="hiddenSwitch"
+                  className="mt-2 inline cursor-pointer self-center pr-2 sm:hidden">
+                  {t("hide_from_profile")}
+                </Skeleton>
+                <Switch
+                  id="hiddenSwitch"
+                  defaultChecked={formMethods.getValues("hidden")}
+                  onCheckedChange={(e) => {
+                    formMethods.setValue("hidden", e);
+                  }}
+                />
+              </div>
             </DropdownMenuContent>
           </Dropdown>
           <div className="border-l-2 border-gray-300" />
