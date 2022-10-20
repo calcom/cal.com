@@ -42,14 +42,16 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations
  *        required: true
  *        description: ID of the user to edit
  *     tags:
- *     - users
+ *       - users
  *     responses:
- *       201:
+ *       200:
  *         description: OK, user edited successfuly
  *       400:
- *        description: Bad request. User body is invalid.
+ *         description: Bad request. User body is invalid.
  *       401:
- *        description: Authorization information is missing or invalid.
+ *         description: Authorization information is missing or invalid.
+ *       403:
+ *         description: Insufficient permissions to access resource.
  */
 export async function patchHandler(req: NextApiRequest) {
   const { prisma, isAdmin } = req;
@@ -59,7 +61,7 @@ export async function patchHandler(req: NextApiRequest) {
 
   const body = schemaUserEditBodyParams.parse(req.body);
   const userSchedules = await prisma.schedule.findMany({
-    where: { userId: req.userId },
+    where: { userId: query.userId },
   });
   const userSchedulesIds = userSchedules.map((schedule) => schedule.id);
   // @note: here we make sure user can only make as default his own scheudles
@@ -70,7 +72,7 @@ export async function patchHandler(req: NextApiRequest) {
     });
   }
   const data = await prisma.user.update({
-    where: { id: req.userId },
+    where: { id: query.userId },
     data: body,
   });
   const user = schemaUserReadPublic.parse(data);
