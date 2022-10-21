@@ -7,9 +7,9 @@ import { Toaster } from "react-hot-toast";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import Button from "@calcom/ui/v2/core/Button";
 import { Form, TextField } from "@calcom/ui/v2/core/form/fields";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 const formSchema = z.object({
   api_key: z.string(),
