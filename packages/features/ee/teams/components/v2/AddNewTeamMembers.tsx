@@ -7,9 +7,8 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Avatar, Badge, Button } from "@calcom/ui/v2/core";
+import { Avatar, Badge, Button, showToast } from "@calcom/ui/v2/core";
 import { Label } from "@calcom/ui/v2/core/form";
-import { showToast } from "@calcom/ui/v2/core/notifications";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
 const AddNewTeamMemberSkeleton = () => {
