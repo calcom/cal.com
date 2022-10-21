@@ -1,5 +1,4 @@
 import { GetStaticPaths, GetStaticProps } from "next";
-import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -39,7 +38,6 @@ type AvailabilityFormValues = {
 
 export default function Availability({ schedule }: { schedule: number }) {
   const { t, i18n } = useLocale();
-  const router = useRouter();
   const utils = trpc.useContext();
   const me = useMeQuery();
 
@@ -60,13 +58,18 @@ export default function Availability({ schedule }: { schedule: number }) {
   }, [data, isLoading, reset]);
 
   const updateMutation = trpc.useMutation("viewer.availability.schedule.update", {
-    onSuccess: async ({ schedule }) => {
-      await utils.invalidateQueries(["viewer.availability.schedule"]);
-      await utils.refetchQueries(["viewer.availability.schedule"]);
-      await router.push("/availability");
+    onSuccess: async ({ prevDefaultId, currentDefaultId, ...data }) => {
+      if (prevDefaultId && currentDefaultId) {
+        if (prevDefaultId !== currentDefaultId) {
+          utils.invalidateQueries(["viewer.availability.schedule", { scheduleId: prevDefaultId }]);
+          utils.refetchQueries(["viewer.availability.schedule", { scheduleId: prevDefaultId }]);
+        }
+      }
+      utils.setQueryData(["viewer.availability.schedule", { scheduleId: data.schedule.id }], data);
+      utils.invalidateQueries(["viewer.availability.list"]);
       showToast(
         t("availability_updated_successfully", {
-          scheduleName: schedule.name,
+          scheduleName: data.schedule.name,
         }),
         "success"
       );
