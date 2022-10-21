@@ -274,7 +274,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
       <Controller
         name="successRedirectUrl"
         control={formMethods.control}
-        defaultValue={hashedUrl}
         render={({ field: { value, onChange } }) => (
           <>
             <div className="flex space-x-3 ">

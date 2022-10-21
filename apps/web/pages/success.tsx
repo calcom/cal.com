@@ -460,7 +460,7 @@ export default function Success(props: SuccessProps) {
                     </>
                   ) : (
                     <CancelBooking
-                      booking={{ uid: bookingInfo?.uid, title: bookingInfo?.title }}
+                      booking={{ uid: bookingInfo?.uid, title: bookingInfo?.title, id: bookingInfo?.id }}
                       profile={{ name: props.profile.name, slug: props.profile.slug }}
                       recurringEvent={eventType.recurringEvent}
                       team={eventType?.team?.name}
@@ -857,6 +857,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     where,
     select: {
       title: true,
+      id: true,
       uid: true,
       description: true,
       customInputs: true,
