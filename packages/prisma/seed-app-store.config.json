@@ -83,5 +83,11 @@
     "categories": ["analytics"],
     "slug": "fathom",
     "type": "fathom_analytics"
+  },
+  {
+    "dirName": "pipedream",
+    "categories": ["automation"],
+    "slug": "pipedream",
+    "type": "pipedream_automation"
   }
 ]
