@@ -2,7 +2,7 @@ import { defaultHandler } from "@calcom/lib/server";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 
-export default withMiddleware("HTTP_GET")(
+export default withMiddleware()(
   defaultHandler({
     GET: import("@api/availability/_get"),
   })

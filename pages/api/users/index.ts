@@ -2,7 +2,7 @@ import { defaultHandler } from "@calcom/lib/server";
 
 import { withMiddleware } from "@lib/helpers/withMiddleware";
 
-export default withMiddleware("HTTP_GET_OR_POST")(
+export default withMiddleware()(
   defaultHandler({
     GET: import("./_get"),
     POST: import("./_post"),

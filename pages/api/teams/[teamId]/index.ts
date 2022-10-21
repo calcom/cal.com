@@ -6,7 +6,7 @@ import { withMiddleware } from "@lib/helpers/withMiddleware";
 
 import authMiddleware from "./_auth-middleware";
 
-export default withMiddleware("HTTP_GET_DELETE_PATCH")(
+export default withMiddleware()(
   defaultResponder(async (req: NextApiRequest, res: NextApiResponse) => {
     await authMiddleware(req);
     return defaultHandler({
