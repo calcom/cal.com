@@ -14,10 +14,10 @@ import { configureChains, createClient, WagmiConfig } from "wagmi";
 import { useAccount, useSignMessage } from "wagmi";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { SkeletonText } from "@calcom/ui";
 import { Icon } from "@calcom/ui/Icon";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 import { getProviders, ETH_MESSAGE, SUPPORTED_CHAINS } from "../utils/ethereum";
 
