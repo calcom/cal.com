@@ -1,3 +1,4 @@
+import { useRouter } from "next/router";
 import { Suspense, useState } from "react";
 
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
@@ -6,9 +7,9 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import Avatar from "@calcom/ui/v2/core/Avatar";
-import Badge from "@calcom/ui/v2/core/Badge";
-import Button from "@calcom/ui/v2/core/Button";
+import { Avatar, Badge, Button } from "@calcom/ui/v2/core";
+import { Label } from "@calcom/ui/v2/core/form";
+import { showToast } from "@calcom/ui/v2/core/notifications";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
 const AddNewTeamMemberSkeleton = () => {
@@ -28,19 +29,31 @@ const AddNewTeamMemberSkeleton = () => {
   );
 };
 
-const AddNewTeamMembers = (props: { teamId: number }) => {
+const AddNewTeamMembers = ({ teamId }: { teamId: number }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const router = useRouter();
 
-  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId: props.teamId }]);
+  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId }]);
   const removeMemberMutation = trpc.useMutation("viewer.teams.removeMember", {
     onSuccess() {
-      utils.invalidateQueries(["viewer.teams.get", { teamId: props.teamId }]);
+      utils.invalidateQueries(["viewer.teams.get", { teamId }]);
       utils.invalidateQueries(["viewer.teams.list"]);
+    },
+  });
+  const teamCheckoutMutation = trpc.useMutation("viewer.teams.purchaseTeamSubscription", {
+    onSuccess: (data) => {
+      if (data?.url) {
+        router.push(data.url);
+      }
+    },
+    onError: (err) => {
+      showToast(err.message, "error");
     },
   });
 
   const [memberInviteModal, setMemberInviteModal] = useState(false);
+  const [billingFrequency, setBillingFrequency] = useState("monthly");
 
   if (isLoading) return <AddNewTeamMemberSkeleton />;
 
@@ -85,7 +98,7 @@ const AddNewTeamMembers = (props: { teamId: number }) => {
                     size="icon"
                     color="secondary"
                     className="h-[36px] w-[36px]"
-                    onClick={() => removeMemberMutation.mutate({ teamId: props.teamId, memberId: member.id })}
+                    onClick={() => removeMemberMutation.mutate({ teamId, memberId: member.id })}
                   />
                 )}
               </li>
@@ -111,12 +124,42 @@ const AddNewTeamMembers = (props: { teamId: number }) => {
           />
         )}
 
+        <>
+          <Label className="font-sm mt-8 text-gray-900">
+            <>{t("billing_frequency")}</>
+          </Label>
+          <div className="flex rounded-md border">
+            <div
+              className={classNames(
+                "px-1/2 w-1/2 rounded-md  py-2.5 text-center font-medium text-gray-900",
+                billingFrequency === "monthly" && "bg-gray-200"
+              )}
+              onClick={() => {
+                setBillingFrequency("monthly");
+              }}>
+              <p>{t("monthly")}</p>
+            </div>
+            <div
+              className={classNames(
+                "px-1/2 w-1/2 rounded-md  py-2.5 text-center font-medium text-gray-900",
+                billingFrequency === "yearly" && "bg-gray-200"
+              )}
+              onClick={() => {
+                setBillingFrequency("yearly");
+              }}>
+              <p>{t("yearly")}</p>
+            </div>
+          </div>
+        </>
+
         <hr className="my-6  border-neutral-200" />
 
         <Button
           EndIcon={Icon.FiArrowRight}
           className="mt-6 w-full justify-center"
-          href={`${WEBAPP_URL}/settings/teams/${props.teamId}/profile`}>
+          onClick={() =>
+            teamCheckoutMutation.mutate({ teamId, billingFrequency, seats: team.members.length })
+          }>
           {t("finish")}
         </Button>
       </>

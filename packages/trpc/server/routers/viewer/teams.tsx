@@ -13,6 +13,7 @@ import {
 } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
+import { purchaseTeamSubscription } from "@calcom/features/ee/teams/payments";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTeamWithMembers, isTeamAdmin, isTeamOwner, isTeamMember } from "@calcom/lib/server/queries/teams";
@@ -82,7 +83,6 @@ export const viewerTeamsRouter = createProtectedRouter()
       name: z.string(),
       slug: z.string().optional().nullable(),
       logo: z.string().optional().nullable(),
-      billingFrequency: z.union([z.literal("monthly"), z.literal("yearly")]),
     }),
     async resolve({ ctx, input }) {
       const slug = input.slug || slugify(input.name);
@@ -95,32 +95,11 @@ export const viewerTeamsRouter = createProtectedRouter()
 
       if (nameCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "Team name already taken." });
 
-      // Create Stripe customer
-      const customer = await stripe.customers.create({
-        name: input.name,
-      });
-
-      if (!customer) throw new TRPCError({ code: "BAD_REQUEST", message: "Can not create Stripe customer" });
-
-      const subscription = await stripe.subscriptions.create({
-        customer: customer.id,
-        items: [
-          {
-            price:
-              input.billingFrequency === "monthly"
-                ? process.env.STRIPE_TEAM_MONTHLY_PRICE_ID
-                : process.env.STRIPE_TEAM_YEARLY_PRICE_ID,
-          },
-        ],
-      });
-
       const createTeam = await ctx.prisma.team.create({
         data: {
           name: input.name,
           slug: slug,
           logo: input.logo || null,
-          stripeCustomerId: customer.id,
-          stripeSubscriptionId: subscription.id,
         },
       });
 
@@ -210,9 +189,7 @@ export const viewerTeamsRouter = createProtectedRouter()
           },
           select: { stripeCustomerId: true },
         });
-        console.log("🚀 ~ file: teams.tsx ~ line 213 ~ resolve ~ teamStripeCustomerId", stripeCustomerId);
-        const response = await stripe.customers.del(stripeCustomerId.stripeCustomerId);
-        console.log("🚀 ~ file: teams.tsx ~ line 214 ~ resolve ~ response", response);
+        await stripe.customers.del(stripeCustomerId.stripeCustomerId);
       } catch {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Could not delete customer from Stripe" });
       }
@@ -520,14 +497,33 @@ export const viewerTeamsRouter = createProtectedRouter()
       );
     },
   })
-  .mutation("upgradeTeam", {
+  // Can we get rid of this function?
+  // .mutation("upgradeTeam", {
+  //   input: z.object({
+  //     teamId: z.number(),
+  //   }),
+  //   async resolve({ ctx, input }) {
+  //     if (!HOSTED_CAL_FEATURES)
+  //       throw new TRPCError({ code: "FORBIDDEN", message: "Team billing is not enabled" });
+  //     return await upgradeTeam(ctx.user.id, input.teamId);
+  //   },
+  // })
+  .mutation("purchaseTeamSubscription", {
     input: z.object({
       teamId: z.number(),
+      billingFrequency: z.union([z.literal("monthly"), z.literal("yearly")]),
+      seats: z.number(),
     }),
     async resolve({ ctx, input }) {
-      if (!HOSTED_CAL_FEATURES)
-        throw new TRPCError({ code: "FORBIDDEN", message: "Team billing is not enabled" });
-      return await upgradeTeam(ctx.user.id, input.teamId);
+      // Should this conditional still be here?
+      // if (!HOSTED_CAL_FEATURES)
+      //   throw new TRPCError({ code: "FORBIDDEN", message: "Team billing is not enabled" });
+      return await purchaseTeamSubscription(
+        input.teamId,
+        input.billingFrequency,
+        input.seats,
+        ctx.user.email
+      );
     },
   })
   .query("getTeamSeats", {

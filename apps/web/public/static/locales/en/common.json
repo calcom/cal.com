@@ -1325,5 +1325,8 @@
   "saml_sp_acs_url_copied": "ACS URL copied!",
   "saml_sp_entity_id_copied": "SP Entity ID copied!",
   "saml_btn_configure": "Configure",
-  "add_calendar": "Add Calendar"
+  "add_calendar": "Add Calendar",
+  "billing_frequency": "Billing Frequency",
+  "monthly": "Monthly",
+  "yearly": "Yearly"
 }

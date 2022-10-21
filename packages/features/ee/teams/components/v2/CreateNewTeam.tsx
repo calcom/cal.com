@@ -98,42 +98,6 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
           )}
         />
       </div>
-      <div className="mb-8">
-        <Controller
-          control={formMethods.control}
-          name="billingFrequency"
-          defaultValue="monthly"
-          render={({ field: { value } }) => (
-            <>
-              <Label className="font-sm mt-8 text-gray-900">
-                <>{t("billing_freqency")}</>
-              </Label>
-              <div className="flex rounded-md border">
-                <div
-                  className={classNames(
-                    "px-1/2 w-1/2 rounded-md  py-2.5 text-center font-medium text-gray-900",
-                    value === "monthly" && "bg-gray-200"
-                  )}
-                  onClick={() => {
-                    formMethods.setValue("billingFrequency", "monthly");
-                  }}>
-                  <p>{t("monthly")}</p>
-                </div>
-                <div
-                  className={classNames(
-                    "px-1/2 w-1/2 rounded-md  py-2.5 text-center font-medium text-gray-900",
-                    value === "yearly" && "bg-gray-200"
-                  )}
-                  onClick={() => {
-                    formMethods.setValue("billingFrequency", "yearly");
-                  }}>
-                  <p>{t("yearly")}</p>
-                </div>
-              </div>
-            </>
-          )}
-        />
-      </div>
       <div className="flex space-x-2">
         <Button color="secondary" href="/settings" className="w-full justify-center">
           {t("cancel")}
