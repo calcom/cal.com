@@ -290,7 +290,7 @@ export const convertScheduleToAvailability = (
 };
 
 const setupDefaultSchedule = async (userId: number, scheduleId: number, prisma: PrismaClient) => {
-  await prisma.user.update({
+  return prisma.user.update({
     where: {
       id: userId,
     },
