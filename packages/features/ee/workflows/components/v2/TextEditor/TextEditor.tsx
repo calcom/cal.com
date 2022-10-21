@@ -1,15 +1,14 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 import { EditorState, Modifier, ContentState, convertToRaw } from "draft-js";
-import { UseFormReturn } from "react-hook-form";
+import draftToHtml from "draftjs-to-html";
+import { FormValues } from "ee/workflows/pages/v2/workflow";
 import dynamic from "next/dynamic";
 import { useState, Dispatch, SetStateAction } from "react";
 import { EditorProps } from "react-draft-wysiwyg";
-import { RichUtils } from 'draft-js';
+import { UseFormReturn } from "react-hook-form";
 
-import "./styles.css";
 import { AddVariablesDropdown } from "../AddVariablesDropdown";
-import { FormValues } from "ee/workflows/pages/v2/workflow";
-import draftToHtml from 'draftjs-to-html';
-
+import "./styles.css";
 
 const Editor = dynamic<EditorProps>(() => import("react-draft-wysiwyg").then((mod) => mod.Editor), {
   ssr: false,
@@ -18,13 +17,13 @@ const Editor = dynamic<EditorProps>(() => import("react-draft-wysiwyg").then((mo
 const htmlToDraft = typeof window === "object" && require("html-to-draftjs").default;
 
 type TextEditorProps = {
-  addVariable: (isEmailSubject: boolean, variable: string) => void,
-  form: UseFormReturn<FormValues>
-  stepNumber: number,
-}
+  addVariable: (isEmailSubject: boolean, variable: string) => void;
+  form: UseFormReturn<FormValues>;
+  stepNumber: number;
+};
 
 function TextEditor(props: TextEditorProps) {
-  const contentBlock = htmlToDraft(props.form.getValues(`steps.${props.stepNumber - 1}.reminderBody` || ""));
+  const contentBlock = htmlToDraft(props.form.getValues(`steps.${props.stepNumber - 1}.reminderBody`) || "");
   const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks);
 
   const [editorState, setEditorState] = useState(EditorState.createWithContent(contentState));
@@ -36,8 +35,22 @@ function TextEditor(props: TextEditorProps) {
         wrapperClassName="border border-gray-300 rounded-md"
         editorClassName=" p-3 -mt-3 bg-white rounded-md text-sm"
         onEditorStateChange={setEditorState}
-        onChange={() => {props.form.setValue(`steps.${props.stepNumber - 1}.reminderBody`, draftToHtml(convertToRaw(editorState.getCurrentContent())).replaceAll("&lt;","<").replaceAll("&gt;", ">"))} }
-        toolbarCustomButtons={[<CustomOption editorState={editorState} setEditorState={setEditorState} addVariable={props.addVariable} />]}
+        onChange={() => {
+          props.form.setValue(
+            `steps.${props.stepNumber - 1}.reminderBody`,
+            draftToHtml(convertToRaw(editorState.getCurrentContent()))
+              .replaceAll("&lt;", "<")
+              .replaceAll("&gt;", ">")
+          );
+        }}
+        toolbarCustomButtons={[
+          <CustomOption
+            key={props.stepNumber}
+            editorState={editorState}
+            setEditorState={setEditorState}
+            addVariable={props.addVariable}
+          />,
+        ]}
         toolbar={{
           options: ["inline", "fontSize", "list"],
           inline: {
@@ -54,29 +67,23 @@ function TextEditor(props: TextEditorProps) {
 }
 
 type Props = {
-  editorState: EditorState,
-  setEditorState: Dispatch<SetStateAction<EditorState>>,
+  editorState: EditorState;
+  setEditorState: Dispatch<SetStateAction<EditorState>>;
   addVariable: (isEmailSubject: boolean, variable: string) => void;
-}
+};
 
 function CustomOption({ editorState, setEditorState }: Props) {
-
   const addVariable = (isEmailSubject: boolean, variable: string) => {
-
     const contentState = Modifier.replaceText(
       editorState.getCurrentContent(),
       editorState.getSelection(),
-      `{${variable
-        .toUpperCase()
-        .replace(/ /g, "_")}}`,
-      editorState.getCurrentInlineStyle(),
+      `{${variable.toUpperCase().replace(/ /g, "_")}}`,
+      editorState.getCurrentInlineStyle()
     );
-    setEditorState(EditorState.push(editorState, contentState, 'insert-characters'));
-  }
+    setEditorState(EditorState.push(editorState, contentState, "insert-characters"));
+  };
 
-  return (
-    <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} />
-  );
+  return <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} />;
 }
 
 export default TextEditor;
