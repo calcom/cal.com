@@ -207,8 +207,9 @@ model Team {
   hideBranding         Boolean      @default(false)
   members              Membership[]
   eventTypes           EventType[]
-  stripeCustomerId     String
-  stripeSubscriptionId String
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  subscriptionStatus   String?
 }
 
 enum MembershipRole {
