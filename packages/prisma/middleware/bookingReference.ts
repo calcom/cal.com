@@ -15,7 +15,6 @@ function middleware(prisma: PrismaClient) {
         params.args["data"] = { deleted: true };
       }
       if (params.action === "deleteMany") {
-        console.log("deletingMany");
         // Delete many queries
         params.action = "updateMany";
         if (params.args.data !== undefined) {

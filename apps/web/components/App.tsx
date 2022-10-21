@@ -6,13 +6,13 @@ import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
 import { Button, SkeletonButton } from "@calcom/ui";
 import { Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
 import Badge from "@calcom/ui/v2/core/Badge";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
 
