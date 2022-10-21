@@ -165,6 +165,60 @@
   border-radius: 6px;
   user-select: none;
 }
+.public-DraftStyleDefault-block {
+  margin: 14px 0;
+}
+.public-DraftStyleDefault-depth0.public-DraftStyleDefault-reset {
+  counter-reset: ol0;
+}
+
+.public-DraftStyleDefault-unorderedListItem.public-DraftStyleDefault-depth0 {
+  list-style-type: disc;
+}
+
+.rdw-link-decorator-wrapper {
+  position: relative;
+  color: blue;
+  text-decoration: underline;
+
+}
+
+.rdw-link-decorator-icon {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  cursor: pointer;
+}
+
+.public-DraftStyleDefault-depth0.public-DraftStyleDefault-reset {
+  counter-reset: ol0;
+}
+.public-DraftStyleDefault-depth1.public-DraftStyleDefault-reset {
+  counter-reset: ol1;
+}
+.public-DraftStyleDefault-depth2.public-DraftStyleDefault-reset {
+  counter-reset: ol2;
+}
+.public-DraftStyleDefault-depth3.public-DraftStyleDefault-reset {
+  counter-reset: ol3;
+}
+.public-DraftStyleDefault-depth4.public-DraftStyleDefault-reset {
+  counter-reset: ol4;
+}
+
+.public-DraftStyleDefault-orderedListItem.public-DraftStyleDefault-listLTR:before {
+  left: -36px;
+  position: absolute;
+  text-align: right;
+  width: 30px;
+}
+
+.public-DraftStyleDefault-unorderedListItem {
+  list-style-type: square;
+  position: relative;
+  margin: 10px;
+  font-sixe: 5px;
+}
 
 /**
  * Draft v0.9.1

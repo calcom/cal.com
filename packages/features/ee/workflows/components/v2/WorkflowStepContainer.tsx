@@ -31,7 +31,7 @@ import {
 } from "../../lib/getOptions";
 import { translateVariablesToEnglish } from "../../lib/variableTranslations";
 import type { FormValues } from "../../pages/v2/workflow";
-import TextEditor from "./TextEditor";
+import TextEditor from "./TextEditor/TextEditor";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
 type WorkflowStepProps = {
