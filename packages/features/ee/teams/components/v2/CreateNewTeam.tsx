@@ -106,7 +106,7 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
           render={({ field: { value } }) => (
             <>
               <Label className="font-sm mt-8 text-gray-900">
-                <>{t("event_triggers")}</>
+                <>{t("billing_freqency")}</>
               </Label>
               <div className="flex rounded-md border">
                 <div
