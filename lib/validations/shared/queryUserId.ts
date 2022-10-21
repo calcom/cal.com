@@ -17,6 +17,10 @@ export const schemaQuerySingleOrMultipleUserIds = z.object({
   userId: z.union([stringOrNumber, z.array(stringOrNumber)]),
 });
 
+export const schemaQuerySingleOrMultipleTeamIds = z.object({
+  teamId: z.union([stringOrNumber, z.array(stringOrNumber)]),
+});
+
 export const withValidQueryUserId = withValidation({
   schema: schemaQueryUserId,
   type: "Zod",
