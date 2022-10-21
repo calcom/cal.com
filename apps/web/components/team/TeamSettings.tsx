@@ -1,7 +1,6 @@
 import React, { useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { objectKeys } from "@calcom/lib/objectKeys";
 import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { trpc } from "@calcom/trpc/react";
@@ -9,6 +8,7 @@ import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
 import { TextField } from "@calcom/ui/form/fields";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 import ImageUploader from "@components/ImageUploader";
 import SettingInputContainer from "@components/ui/SettingInputContainer";
