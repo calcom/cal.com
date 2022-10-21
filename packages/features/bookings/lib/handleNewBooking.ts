@@ -245,7 +245,7 @@ async function ensureAvailableUsers(
   return availableUsers;
 }
 
-async function handler(req: NextApiRequest & { userId?: number }) {
+async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   const { userId } = req;
 
   const {
@@ -600,7 +600,8 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
     // If the user is not the owner of the event, new booking should be always pending.
     // Otherwise, an owner rescheduling should be always accepted.
-    const userReschedulingIsOwner = originalRescheduledBooking?.user?.id === userId;
+    // Before comparing make sure that userId is set, otherwise undefined === undefined
+    const userReschedulingIsOwner = userId && originalRescheduledBooking?.user?.id === userId;
     const isConfirmedByDefault =
       (!eventType.requiresConfirmation && !stripeAppData.price) || userReschedulingIsOwner;
     const newBookingData: Prisma.BookingCreateInput = {
@@ -840,6 +841,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     }
   }
 
+  // FIXME: instead of requiresConfirmation, we should check if isConfirmedByDefault is set or not.
   if (eventType.requiresConfirmation && !rescheduleUid && noEmail !== true) {
     await sendOrganizerRequestEmail({ ...evt, additionalNotes });
     await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
@@ -916,6 +918,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       rescheduleUid,
       metadata: reqBody.metadata,
       eventTypeId,
+      //FIXME: FOr consistency b/w webhook and actual DB state, it should use isConfirmedByDefault here
       status: eventType.requiresConfirmation ? "PENDING" : "ACCEPTED",
     }).catch((e) => {
       console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
