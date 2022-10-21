@@ -83,5 +83,11 @@
     "categories": ["analytics"],
     "slug": "fathom",
     "type": "fathom_analytics"
+  },
+  {
+    "dirName": "wordpress",
+    "categories": ["other"],
+    "slug": "wordpress",
+    "type": "wordpress_other"
   }
 ]

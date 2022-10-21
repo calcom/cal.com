@@ -35,6 +35,7 @@ export const apiHandlers = {
   weather_in_your_calendar: import("./weather_in_your_calendar/api"),
   whereby: import("./whereby/api"),
   wipemycalother: import("./wipemycalother/api"),
+  wordpress: import("./wordpress/api"),
   zapier: import("./zapier/api"),
   zoomvideo: import("./zoomvideo/api"),
 };
