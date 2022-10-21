@@ -13,7 +13,7 @@ import {
 } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
-import { purchaseTeamSubscription } from "@calcom/features/ee/teams/payments";
+import { deleteTeamFromStripe, purchaseTeamSubscription } from "@calcom/features/ee/teams/payments";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTeamWithMembers, isTeamAdmin, isTeamOwner, isTeamMember } from "@calcom/lib/server/queries/teams";
@@ -170,17 +170,7 @@ export const viewerTeamsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       if (!(await isTeamOwner(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-      // Delete customer from Stripe
-      const stripeCustomerId = await ctx.prisma.team.findFirst({
-        where: {
-          id: input.teamId,
-        },
-        select: { stripeCustomerId: true },
-      });
-      if (!stripeCustomerId?.stripeCustomerId)
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Could not delete customer from Stripe" });
-
-      await stripe.customers.del(stripeCustomerId.stripeCustomerId);
+      await deleteTeamFromStripe(input.teamId);
 
       // delete all memberships
       await ctx.prisma.membership.deleteMany({

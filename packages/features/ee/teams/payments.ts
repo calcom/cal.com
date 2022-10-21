@@ -32,3 +32,14 @@ export const purchaseTeamSubscription = async (
     },
   });
 };
+
+export const deleteTeamFromStripe = async (teamId: number) => {
+  const stripeCustomerId = await ctx.prisma.team.findFirst({
+    where: {
+      id: teamId,
+    },
+    select: { stripeCustomerId: true },
+  });
+
+  await stripe.customers.del(stripeCustomerId.stripeCustomerId);
+};
