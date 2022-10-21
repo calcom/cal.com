@@ -1324,5 +1324,6 @@
   "saml_sp_entity_id": "SP entitet ID",
   "saml_sp_acs_url_copied": "ACS URL je kopiran!",
   "saml_sp_entity_id_copied": "SP entitet ID je kopiran!",
-  "saml_btn_configure": "Konfiguracija"
+  "saml_btn_configure": "Konfiguracija",
+  "add_calendar": "Dodajte kalendar"
 }
