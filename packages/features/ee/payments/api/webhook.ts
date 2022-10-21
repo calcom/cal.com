@@ -158,10 +158,45 @@ async function handlePaymentSuccess(event: Stripe.Event) {
   });
 }
 
+async function handleTeamSubscriptionSuccess(event: Stripe.Event) {
+  const checkoutSession = event.data.object as Stripe.Checkout.Session;
+
+  if (!checkoutSession?.metadata?.teamId)
+    throw new HttpCode({
+      statusCode: 200,
+      message: `No teamId passed`,
+    });
+
+  // Update team record with Stripe ids
+  if (checkoutSession.payment_status === "paid") {
+    await prisma.team.update({
+      where: {
+        id: parseInt(checkoutSession.metadata.teamId),
+      },
+      data: {
+        stripeCustomerId: checkoutSession.customer as string,
+        stripeSubscriptionId: checkoutSession.subscription as string,
+        subscriptionStatus: "active",
+      },
+    });
+  } else {
+    throw new HttpCode({
+      statusCode: 200,
+      message: `Checkout was not paid for`,
+    });
+  }
+
+  throw new HttpCode({
+    statusCode: 200,
+    message: `Team record updated with Stripe ids`,
+  });
+}
+
 type WebhookHandler = (event: Stripe.Event) => Promise<void>;
 
 const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "payment_intent.succeeded": handlePaymentSuccess,
+  "checkout.session.completed": handleTeamSubscriptionSuccess,
 };
 
 /**
@@ -187,9 +222,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET);
 
-    if (!event.account) {
-      throw new HttpCode({ statusCode: 202, message: "Incoming connected account" });
-    }
+    // if (!event.account) {
+    //   throw new HttpCode({ statusCode: 202, message: "Incoming connected account" });
+    // }
 
     const handler = webhookHandlers[event.type];
     if (handler) {

@@ -170,9 +170,17 @@ export const viewerTeamsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       if (!(await isTeamOwner(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-      // if (process.env.STRIPE_PRIVATE_KEY) {
-      //   await downgradeTeamMembers(input.teamId);
-      // }
+      // Delete customer from Stripe
+      const stripeCustomerId = await ctx.prisma.team.findFirst({
+        where: {
+          id: input.teamId,
+        },
+        select: { stripeCustomerId: true },
+      });
+      if (!stripeCustomerId?.stripeCustomerId)
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Could not delete customer from Stripe" });
+
+      await stripe.customers.del(stripeCustomerId.stripeCustomerId);
 
       // delete all memberships
       await ctx.prisma.membership.deleteMany({
@@ -180,19 +188,6 @@ export const viewerTeamsRouter = createProtectedRouter()
           teamId: input.teamId,
         },
       });
-
-      // Delete customer from Stripe
-      try {
-        const stripeCustomerId = await ctx.prisma.team.findFirst({
-          where: {
-            id: input.teamId,
-          },
-          select: { stripeCustomerId: true },
-        });
-        await stripe.customers.del(stripeCustomerId.stripeCustomerId);
-      } catch {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Could not delete customer from Stripe" });
-      }
 
       const deletedTeam = await ctx.prisma.team.delete({
         where: {
