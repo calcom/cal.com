@@ -43,9 +43,9 @@ async function postHandler(req: NextApiRequest) {
   if (!isAdmin && bodyUserId) throw new HttpError({ statusCode: 403, message: `ADMIN required for userId` });
 
   if (isAdmin && bodyUserId) {
-    const where: Prisma.UserWhereInput = { id: userId };
+    const where: Prisma.UserWhereInput = { id: bodyUserId };
     await prisma.user.findFirstOrThrow({ where });
-    args.data.userId = userId;
+    args.data.userId = bodyUserId;
   }
 
   const data = await prisma.webhook.create(args);
