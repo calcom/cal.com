@@ -160,6 +160,13 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
   })
 );
 
+export const schemaBookingCancelParams = z.object({
+  id: z.number().optional(),
+  uid: z.string().optional(),
+  allRemainingBookings: z.boolean().optional(),
+  cancellationReason: z.string().optional(),
+});
+
 export const vitalSettingsUpdateSchema = z.object({
   connected: z.boolean().optional(),
   selectedParam: z.string().optional(),
