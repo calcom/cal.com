@@ -168,7 +168,6 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
             description={t("limit_booking_frequency_description")}
             checked={Object.keys(value ?? {}).length > 0}
             onCheckedChange={(active) => {
-              console.log({ value, active });
               if (active) {
                 formMethods.setValue("bookingLimits", {
                   PER_DAY: 1,
