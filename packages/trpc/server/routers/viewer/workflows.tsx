@@ -297,8 +297,8 @@ export const workflowsRouter = createProtectedRouter()
         if (
           newEventType &&
           newEventType.userId !== user.id &&
-          !newEventType?.team?.members.filter((membership) => membership.userId === user.id).length &&
-          !newEventType?.users.filter((eventTypeUser) => eventTypeUser.id === user.id).length
+          !newEventType?.team?.members.find((membership) => membership.userId === user.id) &&
+          !newEventType?.users.find((eventTypeUser) => eventTypeUser.id === user.id)
         ) {
           throw new TRPCError({ code: "UNAUTHORIZED" });
         }
