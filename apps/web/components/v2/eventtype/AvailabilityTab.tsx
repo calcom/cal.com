@@ -42,6 +42,7 @@ const AvailabilitySelect = ({
   const options = schedules.map((schedule) => ({
     value: schedule.id,
     label: schedule.name,
+    isDefault: schedule.isDefault,
   }));
 
   const value = options.find((option) =>
@@ -92,7 +93,7 @@ export const AvailabilityTab = ({
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
-        const message = `${err.data.code}: You are not able to create this event`;
+        const message = `${err.data.code}: You are not able to create this availability`;
         showToast(message, "error");
       }
     },
@@ -172,7 +173,8 @@ export const AvailabilityTab = ({
             {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
           </span>
           <Button
-            onClick={onEditAvailability}
+            // onClick={onEditAvailability}
+            href={`/availability/${schedule?.schedule.id}`}
             color="minimal"
             EndIcon={Icon.FiExternalLink}
             target="_blank"
