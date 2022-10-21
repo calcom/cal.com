@@ -89,5 +89,11 @@
     "categories": ["analytics"],
     "slug": "ga4",
     "type": "ga4_analytics"
+  },
+  {
+    "dirName": "pipedream",
+    "categories": ["automation"],
+    "slug": "pipedream",
+    "type": "pipedream_automation"
   }
 ]
