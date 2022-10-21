@@ -10,11 +10,11 @@ import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui/v2/";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 
