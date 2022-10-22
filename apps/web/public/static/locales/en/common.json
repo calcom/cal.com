@@ -1329,5 +1329,7 @@
   "add_calendar": "Add Calendar",
   "billing_frequency": "Billing Frequency",
   "monthly": "Monthly",
-  "yearly": "Yearly"
+  "yearly": "Yearly",
+  "checkout": "Checkout",
+  "your_team_disbanded_successfully": "Your team has been disbanded successfully"
 }

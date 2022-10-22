@@ -1,5 +1,6 @@
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { CAL_URL } from "@calcom/lib/constants";
+import prisma from "@calcom/prisma";
 
 export const purchaseTeamSubscription = async (
   teamId: number,
@@ -34,7 +35,7 @@ export const purchaseTeamSubscription = async (
 };
 
 export const deleteTeamFromStripe = async (teamId: number) => {
-  const stripeCustomerId = await ctx.prisma.team.findFirst({
+  const stripeCustomerId = await prisma.team.findFirst({
     where: {
       id: teamId,
     },

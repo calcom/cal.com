@@ -75,7 +75,7 @@ const ProfileView = () => {
       await utils.invalidateQueries(["viewer.teams.get"]);
       await utils.invalidateQueries(["viewer.teams.list"]);
       router.push(`/settings`);
-      showToast(t("your_team_updated_successfully"), "success");
+      showToast(t("your_team_disbanded_successfully"), "success");
     },
   });
 

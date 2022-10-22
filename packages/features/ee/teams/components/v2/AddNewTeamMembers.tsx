@@ -159,7 +159,7 @@ const AddNewTeamMembers = ({ teamId }: { teamId: number }) => {
           onClick={() =>
             teamCheckoutMutation.mutate({ teamId, billingFrequency, seats: team.members.length })
           }>
-          {t("finish")}
+          {t("checkout")}
         </Button>
       </>
     </Suspense>
