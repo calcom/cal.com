@@ -1,8 +1,8 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import Badge from "@calcom/ui/Badge";
 import Button from "@calcom/ui/Button";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 /** @deprecated Use `packages/features/ee/teams/components/DisableTeamImpersonation.tsx` */
 const DisableTeamImpersonation = ({ teamId, memberId }: { teamId: number; memberId: number }) => {
