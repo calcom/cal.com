@@ -34,6 +34,21 @@ export const purchaseTeamSubscription = async (
   });
 };
 
+export const getStripeIdsForTeam = async (teamId: number) => {
+  const teamStripeIds = await prisma.team.findFirst({
+    where: {
+      id: teamId,
+    },
+    select: {
+      stripeCustomerId: true,
+      stripeSubscriptionId: true,
+      subscriptionStatus: true,
+    },
+  });
+
+  return teamStripeIds;
+};
+
 export const deleteTeamFromStripe = async (teamId: number) => {
   const stripeCustomerId = await prisma.team.findFirst({
     where: {
