@@ -13,6 +13,7 @@ import { metadata as exchange2013calendar_meta } from "./exchange2013calendar/_m
 import { metadata as exchange2016calendar_meta } from "./exchange2016calendar/_metadata";
 import { metadata as exchangecalendar_meta } from "./exchangecalendar/_metadata";
 import { metadata as fathom_meta } from "./fathom/_metadata";
+import { metadata as ga4_meta } from "./ga4/_metadata";
 import { metadata as giphy_meta } from "./giphy/_metadata";
 import { metadata as googlecalendar_meta } from "./googlecalendar/_metadata";
 import { metadata as googlevideo_meta } from "./googlevideo/_metadata";
@@ -52,6 +53,7 @@ export const appStoreMetadata = {
   exchange2016calendar: exchange2016calendar_meta,
   exchangecalendar: exchangecalendar_meta,
   fathom: fathom_meta,
+  ga4: ga4_meta,
   giphy: giphy_meta,
   googlecalendar: googlecalendar_meta,
   googlevideo: googlevideo_meta,
