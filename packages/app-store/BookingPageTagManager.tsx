@@ -1,69 +1,39 @@
 import Script from "next/script";
 
 import { getEventTypeAppData } from "@calcom/app-store/utils";
+import { trackingApps } from "./eventTypeAnalytics";
 
-type AppScript = {attrs?: Record<string, string>, content?: string}
-const trackingApps: Record<string, {
-  scripts: AppScript[]
-}> = {
-  fathom: {
-    scripts: [
-      {
-        attrs: {
-          src: "https://cdn.usefathom.com/script.js",
-          "data-site": "{TRACKING_ID}",
-        },
-      },
-    ],
-  },
-  ga4: {
-    scripts: [
-      {
-        attrs: {
-          src: "https://www.googletagmanager.com/gtag/js?id={TRACKING_ID}",
-        },
-      },
-      {
-        content: `
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', '{TRACKING_ID}');
-      `,
-      },
-    ],
-  },
-};
+export type AppScript = {attrs?: Record<string, string>} & ({src: undefined, content?: string} | {src?: string, content:undefined})
 
 export default function BookingPageTagManager({
   eventType,
 }: {
   eventType: Parameters<typeof getEventTypeAppData>[0];
 }) {
+
+  
   return (
     <>
       {Object.entries(trackingApps).map(([appId, scriptConfig]) => {
-        const trackingId = getEventTypeAppData(eventType, appId)?.trackingId;
+        const trackingId = getEventTypeAppData(eventType, appId as keyof typeof trackingApps)?.trackingId;
         if (!trackingId) {
           return null;
         }
+        const parseValue = <T extends string|undefined, >(val: T ):T => val ? val.replace(/\{TRACKING_ID\}/g, trackingId) as T : val
+        
         return scriptConfig.scripts.map((script, index)=>{
-          const parsedScript: AppScript = {};
+          const parsedAttributes: NonNullable<AppScript["attrs"]> = {};
           const attrs = script.attrs || {};
           Object.entries(attrs).forEach(([name, value]) => {
             if (typeof value === "string") {
-              value = value.replace(/\{TRACKING_ID\}/g, trackingId);
+              value = parseValue(value)
             }
-            parsedScript[name] = value;
+            parsedAttributes[name] = value;
           });
-  
-          const dangerouslySetInnerHTML = script.content
-            ? {
-                __html: script.content.replace(/\{TRACKING_ID\}/g, trackingId),
-              }
-            : null;
-  
-          return <Script key={`${appId}-${index}`} {...{dangerouslySetInnerHTML, ...parsedScript}} defer />;
+          
+          return <Script src={parseValue(script.src)} key={`${appId}-${index}`} {...{dangerouslySetInnerHTML:{
+            __html: parseValue(script.content) || ""
+          }, ...parsedAttributes}} defer />;
         })
       })}
     </>
