@@ -41,15 +41,9 @@ const app_RoutingForms = createRouter()
               code: "NOT_FOUND",
             });
           }
-          const fieldsParsed = zodFields.safeParse(form.fields);
-          if (!fieldsParsed.success) {
-            // This should not be possible normally as before saving the form it is verified by zod
-            throw new TRPCError({
-              code: "INTERNAL_SERVER_ERROR",
-            });
-          }
+          const parsedForm = getSerializableForm(form);
 
-          const fields = fieldsParsed.data;
+          const fields = parsedForm.fields;
 
           if (!fields) {
             // There is no point in submitting a form that doesn't have fields defined
@@ -263,7 +257,7 @@ const app_RoutingForms = createRouter()
             },
           });
 
-          // Add back deleted fields in the end. Fields can't be deleted to make sure columns never decrease hugely simplifying CSV generation
+          // Add back deleted fields in the end. Fields can't be deleted, to make sure columns never decrease which hugely simplifies CSV generation
           if (form) {
             const serializedForm = getSerializableForm(form);
             const deletedFields =

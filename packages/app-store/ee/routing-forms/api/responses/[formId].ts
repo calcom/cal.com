@@ -34,7 +34,7 @@ async function* getResponses(
       const csvCells: string[] = [];
       headerFields.forEach((headerField) => {
         const fieldResponse = fieldResponses[headerField.id];
-        const value = fieldResponse.value;
+        const value = fieldResponse?.value || "";
         let serializedValue = "";
         if (value instanceof Array) {
           serializedValue = value.map((val) => escapeCsvText(val)).join(" | ");

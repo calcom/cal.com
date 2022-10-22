@@ -218,10 +218,10 @@ test.describe("Routing Forms", () => {
 
       expect(csv.trim()).toEqual(
         `
-"Test field"
-"event-routing"
-"external-redirect"
-"custom-page"`.trim()
+"Test field,Multi Select"
+"event-routing,"
+"external-redirect,"
+"custom-page,"`.trim()
       );
     });
 
