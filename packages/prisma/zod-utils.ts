@@ -14,15 +14,11 @@ import { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import dayjs from "@calcom/dayjs";
 import { slugify } from "@calcom/lib/slugify";
 
-// Let's not import 118kb just to get an enum
 export enum Frequency {
-  YEARLY = 0,
-  MONTHLY = 1,
-  WEEKLY = 2,
-  DAILY = 3,
-  HOURLY = 4,
-  MINUTELY = 5,
-  SECONDLY = 6,
+  years = 0,
+  months = 1,
+  weeks = 2,
+  days = 3,
 }
 
 export const EventTypeMetaDataSchema = z

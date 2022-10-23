@@ -102,7 +102,7 @@ export interface RecurringEvent {
   dtstart?: Date | undefined;
   interval: number;
   count: number;
-  freq: Frequency;
+  freq: number;
   until?: Date | undefined;
   tzid?: string | undefined;
 }

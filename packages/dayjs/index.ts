@@ -1,6 +1,7 @@
 /* eslint-disable @calcom/eslint/deprecated-imports */
 import dayjs from "dayjs";
 import dayjsBusinessTime from "dayjs-business-days2";
+import dayjsRecur from "dayjs-recur";
 import "dayjs/locale/ar";
 import "dayjs/locale/bg";
 import "dayjs/locale/cs";
@@ -30,11 +31,16 @@ import customParseFormat from "dayjs/plugin/customParseFormat";
 import isBetween from "dayjs/plugin/isBetween";
 import isToday from "dayjs/plugin/isToday";
 import localizedFormat from "dayjs/plugin/localizedFormat";
+import objectSupport from "dayjs/plugin/objectSupport";
 import relativeTime from "dayjs/plugin/relativeTime";
 import timeZone from "dayjs/plugin/timezone";
 import toArray from "dayjs/plugin/toArray";
+import toObject from "dayjs/plugin/toObject";
 import utc from "dayjs/plugin/utc";
 
+dayjs.extend(dayjsRecur);
+dayjs.extend(toObject);
+dayjs.extend(objectSupport);
 dayjs.extend(customParseFormat);
 dayjs.extend(dayjsBusinessTime);
 dayjs.extend(isBetween);

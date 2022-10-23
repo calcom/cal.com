@@ -10820,6 +10820,11 @@ dayjs-business-days2@1.1.0:
   dependencies:
     dayjs "^1"
 
+dayjs-recur@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/dayjs-recur/-/dayjs-recur-1.0.1.tgz#3f9844bed68d25018347ef60116b0b4d3465bc47"
+  integrity sha512-guVj/GSfwZ/i6RQwzXzW9jCwXBqD50gFQxn/CCt7M9YZ0n9w1kly0FhIA+7Z2H6mqTL53NDhMXoN7YvcYCaVUg==
+
 dayjs@1.11.2, dayjs@^1:
   version "1.11.2"
   resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.2.tgz#fa0f5223ef0d6724b3d8327134890cfe3d72fbe5"
@@ -25845,7 +25850,7 @@ zod-prisma@^0.5.4:
     parenthesis "^3.1.8"
     ts-morph "^13.0.2"
 
-zod@^3.17.3, zod@^3.19.1:
+zod@^3.17.3, zod@^3.18.0, zod@^3.19.1:
   version "3.19.1"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.19.1.tgz#112f074a97b50bfc4772d4ad1576814bd8ac4473"
   integrity sha512-LYjZsEDhCdYET9ikFu6dVPGp2YH9DegXjdJToSzD9rO6fy4qiRYFoyEYwps88OseJlPyl2NOe2iJuhEhL7IpEA==

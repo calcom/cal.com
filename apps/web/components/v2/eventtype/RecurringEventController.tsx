@@ -50,7 +50,7 @@ export default function RecurringEventController({
                     const newVal = recurringEvent || {
                       interval: 1,
                       count: 12,
-                      freq: Frequency.WEEKLY,
+                      freq: Frequency.weeks,
                     };
                     formMethods.setValue("recurringEvent", newVal);
                     setRecurringEventState(newVal);
@@ -91,7 +91,7 @@ export default function RecurringEventController({
                         onChange={(event) => {
                           const newVal = {
                             ...recurringEventState,
-                            freq: parseInt(event?.value || `${Frequency.WEEKLY}`),
+                            freq: parseInt(event?.value || `${Frequency.weeks}`),
                           };
                           formMethods.setValue("recurringEvent", newVal);
                           setRecurringEventState(newVal);

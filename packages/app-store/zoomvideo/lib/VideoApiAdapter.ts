@@ -152,18 +152,18 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
       let recurrence: ZoomRecurrence;
 
       switch (recurringEvent.freq) {
-        case Frequency.DAILY:
+        case Frequency.days:
           recurrence = {
             type: 1,
           };
           break;
-        case Frequency.WEEKLY:
+        case Frequency.weeks:
           recurrence = {
             type: 2,
             weekly_days: dayjs(startTime).tz(attendees[0].timeZone).day() + 1,
           };
           break;
-        case Frequency.MONTHLY:
+        case Frequency.months:
           recurrence = {
             type: 3,
             monthly_day: dayjs(startTime).tz(attendees[0].timeZone).date(),
