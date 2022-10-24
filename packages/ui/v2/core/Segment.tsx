@@ -11,12 +11,14 @@ type SegmentProps = {
 export function Segment({ label, children, ...rest }: SegmentProps) {
   return (
     <div>
-      {label && <Label>{label}</Label>}
-      <RadioGroup.Root
-        className="flex space-x-1 rounded-md border-gray-200 bg-white p-[2px] text-sm font-medium leading-5 "
-        {...rest}>
-        {children}
-      </RadioGroup.Root>
+      <div className="inline-flex flex-col">
+        {label && <Label>{label}</Label>}
+        <RadioGroup.Root
+          className="flex space-x-1 rounded-md border-gray-200 bg-white p-[2px] text-sm font-medium leading-5 "
+          {...rest}>
+          {children}
+        </RadioGroup.Root>
+      </div>
     </div>
   );
 }
