@@ -160,30 +160,42 @@ function WorkflowPage() {
       form={form}
       handleSubmit={async (values) => {
         let activeOnEventTypeIds: number[] = [];
+        let isEmpty = false;
 
         values.steps.forEach((step) => {
+          const isBodyEmpty = step.template === WorkflowTemplates.CUSTOM && !step.reminderBody;
+          if (isBodyEmpty) {
+            form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
+              type: "custom",
+              message: t("no_input"),
+            });
+          }
+
           if (step.reminderBody) {
             step.reminderBody = translateVariablesToEnglish(step.reminderBody, { locale: i18n.language, t });
           }
           if (step.emailSubject) {
             step.emailSubject = translateVariablesToEnglish(step.emailSubject, { locale: i18n.language, t });
           }
+          isEmpty = !isEmpty ? isBodyEmpty : isEmpty;
         });
 
-        if (values.activeOn) {
-          activeOnEventTypeIds = values.activeOn.map((option) => {
-            return parseInt(option.value, 10);
+        if (!isEmpty) {
+          if (values.activeOn) {
+            activeOnEventTypeIds = values.activeOn.map((option) => {
+              return parseInt(option.value, 10);
+            });
+          }
+          updateMutation.mutate({
+            id: parseInt(router.query.workflow as string, 10),
+            name: values.name,
+            activeOn: activeOnEventTypeIds,
+            steps: values.steps,
+            trigger: values.trigger,
+            time: values.time || null,
+            timeUnit: values.timeUnit || null,
           });
         }
-        updateMutation.mutate({
-          id: parseInt(router.query.workflow as string, 10),
-          name: values.name,
-          activeOn: activeOnEventTypeIds,
-          steps: values.steps,
-          trigger: values.trigger,
-          time: values.time || null,
-          timeUnit: values.timeUnit || null,
-        });
       }}>
       <Shell
         backPath="/workflows"

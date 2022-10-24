@@ -411,15 +411,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                     </Label>
                   </div>
+                  <TextEditor form={form} addVariable={addVariable} stepNumber={step.stepNumber} />
                   {form.formState.errors.steps &&
                     form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
                       <p className="mt-1 text-sm text-red-500">
                         {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
                       </p>
                     )}
-                  <div>
-                    <TextEditor form={form} addVariable={addVariable} stepNumber={step.stepNumber} />
-                  </div>
                   <div className="mt-3 ">
                     <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
                       <div className="mt-2 flex text-sm text-gray-600">

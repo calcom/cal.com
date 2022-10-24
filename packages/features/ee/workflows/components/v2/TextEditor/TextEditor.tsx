@@ -36,11 +36,15 @@ function TextEditor(props: TextEditorProps) {
         editorClassName=" p-3 -mt-3 bg-white rounded-md text-sm hover:border-gray-400"
         onEditorStateChange={setEditorState}
         onChange={() => {
+          props.form.clearErrors(`steps.${props.stepNumber - 1}.reminderBody`);
+          const value = draftToHtml(convertToRaw(editorState.getCurrentContent()))
+            .replaceAll("&lt;", "<")
+            .replaceAll("&gt;", ">")
+            .replaceAll("<p></p>", "<br/>");
+
           props.form.setValue(
             `steps.${props.stepNumber - 1}.reminderBody`,
-            draftToHtml(convertToRaw(editorState.getCurrentContent()))
-              .replaceAll("&lt;", "<")
-              .replaceAll("&gt;", ">")
+            value.trim() !== "<br/>" ? value : null
           );
         }}
         toolbarCustomButtons={[
