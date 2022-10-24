@@ -1,4 +1,3 @@
-import { ClipboardCopyIcon } from "@heroicons/react/solid";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useState } from "react";
@@ -6,6 +5,7 @@ import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { ClipboardCopyIcon } from "@calcom/ui/Icon";
 import { Button, Loader, showToast, Tooltip } from "@calcom/ui/v2";
 
 export interface IZapierSetupProps {
