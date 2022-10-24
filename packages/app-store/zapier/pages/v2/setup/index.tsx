@@ -64,10 +64,10 @@ export default function ZapierSetup(props: IZapierSetupProps) {
               ) : (
                 <>
                   <div className="mt-1 text-xl">{t("your_unique_api_key")}</div>
-                  <div className="my-2 mt-3 h-[40px] flex-wrap sm:flex sm:flex-nowrap">
-                    <pre className="block h-full w-full whitespace-pre-wrap rounded-md rounded-r-none bg-gray-100 py-2 pl-2 pr-5">
+                  <div className="my-2 mt-3 flex-wrap sm:flex sm:flex-nowrap">
+                    <code className="h-full w-full whitespace-pre-wrap rounded-md bg-gray-100 py-2 pl-2 pr-2 sm:rounded-r-none sm:pr-5">
                       {newApiKey}
-                    </pre>
+                    </code>
                     <Tooltip side="top" content={t("copy_to_clipboard")}>
                       <Button
                         onClick={() => {
@@ -75,7 +75,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                           showToast(t("api_key_copied"), "success");
                         }}
                         type="button"
-                        className="mt-2 h-full text-base sm:mt-0 sm:rounded-l-none">
+                        className="mt-4 text-base sm:mt-0 sm:rounded-l-none">
                         <ClipboardCopyIcon className="mr-2 h-5 w-5 text-neutral-100" />
                         {t("copy")}
                       </Button>
