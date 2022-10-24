@@ -5,7 +5,6 @@ import dayjs from "@calcom/dayjs";
 import { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/v2/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { DialogFooter } from "@calcom/ui/Dialog";
 import { ClipboardCopyIcon } from "@calcom/ui/Icon";
@@ -14,6 +13,7 @@ import { DatePicker } from "@calcom/ui/v2";
 import Button from "@calcom/ui/v2/core/Button";
 import Switch from "@calcom/ui/v2/core/Switch";
 import { Form, TextField } from "@calcom/ui/v2/core/form/fields";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 export default function ApiKeyDialogForm({
   defaultValues,
