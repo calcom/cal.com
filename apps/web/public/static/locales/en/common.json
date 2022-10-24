@@ -1303,6 +1303,7 @@
   "how_long_after": "How long after event ends?",
   "no_available_slots": "No Available slots",
   "time_available": "Time available",
+  "cant_find_the_right_video_app_visit_our_app_store": "Can't find the right video app? Visit our <1>App Store</1>.",
   "install_new_calendar_app": "Install new calendar app",
   "make_phone_number_required": "Make phone number required for booking event",
   "dont_have_permission": "You don't have permission to access this resource.",
