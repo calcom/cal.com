@@ -84,7 +84,7 @@ export const extractRecurringDates = (
   // without taking into account the date, use current date only.
   const utcOffset = dayjs().tz(timeZone).utcOffset();
   const dateStrings = allDates.map((r) => {
-    return processDate(dayjs(r).utc().utcOffset(utcOffset), i18n);
+    return processDate(dayjs.utc(r).utcOffset(utcOffset), i18n);
   });
   return [dateStrings, allDates];
 };
