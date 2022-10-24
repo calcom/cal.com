@@ -1331,5 +1331,6 @@
   "monthly": "Monthly",
   "yearly": "Yearly",
   "checkout": "Checkout",
-  "your_team_disbanded_successfully": "Your team has been disbanded successfully"
+  "your_team_disbanded_successfully": "Your team has been disbanded successfully",
+  "error_creating_team": "Error creating team"
 }

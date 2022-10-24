@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import { Suspense, useState } from "react";
 
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
+import { BillingFrequency } from "@calcom/features/ee/teams/payments";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -52,7 +53,7 @@ const AddNewTeamMembers = ({ teamId }: { teamId: number }) => {
   });
 
   const [memberInviteModal, setMemberInviteModal] = useState(false);
-  const [billingFrequency, setBillingFrequency] = useState("monthly");
+  const [billingFrequency, setBillingFrequency] = useState<BillingFrequency>("monthly");
 
   if (isLoading) return <AddNewTeamMemberSkeleton />;
 
@@ -156,9 +157,13 @@ const AddNewTeamMembers = ({ teamId }: { teamId: number }) => {
         <Button
           EndIcon={Icon.FiArrowRight}
           className="mt-6 w-full justify-center"
-          onClick={() =>
-            teamCheckoutMutation.mutate({ teamId, billingFrequency, seats: team.members.length })
-          }>
+          onClick={() => {
+            if (team) {
+              teamCheckoutMutation.mutate({ teamId, billingFrequency, seats: team.members.length });
+            } else {
+              showToast(t("error_creating_team"), "error");
+            }
+          }}>
           {t("checkout")}
         </Button>
       </>

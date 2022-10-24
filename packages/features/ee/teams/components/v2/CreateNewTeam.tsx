@@ -31,7 +31,6 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
           name: values.name,
           slug: values.slug || null,
           logo: values.logo || null,
-          billingFrequency: values.billingFrequency,
         });
       }}>
       <div className="mb-8">

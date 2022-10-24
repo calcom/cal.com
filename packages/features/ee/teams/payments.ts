@@ -2,6 +2,8 @@ import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { CAL_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
+export type BillingFrequency = "monthly" | "yearly";
+
 export const purchaseTeamSubscription = async (
   teamId: number,
   billingFrequency: "monthly" | "yearly",

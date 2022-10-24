@@ -14,7 +14,6 @@ import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import MemberInvitationModal from "../components/MemberInvitationModal";
 import MemberListItem from "../components/MemberListItem";
 import TeamInviteList from "../components/TeamInviteList";
-import { UpgradeToFlexibleProModal } from "../components/UpgradeToFlexibleProModal";
 
 const MembersView = () => {
   const { t } = useLocale();
@@ -55,44 +54,6 @@ const MembersView = () => {
                       },
                     ]}
                   />
-                )}
-                {team.membership.role === MembershipRole.OWNER &&
-                team.membership.isMissingSeat &&
-                team.requiresUpgrade ? (
-                  <Alert
-                    severity="warning"
-                    title={t("hidden_team_member_title")}
-                    message={
-                      <>
-                        {t("hidden_team_owner_message")} <UpgradeToFlexibleProModal teamId={team.id} />
-                      </>
-                    }
-                    className="mb-4 "
-                  />
-                ) : (
-                  <>
-                    {team.membership.isMissingSeat && (
-                      <Alert
-                        severity="warning"
-                        title={t("hidden_team_member_title")}
-                        message={t("hidden_team_member_message")}
-                        className="mb-4 "
-                      />
-                    )}
-                    {team.membership.role === MembershipRole.OWNER && team.requiresUpgrade && (
-                      <Alert
-                        severity="warning"
-                        title={t("upgrade_to_flexible_pro_title")}
-                        message={
-                          <span>
-                            {t("upgrade_to_flexible_pro_message")} <br />
-                            <UpgradeToFlexibleProModal teamId={team.id} />
-                          </span>
-                        }
-                        className="mb-4"
-                      />
-                    )}
-                  </>
                 )}
               </>
             )}
