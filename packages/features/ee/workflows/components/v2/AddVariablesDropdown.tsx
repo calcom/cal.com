@@ -28,7 +28,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
 
   return (
     <Dropdown>
-      <DropdownMenuTrigger className="focus:bg-50 pt-[6px]">
+      <DropdownMenuTrigger className="pt-[6px] focus:bg-gray-50">
         <div className="flex items-center ">
           {t("add_variable")}
           <Icon.FiChevronDown className="ml-1 h-4 w-4" />
