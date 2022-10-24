@@ -428,6 +428,10 @@ const navigation: NavigationItemType[] = [
     href: "/bookings/upcoming",
     icon: Icon.FiCalendar,
     badge: <UnconfirmedBookingBadge />,
+    isCurrent: ({ router }) => {
+      const path = router.asPath.split("?")[0];
+      return path.startsWith("/bookings");
+    },
   },
   {
     name: "availability",
