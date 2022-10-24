@@ -285,7 +285,7 @@ export default function Success(props: SuccessProps) {
       <BookingPageTagManager eventType={eventType} />
       <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
-        <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
+        <div className={classNames("mx-auto w-fit overflow-y-auto", isEmbed ? "" : "z-50 ")}>
           {eventType.successRedirectUrl ? <RedirectionToast url={eventType.successRedirectUrl} /> : null}{" "}
           <div
             className={classNames(
