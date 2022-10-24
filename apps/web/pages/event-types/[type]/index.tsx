@@ -72,6 +72,7 @@ export type FormValues = {
   seatsShowAttendees: boolean | null;
   seatsPerTimeSlotEnabled: boolean;
   minimumBookingNotice: number;
+  minimumBookingNoticeType: string;
   beforeBufferTime: number;
   afterBufferTime: number;
   slotInterval: number | null;
@@ -163,6 +164,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       },
       schedulingType: eventType.schedulingType,
       minimumBookingNotice: eventType.minimumBookingNotice,
+      minimumBookingNoticeType: eventType.minimumBookingNoticeType,
       metadata: eventType.metadata,
     },
   });
@@ -228,6 +230,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
           const {
             periodDates,
             periodCountCalendarDays,
+            minimumBookingNoticeType,
             beforeBufferTime,
             afterBufferTime,
             seatsPerTimeSlot,
@@ -254,6 +257,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             periodStartDate: periodDates.startDate,
             periodEndDate: periodDates.endDate,
             periodCountCalendarDays: periodCountCalendarDays === "1",
+            minimumBookingNoticeType,
             id: eventType.id,
             beforeEventBuffer: beforeBufferTime,
             afterEventBuffer: afterBufferTime,
@@ -355,6 +359,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hideCalendarNotes: true,
       disableGuests: true,
       minimumBookingNotice: true,
+      minimumBookingNoticeType: true,
       beforeEventBuffer: true,
       afterEventBuffer: true,
       slotInterval: true,

@@ -453,6 +453,9 @@ export function InputGroupBox(props: JSX.IntrinsicElements["div"]) {
   );
 }
 
-export const MinutesField = forwardRef<HTMLInputElement, InputFieldProps>(function MinutesField(props, ref) {
-  return <InputField ref={ref} type="number" min={0} {...props} addOnSuffix="mins" />;
+export const DurationField = forwardRef<HTMLInputElement, InputFieldProps>(function DurationField(
+  props,
+  ref
+) {
+  return <InputField ref={ref} type="number" min={0} {...props} />;
 });
