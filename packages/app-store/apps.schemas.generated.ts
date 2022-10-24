@@ -8,6 +8,7 @@ import { appDataSchema as ga4_schema } from "./ga4/zod";
 import { appDataSchema as giphy_schema } from "./giphy/zod";
 import { appDataSchema as qr_code_schema } from "./qr_code/zod";
 import { appDataSchema as rainbow_schema } from "./rainbow/zod";
+import { appDataSchema as sirius_video_schema } from "./sirius_video/zod";
 import { appDataSchema as stripepayment_schema } from "./stripepayment/zod";
 
 export const appDataSchemas = {
@@ -17,5 +18,6 @@ export const appDataSchemas = {
   giphy: giphy_schema,
   qr_code: qr_code_schema,
   rainbow: rainbow_schema,
+  sirius_video: sirius_video_schema,
   stripe: stripepayment_schema,
 };
