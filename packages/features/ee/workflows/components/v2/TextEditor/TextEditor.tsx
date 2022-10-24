@@ -32,8 +32,8 @@ function TextEditor(props: TextEditorProps) {
     <div>
       <Editor
         editorState={editorState}
-        wrapperClassName="border border-gray-300 rounded-md"
-        editorClassName=" p-3 -mt-3 bg-white rounded-md text-sm"
+        wrapperClassName="border border-gray-300 rounded-md "
+        editorClassName=" p-3 -mt-3 bg-white rounded-md text-sm hover:border-gray-400"
         onEditorStateChange={setEditorState}
         onChange={() => {
           props.form.setValue(

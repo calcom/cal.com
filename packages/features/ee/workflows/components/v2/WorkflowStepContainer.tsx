@@ -393,7 +393,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           emailSubjectFormRef?.(e);
                           refEmailSubject.current = e;
                         }}
-                        className="my-0"
+                        rows={1}
+                        className="my-0 focus:ring-transparent"
                         required
                         {...restEmailSubjectForm}
                       />
