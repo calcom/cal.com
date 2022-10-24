@@ -11,7 +11,6 @@
   "publisher": "Cal.com, Inc.",
   "email": "support@cal.com",
   "description": "Video meetings made for music.\rCreate your own virtual music classroom, easily.",
-  "extendsFeature": "EventType",
   "__createdUsingCli": true,
   "appData": {
     "location": {
