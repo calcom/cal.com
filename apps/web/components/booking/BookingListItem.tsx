@@ -294,11 +294,7 @@ function BookingListItem(booking: BookingItemProps) {
             )}
 
             <div className="mt-2 text-sm text-gray-400">
-              <RecurringBookingsTooltip
-                booking={booking}
-                recurringStrings={recurringStrings}
-                recurringDates={recurringDates}
-              />
+              <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
             </div>
           </div>
         </td>
@@ -401,15 +397,13 @@ function BookingListItem(booking: BookingItemProps) {
 
 interface RecurringBookingsTooltipProps {
   booking: BookingItemProps;
-  recurringStrings: string[];
   recurringDates: Date[];
 }
 
-const RecurringBookingsTooltip = ({
-  booking,
-  recurringStrings,
-  recurringDates,
-}: RecurringBookingsTooltipProps) => {
+const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookingsTooltipProps) => {
+  // Get user so we can determine 12/24 hour format preferences
+  const query = useMeQuery();
+  const user = query.data;
   const { t } = useLocale();
   const now = new Date();
   const recurringCount = recurringDates.filter((date) => {
@@ -425,9 +419,11 @@ const RecurringBookingsTooltip = ({
         <div className="underline decoration-gray-400 decoration-dashed underline-offset-2">
           <div className="flex">
             <Tooltip
-              content={recurringStrings.map((aDate, key) => (
+              content={recurringDates.map((aDate, key) => (
                 <p key={key} className={classNames(recurringDates[key] < now && "line-through")}>
-                  {aDate}
+                  {formatTime(booking.startTime, user?.timeFormat, user?.timeZone)}
+                  {" - "}
+                  {dayjs(aDate).format("D MMMM YYYY")}
                 </p>
               ))}>
               <div className="text-gray-600 dark:text-white">
