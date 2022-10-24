@@ -412,6 +412,9 @@ const RecurringBookingsTooltip = ({
 }: RecurringBookingsTooltipProps) => {
   const { t } = useLocale();
   const now = new Date();
+  const recurringCount = recurringDates.filter((date) => {
+    return date >= now;
+  }).length;
 
   return (
     (booking.recurringBookings &&
@@ -435,14 +438,12 @@ const RecurringBookingsTooltip = ({
                 <p className="mt-1 pl-5 text-xs">
                   {booking.status === BookingStatus.ACCEPTED
                     ? `${t("event_remaining", {
-                        count: recurringDates.length,
+                        count: recurringCount,
                       })}`
                     : getEveryFreqFor({
                         t,
                         recurringEvent: booking.eventType.recurringEvent,
-                        recurringCount: recurringDates.filter((date) => {
-                          return date >= now;
-                        }).length,
+                        recurringCount,
                       })}
                 </p>
               </div>
