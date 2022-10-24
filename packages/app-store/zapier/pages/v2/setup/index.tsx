@@ -1,4 +1,3 @@
-import { ClipboardCopyIcon } from "@heroicons/react/solid";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useState } from "react";
@@ -6,6 +5,7 @@ import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { ClipboardCopyIcon } from "@calcom/ui/Icon";
 import { Button, Loader, showToast, Tooltip } from "@calcom/ui/v2";
 
 export interface IZapierSetupProps {
@@ -64,16 +64,18 @@ export default function ZapierSetup(props: IZapierSetupProps) {
               ) : (
                 <>
                   <div className="mt-1 text-xl">{t("your_unique_api_key")}</div>
-                  <div className="my-2 mt-3 flex">
-                    <div className="w-full rounded bg-gray-100 py-2 pl-2 pr-5">{newApiKey}</div>
-                    <Tooltip side="top" content="copy">
+                  <div className="my-2 mt-3 flex-wrap sm:flex sm:flex-nowrap">
+                    <code className="h-full w-full whitespace-pre-wrap rounded-md bg-gray-100 py-2 pl-2 pr-2 sm:rounded-r-none sm:pr-5">
+                      {newApiKey}
+                    </code>
+                    <Tooltip side="top" content={t("copy_to_clipboard")}>
                       <Button
                         onClick={() => {
                           navigator.clipboard.writeText(newApiKey);
                           showToast(t("api_key_copied"), "success");
                         }}
                         type="button"
-                        className="rounded-l-none px-4 text-base">
+                        className="mt-4 text-base sm:mt-0 sm:rounded-l-none">
                         <ClipboardCopyIcon className="mr-2 h-5 w-5 text-neutral-100" />
                         {t("copy")}
                       </Button>
