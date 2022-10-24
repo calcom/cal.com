@@ -783,7 +783,7 @@ export function ShellMain(props: LayoutProps) {
           <header
             className={classNames(
               props.large && "py-8",
-              "mb-4 flex w-full items-center pt-4 pb-2 md:p-0 lg:mb-10"
+              "mb-4 flex w-full items-start pt-4 pb-2 md:p-0 lg:mb-10"
             )}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className="w-full ltr:mr-4 rtl:ml-4 sm:block">
