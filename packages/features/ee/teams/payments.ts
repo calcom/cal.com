@@ -57,6 +57,11 @@ export const deleteTeamFromStripe = async (teamId: number) => {
     select: { stripeCustomerId: true },
   });
 
+  if (!stripeCustomerId) {
+    throw new Error("Team not found");
+    return;
+  }
+
   if (stripeCustomerId) {
     await stripe.customers.del(stripeCustomerId.stripeCustomerId);
     return;
