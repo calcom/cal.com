@@ -11,7 +11,6 @@ import "react-phone-number-input/style.css";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
-import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
@@ -22,6 +21,7 @@ import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogCont
 import CheckboxField from "@calcom/ui/v2/core/form/Checkbox";
 import { EmailField, Label, TextArea } from "@calcom/ui/v2/core/form/fields";
 import Select from "@calcom/ui/v2/core/form/select";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 import { AddVariablesDropdown } from "../../components/v2/AddVariablesDropdown";
 import {

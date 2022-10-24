@@ -7,7 +7,6 @@ import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
@@ -17,6 +16,7 @@ import { TextArea } from "@calcom/ui/form/fields";
 import Badge from "@calcom/ui/v2/core/Badge";
 import Button from "@calcom/ui/v2/core/Button";
 import MeetingTimeInTimezones from "@calcom/ui/v2/core/MeetingTimeInTimezones";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
