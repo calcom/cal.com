@@ -69,7 +69,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const [showTimeSection, setShowTimeSection] = useState(
     form.getValues("trigger") === WorkflowTriggerEvents.BEFORE_EVENT ||
-    form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
+      form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
   );
 
   const [showTimeSectionAfter, setShowTimeSectionAfter] = useState(
@@ -137,7 +137,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     return (
       <>
         <div className="flex justify-center">
-          <div className="w-full bg-white border border-gray-200 rounded-md min-w-80 p-7">
+          <div className="min-w-80 w-full rounded-md border border-gray-200 bg-white p-7">
             <div className="flex">
               <div className="mt-[3px] mr-5 flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 p-1 text-xs font-medium">
                 1
@@ -147,7 +147,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <div className="text-sm text-gray-600">{t("when_something_happens")}</div>
               </div>
             </div>
-            <div className="border-t border-gray-200 my-7" />
+            <div className="my-7 border-t border-gray-200" />
             <Label>{t("when")}</Label>
             <Controller
               name="trigger"
@@ -210,11 +210,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
     return (
       <>
-        <div className="flex justify-center my-3">
+        <div className="my-3 flex justify-center">
           <Icon.FiArrowDown className="stroke-[1.5px] text-3xl text-gray-500" />
         </div>
         <div className="flex justify-center">
-          <div className="flex w-full bg-white border border-gray-200 rounded-md min-w-80 p-7">
+          <div className="min-w-80 flex w-full rounded-md border border-gray-200 bg-white p-7">
             <div className="w-full">
               <div className="flex">
                 <div className="w-full">
@@ -263,7 +263,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </Dropdown>
                 </div>
               </div>
-              <div className="border-t border-gray-200 my-7" />
+              <div className="my-7 border-t border-gray-200" />
               <div>
                 <Label>{t("do_this")}</Label>
                 <Controller
@@ -327,7 +327,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 )}
               </div>
               {isPhoneNumberNeeded && (
-                <div className="p-4 mt-5 rounded-md bg-gray-50">
+                <div className="mt-5 rounded-md bg-gray-50 p-4">
                   <Label>{t("custom_phone_number")}</Label>
                   <PhoneInput<FormValues>
                     control={form.control}
@@ -346,7 +346,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 </div>
               )}
               {isEmailAddressNeeded && (
-                <div className="p-4 mt-5 rounded-md bg-gray-50">
+                <div className="mt-5 rounded-md bg-gray-50 p-4">
                   <EmailField
                     required
                     label={t("email_address")}
@@ -379,11 +379,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 />
               </div>
               {isCustomReminderBodyNeeded && (
-                <div className="p-4 pt-2 mt-2 rounded-md bg-gray-50 md:p-6 md:pt-4">
+                <div className="mt-2 rounded-md bg-gray-50 p-4 pt-2 md:p-6 md:pt-4">
                   {isEmailSubjectNeeded && (
                     <div className="mb-5">
-                      <div className="flex items-center mb-2">
-                        <Label className="flex-none mb-0">{t("subject")}</Label>
+                      <div className="mb-2 flex items-center">
+                        <Label className="mb-0 flex-none">{t("subject")}</Label>
                         <div className="flex-grow text-right">
                           <AddVariablesDropdown addVariable={addVariable} isEmailSubject={true} />
                         </div>
@@ -405,13 +405,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         )}
                     </div>
                   )}
-                  <div className="flex items-center mb-2">
-                    <Label className="flex-none mb-0">
+                  <div className="mb-2 flex items-center">
+                    <Label className="mb-0 flex-none">
                       {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                     </Label>
-                    <div className="flex-grow text-right">
-                      <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} />
-                    </div>
                   </div>
                   {form.formState.errors.steps &&
                     form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
@@ -420,23 +417,23 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       </p>
                     )}
                   <div className="mt-2">
-                    <TextEditor form={form} addVariable={addVariable} stepNumber={step.stepNumber}/>
+                    <TextEditor form={form} addVariable={addVariable} stepNumber={step.stepNumber} />
                   </div>
                   <div className="mt-3 ">
                     <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
-                      <div className="flex mt-2 text-sm text-gray-600">
+                      <div className="mt-2 flex text-sm text-gray-600">
                         <Icon.FiHelpCircle className="mt-[3px] mr-2 h-3 w-3" />
                         <p className="text-left">{t("using_additional_inputs_as_variables")}</p>
                       </div>
                     </button>
                   </div>
-                  <div className="mt-2"></div>
+                  <div className="mt-2" />
                 </div>
               )}
               {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
                 <Button
                   type="button"
-                  className="w-full mt-7"
+                  className="mt-7 w-full"
                   onClick={() => {
                     let isEmpty = false;
                     if (!form.getValues(`steps.${step.stepNumber - 1}.sendTo`) && isPhoneNumberNeeded) {
@@ -487,7 +484,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     } else {
                       const isNumberValid =
                         form.formState.errors.steps &&
-                          form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo
+                        form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo
                           ? false
                           : true;
 
@@ -531,21 +528,21 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
           <DialogContent useOwnActionButtons type="creation" className="sm:max-w-[610px] md:h-[570px]">
             <div className="-m-3 h-[430px] overflow-x-hidden overflow-y-scroll sm:m-0">
               <h1 className="w-full text-xl font-semibold ">{t("how_additional_inputs_as_variables")}</h1>
-              <div className="p-3 rounded-md mb-7 mt-7 bg-gray-50 sm:p-4">
-                <p className="font-medium test-sm">{t("format")}</p>
-                <ul className="mt-2 ml-5 text-gray-900 list-disc">
+              <div className="mb-7 mt-7 rounded-md bg-gray-50 p-3 sm:p-4">
+                <p className="test-sm font-medium">{t("format")}</p>
+                <ul className="mt-2 ml-5 list-disc text-gray-900">
                   <li>{t("uppercase_for_letters")}</li>
                   <li>{t("replace_whitespaces_underscores")}</li>
                   <li>{t("ignore_special_characters")}</li>
                 </ul>
                 <div className="mt-6">
-                  <p className="w-full font-medium test-sm">{t("example_1")}</p>
-                  <div className="grid grid-cols-12 mt-2">
-                    <div className="col-span-5 mr-2 text-gray-600 test-sm">{t("additional_input_label")}</div>
-                    <div className="col-span-7 text-gray-900 test-sm">{t("company_size")}</div>
-                    <div className="w-full col-span-5 text-gray-600 test-sm">{t("variable")}</div>
+                  <p className="test-sm w-full font-medium">{t("example_1")}</p>
+                  <div className="mt-2 grid grid-cols-12">
+                    <div className="test-sm col-span-5 mr-2 text-gray-600">{t("additional_input_label")}</div>
+                    <div className="test-sm col-span-7 text-gray-900">{t("company_size")}</div>
+                    <div className="test-sm col-span-5 w-full text-gray-600">{t("variable")}</div>
 
-                    <div className="col-span-7 text-gray-900 break-words test-sm">
+                    <div className="test-sm col-span-7 break-words text-gray-900">
                       {" "}
                       {`{${t("company_size")
                         .replace(/[^a-zA-Z0-9 ]/g, "")
@@ -556,12 +553,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </div>
                 </div>
                 <div className="mt-6">
-                  <p className="w-full font-medium test-sm">{t("example_2")}</p>
-                  <div className="grid grid-cols-12 mt-2">
-                    <div className="col-span-5 mr-2 text-gray-600 test-sm">{t("additional_input_label")}</div>
-                    <div className="col-span-7 text-gray-900 test-sm">{t("what_help_needed")}</div>
-                    <div className="col-span-5 text-gray-600 test-sm">{t("variable")}</div>
-                    <div className="col-span-7 text-gray-900 break-words test-sm">
+                  <p className="test-sm w-full font-medium">{t("example_2")}</p>
+                  <div className="mt-2 grid grid-cols-12">
+                    <div className="test-sm col-span-5 mr-2 text-gray-600">{t("additional_input_label")}</div>
+                    <div className="test-sm col-span-7 text-gray-900">{t("what_help_needed")}</div>
+                    <div className="test-sm col-span-5 text-gray-600">{t("variable")}</div>
+                    <div className="test-sm col-span-7 break-words text-gray-900">
                       {" "}
                       {`{${t("what_help_needed")
                         .replace(/[^a-zA-Z0-9 ]/g, "")

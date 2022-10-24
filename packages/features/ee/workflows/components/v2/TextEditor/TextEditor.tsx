@@ -83,7 +83,11 @@ function CustomOption({ editorState, setEditorState }: Props) {
     setEditorState(EditorState.push(editorState, contentState, "insert-characters"));
   };
 
-  return <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} />;
+  return (
+    <div className="-mt-[1px]">
+      <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} />
+    </div>
+  );
 }
 
 export default TextEditor;
