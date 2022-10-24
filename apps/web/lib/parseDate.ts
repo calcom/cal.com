@@ -80,9 +80,7 @@ export const extractRecurringDates = (
     count: recurringInfo?._count.recurringEventId,
     dtstart: recurringInfo?._min.startTime,
   }).all();
-  // use UTC offset of selected timeZone to display UTC times localized
-  // without taking into account the date, use current date only.
-  const utcOffset = dayjs().tz(timeZone).utcOffset();
+  const utcOffset = dayjs(recurringInfo?._min.startTime).tz(timeZone).utcOffset();
   const dateStrings = allDates.map((r) => {
     return processDate(dayjs.utc(r).utcOffset(utcOffset), i18n);
   });
