@@ -1327,6 +1327,8 @@
   "saml_sp_entity_id_copied": "SP Entity ID copied!",
   "saml_btn_configure": "Configure",
   "add_calendar": "Add Calendar",
+  "no_event_types": "No event types setup",
+  "no_event_types_description": "{{name}} has not setup any event types for you to book.",
   "billing_frequency": "Billing Frequency",
   "monthly": "Monthly",
   "yearly": "Yearly",
