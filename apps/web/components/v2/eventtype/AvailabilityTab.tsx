@@ -1,6 +1,6 @@
-import { useRouter } from "next/router";
 import { FormValues } from "pages/event-types/[type]";
 import { Controller, useFormContext } from "react-hook-form";
+import { SingleValueProps, OptionProps, components } from "react-select";
 
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
@@ -8,18 +8,45 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { showToast } from "@calcom/ui/v2";
+import { Badge } from "@calcom/ui/v2";
 import Button from "@calcom/ui/v2/core/Button";
 import Select from "@calcom/ui/v2/core/form/select";
 import { SkeletonText } from "@calcom/ui/v2/core/skeleton";
-
-import { HttpError } from "@lib/core/http/error";
 
 import { SelectSkeletonLoader } from "@components/v2/availability/SkeletonLoader";
 
 type AvailabilityOption = {
   label: string;
   value: number;
+  isDefault: boolean;
+};
+
+const Option = ({ ...props }: OptionProps<AvailabilityOption>) => {
+  const { label, isDefault } = props.data;
+  return (
+    <components.Option {...props}>
+      <span>{label}</span>
+      {isDefault && (
+        <Badge variant="blue" className="ml-2">
+          Default
+        </Badge>
+      )}
+    </components.Option>
+  );
+};
+
+const SingleValue = ({ ...props }: SingleValueProps<AvailabilityOption>) => {
+  const { label, isDefault } = props.data;
+  return (
+    <components.SingleValue {...props}>
+      <span>{label}</span>
+      {isDefault && (
+        <Badge variant="blue" className="ml-2">
+          Default
+        </Badge>
+      )}
+    </components.SingleValue>
+  );
 };
 
 const AvailabilitySelect = ({
@@ -58,6 +85,8 @@ const AvailabilitySelect = ({
       onChange={props.onChange}
       className={classNames("block w-full min-w-0 flex-1 rounded-sm text-sm", className)}
       value={value}
+      components={{ Option, SingleValue }}
+      isMulti={false}
     />
   );
 };
@@ -67,53 +96,15 @@ const format = (date: Date) =>
     new Date(dayjs.utc(date).format("YYYY-MM-DDTHH:mm:ss"))
   );
 
-export const AvailabilityTab = ({
-  eventTypeTitle,
-  eventTypeId,
-}: {
-  eventTypeTitle: string;
-  eventTypeId: number;
-}) => {
+export const AvailabilityTab = () => {
   const { t, i18n } = useLocale();
   const { watch } = useFormContext<FormValues>();
-  const router = useRouter();
 
   const scheduleId = watch("schedule");
   const { isLoading, data: schedule } = trpc.useQuery(["viewer.availability.schedule", { scheduleId }]);
 
-  const createScheduleMutation = trpc.useMutation("viewer.availability.schedule.create", {
-    onSuccess: async ({ schedule }) => {
-      await router.push("/availability/" + schedule.id);
-      showToast(t("schedule_created_successfully", { scheduleName: schedule.name }), "success");
-    },
-    onError: (err) => {
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
-      }
-
-      if (err.data?.code === "UNAUTHORIZED") {
-        const message = `${err.data.code}: You are not able to create this availability`;
-        showToast(message, "error");
-      }
-    },
-  });
-
   const filterDays = (dayNum: number) =>
     schedule?.schedule.availability.filter((item) => item.days.includes((dayNum + 1) % 7)) || [];
-
-  const onEditAvailability = () => {
-    if (!schedule) showToast(t("error_editing_availability"), "error");
-
-    if (schedule?.isDefault) {
-      createScheduleMutation.mutate({
-        name: t("new_event_type_availability", { eventTypeTitle }),
-        eventTypeId,
-      });
-    } else {
-      router.push(`/availability/${schedule?.schedule.id}`);
-    }
-  };
 
   return (
     <>
@@ -173,7 +164,6 @@ export const AvailabilityTab = ({
             {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
           </span>
           <Button
-            // onClick={onEditAvailability}
             href={`/availability/${schedule?.schedule.id}`}
             color="minimal"
             EndIcon={Icon.FiExternalLink}
