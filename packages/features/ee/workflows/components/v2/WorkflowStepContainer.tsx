@@ -381,8 +381,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               {isCustomReminderBodyNeeded && (
                 <div className="mt-2 rounded-md bg-gray-50 p-4 pt-2 md:p-6 md:pt-4">
                   {isEmailSubjectNeeded && (
-                    <div className="mb-5">
-                      <div className="mb-2 flex items-center">
+                    <div className="mb-6">
+                      <div className="flex items-center">
                         <Label className="mb-0 flex-none">{t("subject")}</Label>
                         <div className="flex-grow text-right">
                           <AddVariablesDropdown addVariable={addVariable} isEmailSubject={true} />
@@ -405,8 +405,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         )}
                     </div>
                   )}
-                  <div className="mb-2 flex items-center">
-                    <Label className="mb-0 flex-none">
+                  <div className="mb-2 flex items-center pb-[1.5px]">
+                    <Label className="mb-0 flex-none ">
                       {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                     </Label>
                   </div>
@@ -416,7 +416,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
                       </p>
                     )}
-                  <div className="mt-2">
+                  <div>
                     <TextEditor form={form} addVariable={addVariable} stepNumber={step.stepNumber} />
                   </div>
                   <div className="mt-3 ">
