@@ -104,7 +104,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
       telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/[user]"));
     }
   }, [telemetry, router.asPath]);
-
+  const isEventListEmpty = eventTypes.length === 0;
   return (
     <>
       <HeadSeo
@@ -151,7 +151,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
           <div
             className={classNames(
               "rounded-md ",
-              eventTypes.length !== 0 &&
+              !isEventListEmpty &&
                 "border border-neutral-200 dark:border-neutral-700 dark:hover:border-neutral-600"
             )}
             data-testid="event-types">
@@ -200,7 +200,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
               ))
             )}
           </div>
-          {eventTypes.length === 0 && <EmptyPage name={user.name ?? "User"} />}
+          {isEventListEmpty && <EmptyPage name={user.name ?? "User"} />}
         </main>
         <Toaster position="bottom-right" />
       </div>
