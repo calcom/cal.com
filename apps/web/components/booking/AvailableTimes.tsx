@@ -4,6 +4,7 @@ import { FC, useEffect, useState } from "react";
 
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import { nameOfDay } from "@calcom/lib/weekday";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui";
@@ -13,7 +14,8 @@ import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";
 
 type AvailableTimesProps = {
-  timeFormat: string;
+  timeFormat: TimeFormat;
+  onTimeFormatChange: (is24Hour: boolean) => void;
   eventTypeId: number;
   recurringCount: number | undefined;
   eventTypeSlug: string;
@@ -32,6 +34,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   eventTypeSlug,
   recurringCount,
   timeFormat,
+  onTimeFormatChange,
   seatsPerTimeSlot,
   ethSignature,
 }) => {
@@ -58,7 +61,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
         </span>
         <div className="ml-auto">
           <ToggleGroup
-            defaultValue="12"
+            onValueChange={(timeFormat) => onTimeFormatChange(timeFormat === "24")}
+            defaultValue={timeFormat === TimeFormat.TWELVE_HOUR ? "12" : "24"}
             options={[
               { value: "12", label: "12h" },
               { value: "24", label: "24h" },

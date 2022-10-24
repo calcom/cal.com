@@ -26,7 +26,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { detectBrowserTimeFormat, getIs24hClockFromLocalStorage } from "@calcom/lib/timeFormat";
+import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import DatePicker from "@calcom/ui/v2/modules/booker/DatePicker";
@@ -48,7 +48,6 @@ import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 
 // Get router variables
-
 const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
   const router = useRouter();
   const path = router.asPath.split("/");
@@ -109,6 +108,7 @@ const useSlots = ({
 const SlotPicker = ({
   eventType,
   timeFormat,
+  onTimeFormatChange,
   timeZone,
   recurringEventCount,
   users,
@@ -117,7 +117,8 @@ const SlotPicker = ({
   ethSignature,
 }: {
   eventType: Pick<EventType, "id" | "schedulingType" | "slug">;
-  timeFormat: string;
+  timeFormat: TimeFormat;
+  onTimeFormatChange: (is24Hour: boolean) => void;
   timeZone?: string;
   seatsPerTimeSlot?: number;
   recurringEventCount?: number;
@@ -201,6 +202,7 @@ const SlotPicker = ({
           slots={selectedDate && slots[selectedDate.format("YYYY-MM-DD")]}
           date={selectedDate}
           timeFormat={timeFormat}
+          onTimeFormatChange={onTimeFormatChange}
           eventTypeId={eventType.id}
           eventTypeSlug={eventType.slug}
           seatsPerTimeSlot={seatsPerTimeSlot}
@@ -277,14 +279,7 @@ const useRouterQuery = <T extends string>(name: T) => {
 
 export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
 
-const timeFormatTotimeFormatString = (timeFormat?: number | null) => {
-  if (!timeFormat) return null;
-  return timeFormat === 24 ? "HH:mm" : "h:mma";
-};
-
 const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
-  const { data: user } = trpc.useQuery(["viewer.me"]);
-  const timeFormatFromProfile = timeFormatTotimeFormatString(user?.timeFormat);
   const router = useRouter();
   const isEmbed = useIsEmbed(restProps.isEmbed);
   const query = dateQuerySchema.parse(router.query);
@@ -297,7 +292,12 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const isBackgroundTransparent = useIsBackgroundTransparent();
 
   const [timeZone, setTimeZone] = useState<string>();
-  const [timeFormat, setTimeFormat] = useState<string>("HH:mm");
+  const [timeFormat, setTimeFormat] = useState<TimeFormat>(detectBrowserTimeFormat);
+
+  const onTimeFormatChange = (is24Hours: boolean) => {
+    setTimeFormat(is24Hours ? TimeFormat.TWENTY_FOUR_HOUR : TimeFormat.TWELVE_HOUR);
+    setIs24hClockInLocalStorage(is24Hours);
+  };
 
   const [gateState, gateDispatcher] = useReducer(
     (state: GateState, newState: Partial<GateState>) => ({
@@ -309,8 +309,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
 
   useEffect(() => {
     setTimeZone(localStorageTimeZone() || dayjs.tz.guess());
-    setTimeFormat(timeFormatFromProfile || detectBrowserTimeFormat);
-  }, [timeFormatFromProfile]);
+  }, []);
 
   // TODO: Improve this;
   useExposePlanGlobally(eventType.users.length === 1 ? eventType.users[0].plan : "PRO");
@@ -471,6 +470,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                   }
                   eventType={eventType}
                   timeFormat={timeFormat}
+                  onTimeFormatChange={onTimeFormatChange}
                   timeZone={timeZone}
                   users={userList}
                   seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}
