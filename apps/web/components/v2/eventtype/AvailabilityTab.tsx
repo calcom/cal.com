@@ -1,4 +1,4 @@
-import { FormValues } from "pages/v2/event-types/[type]";
+import { FormValues } from "pages/event-types/[type]";
 import { Controller, useFormContext } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";

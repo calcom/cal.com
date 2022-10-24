@@ -1,9 +1,9 @@
 import { Prisma, UserPlan } from "@prisma/client";
 
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
-
 export async function getTeamWithMembers(id?: number, slug?: string) {
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     username: true,
@@ -13,7 +13,6 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
     plan: true,
     bio: true,
   });
-
   const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
     id: true,
     name: true,
@@ -36,6 +35,7 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
         users: {
           select: userSelect,
         },
+        metadata: true,
         ...baseEventTypeSelect,
       },
     },
@@ -47,7 +47,6 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
   });
 
   if (!team) return null;
-
   const memberships = await prisma.membership.findMany({
     where: {
       teamId: team.id,
@@ -65,7 +64,11 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
     };
   });
 
-  return { ...team, members };
+  const eventTypes = team.eventTypes.map((eventType) => ({
+    ...eventType,
+    metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+  }));
+  return { ...team, eventTypes, members };
 }
 // also returns team
 export async function isTeamAdmin(userId: number, teamId: number) {

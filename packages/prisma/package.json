@@ -27,7 +27,7 @@
     "@prisma/client": "^4.2.1",
     "prisma": "^4.2.1",
     "ts-node": "^10.9.1",
-    "zod": "^3.18.0",
+    "zod": "^3.19.1",
     "zod-prisma": "^0.5.4"
   },
   "main": "index.ts",

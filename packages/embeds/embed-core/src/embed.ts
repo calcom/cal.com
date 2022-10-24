@@ -20,6 +20,7 @@ type Namespace = string;
 type Config = {
   origin: string;
   debug?: boolean;
+  uiDebug?: boolean;
 };
 
 const globalCal = (window as CalWindow).Cal;
@@ -180,9 +181,16 @@ export class Cal {
     }
 
     const urlInstance = new URL(`${config.origin}/${calLink}`);
+    if (!urlInstance.pathname.endsWith("embed")) {
+      // TODO: Make a list of patterns that are embeddable. All except that should be allowed with a warning that "The page isn't optimized for embedding"
+      urlInstance.pathname = `${urlInstance.pathname}/embed`;
+    }
     urlInstance.searchParams.set("embed", this.namespace);
     if (config.debug) {
       urlInstance.searchParams.set("debug", "" + config.debug);
+    }
+    if (config.uiDebug) {
+      iframe.style.border = "1px solid green";
     }
 
     // Merge searchParams from config onto the URL which might have query params already
@@ -199,10 +207,11 @@ export class Cal {
     if (typeof namespaceOrConfig !== "string") {
       config = (namespaceOrConfig || {}) as Config;
     }
-    if (config?.origin) {
-      this.__config.origin = config.origin;
+    const { origin, ...restConfig } = config;
+    if (origin) {
+      this.__config.origin = origin;
     }
-    this.__config.debug = config.debug;
+    this.__config = { ...this.__config, ...restConfig };
   }
 
   getConfig() {
@@ -243,7 +252,6 @@ export class Cal {
       },
     });
     config = config || {};
-
     // Keeping auto-scroll disabled for two reasons:
     // - If user scrolls the content to an appropriate position, it again resets it to default position which might not be for the liking of the user
     // - Sometimes, the position can be wrong(e.g. if there is a fixed position header on top coming above the iframe content).
@@ -483,8 +491,11 @@ export class Cal {
     });
 
     this.actionManager.on("__routeChanged", () => {
-      if (this.inlineEl && (this.inlineEl as unknown as any).__CalAutoScroll) {
-        this.inlineEl.scrollIntoView();
+      const { top, height } = this.inlineEl.getBoundingClientRect();
+      // Try to readjust and scroll into view if more than 25% is hidden.
+      // Otherwise we assume that user might have positioned the content appropriately already
+      if (top < 0 && Math.abs(top / height) >= 0.25) {
+        this.inlineEl.scrollIntoView({ behavior: "smooth" });
       }
     });
 

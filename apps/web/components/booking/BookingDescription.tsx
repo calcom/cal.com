@@ -34,6 +34,7 @@ interface Props {
   isBookingPage?: boolean;
   children: ReactNode;
   isMobile?: boolean;
+  rescheduleUid?: string;
 }
 
 const BookingDescription: FC<Props> = (props) => {
@@ -84,11 +85,9 @@ const BookingDescription: FC<Props> = (props) => {
             {t("requires_confirmation")}
           </div>
         )}
-        {!isBookingPage ? (
-          <AvailableEventLocations
-            locations={eventType.locations as AvailabilityPageProps["eventType"]["locations"]}
-          />
-        ) : null}
+        <AvailableEventLocations
+          locations={eventType.locations as AvailabilityPageProps["eventType"]["locations"]}
+        />
         <p
           className={classNames(
             "text-sm font-medium",

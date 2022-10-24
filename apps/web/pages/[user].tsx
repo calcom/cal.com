@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
-import { JSONObject } from "superjson/dist/types";
 
 import {
   sdkActionManager,
@@ -26,10 +25,12 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { BadgeCheckIcon, Icon } from "@calcom/ui/Icon";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
+import { EmbedProps } from "@lib/withEmbedSsr";
 
 import AvatarGroup from "@components/ui/AvatarGroup";
 import { AvatarSSR } from "@components/ui/AvatarSSR";
@@ -38,7 +39,7 @@ import { ssrInit } from "@server/lib/ssr";
 
 const EventTypeDescription = dynamic(() => import("@calcom/ui/v2/modules/event-types/EventTypeDescription"));
 const HeadSeo = dynamic(() => import("@components/seo/head-seo"));
-export default function User(props: inferSSRProps<typeof getServerSideProps>) {
+export default function User(props: inferSSRProps<typeof getServerSideProps> & EmbedProps) {
   const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(user.theme);
@@ -86,7 +87,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
     </ul>
   );
 
-  const isEmbed = useIsEmbed();
+  const isEmbed = useIsEmbed(props.isEmbed);
   const eventTypeListItemEmbedStyles = useEmbedStyles("eventTypeListItem");
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
@@ -110,9 +111,13 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
         description={
           isDynamicGroup ? `Book events with ${dynamicUsernames.join(", ")}` : (user.bio as string) || ""
         }
-        name={isDynamicGroup ? dynamicNames.join(", ") : nameOrUsername}
-        username={isDynamicGroup ? dynamicUsernames.join(", ") : (user.username as string) || ""}
-        // avatar={user.avatar || undefined}
+        meeting={{
+          title: isDynamicGroup ? "" : `${user.bio}`,
+          profile: { name: `${profile.name}`, image: null },
+          users: isDynamicGroup
+            ? dynamicUsernames.map((username, index) => ({ username, name: dynamicNames[index] }))
+            : [{ username: `${user.username}`, name: `${user.name}` }],
+        }}
       />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
 
@@ -208,42 +213,47 @@ export default function User(props: inferSSRProps<typeof getServerSideProps>) {
 }
 User.isThemeSupported = true;
 
-const getEventTypesWithHiddenFromDB = async (userId: number, plan: UserPlan) => {
-  return await prisma.eventType.findMany({
-    where: {
-      AND: [
-        {
-          teamId: null,
-        },
-        {
-          OR: [
-            {
-              userId,
-            },
-            {
-              users: {
-                some: {
-                  id: userId,
+const getEventTypesWithHiddenFromDB = async (userId: number) => {
+  return (
+    await prisma.eventType.findMany({
+      where: {
+        AND: [
+          {
+            teamId: null,
+          },
+          {
+            OR: [
+              {
+                userId,
+              },
+              {
+                users: {
+                  some: {
+                    id: userId,
+                  },
                 },
               },
-            },
-          ],
+            ],
+          },
+        ],
+      },
+      orderBy: [
+        {
+          position: "desc",
+        },
+        {
+          id: "asc",
         },
       ],
-    },
-    orderBy: [
-      {
-        position: "desc",
+      select: {
+        ...baseEventTypeSelect,
+        metadata: true,
       },
-      {
-        id: "asc",
-      },
-    ],
-    select: {
-      metadata: true,
-      ...baseEventTypeSelect,
-    },
-  });
+    })
+  ).map((eventType) => ({
+    ...eventType,
+    metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+  }));
 };
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
@@ -278,6 +288,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!users.length) {
     return {
       notFound: true,
+    } as {
+      notFound: true;
     };
   }
   const isDynamicGroup = users.length > 1;
@@ -309,7 +321,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         darkBrandColor: user.darkBrandColor,
       };
 
-  const eventTypesWithHidden = isDynamicGroup ? [] : await getEventTypesWithHiddenFromDB(user.id, user.plan);
+  const eventTypesWithHidden = isDynamicGroup ? [] : await getEventTypesWithHiddenFromDB(user.id);
   const dataFetchEnd = Date.now();
   if (context.query.log === "1") {
     context.res.setHeader("X-Data-Fetch-Time", `${dataFetchEnd - dataFetchStart}ms`);
@@ -318,7 +330,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const eventTypes = eventTypesRaw.map((eventType) => ({
     ...eventType,
-    metadata: (eventType.metadata || {}) as JSONObject,
+    metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
   }));
 
   const isSingleUser = users.length === 1;

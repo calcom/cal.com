@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { EventTypeCustomInputType, WorkflowActions } from "@prisma/client";
-import { SchedulingType } from "@prisma/client";
 import { useMutation } from "@tanstack/react-query";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
@@ -13,13 +12,16 @@ import { ReactMultiEmail } from "react-multi-email";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
+import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import {
   locationKeyToString,
   getEventLocationValue,
   getEventLocationType,
   EventLocationType,
+  getHumanReadableLocationValue,
 } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { LocationObject, LocationType } from "@calcom/core/location";
 import dayjs from "@calcom/dayjs";
 import {
@@ -29,6 +31,7 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
+import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
@@ -50,8 +53,6 @@ import slugify from "@lib/slugify";
 
 import Gates, { Gate, GateState } from "@components/Gates";
 import BookingDescription from "@components/booking/BookingDescription";
-import { UserAvatars } from "@components/booking/UserAvatars";
-import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
 
 import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";
@@ -82,9 +83,10 @@ const BookingPage = ({
   recurringEventCount,
   hasHashedBookingLink,
   hashedLink,
+  ...restProps
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
-  const isEmbed = useIsEmbed();
+  const isEmbed = useIsEmbed(restProps.isEmbed);
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const router = useRouter();
@@ -98,6 +100,7 @@ const BookingPage = ({
     }),
     {}
   );
+  const stripeAppData = getStripeAppData(eventType);
 
   useEffect(() => {
     if (top !== window) {
@@ -112,14 +115,14 @@ const BookingPage = ({
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
-      const { id, attendees, paymentUid } = responseData;
+      const { id, paymentUid } = responseData;
       if (paymentUid) {
         return await router.push(
           createPaymentLink({
             paymentUid,
             date,
-            name: attendees[0].name,
-            email: attendees[0].email,
+            name: bookingForm.getValues("name"),
+            email: bookingForm.getValues("email"),
             absolute: false,
           })
         );
@@ -131,10 +134,10 @@ const BookingPage = ({
           date,
           type: eventType.id,
           eventSlug: eventType.slug,
-          user: profile.slug,
+          username: profile.slug,
           reschedule: !!rescheduleUid,
-          name: attendees[0].name,
-          email: attendees[0].email,
+          name: bookingForm.getValues("name"),
+          email: bookingForm.getValues("email"),
           location: responseData.location,
           eventName: profile.eventName || "",
           bookingId: id,
@@ -164,7 +167,7 @@ const BookingPage = ({
           type: eventType.id,
           eventSlug: eventType.slug,
           recur: recurringEventId,
-          user: profile.slug,
+          username: profile.slug,
           reschedule: !!rescheduleUid,
           name: attendees[0].name,
           email: attendees[0].email,
@@ -259,11 +262,13 @@ const BookingPage = ({
       phone: z
         .string()
         .refine((val) => isValidPhoneNumber(val))
-        .optional(),
+        .optional()
+        .nullable(),
       smsReminderNumber: z
         .string()
         .refine((val) => isValidPhoneNumber(val))
-        .optional(),
+        .optional()
+        .nullable(),
     })
     .passthrough();
 
@@ -355,7 +360,9 @@ const BookingPage = ({
         hasHashedBookingLink,
         hashedLink,
         smsReminderNumber:
-          selectedLocationType === LocationType.Phone ? booking.phone : booking.smsReminderNumber,
+          selectedLocationType === LocationType.Phone
+            ? booking.phone
+            : booking.smsReminderNumber || undefined,
         ethSignature: gateState.rainbowToken,
       }));
       recurringMutation.mutate(recurringBookings);
@@ -383,7 +390,9 @@ const BookingPage = ({
         hasHashedBookingLink,
         hashedLink,
         smsReminderNumber:
-          selectedLocationType === LocationType.Phone ? booking.phone : booking.smsReminderNumber,
+          selectedLocationType === LocationType.Phone
+            ? booking.phone
+            : booking.smsReminderNumber || undefined,
         ethSignature: gateState.rainbowToken,
       });
     }
@@ -397,6 +406,7 @@ const BookingPage = ({
     "dark:placeholder:text-darkgray-600 focus:border-brand dark:border-darkgray-300 dark:text-darkgray-900 block w-full rounded-md border-gray-300 text-sm focus:ring-black disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent dark:selection:bg-green-500 disabled:dark:text-gray-500";
 
   let isSmsReminderNumberNeeded = false;
+  let isSmsReminderNumberRequired = false;
 
   if (eventType.workflows.length > 0) {
     eventType.workflows.forEach((workflowReference) => {
@@ -404,23 +414,25 @@ const BookingPage = ({
         workflowReference.workflow.steps.forEach((step) => {
           if (step.action === WorkflowActions.SMS_ATTENDEE) {
             isSmsReminderNumberNeeded = true;
+            isSmsReminderNumberRequired = step.numberRequired || false;
             return;
           }
         });
       }
     });
   }
+  const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
 
   // Define conditional gates here
   const gates = [
     // Rainbow gate is only added if the event has both a `blockchainId` and a `smartContractAddress`
-    eventType.metadata && eventType.metadata.blockchainId && eventType.metadata.smartContractAddress
+    rainbowAppData && rainbowAppData.blockchainId && rainbowAppData.smartContractAddress
       ? ("rainbow" as Gate)
       : undefined,
   ];
 
   return (
-    <Gates gates={gates} metadata={eventType.metadata} dispatch={gateDispatcher}>
+    <Gates gates={gates} appData={rainbowAppData} dispatch={gateDispatcher}>
       <Head>
         <title>
           {rescheduleUid
@@ -436,6 +448,7 @@ const BookingPage = ({
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      <BookingPageTagManager eventType={eventType} />
       <CustomBranding lightVal={profile.brandColor} darkVal={profile.darkBrandColor} />
       <main
         className={classNames(
@@ -452,14 +465,14 @@ const BookingPage = ({
           <div className="sm:flex">
             <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
               <BookingDescription isBookingPage profile={profile} eventType={eventType}>
-                {eventType.price > 0 && (
+                {stripeAppData.price > 0 && (
                   <p className="text-bookinglight -ml-2 px-2 text-sm ">
                     <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
                     <IntlProvider locale="en">
                       <FormattedNumber
-                        value={eventType.price / 100.0}
+                        value={stripeAppData.price / 100.0}
                         style="currency"
-                        currency={eventType.currency.toUpperCase()}
+                        currency={stripeAppData.currency.toUpperCase()}
                       />
                     </IntlProvider>
                   </p>
@@ -511,7 +524,15 @@ const BookingPage = ({
                 )}
                 {!!eventType.seatsPerTimeSlot && (
                   <div className="text-bookinghighlight flex items-start text-sm">
-                    <Icon.FiUser className="mr-[10px] ml-[2px] mt-[2px] inline-block h-4 w-4" />
+                    <Icon.FiUser
+                      className={`mr-[10px] ml-[2px] mt-[2px] inline-block h-4 w-4 ${
+                        booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
+                          ? "text-rose-600"
+                          : booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.33
+                          ? "text-yellow-500"
+                          : "text-bookinghighlight"
+                      }`}
+                    />
                     <p
                       className={`${
                         booking && booking.attendees.length / eventType.seatsPerTimeSlot >= 0.5
@@ -572,37 +593,51 @@ const BookingPage = ({
                     )}
                   </div>
                 </div>
-                {locations.length > 1 && (
-                  <div className="mb-4">
-                    <span className="block text-sm font-medium text-gray-700 dark:text-white">
-                      {t("location")}
-                    </span>
-                    {locations.map((location, i) => {
-                      const locationString = locationKeyToString(location);
-                      // TODO: Right now selectedLocationType isn't send by getSSP. Once that's available defaultChecked should work and show the location in the original booking
-                      const defaultChecked = rescheduleUid ? selectedLocationType === location.type : i === 0;
-                      if (typeof locationString !== "string") {
-                        // It's possible that location app got uninstalled
-                        return null;
-                      }
-                      return (
-                        <label key={i} className="block">
-                          <input
-                            type="radio"
-                            disabled={!!disableLocations}
-                            className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
-                            {...bookingForm.register("locationType", { required: true })}
-                            value={location.type}
-                            defaultChecked={defaultChecked}
-                          />
-                          <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-white">
-                            {locationKeyToString(location)}
-                          </span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                )}
+                <>
+                  {rescheduleUid ? (
+                    <div className="mb-4">
+                      <span className="block text-sm font-medium text-gray-700 dark:text-white">
+                        {t("location")}
+                      </span>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {getHumanReadableLocationValue(booking?.location, t)}
+                      </p>
+                    </div>
+                  ) : (
+                    locations.length > 1 && (
+                      <div className="mb-4">
+                        <span className="block text-sm font-medium text-gray-700 dark:text-white">
+                          {t("location")}
+                        </span>
+                        {locations.map((location, i) => {
+                          const locationString = locationKeyToString(location);
+                          if (!selectedLocationType) {
+                            bookingForm.setValue("locationType", locations[0].type);
+                          }
+                          if (typeof locationString !== "string") {
+                            // It's possible that location app got uninstalled
+                            return null;
+                          }
+                          return (
+                            <label key={i} className="block">
+                              <input
+                                type="radio"
+                                disabled={!!disableLocations}
+                                className="location dark:bg-darkgray-300 dark:border-darkgray-300 h-4 w-4 border-gray-300 text-black focus:ring-black ltr:mr-2 rtl:ml-2"
+                                {...bookingForm.register("locationType", { required: true })}
+                                value={location.type}
+                                defaultChecked={i === 0}
+                              />
+                              <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-white">
+                                {locationKeyToString(location)}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )
+                  )}
+                </>
                 {/* TODO: Change name and id ="phone" to something generic */}
                 {AttendeeInput && (
                   <div className="mb-4">
@@ -770,7 +805,7 @@ const BookingPage = ({
                         name="smsReminderNumber"
                         placeholder={t("enter_phone_number")}
                         id="smsReminderNumber"
-                        required
+                        required={isSmsReminderNumberRequired}
                       />
                     </div>
                     {bookingForm.formState.errors.smsReminderNumber && (
@@ -799,6 +834,7 @@ const BookingPage = ({
                   ) : (
                     <textarea
                       {...bookingForm.register("notes")}
+                      required={!!eventType.metadata.additionalNotesRequired}
                       id="notes"
                       name="notes"
                       rows={3}

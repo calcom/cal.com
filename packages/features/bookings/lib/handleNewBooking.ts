@@ -1,13 +1,22 @@
-import { BookingStatus, Credential, Prisma, SchedulingType, WebhookTriggerEvents } from "@prisma/client";
+import {
+  BookingStatus,
+  Credential,
+  EventTypeCustomInput,
+  Prisma,
+  SchedulingType,
+  WebhookTriggerEvents,
+} from "@prisma/client";
 import async from "async";
 import type { NextApiRequest } from "next";
 import { RRule } from "rrule";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
+import z from "zod";
 
 import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
 import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
 import { handlePayment } from "@calcom/app-store/stripepayment/lib/server";
+import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
@@ -25,6 +34,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -32,9 +42,9 @@ import { checkBookingLimits, getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { userSelect } from "@calcom/prisma";
-import { extendedBookingCreateBody, requiredCustomInputSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
-import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
+import type { AdditionalInformation, AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import sendPayload, { EventTypeInfo } from "../../webhooks/lib/sendPayload";
@@ -143,6 +153,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       hideCalendarNotes: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
+      seatsShowAttendees: true,
       bookingLimits: true,
       workflows: {
         include: {
@@ -173,6 +184,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
 
   return {
     ...eventType,
+    metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
     locations: (eventType.locations ?? []) as LocationObject[],
   };
@@ -233,11 +245,19 @@ async function ensureAvailableUsers(
   return availableUsers;
 }
 
-async function handler(req: NextApiRequest & { userId?: number }) {
+async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   const { userId } = req;
 
-  const { recurringCount, noEmail, eventTypeSlug, eventTypeId, hasHashedBookingLink, language, ...reqBody } =
-    extendedBookingCreateBody.parse(req.body);
+  const {
+    recurringCount,
+    noEmail,
+    eventTypeSlug,
+    eventTypeId,
+    hasHashedBookingLink,
+    language,
+    appsStatus: reqAppsStatus,
+    ...reqBody
+  } = extendedBookingCreateBody.parse(req.body);
 
   // handle dynamic user
   const dynamicUserList = Array.isArray(reqBody.user)
@@ -252,16 +272,10 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
   if (!eventType) throw new HttpError({ statusCode: 404, message: "eventType.notFound" });
 
+  const stripeAppData = getStripeAppData(eventType);
+
   // Check if required custom inputs exist
-  if (eventType.customInputs) {
-    eventType.customInputs.forEach((customInput) => {
-      if (customInput.required) {
-        requiredCustomInputSchema.parse(
-          reqBody.customInputs.find((userInput) => userInput.label === customInput.label)?.value
-        );
-      }
-    });
-  }
+  handleCustomInputs(eventType.customInputs, reqBody.customInputs);
 
   let timeOutOfBounds = false;
   try {
@@ -354,12 +368,12 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       users = availableUsers;
     }
   }
-
   console.log("available users", users);
+  const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
 
   // @TODO: use the returned address somewhere in booking creation?
   // const address: string | undefined = await ...
-  await handleEthSignature(eventType.metadata, reqBody.ethSignature);
+  await handleEthSignature(rainbowAppData, reqBody.ethSignature);
 
   const [organizerUser] = users;
   const tOrganizer = await getTranslation(organizerUser.locale ?? "en", "common");
@@ -437,6 +451,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     hideCalendarNotes: eventType.hideCalendarNotes,
     requiresConfirmation: eventType.requiresConfirmation ?? false,
     eventTypeId: eventType.id,
+    seatsShowAttendees: !!eventType.seatsShowAttendees,
   };
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
@@ -497,7 +512,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
     const newSeat = booking.attendees.length !== 0;
 
-    await sendScheduledSeatsEmails(evt, invitee[0], newSeat);
+    await sendScheduledSeatsEmails(evt, invitee[0], newSeat, !!eventType.seatsShowAttendees);
 
     const credentials = await refreshCredentials(organizerUser.credentials);
     const eventManager = new EventManager({ ...organizerUser, credentials });
@@ -585,9 +600,10 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
     // If the user is not the owner of the event, new booking should be always pending.
     // Otherwise, an owner rescheduling should be always accepted.
-    const userReschedulingIsOwner = originalRescheduledBooking?.user?.id === userId;
+    // Before comparing make sure that userId is set, otherwise undefined === undefined
+    const userReschedulingIsOwner = userId && originalRescheduledBooking?.user?.id === userId;
     const isConfirmedByDefault =
-      (!eventType.requiresConfirmation && !eventType.price) || userReschedulingIsOwner;
+      (!eventType.requiresConfirmation && !stripeAppData.price) || userReschedulingIsOwner;
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
       title: evt.title,
@@ -661,7 +677,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       }
     }
 
-    if (typeof eventType.price === "number" && eventType.price > 0) {
+    if (typeof stripeAppData.price === "number" && stripeAppData.price > 0) {
       /* Validate if there is any stripe_payment credential for this user */
       /*  note: removes custom error message about stripe */
       await prisma.credential.findFirstOrThrow({
@@ -682,7 +698,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   let referencesToCreate: PartialReference[] = [];
 
   type Booking = Prisma.PromiseReturnType<typeof createBooking>;
-  let booking: Booking | null = null;
+  let booking: (Booking & { appsStatus?: AppsStatus[] }) | null = null;
   try {
     booking = await createBooking();
     // Sync Services
@@ -705,6 +721,39 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
   const credentials = await refreshCredentials(organizerUser.credentials);
   const eventManager = new EventManager({ ...organizerUser, credentials });
+
+  function handleAppsStatus(
+    results: EventResult<AdditionalInformation>[],
+    booking: (Booking & { appsStatus?: AppsStatus[] }) | null
+  ) {
+    // Taking care of apps status
+    const resultStatus: AppsStatus[] = results.map((app) => ({
+      appName: app.appName,
+      type: app.type,
+      success: app.success ? 1 : 0,
+      failures: !app.success ? 1 : 0,
+    }));
+
+    if (reqAppsStatus === undefined) {
+      if (booking !== null) {
+        booking.appsStatus = resultStatus;
+      }
+      evt.appsStatus = resultStatus;
+      return;
+    }
+    // From down here we can assume reqAppsStatus is not undefined anymore
+    // Other status exist, so this is the last booking of a series,
+    // proceeding to prepare the info for the event
+    const calcAppsStatus = reqAppsStatus.concat(resultStatus).reduce((prev, curr) => {
+      if (prev[curr.type]) {
+        prev[curr.type].success += curr.success;
+      } else {
+        prev[curr.type] = curr;
+      }
+      return prev;
+    }, {} as { [key: string]: AppsStatus });
+    evt.appsStatus = Object.values(calcAppsStatus);
+  }
 
   if (originalRescheduledBooking?.uid) {
     // Use EventManager to conditionally use all needed integrations.
@@ -739,6 +788,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
           metadata.hangoutLink = updatedEvent.hangoutLink;
           metadata.conferenceData = updatedEvent.conferenceData;
           metadata.entryPoints = updatedEvent.entryPoints;
+          handleAppsStatus(results, booking);
         }
       }
 
@@ -747,13 +797,13 @@ async function handler(req: NextApiRequest & { userId?: number }) {
           ...evt,
           additionalInformation: metadata,
           additionalNotes, // Resets back to the additionalNote input and not the override value
-          cancellationReason: reqBody.rescheduleReason,
+          cancellationReason: "$RCH$" + reqBody.rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
         });
       }
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
-  } else if (!eventType.requiresConfirmation && !eventType.price) {
+  } else if (!eventType.requiresConfirmation && !stripeAppData.price) {
     // Use EventManager to conditionally use all needed integrations.
     const createManager = await eventManager.create(evt);
 
@@ -778,6 +828,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
+        handleAppsStatus(results, booking);
       }
       if (noEmail !== true) {
         await sendScheduledEmails({
@@ -790,14 +841,15 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     }
   }
 
+  // FIXME: instead of requiresConfirmation, we should check if isConfirmedByDefault is set or not.
   if (eventType.requiresConfirmation && !rescheduleUid && noEmail !== true) {
     await sendOrganizerRequestEmail({ ...evt, additionalNotes });
     await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
   }
 
   if (
-    !Number.isNaN(eventType.price) &&
-    eventType.price > 0 &&
+    !Number.isNaN(stripeAppData.price) &&
+    stripeAppData.price > 0 &&
     !originalRescheduledBooking?.paid &&
     !!booking
   ) {
@@ -853,7 +905,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     eventTitle: eventType.title,
     eventDescription: eventType.description,
     requiresConfirmation: eventType.requiresConfirmation || null,
-    price: eventType.price,
+    price: stripeAppData.price,
     currency: eventType.currency,
     length: eventType.length,
   };
@@ -866,6 +918,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       rescheduleUid,
       metadata: reqBody.metadata,
       eventTypeId,
+      //FIXME: FOr consistency b/w webhook and actual DB state, it should use isConfirmedByDefault here
       status: eventType.requiresConfirmation ? "PENDING" : "ACCEPTED",
     }).catch((e) => {
       console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
@@ -914,3 +967,29 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 }
 
 export default handler;
+
+function handleCustomInputs(
+  eventTypeCustomInputs: EventTypeCustomInput[],
+  reqCustomInputs: {
+    value: string | boolean;
+    label: string;
+  }[]
+) {
+  eventTypeCustomInputs.forEach((etcInput) => {
+    if (etcInput.required) {
+      const input = reqCustomInputs.find((i) => i.label === etcInput.label);
+      if (etcInput.type === "BOOL") {
+        z.literal(true, {
+          errorMap: () => ({ message: `Missing ${etcInput.type} customInput: '${etcInput.label}'` }),
+        }).parse(input?.value);
+      } else {
+        // type: NUMBER are also passed as string
+        z.string({
+          errorMap: () => ({ message: `Missing ${etcInput.type} customInput: '${etcInput.label}'` }),
+        })
+          .min(1)
+          .parse(input?.value);
+      }
+    }
+  });
+}
