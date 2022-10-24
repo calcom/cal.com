@@ -332,11 +332,7 @@ function BookingListItem(booking: BookingItemProps) {
               </Badge>
             )}
             <div className="text-sm text-gray-400 sm:hidden">
-              <RecurringBookingsTooltip
-                booking={booking}
-                recurringStrings={recurringStrings}
-                recurringDates={recurringDates}
-              />
+              <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
             </div>
           </div>
 
