@@ -213,33 +213,18 @@ const SlotPicker = ({
 };
 
 function TimezoneDropdown({
-  onChangeTimeFormat,
   onChangeTimeZone,
   timeZone,
-  timeFormat,
-  hideTimeFormatToggle,
 }: {
-  onChangeTimeFormat: (newTimeFormat: string) => void;
   onChangeTimeZone: (newTimeZone: string) => void;
   timeZone?: string;
-  timeFormat: string;
-  hideTimeFormatToggle?: boolean;
 }) {
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
-
-  useEffect(() => {
-    handleToggle24hClock(!!getIs24hClockFromLocalStorage());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const handleSelectTimeZone = (newTimeZone: string) => {
     onChangeTimeZone(newTimeZone);
     localStorageTimeZone(newTimeZone);
     setIsTimeOptionsOpen(false);
-  };
-
-  const handleToggle24hClock = (is24hClock: boolean) => {
-    onChangeTimeFormat(is24hClock ? "HH:mm" : "h:mma");
   };
 
   return (
@@ -260,12 +245,7 @@ function TimezoneDropdown({
           hideWhenDetached
           align="start"
           className="animate-fade-in-up absolute left-0 top-2 w-80 max-w-[calc(100vw_-_1.5rem)]">
-          <TimeOptions
-            onSelectTimeZone={handleSelectTimeZone}
-            onToggle24hClock={handleToggle24hClock}
-            timeFormat={timeFormat}
-            hideTimeFormatToggle={hideTimeFormatToggle}
-          />
+          <TimeOptions onSelectTimeZone={handleSelectTimeZone} />
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>
@@ -352,18 +332,8 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const userList = eventType.users ? eventType.users.map((user) => user.username).filter(notEmpty) : [];
 
   const timezoneDropdown = useMemo(
-    () => (
-      <TimezoneDropdown
-        timeFormat={timeFormat}
-        onChangeTimeFormat={setTimeFormat}
-        timeZone={timeZone}
-        onChangeTimeZone={setTimeZone}
-        // Currently we don't allow the user to change the timeformat when they're logged in,
-        // the only way to change it is if they go to their profile.
-        hideTimeFormatToggle={!!timeFormatFromProfile}
-      />
-    ),
-    [timeZone, timeFormat, timeFormatFromProfile]
+    () => <TimezoneDropdown timeZone={timeZone} onChangeTimeZone={setTimeZone} />,
+    [timeZone]
   );
   const stripeAppData = getStripeAppData(eventType);
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
