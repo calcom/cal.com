@@ -1326,5 +1326,7 @@
   "saml_sp_acs_url_copied": "ACS URL copied!",
   "saml_sp_entity_id_copied": "SP Entity ID copied!",
   "saml_btn_configure": "Configure",
-  "add_calendar": "Add Calendar"
+  "add_calendar": "Add Calendar",
+  "no_event_types": "No event types setup",
+  "no_event_types_description": "{{name}} has not setup any event types for you to book."
 }
