@@ -1327,6 +1327,8 @@
   "saml_sp_entity_id_copied": "SP Entity ID copied!",
   "saml_btn_configure": "Configure",
   "add_calendar": "Add Calendar",
+  "limit_future_bookings":"Limit future bookings",
+  "limit_future_bookings_description":"Limit how far in the future this event can be booked",
   "no_event_types": "No event types setup",
   "no_event_types_description": "{{name}} has not setup any event types for you to book."
 }
