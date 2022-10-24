@@ -66,8 +66,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
             onValueChange={(timeFormat) => onTimeFormatChange(timeFormat === "24")}
             defaultValue={timeFormat === TimeFormat.TWELVE_HOUR ? "12" : "24"}
             options={[
-              { value: "12", label: "12h" },
-              { value: "24", label: "24h" },
+              { value: "12", label: t("12_hour_short") },
+              { value: "24", label: t("24_hour_short") },
             ]}
           />
         </div>
