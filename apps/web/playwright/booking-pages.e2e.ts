@@ -130,8 +130,11 @@ test.describe("pro user", () => {
     await pro.login();
 
     await page.goto("/bookings/unconfirmed");
-    await page.click('[data-testid="confirm"]');
+    await Promise.all([
+      page.click('[data-testid="confirm"]'),
+      page.waitForResponse((response) => response.url().includes("/api/trpc/viewer.bookings.confirm")),
+    ]);
     // This is the only booking in there that needed confirmation and now it should be empty screen
-    await page.waitForSelector('[data-testid="empty-screen"]');
+    await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();
   });
 });
