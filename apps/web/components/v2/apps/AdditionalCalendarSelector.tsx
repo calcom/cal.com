@@ -23,11 +23,11 @@ const ImageOption = (optionProps: OptionProps<{ [key: string]: string; type: App
       type={data.type}
       render={(installProps) => {
         return (
-          <Button {...installProps} className="w-full" color="minimal">
+          <Button {...installProps} className="flex w-full align-top" color="minimal">
             {data.image && (
               <img className="float-left mr-3 inline h-5 w-5" src={data.image} alt={data.label} />
             )}
-            <p>{`${t("add")} ${data.label}`}</p>
+            <p className="text-left">{`${t("add")} ${data.label}`}</p>
           </Button>
         );
       }}
@@ -64,10 +64,12 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
           <Select
             name="additionalCalendar"
             placeholder={
-              <Button className="rounded-md" StartIcon={Icon.FiPlus} color="secondary">
-                {t("add")}
-              </Button>
+              <div className="flex justify-start text-black">
+                <Icon.FiPlus className="-ml-1 h-4 w-4 ltr:mr-2 rtl:ml-2 rtl:-mr-1" />
+                <p>{t("add")}</p>
+              </div>
             }
+            className="min-w-44"
             options={options}
             isSearchable={false}
             isLoading={isLoading}
