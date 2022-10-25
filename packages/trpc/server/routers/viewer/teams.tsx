@@ -78,7 +78,7 @@ export const viewerTeamsRouter = createProtectedRouter()
   .mutation("create", {
     input: z.object({
       name: z.string(),
-      slug: z.string().optional().nullable(),
+      slug: z.string(),
       logo: z.string().optional().nullable(),
     }),
     async resolve({ ctx, input }) {

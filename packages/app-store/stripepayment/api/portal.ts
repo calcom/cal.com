@@ -41,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return;
       }
       const stripeSession = await stripe.billingPortal.sessions.create({
-        customer: team.stripeCustomerId,
+        customer: team.stripeCustomerId as string,
         return_url: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/settings/teams/${teamId}/billing`,
       });
       res.redirect(302, stripeSession.url);
