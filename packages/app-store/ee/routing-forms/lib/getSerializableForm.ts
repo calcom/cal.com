@@ -3,6 +3,9 @@ import { App_RoutingForms_Form } from "@prisma/client";
 import { SerializableForm } from "../types/types";
 import { zodFields, zodRoutes } from "../zod";
 
+/**
+ * Doesn't have deleted fields by default
+ */
 export function getSerializableForm<TForm extends App_RoutingForms_Form>(
   form: TForm,
   withDeletedFields = false

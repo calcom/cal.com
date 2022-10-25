@@ -259,7 +259,8 @@ const app_RoutingForms = createRouter()
 
           // Add back deleted fields in the end. Fields can't be deleted, to make sure columns never decrease which hugely simplifies CSV generation
           if (form) {
-            const serializedForm = getSerializableForm(form);
+            const serializedForm = getSerializableForm(form, true);
+            // Find all fields that are in DB(including deleted) but not in the mutation
             const deletedFields =
               serializedForm.fields?.filter((f) => !fields!.find((field) => field.id === f.id)) || [];
 
