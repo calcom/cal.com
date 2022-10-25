@@ -17,43 +17,34 @@ const Editor = dynamic<EditorProps>(() => import("react-draft-wysiwyg").then((mo
 const htmlToDraft = typeof window === "object" && require("html-to-draftjs").default;
 
 type TextEditorProps = {
-  addVariable: (isEmailSubject: boolean, variable: string) => void;
   form: UseFormReturn<FormValues>;
   stepNumber: number;
 };
 
-function TextEditor(props: TextEditorProps) {
-  const contentBlock = htmlToDraft(props.form.getValues(`steps.${props.stepNumber - 1}.reminderBody`) || "");
+function TextEditor({ form, stepNumber }: TextEditorProps) {
+  const contentBlock = htmlToDraft(form.getValues(`steps.${stepNumber - 1}.reminderBody`) || "");
   const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks);
 
   const [editorState, setEditorState] = useState(EditorState.createWithContent(contentState));
 
   return (
-    <div>
+    <>
       <Editor
         editorState={editorState}
         wrapperClassName="border border-gray-300 rounded-md "
         editorClassName=" p-3 -mt-3 bg-white rounded-md text-sm hover:border-gray-400"
         onEditorStateChange={setEditorState}
         onChange={() => {
-          props.form.clearErrors(`steps.${props.stepNumber - 1}.reminderBody`);
+          form.clearErrors(`steps.${stepNumber - 1}.reminderBody`);
           const value = draftToHtml(convertToRaw(editorState.getCurrentContent()))
             .replaceAll("&lt;", "<")
             .replaceAll("&gt;", ">")
             .replaceAll("<p></p>", "<br/>");
 
-          props.form.setValue(
-            `steps.${props.stepNumber - 1}.reminderBody`,
-            value.trim() !== "<br/>" ? value : null
-          );
+          form.setValue(`steps.${stepNumber - 1}.reminderBody`, value.trim() !== "<br/>" ? value : null);
         }}
         toolbarCustomButtons={[
-          <CustomOption
-            key={props.stepNumber}
-            editorState={editorState}
-            setEditorState={setEditorState}
-            addVariable={props.addVariable}
-          />,
+          <AddVariablesOption key={stepNumber} editorState={editorState} setEditorState={setEditorState} />,
         ]}
         toolbar={{
           options: ["inline", "fontSize", "list"],
@@ -66,17 +57,16 @@ function TextEditor(props: TextEditorProps) {
           },
         }}
       />
-    </div>
+    </>
   );
 }
 
-type Props = {
+type AddVariablesProps = {
   editorState: EditorState;
   setEditorState: Dispatch<SetStateAction<EditorState>>;
-  addVariable: (isEmailSubject: boolean, variable: string) => void;
 };
 
-function CustomOption({ editorState, setEditorState }: Props) {
+function AddVariablesOption({ editorState, setEditorState }: AddVariablesProps) {
   const addVariable = (isEmailSubject: boolean, variable: string) => {
     const contentState = Modifier.replaceText(
       editorState.getCurrentContent(),
