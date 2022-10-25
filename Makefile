@@ -54,7 +54,7 @@ deploy_to_production:
 		--secrets DATABASE_URL=${SSM_PRODUCTION}/DATABASE_URL,NEXTAUTH_SECRET=${SSM_PRODUCTION}/NEXTAUTH_SECRET,CALENDSO_ENCRYPTION_KEY=${SSM_PRODUCTION}/CALENDSO_ENCRYPTION_KEY,GOOGLE_API_CREDENTIALS=${SSM_SHARED}/GOOGLE_API_CREDENTIALS \
 		--image ${IMAGE} \
 		--command "sh /calcom/scripts/start.sh" \
-		--desired-count "1" \
+		--desired-count "3" \
 		--memory-reservation 1024 \
 		--memory 2048 \
 		--port "3000"
