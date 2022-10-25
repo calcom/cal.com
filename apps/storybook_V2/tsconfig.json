@@ -5,8 +5,5 @@
   "compilerOptions": {
     "noImplicitAny": false,
     "baseUrl": "."
-  },
-  "paths": {
-    "crypto": ["node_modules/crypto-browserify"]
   }
 }
