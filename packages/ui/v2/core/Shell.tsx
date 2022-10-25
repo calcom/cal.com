@@ -170,7 +170,7 @@ type LayoutProps = {
   TopNavContainer?: ReactNode;
   drawerState?: DrawerState;
   HeadingLeftIcon?: ReactNode;
-  backPath?: string; // renders back button to specified path
+  backPath?: string | boolean; // renders back button to specified path
   // use when content needs to expand with flex
   flexChildrenContainer?: boolean;
   isPublic?: boolean;
@@ -773,7 +773,9 @@ export function ShellMain(props: LayoutProps) {
           <Button
             size="icon"
             color="minimal"
-            onClick={() => router.push(props.backPath as string)}
+            onClick={() =>
+              typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
+            }
             StartIcon={Icon.FiArrowLeft}
             aria-label="Go Back"
             className="ltr:mr-2 rtl:ml-2"
