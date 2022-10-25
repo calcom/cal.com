@@ -4,22 +4,17 @@ import prisma from "@calcom/prisma";
 
 export type BillingFrequency = "monthly" | "yearly";
 
-export const purchaseTeamSubscription = async (
-  teamId: number,
-  billingFrequency: "monthly" | "yearly",
-  seats: number,
-  email: string
-) => {
+export const purchaseTeamSubscription = async (input: { teamId: number; seats: number; email: string }) => {
+  const { teamId, seats, email } = input;
   return await stripe.checkout.sessions.create({
     mode: "subscription",
     success_url: `${CAL_URL}/settings/teams/${teamId}/profile`,
     cancel_url: `${CAL_URL}/settings/profile`,
+    locale: "en",
     line_items: [
       {
-        price:
-          billingFrequency === "monthly"
-            ? process.env.STRIPE_TEAM_MONTHLY_PRICE_ID
-            : process.env.STRIPE_TEAM_YEARLY_PRICE_ID,
+        /** We only need to set the base price and we can upsell it directly on Stripe's checkout  */
+        price: process.env.STRIPE_TEAM_MONTHLY_PRICE_ID,
         quantity: seats,
       },
     ],

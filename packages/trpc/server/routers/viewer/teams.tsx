@@ -482,18 +482,12 @@ export const viewerTeamsRouter = createProtectedRouter()
   .mutation("purchaseTeamSubscription", {
     input: z.object({
       teamId: z.number(),
-      billingFrequency: z.union([z.literal("monthly"), z.literal("yearly")]),
       seats: z.number(),
     }),
     async resolve({ ctx, input }) {
       if (!IS_STRIPE_ENABLED)
         throw new TRPCError({ code: "FORBIDDEN", message: "Team billing is not enabled" });
-      return await purchaseTeamSubscription(
-        input.teamId,
-        input.billingFrequency,
-        input.seats,
-        ctx.user.email
-      );
+      return await purchaseTeamSubscription({ ...input, email: ctx.user.email });
     },
   })
   .query("getTeamSeats", {
