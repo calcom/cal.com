@@ -79,6 +79,9 @@ export default class EventManager {
     const appCredentials = getApps(user.credentials).flatMap((app) =>
       app.credentials.map((creds) => ({ ...creds, appName: app.name }))
     );
+    // This includes all calendar-related apps, traditional calendars such as Google Calendar
+    // (type google_calendar) and non-traditional calendars such as CRMs like Close.com
+    // (type closecom_other_calendar)
     this.calendarCredentials = appCredentials.filter((cred) => cred.type.endsWith("_calendar"));
     this.videoCredentials = appCredentials.filter((cred) => cred.type.endsWith("_video"));
   }
