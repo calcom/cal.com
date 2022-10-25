@@ -452,7 +452,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       </div>
                     </button>
                   </div>
-                  <div className="mt-2" />
                 </div>
               )}
               {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
