@@ -5,7 +5,7 @@ import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn
 import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 import { Alert } from "../Alert";
 

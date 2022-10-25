@@ -1,25 +1,19 @@
 import { FC, useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Switch } from "@calcom/ui/v2";
 import TimezoneSelect, { ITimezoneOption } from "@calcom/ui/v2/core/TimezoneSelect";
 
-import { is24h, timeZone } from "../../lib/clock";
+import { timeZone } from "../../lib/clock";
 
 type Props = {
   onSelectTimeZone: (selectedTimeZone: string) => void;
-  onToggle24hClock: (is24hClock: boolean) => void;
-  timeFormat: string;
-  hideTimeFormatToggle?: boolean;
 };
 
-const TimeOptions: FC<Props> = ({ onToggle24hClock, onSelectTimeZone, timeFormat, hideTimeFormatToggle }) => {
+const TimeOptions: FC<Props> = ({ onSelectTimeZone }) => {
   const [selectedTimeZone, setSelectedTimeZone] = useState("");
-  const [is24hClock, setIs24hClock] = useState(timeFormat === "HH:mm" && true);
   const { t } = useLocale();
 
   useEffect(() => {
-    setIs24hClock(is24h());
     setSelectedTimeZone(timeZone());
   }, []);
 
@@ -29,28 +23,10 @@ const TimeOptions: FC<Props> = ({ onToggle24hClock, onSelectTimeZone, timeFormat
     }
   }, [selectedTimeZone, onSelectTimeZone]);
 
-  const handle24hClockToggle = (is24hClock: boolean) => {
-    setIs24hClock(is24hClock);
-    onToggle24hClock(is24h(is24hClock));
-  };
-
   return selectedTimeZone !== "" ? (
     <div className="dark:border-darkgray-300 dark:bg-darkgray-200 rounded-sm border border-gray-200 bg-white px-4 pt-4 pb-3 shadow-sm">
       <div className="mb-4 flex">
         <div className="text-sm font-medium text-gray-600 dark:text-white">{t("time_options")}</div>
-        {!hideTimeFormatToggle && (
-          <div className="ml-auto flex items-center">
-            <label className="ltl:mr-3 mr-2 align-text-top text-sm font-medium text-neutral-700 ltr:ml-3 rtl:mr-3 dark:text-white">
-              {t("am_pm")}
-            </label>
-            <Switch
-              name="24hClock"
-              label={t("24_h")}
-              defaultChecked={is24hClock}
-              onCheckedChange={handle24hClockToggle}
-            />
-          </div>
-        )}
       </div>
       <TimezoneSelect
         id="timeZone"
