@@ -164,7 +164,6 @@ function WorkflowPage() {
         let isEmpty = false;
 
         values.steps.forEach((step) => {
-          console.log("reminderbody: " + step.reminderBody);
           const isBodyEmpty = step.template === WorkflowTemplates.CUSTOM && !step.reminderBody;
           if (isBodyEmpty) {
             form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {

@@ -415,7 +415,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                         </Label>
                       </div>
-                      <TextEditor form={form} addVariable={addVariable} stepNumber={step.stepNumber} />
+                      <TextEditor form={form} stepNumber={step.stepNumber} />
                     </>
                   ) : (
                     <>
