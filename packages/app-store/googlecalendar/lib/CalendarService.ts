@@ -90,7 +90,7 @@ export default class GoogleCalendarService implements Calendar {
           },
           // eslint-disable-next-line
           ...calEventRaw.attendees.map(({ id, ...rest }) => ({
-            rest,
+            ...rest,
             responseStatus: "accepted",
           })),
         ],
@@ -179,7 +179,7 @@ export default class GoogleCalendarService implements Calendar {
           },
           // eslint-disable-next-line
           ...event.attendees.map(({ id, ...rest }) => ({
-            rest,
+            ...rest,
             responseStatus: "accepted",
           })),
         ],
