@@ -6,9 +6,6 @@ export const parameters = {
       date: /Date$/,
     },
   },
-  nextRouter: {
-    Provider: RouterContext.Provider,
-  },
 };
 
 window.getEmbedNamespace = () => {
