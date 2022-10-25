@@ -329,11 +329,10 @@ export default class EventManager {
        *  Not ideal but, if we don't find a destination calendar,
        * fallback to the first connected calendar
        */
-      const [credential] = this.calendarCredentials;
-      if (!credential) {
-        return [];
+      const [credential] = this.calendarCredentials.filter((cred) => cred.type === "calendar");
+      if (credential) {
+        createdEvents.push(await createEvent(credential, event));
       }
-      createdEvents.push(await createEvent(credential, event));
     }
 
     // Taking care of non-traditional calendar integrations
