@@ -830,6 +830,7 @@
   "time_format": "Format vremena",
   "12_hour": "12 sati",
   "24_hour": "24 sata",
+  "24_hour_short": "24 sata",
   "redirect_success_booking": "Preusmeri na rezervaciju ",
   "you_are_being_redirected": "Preusmeravamo vas na {{ url }} za $t(second, {\"count\": {{seconds}} }).",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
@@ -1324,5 +1325,6 @@
   "saml_sp_entity_id": "SP entitet ID",
   "saml_sp_acs_url_copied": "ACS URL je kopiran!",
   "saml_sp_entity_id_copied": "SP entitet ID je kopiran!",
-  "saml_btn_configure": "Konfiguracija"
+  "saml_btn_configure": "Konfiguracija",
+  "add_calendar": "Dodajte kalendar"
 }
