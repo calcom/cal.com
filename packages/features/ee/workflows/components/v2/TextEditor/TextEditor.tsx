@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import { EditorState, Modifier, ContentState, convertToRaw } from "draft-js";
 import draftToHtml from "draftjs-to-html";
-import { FormValues } from "ee/workflows/pages/v2/workflow";
 import dynamic from "next/dynamic";
 import { useState, Dispatch, SetStateAction } from "react";
 import { EditorProps } from "react-draft-wysiwyg";
 import { UseFormReturn } from "react-hook-form";
 
+import { FormValues } from "../../../pages/v2/workflow";
 import { AddVariablesDropdown } from "../AddVariablesDropdown";
 import "./styles.css";
 
