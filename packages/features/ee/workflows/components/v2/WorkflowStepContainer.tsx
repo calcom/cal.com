@@ -406,12 +406,40 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         )}
                     </div>
                   )}
-                  <div className="mb-2 flex items-center pb-[1.5px]">
-                    <Label className="mb-0 flex-none ">
-                      {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
-                    </Label>
-                  </div>
-                  <TextEditor form={form} addVariable={addVariable} stepNumber={step.stepNumber} />
+
+                  {step.action !== WorkflowActions.SMS_ATTENDEE &&
+                  step.action !== WorkflowActions.SMS_NUMBER ? (
+                    <>
+                      <div className="mb-2 flex items-center pb-[1.5px]">
+                        <Label className="mb-0 flex-none ">
+                          {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
+                        </Label>
+                      </div>
+                      <TextEditor form={form} addVariable={addVariable} stepNumber={step.stepNumber} />
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center">
+                        <Label className="mb-0 flex-none">
+                          {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
+                        </Label>
+                        <div className="flex-grow text-right">
+                          <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} />
+                        </div>
+                      </div>
+                      <TextArea
+                        ref={(e) => {
+                          reminderBodyFormRef?.(e);
+                          refReminderBody.current = e;
+                        }}
+                        className="my-0 h-24"
+                        required
+                        {...restReminderBodyForm}
+                      />
+                    </>
+                  )}
+                  <Button onClick={() => console.log(form.getValues())}>{t("test")}</Button>
+
                   {form.formState.errors.steps &&
                     form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
                       <p className="mt-1 text-sm text-red-500">

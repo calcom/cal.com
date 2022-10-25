@@ -56,6 +56,7 @@ const formSchema = z.object({
       sendTo: z
         .string()
         .refine((val) => isValidPhoneNumber(val) || val.includes("@"))
+        .optional()
         .nullable(),
     })
     .array(),
@@ -163,6 +164,7 @@ function WorkflowPage() {
         let isEmpty = false;
 
         values.steps.forEach((step) => {
+          console.log("reminderbody: " + step.reminderBody);
           const isBodyEmpty = step.template === WorkflowTemplates.CUSTOM && !step.reminderBody;
           if (isBodyEmpty) {
             form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
