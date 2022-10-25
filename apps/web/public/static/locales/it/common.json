@@ -829,6 +829,7 @@
   "time_format": "Formato dell'orario",
   "12_hour": "12 ore",
   "24_hour": "24 ore",
+  "24_hour_short": "24 ore",
   "redirect_success_booking": "Reindirizza su prenotazione ",
   "you_are_being_redirected": "Verrai reindirizzato a {{ url }} tra $t(second, {\"count\": {{seconds}} }).",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",

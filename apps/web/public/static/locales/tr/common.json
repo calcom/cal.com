@@ -830,6 +830,7 @@
   "time_format": "Saat biçimi",
   "12_hour": "12 saat",
   "24_hour": "24 saat",
+  "24_hour_short": "24 sa",
   "redirect_success_booking": "Rezervasyonu yönlendir ",
   "you_are_being_redirected": "$t(second, {\"count\": {{seconds}} }) içinde {{ url }} adresine yönlendirileceksiniz.",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
