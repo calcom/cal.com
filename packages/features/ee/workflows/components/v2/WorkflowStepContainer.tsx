@@ -438,8 +438,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       />
                     </>
                   )}
-                  <Button onClick={() => console.log(form.getValues())}>{t("test")}</Button>
-
                   {form.formState.errors.steps &&
                     form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
                       <p className="mt-1 text-sm text-red-500">
