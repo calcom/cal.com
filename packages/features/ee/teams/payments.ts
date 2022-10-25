@@ -37,16 +37,16 @@ export const purchaseTeamSubscription = async (
 };
 
 export const getStripeIdsForTeam = async (teamId: number) => {
-  const teamStripeIds = await prisma.team.findFirst({
+  const teamQuery = await prisma.team.findFirst({
     where: {
       id: teamId,
     },
     select: {
-      stripeCustomerId: true,
-      stripeSubscriptionId: true,
-      subscriptionStatus: true,
+      metadata: true,
     },
   });
+
+  const teamStripeIds = { ...teamQuery.metadata };
 
   return teamStripeIds;
 };
@@ -56,11 +56,11 @@ export const deleteTeamFromStripe = async (teamId: number) => {
     where: {
       id: teamId,
     },
-    select: { stripeCustomerId: true },
+    select: { metadata: true },
   });
 
-  if (stripeCustomerId?.stripeCustomerId) {
-    await stripe.customers.del(stripeCustomerId.stripeCustomerId);
+  if (stripeCustomerId?.metadata.stripeCustomerId) {
+    await stripe.customers.del(stripeCustomerId.metadata.stripeCustomerId);
     return;
   } else {
     throw new Error("Team not found");

@@ -197,19 +197,17 @@ model User {
 }
 
 model Team {
-  id                   Int          @id @default(autoincrement())
+  id           Int          @id @default(autoincrement())
   /// @zod.min(1)
-  name                 String
+  name         String
   /// @zod.min(1)
-  slug                 String       @unique
-  logo                 String?
-  bio                  String?
-  hideBranding         Boolean      @default(false)
-  members              Membership[]
-  eventTypes           EventType[]
-  stripeCustomerId     String?
-  stripeSubscriptionId String?
-  subscriptionStatus   String?
+  slug         String       @unique
+  logo         String?
+  bio          String?
+  hideBranding Boolean      @default(false)
+  members      Membership[]
+  eventTypes   EventType[]
+  metadata     Json?
 }
 
 enum MembershipRole {

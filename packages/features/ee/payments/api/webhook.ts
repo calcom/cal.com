@@ -174,9 +174,11 @@ async function handleTeamSubscriptionSuccess(event: Stripe.Event) {
         id: parseInt(checkoutSession.metadata.teamId),
       },
       data: {
-        stripeCustomerId: checkoutSession.customer as string,
-        stripeSubscriptionId: checkoutSession.subscription as string,
-        subscriptionStatus: "active",
+        metadata: {
+          stripeCustomerId: checkoutSession.customer as string,
+          stripeSubscriptionId: checkoutSession.subscription as string,
+          subscriptionStatus: "active",
+        },
       },
     });
   } else {

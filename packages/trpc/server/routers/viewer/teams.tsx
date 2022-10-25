@@ -2,19 +2,16 @@ import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
 import {
   addSeat,
-  downgradeTeamMembers,
   ensureSubscriptionQuantityCorrectness,
   getTeamSeatStats,
   removeSeat,
-  upgradeTeam,
 } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { deleteTeamFromStripe, purchaseTeamSubscription } from "@calcom/features/ee/teams/payments";
-import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES, WEBAPP_URL, IS_STRIPE_ENABLED } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTeamWithMembers, isTeamAdmin, isTeamOwner, isTeamMember } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
@@ -482,17 +479,6 @@ export const viewerTeamsRouter = createProtectedRouter()
       );
     },
   })
-  // Can we get rid of this function?
-  // .mutation("upgradeTeam", {
-  //   input: z.object({
-  //     teamId: z.number(),
-  //   }),
-  //   async resolve({ ctx, input }) {
-  //     if (!HOSTED_CAL_FEATURES)
-  //       throw new TRPCError({ code: "FORBIDDEN", message: "Team billing is not enabled" });
-  //     return await upgradeTeam(ctx.user.id, input.teamId);
-  //   },
-  // })
   .mutation("purchaseTeamSubscription", {
     input: z.object({
       teamId: z.number(),
@@ -500,9 +486,8 @@ export const viewerTeamsRouter = createProtectedRouter()
       seats: z.number(),
     }),
     async resolve({ ctx, input }) {
-      // Should this conditional still be here?
-      // if (!HOSTED_CAL_FEATURES)
-      //   throw new TRPCError({ code: "FORBIDDEN", message: "Team billing is not enabled" });
+      if (!IS_STRIPE_ENABLED)
+        throw new TRPCError({ code: "FORBIDDEN", message: "Team billing is not enabled" });
       return await purchaseTeamSubscription(
         input.teamId,
         input.billingFrequency,
