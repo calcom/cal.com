@@ -204,7 +204,6 @@ export default abstract class BaseCalendarService implements Calendar {
         })
       ).then((parameter) =>
         parameter.map((res) => {
-          console.log("response=>", res.status);
           if (res.status > 199 && res.status < 207) {
             const ret = {
               uid,
@@ -356,7 +355,7 @@ export default abstract class BaseCalendarService implements Calendar {
           } catch (error) {
             if (error instanceof Error && error.message !== currentError) {
               currentError = error.message;
-              console.log("error", error);
+              this.log.error("error", error);
             }
           }
           if (!currentEvent) return;
