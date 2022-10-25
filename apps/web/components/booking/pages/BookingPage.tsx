@@ -31,6 +31,7 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
+import { formatTime } from "@calcom/lib/date-fns";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -46,6 +47,7 @@ import { Button } from "@calcom/ui/v2";
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
+import useMeQuery from "@lib/hooks/useMeQuery";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
@@ -86,6 +88,9 @@ const BookingPage = ({
   ...restProps
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
+  // Get user so we can determine 12/24 hour format preferences
+  const query = useMeQuery();
+  const user = query.data;
   const isEmbed = useIsEmbed(restProps.isEmbed);
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
@@ -493,15 +498,25 @@ const BookingPage = ({
                   <Icon.FiCalendar className="mr-[10px] ml-[2px] mt-[2px] inline-block h-4 w-4" />
                   <div className="text-sm font-medium">
                     {(rescheduleUid || !eventType.recurringEvent?.freq) &&
-                      parseDate(dayjs(date).tz(timeZone()), i18n)}
+                      `${formatTime(dayjs(date).toDate(), user?.timeFormat, user?.timeZone)}, ${dayjs(
+                        date
+                      ).format("dddd, D MMMM YYYY")}`}
                     {!rescheduleUid &&
                       eventType.recurringEvent?.freq &&
-                      recurringStrings.slice(0, 5).map((aDate, key) => <p key={key}>{aDate}</p>)}
+                      recurringDates.slice(0, 5).map((aDate, key) => {
+                        return (
+                          <p key={key}>{`${formatTime(aDate, user?.timeFormat, user?.timeZone)}, ${dayjs(
+                            aDate
+                          ).format("dddd, D MMMM YYYY")}`}</p>
+                        );
+                      })}
                     {!rescheduleUid && eventType.recurringEvent?.freq && recurringStrings.length > 5 && (
                       <div className="flex">
                         <Tooltip
-                          content={recurringStrings.slice(5).map((aDate, key) => (
-                            <p key={key}>{aDate}</p>
+                          content={recurringDates.slice(5).map((aDate, key) => (
+                            <p key={key}>{`${formatTime(aDate, user?.timeFormat, user?.timeZone)}, ${dayjs(
+                              aDate
+                            ).format("dddd, D MMMM YYYY")}`}</p>
                           ))}>
                           <p className="dark:text-darkgray-600 text-sm">
                             {t("plus_more", { count: recurringStrings.length - 5 })}

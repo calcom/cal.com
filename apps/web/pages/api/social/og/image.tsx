@@ -51,6 +51,7 @@ export default async function handler(req: NextApiRequest) {
       { name: "inter", data: interFontData, weight: 400 },
       { name: "inter", data: interFontMediumData, weight: 500 },
       { name: "cal", data: calFontData, weight: 400 },
+      { name: "cal", data: calFontData, weight: 600 },
     ] as SatoriOptions["fonts"],
   };
 
