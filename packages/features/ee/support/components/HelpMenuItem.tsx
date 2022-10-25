@@ -3,10 +3,10 @@ import { useChat } from "react-live-chat-loader";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import Button from "@calcom/ui/v2/core/Button";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 import ContactMenuItem from "./ContactMenuItem";
 

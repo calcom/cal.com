@@ -141,7 +141,15 @@ type SuccessProps = inferSSRProps<typeof getServerSideProps>;
 export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
-  const { location: _location, name, reschedule, listingStatus, status, isSuccessBookingPage } = router.query;
+  const {
+    location: _location,
+    name,
+    email,
+    reschedule,
+    listingStatus,
+    status,
+    isSuccessBookingPage,
+  } = router.query;
   const location: ReturnType<typeof getEventLocationValue> = Array.isArray(_location)
     ? _location[0] || ""
     : _location || "";
@@ -357,14 +365,23 @@ export default function Success(props: SuccessProps) {
                               <p className="text-bookinglight">{bookingInfo.user.email}</p>
                             </div>
                           )}
-                          {bookingInfo?.attendees.map((attendee, index) => (
-                            <div
-                              key={attendee.name}
-                              className={index === bookingInfo.attendees.length - 1 ? "" : "mb-3"}>
-                              <p>{attendee.name}</p>
-                              <p className="text-bookinglight">{attendee.email}</p>
-                            </div>
-                          ))}
+                          {!!eventType.seatsShowAttendees
+                            ? bookingInfo?.attendees
+                                .filter((attendee) => attendee.email === email)
+                                .map((attendee) => (
+                                  <div key={attendee.name} className="mb-3">
+                                    <p>{attendee.name}</p>
+                                    <p className="text-bookinglight">{attendee.email}</p>
+                                  </div>
+                                ))
+                            : bookingInfo?.attendees.map((attendee, index) => (
+                                <div
+                                  key={attendee.name}
+                                  className={index === bookingInfo.attendees.length - 1 ? "" : "mb-3"}>
+                                  <p>{attendee.name}</p>
+                                  <p className="text-bookinglight">{attendee.email}</p>
+                                </div>
+                              ))}
                         </div>
                       </>
                     )}
@@ -425,7 +442,7 @@ export default function Success(props: SuccessProps) {
                         {!props.recurringBookings && (
                           <span className="text-bookinglight inline text-gray-700">
                             <span className="underline">
-                              <Link href={"/reschedule/" + bookingInfo?.uid}>{t("reschedule")}</Link>
+                              <Link href={`/reschedule/${bookingInfo?.uid}`}>{t("reschedule")}</Link>
                             </span>
                             <span className="mx-2">{t("or_lowercase")}</span>
                           </span>
@@ -443,7 +460,7 @@ export default function Success(props: SuccessProps) {
                     </>
                   ) : (
                     <CancelBooking
-                      booking={{ uid: bookingInfo?.uid, title: bookingInfo?.title }}
+                      booking={{ uid: bookingInfo?.uid, title: bookingInfo?.title, id: bookingInfo?.id }}
                       profile={{ name: props.profile.name, slug: props.profile.slug }}
                       recurringEvent={eventType.recurringEvent}
                       team={eventType?.team?.name}
@@ -621,8 +638,6 @@ export function RecurringBookings({
     : null;
 
   if (recurringBookingsSorted && listingStatus === "recurring") {
-    // recurring bookings should only be adjusted to the start date.
-    const utcOffset = dayjs(recurringBookingsSorted[0]).utcOffset();
     return (
       <>
         {eventType.recurringEvent?.count && (
@@ -637,10 +652,9 @@ export function RecurringBookings({
         {eventType.recurringEvent?.count &&
           recurringBookingsSorted.slice(0, 4).map((dateStr, idx) => (
             <div key={idx} className="mb-2">
-              {dayjs(dateStr).utcOffset(utcOffset).format("MMMM DD, YYYY")}
+              {dayjs(dateStr).format("MMMM DD, YYYY")}
               <br />
-              {dayjs(dateStr).utcOffset(utcOffset).format("LT")} -{" "}
-              {dayjs(dateStr).utcOffset(utcOffset).add(eventType.length, "m").format("LT")}{" "}
+              {dayjs(dateStr).format("LT")} - {dayjs(dateStr).add(eventType.length, "m").format("LT")}{" "}
               <span className="text-bookinglight">
                 ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
               </span>
@@ -657,10 +671,9 @@ export function RecurringBookings({
               {eventType.recurringEvent?.count &&
                 recurringBookingsSorted.slice(4).map((dateStr, idx) => (
                   <div key={idx} className="mb-2">
-                    {dayjs(dateStr).utcOffset(utcOffset).format("MMMM DD, YYYY")}
+                    {dayjs(dateStr).format("MMMM DD, YYYY")}
                     <br />
-                    {dayjs(dateStr).utcOffset(utcOffset).format("LT")} -{" "}
-                    {dayjs(dateStr).utcOffset(utcOffset).add(eventType.length, "m").format("LT")}{" "}
+                    {dayjs(dateStr).format("LT")} - {dayjs(dateStr).add(eventType.length, "m").format("LT")}{" "}
                     <span className="text-bookinglight">
                       ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
                     </span>
@@ -725,6 +738,7 @@ const getEventTypesFromDB = async (id: number) => {
         },
       },
       metadata: true,
+      seatsShowAttendees: true,
     },
   });
 
@@ -839,6 +853,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     where,
     select: {
       title: true,
+      id: true,
       uid: true,
       description: true,
       customInputs: true,
