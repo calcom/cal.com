@@ -829,6 +829,7 @@
   "time_format": "Tidsformat",
   "12_hour": "12 timmar",
   "24_hour": "24 timmar",
+  "24_hour_short": "24 timmar",
   "redirect_success_booking": "Omdirigera vid bokning ",
   "you_are_being_redirected": "Du omdirigeras till {{ url }} om $t(second, {\"count\": {{seconds}} }).",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",

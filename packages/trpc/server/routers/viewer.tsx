@@ -246,6 +246,40 @@ const loggedInViewerRouter = createProtectedRouter()
       return;
     },
   })
+  .mutation("deleteMeWithoutPassword", {
+    async resolve({ ctx }) {
+      const user = await prisma.user.findUnique({
+        where: {
+          email: ctx.user.email.toLowerCase(),
+        },
+      });
+      if (!user) {
+        throw new Error(ErrorCode.UserNotFound);
+      }
+
+      if (user.identityProvider === IdentityProvider.CAL) {
+        throw new Error(ErrorCode.SocialIdentityProviderRequired);
+      }
+
+      if (user.twoFactorEnabled) {
+        throw new Error(ErrorCode.SocialIdentityProviderRequired);
+      }
+
+      // Remove me from Stripe
+      await deleteStripeCustomer(user).catch(console.warn);
+
+      // Remove my account
+      const deletedUser = await ctx.prisma.user.delete({
+        where: {
+          id: ctx.user.id,
+        },
+      });
+      // Sync Services
+      syncServicesDeleteWebUser(deletedUser);
+
+      return;
+    },
+  })
   .mutation("away", {
     input: z.object({
       away: z.boolean(),

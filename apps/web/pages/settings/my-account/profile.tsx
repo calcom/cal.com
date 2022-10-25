@@ -1,3 +1,4 @@
+import { IdentityProvider } from "@prisma/client";
 import crypto from "crypto";
 import { signOut } from "next-auth/react";
 import { useRef, useState, BaseSyntheticEvent, useEffect } from "react";
@@ -111,23 +112,41 @@ const ProfileView = () => {
       await utils.invalidateQueries(["viewer.me"]);
     },
   });
+  const deleteMeWithoutPasswordMutation = trpc.useMutation("viewer.deleteMeWithoutPassword", {
+    onSuccess: onDeleteMeSuccessMutation,
+    onError: onDeleteMeErrorMutation,
+    async onSettled() {
+      await utils.invalidateQueries(["viewer.me"]);
+    },
+  });
+
+  const isCALIdentityProviver = user?.identityProvider === IdentityProvider.CAL;
 
   const onConfirmPassword = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
     e.preventDefault();
+
     const password = passwordRef.current.value;
     confirmPasswordMutation.mutate({ passwordInput: password });
   };
 
   const onConfirmButton = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
     e.preventDefault();
-    const totpCode = form.getValues("totpCode");
-    const password = passwordRef.current.value;
-    deleteMeMutation.mutate({ password, totpCode });
+    if (isCALIdentityProviver) {
+      const totpCode = form.getValues("totpCode");
+      const password = passwordRef.current.value;
+      deleteMeMutation.mutate({ password, totpCode });
+    } else {
+      deleteMeWithoutPasswordMutation.mutate();
+    }
   };
   const onConfirm = ({ totpCode }: DeleteAccountValues, e: BaseSyntheticEvent | undefined) => {
     e?.preventDefault();
-    const password = passwordRef.current.value;
-    deleteMeMutation.mutate({ password, totpCode });
+    if (isCALIdentityProviver) {
+      const password = passwordRef.current.value;
+      deleteMeMutation.mutate({ password, totpCode });
+    } else {
+      deleteMeWithoutPasswordMutation.mutate();
+    }
   };
 
   const formMethods = useForm<{
@@ -178,7 +197,7 @@ const ProfileView = () => {
       <Form
         form={formMethods}
         handleSubmit={(values) => {
-          if (values.email !== user?.email) {
+          if (values.email !== user?.email && isCALIdentityProviver) {
             setConfirmPasswordOpen(true);
           } else {
             mutation.mutate(values);
@@ -260,18 +279,20 @@ const ProfileView = () => {
             actionOnClick={(e) => e && onConfirmButton(e)}>
             <>
               <p className="mb-7">{t("delete_account_confirmation_message")}</p>
-              <PasswordField
-                data-testid="password"
-                name="password"
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                label="Password"
-                ref={passwordRef}
-              />
+              {isCALIdentityProviver && (
+                <PasswordField
+                  data-testid="password"
+                  name="password"
+                  id="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  label="Password"
+                  ref={passwordRef}
+                />
+              )}
 
-              {user?.twoFactorEnabled && (
+              {user?.twoFactorEnabled && isCALIdentityProviver && (
                 <Form handleSubmit={onConfirm} className="pb-4" form={form}>
                   <TwoFactor center={false} />
                 </Form>
