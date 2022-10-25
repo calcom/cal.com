@@ -44,7 +44,13 @@ function TextEditor({ form, stepNumber }: TextEditorProps) {
           form.setValue(`steps.${stepNumber - 1}.reminderBody`, value.trim() !== "<br/>" ? value : null);
         }}
         toolbarCustomButtons={[
-          <AddVariablesOption key={stepNumber} editorState={editorState} setEditorState={setEditorState} />,
+          <AddVariablesOption
+            key={stepNumber}
+            form={form}
+            stepNumber={stepNumber}
+            editorState={editorState}
+            setEditorState={setEditorState}
+          />,
         ]}
         toolbar={{
           options: ["inline", "fontSize", "list"],
@@ -64,9 +70,11 @@ function TextEditor({ form, stepNumber }: TextEditorProps) {
 type AddVariablesProps = {
   editorState: EditorState;
   setEditorState: Dispatch<SetStateAction<EditorState>>;
+  form: UseFormReturn<FormValues>;
+  stepNumber: number;
 };
 
-function AddVariablesOption({ editorState, setEditorState }: AddVariablesProps) {
+function AddVariablesOption({ editorState, setEditorState, form, stepNumber }: AddVariablesProps) {
   const addVariable = (isEmailSubject: boolean, variable: string) => {
     const contentState = Modifier.replaceText(
       editorState.getCurrentContent(),
@@ -74,7 +82,11 @@ function AddVariablesOption({ editorState, setEditorState }: AddVariablesProps) 
       `{${variable.toUpperCase().replace(/ /g, "_")}}`,
       editorState.getCurrentInlineStyle()
     );
-    setEditorState(EditorState.push(editorState, contentState, "insert-characters"));
+    const newEditorState = EditorState.push(editorState, contentState, "insert-characters");
+    setEditorState(newEditorState);
+
+    const value = draftToHtml(convertToRaw(newEditorState.getCurrentContent()));
+    form.setValue(`steps.${stepNumber - 1}.reminderBody`, value);
   };
 
   return (
