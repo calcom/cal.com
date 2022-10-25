@@ -1309,6 +1309,8 @@
   "cant_find_the_right_video_app_visit_our_app_store": "Can't find the right video app? Visit our <1>App Store</1>.",
   "install_new_calendar_app": "Install new calendar app",
   "make_phone_number_required": "Make phone number required for booking event",
+  "new_event_type_availability": "{{eventTypeTitle}} Availability",
+  "error_editing_availability": "Error editing availability",
   "dont_have_permission": "You don't have permission to access this resource.",
   "saml_config": "Single Sign-On",
   "saml_description": "Allow team members to login using an Identity Provider",
