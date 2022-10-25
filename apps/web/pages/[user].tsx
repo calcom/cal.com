@@ -13,6 +13,7 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import defaultEvents, {
   getDynamicEventDescription,
@@ -103,7 +104,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
       telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/[user]"));
     }
   }, [telemetry, router.asPath]);
-
+  const isEventListEmpty = eventTypes.length === 0;
   return (
     <>
       <HeadSeo
@@ -148,7 +149,11 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
             </div>
           )}
           <div
-            className="rounded-md border border-neutral-200 dark:border-neutral-700 dark:hover:border-neutral-600"
+            className={classNames(
+              "rounded-md ",
+              !isEventListEmpty &&
+                "border border-neutral-200 dark:border-neutral-700 dark:hover:border-neutral-600"
+            )}
             data-testid="event-types">
             {user.away ? (
               <div className="overflow-hidden rounded-sm border dark:border-gray-900">
@@ -195,16 +200,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
               ))
             )}
           </div>
-          {eventTypes.length === 0 && (
-            <div className="overflow-hidden rounded-sm border dark:border-gray-900">
-              <div className="p-8 text-center text-gray-400 dark:text-white">
-                <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">
-                  {t("uh_oh") as string}
-                </h2>
-                <p className="mx-auto max-w-md">{t("no_event_types_have_been_setup") as string}</p>
-              </div>
-            </div>
-          )}
+          {isEventListEmpty && <EmptyPage name={user.name ?? "User"} />}
         </main>
         <Toaster position="bottom-right" />
       </div>

@@ -4,15 +4,18 @@ import { FC, useEffect, useState } from "react";
 
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { TimeFormat } from "@calcom/lib/timeFormat";
 import { nameOfDay } from "@calcom/lib/weekday";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { ToggleGroup } from "@calcom/ui/v2/core/form/ToggleGroup";
 
 import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";
 
 type AvailableTimesProps = {
-  timeFormat: string;
+  timeFormat: TimeFormat;
+  onTimeFormatChange: (is24Hour: boolean) => void;
   eventTypeId: number;
   recurringCount: number | undefined;
   eventTypeSlug: string;
@@ -31,6 +34,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
   eventTypeSlug,
   recurringCount,
   timeFormat,
+  onTimeFormatChange,
   seatsPerTimeSlot,
   ethSignature,
 }) => {
@@ -48,14 +52,25 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
 
   return (
     <div className="dark:bg-darkgray-100 mt-8 flex h-full w-full flex-col px-4 text-center sm:mt-0 sm:p-5 md:-mb-5 md:min-w-[200px] lg:min-w-[300px]">
-      <div className="mb-4 text-left text-base">
-        <span className="text-bookingdarker dark:text-darkgray-800 mb-8 w-1/2 break-words font-semibold text-gray-900">
-          {nameOfDay(i18n.language, Number(date.format("d")))}
-        </span>
-        <span className="text-bookinglight font-medium">
-          {date.format(", D ")}
-          {date.toDate().toLocaleString(i18n.language, { month: "long" })}
-        </span>
+      <div className="mb-6 flex items-center text-left text-base">
+        <div className="mr-4">
+          <span className="text-bookingdarker dark:text-darkgray-800 font-semibold text-gray-900">
+            {nameOfDay(i18n.language, Number(date.format("d")), "short")}
+          </span>
+          <span className="text-bookinglight font-medium">
+            , {date.toDate().toLocaleString(i18n.language, { month: "long", day: "numeric" })}
+          </span>
+        </div>
+        <div className="ml-auto">
+          <ToggleGroup
+            onValueChange={(timeFormat) => onTimeFormatChange(timeFormat === "24")}
+            defaultValue={timeFormat === TimeFormat.TWELVE_HOUR ? "12" : "24"}
+            options={[
+              { value: "12", label: t("12_hour_short") },
+              { value: "24", label: t("24_hour_short") },
+            ]}
+          />
+        </div>
       </div>
       <div className="-mb-5 grid flex-grow grid-cols-1 gap-x-2 overflow-y-auto sm:block md:h-[364px]">
         {slots.length > 0 &&
