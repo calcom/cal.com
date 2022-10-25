@@ -638,8 +638,6 @@ export function RecurringBookings({
     : null;
 
   if (recurringBookingsSorted && listingStatus === "recurring") {
-    // recurring bookings should only be adjusted to the start date.
-    const utcOffset = dayjs(recurringBookingsSorted[0]).utcOffset();
     return (
       <>
         {eventType.recurringEvent?.count && (
@@ -654,10 +652,9 @@ export function RecurringBookings({
         {eventType.recurringEvent?.count &&
           recurringBookingsSorted.slice(0, 4).map((dateStr, idx) => (
             <div key={idx} className="mb-2">
-              {dayjs(dateStr).utcOffset(utcOffset).format("MMMM DD, YYYY")}
+              {dayjs(dateStr).format("MMMM DD, YYYY")}
               <br />
-              {dayjs(dateStr).utcOffset(utcOffset).format("LT")} -{" "}
-              {dayjs(dateStr).utcOffset(utcOffset).add(eventType.length, "m").format("LT")}{" "}
+              {dayjs(dateStr).format("LT")} - {dayjs(dateStr).add(eventType.length, "m").format("LT")}{" "}
               <span className="text-bookinglight">
                 ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
               </span>
@@ -674,10 +671,9 @@ export function RecurringBookings({
               {eventType.recurringEvent?.count &&
                 recurringBookingsSorted.slice(4).map((dateStr, idx) => (
                   <div key={idx} className="mb-2">
-                    {dayjs(dateStr).utcOffset(utcOffset).format("MMMM DD, YYYY")}
+                    {dayjs(dateStr).format("MMMM DD, YYYY")}
                     <br />
-                    {dayjs(dateStr).utcOffset(utcOffset).format("LT")} -{" "}
-                    {dayjs(dateStr).utcOffset(utcOffset).add(eventType.length, "m").format("LT")}{" "}
+                    {dayjs(dateStr).format("LT")} - {dayjs(dateStr).add(eventType.length, "m").format("LT")}{" "}
                     <span className="text-bookinglight">
                       ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
                     </span>
