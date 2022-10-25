@@ -317,7 +317,10 @@ export default class EventManager {
         );
 
         if (credential) {
-          createdEvents.push(await createEvent(credential, event));
+          const createdEvent = await createEvent(credential, event);
+          if (createdEvent) {
+            createdEvents.push(createdEvent);
+          }
         }
       } else {
         const destinationCalendarCredentials = this.calendarCredentials.filter(
@@ -334,7 +337,10 @@ export default class EventManager {
        */
       const [credential] = this.calendarCredentials.filter((cred) => cred.type === "calendar");
       if (credential) {
-        createdEvents.push(await createEvent(credential, event));
+        const createdEvent = await createEvent(credential, event);
+        if (createdEvent) {
+          createdEvents.push(createdEvent);
+        }
       }
     }
 
