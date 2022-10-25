@@ -189,21 +189,47 @@ export default abstract class BaseCalendarService implements Calendar {
       }
 
       const eventsToUpdate = events.filter((e) => e.uid === uid);
+      let ev = eventsToUpdate[0];
       return Promise.all(
         eventsToUpdate.map((e) => {
+          ev = e;
           return updateCalendarObject({
             calendarObject: {
               url: e.url,
-              data: iCalString,
+              data: iCalString?.replace(/METHOD:[^\r\n]+\r\n/g, ""),
               etag: e?.etag,
             },
             headers: this.headers,
           });
         })
-      ).then((p) => p.map((r) => r.json() as unknown as NewCalendarEventType));
+      ).then((parameter) =>
+        parameter.map((res) => {
+          console.log("response=>", res.status);
+          if (res.status > 199 && res.status < 207) {
+            const ret = {
+              uid,
+              type: this.credentials.type,
+              id: typeof ev.uid === "string" ? ev.uid : "-1",
+              password: "",
+              url: ev.url,
+              additionalInfo: {},
+            } as NewCalendarEventType;
+            return ret;
+          } else {
+            this.log.error("Error: Status Code", res.status);
+            return {
+              uid,
+              type: event.type,
+              id: typeof event.uid === "string" ? event.uid : "-1",
+              password: "",
+              url: typeof event.location === "string" ? event.location : "-1",
+              additionalInfo: {},
+            };
+          }
+        })
+      );
     } catch (reason) {
       this.log.error(reason);
-
       throw reason;
     }
   }
@@ -275,7 +301,7 @@ export default abstract class BaseCalendarService implements Calendar {
     const events: { start: string; end: string }[] = [];
 
     objects.forEach((object) => {
-      if (object.data == null) return;
+      if (object.data == null || JSON.stringify(object.data) == "{}") return;
 
       const jcalData = ICAL.parse(sanitizeCalendarObject(object));
       const vcalendar = new ICAL.Component(jcalData);
