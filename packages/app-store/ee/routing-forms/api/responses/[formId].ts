@@ -43,7 +43,7 @@ async function* getResponses(
         }
         csvCells.push(serializedValue);
       });
-
+      csvCells.push(response.createdAt.toISOString());
       csv.push(csvCells.join(","));
     });
     skip += take;
@@ -83,7 +83,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Make Header
   res.write(
-    headerFields.map((field) => `${field.label}${field.deleted ? "(Deleted)" : ""}`).join(",") + "\n"
+    headerFields
+      .map((field) => `${field.label}${field.deleted ? "(Deleted)" : ""}`)
+      .concat(["Submission Time"])
+      .join(",") + "\n"
   );
 
   for await (const partialCsv of csvIterator) {
