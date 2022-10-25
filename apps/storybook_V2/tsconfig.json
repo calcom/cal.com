@@ -1,0 +1,14 @@
+{
+  "extends": "@calcom/tsconfig/nextjs.json",
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "noImplicitAny": false,
+    "baseUrl": "."
+  },
+  "paths": {
+    "crypto": [
+      "node_modules/crypto-browserify"
+    ],
+  }
+}
