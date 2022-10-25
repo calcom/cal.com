@@ -70,10 +70,10 @@ const Wrapper = ({
   <div tw="flex w-full h-full">
     <img
       tw="flex absolute left-0 top-0 w-full h-[110%]"
-      src={`${CAL_URL}/social-bg-${variant}.jpg`}
+      src={`${CAL_URL}/social-bg-${variant}-lines.jpg`}
       alt="background"
       width="1200"
-      height="300"
+      height="600"
     />
     <div tw="flex flex-col w-full h-full px-[80px] py-[70px] items-start justify-center">{children}</div>
   </div>
@@ -102,15 +102,15 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
   const names = attendees.length > 0 ? attendees.map((user) => user.name) : [profile.name];
 
   return (
-    <Wrapper>
+    <Wrapper variant="dark">
       <div tw="h-full flex flex-col justify-start">
-        <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: "300" }}>
+        <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: 300 }}>
           <img src={`${CAL_URL}/cal-logo-word-black.svg`} width="350" alt="Logo" />
           {avatars.length > 0 && <div tw="font-bold text-black text-[92px] mx-8 bottom-2">/</div>}
           <div tw="flex flex-row">
             {avatars.slice(0, 3).map((avatar) => (
               <img
-                tw="rounded-full mr-[-36px] border-[6px] border-black"
+                tw="rounded-full mr-[-36px] border-[6px] border-[#CDCED2]"
                 key={avatar}
                 src={avatar}
                 alt="Profile picture"
@@ -118,55 +118,84 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
               />
             ))}
             {avatars.length > 3 && (
-              <div
-                tw="flex items-center top-[50%] justify-center w-32 h-32 rounded-full bg-black text-white text-4xl font-bold"
-                style={{ transform: "translateY(-50%)" }}>
-                +{avatars.length - 3}
+              <div tw="flex items-center justify-center w-[160px] h-[160px] rounded-full bg-black text-white text-[54px] font-bold">
+                <span tw="flex top-[-5px] left-[-5px]">+{avatars.length - 3}</span>
               </div>
             )}
           </div>
         </div>
         <div tw="relative flex text-[54px] w-full flex-col text-black mt-auto">
-          <div tw="flex">
-            Meet{" "}
-            <strong tw="flex ml-4 font-medium" style={{ whiteSpace: "nowrap" }}>
-              {joinMultipleNames(names)}
-            </strong>
+          <div
+            tw="flex w-[1040px] overflow-hidden"
+            style={{ whiteSpace: "nowrap", fontFamily: "cal", textOverflow: "ellipsis" }}>
+            Meet {joinMultipleNames(names)}
           </div>
-          <div tw="flex mt-2" style={{ whiteSpace: "nowrap" }}>
+          <div
+            tw="flex mt-3 w-[1040px] overflow-hidden"
+            style={{ whiteSpace: "nowrap", fontFamily: "inter", textOverflow: "ellipsis" }}>
             {title}
           </div>
-          {/* Adds overlay gradient for long text */}
-          <div
-            tw="absolute flex w-[200px] h-full left-[920px] top-0"
-            style={{
-              background: "linear-gradient(90deg, rgba(198,203,212,0) 0px, rgba(198,203,212,1) 120px)",
-            }}
-          />
         </div>
       </div>
     </Wrapper>
   );
 };
 
+const VisualBlur = ({ visualSlug }: { visualSlug: string }) => {
+  // Making a blur of a dark logo is very ugly. We use the filename to indicate,
+  // when we don't want to render these blurry blob backgrounds.
+  if (visualSlug.indexOf("dark") > -1) return null;
+
+  return (
+    <div tw="flex relative">
+      {/* Blob top left */}
+      <div
+        tw="flex absolute top-[-100px] left-[-100px] w-[400px] h-[400px] opacity-80"
+        style={{
+          filter: "blur(98px)",
+          backgroundColor: "rgba(255, 255, 255, 0.7)",
+          backgroundImage: `url(${CAL_URL}${visualSlug})`,
+          backgroundSize: "400px 400px",
+        }}
+      />
+
+      {/* Blob bottom right */}
+      <div
+        tw="flex absolute top-[230px] left-[660px] w-[630px] h-[630px] opacity-80"
+        style={{
+          filter: "blur(150px)",
+          backgroundColor: "rgba(255, 255, 255, 0.7)",
+          backgroundImage: `url(${CAL_URL}${visualSlug})`,
+          backgroundSize: "630px 630px",
+        }}
+      />
+    </div>
+  );
+};
+
 export const App = ({ name, description, slug }: AppImageProps) => (
-  <Wrapper variant="dark">
+  <Wrapper>
     <img
-      src={`${CAL_URL}/cal-logo-word-dark.svg`}
+      src={`${CAL_URL}/cal-logo-word-black.svg`}
       width="150"
       alt="Logo"
-      tw="absolute right-[48px] top-[32px]"
+      tw="absolute right-[48px] top-[48px]"
     />
-    <div tw="flex items-center justify-center w-full">
-      <div tw="flex items-center justify-center flex-row-reverse bg-[rgba(255,255,255,0.7)] p-8 rounded-lg w-[172px] h-[172px]">
-        <img src={`${CAL_URL}${slug}`} alt="App icon" width="125" />
+
+    <VisualBlur visualSlug={slug} />
+
+    <div tw="flex items-center w-full">
+      <div tw="flex">
+        <img src={`${CAL_URL}${slug}`} alt="App icon" width="172" />
       </div>
     </div>
-    <div tw="flex mt-7 text-center items-center justify-center w-full flex-col text-[#f9fafb]">
-      <div tw="flex text-[56px] mb-7" style={{ fontFamily: "cal", fontWeight: "300" }}>
+    <div tw="flex mt-auto w-full flex-col text-black">
+      <div tw="flex text-[64px] mb-7" style={{ fontFamily: "cal", fontWeight: 600 }}>
         {name}
       </div>
-      <div tw="flex text-[40px]">{description}</div>
+      <div tw="flex text-[36px]" style={{ fontFamily: "inter" }}>
+        {description}
+      </div>
     </div>
   </Wrapper>
 );
