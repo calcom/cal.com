@@ -131,11 +131,13 @@ export const availabilityRouter = createProtectedRouter()
           })),
         },
       };
-
+      
+      const hasDefaultScheduleId = await hasDefaultSchedule(user, prisma);
+      // create schedule after checking if user has defaultScheduleId, otherwise the result will always be true
       const schedule = await prisma.schedule.create({
         data,
       });
-      const hasDefaultScheduleId = await hasDefaultSchedule(user, prisma);
+
       if (!hasDefaultScheduleId) {
         await setupDefaultSchedule(user.id, schedule.id, prisma);
       }
