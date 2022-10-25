@@ -1,5 +1,3 @@
-import { Prisma } from "@prisma/client";
-
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { CAL_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
@@ -48,29 +46,23 @@ export const getStripeIdsForTeam = async (teamId: number) => {
     },
   });
 
-  if (teamQuery?.metadata) {
-    const teamStripeIds = teamQuery.metadata as Prisma.JsonObject;
-    return teamStripeIds;
-  } else {
-    throw new Error(`Team ${teamId} not found`);
-  }
+  const teamStripeIds = { ...teamQuery.metadata };
+
+  return teamStripeIds;
 };
 
 export const deleteTeamFromStripe = async (teamId: number) => {
-  const teamQuery = await prisma.team.findFirst({
+  const stripeCustomerId = await prisma.team.findFirst({
     where: {
       id: teamId,
     },
     select: { metadata: true },
   });
 
-  if (!teamQuery?.metadata) throw new Error(`Team ${teamId} not found`);
-  const teamStripeIds = teamQuery.metadata as Prisma.JsonObject;
-
-  if (teamStripeIds.stripeCustomerId) {
-    await stripe.customers.del(teamStripeIds.stripeCustomerId as string);
+  if (stripeCustomerId?.metadata?.stripeCustomerId) {
+    await stripe.customers.del(stripeCustomerId.metadata.stripeCustomerId);
     return;
   } else {
-    throw new Error("Team not found");
+    console.error(`Couldn't deleteTeamFromStripe, Team id: ${teamId} didn't have a stripeCustomerId`);
   }
 };
