@@ -49,7 +49,8 @@ export async function scheduleTrigger(
 
 export async function cancelScheduledJobs(
   booking: { uid: string; scheduledJobs?: string[] },
-  appId?: string | null
+  appId?: string | null,
+  isReschedule?: boolean
 ) {
   let scheduledJobs = booking.scheduledJobs || [];
 
@@ -70,14 +71,16 @@ export async function cancelScheduledJobs(
         scheduledJobs = [];
       }
 
-      await prisma.booking.update({
-        where: {
-          uid: booking.uid,
-        },
-        data: {
-          scheduledJobs: scheduledJobs,
-        },
-      });
+      if (!isReschedule) {
+        await prisma.booking.update({
+          where: {
+            uid: booking.uid,
+          },
+          data: {
+            scheduledJobs: scheduledJobs,
+          },
+        });
+      }
     });
   }
 }

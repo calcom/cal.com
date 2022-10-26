@@ -2,14 +2,12 @@ import { useRouter } from "next/router";
 import { Suspense, useState } from "react";
 
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
-import { BillingFrequency } from "@calcom/features/ee/teams/payments";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Avatar, Badge, Button, showToast } from "@calcom/ui/v2/core";
-import { Label } from "@calcom/ui/v2/core/form";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
 const AddNewTeamMemberSkeleton = () => {
@@ -53,7 +51,6 @@ const AddNewTeamMembers = ({ teamId }: { teamId: number }) => {
   });
 
   const [memberInviteModal, setMemberInviteModal] = useState(false);
-  const [billingFrequency, setBillingFrequency] = useState<BillingFrequency>("monthly");
 
   if (isLoading) return <AddNewTeamMemberSkeleton />;
 
@@ -124,34 +121,6 @@ const AddNewTeamMembers = ({ teamId }: { teamId: number }) => {
           />
         )}
 
-        <>
-          <Label className="font-sm mt-8 text-gray-900">
-            <>{t("billing_frequency")}</>
-          </Label>
-          <div className="flex rounded-md border">
-            <div
-              className={classNames(
-                "px-1/2 w-1/2 rounded-md  py-2.5 text-center font-medium text-gray-900",
-                billingFrequency === "monthly" && "bg-gray-200"
-              )}
-              onClick={() => {
-                setBillingFrequency("monthly");
-              }}>
-              <p>{t("monthly")}</p>
-            </div>
-            <div
-              className={classNames(
-                "px-1/2 w-1/2 rounded-md  py-2.5 text-center font-medium text-gray-900",
-                billingFrequency === "yearly" && "bg-gray-200"
-              )}
-              onClick={() => {
-                setBillingFrequency("yearly");
-              }}>
-              <p>{t("yearly")}</p>
-            </div>
-          </div>
-        </>
-
         <hr className="my-6  border-neutral-200" />
 
         <Button
@@ -159,7 +128,7 @@ const AddNewTeamMembers = ({ teamId }: { teamId: number }) => {
           className="mt-6 w-full justify-center"
           onClick={() => {
             if (team) {
-              teamCheckoutMutation.mutate({ teamId, billingFrequency, seats: team.members.length });
+              teamCheckoutMutation.mutate({ teamId, seats: team.members.length });
             } else {
               showToast(t("error_creating_team"), "error");
             }

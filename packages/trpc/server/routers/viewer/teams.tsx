@@ -11,9 +11,9 @@ import {
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { deleteTeamFromStripe, purchaseTeamSubscription } from "@calcom/features/ee/teams/payments";
-import { HOSTED_CAL_FEATURES, WEBAPP_URL, IS_STRIPE_ENABLED } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES, IS_STRIPE_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { getTeamWithMembers, isTeamAdmin, isTeamOwner, isTeamMember } from "@calcom/lib/server/queries/teams";
+import { getTeamWithMembers, isTeamAdmin, isTeamMember, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
 import {
   closeComDeleteTeam,
@@ -78,34 +78,34 @@ export const viewerTeamsRouter = createProtectedRouter()
   .mutation("create", {
     input: z.object({
       name: z.string(),
-      slug: z.string(),
-      logo: z.string().optional().nullable(),
+      slug: z.string().transform((val) => slugify(val.trim())),
+      logo: z
+        .string()
+        .optional()
+        .nullable()
+        .transform((v) => v || null),
     }),
     async resolve({ ctx, input }) {
-      const slug = input.slug || slugify(input.name);
+      const { slug, name, logo } = input;
 
       const nameCollisions = await ctx.prisma.team.findFirst({
-        where: {
-          OR: [{ name: input.name }, { slug: slug }],
-        },
+        where: { OR: [{ name }, { slug }] },
       });
 
       if (nameCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "Team name already taken." });
 
       const createTeam = await ctx.prisma.team.create({
         data: {
-          name: input.name,
-          slug: slug,
-          logo: input.logo || null,
-        },
-      });
-
-      await ctx.prisma.membership.create({
-        data: {
-          teamId: createTeam.id,
-          userId: ctx.user.id,
-          role: MembershipRole.OWNER,
-          accepted: true,
+          name,
+          slug,
+          logo,
+          members: {
+            create: {
+              userId: ctx.user.id,
+              role: MembershipRole.OWNER,
+              accepted: true,
+            },
+          },
         },
       });
 
@@ -482,18 +482,12 @@ export const viewerTeamsRouter = createProtectedRouter()
   .mutation("purchaseTeamSubscription", {
     input: z.object({
       teamId: z.number(),
-      billingFrequency: z.union([z.literal("monthly"), z.literal("yearly")]),
       seats: z.number(),
     }),
     async resolve({ ctx, input }) {
       if (!IS_STRIPE_ENABLED)
         throw new TRPCError({ code: "FORBIDDEN", message: "Team billing is not enabled" });
-      return await purchaseTeamSubscription(
-        input.teamId,
-        input.billingFrequency,
-        input.seats,
-        ctx.user.email
-      );
+      return await purchaseTeamSubscription({ ...input, email: ctx.user.email });
     },
   })
   .query("getTeamSeats", {
