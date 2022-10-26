@@ -1,5 +1,4 @@
-import autoAnimate from "@formkit/auto-animate";
-import React, { useEffect, useRef } from "react";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Props } from "react-select";
 
 import { classNames } from "@calcom/lib";
@@ -24,11 +23,8 @@ export const CheckedTeamSelect = ({
   onChange: (value: readonly CheckedSelectOption[]) => void;
 }) => {
   const { t } = useLocale();
-  const animationRef = useRef(null);
 
-  useEffect(() => {
-    animationRef.current && autoAnimate(animationRef.current);
-  }, [animationRef]);
+  const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
   return (
     <>

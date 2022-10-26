@@ -8,14 +8,15 @@ import { Toaster } from "react-hot-toast";
 
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
-import UserV2OptInBanner from "@calcom/features/users/components/UserV2OptInBanner";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { JOIN_SLACK, ROADMAP, DESKTOP_APP_LINK, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import isCalcom from "@calcom/lib/isCalcom";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
@@ -27,6 +28,7 @@ import Dropdown, {
   DropdownMenuPortal,
 } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
+import TimezoneChangeDialog from "@calcom/ui/TimezoneChangeDialog";
 import Button from "@calcom/ui/v2/core/Button";
 
 /* TODO: Get this from endpoint */
@@ -34,7 +36,7 @@ import pkg from "../../../../apps/web/package.json";
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
-// TODO: re-introduce in 2.1 import Tips from "../modules/tips/Tips";
+import Tips from "../modules/tips/Tips";
 import HeadSeo from "./head-seo";
 import { SkeletonText } from "./skeleton";
 
@@ -114,7 +116,7 @@ export function ShellSubHeading(props: {
         </h2>
         {props.subtitle && <p className="text-sm text-neutral-500 ltr:mr-4">{props.subtitle}</p>}
       </div>
-      {props.actions && <div className="flex-shrink-0">{props.actions}</div>}
+      {props.actions && <div className="mt-2 flex-shrink-0 sm:mt-0">{props.actions}</div>}
     </header>
   );
 }
@@ -124,17 +126,22 @@ const Layout = (props: LayoutProps) => {
 
   return (
     <>
-      <HeadSeo
-        title={pageTitle ?? "Cal.com"}
-        description={props.subtitle ? props.subtitle?.toString() : ""}
-        nextSeoProps={{
-          nofollow: true,
-          noindex: true,
-        }}
-      />
+      {!props.withoutSeo && (
+        <HeadSeo
+          title={pageTitle ?? "Cal.com"}
+          description={props.subtitle ? props.subtitle?.toString() : ""}
+          nextSeoProps={{
+            nofollow: true,
+            noindex: true,
+          }}
+        />
+      )}
       <div>
         <Toaster position="bottom-right" />
       </div>
+
+      {/* todo: only run this if timezone is different */}
+      <TimezoneChangeDialog />
 
       <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
         {props.SidebarContainer || <SideBarContainer />}
@@ -163,11 +170,13 @@ type LayoutProps = {
   TopNavContainer?: ReactNode;
   drawerState?: DrawerState;
   HeadingLeftIcon?: ReactNode;
-  backPath?: string; // renders back button to specified path
+  backPath?: string | boolean; // renders back button to specified path
   // use when content needs to expand with flex
   flexChildrenContainer?: boolean;
   isPublic?: boolean;
   withoutMain?: boolean;
+  // Gives you the option to skip HeadSEO and render your own.
+  withoutSeo?: boolean;
 };
 
 const CustomBrandingContainer = () => {
@@ -228,8 +237,8 @@ function UserDropdown({ small }: { small?: boolean }) {
     return null;
   }
   return (
-    <Dropdown open={menuOpen} onOpenChange={() => setHelpOpen(false)}>
-      <DropdownMenuTrigger asChild onClick={() => setMenuOpen(true)}>
+    <Dropdown open={menuOpen}>
+      <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
         <button className="group flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-100 sm:pl-3 md:rounded-none lg:pl-2">
           <span
             className={classNames(
@@ -274,7 +283,12 @@ function UserDropdown({ small }: { small?: boolean }) {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuPortal>
-        <DropdownMenuContent onInteractOutside={() => setMenuOpen(false)}>
+        <DropdownMenuContent
+          onInteractOutside={() => {
+            setMenuOpen(false);
+            setHelpOpen(false);
+          }}
+          className="overflow-hidden rounded-md">
           {helpOpen ? (
             <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
           ) : (
@@ -317,6 +331,7 @@ function UserDropdown({ small }: { small?: boolean }) {
 export type NavigationItemType = {
   name: string;
   href: string;
+  badge?: React.ReactNode;
   icon?: SVGComponent;
   child?: NavigationItemType[];
   pro?: true;
@@ -351,6 +366,7 @@ const navigation: NavigationItemType[] = [
     name: "bookings",
     href: "/bookings/upcoming",
     icon: Icon.FiCalendar,
+    badge: <UnconfirmedBookingBadge />,
   },
   {
     name: "availability",
@@ -453,7 +469,7 @@ function useShouldDisplayNavigationItem(item: NavigationItemType) {
   const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing-forms" }], {
     enabled: status === "authenticated" && requiredCredentialNavigationItems.includes(item.name),
   });
-  return !requiredCredentialNavigationItems.includes(item.name) || !!routingForms;
+  return !requiredCredentialNavigationItems.includes(item.name) || routingForms?.isInstalled;
 }
 
 const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, router }) => {
@@ -501,7 +517,10 @@ const NavigationItem: React.FC<{
             />
           )}
           {isLocaleReady ? (
-            <span className="hidden lg:inline">{t(item.name)}</span>
+            <span className="hidden w-full justify-between lg:flex">
+              <div className="flex">{t(item.name)}</div>
+              {item.badge && item.badge}
+            </span>
           ) : (
             <SkeletonText className="h-3 w-32" />
           )}
@@ -557,6 +576,7 @@ const MobileNavigationItem: React.FC<{
       <a
         className="relative my-2 min-w-0 flex-1 overflow-hidden rounded-md py-2 px-1 text-center text-xs font-medium text-neutral-400 hover:bg-gray-200 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
         aria-current={current ? "page" : undefined}>
+        {item.badge && <div className="absolute right-1 top-1">{item.badge}</div>}
         {item.icon && (
           <item.icon
             className="mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center text-inherit [&[aria-current='page']]:text-gray-900"
@@ -586,7 +606,7 @@ const MobileNavigationMoreItem: React.FC<{
         <a className="flex items-center justify-between p-5 hover:bg-gray-100">
           <span className="flex items-center font-semibold text-gray-700 ">
             {item.icon && (
-              <item.icon className="h-5 w-5 flex-shrink-0  ltr:mr-3 rtl:ml-3" aria-hidden="true" />
+              <item.icon className="h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />
             )}
             {isLocaleReady ? t(item.name) : <SkeletonText />}
           </span>
@@ -646,13 +666,13 @@ function SideBar() {
             <button
               color="minimal"
               onClick={() => window.history.back()}
-              className="desktop-only group flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
+              className="desktop-only group flex text-sm font-medium text-neutral-500 hover:text-neutral-900">
               <Icon.FiArrowLeft className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
             </button>
             <button
               color="minimal"
               onClick={() => window.history.forward()}
-              className="desktop-only group flex text-sm font-medium text-neutral-500  hover:text-neutral-900">
+              className="desktop-only group flex text-sm font-medium text-neutral-500 hover:text-neutral-900">
               <Icon.FiArrowRight className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
             </button>
             <KBarTrigger />
@@ -677,11 +697,9 @@ function SideBar() {
         <Navigation />
       </div>
 
-      {/* TODO @Peer_Rich: reintroduce in 2.1
-      <Tips />
-      */}
+      {isCalcom && <Tips />}
       {/* Save it for next preview version
-       <div className="mb-4 hidden lg:block">
+       <div className="hidden mb-4 lg:block">
         <UserV2OptInBanner />
       </div> */}
 
@@ -708,7 +726,9 @@ export function ShellMain(props: LayoutProps) {
           <Button
             size="icon"
             color="minimal"
-            onClick={() => router.push(props.backPath as string)}
+            onClick={() =>
+              typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
+            }
             StartIcon={Icon.FiArrowLeft}
             aria-label="Go Back"
             className="ltr:mr-2 rtl:ml-2"
@@ -718,12 +738,12 @@ export function ShellMain(props: LayoutProps) {
           <header
             className={classNames(
               props.large && "py-8",
-              "mb-4 flex w-full items-center pt-4 md:p-0 lg:mb-10"
+              "mb-4 flex w-full max-w-full items-center pt-4 md:p-0 lg:mb-10"
             )}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className="w-full ltr:mr-4 rtl:ml-4 sm:block">
               {props.heading && (
-                <h1 className="font-cal  mb-1 text-xl font-bold tracking-wide text-black">
+                <h1 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 mb-1 truncate text-xl font-bold tracking-wide text-black xl:max-w-full">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
               )}
@@ -737,7 +757,7 @@ export function ShellMain(props: LayoutProps) {
               <div
                 className={classNames(
                   props.backPath ? "relative" : "fixed right-4 bottom-[75px] z-40 ",
-                  "cta mb-4 flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto sm:z-0"
+                  "flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto"
                 )}>
                 {props.CTA}
               </div>
@@ -763,13 +783,13 @@ function MainContainer({
   const [sideContainerOpen, setSideContainerOpen] = props.drawerState || [false, noop];
 
   return (
-    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none ">
+    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
       {/* The following is used for settings navigation on medium and smaller screens */}
       <div
         className={classNames(
-          "absolute z-40 m-0 h-screen w-screen bg-black opacity-50",
+          "overflow-none fixed z-40 m-0 h-screen w-screen overscroll-none bg-black opacity-50",
           sideContainerOpen ? "" : "hidden"
         )}
         onClick={() => {
@@ -777,7 +797,7 @@ function MainContainer({
         }}
       />
       {SettingsSidebarContainerProp}
-      <div className="px-4 py-2 lg:py-8 lg:px-12">
+      <div className="max-w-full px-4 py-2 lg:py-8 lg:px-12">
         <ErrorBoundary>
           {/* add padding to top for mobile when App Bar is fixed */}
           <div className="pt-14 sm:hidden" />

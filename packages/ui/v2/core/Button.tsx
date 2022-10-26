@@ -43,7 +43,7 @@ const variantClassName = {
     "border border-transparent text-white bg-sage-500 hover:bg-sage-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sage-500",
   secondary: "border border-gray-200 text-sage-900 bg-white hover:bg-gray-100",
   minimal:
-    "text-gray-700 bg-transparent hover:bg-sage-100 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-gray-100 focus:ring-sage-900 dark:text-darkgray-900 hover:dark:text-gray-50",
+    "text-gray-700 bg-transparent hover:bg-sage-100 focus:outline-none focus:ring-offset-1 focus:bg-gray-100 focus:ring-sage-900 dark:text-darkgray-900 hover:dark:text-gray-50",
   minimalSecondary:
     "text-gray-700 bg-transparent hover:bg-sage-100 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-gray-100 focus:ring-sage-900 dark:text-darkgray-900 hover:dark:text-gray-50 border border-transparent hover:border-gray-300",
   destructive:

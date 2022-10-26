@@ -22,7 +22,6 @@ import prisma from "@calcom/prisma";
 
 import { ErrorCode, verifyPassword } from "@lib/auth";
 import CalComAdapter from "@lib/auth/next-auth-custom-adapter";
-import { hostedCal, isSAMLLoginEnabled, samlLoginUrl } from "@lib/saml";
 import slugify from "@lib/slugify";
 
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
@@ -127,42 +126,42 @@ if (IS_GOOGLE_LOGIN_ENABLED) {
   );
 }
 
-if (isSAMLLoginEnabled) {
-  providers.push({
-    id: "saml",
-    name: "BoxyHQ",
-    type: "oauth",
-    version: "2.0",
-    checks: ["pkce", "state"],
-    authorization: {
-      url: `${samlLoginUrl}/api/auth/saml/authorize`,
-      params: {
-        scope: "",
-        response_type: "code",
-        provider: "saml",
-      },
-    },
-    token: {
-      url: `${samlLoginUrl}/api/auth/saml/token`,
-      params: { grant_type: "authorization_code" },
-    },
-    userinfo: `${samlLoginUrl}/api/auth/saml/userinfo`,
-    profile: (profile) => {
-      return {
-        id: profile.id || "",
-        firstName: profile.firstName || "",
-        lastName: profile.lastName || "",
-        email: profile.email || "",
-        name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
-        email_verified: true,
-      };
-    },
-    options: {
-      clientId: "dummy",
-      clientSecret: "dummy",
-    },
-  });
-}
+// if (isSAMLLoginEnabled) {
+//   providers.push({
+//     id: "saml",
+//     name: "BoxyHQ",
+//     type: "oauth",
+//     version: "2.0",
+//     checks: ["pkce", "state"],
+//     authorization: {
+//       url: `${WEBAPP_URL}/api/auth/saml/authorize`,
+//       params: {
+//         scope: "",
+//         response_type: "code",
+//         provider: "saml",
+//       },
+//     },
+//     token: {
+//       url: `${WEBAPP_URL}/api/auth/saml/token`,
+//       params: { grant_type: "authorization_code" },
+//     },
+//     userinfo: `${WEBAPP_URL}/api/auth/saml/userinfo`,
+//     profile: (profile) => {
+//       return {
+//         id: profile.id || "",
+//         firstName: profile.firstName || "",
+//         lastName: profile.lastName || "",
+//         email: profile.email || "",
+//         name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
+//         email_verified: true,
+//       };
+//     },
+//     options: {
+//       clientId: "dummy",
+//       clientSecret: "dummy",
+//     },
+//   });
+// }
 
 // Disabled Email Login
 if (false) {
@@ -394,7 +393,7 @@ export default NextAuth({
 
         if (existingUserWithEmail) {
           // if self-hosted then we can allow auto-merge of identity providers if email is verified
-          if (!hostedCal && existingUserWithEmail.emailVerified) {
+          if (existingUserWithEmail.emailVerified) {
             return true;
           }
 

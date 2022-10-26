@@ -1,37 +1,43 @@
-import { InferGetStaticPropsType } from "next";
+import { InferGetStaticPropsType, NextPageContext } from "next";
 
-import { getAppRegistry } from "@calcom/app-store/_appRegistry";
+import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
+import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import prisma from "@calcom/prisma";
-import Shell from "@calcom/ui/Shell";
+import type { AppCategories } from "@calcom/prisma/client";
+import AllApps from "@calcom/ui/v2/core/apps/AllApps";
+import AppStoreCategories from "@calcom/ui/v2/core/apps/Categories";
+import TrendingAppsSlider from "@calcom/ui/v2/core/apps/TrendingAppsSlider";
+import AppsLayout from "@calcom/ui/v2/core/layouts/AppsLayout";
 
-import AppsShell from "@components/AppsShell";
-import AllApps from "@components/apps/AllApps";
-import AppStoreCategories from "@components/apps/Categories";
-import TrendingAppsSlider from "@components/apps/TrendingAppsSlider";
+import { ssgInit } from "@server/lib/ssg";
 
-export default function Apps({ appStore, categories }: InferGetStaticPropsType<typeof getStaticProps>) {
+export default function Apps({ appStore, categories }: InferGetStaticPropsType<typeof getServerSideProps>) {
   const { t } = useLocale();
 
   return (
-    <Shell heading={t("app_store")} subtitle={t("app_store_description")} large isPublic>
-      <AppsShell>
-        <AppStoreCategories categories={categories} />
-        <TrendingAppsSlider items={appStore} />
-        <AllApps apps={appStore} />
-      </AppsShell>
-    </Shell>
+    <AppsLayout isPublic heading={t("app_store")} subtitle={t("app_store_description")}>
+      <AppStoreCategories categories={categories} />
+      <TrendingAppsSlider items={appStore} />
+      <AllApps apps={appStore} />
+    </AppsLayout>
   );
 }
 
-export const getStaticProps = async () => {
-  const appStore = await getAppRegistry();
+export const getServerSideProps = async (context: NextPageContext) => {
+  const ssg = await ssgInit(context);
 
-  const categoryQuery = await prisma.app.findMany({
-    select: {
-      categories: true,
-    },
-  });
+  const session = await getSession(context);
+
+  let appStore;
+  if (session?.user?.id) {
+    appStore = await getAppRegistryWithCredentials(session.user.id);
+  } else {
+    appStore = await getAppRegistry();
+  }
+
+  const categoryQuery = appStore.map(({ categories }) => ({
+    categories: categories || [],
+  }));
   const categories = categoryQuery.reduce((c, app) => {
     for (const category of app.categories) {
       c[category] = c[category] ? c[category] + 1 : 1;
@@ -40,7 +46,15 @@ export const getStaticProps = async () => {
   }, {} as Record<string, number>);
   return {
     props: {
-      categories: Object.entries(categories).map(([name, count]) => ({ name, count })),
+      trpcState: ssg.dehydrate(),
+      categories: Object.entries(categories)
+        .map(([name, count]): { name: AppCategories; count: number } => ({
+          name: name as AppCategories,
+          count,
+        }))
+        .sort(function (a, b) {
+          return b.count - a.count;
+        }),
       appStore,
     },
   };

@@ -76,7 +76,7 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
         </List>
       )}
 
-      {queryConnectedCalendars.isLoading && (
+      {queryIntegrations.isLoading && (
         <ul className="divide-y divide-gray-200 rounded-md border border-gray-200 bg-white p-0 dark:bg-black">
           {[0, 0, 0, 0].map((_item, index) => {
             return (

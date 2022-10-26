@@ -7,31 +7,40 @@ import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { Icon } from "@calcom/ui/Icon";
-import Shell from "@calcom/ui/Shell";
-
-import AppCard from "@components/apps/AppCard";
+import { SkeletonText } from "@calcom/ui/v2";
+import Shell from "@calcom/ui/v2/core/Shell";
+import AppCard from "@calcom/ui/v2/core/apps/AppCard";
 
 export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticProps>) {
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
   const router = useRouter();
+  const { category } = router.query;
 
   return (
     <>
-      <Shell isPublic large>
-        <div className="-mx-4 md:-mx-8">
-          <div className="mb-10 bg-gray-50 px-4 pb-2">
+      <Shell
+        isPublic
+        backPath="/apps"
+        heading={
+          <>
             <Link href="/apps">
-              <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800">
-                <Icon.FiChevronLeft className="h-5 w-5" /> {t("browse_apps")}
+              <a className="inline-flex items-center justify-start gap-1 rounded-sm py-2 text-gray-900">
+                {isLocaleReady ? t("app_store") : <SkeletonText className="h-4 w-24" />}{" "}
               </a>
             </Link>
-          </div>
-        </div>
+            {category && (
+              <span className="gap-1 text-gray-600">
+                <span>&nbsp;/&nbsp;</span>
+                {t("category_apps", { category: category[0].toUpperCase() + category?.slice(1) })}
+              </span>
+            )}
+          </>
+        }
+        large>
         <div className="mb-16">
-          <h2 className="mb-2 text-lg font-semibold text-gray-900">All {router.query.category} apps</h2>
           <div className="grid-col-1 grid grid-cols-1 gap-3 md:grid-cols-3">
             {apps.map((app) => {
-              return <AppCard key={app.name} app={app} />;
+              return <AppCard key={app.slug} app={app} />;
             })}
           </div>
         </div>

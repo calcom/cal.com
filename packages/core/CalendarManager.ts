@@ -5,9 +5,11 @@ import cache from "memory-cache";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
+import type { ExtendedCredential } from "@calcom/core/EventManager";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
+import { App } from "@calcom/types/App";
 import type { CalendarEvent, EventBusyDate, NewCalendarEventType } from "@calcom/types/Calendar";
 import type { EventResult } from "@calcom/types/EventManager";
 
@@ -33,45 +35,83 @@ export const getConnectedCalendars = async (
 ) => {
   const connectedCalendars = await Promise.all(
     calendarCredentials.map(async (item) => {
-      const { calendar, integration, credential } = item;
-      const credentialId = credential.id;
-      if (!calendar) {
+      try {
+        const { calendar, integration, credential } = item;
+
+        // Don't leak credentials to the client
+        const credentialId = credential.id;
+        if (!calendar) {
+          return {
+            integration,
+            credentialId,
+          };
+        }
+        const cals = await calendar.listCalendars();
+        const calendars = _(cals)
+          .map((cal) => ({
+            ...cal,
+            readOnly: cal.readOnly || false,
+            primary: cal.primary || null,
+            isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
+            credentialId,
+          }))
+          .sortBy(["primary"])
+          .value();
+        const primary = calendars.find((item) => item.primary) ?? calendars.find((cal) => cal !== undefined);
+        if (!primary) {
+          return {
+            integration,
+            credentialId,
+            error: {
+              message: "No primary calendar found",
+            },
+          };
+        }
+
         return {
-          integration,
+          integration: cleanIntegrationKeys(integration),
           credentialId,
+          primary,
+          calendars,
         };
-      }
-      const cals = await calendar.listCalendars();
-      const calendars = _(cals)
-        .map((cal) => ({
-          ...cal,
-          readOnly: cal.readOnly || false,
-          primary: cal.primary || null,
-          isSelected: selectedCalendars.some((selected) => selected.externalId === cal.externalId),
-          credentialId,
-        }))
-        .sortBy(["primary"])
-        .value();
-      const primary = calendars.find((item) => item.primary) ?? calendars.find((cal) => cal !== undefined);
-      if (!primary) {
+      } catch (error) {
+        let errorMessage = "Could not get connected calendars";
+
+        // Here you can expect for specific errors
+        if (error instanceof Error) {
+          if (error.message === "invalid_grant") {
+            errorMessage = "Access token expired or revoked";
+          }
+        }
+
         return {
-          integration,
-          credentialId,
+          integration: cleanIntegrationKeys(item.integration),
+          credentialId: item.credential.id,
           error: {
-            message: "No primary calendar found",
+            message: errorMessage,
           },
         };
       }
-      return {
-        integration,
-        credentialId,
-        primary,
-        calendars,
-      };
     })
   );
 
   return connectedCalendars;
+};
+
+/**
+ * Important function to prevent leaking credentials to the client
+ * @param appIntegration
+ * @returns App
+ */
+const cleanIntegrationKeys = (
+  appIntegration: ReturnType<typeof getCalendarCredentials>[number]["integration"] & {
+    credentials?: Array<Credential>;
+    credential: Credential;
+  }
+) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { credentials, credential, ...rest } = appIntegration;
+  return rest;
 };
 
 const CACHING_TIME = 30_000; // 30 seconds
@@ -145,7 +185,7 @@ export const getBusyCalendarTimes = async (
 };
 
 export const createEvent = async (
-  credential: Credential,
+  credential: ExtendedCredential,
   calEvent: CalendarEvent
 ): Promise<EventResult<NewCalendarEventType>> => {
   const uid: string = getUid(calEvent);
@@ -178,6 +218,7 @@ export const createEvent = async (
     : undefined;
 
   return {
+    appName: credential.appName,
     type: credential.type,
     success,
     uid,
@@ -187,7 +228,7 @@ export const createEvent = async (
 };
 
 export const updateEvent = async (
-  credential: Credential,
+  credential: ExtendedCredential,
   calEvent: CalendarEvent,
   bookingRefUid: string | null,
   externalCalendarId: string | null
@@ -216,6 +257,7 @@ export const updateEvent = async (
       : undefined;
 
   return {
+    appName: credential.appName,
     type: credential.type,
     success,
     uid,
