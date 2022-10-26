@@ -1,6 +1,6 @@
 import React from "react";
 
-import { CAL_URL } from "./constants";
+import { CAL_URL, LOGO } from "./constants";
 
 // Ensures tw prop is typed.
 declare module "react" {
@@ -105,7 +105,7 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
     <Wrapper>
       <div tw="h-full flex flex-col justify-start">
         <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: "300" }}>
-          <img src={`${CAL_URL}/cal-logo-word-black.svg`} width="350" alt="Logo" />
+          <img src={`${CAL_URL}/${LOGO}`} width="350" alt="Logo" />
           {avatars.length > 0 && <div tw="font-bold text-black text-[92px] mx-8 bottom-2">/</div>}
           <div tw="flex flex-row">
             {avatars.slice(0, 3).map((avatar) => (
@@ -152,7 +152,7 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
 export const App = ({ name, description, slug }: AppImageProps) => (
   <Wrapper variant="dark">
     <img
-      src={`${CAL_URL}/cal-logo-word-dark.svg`}
+      src={`${CAL_URL}/${LOGO}`}
       width="150"
       alt="Logo"
       tw="absolute right-[48px] top-[32px]"
