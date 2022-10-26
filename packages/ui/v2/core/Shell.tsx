@@ -170,7 +170,7 @@ type LayoutProps = {
   TopNavContainer?: ReactNode;
   drawerState?: DrawerState;
   HeadingLeftIcon?: ReactNode;
-  backPath?: string; // renders back button to specified path
+  backPath?: string | boolean; // renders back button to specified path
   // use when content needs to expand with flex
   flexChildrenContainer?: boolean;
   isPublic?: boolean;
@@ -773,7 +773,9 @@ export function ShellMain(props: LayoutProps) {
           <Button
             size="icon"
             color="minimal"
-            onClick={() => router.push(props.backPath as string)}
+            onClick={() =>
+              typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
+            }
             StartIcon={Icon.FiArrowLeft}
             aria-label="Go Back"
             className="ltr:mr-2 rtl:ml-2"
@@ -783,12 +785,12 @@ export function ShellMain(props: LayoutProps) {
           <header
             className={classNames(
               props.large && "py-8",
-              "mb-4 flex w-full items-center pt-4 md:p-0 lg:mb-10"
+              "mb-4 flex w-full max-w-full items-center pt-4 md:p-0 lg:mb-10"
             )}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className="w-full ltr:mr-4 rtl:ml-4 sm:block">
               {props.heading && (
-                <h1 className="font-cal mb-1 text-xl font-bold tracking-wide text-black">
+                <h1 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 mb-1 truncate text-xl font-bold tracking-wide text-black xl:max-w-full">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
               )}
@@ -802,7 +804,7 @@ export function ShellMain(props: LayoutProps) {
               <div
                 className={classNames(
                   props.backPath ? "relative" : "fixed right-4 bottom-[75px] z-40 ",
-                  "cta mb-4 flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto"
+                  "flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto"
                 )}>
                 {props.CTA}
               </div>
@@ -828,7 +830,7 @@ function MainContainer({
   const [sideContainerOpen, setSideContainerOpen] = props.drawerState || [false, noop];
 
   return (
-    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none ">
+    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
       {/* The following is used for settings navigation on medium and smaller screens */}
@@ -842,7 +844,7 @@ function MainContainer({
         }}
       />
       {SettingsSidebarContainerProp}
-      <div className="px-4 py-2 lg:py-8 lg:px-12">
+      <div className="max-w-full px-4 py-2 lg:py-8 lg:px-12">
         <ErrorBoundary>
           {/* add padding to top for mobile when App Bar is fixed */}
           <div className="pt-14 sm:hidden" />
