@@ -8,7 +8,7 @@ export type GetSlots = {
   frequency: number;
   workingHours: WorkingHours[];
   minimumBookingNotice: number;
-  minimumBookingNoticeType: string;
+  minimumBookingNoticeType: string | undefined;
   eventLength: number;
 };
 export type WorkingHoursTimeFrame = { startTime: number; endTime: number };
