@@ -2,7 +2,6 @@ import DailyIframe from "@daily-co/daily-js";
 import { NextPageContext } from "next";
 import { getSession } from "next-auth/react";
 import Head from "next/head";
-import Link from "next/link";
 import { useEffect } from "react";
 
 import { SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
