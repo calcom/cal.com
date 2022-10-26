@@ -1,4 +1,4 @@
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useFormContext } from "react-hook-form";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -9,9 +9,13 @@ import { Button, Avatar } from "@calcom/ui/v2";
 import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
 import { Form, TextField } from "@calcom/ui/v2/core/form/fields";
 
+import { FormValues } from "../../lib/types";
+
 const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: number) => void }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
+
+  const formMethods = useFormContext<FormValues>();
 
   const createTeamMutation = trpc.useMutation("viewer.teams.create", {
     onSuccess(data) {
@@ -21,18 +25,19 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
     },
   });
 
-  const formMethods = useForm();
+  // const formMethods = useForm();
 
   return (
-    <Form
-      form={formMethods}
-      handleSubmit={(values) => {
-        createTeamMutation.mutate({
-          name: values.name,
-          slug: values.slug || null,
-          logo: values.logo || null,
-        });
-      }}>
+    // <Form
+    //   form={formMethods}
+    //   handleSubmit={(values) => {
+    //     createTeamMutation.mutate({
+    //       name: values.name,
+    //       slug: values.slug || null,
+    //       logo: values.logo || null,
+    //     });
+    //   }}>
+    <>
       <div className="mb-8">
         <Controller
           name="name"
@@ -100,13 +105,20 @@ const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: n
         <Button color="secondary" href="/settings" className="w-full justify-center">
           {t("cancel")}
         </Button>
-        <Button color="primary" type="submit" EndIcon={Icon.FiArrowRight} className="w-full justify-center">
+        <Button
+          color="primary"
+          onClick={() => {
+            console.log(formMethods.getValues());
+            props.nextStep();
+          }}
+          EndIcon={Icon.FiArrowRight}
+          className="w-full justify-center">
           {t("continue")}
         </Button>
       </div>
 
       {createTeamMutation.isError && <p className="mt-4 text-red-700">{createTeamMutation.error.message}</p>}
-    </Form>
+    </>
   );
 };
 

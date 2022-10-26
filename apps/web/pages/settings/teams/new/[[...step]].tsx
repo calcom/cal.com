@@ -1,12 +1,17 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 // import TeamGeneralSettings from "@calcom/features/teams/createNewTeam/TeamGeneralSettings";
 import AddNewTeamMembers from "@calcom/features/ee/teams/components/v2/AddNewTeamMembers";
 import CreateNewTeam from "@calcom/features/ee/teams/components/v2/CreateNewTeam";
+import { FormValues } from "@calcom/features/ee/teams/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
+import { Form } from "@calcom/ui/v2/core/form";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
 import { StepCard } from "@components/getting-started/components/StepCard";
 import { Steps } from "@components/getting-started/components/Steps";
@@ -32,6 +37,22 @@ const CreateNewTeamPage = () => {
 
   const { t } = useLocale();
   const [teamId, setTeamId] = useState<number>();
+
+  const formMethods = useForm<FormValues>();
+
+  // const { data: user, isLoading } = trpc.useQuery(["viewer.me"], {
+  //   onSuccess: () => {
+  //     if (user) {
+  //       formMethods.setValue("members", [
+  //         { name: user.name, emailOrUsername: user.username, role: "OWNER", avatar: user.avatar },
+  //       ]);
+  //     }
+  //   },
+  // });
+
+  useEffect(() => {
+    console.log(formMethods.getValues());
+  }, [formMethods]);
 
   const result = stepRouteSchema.safeParse(router.query);
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
@@ -87,22 +108,28 @@ const CreateNewTeamPage = () => {
               </header>
               <Steps maxSteps={steps.length} currentStep={currentStepIndex} navigateToStep={goToIndex} />
             </div>
-            <StepCard>
-              {currentStep === "create-a-new-team" && (
-                <CreateNewTeam
-                  nextStep={() => {
-                    goToIndex(1);
-                  }}
-                  setTeamId={(teamId: number) => setTeamId(teamId)}
-                />
-              )}
+            <Form
+              form={formMethods}
+              onSubmit={(values) => {
+                console.log("🚀 ~ file: [[...step]].tsx ~ line 105 ~ CreateNewTeamPage ~ values", values);
+              }}>
+              <StepCard>
+                {currentStep === "create-a-new-team" && (
+                  <CreateNewTeam
+                    nextStep={() => {
+                      goToIndex(1);
+                    }}
+                    setTeamId={(teamId: number) => setTeamId(teamId)}
+                  />
+                )}
 
-              {/* {currentStep === "general-settings" && (
+                {/* {currentStep === "general-settings" && (
                 <TeamGeneralSettings teamId={teamId} nextStep={() => goToIndex(2)} />
               )} */}
 
-              {currentStep === "add-team-members" && teamId && <AddNewTeamMembers teamId={teamId} />}
-            </StepCard>
+                {currentStep === "add-team-members" && <AddNewTeamMembers />}
+              </StepCard>
+            </Form>
           </div>
         </div>
       </div>
@@ -111,3 +138,20 @@ const CreateNewTeamPage = () => {
 };
 
 export default CreateNewTeamPage;
+
+const NewTeamSkeleton = () => {
+  return (
+    <SkeletonContainer className="rounded-md border">
+      <div className="flex w-full justify-between p-4">
+        <div>
+          <p className="text-sm font-medium text-gray-900">
+            <SkeletonText className="h-4 w-56" />
+          </p>
+          <div className="mt-2.5 w-max">
+            <SkeletonText className="h-5 w-28" />
+          </div>
+        </div>
+      </div>
+    </SkeletonContainer>
+  );
+};
