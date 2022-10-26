@@ -234,12 +234,9 @@ export default abstract class BaseCalendarService implements Calendar {
 
   async deleteEvent(uid: string): Promise<void> {
     try {
-      console.log("Deleting Event begins");
       const events = await this.getEventsByUID(uid);
 
       const eventsToDelete = events.filter((event) => event.uid === uid);
-
-      console.log("Call sent now");
       await Promise.all(
         eventsToDelete.map((event) => {
           return deleteCalendarObject({
@@ -256,7 +253,6 @@ export default abstract class BaseCalendarService implements Calendar {
 
       throw reason;
     }
-    console.log("Delete done");
   }
 
   isValidFormat = (url: string): boolean => {
