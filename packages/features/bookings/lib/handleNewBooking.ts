@@ -245,7 +245,7 @@ async function ensureAvailableUsers(
   return availableUsers;
 }
 
-async function handler(req: NextApiRequest & { userId?: number }) {
+async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   const { userId } = req;
 
   const {
@@ -600,7 +600,8 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
     // If the user is not the owner of the event, new booking should be always pending.
     // Otherwise, an owner rescheduling should be always accepted.
-    const userReschedulingIsOwner = originalRescheduledBooking?.user?.id === userId;
+    // Before comparing make sure that userId is set, otherwise undefined === undefined
+    const userReschedulingIsOwner = userId && originalRescheduledBooking?.user?.id === userId;
     const isConfirmedByDefault =
       (!eventType.requiresConfirmation && !stripeAppData.price) || userReschedulingIsOwner;
     const newBookingData: Prisma.BookingCreateInput = {
@@ -840,6 +841,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     }
   }
 
+  // FIXME: instead of requiresConfirmation, we should check if isConfirmedByDefault is set or not.
   if (eventType.requiresConfirmation && !rescheduleUid && noEmail !== true) {
     await sendOrganizerRequestEmail({ ...evt, additionalNotes });
     await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
@@ -880,84 +882,108 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
   };
 
-  const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
+  try {
+    const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
 
-  subscribersMeetingEnded.forEach((subscriber) => {
-    if (rescheduleUid && originalRescheduledBooking) {
-      cancelScheduledJobs(originalRescheduledBooking);
-    }
-    if (booking && booking.status === BookingStatus.ACCEPTED) {
-      scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
-    }
-  });
+    subscribersMeetingEnded.forEach((subscriber) => {
+      if (rescheduleUid && originalRescheduledBooking) {
+        cancelScheduledJobs(originalRescheduledBooking, undefined, true);
+      }
+      if (booking && booking.status === BookingStatus.ACCEPTED) {
+        scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
+      }
+    });
+  } catch (error) {
+    log.error("Error while running scheduledJobs for booking", error);
+  }
 
-  // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-  const subscribers = await getWebhooks(subscriberOptions);
-  console.log("evt:", {
-    ...evt,
-    metadata: reqBody.metadata,
-  });
-  const bookingId = booking?.id;
-
-  const eventTypeInfo: EventTypeInfo = {
-    eventTitle: eventType.title,
-    eventDescription: eventType.description,
-    requiresConfirmation: eventType.requiresConfirmation || null,
-    price: stripeAppData.price,
-    currency: eventType.currency,
-    length: eventType.length,
-  };
-
-  const promises = subscribers.map((sub) =>
-    sendPayload(sub.secret, eventTrigger, new Date().toISOString(), sub, {
+  try {
+    // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
+    const subscribers = await getWebhooks(subscriberOptions);
+    console.log("evt:", {
       ...evt,
-      ...eventTypeInfo,
-      bookingId,
-      rescheduleUid,
       metadata: reqBody.metadata,
-      eventTypeId,
-      status: eventType.requiresConfirmation ? "PENDING" : "ACCEPTED",
-    }).catch((e) => {
-      console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
-    })
-  );
-  await Promise.all(promises);
+    });
+    const bookingId = booking?.id;
+
+    const eventTypeInfo: EventTypeInfo = {
+      eventTitle: eventType.title,
+      eventDescription: eventType.description,
+      requiresConfirmation: eventType.requiresConfirmation || null,
+      price: stripeAppData.price,
+      currency: eventType.currency,
+      length: eventType.length,
+    };
+
+    const promises = subscribers.map((sub) =>
+      sendPayload(sub.secret, eventTrigger, new Date().toISOString(), sub, {
+        ...evt,
+        ...eventTypeInfo,
+        bookingId,
+        rescheduleUid,
+        metadata: reqBody.metadata,
+        eventTypeId,
+        //FIXME: FOr consistency b/w webhook and actual DB state, it should use isConfirmedByDefault here
+        status: eventType.requiresConfirmation ? "PENDING" : "ACCEPTED",
+      }).catch((e) => {
+        console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
+      })
+    );
+    await Promise.all(promises);
+  } catch (error) {
+    log.error("Error while sending webhook", error);
+  }
   // Avoid passing referencesToCreate with id unique constrain values
   // refresh hashed link if used
   const urlSeed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}`;
   const hashedUid = translator.fromUUID(uuidv5(urlSeed, uuidv5.URL));
 
-  if (hasHashedBookingLink) {
-    await prisma.hashedLink.update({
+  try {
+    if (hasHashedBookingLink) {
+      await prisma.hashedLink.update({
+        where: {
+          link: reqBody.hashedLink as string,
+        },
+        data: {
+          link: hashedUid,
+        },
+      });
+    }
+  } catch (error) {
+    log.error("Error while updating hashed link", error);
+  }
+
+  if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
+
+  try {
+    await prisma.booking.update({
       where: {
-        link: reqBody.hashedLink as string,
+        uid: booking.uid,
       },
       data: {
-        link: hashedUid,
-      },
-    });
-  }
-  if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
-  await prisma.booking.update({
-    where: {
-      uid: booking.uid,
-    },
-    data: {
-      references: {
-        createMany: {
-          data: referencesToCreate,
+        references: {
+          createMany: {
+            data: referencesToCreate,
+          },
         },
       },
-    },
-  });
+    });
+  } catch (error) {
+    log.error("Error while creating booking references", error);
+  }
 
-  await scheduleWorkflowReminders(
-    eventType.workflows,
-    reqBody.smsReminderNumber as string | null,
-    evt,
-    evt.requiresConfirmation || false,
-    rescheduleUid ? true : false
-  );
+  try {
+    await scheduleWorkflowReminders(
+      eventType.workflows,
+      reqBody.smsReminderNumber as string | null,
+      evt,
+      evt.requiresConfirmation || false,
+      rescheduleUid ? true : false
+    );
+  } catch (error) {
+    log.error("Error while scheduling workflow reminders", error);
+  }
+
   // booking successful
   req.statusCode = 201;
   return booking;

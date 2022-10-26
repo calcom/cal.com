@@ -1,9 +1,9 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
-import showToast from "@calcom/lib/notification";
 import { ButtonBaseProps } from "@calcom/ui/Button";
 import { Dialog } from "@calcom/ui/Dialog";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 import DeleteStripeDialogContent from "@components/dialog/DeleteStripeDialogContent";
 
