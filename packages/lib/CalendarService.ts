@@ -189,7 +189,6 @@ export default abstract class BaseCalendarService implements Calendar {
       }
 
       const eventsToUpdate = events.filter((e) => e.uid === uid);
-      // let event = eventsToUpdate[0];
       return Promise.all(
         eventsToUpdate.map((eventItem) => {
           event = eventItem;
