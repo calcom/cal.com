@@ -18,7 +18,7 @@ customElements.define("cal-inline", Inline);
 declare module "*.css";
 type Namespace = string;
 type Config = {
-  origin: string;
+  origin?: string;
   debug?: boolean;
   uiDebug?: boolean;
 };
@@ -517,8 +517,15 @@ export class Cal {
   }
 }
 
-export interface GlobalCal {
-  (methodName: string, arg?: any): void;
+type SupportedInstructions = "init" | "inline" | "ui" | "floatingButton" | "preload";
+type CalInstanceWithSupportedInstructionsOnly = Pick<Cal, SupportedInstructions>;
+
+export type GlobalCal = {
+  <T extends keyof CalInstanceWithSupportedInstructionsOnly>(
+    methodName: T,
+    ...arg: Parameters<CalInstanceWithSupportedInstructionsOnly[T]>
+  ): ReturnType<CalInstanceWithSupportedInstructionsOnly[T]>;
+  (): void;
   /** Marks that the embed.js is loaded. Avoids re-downloading it. */
   loaded?: boolean;
   /** Maintains a queue till the time embed.js isn't loaded */
@@ -529,12 +536,13 @@ export interface GlobalCal {
   __css?: string;
   fingerprint?: string;
   __logQueue?: any[];
-}
+};
 
 export interface CalWindow extends Window {
   Cal?: GlobalCal;
 }
 
+// Share globalCal queue with instance so that the instance can now process the queue
 globalCal.instance = new Cal("", globalCal.q!);
 
 for (const [ns, api] of Object.entries(globalCal.ns!)) {

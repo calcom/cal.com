@@ -20,7 +20,7 @@ const Cal = function Cal(props: CalProps) {
     throw new Error("calLink is required");
   }
   const initializedRef = useRef(false);
-  const Cal = useEmbed(embedJsUrl ? embedJsUrl : calOrigin ? `${calOrigin}/embed/embed.js` : undefined);
+  const Cal = useEmbed(getEmbedJsUrl({ calOrigin, embedJsUrl }));
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!Cal || initializedRef.current) {
@@ -45,4 +45,12 @@ const Cal = function Cal(props: CalProps) {
 
   return <div ref={ref} {...restProps} />;
 };
+
+export const getEmbedJsUrl = ({
+  embedJsUrl,
+  calOrigin,
+}: {
+  embedJsUrl: string | undefined;
+  calOrigin: string | undefined;
+}) => (embedJsUrl ? embedJsUrl : calOrigin ? `${calOrigin}/embed/embed.js` : undefined);
 export default Cal;
