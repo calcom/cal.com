@@ -98,8 +98,11 @@ export default class EventManager {
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
     if (isDedicated) {
       const result = await this.createVideoEvent(evt);
+
       if (result.createdEvent) {
         evt.videoCallData = result.createdEvent;
+        evt.location = result.originalEvent.location;
+        result.type = result.createdEvent.type;
       }
 
       results.push(result);
@@ -113,6 +116,7 @@ export default class EventManager {
       if (typeof result?.createdEvent === "string") {
         createdEventObj = createdEventSchema.parse(JSON.parse(result.createdEvent));
       }
+
       return {
         type: result.type,
         uid: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString() ?? "",
