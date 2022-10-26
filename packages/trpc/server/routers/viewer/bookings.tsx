@@ -441,6 +441,7 @@ export const bookingsRouter = createProtectedRouter()
             select: {
               id: true,
               recurringEvent: true,
+              title: true,
               requiresConfirmation: true,
               workflows: {
                 include: {
@@ -525,7 +526,7 @@ export const bookingsRouter = createProtectedRouter()
       const attendeesList = await Promise.all(attendeesListPromises);
 
       const evt: CalendarEvent = {
-        type: booking.title,
+        type: booking.eventType?.title || booking.title,
         title: booking.title,
         description: booking.description,
         customInputs: isPrismaObjOrUndefined(booking.customInputs),

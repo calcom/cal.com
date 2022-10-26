@@ -75,6 +75,7 @@ export enum ErrorCode {
   NewPasswordMatchesOld = "new-password-matches-old",
   ThirdPartyIdentityProviderEnabled = "third-party-identity-provider-enabled",
   RateLimitExceeded = "rate-limit-exceeded",
+  SocialIdentityProviderRequired = "social-identity-provider-required",
 }
 
 export const identityProviderNameMap: { [key in IdentityProvider]: string } = {
