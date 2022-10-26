@@ -132,14 +132,14 @@ export const EventSetupTab = (
               }
               return (
                 <li key={location.type} className="mb-2 rounded-md border border-neutral-300 py-1.5 px-2">
-                  <div className="flex justify-between">
+                  <div className="flex max-w-full justify-between">
                     <div key={index} className="flex flex-grow items-center">
                       <img
                         src={eventLocationType.iconUrl}
                         className="h-6 w-6"
                         alt={`${eventLocationType.label} logo`}
                       />
-                      <span className="text-sm ltr:ml-2 rtl:mr-2">
+                      <span className="truncate text-sm ltr:ml-2 rtl:mr-2">
                         {location[eventLocationType.defaultValueVariable] || eventLocationType.label}
                       </span>
                     </div>
