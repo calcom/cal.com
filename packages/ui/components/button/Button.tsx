@@ -4,7 +4,7 @@ import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
 
-import { Tooltip } from "./Tooltip";
+// import { Tooltip } from "./Tooltip";
 
 export type ButtonBaseProps = {
   /* Primary: Signals most important actions at any given point in the application.
@@ -146,11 +146,11 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
 });
 
 const Wrapper = ({ children, tooltip }: { tooltip?: string; children: React.ReactNode }) => {
-  if (!tooltip) {
-    return <>{children}</>;
-  }
+  // if (!tooltip) {
+  return <>{children}</>;
+  // }
 
-  return <Tooltip content={tooltip}>{children}</Tooltip>;
+  // return <Tooltip content={tooltip}>{children}</Tooltip>;
 };
 
 export default Button;
