@@ -151,12 +151,7 @@ export const Meeting = ({ title, users = [], profile }: MeetingImageProps) => {
 
 export const App = ({ name, description, slug }: AppImageProps) => (
   <Wrapper variant="dark">
-    <img
-      src={`${CAL_URL}/${LOGO}`}
-      width="150"
-      alt="Logo"
-      tw="absolute right-[48px] top-[32px]"
-    />
+    <img src={`${CAL_URL}/${LOGO}`} width="150" alt="Logo" tw="absolute right-[48px] top-[32px]" />
     <div tw="flex items-center justify-center w-full">
       <div tw="flex items-center justify-center flex-row-reverse bg-[rgba(255,255,255,0.7)] p-8 rounded-lg w-[172px] h-[172px]">
         <img src={`${CAL_URL}${slug}`} alt="App icon" width="125" />
