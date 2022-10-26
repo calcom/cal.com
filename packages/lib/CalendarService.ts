@@ -203,7 +203,7 @@ export default abstract class BaseCalendarService implements Calendar {
         })
       ).then((responses) =>
         responses.map((response) => {
-          if (response.status > 199 && response.status < 207) {
+          if (response.status >= 200 && response.status < 300) {
             return {
               uid,
               type: this.credentials.type,
