@@ -30,6 +30,7 @@ import Dropdown, {
 import { Icon } from "@calcom/ui/Icon";
 import TimezoneChangeDialog from "@calcom/ui/TimezoneChangeDialog";
 import Button from "@calcom/ui/v2/core/Button";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
@@ -327,12 +328,17 @@ function UserDropdown({ small }: { small?: boolean }) {
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <a
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigator.clipboard.writeText(
+                          `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`
+                        );
+                        showToast(t("link_copied"), "success");
+                      }}
                       className="flex items-center px-4 py-2 text-sm text-gray-700">
                       <Icon.FiLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
-                      {t("view_public_page")}
+                      {t("copy_public_page_link")}
                     </a>
                   </DropdownMenuItem>
                 </>
