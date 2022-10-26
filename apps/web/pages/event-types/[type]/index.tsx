@@ -149,6 +149,17 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
 
+  const convertMinimumBookingNoticeToMinutes = (type: string, minNotice: number) => {
+    if (type == "minute") {
+      return;
+    } else if (type == "hour") {
+      return minNotice * 60;
+    } else if (type == "day") {
+      return minNotice * 1440;
+    }
+    return minNotice;
+  };
+
   const formMethods = useForm<FormValues>({
     defaultValues: {
       title: eventType.title,
@@ -163,7 +174,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         endDate: periodDates.endDate,
       },
       schedulingType: eventType.schedulingType,
-      minimumBookingNotice: eventType.minimumBookingNotice,
+      minimumBookingNotice: convertMinimumBookingNoticeToMinutes(
+        eventType.minimumBookingNoticeType,
+        eventType.minimumBookingNotice
+      ),
       minimumBookingNoticeType: eventType.minimumBookingNoticeType,
       metadata: eventType.metadata,
     },
@@ -230,7 +244,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
           const {
             periodDates,
             periodCountCalendarDays,
-            minimumBookingNoticeType,
             beforeBufferTime,
             afterBufferTime,
             seatsPerTimeSlot,
@@ -257,7 +270,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             periodStartDate: periodDates.startDate,
             periodEndDate: periodDates.endDate,
             periodCountCalendarDays: periodCountCalendarDays === "1",
-            minimumBookingNoticeType,
+            minimumBookingNoticeType: eventType.minimumBookingNoticeType,
             id: eventType.id,
             beforeEventBuffer: beforeBufferTime,
             afterEventBuffer: afterBufferTime,

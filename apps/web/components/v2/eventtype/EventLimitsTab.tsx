@@ -45,8 +45,6 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
     defaultValue: periodType?.type,
   });
 
-  const durationArray = [eventType.minimumBookingNoticeType];
-
   return (
     <div>
       <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
@@ -121,6 +119,7 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
             name="minimumBookingNotice"
             control={formMethods.control}
             render={() => {
+              const durationArray = [eventType.minimumBookingNoticeType];
               const minBookingValue = formMethods.watch("minimumBookingNotice");
               let newMinBookingValue: number;
               const convertToNewDurationType = function (
@@ -128,50 +127,54 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
                 newType: string,
                 prevValue: number
               ) {
-                console.log(prevType, newType, prevValue);
                 if (!prevType) {
                   prevType = eventType.minimumBookingNoticeType;
                 }
-                if (newType == "mins") {
-                  if (prevType == "hours") {
+                if (newType == "minute") {
+                  if (prevType == "hour") {
                     newMinBookingValue = prevValue * 60;
                   }
-                  if (prevType == "calendar days") {
+                  if (prevType == "day") {
                     newMinBookingValue = prevValue * 1440;
                   }
-                } else if (newType == "hours") {
-                  if (prevType == "mins") {
+                } else if (newType == "hour") {
+                  if (prevType == "minute") {
                     newMinBookingValue = prevValue / 60;
                   }
-                  if (prevType == "calendar days") {
+                  if (prevType == "day") {
                     newMinBookingValue = prevValue * 24;
                   }
-                } else if (newType == "calendar days") {
-                  if (prevType == "mins") {
+                } else if (newType == "day") {
+                  if (prevType == "minute") {
                     newMinBookingValue = prevValue / 1440;
                   }
-                  if (prevType == "hours") {
+                  if (prevType == "hour") {
                     newMinBookingValue = prevValue / 24;
                   }
-                } else if (newType == prevType) {
-                  newMinBookingValue = prevValue;
                 }
               };
 
               const durationTypeOptions = [
                 {
                   label: t("minutes"),
-                  value: "mins",
+                  value: "minute",
                 },
                 {
                   label: t("hours"),
-                  value: "hours",
+                  value: "hour",
                 },
                 {
                   label: t("calendar_days"),
-                  value: "calendar days",
+                  value: "day",
                 },
               ];
+
+              convertToNewDurationType(
+                "minute",
+                eventType.minimumBookingNoticeType,
+                eventType.minimumBookingNotice
+              );
+              eventType.minimumBookingNotice = newMinBookingValue;
 
               return (
                 <>

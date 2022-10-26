@@ -113,6 +113,7 @@ async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeo
     select: {
       id: true,
       minimumBookingNotice: true,
+      minimumBookingNoticeType: true,
       length: true,
       seatsPerTimeSlot: true,
       timeZone: true,
@@ -273,6 +274,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       eventLength: eventType.length,
       workingHours,
       minimumBookingNotice: eventType.minimumBookingNotice,
+      minimumBookingNoticeType: eventType.minimumBookingNoticeType,
       frequency: eventType.slotInterval || eventType.length,
     });
 

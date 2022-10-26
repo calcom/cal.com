@@ -8,6 +8,7 @@ export type GetSlots = {
   frequency: number;
   workingHours: WorkingHours[];
   minimumBookingNotice: number;
+  minimumBookingNoticeType: string;
   eventLength: number;
 };
 export type WorkingHoursTimeFrame = { startTime: number; endTime: number };
@@ -39,9 +40,31 @@ const splitAvailableTime = (
   return result;
 };
 
-const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, eventLength }: GetSlots) => {
+const convertMinimumBookingNoticeToMinutes = (type: string, minNotice: number) => {
+  if (type == "minute") {
+    return minNotice;
+  } else if (type == "hour") {
+    return minNotice * 60;
+  } else if (type == "day") {
+    return minNotice * 1440;
+  }
+  return minNotice;
+};
+
+const getSlots = ({
+  inviteeDate,
+  frequency,
+  minimumBookingNotice,
+  minimumBookingNoticeType,
+  workingHours,
+  eventLength,
+}: GetSlots) => {
+  const convertedMinimumBookingNotice = convertMinimumBookingNoticeToMinutes(
+    minimumBookingNoticeType,
+    minimumBookingNotice
+  );
   // current date in invitee tz
-  const startDate = dayjs().add(minimumBookingNotice, "minute");
+  const startDate = dayjs().add(convertedMinimumBookingNotice, "minute");
   // This code is ran client side, startOf() does some conversions based on the
   // local tz of the client. Sometimes this shifts the day incorrectly.
   const startOfDayUTC = dayjs.utc().set("hour", 0).set("minute", 0).set("second", 0);

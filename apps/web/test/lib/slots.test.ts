@@ -16,6 +16,7 @@ it("can fit 24 hourly slots for an empty day", async () => {
       inviteeDate: dayjs.utc().add(1, "day"),
       frequency: 60,
       minimumBookingNotice: 0,
+      minimumBookingNoticeType: "minute",
       workingHours: [
         {
           days: Array.from(Array(7).keys()),
@@ -36,6 +37,7 @@ it("only shows future booking slots on the same day", async () => {
       inviteeDate: dayjs.utc(),
       frequency: 60,
       minimumBookingNotice: 0,
+      minimumBookingNoticeType: "minute",
       workingHours: [
         {
           days: Array.from(Array(7).keys()),
@@ -54,6 +56,7 @@ it("can cut off dates that due to invitee timezone differences fall on the next 
       inviteeDate: dayjs().tz("Europe/Amsterdam").startOf("day"), // time translation +01:00
       frequency: 60,
       minimumBookingNotice: 0,
+      minimumBookingNoticeType: "minute",
       workingHours: [
         {
           days: [0],
@@ -79,6 +82,7 @@ it("can cut off dates that due to invitee timezone differences fall on the previ
       inviteeDate: dayjs().tz("Atlantic/Cape_Verde").startOf("day"), // time translation -01:00
       frequency: 60,
       minimumBookingNotice: 0,
+      minimumBookingNoticeType: "minute",
       workingHours,
       eventLength: 60,
     })
@@ -92,6 +96,7 @@ it("adds minimum booking notice correctly", async () => {
       inviteeDate: dayjs.utc().add(1, "day").startOf("day"),
       frequency: 60,
       minimumBookingNotice: 1500,
+      minimumBookingNoticeType: "minute",
       workingHours: [
         {
           days: Array.from(Array(7).keys()),
@@ -111,6 +116,7 @@ it("adds buffer time", async () => {
         inviteeDate: dayjs.utc().add(1, "day"),
         frequency: 60,
         minimumBookingNotice: 0,
+        minimumBookingNoticeType: "minute",
         workingHours: [
           {
             days: Array.from(Array(7).keys()),
@@ -140,6 +146,7 @@ it("adds buffer time with custom slot interval", async () => {
         inviteeDate: dayjs.utc().add(1, "day"),
         frequency: 5,
         minimumBookingNotice: 0,
+        minimumBookingNoticeType: "minute",
         workingHours: [
           {
             days: Array.from(Array(7).keys()),
