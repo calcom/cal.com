@@ -72,24 +72,6 @@ const config: PlaywrightTestConfig = {
         navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
       },
     },
-    {
-      name: "@calcom/embed-core",
-      testDir: "./packages/embeds/",
-      testMatch: /.*\.e2e\.tsx?/,
-      use: { ...devices["Desktop Chrome"] },
-    },
-    {
-      name: "@calcom/embed-core--firefox",
-      testDir: "./packages/embeds/",
-      testMatch: /.*\.e2e\.tsx?/,
-      use: { ...devices["Desktop Firefox"] },
-    },
-    {
-      name: "@calcom/embed-core--webkit",
-      testDir: "./packages/embeds/",
-      testMatch: /.*\.e2e\.tsx?/,
-      use: { ...devices["Desktop Safari"] },
-    },
   ],
 };
 

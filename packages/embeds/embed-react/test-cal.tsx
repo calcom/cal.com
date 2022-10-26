@@ -12,7 +12,7 @@ function App() {
     // Simulate state change causing config object to change, causing rerender of Cal
     setTimeout(setLoaded.bind(true), 1000);
     const callback = (event) => {
-      console.log(event.detail);
+      console.log("Cal Embed Event", event.detail);
     };
     api.then((api) => {
       api("on", {

@@ -95,18 +95,27 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   await selectFirstAvailableTimeSlotNextMonth(frame, page);
   await frame.waitForNavigation({
     url(url) {
-      return url.pathname.includes(`/${username}/book`);
+      return url.pathname.includes(`/book`);
     },
   });
   expect(await page.screenshot()).toMatchSnapshot("booking-page.png");
   // --- fill form
   await frame.fill('[name="name"]', "Embed User");
   await frame.fill('[name="email"]', "embed-user@example.com");
-  await frame.press('[name="email"]', "Enter");
-  const response = await page.waitForResponse("**/api/book/event");
+
+  const [_1, response, _2] = await Promise.all([
+    frame.press('[name="email"]', "Enter"),
+    page.waitForResponse("**/api/book/event"),
+    // Make sure we're navigated to the success page
+    frame.waitForNavigation({
+      url(url) {
+        return url.pathname.includes(`/success`);
+      },
+    }),
+  ]);
+
   const responseObj = await response.json();
   const bookingId = responseObj.uid;
-  // Make sure we're navigated to the success page
   await expect(frame.locator("[data-testid=success-page]")).toBeVisible();
   expect(await page.screenshot()).toMatchSnapshot("success-page.png");
   return bookingId;

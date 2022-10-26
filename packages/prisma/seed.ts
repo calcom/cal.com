@@ -136,6 +136,9 @@ async function createTeamAndAddUsers(
         data: {
           ...team,
         },
+        include: {
+          eventTypes: true,
+        },
       });
     } catch (_err) {
       if (_err instanceof Error && _err.message.indexOf("Unique constraint failed on the fields") !== -1) {
@@ -165,7 +168,20 @@ async function createTeamAndAddUsers(
         accepted: true,
       },
     });
+
     console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${role}'`);
+  }
+  for (const eventType of team.eventTypes) {
+    await prisma.eventType.update({
+      where: {
+        id: eventType.id,
+      },
+      data: {
+        users: {
+          connect: users.map((u) => ({ id: u.id })),
+        },
+      },
+    });
   }
 }
 
