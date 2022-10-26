@@ -314,16 +314,28 @@ function UserDropdown({ small }: { small?: boolean }) {
               </DropdownMenuItem>
               <DropdownMenuSeparator className="h-px bg-gray-200" />
               {user.username && (
-                <DropdownMenuItem>
-                  <a
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
-                    className="flex items-center px-4 py-2 text-sm text-gray-700">
-                    <Icon.FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
-                    {t("view_public_page")}
-                  </a>
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem>
+                    <a
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
+                      className="flex items-center px-4 py-2 text-sm text-gray-700">
+                      <Icon.FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                      {t("view_public_page")}
+                    </a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <a
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
+                      className="flex items-center px-4 py-2 text-sm text-gray-700">
+                      <Icon.FiLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                      {t("view_public_page")}
+                    </a>
+                  </DropdownMenuItem>
+                </>
               )}
               <DropdownMenuSeparator className="h-px bg-gray-200" />
               <DropdownMenuItem>
