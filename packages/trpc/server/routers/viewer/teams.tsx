@@ -167,7 +167,7 @@ export const viewerTeamsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       if (!(await isTeamOwner(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-      await deleteTeamFromStripe(input.teamId);
+      if (IS_STRIPE_ENABLED) await deleteTeamFromStripe(input.teamId);
 
       // delete all memberships
       await ctx.prisma.membership.deleteMany({
