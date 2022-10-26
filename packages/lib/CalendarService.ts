@@ -195,6 +195,7 @@ export default abstract class BaseCalendarService implements Calendar {
           return updateCalendarObject({
             calendarObject: {
               url: calendarEvent.url,
+              // ensures compliance with standard iCal string (known as iCal2.0 by some) required by various providers
               data: iCalString?.replace(/METHOD:[^\r\n]+\r\n/g, ""),
               etag: calendarEvent?.etag,
             },
