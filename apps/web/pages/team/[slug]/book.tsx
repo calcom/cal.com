@@ -81,11 +81,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   });
 
   if (!eventTypeRaw) return { notFound: true };
-
   const eventType = {
     ...eventTypeRaw,
     //TODO: Use zodSchema to verify it instead of using Type Assertion
-    locations: privacyFilteredLocations(eventTypeRaw.locations as LocationObject[]),
+    locations: privacyFilteredLocations((eventTypeRaw.locations || []) as LocationObject[]),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
   };
 
