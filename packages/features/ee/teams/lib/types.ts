@@ -1,4 +1,4 @@
-export interface FormValues {
+export interface NewTeamFormValues {
   name: string;
   slug: string;
   avatar: string;

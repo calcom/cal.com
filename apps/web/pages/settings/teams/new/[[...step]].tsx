@@ -7,7 +7,7 @@ import { z } from "zod";
 // import TeamGeneralSettings from "@calcom/features/teams/createNewTeam/TeamGeneralSettings";
 import AddNewTeamMembers from "@calcom/features/ee/teams/components/v2/AddNewTeamMembers";
 import CreateNewTeam from "@calcom/features/ee/teams/components/v2/CreateNewTeam";
-import { FormValues } from "@calcom/features/ee/teams/lib/types";
+import { NewTeamFormValues } from "@calcom/features/ee/teams/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Form } from "@calcom/ui/v2/core/form";
@@ -38,7 +38,7 @@ const CreateNewTeamPage = () => {
   const { t } = useLocale();
   const [teamId, setTeamId] = useState<number>();
 
-  const formMethods = useForm<FormValues>();
+  const formMethods = useForm<NewTeamFormValues>();
 
   // const { data: user, isLoading } = trpc.useQuery(["viewer.me"], {
   //   onSuccess: () => {

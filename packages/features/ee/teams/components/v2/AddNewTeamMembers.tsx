@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { Suspense, useState } from "react";
+import { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
 
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
@@ -9,35 +9,28 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Avatar, Badge, Button, showToast } from "@calcom/ui/v2/core";
-import { SkeletonContainer, SkeletonText } from "@calcom/ui/v2/core/skeleton";
+import { SkeletonContainer, SkeletonText, SkeletonAvatar } from "@calcom/ui/v2/core/skeleton";
 
-import { FormValues } from "../../lib/types";
-
-const AddNewTeamMemberSkeleton = () => {
-  return (
-    <SkeletonContainer className="rounded-md border">
-      <div className="flex w-full justify-between p-4">
-        <div>
-          <p className="text-sm font-medium text-gray-900">
-            <SkeletonText className="h-4 w-56" />
-          </p>
-          <div className="mt-2.5 w-max">
-            <SkeletonText className="h-5 w-28" />
-          </div>
-        </div>
-      </div>
-    </SkeletonContainer>
-  );
-};
+import { NewTeamFormValues } from "../../lib/types";
+import { NewMemberForm } from "../MemberInvitationModal";
 
 const AddNewTeamMembers = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
 
-  const formMethods = useFormContext<FormValues>();
+  const [memberInviteModal, setMemberInviteModal] = useState(false);
+  const [inviteMemberUsername, setInviteMemberUsername] = useState("");
+  const [skeletonMember, setSkeletonMember] = useState(false);
 
-  const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
+  const formMethods = useFormContext<NewTeamFormValues>();
+
+  const { data: user } = trpc.useQuery(["viewer.me"]);
+
+  const { data: newMember } = trpc.useQuery(["viewer.teams.findUser", { username: inviteMemberUsername }], {
+    refetchOnWindowFocus: false,
+    enabled: false,
+  });
 
   // const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId }]);
   // const removeMemberMutation = trpc.useMutation("viewer.teams.removeMember", {
@@ -57,7 +50,13 @@ const AddNewTeamMembers = () => {
   //   },
   // });
 
-  const [memberInviteModal, setMemberInviteModal] = useState(false);
+  // TODO handle processing new members as either email or username
+
+  const handleInviteTeamMember = (values: NewMemberForm) => {
+    console.log(values);
+    setMemberInviteModal(false);
+    setSkeletonMember(true);
+  };
 
   // if (isLoading) return <AddNewTeamMemberSkeleton />;
 
@@ -75,7 +74,7 @@ const AddNewTeamMembers = () => {
             avatar: user?.avatar || "",
           },
         ]}
-        render={({ field: { value, onChange } }) => (
+        render={({ field: { value } }) => (
           <>
             <div>
               <ul className="rounded-md border">
@@ -120,6 +119,7 @@ const AddNewTeamMembers = () => {
                     )}
                   </li>
                 ))}
+                {skeletonMember && <SkeletonMember />}
               </ul>
 
               <Button
@@ -135,8 +135,7 @@ const AddNewTeamMembers = () => {
             <MemberInvitationModal
               isOpen={memberInviteModal}
               onExit={() => setMemberInviteModal(false)}
-              // team={team}
-              // currentMember={team?.membership.role}
+              onSubmit={handleInviteTeamMember}
             />
           </>
         )}
@@ -231,3 +230,41 @@ const AddNewTeamMembers = () => {
 };
 
 export default AddNewTeamMembers;
+
+const AddNewTeamMemberSkeleton = () => {
+  return (
+    <SkeletonContainer className="rounded-md border">
+      <div className="flex w-full justify-between p-4">
+        <div>
+          <p className="text-sm font-medium text-gray-900">
+            <SkeletonText className="h-4 w-56" />
+          </p>
+          <div className="mt-2.5 w-max">
+            <SkeletonText className="h-5 w-28" />
+          </div>
+        </div>
+      </div>
+    </SkeletonContainer>
+  );
+};
+
+const SkeletonMember = () => {
+  return (
+    <SkeletonContainer className="rounded-md border-t text-sm">
+      <div className="flex items-center justify-between p-5">
+        <div className="flex">
+          <SkeletonAvatar className="h-10 w-10" />
+          <div>
+            <p>
+              <SkeletonText className="h-4 w-56" />
+            </p>
+            <p>
+              <SkeletonText className="h-4 w-56" />
+            </p>
+          </div>
+        </div>
+        <SkeletonText className="h-7 w-7" />
+      </div>
+    </SkeletonContainer>
+  );
+};

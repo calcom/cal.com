@@ -1,17 +1,22 @@
 import { MembershipRole } from "@prisma/client";
 import React, { useState, SyntheticEvent, useMemo } from "react";
+import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import { Button, Dialog, DialogContent, DialogFooter, Select, TextField } from "@calcom/ui/v2";
+import { Form } from "@calcom/ui/v2/core/form";
+import CheckboxField from "@calcom/ui/v2/core/form/Checkbox";
+
+import { NewTeamFormValues } from "../lib/types";
 
 type MemberInvitationModalProps = {
   isOpen: boolean;
-  team: TeamWithMembers | null;
-  currentMember: MembershipRole;
+  currentMember?: MembershipRole;
   onExit: () => void;
+  onSubmit: (values: NewTeamFormValues["members"]) => void;
 };
 
 type MembershipRoleOption = {
@@ -19,12 +24,20 @@ type MembershipRoleOption = {
   label?: string;
 };
 
+export interface NewMemberForm {
+  emailOrUsername: string;
+  role: MembershipRoleOption;
+  sendInviteEmail: boolean;
+}
+
 const _options: MembershipRoleOption[] = [{ value: "MEMBER" }, { value: "ADMIN" }, { value: "OWNER" }];
 
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const [errorMessage, setErrorMessage] = useState("");
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
+
+  const newMemberFormMethods = useForm<NewMemberForm>();
 
   const options = useMemo(() => {
     _options.forEach((option, i) => {
@@ -76,43 +89,55 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             your subscription once this member accepts your invite.
           </span>
         }>
-        <form onSubmit={inviteMember}>
+        <form>
           <div className="space-y-4">
-            <TextField
-              label={t("email_or_username")}
-              id="inviteUser"
-              name="inviteUser"
-              placeholder="email@example.com"
-              required
-            />
-            <div>
-              <label className="mb-1 block text-sm font-medium tracking-wide text-gray-700" htmlFor="role">
-                {t("role")}
-              </label>
-              <Select
-                defaultValue={options[0]}
-                options={props.currentMember !== MembershipRole.OWNER ? options.slice(0, 2) : options}
-                id="role"
-                name="role"
-                className="mt-1 block w-full rounded-sm border-gray-300 text-sm"
-              />
-            </div>
-            <div className="relative flex items-start">
-              <div className="flex h-5 items-center">
-                <input
-                  type="checkbox"
-                  name="sendInviteEmail"
-                  defaultChecked
-                  id="sendInviteEmail"
-                  className="rounded-sm border-gray-300 text-sm text-black"
+            <Controller
+              name="emailOrUsername"
+              control={newMemberFormMethods.control}
+              render={({ field: { onChange } }) => (
+                <TextField
+                  label={t("email_or_username")}
+                  id="inviteUser"
+                  name="inviteUser"
+                  placeholder="email@example.com"
+                  required
+                  onChange={onChange}
                 />
-              </div>
-              <div className="text-sm ltr:ml-2 rtl:mr-2">
-                <label htmlFor="sendInviteEmail" className="font-medium text-gray-700">
-                  {t("send_invite_email")}
-                </label>
-              </div>
-            </div>
+              )}
+            />
+            <Controller
+              name="role"
+              control={newMemberFormMethods.control}
+              render={({ field: { onChange } }) => (
+                <div>
+                  <label
+                    className="mb-1 block text-sm font-medium tracking-wide text-gray-700"
+                    htmlFor="role">
+                    {t("role")}
+                  </label>
+                  <Select
+                    defaultValue={options[0]}
+                    options={props.currentMember !== MembershipRole.OWNER ? options.slice(0, 2) : options}
+                    id="role"
+                    name="role"
+                    className="mt-1 block w-full rounded-sm border-gray-300 text-sm"
+                    onChange={onChange}
+                  />
+                </div>
+              )}
+            />
+            <Controller
+              name="sendInviteEmail"
+              control={newMemberFormMethods.control}
+              render={() => (
+                <div className="relative flex items-start">
+                  <CheckboxField
+                    description={t("send_invite_email")}
+                    onChange={(e) => newMemberFormMethods.setValue("sendInviteEmail", e.target.checked)}
+                  />
+                </div>
+              )}
+            />
           </div>
           {errorMessage && (
             <p className="text-sm text-red-700">
@@ -125,7 +150,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               {t("cancel")}
             </Button>
             <Button
-              type="submit"
+              onClick={() => props.onSubmit(newMemberFormMethods.getValues())}
               color="primary"
               className="ltr:ml-2 rtl:mr-2"
               data-testid="invite-new-member-button">

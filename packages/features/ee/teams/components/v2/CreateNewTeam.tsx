@@ -9,13 +9,13 @@ import { Button, Avatar } from "@calcom/ui/v2";
 import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
 import { Form, TextField } from "@calcom/ui/v2/core/form/fields";
 
-import { FormValues } from "../../lib/types";
+import { NewTeamFormValues } from "../../lib/types";
 
 const CreateANewTeamForm = (props: { nextStep: () => void; setTeamId: (teamId: number) => void }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const formMethods = useFormContext<FormValues>();
+  const formMethods = useFormContext<NewTeamFormValues>();
 
   const createTeamMutation = trpc.useMutation("viewer.teams.create", {
     onSuccess(data) {

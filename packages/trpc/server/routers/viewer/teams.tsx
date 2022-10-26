@@ -555,4 +555,27 @@ export const viewerTeamsRouter = createProtectedRouter()
         },
       });
     },
+  })
+  .query("findUser", {
+    input: z.object({
+      username: z.string(),
+    }),
+    async resolve({ ctx, input }) {
+      const user = await ctx.prisma.user.findFirst({
+        where: {
+          username: input.username,
+        },
+        select: {
+          name: true,
+          avatar: true,
+        },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Could not find user",
+        });
+      }
+    },
   });
