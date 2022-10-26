@@ -20,7 +20,7 @@ const Cal = function Cal(props: CalProps) {
     throw new Error("calLink is required");
   }
   const initializedRef = useRef(false);
-  const Cal = useEmbed(embedJsUrl);
+  const Cal = useEmbed(embedJsUrl ? embedJsUrl : calOrigin ? `${calOrigin}/embed/embed.js` : undefined);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!Cal || initializedRef.current) {
