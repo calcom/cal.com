@@ -1,4 +1,5 @@
 import {
+  Booking,
   BookingStatus,
   Prisma,
   PrismaPromise,
@@ -233,6 +234,8 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     // CUSTOM_CODE to webhook all recurring events
     const webhooks = await getWebhooks(subscriberOptions);
     for (const booking of allUpdatedBookings) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       if (booking && booking?.status === BookingStatus.CANCELLED) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore

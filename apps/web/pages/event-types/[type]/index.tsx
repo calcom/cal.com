@@ -219,7 +219,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       eventType={eventType}
       team={team}
       formMethods={formMethods}
-      disableBorder={tabName === "apps" || tabName === "workflows"}
+      disableBorder={tabName === "apps"}
       currentUserMembership={props.currentUserMembership}>
       <Form
         form={formMethods}

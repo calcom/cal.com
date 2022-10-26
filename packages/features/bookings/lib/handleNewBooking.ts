@@ -514,7 +514,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
     const newSeat = booking.attendees.length !== 0;
 
-    await sendScheduledSeatsEmails(evt, invitee[0], newSeat, !!eventType.seatsShowAttendees);
+    await sendScheduledSeatsEmails(evt, invitee[0], newSeat, true);
 
     const credentials = await refreshCredentials(organizerUser.credentials);
     const eventManager = new EventManager({ ...organizerUser, credentials });
