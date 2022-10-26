@@ -164,7 +164,7 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
                   value: "hour",
                 },
                 {
-                  label: t("calendar_days"),
+                  label: t("days"),
                   value: "day",
                 },
               ];
