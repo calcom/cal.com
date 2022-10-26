@@ -785,12 +785,12 @@ export function ShellMain(props: LayoutProps) {
           <header
             className={classNames(
               props.large && "py-8",
-              "mb-4 flex w-full items-start pt-4 pb-2 md:p-0 lg:mb-10"
+              "mb-4 flex w-full max-w-full items-center pt-4 md:p-0 lg:mb-10"
             )}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className="w-full ltr:mr-4 rtl:ml-4 sm:block">
               {props.heading && (
-                <h1 className="font-cal text-xl font-bold tracking-wide text-black">
+                <h1 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 mb-1 truncate text-xl font-bold tracking-wide text-black xl:max-w-full">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
               )}
@@ -830,7 +830,7 @@ function MainContainer({
   const [sideContainerOpen, setSideContainerOpen] = props.drawerState || [false, noop];
 
   return (
-    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none ">
+    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
       {/* The following is used for settings navigation on medium and smaller screens */}
@@ -844,7 +844,7 @@ function MainContainer({
         }}
       />
       {SettingsSidebarContainerProp}
-      <div className="px-4 py-2 lg:py-8 lg:px-12">
+      <div className="max-w-full px-4 py-2 lg:py-8 lg:px-12">
         <ErrorBoundary>
           {/* add padding to top for mobile when App Bar is fixed */}
           <div className="pt-14 sm:hidden" />
