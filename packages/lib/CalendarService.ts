@@ -187,16 +187,16 @@ export default abstract class BaseCalendarService implements Calendar {
           additionalInfo: {},
         };
       }
-
+      let calendarEvent: CalendarEventType;
       const eventsToUpdate = events.filter((e) => e.uid === uid);
       return Promise.all(
         eventsToUpdate.map((eventItem) => {
-          event = eventItem;
+          calendarEvent = eventItem;
           return updateCalendarObject({
             calendarObject: {
-              url: event.url,
+              url: calendarEvent.url,
               data: iCalString?.replace(/METHOD:[^\r\n]+\r\n/g, ""),
-              etag: event?.etag,
+              etag: calendarEvent?.etag,
             },
             headers: this.headers,
           });
@@ -204,15 +204,15 @@ export default abstract class BaseCalendarService implements Calendar {
       ).then((responses) =>
         responses.map((response) => {
           if (response.status > 199 && response.status < 207) {
-            const ret = {
+            return {
               uid,
               type: this.credentials.type,
-              id: typeof event.uid === "string" ? event.uid : "-1",
+              id: typeof calendarEvent.uid === "string" ? calendarEvent.uid : "-1",
               password: "",
-              url: event.url,
-              additionalInfo: event.additionalInformation,
-            } as NewCalendarEventType;
-            return ret;
+              url: calendarEvent.url,
+              additionalInfo:
+                typeof event.additionalInformation === "string" ? event.additionalInformation : {},
+            };
           } else {
             this.log.error("Error: Status Code", response.status);
             return {
@@ -221,7 +221,8 @@ export default abstract class BaseCalendarService implements Calendar {
               id: typeof event.uid === "string" ? event.uid : "-1",
               password: "",
               url: typeof event.location === "string" ? event.location : "-1",
-              additionalInfo: {},
+              additionalInfo:
+                typeof event.additionalInformation === "string" ? event.additionalInformation : {},
             };
           }
         })
