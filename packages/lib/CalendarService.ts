@@ -189,33 +189,33 @@ export default abstract class BaseCalendarService implements Calendar {
       }
 
       const eventsToUpdate = events.filter((e) => e.uid === uid);
-      let ev = eventsToUpdate[0];
+      // let event = eventsToUpdate[0];
       return Promise.all(
-        eventsToUpdate.map((e) => {
-          ev = e;
+        eventsToUpdate.map((eventItem) => {
+          event = eventItem;
           return updateCalendarObject({
             calendarObject: {
-              url: e.url,
+              url: event.url,
               data: iCalString?.replace(/METHOD:[^\r\n]+\r\n/g, ""),
-              etag: e?.etag,
+              etag: event?.etag,
             },
             headers: this.headers,
           });
         })
-      ).then((parameter) =>
-        parameter.map((res) => {
-          if (res.status > 199 && res.status < 207) {
+      ).then((responses) =>
+        responses.map((response) => {
+          if (response.status > 199 && response.status < 207) {
             const ret = {
               uid,
               type: this.credentials.type,
-              id: typeof ev.uid === "string" ? ev.uid : "-1",
+              id: typeof event.uid === "string" ? event.uid : "-1",
               password: "",
-              url: ev.url,
-              additionalInfo: {},
+              url: event.url,
+              additionalInfo: event.additionalInformation,
             } as NewCalendarEventType;
             return ret;
           } else {
-            this.log.error("Error: Status Code", res.status);
+            this.log.error("Error: Status Code", response.status);
             return {
               uid,
               type: event.type,
@@ -235,10 +235,12 @@ export default abstract class BaseCalendarService implements Calendar {
 
   async deleteEvent(uid: string): Promise<void> {
     try {
+      console.log("Deleting Event begins");
       const events = await this.getEventsByUID(uid);
 
       const eventsToDelete = events.filter((event) => event.uid === uid);
 
+      console.log("Call sent now");
       await Promise.all(
         eventsToDelete.map((event) => {
           return deleteCalendarObject({
@@ -255,6 +257,7 @@ export default abstract class BaseCalendarService implements Calendar {
 
       throw reason;
     }
+    console.log("Delete done");
   }
 
   isValidFormat = (url: string): boolean => {
