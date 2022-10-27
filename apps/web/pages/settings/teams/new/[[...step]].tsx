@@ -1,13 +1,13 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
 // import TeamGeneralSettings from "@calcom/features/teams/createNewTeam/TeamGeneralSettings";
 import AddNewTeamMembers from "@calcom/features/ee/teams/components/v2/AddNewTeamMembers";
 import CreateNewTeam from "@calcom/features/ee/teams/components/v2/CreateNewTeam";
-import { NewTeamFormValues } from "@calcom/features/ee/teams/lib/types";
+import { NewTeamFormValues, NewTeamMembersFieldArray } from "@calcom/features/ee/teams/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Form } from "@calcom/ui/v2/core/form";

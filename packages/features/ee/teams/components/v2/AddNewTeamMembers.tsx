@@ -1,6 +1,6 @@
 import { useRouter } from "next/router";
-import { useState } from "react";
-import { useFormContext, Controller } from "react-hook-form";
+import { useState, useEffect } from "react";
+import { useFormContext, Controller, useFieldArray } from "react-hook-form";
 
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import { classNames } from "@calcom/lib";
@@ -11,7 +11,7 @@ import { Icon } from "@calcom/ui";
 import { Avatar, Badge, Button, showToast } from "@calcom/ui/v2/core";
 import { SkeletonContainer, SkeletonText, SkeletonAvatar } from "@calcom/ui/v2/core/skeleton";
 
-import { NewTeamFormValues } from "../../lib/types";
+import { NewTeamFormValues, NewTeamMembersFieldArray, PendingMember } from "../../lib/types";
 import { NewMemberForm } from "../MemberInvitationModal";
 
 const AddNewTeamMembers = () => {
@@ -20,18 +20,33 @@ const AddNewTeamMembers = () => {
   const router = useRouter();
 
   const [memberInviteModal, setMemberInviteModal] = useState(false);
-  const [inviteMemberUsername, setInviteMemberUsername] = useState("");
+  const [inviteMemberInput, setInviteMemberInput] = useState<NewMemberForm>({
+    emailOrUsername: "",
+    role: { value: "MEMBER", label: "Member" },
+    sendInviteEmail: false,
+  });
   const [skeletonMember, setSkeletonMember] = useState(false);
 
   const formMethods = useFormContext<NewTeamFormValues>();
+  const membersFieldArray = useFieldArray<NewTeamMembersFieldArray>({
+    name: "members",
+  });
 
   const { data: user } = trpc.useQuery(["viewer.me"]);
 
-  const { data: newMember } = trpc.useQuery(["viewer.teams.findUser", { username: inviteMemberUsername }], {
+  const { refetch } = trpc.useQuery(["viewer.teams.findUser", inviteMemberInput], {
     refetchOnWindowFocus: false,
     enabled: false,
+    onSuccess: (newMember: PendingMember) => {
+      membersFieldArray.append(newMember);
+    },
   });
 
+  useEffect(() => {
+    if (inviteMemberInput) {
+      refetch();
+    }
+  }, [inviteMemberInput]);
   // const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId }]);
   // const removeMemberMutation = trpc.useMutation("viewer.teams.removeMember", {
   //   onSuccess() {
@@ -50,10 +65,9 @@ const AddNewTeamMembers = () => {
   //   },
   // });
 
-  // TODO handle processing new members as either email or username
-
   const handleInviteTeamMember = (values: NewMemberForm) => {
     console.log(values);
+    setInviteMemberInput(values);
     setMemberInviteModal(false);
     setSkeletonMember(true);
   };
@@ -64,7 +78,6 @@ const AddNewTeamMembers = () => {
     <>
       <Controller
         name="members"
-        control={formMethods.control}
         defaultValue={[
           {
             name: user?.name || "",
@@ -78,7 +91,7 @@ const AddNewTeamMembers = () => {
           <>
             <div>
               <ul className="rounded-md border">
-                {value.map((member, index) => (
+                {value.map((member: PendingMember, index: number) => (
                   <li
                     key={member.email}
                     className={classNames(

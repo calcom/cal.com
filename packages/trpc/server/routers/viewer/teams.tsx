@@ -558,24 +558,59 @@ export const viewerTeamsRouter = createProtectedRouter()
   })
   .query("findUser", {
     input: z.object({
-      username: z.string(),
+      emailOrUsername: z.string(),
+      role: z.object({
+        value: z.union([z.literal("OWNER"), z.literal("ADMIN"), z.literal("MEMBER")]),
+        label: z.string(),
+      }),
+      sendInviteEmail: z.boolean(),
     }),
     async resolve({ ctx, input }) {
+      // if (!input)
+      //   throw new TRPCError({
+      //     code: "NOT_FOUND",
+      //     message: "Could not find user",
+      //   });
+      const { emailOrUsername } = input;
       const user = await ctx.prisma.user.findFirst({
         where: {
-          username: input.username,
+          OR: [{ username: emailOrUsername }, { email: emailOrUsername }],
         },
         select: {
           name: true,
+          username: true,
           avatar: true,
+          email: true,
         },
       });
 
-      if (!user) {
+      if (!user && !/\b[a-z0-9-_.]+@[a-z0-9-_.]+(\.[a-z0-9]+)+/.test(emailOrUsername)) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Could not find user",
         });
       }
+
+      // TODO return the new member type
+      return {
+        name: user?.name || "",
+        email: user?.email || emailOrUsername,
+        username: user?.username || "",
+        avatar: user?.avatar || "",
+        role: input.role.value,
+        sendInviteEmail: input.sendInviteEmail,
+      };
+
+      // if (user) {
+      //   return user;
+      //   // If user is not found on DB then return member for invite if given valid email
+      // } else if (/\b[a-z0-9-_.]+@[a-z0-9-_.]+(\.[a-z0-9]+)+/.test(emailOrUsername)) {
+      //   return { email: emailOrUsername };
+      // } else {
+      //   throw new TRPCError({
+      //     code: "NOT_FOUND",
+      //     message: "Could not find user",
+      //   });
+      // }
     },
   });

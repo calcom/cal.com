@@ -10,18 +10,18 @@ import { Button, Dialog, DialogContent, DialogFooter, Select, TextField } from "
 import { Form } from "@calcom/ui/v2/core/form";
 import CheckboxField from "@calcom/ui/v2/core/form/Checkbox";
 
-import { NewTeamFormValues } from "../lib/types";
+import { NewTeamFormValues, PendingMember } from "../lib/types";
 
 type MemberInvitationModalProps = {
   isOpen: boolean;
   currentMember?: MembershipRole;
   onExit: () => void;
-  onSubmit: (values: NewTeamFormValues["members"]) => void;
+  onSubmit: (values: NewMemberForm) => void;
 };
 
 type MembershipRoleOption = {
   value: MembershipRole;
-  label?: string;
+  label: string;
 };
 
 export interface NewMemberForm {
@@ -30,12 +30,16 @@ export interface NewMemberForm {
   sendInviteEmail: boolean;
 }
 
-const _options: MembershipRoleOption[] = [{ value: "MEMBER" }, { value: "ADMIN" }, { value: "OWNER" }];
-
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const [errorMessage, setErrorMessage] = useState("");
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
+
+  const _options: MembershipRoleOption[] = [
+    { value: "MEMBER", label: t("member") },
+    { value: "ADMIN", label: t("admin") },
+    { value: "OWNER", label: t("owner") },
+  ];
 
   const newMemberFormMethods = useForm<NewMemberForm>();
 
