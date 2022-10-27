@@ -28,6 +28,8 @@ const getScheduleSchema = z
     eventTypeId: z.number().int().optional(),
     // Event type slug
     eventTypeSlug: z.string(),
+    // Event type length
+    eventTypeLength: z.number().int().optional(),
     // invitee timezone
     timeZone: z.string().optional(),
     // or list of users (for dynamic events)
@@ -239,6 +241,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         timeZone,
         workingHours,
         busy,
+        user: currentUser,
       };
     })
   );
@@ -296,9 +299,28 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       })
     );
 
+    //const timeInWorkingHours = (time: Dayjs, userWorkingHours: WorkingHours[]) => {
+    //return userWorkingHours.some((wh) => {
+    //const startOfAppointment = time.utc();
+    //const workFrom = startOfAppointment.startOf("day").add(wh.startTime, "minute");
+    //const workUntil = startOfAppointment.startOf("day").add(wh.endTime, "minute");
+    //const endOfAppointment = startOfAppointment.add(eventType.length, "minute");
+    //return wh.days.includes(startOfAppointment.day()) &&
+    //startOfAppointment.isBetween(workFrom, workUntil, null, "[]") &&
+    //endOfAppointment.isBetween(workFrom, workUntil, null, "[]");
+    //});
+    //}
+
+    const userIsAvailable = (user: typeof eventType.users[number], time: Dayjs) => {
+      const schedule = usersWorkingHoursAndBusySlots.find((s) => s.user.id === user.id);
+      if (!schedule) return false;
+      //const inWorkingHours = timeInWorkingHours(time, schedule.workingHours);
+      return checkIfIsAvailable({ time, ...schedule, ...availabilityCheckProps });
+    };
+
     computedAvailableSlots[currentCheckedTime.format("YYYY-MM-DD")] = availableTimeSlots.map((time) => ({
       time: time.toISOString(),
-      users: eventType.users.map((user) => user.username || ""),
+      users: eventType.users.filter((user) => userIsAvailable(user, time)).map((user) => user.username || ""),
       // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
       ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
         attendees:

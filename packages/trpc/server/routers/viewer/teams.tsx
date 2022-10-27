@@ -313,6 +313,7 @@ export const viewerTeamsRouter = createProtectedRouter()
               teamId: input.teamId,
               userId: invitee.id,
               role: input.role as MembershipRole,
+              accepted: true,
             },
           });
         } catch (e) {

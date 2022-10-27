@@ -345,7 +345,7 @@ const BookingPage = ({
         timeZone: timeZone(),
         language: i18n.language,
         rescheduleUid,
-        user: router.query.user,
+        user: router.query.username,
         location: getEventLocationValue(locations, {
           type: booking.locationType ? booking.locationType : selectedLocationType || "",
           phone: booking.phone,
@@ -373,7 +373,7 @@ const BookingPage = ({
         language: i18n.language,
         rescheduleUid,
         bookingUid: router.query.bookingUid as string,
-        user: router.query.user,
+        user: router.query.username,
         location: getEventLocationValue(locations, {
           type: (booking.locationType ? booking.locationType : selectedLocationType) || "",
           phone: booking.phone,

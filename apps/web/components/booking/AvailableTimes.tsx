@@ -11,6 +11,10 @@ import { SkeletonContainer, SkeletonText } from "@calcom/ui";
 import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";
 
+function compactObject(obj: Record<string, any>) {
+  return Object.fromEntries(Object.entries(obj).filter(([key, val]) => val !== undefined && val !== null));
+}
+
 type AvailableTimesProps = {
   timeFormat: string;
   eventTypeId: number;
@@ -60,31 +64,20 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
       <div className="-mb-5 grid flex-grow grid-cols-1 gap-x-2 overflow-y-auto sm:block md:h-[364px]">
         {slots.length > 0 &&
           slots.map((slot) => {
-            type BookingURL = {
-              pathname: string;
-              query: Record<string, string | number | string[] | undefined>;
-            };
-            const bookingUrl: BookingURL = {
-              pathname: "book",
-              query: {
-                ...router.query,
-                date: dayjs(slot.time).format(),
-                type: eventTypeId,
-                slug: eventTypeSlug,
-                /** Treat as recurring only when a count exist and it's not a rescheduling workflow */
-                count: recurringCount && !rescheduleUid ? recurringCount : undefined,
-                ethSignature,
-              },
-            };
+            const bookingParams = compactObject({
+              ...router.query,
+              date: dayjs(slot.time).format(),
+              type: eventTypeId,
+              slug: eventTypeSlug,
+              /** Treat as recurring only when a count exist and it's not a rescheduling workflow */
+              count: recurringCount && !rescheduleUid ? recurringCount : undefined,
+              ethSignature,
+              rescheduleUid,
+              bookingUid: slot.bookingUid,
+              username: slot.users?.[0],
+            });
 
-            if (rescheduleUid) {
-              bookingUrl.query.rescheduleUid = rescheduleUid as string;
-            }
-
-            // If event already has an attendee add booking id
-            if (slot.bookingUid) {
-              bookingUrl.query.bookingUid = slot.bookingUid;
-            }
+            const bookingUrl = `book?${new URLSearchParams(bookingParams).toString()}`;
 
             return (
               <div key={dayjs(slot.time).format()}>

@@ -4,6 +4,7 @@ import { EventType } from "@prisma/client";
 import * as Popover from "@radix-ui/react-popover";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
+import type { NextRouter } from "next/router";
 import { useReducer, useEffect, useMemo, useState, useRef } from "react";
 import { Toaster } from "react-hot-toast";
 import { FormattedNumber, IntlProvider } from "react-intl";
@@ -67,6 +68,7 @@ const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
 const useSlots = ({
   eventTypeId,
   eventTypeSlug,
+  eventTypeLength,
   startTime,
   endTime,
   usernameList,
@@ -74,6 +76,7 @@ const useSlots = ({
 }: {
   eventTypeId: number;
   eventTypeSlug: string;
+  eventTypeLength: number;
   startTime?: Dayjs;
   endTime?: Dayjs;
   usernameList: string[];
@@ -85,13 +88,14 @@ const useSlots = ({
       {
         eventTypeId,
         eventTypeSlug,
+        eventTypeLength,
         usernameList,
         startTime: startTime?.toISOString() || "",
         endTime: endTime?.toISOString() || "",
         timeZone,
       },
     ],
-    { enabled: !!startTime && !!endTime }
+    { enabled: !!startTime && !!endTime, trpc: { context: { slotsProxyUrl: true } } }
   );
   const [cachedSlots, setCachedSlots] = useState<NonNullable<typeof data>["slots"]>({});
 
@@ -115,7 +119,7 @@ const SlotPicker = ({
   weekStart = 0,
   ethSignature,
 }: {
-  eventType: Pick<EventType, "id" | "schedulingType" | "slug">;
+  eventType: Pick<EventType, "id" | "schedulingType" | "slug" | "length">;
   timeFormat: string;
   timeZone?: string;
   seatsPerTimeSlot?: number;
@@ -160,6 +164,7 @@ const SlotPicker = ({
   const { slots: _1 } = useSlots({
     eventTypeId: eventType.id,
     eventTypeSlug: eventType.slug,
+    eventTypeLength: eventType.length,
     usernameList: users,
     startTime: selectedDate?.startOf("day"),
     endTime: selectedDate?.endOf("day"),
@@ -168,6 +173,7 @@ const SlotPicker = ({
   const { slots: _2, isLoading } = useSlots({
     eventTypeId: eventType.id,
     eventTypeSlug: eventType.slug,
+    eventTypeLength: eventType.length,
     usernameList: users,
     startTime: browsingDate?.startOf("month"),
     endTime: browsingDate?.endOf("month"),
@@ -298,6 +304,25 @@ const useRouterQuery = <T extends string>(name: T) => {
 };
 
 export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
+type WeekDayIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+function weekDayToNumber(weekDay: string): WeekDayIndex {
+  const index = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+    weekDay
+  );
+  return index === -1 ? 0 : (index as WeekDayIndex);
+}
+
+function getWeekStartFromRouterOrProfile(router: NextRouter, profile: Props["profile"]): WeekDayIndex {
+  if (router.query.weekStart) {
+    return weekDayToNumber(router.query.weekStart as string);
+  }
+
+  /* Allows providing weekStart as number */
+  return typeof profile.weekStart === "string"
+    ? weekDayToNumber(profile.weekStart)
+    : (profile.weekStart as WeekDayIndex);
+}
 
 const timeFormatTotimeFormatString = (timeFormat?: number | null) => {
   if (!timeFormat) return null;
@@ -317,6 +342,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const isBackgroundTransparent = useIsBackgroundTransparent();
+  const weekStart = getWeekStartFromRouterOrProfile(router, profile);
 
   const [timeZone, setTimeZone] = useState<string>();
   const [timeFormat, setTimeFormat] = useState<string>("HH:mm");
@@ -481,19 +507,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   )*/}
                 </div>
                 <SlotPicker
-                  weekStart={
-                    typeof profile.weekStart === "string"
-                      ? ([
-                          "Sunday",
-                          "Monday",
-                          "Tuesday",
-                          "Wednesday",
-                          "Thursday",
-                          "Friday",
-                          "Saturday",
-                        ].indexOf(profile.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
-                      : profile.weekStart /* Allows providing weekStart as number */
-                  }
+                  weekStart={weekStart}
                   eventType={eventType}
                   timeFormat={timeFormat}
                   timeZone={timeZone}
