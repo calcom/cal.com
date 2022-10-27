@@ -1,5 +1,6 @@
 require("dotenv").config({ path: "../../.env" });
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const { withSentryConfig } = require("@sentry/nextjs");
 
 const withTM = require("next-transpile-modules")([
   "@calcom/app-store",
@@ -74,7 +75,9 @@ if (process.env.ANALYZE === "true") {
 
 plugins.push(withTM);
 plugins.push(withAxiom);
-
+if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+  plugins.push(withSentryConfig);
+}
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
@@ -90,6 +93,15 @@ const nextConfig = {
     images: {
       unoptimized: true,
     },
+  },
+  sentry: {
+    // Use `hidden-source-map` rather than `source-map` as the Webpack `devtool`
+    // for client-side builds. (This will be the default starting in
+    // `@sentry/nextjs` version 8.0.0.) See
+    // https://webpack.js.org/configuration/devtool/ and
+    // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/#use-hidden-source-map
+    // for more information.
+    hideSourceMaps: true,
   },
   webpack: (config) => {
     config.plugins.push(
