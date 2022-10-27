@@ -154,6 +154,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             html: emailContent.emailBody.html,
             batchId: batchId,
             sendAt: dayjs(reminder.scheduledDate).unix(),
+            replyTo: reminder.booking?.user?.email || senderEmail,
           });
 
           await prisma.workflowReminder.update({
