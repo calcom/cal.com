@@ -17,8 +17,6 @@ import { NewMemberForm } from "../MemberInvitationModal";
 
 const AddNewTeamMembers = () => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
-  const router = useRouter();
   const session = useSession();
 
   const [memberInviteModal, setMemberInviteModal] = useState(false);
@@ -65,34 +63,8 @@ const AddNewTeamMembers = () => {
       refetch();
     }
   }, [inviteMemberInput]);
-  // const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId }]);
-  // const removeMemberMutation = trpc.useMutation("viewer.teams.removeMember", {
-  //   onSuccess() {
-  //     utils.invalidateQueries(["viewer.teams.get", { teamId }]);
-  //     utils.invalidateQueries(["viewer.teams.list"]);
-  //   },
-  // });
-  // const teamCheckoutMutation = trpc.useMutation("viewer.teams.purchaseTeamSubscription", {
-  //   onSuccess: (data) => {
-  //     if (data?.url) {
-  //       router.push(data.url);
-  //     }
-  //   },
-  //   onError: (err) => {
-  //     showToast(err.message, "error");
-  //   },
-  // });
 
   const handleInviteTeamMember = (values: NewMemberForm) => {
-    // const members = formMethods.getValues("members");
-    // if (
-    //   members.some((member) => member.username === values.emailOrUsername) ||
-    //   members.some((member) => member.email === values.emailOrUsername)
-    // ) {
-    //   showToast("Member has already been added", "error");
-    //   setMemberInviteModal(false);
-    //   return;
-    // }
     setInviteMemberInput(values);
     setMemberInviteModal(false);
     setSkeletonMember(true);

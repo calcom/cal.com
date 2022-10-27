@@ -74,8 +74,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               name="emailOrUsername"
               control={newMemberFormMethods.control}
               rules={{
-                required: "Enter a username or a password",
-                validate: (value) => validateUniqueInvite(value) || "Member already invited",
+                required: t("enter_email_or_username"),
+                validate: (value) => validateUniqueInvite(value) || t("member_already_invited"),
               }}
               render={({ field: { onChange }, fieldState: { error } }) => (
                 <>
