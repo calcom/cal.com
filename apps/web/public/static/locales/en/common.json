@@ -1341,5 +1341,7 @@
   "yearly": "Yearly",
   "checkout": "Checkout",
   "your_team_disbanded_successfully": "Your team has been disbanded successfully",
-  "error_creating_team": "Error creating team"
+  "error_creating_team": "Error creating team",
+  "you": "You",
+  "send_email": "Send email"
 }

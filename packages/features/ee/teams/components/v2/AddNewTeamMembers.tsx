@@ -39,6 +39,7 @@ const AddNewTeamMembers = () => {
     enabled: false,
     onSuccess: (newMember: PendingMember) => {
       membersFieldArray.append(newMember);
+      setSkeletonMember(false);
     },
   });
 
@@ -70,6 +71,11 @@ const AddNewTeamMembers = () => {
     setInviteMemberInput(values);
     setMemberInviteModal(false);
     setSkeletonMember(true);
+  };
+
+  const handleDeleteMember = (email: string) => {
+    const memberIndex = formMethods.getValues("members").findIndex((member) => member.email === email);
+    membersFieldArray.remove(memberIndex);
   };
 
   // if (isLoading) return <AddNewTeamMemberSkeleton />;
@@ -107,12 +113,13 @@ const AddNewTeamMembers = () => {
                       />
                       <div>
                         <div className="flex space-x-1">
-                          <p>{member?.name || t("team_member")}</p>
+                          <p>{member?.name || member?.email || t("team_member")}</p>
                           {/* Assume that the first member of the team is the creator */}
-                          {index === 0 && <Badge variant="green">{t("you")}</Badge>}{" "}
+                          {index === 0 && <Badge variant="green">{t("you")}</Badge>}
                           {member.role !== "OWNER" && <Badge variant="orange">{t("pending")}</Badge>}
                           {member.role === "MEMBER" && <Badge variant="gray">{t("member")}</Badge>}
                           {member.role === "ADMIN" && <Badge variant="default">{t("admin")}</Badge>}
+                          {member.sendInviteEmail && <Badge variant="blue">{t("send_email")}</Badge>}
                         </div>
                         {member.username ? (
                           <p className="text-gray-600">{`${WEBAPP_URL}/${member?.username}`}</p>
@@ -127,7 +134,7 @@ const AddNewTeamMembers = () => {
                         size="icon"
                         color="secondary"
                         className="h-[36px] w-[36px]"
-                        onClick={() => removeMemberMutation.mutate({ teamId, memberId: member.id })}
+                        onClick={() => handleDeleteMember(member.email)}
                       />
                     )}
                   </li>
