@@ -14,8 +14,8 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import { Button } from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
+import { Button } from "@calcom/ui/v2/core/Button";
 
 import { getSession } from "@lib/auth";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
