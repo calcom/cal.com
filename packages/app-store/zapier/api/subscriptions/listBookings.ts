@@ -33,7 +33,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         location: true,
         cancellationReason: true,
         status: true,
-        user: true,
+        user: {
+          select: {
+            username: true,
+            name: true,
+            email: true,
+            timeZone: true,
+          },
+        },
         eventType: {
           select: {
             title: true,
