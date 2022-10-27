@@ -6,9 +6,16 @@ import { Toaster } from "react-hot-toast";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Select, Switch } from "@calcom/ui";
-import { Alert } from "@calcom/ui/Alert";
-import { EmailField, Form, Label, PasswordField, TextField } from "@calcom/ui/form/fields";
+import {
+  Alert,
+  Button,
+  EmailField,
+  Form,
+  PasswordField,
+  TextField,
+  SelectField,
+  Switch,
+} from "@calcom/ui/v2";
 
 import { ExchangeAuthentication } from "../../enums";
 
@@ -42,16 +49,16 @@ export default function ExchangeSetup() {
     { value: ExchangeAuthentication.STANDARD, label: t("exchange_authentication_standard") },
     { value: ExchangeAuthentication.NTLM, label: t("exchange_authentication_ntlm") },
   ];
-
   return (
     <>
       <div className="flex h-screen bg-gray-200">
         <div className="m-auto rounded bg-white p-5 md:w-[560px] md:p-10">
           <div className="flex flex-col space-y-5 md:flex-row md:space-y-0 md:space-x-5">
-            <div className="flex">
+            <div>
+              {/* eslint-disable @next/next/no-img-element */}
               <img
                 src="/api/app-store/exchangecalendar/icon.svg"
-                alt="Microsoft Exchange Calendar"
+                alt="Microsoft Exchange"
                 className="h-12 w-12 max-w-2xl"
               />
             </div>
@@ -98,24 +105,21 @@ export default function ExchangeSetup() {
                       label={t("password")}
                       autoComplete="password"
                     />
-                    <div>
-                      <Label>{t("exchange_authentication")}</Label>
-                      <Controller
-                        name="authenticationMethod"
-                        control={form.control}
-                        render={({ field: { onChange } }) => (
-                          <Select
-                            options={authenticationMethods}
-                            defaultValue={authenticationMethods[0]}
-                            className="mt-1"
-                            onChange={async (authentication) => {
-                              onChange(authentication?.value);
-                              form.setValue("authenticationMethod", authentication!.value);
-                            }}
-                          />
-                        )}
-                      />
-                    </div>
+                    <Controller
+                      name="authenticationMethod"
+                      control={form.control}
+                      render={({ field: { onChange } }) => (
+                        <SelectField
+                          label={t("exchange_authentication")}
+                          options={authenticationMethods}
+                          defaultValue={authenticationMethods[0]}
+                          onChange={async (authentication) => {
+                            onChange(authentication?.value);
+                            form.setValue("authenticationMethod", authentication!.value);
+                          }}
+                        />
+                      )}
+                    />
                     <Switch
                       label={t("exchange_compression")}
                       name="useCompression"
