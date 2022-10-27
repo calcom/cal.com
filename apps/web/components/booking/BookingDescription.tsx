@@ -74,7 +74,9 @@ const BookingDescription: FC<Props> = (props) => {
                 )}
               />
             </div>
-            <EventTypeDescriptionSafeHTML eventType={eventType} />
+            <div className="max-w-[calc(100%_-_2rem)] flex-shrink break-words">
+              <EventTypeDescriptionSafeHTML eventType={eventType} />
+            </div>
           </div>
         )}
         {eventType?.requiresConfirmation && (
