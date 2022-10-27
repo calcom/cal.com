@@ -1,6 +1,6 @@
 import { MembershipRole } from "@prisma/client";
 import React, { useState, SyntheticEvent, useMemo } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
@@ -40,10 +40,24 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     ];
   }, [t]);
 
+  const formMethods = useFormContext<NewTeamFormValues>();
   const newMemberFormMethods = useForm<NewMemberForm>();
 
+  const validateUniqueInvite = (value: string) => {
+    const members = formMethods.getValues("members");
+    return !(
+      members.some((member) => member?.username === value) ||
+      members.some((member) => member?.email === value)
+    );
+  };
+
   return (
-    <Dialog open={props.isOpen} onOpenChange={props.onExit}>
+    <Dialog
+      open={props.isOpen}
+      onOpenChange={() => {
+        props.onExit();
+        newMemberFormMethods.reset();
+      }}>
       <DialogContent
         type="creation"
         useOwnActionButtons
@@ -59,16 +73,22 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             <Controller
               name="emailOrUsername"
               control={newMemberFormMethods.control}
-              rules={{ required: true, minLength: 1 }}
-              render={({ field: { onChange } }) => (
-                <TextField
-                  label={t("email_or_username")}
-                  id="inviteUser"
-                  name="inviteUser"
-                  placeholder="email@example.com"
-                  required
-                  onChange={onChange}
-                />
+              rules={{
+                required: "Enter a username or a password",
+                validate: (value) => validateUniqueInvite(value) || "Member already invited",
+              }}
+              render={({ field: { onChange }, fieldState: { error } }) => (
+                <>
+                  <TextField
+                    label={t("email_or_username")}
+                    id="inviteUser"
+                    name="inviteUser"
+                    placeholder="email@example.com"
+                    required
+                    onChange={onChange}
+                  />
+                  {error && <span className="text-sm text-red-800">{error.message}</span>}
+                </>
               )}
             />
             <Controller
@@ -108,7 +128,13 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             />
           </div>
           <DialogFooter>
-            <Button type="button" color="secondary" onClick={props.onExit}>
+            <Button
+              type="button"
+              color="secondary"
+              onClick={() => {
+                props.onExit();
+                newMemberFormMethods.reset();
+              }}>
               {t("cancel")}
             </Button>
             <Button

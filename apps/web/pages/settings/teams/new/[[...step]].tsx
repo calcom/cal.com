@@ -1,7 +1,8 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
+import { Toaster } from "react-hot-toast";
 import { z } from "zod";
 
 // import TeamGeneralSettings from "@calcom/features/teams/createNewTeam/TeamGeneralSettings";
@@ -36,19 +37,8 @@ const CreateNewTeamPage = () => {
   const router = useRouter();
 
   const { t } = useLocale();
-  const [teamId, setTeamId] = useState<number>();
 
   const formMethods = useForm<NewTeamFormValues>();
-
-  // const { data: user, isLoading } = trpc.useQuery(["viewer.me"], {
-  //   onSuccess: () => {
-  //     if (user) {
-  //       formMethods.setValue("members", [
-  //         { name: user.name, emailOrUsername: user.username, role: "OWNER", avatar: user.avatar },
-  //       ]);
-  //     }
-  //   },
-  // });
 
   useEffect(() => {
     console.log(formMethods.getValues());
@@ -93,6 +83,9 @@ const CreateNewTeamPage = () => {
         <title>Create a new Team</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
+      <div>
+        <Toaster position="bottom-right" />
+      </div>
       <div className="mx-auto px-4 py-24">
         <div className="relative">
           <div className="sm:mx-auto sm:w-full sm:max-w-[600px]">
@@ -119,7 +112,6 @@ const CreateNewTeamPage = () => {
                     nextStep={() => {
                       goToIndex(1);
                     }}
-                    setTeamId={(teamId: number) => setTeamId(teamId)}
                   />
                 )}
 
