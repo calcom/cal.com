@@ -3,6 +3,7 @@ import { expect } from "@playwright/test";
 import { test } from "./lib/fixtures";
 import {
   bookFirstEvent,
+  bookOptinEvent,
   bookTimeSlot,
   selectFirstAvailableTimeSlotNextMonth,
   selectSecondAvailableTimeSlotNextMonth,
@@ -118,5 +119,22 @@ test.describe("pro user", () => {
     });
     await page.goto(`/${pro.username}`);
     await bookFirstEvent(page);
+  });
+
+  test("can book an event that requires confirmation and then that booking can be accepted by organizer", async ({
+    page,
+    users,
+  }) => {
+    await bookOptinEvent(page);
+    const [pro] = users.get();
+    await pro.login();
+
+    await page.goto("/bookings/unconfirmed");
+    await Promise.all([
+      page.click('[data-testid="confirm"]'),
+      page.waitForResponse((response) => response.url().includes("/api/trpc/viewer.bookings.confirm")),
+    ]);
+    // This is the only booking in there that needed confirmation and now it should be empty screen
+    await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();
   });
 });
