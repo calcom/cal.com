@@ -130,6 +130,7 @@ export const scheduleEmailReminder = async (
         text: emailContent.emailBody.text,
         html: emailContent.emailBody.html,
         batchId: batchIdResponse[1].batch_id,
+        replyTo: evt.organizer.email,
       });
     } catch (error) {
       console.log("Error sending Email");
@@ -154,6 +155,7 @@ export const scheduleEmailReminder = async (
           html: emailContent.emailBody.html,
           batchId: batchIdResponse[1].batch_id,
           sendAt: scheduledDate.unix(),
+          replyTo: evt.organizer.email,
         });
 
         await prisma.workflowReminder.create({
