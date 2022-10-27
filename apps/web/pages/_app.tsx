@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/react";
 import { DefaultSeo } from "next-seo";
 import Head from "next/head";
 import superjson from "superjson";
@@ -44,9 +45,13 @@ function MyApp(props: AppProps) {
         Component.requiresLicense ? (
           <LicenseRequired>
             <Component {...pageProps} err={err} />
+            <Analytics />
           </LicenseRequired>
         ) : (
-          <Component {...pageProps} err={err} />
+          <>
+            <Component {...pageProps} err={err} />
+            <Analytics />
+          </>
         ),
         router
       )}
