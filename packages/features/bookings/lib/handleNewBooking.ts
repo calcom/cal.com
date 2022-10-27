@@ -889,7 +889,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       if (rescheduleUid && originalRescheduledBooking) {
         cancelScheduledJobs(originalRescheduledBooking, undefined, true);
       }
-      if (booking && booking.status === BookingStatus.ACCEPTED && !rescheduleUid) {
+      if (booking && booking.status === BookingStatus.ACCEPTED) {
         scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
       }
     });
