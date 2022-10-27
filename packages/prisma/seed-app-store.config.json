@@ -95,5 +95,11 @@
     "categories": ["automation"],
     "slug": "pipedream",
     "type": "pipedream_automation"
+  },
+  {
+    "dirName": "sirius_video",
+    "categories": ["video"],
+    "slug": "sirius_video",
+    "type": "sirius_video_video"
   }
 ]
