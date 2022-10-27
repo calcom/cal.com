@@ -244,6 +244,7 @@
     "$ZAPIER_INVITE_LINK",
     "$ALCHEMY_API_KEY",
     "$INFURA_API_KEY",
+    "$NEXT_PUBLIC_SENTRY_DSN",
     "yarn.lock"
   ]
 }

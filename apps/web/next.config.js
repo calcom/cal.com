@@ -76,7 +76,15 @@ if (process.env.ANALYZE === "true") {
 plugins.push(withTM);
 plugins.push(withAxiom);
 if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
-  plugins.push(withSentryConfig);
+  plugins.push([
+    withSentryConfig,
+    [
+      {
+        // Don't log unnecessarily
+        silent: true,
+      },
+    ],
+  ]);
 }
 /** @type {import("next").NextConfig} */
 const nextConfig = {
@@ -242,4 +250,10 @@ const nextConfig = {
   },
 };
 
-module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
+module.exports = () =>
+  plugins.reduce((acc, next) => {
+    next = next instanceof Array ? next : [next];
+    const plugin = next[0];
+    const args = next[1] || [];
+    return plugin(acc, ...args);
+  }, nextConfig);
