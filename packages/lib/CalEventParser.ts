@@ -120,13 +120,6 @@ export const getProviderName = (calEvent: CalendarEvent): string => {
   return "";
 };
 
-export const getManageLink = (calEvent: CalendarEvent) => {
-  return `
-${calEvent.organizer.language.translate("need_to_reschedule_or_cancel")}
-${getCancelLink(calEvent)}
-  `;
-};
-
 export const getUid = (calEvent: CalendarEvent): string => {
   return calEvent.uid ?? translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
 };
@@ -161,7 +154,7 @@ Coaching time is valuable. Please send your coach a message letting them know yo
 
 Can't make it?
 
-📆 <a href="${getManageLink(
+📆 <a href="${getCancelLink(
     calEvent
   )}" target="_blank">Reschedule or cancel this session</a> you can reschedule or cancel your session up to 48 hours before the session time. If you need to cancel within 24hrs or missed a session, please read our <a href="${cancelationPolicyURL}" target="_blank">cancelation policy</a>.
 
