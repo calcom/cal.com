@@ -1,7 +1,7 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import { z } from "zod";
 
@@ -35,14 +35,16 @@ const stepRouteSchema = z.object({
 
 const CreateNewTeamPage = () => {
   const router = useRouter();
+  // TODO change this to a single state and feed the other forms into this one
+  const [newTeamData, setNewTeamData] = useState<NewTeamFormValues>();
 
   const { t } = useLocale();
 
-  const formMethods = useForm<NewTeamFormValues>();
+  // const formMethods = useForm<NewTeamFormValues>();
 
   useEffect(() => {
-    console.log(formMethods.getValues());
-  }, [formMethods]);
+    console.log(newTeamData);
+  }, [newTeamData]);
 
   const result = stepRouteSchema.safeParse(router.query);
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
@@ -101,27 +103,29 @@ const CreateNewTeamPage = () => {
               </header>
               <Steps maxSteps={steps.length} currentStep={currentStepIndex} navigateToStep={goToIndex} />
             </div>
-            <Form
-              form={formMethods}
-              onSubmit={(values) => {
-                console.log("🚀 ~ file: [[...step]].tsx ~ line 105 ~ CreateNewTeamPage ~ values", values);
-              }}>
-              <StepCard>
-                {currentStep === "create-a-new-team" && (
-                  <CreateNewTeam
-                    nextStep={() => {
-                      goToIndex(1);
-                    }}
-                  />
-                )}
+            <FormProvider {...formMethods}>
+              <Form
+                form={formMethods}
+                onSubmit={(values) => {
+                  console.log("🚀 ~ file: [[...step]].tsx ~ line 105 ~ CreateNewTeamPage ~ values", values);
+                }}>
+                <StepCard>
+                  {currentStep === "create-a-new-team" && (
+                    <CreateNewTeam
+                      nextStep={() => {
+                        goToIndex(1);
+                      }}
+                    />
+                  )}
 
-                {/* {currentStep === "general-settings" && (
+                  {/* {currentStep === "general-settings" && (
                 <TeamGeneralSettings teamId={teamId} nextStep={() => goToIndex(2)} />
               )} */}
 
-                {currentStep === "add-team-members" && <AddNewTeamMembers />}
-              </StepCard>
-            </Form>
+                  {currentStep === "add-team-members" && <AddNewTeamMembers />}
+                </StepCard>
+              </Form>
+            </FormProvider>
           </div>
         </div>
       </div>
