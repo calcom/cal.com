@@ -39,6 +39,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             name: true,
             email: true,
             timeZone: true,
+            locale: true,
           },
         },
         eventType: {

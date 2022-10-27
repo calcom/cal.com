@@ -42,6 +42,7 @@ function getZapierPayload(data: CalendarEvent & EventTypeInfo & { status?: strin
       name: data.organizer.name,
       email: data.organizer.email,
       timeZone: data.organizer.timeZone,
+      locale: data.organizer.locale,
     },
     eventType: {
       title: data.eventTitle,
