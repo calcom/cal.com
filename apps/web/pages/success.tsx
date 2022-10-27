@@ -428,6 +428,14 @@ export default function Success(props: SuccessProps) {
                           </>
                         );
                       })}
+                    {bookingInfo?.smsReminderNumber && (
+                      <>
+                        <div className="mt-9 font-medium">{t("number_sms_notifications")}</div>
+                        <div className="col-span-2 mb-2 mt-9">
+                          <p>{bookingInfo.smsReminderNumber}</p>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
                 {!needsConfirmation &&
@@ -858,6 +866,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       uid: true,
       description: true,
       customInputs: true,
+      smsReminderNumber: true,
       user: {
         select: {
           id: true,

@@ -1010,7 +1010,6 @@
   "app_removed_successfully": "App removed successfully",
   "error_removing_app": "Error removing app",
   "web_conference": "Web conference",
-  "number_for_sms_reminders": "Phone number (for SMS reminders)",
   "requires_confirmation": "Requires confirmation",
   "nr_event_type_one": "{{count}} event type",
   "nr_event_type_other": "{{count}} event types",
@@ -1336,5 +1335,6 @@
   "limit_future_bookings":"Limit future bookings",
   "limit_future_bookings_description":"Limit how far in the future this event can be booked",
   "no_event_types": "No event types setup",
-  "no_event_types_description": "{{name}} has not setup any event types for you to book."
+  "no_event_types_description": "{{name}} has not setup any event types for you to book.",
+  "number_sms_notifications": "Phone number (SMS\u00a0notifications)"
 }
