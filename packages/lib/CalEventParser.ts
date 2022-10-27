@@ -158,7 +158,7 @@ Can't make it?
     calEvent
   )}" target="_blank">Reschedule or cancel this session</a> you can reschedule or cancel your session up to 48 hours before the session time. If you need to cancel within 24hrs or missed a session, please read our <a href="${cancelationPolicyURL}" target="_blank">cancelation policy</a>.
 
-See and manage my Coaching Session Go to my Mento dashboard
+See and manage my Coaching Session <a href="${appUrl}" target="_blank">Go to my Mento dashboard</a>
 
 ${getAdditionalNotes(calEvent)}
   `.trim();
