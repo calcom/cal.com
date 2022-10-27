@@ -16,6 +16,7 @@ export interface PartialReference {
 
 export interface EventResult<T> {
   type: string;
+  appName: string;
   success: boolean;
   uid: string;
   createdEvent?: T;

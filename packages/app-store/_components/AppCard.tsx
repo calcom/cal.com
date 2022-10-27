@@ -1,6 +1,5 @@
-import autoAnimate from "@formkit/auto-animate";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
 
 import { inferQueryOutput } from "@calcom/trpc/react";
 import { Switch } from "@calcom/ui/v2";
@@ -24,15 +23,11 @@ export default function AppCard({
   children?: React.ReactNode;
   setAppData: SetAppDataGeneric<typeof eventTypeAppCardZod>;
 }) {
-  const animationRef = useRef(null);
-
-  useEffect(() => {
-    animationRef.current && autoAnimate(animationRef.current);
-  }, [animationRef]);
+  const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
   return (
-    <div ref={animationRef} className="mb-4 mt-2 rounded-md border border-gray-200 p-8 text-sm">
-      <div className="flex w-full">
+    <div ref={animationRef} className="mb-4 mt-2 rounded-md border border-gray-200 p-4 text-sm sm:p-8">
+      <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-0">
         {/* Don't know why but w-[42px] isn't working, started happening when I started using next/dynamic */}
         <Link href={"/apps/" + app.slug}>
           <a className="mr-3 h-auto w-10 rounded-sm">

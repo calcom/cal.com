@@ -68,6 +68,7 @@ model EventType {
   beforeEventBuffer       Int                     @default(0)
   afterEventBuffer        Int                     @default(0)
   seatsPerTimeSlot        Int?
+  seatsShowAttendees      Boolean?
   schedulingType          SchedulingType?
   schedule                Schedule?               @relation(fields: [scheduleId], references: [id])
   scheduleId              Int?
@@ -565,6 +566,7 @@ model WorkflowStep {
   emailSubject      String?
   template          WorkflowTemplates  @default(REMINDER)
   workflowReminders WorkflowReminder[]
+  numberRequired    Boolean?
 }
 
 model Workflow {

@@ -3,7 +3,6 @@ import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import { DialogFooter } from "@calcom/ui/Dialog";
@@ -12,6 +11,7 @@ import Switch from "@calcom/ui/Switch";
 import { Tooltip } from "@calcom/ui/Tooltip";
 import { Form, TextField } from "@calcom/ui/form/fields";
 import { DatePicker } from "@calcom/ui/v2";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import type { TApiKeys } from "./ApiKeyListItem";

@@ -3,6 +3,8 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 
+import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
+import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
@@ -11,7 +13,6 @@ import { HeadSeo } from "@calcom/web/components/seo/head-seo";
 import { asStringOrNull } from "@calcom/web/lib/asStringOrNull";
 import { WEBAPP_URL } from "@calcom/web/lib/config/constants";
 import prisma from "@calcom/web/lib/prisma";
-import { isSAMLLoginEnabled } from "@calcom/web/lib/saml";
 import { IS_GOOGLE_LOGIN_ENABLED } from "@calcom/web/server/lib/constants";
 import { ssrInit } from "@calcom/web/server/lib/ssr";
 

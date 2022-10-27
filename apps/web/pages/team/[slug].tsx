@@ -51,7 +51,7 @@ function TeamPage({ team }: TeamPageProps) {
             "dark:bg-darkgray-100 dark:border-darkgray-200 group relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:hover:border-neutral-600",
             !isEmbed && "bg-white"
           )}>
-          <Link href={`${team.slug}/${type.slug}`}>
+          <Link href={`/team/${team.slug}/${type.slug}`}>
             <a className="flex justify-between px-6 py-4" data-testid="event-type-link">
               <div className="flex-shrink">
                 <div className="flex flex-wrap items-center space-x-2">
@@ -83,8 +83,15 @@ function TeamPage({ team }: TeamPageProps) {
 
   return (
     <div>
-      <HeadSeo title={teamName} description={teamName} />
-      <div className="dark:bg-darkgray-50 h-screen rounded-md bg-gray-100 px-4 pt-12 pb-12">
+      <HeadSeo
+        title={teamName}
+        description={teamName}
+        meeting={{
+          title: team?.bio || "",
+          profile: { name: `${team.name}`, image: getPlaceholderAvatar(team.logo, team.name) },
+        }}
+      />
+      <main className="dark:bg-darkgray-50 mx-auto max-w-3xl rounded-md bg-gray-100 px-4 pt-12 pb-12">
         <div className="max-w-96 mx-auto mb-8 text-center">
           <Avatar alt={teamName} imageSrc={getPlaceholderAvatar(team.logo, team.name)} size="lg" />
           <p className="font-cal dark:text-darkgray-900 mb-2 text-2xl tracking-wider text-gray-900">
@@ -109,7 +116,7 @@ function TeamPage({ team }: TeamPageProps) {
               </div>
             </div>
 
-            <aside className="mt-8 mb-16 flex justify-center text-center dark:text-white">
+            <aside className="mt-8 flex justify-center text-center dark:text-white">
               <Button
                 color="minimal"
                 EndIcon={Icon.FiArrowRight}
@@ -121,7 +128,7 @@ function TeamPage({ team }: TeamPageProps) {
             </aside>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }
@@ -131,7 +138,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const team = await getTeamWithMembers(undefined, slug);
 
-  if (!team) return { notFound: true };
+  if (!team) return { notFound: true } as { notFound: true };
 
   const members = team.members.filter((member) => member.plan !== UserPlan.FREE);
 

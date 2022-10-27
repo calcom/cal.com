@@ -162,7 +162,7 @@ export default function Availability({ schedule }: { schedule: number }) {
               </div>
             </div>
             <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
-              <div className="xl:max-w-80 w-full pr-4 sm:p-0">
+              <div className="xl:max-w-80 mt-4 w-full pr-4 sm:p-0">
                 <div>
                   <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
                     {t("timezone")}
