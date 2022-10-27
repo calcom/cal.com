@@ -1,6 +1,7 @@
 import { BookingStatus, Credential, SelectedCalendar } from "@prisma/client";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
+import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
@@ -11,10 +12,12 @@ export async function getBusyTimes(params: {
   userId: number;
   eventTypeId?: number;
   startTime: string;
+  beforeEventBuffer?: number;
   endTime: string;
   selectedCalendars: SelectedCalendar[];
 }) {
-  const { credentials, userId, eventTypeId, startTime, endTime, selectedCalendars } = params;
+  const { credentials, userId, eventTypeId, startTime, endTime, selectedCalendars, beforeEventBuffer } =
+    params;
   logger.silly(
     `Checking Busy time from Cal Bookings in range ${startTime} to ${endTime} for input ${JSON.stringify({
       userId,
@@ -39,12 +42,19 @@ export async function getBusyTimes(params: {
         startTime: true,
         endTime: true,
         title: true,
+        eventType: {
+          select: {
+            afterEventBuffer: true,
+          },
+        },
       },
     })
     .then((bookings) =>
-      bookings.map(({ startTime, endTime, title, id }) => ({
-        end: endTime,
+      bookings.map(({ startTime, endTime, title, id, eventType }) => ({
         start: startTime,
+        end: dayjs(endTime)
+          .add(Math.max(eventType?.afterEventBuffer || 0, beforeEventBuffer || 0), "minute")
+          .toDate(),
         title,
         source: `eventType-${eventTypeId}-booking-${id}`,
       }))
