@@ -887,7 +887,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
     subscribersMeetingEnded.forEach((subscriber) => {
       if (rescheduleUid && originalRescheduledBooking) {
-        cancelScheduledJobs(originalRescheduledBooking);
+        cancelScheduledJobs(originalRescheduledBooking, undefined, true);
       }
       if (booking && booking.status === BookingStatus.ACCEPTED) {
         scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
