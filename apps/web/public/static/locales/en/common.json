@@ -1010,7 +1010,6 @@
   "app_removed_successfully": "App removed successfully",
   "error_removing_app": "Error removing app",
   "web_conference": "Web conference",
-  "number_for_sms_reminders": "Phone number (SMS notifications)",
   "requires_confirmation": "Requires confirmation",
   "nr_event_type_one": "{{count}} event type",
   "nr_event_type_other": "{{count}} event types",
