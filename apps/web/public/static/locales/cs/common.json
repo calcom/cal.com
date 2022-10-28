@@ -1008,7 +1008,6 @@
   "app_removed_successfully": "Aplikace byla odstraněna",
   "error_removing_app": "Při odstraňování aplikace došlo k chybě",
   "web_conference": "Webová konference",
-  "number_for_sms_reminders": "Telefonní číslo (pro upomínky přes SMS)",
   "requires_confirmation": "Vyžaduje potvrzení",
   "nr_event_type_one": "Typ události: {{count}}",
   "nr_event_type_other": "Typy událostí: {{count}}",
