@@ -36,11 +36,9 @@ const stepRouteSchema = z.object({
 const CreateNewTeamPage = () => {
   const router = useRouter();
   // TODO change this to a single state and feed the other forms into this one
-  const [newTeamData, setNewTeamData] = useState<NewTeamFormValues>();
+  const [newTeamData, setNewTeamData] = useState<NewTeamFormValues & NewTeamMembersFieldArray>();
 
   const { t } = useLocale();
-
-  // const formMethods = useForm<NewTeamFormValues>();
 
   useEffect(() => {
     console.log(newTeamData);
@@ -103,29 +101,21 @@ const CreateNewTeamPage = () => {
               </header>
               <Steps maxSteps={steps.length} currentStep={currentStepIndex} navigateToStep={goToIndex} />
             </div>
-            <FormProvider {...formMethods}>
-              <Form
-                form={formMethods}
-                onSubmit={(values) => {
-                  console.log("🚀 ~ file: [[...step]].tsx ~ line 105 ~ CreateNewTeamPage ~ values", values);
-                }}>
-                <StepCard>
-                  {currentStep === "create-a-new-team" && (
-                    <CreateNewTeam
-                      nextStep={() => {
-                        goToIndex(1);
-                      }}
-                    />
-                  )}
+            <StepCard>
+              {currentStep === "create-a-new-team" && (
+                <CreateNewTeam
+                  nextStep={() => {
+                    goToIndex(1);
+                  }}
+                />
+              )}
 
-                  {/* {currentStep === "general-settings" && (
+              {/* {currentStep === "general-settings" && (
                 <TeamGeneralSettings teamId={teamId} nextStep={() => goToIndex(2)} />
               )} */}
 
-                  {currentStep === "add-team-members" && <AddNewTeamMembers />}
-                </StepCard>
-              </Form>
-            </FormProvider>
+              {currentStep === "add-team-members" && <AddNewTeamMembers />}
+            </StepCard>
           </div>
         </div>
       </div>

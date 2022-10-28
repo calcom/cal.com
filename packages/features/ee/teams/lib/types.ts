@@ -2,7 +2,7 @@ export interface NewTeamMembersFieldArray {
   members: PendingMember[];
 }
 
-export interface NewTeamFormValues extends NewTeamMembersFieldArray {
+export interface NewTeamFormValues {
   name: string;
   slug: string;
   avatar: string;

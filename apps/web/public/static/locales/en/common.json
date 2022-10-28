@@ -1345,5 +1345,7 @@
   "you": "You",
   "send_email": "Send email",
   "member_already_invited": "Member has already been invited",
-  "enter_email_or_username": "Enter an email or username"
+  "enter_email_or_username": "Enter an email or username",
+  "team_name_taken": "This name is already taken",
+  "must_enter_team_name": "Must enter a team name"
 }

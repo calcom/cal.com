@@ -561,18 +561,14 @@ export const viewerTeamsRouter = createProtectedRouter()
       teamName: z.string(),
     }),
     async resolve({ ctx, input }) {
+      console.log("🚀 ~ file: teams.tsx ~ line 564 ~ resolve ~ input", input);
       const team = await ctx.prisma.team.findFirst({
         where: {
           name: input.teamName,
         },
       });
 
-      if (team)
-        throw new TRPCError({
-          code: "CONFLICT",
-        });
-
-      return;
+      return !team;
     },
   })
   .query("findUser", {

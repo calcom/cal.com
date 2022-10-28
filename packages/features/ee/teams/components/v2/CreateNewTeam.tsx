@@ -15,8 +15,7 @@ const CreateANewTeamForm = (props: { nextStep: () => void }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const formMethods = useFormContext<NewTeamFormValues>();
-  const newTeamFormMethods = useForm<Omit<NewTeamFormValues, "members">>();
+  const newTeamFormMethods = useForm<NewTeamFormValues>();
 
   // const createTeamMutation = trpc.useMutation("viewer.teams.create", {
   //   onSuccess(data) {
@@ -26,16 +25,22 @@ const CreateANewTeamForm = (props: { nextStep: () => void }) => {
   //   },
   // });
 
-  // const validateTeamNameQuery = trpc.useQuery(
-  //   ["viewer.teams.validateTeamName", newTeamFormMethods.getValues("name")],
-  //   {
-  //     enabled: false,
-  //     refetchOnWindowFocus: false,
-  //   }
-  // );
+  const validateTeamNameQuery = trpc.useQuery(
+    ["viewer.teams.validateTeamName", { teamName: newTeamFormMethods.watch("name") }],
+    {
+      enabled: false,
+      refetchOnWindowFocus: false,
+    }
+  );
 
-  const validateTeamName = (value) => {
-    return value !== "test";
+  const validateTeamName = async () => {
+    await validateTeamNameQuery.refetch();
+    console.log(
+      "🚀 ~ file: CreateNewTeam.tsx ~ line 40 ~ validateTeamName ~ validateTeamNameQuery.stats !== ",
+      validateTeamNameQuery.data
+    );
+
+    return validateTeamNameQuery.data || t("team_name_taken");
   };
 
   return (
@@ -46,7 +51,10 @@ const CreateANewTeamForm = (props: { nextStep: () => void }) => {
             name="name"
             control={newTeamFormMethods.control}
             defaultValue=""
-            rules={{ validate: (value) => validateTeamName(value) }}
+            rules={{
+              validate: async () => validateTeamName(),
+              required: t("must_enter_team_name"),
+            }}
             render={({ field: { value, onChange }, fieldState: { error } }) => (
               <>
                 <TextField
@@ -62,7 +70,6 @@ const CreateANewTeamForm = (props: { nextStep: () => void }) => {
                   }}
                   autoComplete="off"
                 />
-                {error && <p>{error.message}</p>}
               </>
             )}
           />
