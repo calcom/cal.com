@@ -829,6 +829,7 @@
   "time_format": "시간 형식",
   "12_hour": "12시간",
   "24_hour": "24시간",
+  "24_hour_short": "24시간",
   "redirect_success_booking": "예약 시 리디렉션",
   "you_are_being_redirected": "$t(second, {\"count\": {{seconds}} }) 후에 {{ url }}(으)로 리디렉션됩니다.",
   "external_redirect_url": "https://example.com/redirect-to-my-success-page",
