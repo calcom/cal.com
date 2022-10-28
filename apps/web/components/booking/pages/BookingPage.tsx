@@ -812,7 +812,7 @@ const BookingPage = ({
                     <label
                       htmlFor="smsReminderNumber"
                       className="block text-sm font-medium text-gray-700 dark:text-white">
-                      {t("number_for_sms_reminders")}
+                      {t("number_sms_notifications")}
                     </label>
                     <div className="mt-1">
                       <PhoneInput<BookingFormValues>

@@ -1007,7 +1007,6 @@
   "app_removed_successfully": "Aplicație ștearsă cu succes",
   "error_removing_app": "Eroare la ștergerea aplicației",
   "web_conference": "Conferință web",
-  "number_for_sms_reminders": "Număr de telefon (pentru mementouri SMS)",
   "requires_confirmation": "Necesită confirmare",
   "nr_event_type_one": "{{count}} tip de eveniment",
   "nr_event_type_other": "{{count}} (de) tipuri de evenimente",

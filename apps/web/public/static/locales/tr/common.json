@@ -1008,7 +1008,6 @@
   "app_removed_successfully": "Uygulama başarıyla kaldırıldı",
   "error_removing_app": "Uygulama kaldırılırken bir hata oluştu",
   "web_conference": "Web konferansı",
-  "number_for_sms_reminders": "Telefon numarası (SMS hatırlatmaları için)",
   "requires_confirmation": "Onay gerekli",
   "nr_event_type_one": "{{count}} etkinlik türü",
   "nr_event_type_other": "{{count}} etkinlik türü",
