@@ -1,4 +1,4 @@
-import { useForm, Controller, useFormContext } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -13,17 +13,8 @@ import { NewTeamFormValues } from "../../lib/types";
 
 const CreateANewTeamForm = (props: { nextStep: () => void }) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
 
   const newTeamFormMethods = useForm<NewTeamFormValues>();
-
-  // const createTeamMutation = trpc.useMutation("viewer.teams.create", {
-  //   onSuccess(data) {
-  //     utils.invalidateQueries(["viewer.teams.list"]);
-  //     props.setTeamId(data.id);
-  //     props.nextStep();
-  //   },
-  // });
 
   const validateTeamNameQuery = trpc.useQuery(
     ["viewer.teams.validateTeamName", { name: newTeamFormMethods.watch("name") }],
@@ -56,7 +47,7 @@ const CreateANewTeamForm = (props: { nextStep: () => void }) => {
       <Form
         form={newTeamFormMethods}
         handleSubmit={(values) => {
-          console.log(values);
+          props.nextStep(values);
         }}>
         <div className="mb-8">
           <Controller
@@ -67,7 +58,7 @@ const CreateANewTeamForm = (props: { nextStep: () => void }) => {
               validate: async () => validateTeamName(),
               required: t("must_enter_team_name"),
             }}
-            render={({ field: { value, onChange }, fieldState: { error } }) => (
+            render={({ field: { value } }) => (
               <>
                 <TextField
                   className="mt-2"

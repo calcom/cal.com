@@ -1,7 +1,6 @@
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
-import { useFormContext, Controller, useFieldArray } from "react-hook-form";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
 
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import { classNames } from "@calcom/lib";
@@ -10,9 +9,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Avatar, Badge, Button, showToast } from "@calcom/ui/v2/core";
+import { Form } from "@calcom/ui/v2/core/form";
 import { SkeletonContainer, SkeletonText, SkeletonAvatar } from "@calcom/ui/v2/core/skeleton";
 
-import { NewTeamFormValues, NewTeamMembersFieldArray, PendingMember } from "../../lib/types";
+import { NewTeamMembersFieldArray, PendingMember } from "../../lib/types";
 import { NewMemberForm } from "../MemberInvitationModal";
 
 const AddNewTeamMembers = () => {
@@ -27,12 +27,11 @@ const AddNewTeamMembers = () => {
   });
   const [skeletonMember, setSkeletonMember] = useState(false);
 
-  const formMethods = useFormContext<NewTeamFormValues>();
+  const formMethods = useForm();
   const membersFieldArray = useFieldArray<NewTeamMembersFieldArray>({
+    control: formMethods.control,
     name: "members",
   });
-
-  const { data: user } = trpc.useQuery(["viewer.me"]);
 
   const { refetch } = trpc.useQuery(["viewer.teams.findUser", inviteMemberInput], {
     refetchOnWindowFocus: false,
@@ -56,6 +55,7 @@ const AddNewTeamMembers = () => {
         role: "OWNER",
       });
     }
+    /* eslint-disable */
   }, [session]);
 
   useEffect(() => {
@@ -79,178 +79,84 @@ const AddNewTeamMembers = () => {
 
   return (
     <>
-      <Controller
-        name="members"
-        render={({ field: { value } }) => (
-          <>
-            <div>
-              <ul className="rounded-md border">
-                {value &&
-                  value.map((member: PendingMember, index: number) => (
-                    <li
-                      key={member.email}
-                      className={classNames(
-                        "flex items-center justify-between p-6 text-sm",
-                        index !== 0 && "border-t"
-                      )}>
-                      <div className="flex space-x-2">
-                        <Avatar
-                          gravatarFallbackMd5="teamMember"
-                          size="mdLg"
-                          imageSrc={WEBAPP_URL + "/" + member.username + "/avatar.png"}
-                          alt="owner-avatar"
-                        />
-                        <div>
-                          <div className="flex space-x-1">
-                            <p>{member?.name || member?.email || t("team_member")}</p>
-                            {/* Assume that the first member of the team is the creator */}
-                            {index === 0 && <Badge variant="green">{t("you")}</Badge>}
-                            {member.role !== "OWNER" && <Badge variant="orange">{t("pending")}</Badge>}
-                            {member.role === "MEMBER" && <Badge variant="gray">{t("member")}</Badge>}
-                            {member.role === "ADMIN" && <Badge variant="default">{t("admin")}</Badge>}
-                            {member.sendInviteEmail && <Badge variant="blue">{t("send_email")}</Badge>}
+      <Form form={formMethods}>
+        <Controller
+          name="members"
+          render={({ field: { value } }) => (
+            <>
+              <div>
+                <ul className="rounded-md border">
+                  {value &&
+                    value.map((member: PendingMember, index: number) => (
+                      <li
+                        key={member.email}
+                        className={classNames(
+                          "flex items-center justify-between p-6 text-sm",
+                          index !== 0 && "border-t"
+                        )}>
+                        <div className="flex space-x-2">
+                          <Avatar
+                            gravatarFallbackMd5="teamMember"
+                            size="mdLg"
+                            imageSrc={WEBAPP_URL + "/" + member.username + "/avatar.png"}
+                            alt="owner-avatar"
+                          />
+                          <div>
+                            <div className="flex space-x-1">
+                              <p>{member?.name || member?.email || t("team_member")}</p>
+                              {/* Assume that the first member of the team is the creator */}
+                              {index === 0 && <Badge variant="green">{t("you")}</Badge>}
+                              {member.role !== "OWNER" && <Badge variant="orange">{t("pending")}</Badge>}
+                              {member.role === "MEMBER" && <Badge variant="gray">{t("member")}</Badge>}
+                              {member.role === "ADMIN" && <Badge variant="default">{t("admin")}</Badge>}
+                              {member.sendInviteEmail && <Badge variant="blue">{t("send_email")}</Badge>}
+                            </div>
+                            {member.username ? (
+                              <p className="text-gray-600">{`${WEBAPP_URL}/${member?.username}`}</p>
+                            ) : (
+                              <p className="text-gray-600">{t("not_on_cal")}</p>
+                            )}
                           </div>
-                          {member.username ? (
-                            <p className="text-gray-600">{`${WEBAPP_URL}/${member?.username}`}</p>
-                          ) : (
-                            <p className="text-gray-600">{t("not_on_cal")}</p>
-                          )}
                         </div>
-                      </div>
-                      {member.role !== "OWNER" && (
-                        <Button
-                          StartIcon={Icon.FiTrash2}
-                          size="icon"
-                          color="secondary"
-                          className="h-[36px] w-[36px]"
-                          onClick={() => handleDeleteMember(member.email)}
-                        />
-                      )}
-                    </li>
-                  ))}
-                {skeletonMember && <SkeletonMember />}
-              </ul>
+                        {member.role !== "OWNER" && (
+                          <Button
+                            StartIcon={Icon.FiTrash2}
+                            size="icon"
+                            color="secondary"
+                            className="h-[36px] w-[36px]"
+                            onClick={() => handleDeleteMember(member.email)}
+                          />
+                        )}
+                      </li>
+                    ))}
+                  {skeletonMember && <SkeletonMember />}
+                </ul>
 
-              <Button
-                color="secondary"
-                data-testid="new-member-button"
-                StartIcon={Icon.FiPlus}
-                onClick={() => setMemberInviteModal(true)}
-                className="mt-6 w-full justify-center">
-                {t("add_team_member")}
+                <Button
+                  color="secondary"
+                  data-testid="new-member-button"
+                  StartIcon={Icon.FiPlus}
+                  onClick={() => setMemberInviteModal(true)}
+                  className="mt-6 w-full justify-center">
+                  {t("add_team_member")}
+                </Button>
+              </div>
+              <MemberInvitationModal
+                isOpen={memberInviteModal}
+                onExit={() => setMemberInviteModal(false)}
+                onSubmit={handleInviteTeamMember}
+              />
+              <hr className="my-6  border-neutral-200" />
+
+              <Button EndIcon={Icon.FiArrowRight} className="mt-6 w-full justify-center">
+                {t("checkout")}
               </Button>
-            </div>
-            <MemberInvitationModal
-              isOpen={memberInviteModal}
-              onExit={() => setMemberInviteModal(false)}
-              onSubmit={handleInviteTeamMember}
-            />
-            <hr className="my-6  border-neutral-200" />
-
-            <Button
-              EndIcon={Icon.FiArrowRight}
-              className="mt-6 w-full justify-center"
-              // onClick={() => {
-              //   if (team) {
-              //     teamCheckoutMutation.mutate({ teamId, seats: team.members.length });
-              //   } else {
-              //     showToast(t("error_creating_team"), "error");
-              //   }
-              // }
-              // }
-            >
-              {t("checkout")}
-            </Button>
-          </>
-        )}
-      />
+            </>
+          )}
+        />
+      </Form>
     </>
   );
-
-  // return (
-  //   <Suspense fallback={<AddNewTeamMemberSkeleton />}>
-  //     <>
-  //       <>
-  //         <ul className="rounded-md border">
-  //           {team?.members.map((member, index) => (
-  //             <li
-  //               key={member.id}
-  //               className={classNames(
-  //                 "flex items-center justify-between p-6 text-sm",
-  //                 index !== 0 && "border-t"
-  //               )}>
-  //               <div className="flex space-x-2">
-  //                 <Avatar
-  //                   gravatarFallbackMd5="teamMember"
-  //                   size="mdLg"
-  //                   imageSrc={WEBAPP_URL + "/" + member.username + "/avatar.png"}
-  //                   alt="owner-avatar"
-  //                 />
-  //                 <div>
-  //                   <div className="flex space-x-1">
-  //                     <p>{member?.name || t("team_member")}</p>
-  //                     {/* Assume that the first member of the team is the creator */}
-  //                     {index === 0 && <Badge variant="green">{t("you")}</Badge>}
-  //                     {!member.accepted && <Badge variant="orange">{t("pending")}</Badge>}
-  //                     {member.role === "MEMBER" && <Badge variant="gray">{t("member")}</Badge>}
-  //                     {member.role === "ADMIN" && <Badge variant="default">{t("admin")}</Badge>}
-  //                   </div>
-  //                   {member.username ? (
-  //                     <p className="text-gray-600">{`${WEBAPP_URL}/${member?.username}`}</p>
-  //                   ) : (
-  //                     <p className="text-gray-600">{t("not_on_cal")}</p>
-  //                   )}
-  //                 </div>
-  //               </div>
-  //               {member.role !== "OWNER" && (
-  //                 <Button
-  //                   StartIcon={Icon.FiTrash2}
-  //                   size="icon"
-  //                   color="secondary"
-  //                   className="h-[36px] w-[36px]"
-  //                   onClick={() => removeMemberMutation.mutate({ teamId, memberId: member.id })}
-  //                 />
-  //               )}
-  //             </li>
-  //           ))}
-  //         </ul>
-
-  //         <Button
-  //           color="secondary"
-  //           data-testid="new-member-button"
-  //           StartIcon={Icon.FiPlus}
-  //           onClick={() => setMemberInviteModal(true)}
-  //           className="mt-6 w-full justify-center">
-  //           {t("add_team_member")}
-  //         </Button>
-  //       </>
-
-  //       {team && (
-  //         <MemberInvitationModal
-  //           isOpen={memberInviteModal}
-  //           onExit={() => setMemberInviteModal(false)}
-  //           team={team}
-  //           currentMember={team?.membership.role}
-  //         />
-  //       )}
-
-  //       <hr className="my-6  border-neutral-200" />
-
-  //       <Button
-  //         EndIcon={Icon.FiArrowRight}
-  //         className="mt-6 w-full justify-center"
-  //         onClick={() => {
-  //           if (team) {
-  //             teamCheckoutMutation.mutate({ teamId, seats: team.members.length });
-  //           } else {
-  //             showToast(t("error_creating_team"), "error");
-  //           }
-  //         }}>
-  //         {t("checkout")}
-  //       </Button>
-  //     </>
-  //   </Suspense>
-  // );
 };
 
 export default AddNewTeamMembers;
