@@ -1007,7 +1007,6 @@
   "app_removed_successfully": "Приложение успешно удалено",
   "error_removing_app": "Ошибка при удалении приложения",
   "web_conference": "Веб-конференция",
-  "number_for_sms_reminders": "Номер телефона (для SMS-напоминаний)",
   "requires_confirmation": "Требуется подтверждение",
   "nr_event_type_one": "Типы событий: {{count}}",
   "nr_event_type_other": "Типы событий: {{count}}",
