@@ -1007,7 +1007,6 @@
   "app_removed_successfully": "Додаток вилучено",
   "error_removing_app": "Не вдалося вилучити додаток",
   "web_conference": "Вебконференція",
-  "number_for_sms_reminders": "Номер телефону (для SMS-нагадувань)",
   "requires_confirmation": "Потрібне підтвердження",
   "nr_event_type_one": "{{count}} тип заходу",
   "nr_event_type_other": "Типів заходів: {{count}}",
