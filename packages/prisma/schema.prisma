@@ -30,61 +30,60 @@ enum PeriodType {
 }
 
 model EventType {
-  id                       Int                     @id @default(autoincrement())
+  id                      Int                     @id @default(autoincrement())
   /// @zod.min(1)
-  title                    String
-  /// @zod.custom(imports. eventTypeSlug)
-  slug                     String
-  description              String?
-  position                 Int                     @default(0)
-  /// @zod.custom(imports. eventTypeLocations)
-  locations                Json?
-  length                   Int
-  hidden                   Boolean                 @default(false)
-  users                    User[]                  @relation("user_eventtype")
-  owner                    User?                   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
-  userId                   Int?
-  team                     Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId                   Int?
-  hashedLink               HashedLink?
-  bookings                 Booking[]
-  availability             Availability[]
-  webhooks                 Webhook[]
-  destinationCalendar      DestinationCalendar?
-  eventName                String?
-  customInputs             EventTypeCustomInput[]
-  timeZone                 String?
-  periodType               PeriodType              @default(UNLIMITED)
-  periodStartDate          DateTime?
-  periodEndDate            DateTime?
-  periodDays               Int?
-  periodCountCalendarDays  Boolean?
-  requiresConfirmation     Boolean                 @default(false)
-  /// @zod.custom(imports. recurringEventType)
-  recurringEvent           Json?
-  disableGuests            Boolean                 @default(false)
-  hideCalendarNotes        Boolean                 @default(false)
-  minimumBookingNotice     Int                     @default(120)
-  minimumBookingNoticeType String                  @default("mins")
-  beforeEventBuffer        Int                     @default(0)
-  afterEventBuffer         Int                     @default(0)
-  seatsPerTimeSlot         Int?
-  seatsShowAttendees       Boolean?
-  schedulingType           SchedulingType?
-  schedule                 Schedule?               @relation(fields: [scheduleId], references: [id])
-  scheduleId               Int?
-  // price is deprecated.  It has now moved to metadata.apps.stripe.price. Plan to drop this column.
-  price                    Int                     @default(0)
-  // currency is deprecate d. It has now moved to metadata.apps.stripe.currency. Plan to drop this column.
-  currency                 String                  @default("usd")
-  slotInterval             Int?
-  /// @zod.custom(imports. EventTypeMetaDataSchema)
-  metadata                 Json?
-  /// @zod.custom(imports. successRedirectUrl)
-  successRedirectUrl       String?
-  workflows                WorkflowsOnEventTypes[]
-  /// @zod.custom(imports. bookingLimitsType)
-  bookingLimits            Json?
+  title                   String
+  /// @zod.custom(imports.eventTypeSlug)
+  slug                    String
+  description             String?
+  position                Int                     @default(0)
+  /// @zod.custom(imports.eventTypeLocations)
+  locations               Json?
+  length                  Int
+  hidden                  Boolean                 @default(false)
+  users                   User[]                  @relation("user_eventtype")
+  owner                   User?                   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
+  userId                  Int?
+  team                    Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId                  Int?
+  hashedLink              HashedLink?
+  bookings                Booking[]
+  availability            Availability[]
+  webhooks                Webhook[]
+  destinationCalendar     DestinationCalendar?
+  eventName               String?
+  customInputs            EventTypeCustomInput[]
+  timeZone                String?
+  periodType              PeriodType              @default(UNLIMITED)
+  periodStartDate         DateTime?
+  periodEndDate           DateTime?
+  periodDays              Int?
+  periodCountCalendarDays Boolean?
+  requiresConfirmation    Boolean                 @default(false)
+  /// @zod.custom(imports.recurringEventType)
+  recurringEvent          Json?
+  disableGuests           Boolean                 @default(false)
+  hideCalendarNotes       Boolean                 @default(false)
+  minimumBookingNotice    Int                     @default(120)
+  beforeEventBuffer       Int                     @default(0)
+  afterEventBuffer        Int                     @default(0)
+  seatsPerTimeSlot        Int?
+  seatsShowAttendees      Boolean?
+  schedulingType          SchedulingType?
+  schedule                Schedule?               @relation(fields: [scheduleId], references: [id])
+  scheduleId              Int?
+  // price is deprecated. It has now moved to metadata.apps.stripe.price. Plan to drop this column.
+  price                   Int                     @default(0)
+  // currency is deprecated. It has now moved to metadata.apps.stripe.currency. Plan to drop this column.
+  currency                String                  @default("usd")
+  slotInterval            Int?
+  /// @zod.custom(imports.EventTypeMetaDataSchema)
+  metadata                Json?
+  /// @zod.custom(imports.successRedirectUrl)
+  successRedirectUrl      String?
+  workflows               WorkflowsOnEventTypes[]
+  /// @zod.custom(imports.bookingLimitsType)
+  bookingLimits           Json?
 
   @@unique([userId, slug])
   @@unique([teamId, slug])

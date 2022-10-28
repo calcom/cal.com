@@ -106,7 +106,6 @@ type EventType = {
   periodType: PeriodType;
   slotInterval: number;
   minimumBookingNotice: number;
-  minimumBookingNoticeType: string;
   seatsPerTimeSlot?: number | null;
 };
 
@@ -302,7 +301,6 @@ describe.skip("getSchedule", () => {
       const { eventType } = await createBookingScenario({
         eventType: {
           minimumBookingNotice: 1440,
-          minimumBookingNoticeType: "minute",
           length: 30,
           slotInterval: 45,
           periodType: "UNLIMITED" as PeriodType,
@@ -396,7 +394,6 @@ describe.skip("getSchedule", () => {
       const { eventType } = await createBookingScenario({
         eventType: {
           minimumBookingNotice: 1440,
-          minimumBookingNoticeType: "minute",
           length: 30,
           slotInterval: 45,
           periodType: "UNLIMITED" as PeriodType,
@@ -480,7 +477,7 @@ describe.skip("getSchedule", () => {
         eventType: {
           id: 1,
           minimumBookingNotice: 0,
-          minimumBookingNoticeType: "minute",
+
           length: 30,
           slotInterval: 45,
           periodType: "UNLIMITED" as PeriodType,
@@ -556,7 +553,7 @@ describe.skip("getSchedule", () => {
         eventType: {
           id: 2,
           minimumBookingNotice: 0,
-          minimumBookingNoticeType: "minute",
+
           length: 30,
           slotInterval: 45,
           periodType: "UNLIMITED" as PeriodType,

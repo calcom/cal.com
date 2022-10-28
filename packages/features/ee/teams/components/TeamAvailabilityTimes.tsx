@@ -40,7 +40,6 @@ export default function TeamAvailabilityTimes(props: Props) {
         inviteeDate: props.selectedDate,
         workingHours: data?.workingHours || [],
         minimumBookingNotice: 0,
-        minimumBookingNoticeType: "minute",
         eventLength: props.frequency,
       })
     : [];

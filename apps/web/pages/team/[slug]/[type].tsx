@@ -75,7 +75,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           periodDays: true,
           periodCountCalendarDays: true,
           minimumBookingNotice: true,
-          minimumBookingNoticeType: true,
           beforeEventBuffer: true,
           afterEventBuffer: true,
           recurringEvent: true,

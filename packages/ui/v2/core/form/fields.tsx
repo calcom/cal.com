@@ -184,7 +184,7 @@ const Addon = ({ isFilled, children, className, error }: AddonProps) => (
   </div>
 );
 
-const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(props, ref) {
+export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputField(props, ref) {
   const id = useId();
   const { t: _t, isLocaleReady, i18n } = useLocale();
   const t = props.t || _t;
@@ -452,10 +452,3 @@ export function InputGroupBox(props: JSX.IntrinsicElements["div"]) {
     </div>
   );
 }
-
-export const DurationField = forwardRef<HTMLInputElement, InputFieldProps>(function DurationField(
-  props,
-  ref
-) {
-  return <InputField ref={ref} type="number" min={0} {...props} />;
-});

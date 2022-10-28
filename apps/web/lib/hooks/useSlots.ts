@@ -27,7 +27,6 @@ type UseSlotsProps = {
   eventLength: number;
   eventTypeId: number;
   minimumBookingNotice?: number;
-  minimumBookingNoticeType?: string | undefined;
   date: Dayjs;
   users: { username: string | null }[];
   schedulingType: SchedulingType | null;
@@ -109,7 +108,6 @@ export const useSlots = (props: UseSlotsProps) => {
     slotInterval,
     eventLength,
     minimumBookingNotice = 0,
-    minimumBookingNoticeType,
     beforeBufferTime = 0,
     afterBufferTime = 0,
     date,
@@ -137,7 +135,6 @@ export const useSlots = (props: UseSlotsProps) => {
         inviteeDate: date,
         workingHours,
         minimumBookingNotice,
-        minimumBookingNoticeType,
         eventLength,
       });
       const filterTimeProps = {
@@ -221,7 +218,6 @@ export const useSlots = (props: UseSlotsProps) => {
     beforeBufferTime,
     eventLength,
     minimumBookingNotice,
-    minimumBookingNoticeType,
     slotInterval,
     eventTypeId,
     props.schedulingType,

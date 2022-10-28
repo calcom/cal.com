@@ -5,12 +5,16 @@ import { useState } from "react";
 import { useFormContext, Controller, useWatch } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
+import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
+import findDurationType from "@calcom/lib/findDurationType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PeriodType } from "@calcom/prisma/client";
 import type { BookingLimit } from "@calcom/types/Calendar";
 import { Icon } from "@calcom/ui";
-import { Select, Switch, Label, Input, DurationField, Button, SettingsToggle } from "@calcom/ui/v2";
+import { Select, Switch, Label, Input, Button, SettingsToggle, InputField } from "@calcom/ui/v2";
 import DateRangePicker from "@calcom/ui/v2/core/form/date-range-picker/DateRangePicker";
+
+export const durationArray = ["minutes"];
 
 export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) => {
   const { t } = useLocale();
@@ -119,87 +123,54 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
             name="minimumBookingNotice"
             control={formMethods.control}
             render={() => {
-              const durationArray = [eventType.minimumBookingNoticeType];
+              let displayValue = eventType.minimumBookingNotice;
+              let minimumBookingNoticeType = findDurationType(displayValue);
               const minBookingValue = formMethods.watch("minimumBookingNotice");
-              let newMinBookingValue: number;
-              const convertToNewDurationType = function (
-                prevType: string,
-                newType: string,
-                prevValue: number
-              ) {
-                if (!prevType) {
-                  prevType = eventType.minimumBookingNoticeType;
-                }
-                if (newType == "minute") {
-                  if (prevType == "hour") {
-                    newMinBookingValue = prevValue * 60;
-                  }
-                  if (prevType == "day") {
-                    newMinBookingValue = prevValue * 1440;
-                  }
-                } else if (newType == "hour") {
-                  if (prevType == "minute") {
-                    newMinBookingValue = prevValue / 60;
-                  }
-                  if (prevType == "day") {
-                    newMinBookingValue = prevValue * 24;
-                  }
-                } else if (newType == "day") {
-                  if (prevType == "minute") {
-                    newMinBookingValue = prevValue / 1440;
-                  }
-                  if (prevType == "hour") {
-                    newMinBookingValue = prevValue / 24;
-                  }
-                }
-              };
-
               const durationTypeOptions = [
                 {
                   label: t("minutes"),
-                  value: "minute",
+                  value: "minutes",
                 },
                 {
                   label: t("hours"),
-                  value: "hour",
+                  value: "hours",
                 },
                 {
                   label: t("days"),
-                  value: "day",
+                  value: "days",
                 },
               ];
 
-              convertToNewDurationType(
-                "minute",
-                eventType.minimumBookingNoticeType,
-                eventType.minimumBookingNotice
-              );
-              eventType.minimumBookingNotice = newMinBookingValue;
+              displayValue = convertToNewDurationType("minutes", minimumBookingNoticeType, displayValue);
 
               return (
                 <>
-                  <DurationField
+                  <InputField
                     required
                     label={t("minimum_booking_notice")}
                     type="number"
                     placeholder="120"
                     className="mr-2 w-full"
-                    defaultValue={eventType.minimumBookingNotice}
-                    {...formMethods.register("minimumBookingNotice", { valueAsNumber: true })}
+                    defaultValue={displayValue}
+                    {...formMethods.register("minimumBookingNotice", {
+                      valueAsNumber: true,
+                    })}
                   />
                   <Select
                     isSearchable={false}
                     className="mb-2 ml-2 w-1/3"
                     defaultValue={durationTypeOptions.find(
-                      (option) => option.value === eventType.minimumBookingNoticeType
+                      (option) => option.value === minimumBookingNoticeType
                     )}
                     onChange={(val) => {
                       if (val) {
                         durationArray.unshift(val.value);
                         const previousValue = durationArray[1];
-                        eventType.minimumBookingNoticeType = val.value;
-                        convertToNewDurationType(previousValue, val.value, minBookingValue);
-                        formMethods.setValue("minimumBookingNotice", newMinBookingValue);
+                        minimumBookingNoticeType = val.value;
+                        formMethods.setValue(
+                          "minimumBookingNotice",
+                          convertToNewDurationType(previousValue, val.value, minBookingValue)
+                        );
                       }
                     }}
                     options={durationTypeOptions}

@@ -66,7 +66,6 @@ const commons = {
   customInputs,
   disableGuests: true,
   minimumBookingNotice: 120,
-  minimumBookingNoticeType: "minute",
   schedule: null,
   timeZone: null,
   successRedirectUrl: "",

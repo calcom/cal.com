@@ -12,6 +12,7 @@ import getApps, { getEventTypeAppData, getLocationOptions } from "@calcom/app-st
 import { LocationObject, EventLocationType } from "@calcom/core/location";
 import { parseRecurringEvent, parseBookingLimit, validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
+import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
@@ -30,7 +31,7 @@ import { AvailabilityTab } from "@components/v2/eventtype/AvailabilityTab";
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings
 import { EventAdvancedTab } from "@components/v2/eventtype/EventAdvancedTab";
 import { EventAppsTab } from "@components/v2/eventtype/EventAppsTab";
-import { EventLimitsTab } from "@components/v2/eventtype/EventLimitsTab";
+import { durationArray, EventLimitsTab } from "@components/v2/eventtype/EventLimitsTab";
 import { EventRecurringTab } from "@components/v2/eventtype/EventRecurringTab";
 import { EventSetupTab } from "@components/v2/eventtype/EventSetupTab";
 import { EventTeamTab } from "@components/v2/eventtype/EventTeamTab";
@@ -72,7 +73,6 @@ export type FormValues = {
   seatsShowAttendees: boolean | null;
   seatsPerTimeSlotEnabled: boolean;
   minimumBookingNotice: number;
-  minimumBookingNoticeType: string;
   beforeBufferTime: number;
   afterBufferTime: number;
   slotInterval: number | null;
@@ -149,16 +149,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
 
-  const convertMinimumBookingNoticeToMinutes = (type: string, minNotice: number) => {
-    if (type == "minute") {
-      return;
-    } else if (type == "hour") {
-      return minNotice * 60;
-    } else if (type == "day") {
-      return minNotice * 1440;
-    }
-    return minNotice;
-  };
+  const minimumBookingNoticeInMinutes = convertToNewDurationType(
+    durationArray[0],
+    "minutes",
+    eventType.minimumBookingNotice
+  );
 
   const formMethods = useForm<FormValues>({
     defaultValues: {
@@ -174,11 +169,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         endDate: periodDates.endDate,
       },
       schedulingType: eventType.schedulingType,
-      minimumBookingNotice: convertMinimumBookingNoticeToMinutes(
-        eventType.minimumBookingNoticeType,
-        eventType.minimumBookingNotice
-      ),
-      minimumBookingNoticeType: eventType.minimumBookingNoticeType,
+      minimumBookingNotice: minimumBookingNoticeInMinutes,
       metadata: eventType.metadata,
     },
   });
@@ -270,7 +261,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             periodStartDate: periodDates.startDate,
             periodEndDate: periodDates.endDate,
             periodCountCalendarDays: periodCountCalendarDays === "1",
-            minimumBookingNoticeType: eventType.minimumBookingNoticeType,
+            minimumBookingNotice: minimumBookingNoticeInMinutes,
             id: eventType.id,
             beforeEventBuffer: beforeBufferTime,
             afterEventBuffer: afterBufferTime,
@@ -372,7 +363,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       hideCalendarNotes: true,
       disableGuests: true,
       minimumBookingNotice: true,
-      minimumBookingNoticeType: true,
       beforeEventBuffer: true,
       afterEventBuffer: true,
       slotInterval: true,
