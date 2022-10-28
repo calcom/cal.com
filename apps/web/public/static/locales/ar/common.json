@@ -1008,7 +1008,6 @@
   "app_removed_successfully": "تمت إزالة التطبيق بنجاح",
   "error_removing_app": "خطأ في إزالة التطبيق",
   "web_conference": "مؤتمر عبر الإنترنت",
-  "number_for_sms_reminders": "رقم الهاتف (لتذكير الرسائل القصيرة)",
   "requires_confirmation": "يتطلب التأكيد",
   "nr_event_type_one": "{{count}} نوع حدث",
   "nr_event_type_other": "{{count}} من أنواع الحدث",
