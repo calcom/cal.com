@@ -7,12 +7,13 @@ import { Button, Dialog, DialogContent, DialogFooter, Select, TextField } from "
 import { Form } from "@calcom/ui/v2/core/form";
 import CheckboxField from "@calcom/ui/v2/core/form/Checkbox";
 
-import { NewTeamFormValues } from "../lib/types";
+import { NewTeamFormValues, PendingMember } from "../lib/types";
 
 type MemberInvitationModalProps = {
   isOpen: boolean;
   onExit: () => void;
   onSubmit: (values: NewMemberForm) => void;
+  members: PendingMember[];
 };
 
 type MembershipRoleOption = {
@@ -37,14 +38,12 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     ];
   }, [t]);
 
-  const formMethods = useFormContext<NewTeamFormValues>();
   const newMemberFormMethods = useForm<NewMemberForm>();
 
   const validateUniqueInvite = (value: string) => {
-    const members = formMethods.getValues("members");
     return !(
-      members.some((member) => member?.username === value) ||
-      members.some((member) => member?.email === value)
+      props.members.some((member) => member?.username === value) ||
+      props.members.some((member) => member?.email === value)
     );
   };
 

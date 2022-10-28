@@ -147,6 +147,7 @@ const AddNewTeamMembers = (props: { nextStep: (values: PendingMember[]) => void 
                 isOpen={memberInviteModal}
                 onExit={() => setMemberInviteModal(false)}
                 onSubmit={handleInviteTeamMember}
+                members={formMethods.getValues("members")}
               />
               <hr className="my-6  border-neutral-200" />
 

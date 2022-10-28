@@ -13,6 +13,7 @@ import {
   PendingMember,
 } from "@calcom/features/ee/teams/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localStorage } from "@calcom/lib/webstorage";
 
 import { StepCard } from "@components/getting-started/components/StepCard";
 import { Steps } from "@components/getting-started/components/Steps";
@@ -35,7 +36,6 @@ const stepRouteSchema = z.object({
 
 const CreateNewTeamPage = () => {
   const router = useRouter();
-  // TODO change this to a single state and feed the other forms into this one
   const [newTeamData, setNewTeamData] = useState<NewTeamFormValues & NewTeamMembersFieldArray>({
     name: "",
     slug: "",
@@ -109,7 +109,6 @@ const CreateNewTeamPage = () => {
               {currentStep === "create-a-new-team" && (
                 <CreateNewTeam
                   nextStep={(values: NewTeamFormValues) => {
-                    console.log("🚀 ~ file: [[...step]].tsx ~ line 104 ~ CreateNewTeamPage ~ values", values);
                     setNewTeamData({ ...values, members: [] });
                     goToIndex(1);
                   }}
@@ -123,7 +122,6 @@ const CreateNewTeamPage = () => {
               {currentStep === "add-team-members" && (
                 <AddNewTeamMembers
                   nextStep={(values: PendingMember[]) => {
-                    console.log("🚀 ~ file: [[...step]].tsx ~ line 117 ~ CreateNewTeamPage ~ values", values);
                     setNewTeamData({ ...newTeamData, members: [...values] });
                   }}
                 />
