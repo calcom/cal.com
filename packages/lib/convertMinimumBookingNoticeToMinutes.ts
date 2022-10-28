@@ -1,9 +1,9 @@
 export default function convertMinimumBookingNoticeToMinutes(type: string, minNotice: number) {
-  if (type == "minute") {
+  if (type === "minute") {
     return minNotice;
-  } else if (type == "hour") {
+  } else if (type === "hour") {
     return minNotice * 60;
-  } else if (type == "day") {
+  } else if (type === "day") {
     return minNotice * 1440;
   }
   return minNotice;
