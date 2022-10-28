@@ -6,6 +6,7 @@ export type VariablesType = {
   eventName?: string;
   organizerName?: string;
   attendeeName?: string;
+  attendeeEmail?: string;
   eventDate?: Dayjs;
   eventTime?: Dayjs;
   timeZone?: string;
@@ -31,7 +32,8 @@ const customTemplate = async (text: string, variables: VariablesType, locale: st
     .replaceAll("{EVENT_DATE}", variables.eventDate?.locale(locale).format("dddd, MMMM D, YYYY") || "")
     .replaceAll("{EVENT_TIME}", timeWithTimeZone)
     .replaceAll("{LOCATION}", locationString)
-    .replaceAll("{ADDITIONAL_NOTES}", variables.additionalNotes || "");
+    .replaceAll("{ADDITIONAL_NOTES}", variables.additionalNotes || "")
+    .replaceAll("{ATTENDEE_EMAIL}", variables.attendeeEmail || "");
 
   const customInputvariables = dynamicText.match(/\{(.+?)}/g)?.map((variable) => {
     return variable.replace("{", "").replace("}", "");
