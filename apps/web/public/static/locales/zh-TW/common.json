@@ -1007,7 +1007,6 @@
   "app_removed_successfully": "已成功移除應用程式",
   "error_removing_app": "移除應用程式時發生錯誤",
   "web_conference": "網路會議",
-  "number_for_sms_reminders": "電話號碼 (用於簡訊提醒)",
   "requires_confirmation": "需要確認",
   "nr_event_type_one": "{{count}} 種活動類型",
   "nr_event_type_other": "{{count}} 種活動類型",

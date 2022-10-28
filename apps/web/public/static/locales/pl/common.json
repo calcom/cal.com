@@ -1007,7 +1007,6 @@
   "app_removed_successfully": "Aplikacja została usunięta",
   "error_removing_app": "Błąd podczas usuwania aplikacji",
   "web_conference": "Konferencja internetowa",
-  "number_for_sms_reminders": "Numer telefonu (do przypomnień SMS)",
   "requires_confirmation": "Wymaga potwierdzenia",
   "nr_event_type_one": "Liczba typów wydarzenia: {{count}}",
   "nr_event_type_other": "Liczba typów wydarzenia: {{count}}",
