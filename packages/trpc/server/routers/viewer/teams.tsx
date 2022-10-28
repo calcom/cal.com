@@ -558,13 +558,26 @@ export const viewerTeamsRouter = createProtectedRouter()
   })
   .query("validateTeamName", {
     input: z.object({
-      teamName: z.string(),
+      name: z.string(),
     }),
     async resolve({ ctx, input }) {
-      console.log("🚀 ~ file: teams.tsx ~ line 564 ~ resolve ~ input", input);
       const team = await ctx.prisma.team.findFirst({
         where: {
-          name: input.teamName,
+          name: input.name,
+        },
+      });
+
+      return !team;
+    },
+  })
+  .query("validateTeamSlug", {
+    input: z.object({
+      slug: z.string(),
+    }),
+    async resolve({ ctx, input }) {
+      const team = await ctx.prisma.team.findFirst({
+        where: {
+          slug: input.slug,
         },
       });
 

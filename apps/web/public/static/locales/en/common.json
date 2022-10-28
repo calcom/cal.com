@@ -1347,5 +1347,7 @@
   "member_already_invited": "Member has already been invited",
   "enter_email_or_username": "Enter an email or username",
   "team_name_taken": "This name is already taken",
-  "must_enter_team_name": "Must enter a team name"
+  "must_enter_team_name": "Must enter a team name",
+  "team_url_required": "Must enter a team URL",
+  "team_url_taken": "This URL is already taken"
 }

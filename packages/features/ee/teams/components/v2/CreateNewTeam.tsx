@@ -26,7 +26,7 @@ const CreateANewTeamForm = (props: { nextStep: () => void }) => {
   // });
 
   const validateTeamNameQuery = trpc.useQuery(
-    ["viewer.teams.validateTeamName", { teamName: newTeamFormMethods.watch("name") }],
+    ["viewer.teams.validateTeamName", { name: newTeamFormMethods.watch("name") }],
     {
       enabled: false,
       refetchOnWindowFocus: false,
@@ -35,17 +35,29 @@ const CreateANewTeamForm = (props: { nextStep: () => void }) => {
 
   const validateTeamName = async () => {
     await validateTeamNameQuery.refetch();
-    console.log(
-      "🚀 ~ file: CreateNewTeam.tsx ~ line 40 ~ validateTeamName ~ validateTeamNameQuery.stats !== ",
-      validateTeamNameQuery.data
-    );
-
     return validateTeamNameQuery.data || t("team_name_taken");
+  };
+
+  const validateTeamSlugQuery = trpc.useQuery(
+    ["viewer.teams.validateTeamSlug", { slug: newTeamFormMethods.watch("slug") }],
+    {
+      enabled: false,
+      refetchOnWindowFocus: false,
+    }
+  );
+
+  const validateTeamSlug = async () => {
+    await validateTeamSlugQuery.refetch();
+    return validateTeamSlugQuery.data || t("team_url_taken");
   };
 
   return (
     <>
-      <Form form={newTeamFormMethods} handleSubmit={(values) => console.log(values)}>
+      <Form
+        form={newTeamFormMethods}
+        handleSubmit={(values) => {
+          console.log(values);
+        }}>
         <div className="mb-8">
           <Controller
             name="name"
@@ -79,6 +91,7 @@ const CreateANewTeamForm = (props: { nextStep: () => void }) => {
           <Controller
             name="slug"
             control={newTeamFormMethods.control}
+            rules={{ required: t("team_url_required"), validate: async () => validateTeamSlug() }}
             render={({ field: { value } }) => (
               <TextField
                 className="mt-2"
@@ -131,10 +144,6 @@ const CreateANewTeamForm = (props: { nextStep: () => void }) => {
             {t("continue")}
           </Button>
         </div>
-
-        {/* {createTeamMutation.isError && (
-          <p className="mt-4 text-red-700">{createTeamMutation.error.message}</p>
-        )} */}
       </Form>
     </>
   );
