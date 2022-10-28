@@ -7,7 +7,11 @@ import { z } from "zod";
 // import TeamGeneralSettings from "@calcom/features/teams/createNewTeam/TeamGeneralSettings";
 import AddNewTeamMembers from "@calcom/features/ee/teams/components/v2/AddNewTeamMembers";
 import CreateNewTeam from "@calcom/features/ee/teams/components/v2/CreateNewTeam";
-import { NewTeamFormValues, NewTeamMembersFieldArray } from "@calcom/features/ee/teams/lib/types";
+import {
+  NewTeamFormValues,
+  NewTeamMembersFieldArray,
+  PendingMember,
+} from "@calcom/features/ee/teams/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { StepCard } from "@components/getting-started/components/StepCard";
@@ -32,10 +36,14 @@ const stepRouteSchema = z.object({
 const CreateNewTeamPage = () => {
   const router = useRouter();
   // TODO change this to a single state and feed the other forms into this one
-  const [newTeamData, setNewTeamData] = useState<NewTeamFormValues & NewTeamMembersFieldArray>();
+  const [newTeamData, setNewTeamData] = useState<NewTeamFormValues & NewTeamMembersFieldArray>({
+    name: "",
+    slug: "",
+    avatar: "",
+    members: [],
+  });
 
   const { t } = useLocale();
-
   useEffect(() => {
     console.log(newTeamData);
   }, [newTeamData]);
@@ -101,7 +109,8 @@ const CreateNewTeamPage = () => {
               {currentStep === "create-a-new-team" && (
                 <CreateNewTeam
                   nextStep={(values: NewTeamFormValues) => {
-                    setNewTeamData(values);
+                    console.log("🚀 ~ file: [[...step]].tsx ~ line 104 ~ CreateNewTeamPage ~ values", values);
+                    setNewTeamData({ ...values, members: [] });
                     goToIndex(1);
                   }}
                 />
@@ -111,7 +120,14 @@ const CreateNewTeamPage = () => {
                 <TeamGeneralSettings teamId={teamId} nextStep={() => goToIndex(2)} />
               )} */}
 
-              {currentStep === "add-team-members" && <AddNewTeamMembers />}
+              {currentStep === "add-team-members" && (
+                <AddNewTeamMembers
+                  nextStep={(values: PendingMember[]) => {
+                    console.log("🚀 ~ file: [[...step]].tsx ~ line 117 ~ CreateNewTeamPage ~ values", values);
+                    setNewTeamData({ ...newTeamData, members: [...values] });
+                  }}
+                />
+              )}
             </StepCard>
           </div>
         </div>

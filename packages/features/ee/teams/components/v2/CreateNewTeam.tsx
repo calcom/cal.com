@@ -11,10 +11,12 @@ import { Form, TextField } from "@calcom/ui/v2/core/form/fields";
 
 import { NewTeamFormValues } from "../../lib/types";
 
-const CreateANewTeamForm = (props: { nextStep: () => void }) => {
+const CreateANewTeamForm = (props: { nextStep: (values: NewTeamFormValues) => void }) => {
   const { t } = useLocale();
 
-  const newTeamFormMethods = useForm<NewTeamFormValues>();
+  const newTeamFormMethods = useForm<NewTeamFormValues>({
+    mode: "all",
+  });
 
   const validateTeamNameQuery = trpc.useQuery(
     ["viewer.teams.validateTeamName", { name: newTeamFormMethods.watch("name") }],

@@ -15,7 +15,7 @@ import { SkeletonContainer, SkeletonText, SkeletonAvatar } from "@calcom/ui/v2/c
 import { NewTeamMembersFieldArray, PendingMember } from "../../lib/types";
 import { NewMemberForm } from "../MemberInvitationModal";
 
-const AddNewTeamMembers = () => {
+const AddNewTeamMembers = (props: { nextStep: (values: PendingMember[]) => void }) => {
   const { t } = useLocale();
   const session = useSession();
 
@@ -28,7 +28,7 @@ const AddNewTeamMembers = () => {
   const [skeletonMember, setSkeletonMember] = useState(false);
 
   const formMethods = useForm();
-  const membersFieldArray = useFieldArray<NewTeamMembersFieldArray>({
+  const membersFieldArray = useFieldArray<PendingMember[]>({
     control: formMethods.control,
     name: "members",
   });
@@ -36,7 +36,7 @@ const AddNewTeamMembers = () => {
   const { refetch } = trpc.useQuery(["viewer.teams.findUser", inviteMemberInput], {
     refetchOnWindowFocus: false,
     enabled: false,
-    onSuccess: (newMember: PendingMember) => {
+    onSuccess: (newMember) => {
       membersFieldArray.append(newMember);
       setSkeletonMember(false);
     },
@@ -49,9 +49,9 @@ const AddNewTeamMembers = () => {
   useEffect(() => {
     if (session.status !== "loading" && !formMethods.getValues("members").length) {
       membersFieldArray.append({
-        name: session.data.user.name,
-        email: session.data.user.email,
-        username: session.data.user.username,
+        name: session?.data.user.name || "",
+        email: session?.data.user.email || "",
+        username: session?.data.user.username || "",
         role: "OWNER",
       });
     }
@@ -71,7 +71,9 @@ const AddNewTeamMembers = () => {
   };
 
   const handleDeleteMember = (email: string) => {
-    const memberIndex = formMethods.getValues("members").findIndex((member) => member.email === email);
+    const memberIndex = formMethods
+      .getValues("members")
+      .findIndex((member: PendingMember) => member.email === email);
     membersFieldArray.remove(memberIndex);
   };
 
@@ -79,7 +81,7 @@ const AddNewTeamMembers = () => {
 
   return (
     <>
-      <Form form={formMethods}>
+      <Form form={formMethods} handleSubmit={(values) => props.nextStep(values.members)}>
         <Controller
           name="members"
           render={({ field: { value } }) => (
@@ -148,7 +150,7 @@ const AddNewTeamMembers = () => {
               />
               <hr className="my-6  border-neutral-200" />
 
-              <Button EndIcon={Icon.FiArrowRight} className="mt-6 w-full justify-center">
+              <Button EndIcon={Icon.FiArrowRight} className="mt-6 w-full justify-center" type="submit">
                 {t("checkout")}
               </Button>
             </>
