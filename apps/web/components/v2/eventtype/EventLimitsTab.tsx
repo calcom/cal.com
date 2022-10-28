@@ -171,7 +171,7 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
                         minimumBookingNoticeType = val.value;
                         formMethods.setValue(
                           "minimumBookingNotice",
-                          convertToNewDurationType(previousValue, val.value, minBookingValue)
+                          Math.ceil(convertToNewDurationType(previousValue, val.value, minBookingValue))
                         );
                       }
                     }}
