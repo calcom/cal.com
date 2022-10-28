@@ -53,12 +53,13 @@ const meetingTokenSchema = z.object({
 });
 
 /** @deprecated use metadata on index file */
-export const FAKE_DAILY_CREDENTIAL: CredentialPayload = {
+export const FAKE_DAILY_CREDENTIAL: CredentialPayload & { invalid: boolean } = {
   id: +new Date().getTime(),
   type: "daily_video",
   key: { apikey: process.env.DAILY_API_KEY },
   userId: +new Date().getTime(),
   appId: "daily-video",
+  invalid: false,
 };
 
 const fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
