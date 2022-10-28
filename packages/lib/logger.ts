@@ -5,6 +5,7 @@ import { IS_PRODUCTION } from "./constants";
 const logger = new Logger({
   type: "pretty",
   dateTimePattern: "hour:minute:second.millisecond",
+  minLevel: "warn",
   displayFunctionName: false,
   displayFilePath: "hidden",
   dateTimeTimezone: IS_PRODUCTION ? "utc" : Intl.DateTimeFormat().resolvedOptions().timeZone,
