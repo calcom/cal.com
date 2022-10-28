@@ -1007,7 +1007,6 @@
   "app_removed_successfully": "アプリは正常に削除されました",
   "error_removing_app": "アプリの削除中にエラーが発生しました",
   "web_conference": "ウェブ会議",
-  "number_for_sms_reminders": "電話番号（SMS リマインダー用）",
   "requires_confirmation": "確認が必要です",
   "nr_event_type_one": "{{count}} 種類のイベントタイプ",
   "nr_event_type_other": "{{count}} 種類のイベントタイプ",
