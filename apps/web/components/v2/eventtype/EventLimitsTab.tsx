@@ -145,20 +145,22 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
 
               return (
                 <>
-                  <InputField
-                    required
-                    label={t("minimum_booking_notice")}
-                    type="number"
-                    placeholder="120"
-                    className="mr-2 w-full"
-                    defaultValue={displayValue}
-                    {...formMethods.register("minimumBookingNotice", {
-                      valueAsNumber: true,
-                    })}
-                  />
+                  <div className="w-1/2 md:w-3/4">
+                    <InputField
+                      required
+                      label={t("minimum_booking_notice")}
+                      type="number"
+                      placeholder="120"
+                      className="mr-2 rounded-[4px]"
+                      defaultValue={displayValue}
+                      {...formMethods.register("minimumBookingNotice", {
+                        valueAsNumber: true,
+                      })}
+                    />
+                  </div>
                   <Select
                     isSearchable={false}
-                    className="mb-2 ml-2 w-1/3"
+                    className="mb-2 ml-2 w-full capitalize md:min-w-[150px] md:max-w-[200px]"
                     defaultValue={durationTypeOptions.find(
                       (option) => option.value === minimumBookingNoticeType
                     )}
