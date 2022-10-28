@@ -52,6 +52,9 @@ async function onFormSubmission(
 
   await Promise.all(promises);
   if (form.settings?.emailOwnerOnSubmission) {
+    logger.debug(
+      `Preparing to send Form Response email for Form:${form.id} to form owner: ${form.user.email}`
+    );
     await sendResponseEmail(form, response, form.user.email);
   }
 }
@@ -152,9 +155,6 @@ const app_RoutingForms = createRouter()
           const dbFormResponse = await prisma.app_RoutingForms_FormResponse.create({
             data: input,
           });
-          logger.debug(
-            `Preparing to send Form Response email for Form:${form.id} to form owner: ${form.user.email}`
-          );
 
           await onFormSubmission(serializableFormWithFields, dbFormResponse.response as Response);
           return dbFormResponse;
