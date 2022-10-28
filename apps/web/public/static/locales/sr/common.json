@@ -1008,7 +1008,6 @@
   "app_removed_successfully": "Aplikacija je uspešno uklonjena",
   "error_removing_app": "Greška prilikom uklanjanja aplikacije",
   "web_conference": "Veb konferencija",
-  "number_for_sms_reminders": "Broj telefona (za SMS podsetnike)",
   "requires_confirmation": "Potrebna je potvrda",
   "nr_event_type_one": "{{count}} tip događaja",
   "nr_event_type_other": "{{count}} tipova događaja",
