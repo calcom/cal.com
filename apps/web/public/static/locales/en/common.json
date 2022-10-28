@@ -1337,5 +1337,5 @@
   "no_event_types": "No event types setup",
   "no_event_types_description": "{{name}} has not setup any event types for you to book.",
   "number_sms_notifications": "Phone number (SMS\u00a0notifications)",
-  "invalid_credential": "This credential has stopped working, please reinstall to continue using."
+  "invalid_credential": "Oh no! Looks like permission expired or was revoked. Please reinstall again."
 }

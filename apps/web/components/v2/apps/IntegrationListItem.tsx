@@ -51,8 +51,8 @@ function IntegrationListItem(props: {
           {/* Alert error that key stopped working. */}
           {props.invalidCredential && (
             <div className="flex items-center space-x-2">
-              <Icon.FiAlertCircle className="text-red-500" />
-              <ListItemText component="p" className="text-red-500">
+              <Icon.FiAlertCircle className="w-8 text-red-500 sm:w-4" />
+              <ListItemText component="p" className="whitespace-pre-wrap text-red-500">
                 {t("invalid_credential")}
               </ListItemText>
             </div>
