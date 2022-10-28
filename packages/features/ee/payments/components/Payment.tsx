@@ -85,7 +85,7 @@ export default function PaymentComponent(props: Props) {
       const params: { [k: string]: any } = {
         date,
         type: props.eventType.id,
-        user: props.user.username,
+        username: props.user.username,
         email,
         name,
         bookingId: props.bookingId,

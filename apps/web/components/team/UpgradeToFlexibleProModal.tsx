@@ -1,6 +1,5 @@
 import { useState } from "react";
 
-import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
@@ -12,6 +11,7 @@ import {
   DialogFooter,
   DialogHeader,
 } from "@calcom/ui/Dialog";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 import { useLocale } from "@lib/hooks/useLocale";
 

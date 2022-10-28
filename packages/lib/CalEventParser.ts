@@ -73,6 +73,20 @@ ${calEvent.customInputs[key]}
   return customInputsString;
 };
 
+export const getAppsStatus = (calEvent: CalendarEvent) => {
+  if (!calEvent.appsStatus) {
+    return "";
+  }
+  return `\n${calEvent.attendees[0].language.translate("apps_status")}
+      \n${calEvent.appsStatus.map(
+        (app) =>
+          `\t${app.appName} ${app.success >= 1 && `✅ ${app.success > 1 ? `(x${app.success})` : ""}`} ${
+            app.failures >= 1 && `❌ ${app.failures > 1 ? `(x${app.failures})` : ""}`
+          }`
+      )}
+    `;
+};
+
 export const getDescription = (calEvent: CalendarEvent) => {
   if (!calEvent.description) {
     return "";
@@ -121,6 +135,10 @@ export const getCancelLink = (calEvent: CalendarEvent): string => {
   return WEBAPP_URL + "/cancel/" + getUid(calEvent);
 };
 
+export const getRescheduleLink = (calEvent: CalendarEvent): string => {
+  return WEBAPP_URL + "/reschedule/" + getUid(calEvent);
+};
+
 export const getRichDescription = (calEvent: CalendarEvent /*, attendee?: Person*/) => {
   return `
 ${getCancellationReason(calEvent)}
@@ -132,6 +150,7 @@ ${getLocation(calEvent)}
 ${getDescription(calEvent)}
 ${getAdditionalNotes(calEvent)}
 ${getCustomInputs(calEvent)}
+${getAppsStatus(calEvent)}
 ${
   // TODO: Only the original attendee can make changes to the event
   // Guests cannot

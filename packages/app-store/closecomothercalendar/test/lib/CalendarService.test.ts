@@ -55,7 +55,7 @@ test("retrieve contact IDs: all exist", async () => {
 
   const event = {
     attendees,
-  } as CalendarEvent;
+  } as { attendees: { email: string; name: string | null; id: string }[] };
 
   CloseCom.prototype.contact = {
     search: () => ({ data: attendees }),
@@ -225,7 +225,7 @@ test("prepare data to create custom activity type instance: one attendees, with 
     attendees,
     startTime: now.toISOString(),
     additionalNotes: "Some comment!",
-  } as CalendarEvent;
+  } as any;
 
   CloseCom.prototype.activity = {
     type: {

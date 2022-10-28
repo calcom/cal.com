@@ -1,5 +1,5 @@
-import autoAnimate from "@formkit/auto-animate";
-import { useEffect, useState, useRef } from "react";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -34,11 +34,7 @@ const tips = [
 ];
 
 export default function Tips() {
-  const animationRef = useRef(null);
-
-  useEffect(() => {
-    animationRef.current && autoAnimate(animationRef.current, { duration: 250, easing: "ease-out" });
-  }, [animationRef]);
+  const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
   const { t } = useLocale();
 

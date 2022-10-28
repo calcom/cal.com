@@ -31,6 +31,7 @@ export const EventTypeMetaDataSchema = z
     blockchainId: z.number().optional(),
     giphyThankYouPage: z.string().optional(),
     apps: z.object(appDataSchemas).partial().optional(),
+    additionalNotesRequired: z.boolean().optional(),
   })
   .nullable();
 
@@ -57,6 +58,20 @@ export const recurringEventType = z
     tzid: z.string().optional(),
   })
   .nullable();
+
+// dayjs iso parsing is very buggy - cant use :( - turns ISO string into Date object
+export const iso8601 = z.string().transform((val, ctx) => {
+  const time = Date.parse(val);
+  if (!time) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Invalid ISO Date",
+    });
+  }
+  const d = new Date();
+  d.setTime(time);
+  return d;
+});
 
 export const bookingLimitsType = z
   .object({
@@ -132,8 +147,25 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
     recurringCount: z.number().optional(),
     rescheduleReason: z.string().optional(),
     smsReminderNumber: z.string().optional(),
+    appsStatus: z
+      .array(
+        z.object({
+          appName: z.string(),
+          success: z.number(),
+          failures: z.number(),
+          type: z.string(),
+        })
+      )
+      .optional(),
   })
 );
+
+export const schemaBookingCancelParams = z.object({
+  id: z.number().optional(),
+  uid: z.string().optional(),
+  allRemainingBookings: z.boolean().optional(),
+  cancellationReason: z.string().optional(),
+});
 
 export const vitalSettingsUpdateSchema = z.object({
   connected: z.boolean().optional(),

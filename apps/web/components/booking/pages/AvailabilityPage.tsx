@@ -1,10 +1,9 @@
-// Get router variables
-import autoAnimate from "@formkit/auto-animate";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventType } from "@prisma/client";
 import * as Popover from "@radix-ui/react-popover";
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { useReducer, useEffect, useMemo, useState, useRef } from "react";
+import { useReducer, useEffect, useMemo, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { z } from "zod";
@@ -27,7 +26,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { detectBrowserTimeFormat, getIs24hClockFromLocalStorage } from "@calcom/lib/timeFormat";
+import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import DatePicker from "@calcom/ui/v2/modules/booker/DatePicker";
@@ -48,6 +47,7 @@ import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 
+// Get router variables
 const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
   const router = useRouter();
   const path = router.asPath.split("/");
@@ -108,6 +108,7 @@ const useSlots = ({
 const SlotPicker = ({
   eventType,
   timeFormat,
+  onTimeFormatChange,
   timeZone,
   recurringEventCount,
   users,
@@ -116,7 +117,8 @@ const SlotPicker = ({
   ethSignature,
 }: {
   eventType: Pick<EventType, "id" | "schedulingType" | "slug">;
-  timeFormat: string;
+  timeFormat: TimeFormat;
+  onTimeFormatChange: (is24Hour: boolean) => void;
   timeZone?: string;
   seatsPerTimeSlot?: number;
   recurringEventCount?: number;
@@ -129,11 +131,8 @@ const SlotPicker = ({
   const { date, setQuery: setDate } = useRouterQuery("date");
   const { month, setQuery: setMonth } = useRouterQuery("month");
   const router = useRouter();
-  const slotPickerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    slotPickerRef.current && autoAnimate(slotPickerRef.current);
-  }, [slotPickerRef]);
+  const [slotPickerRef] = useAutoAnimate<HTMLDivElement>();
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -203,6 +202,7 @@ const SlotPicker = ({
           slots={selectedDate && slots[selectedDate.format("YYYY-MM-DD")]}
           date={selectedDate}
           timeFormat={timeFormat}
+          onTimeFormatChange={onTimeFormatChange}
           eventTypeId={eventType.id}
           eventTypeSlug={eventType.slug}
           seatsPerTimeSlot={seatsPerTimeSlot}
@@ -215,33 +215,18 @@ const SlotPicker = ({
 };
 
 function TimezoneDropdown({
-  onChangeTimeFormat,
   onChangeTimeZone,
   timeZone,
-  timeFormat,
-  hideTimeFormatToggle,
 }: {
-  onChangeTimeFormat: (newTimeFormat: string) => void;
   onChangeTimeZone: (newTimeZone: string) => void;
   timeZone?: string;
-  timeFormat: string;
-  hideTimeFormatToggle?: boolean;
 }) {
   const [isTimeOptionsOpen, setIsTimeOptionsOpen] = useState(false);
-
-  useEffect(() => {
-    handleToggle24hClock(!!getIs24hClockFromLocalStorage());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const handleSelectTimeZone = (newTimeZone: string) => {
     onChangeTimeZone(newTimeZone);
     localStorageTimeZone(newTimeZone);
     setIsTimeOptionsOpen(false);
-  };
-
-  const handleToggle24hClock = (is24hClock: boolean) => {
-    onChangeTimeFormat(is24hClock ? "HH:mm" : "h:mma");
   };
 
   return (
@@ -262,12 +247,7 @@ function TimezoneDropdown({
           hideWhenDetached
           align="start"
           className="animate-fade-in-up absolute left-0 top-2 w-80 max-w-[calc(100vw_-_1.5rem)]">
-          <TimeOptions
-            onSelectTimeZone={handleSelectTimeZone}
-            onToggle24hClock={handleToggle24hClock}
-            timeFormat={timeFormat}
-            hideTimeFormatToggle={hideTimeFormatToggle}
-          />
+          <TimeOptions onSelectTimeZone={handleSelectTimeZone} />
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>
@@ -299,16 +279,9 @@ const useRouterQuery = <T extends string>(name: T) => {
 
 export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
 
-const timeFormatTotimeFormatString = (timeFormat?: number | null) => {
-  if (!timeFormat) return null;
-  return timeFormat === 24 ? "HH:mm" : "h:mma";
-};
-
-const AvailabilityPage = ({ profile, eventType }: Props) => {
-  const { data: user } = trpc.useQuery(["viewer.me"]);
-  const timeFormatFromProfile = timeFormatTotimeFormatString(user?.timeFormat);
+const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const router = useRouter();
-  const isEmbed = useIsEmbed();
+  const isEmbed = useIsEmbed(restProps.isEmbed);
   const query = dateQuerySchema.parse(router.query);
   const { rescheduleUid } = query;
   useTheme(profile.theme);
@@ -319,7 +292,12 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const isBackgroundTransparent = useIsBackgroundTransparent();
 
   const [timeZone, setTimeZone] = useState<string>();
-  const [timeFormat, setTimeFormat] = useState<string>("HH:mm");
+  const [timeFormat, setTimeFormat] = useState<TimeFormat>(detectBrowserTimeFormat);
+
+  const onTimeFormatChange = (is24Hours: boolean) => {
+    setTimeFormat(is24Hours ? TimeFormat.TWENTY_FOUR_HOUR : TimeFormat.TWELVE_HOUR);
+    setIs24hClockInLocalStorage(is24Hours);
+  };
 
   const [gateState, gateDispatcher] = useReducer(
     (state: GateState, newState: Partial<GateState>) => ({
@@ -331,8 +309,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
 
   useEffect(() => {
     setTimeZone(localStorageTimeZone() || dayjs.tz.guess());
-    setTimeFormat(timeFormatFromProfile || detectBrowserTimeFormat);
-  }, [timeFormatFromProfile]);
+  }, []);
 
   // TODO: Improve this;
   useExposePlanGlobally(eventType.users.length === 1 ? eventType.users[0].plan : "PRO");
@@ -354,24 +331,13 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
   const userList = eventType.users ? eventType.users.map((user) => user.username).filter(notEmpty) : [];
 
   const timezoneDropdown = useMemo(
-    () => (
-      <TimezoneDropdown
-        timeFormat={timeFormat}
-        onChangeTimeFormat={setTimeFormat}
-        timeZone={timeZone}
-        onChangeTimeZone={setTimeZone}
-        // Currently we don't allow the user to change the timeformat when they're logged in,
-        // the only way to change it is if they go to their profile.
-        hideTimeFormatToggle={!!timeFormatFromProfile}
-      />
-    ),
-    [timeZone, timeFormat, timeFormatFromProfile]
+    () => <TimezoneDropdown timeZone={timeZone} onChangeTimeZone={setTimeZone} />,
+    [timeZone]
   );
   const stripeAppData = getStripeAppData(eventType);
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
-  const slug = rawSlug.join("/");
 
   // Define conditional gates here
   const gates = [
@@ -386,8 +352,16 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
       <HeadSeo
         title={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title} | ${profile.name}`}
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
-        name={profile.name || undefined}
-        username={slug || undefined}
+        meeting={{
+          title: eventType.title,
+          profile: { name: `${profile.name}`, image: profile.image },
+          users: [
+            ...(eventType.users || []).map((user) => ({
+              name: `${user.name}`,
+              username: `${user.username}`,
+            })),
+          ],
+        }}
         nextSeoProps={{
           nofollow: eventType.hidden,
           noindex: eventType.hidden,
@@ -416,10 +390,10 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                 <div
                   className={classNames(
                     "sm:dark:border-darkgray-200 flex flex-col border-gray-200 p-5 sm:border-r",
-                    "min-w-full md:w-[280px] md:min-w-[280px]",
+                    "min-w-full md:w-[230px] md:min-w-[230px]",
                     recurringEventCount && "xl:w-[380px] xl:min-w-[380px]"
                   )}>
-                  <BookingDescription profile={profile} eventType={eventType}>
+                  <BookingDescription profile={profile} eventType={eventType} rescheduleUid={rescheduleUid}>
                     {!rescheduleUid && eventType.recurringEvent && (
                       <div className="flex items-start text-sm font-medium">
                         <Icon.FiRefreshCcw className="float-left mr-[10px] mt-[7px] ml-[2px] inline-block h-4 w-4 " />
@@ -496,6 +470,7 @@ const AvailabilityPage = ({ profile, eventType }: Props) => {
                   }
                   eventType={eventType}
                   timeFormat={timeFormat}
+                  onTimeFormatChange={onTimeFormatChange}
                   timeZone={timeZone}
                   users={userList}
                   seatsPerTimeSlot={eventType.seatsPerTimeSlot || undefined}

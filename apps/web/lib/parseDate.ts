@@ -20,6 +20,15 @@ export const parseDate = (date: string | null | Dayjs, i18n: I18n) => {
   return processDate(date, i18n);
 };
 
+// tzid is currently broken in rrule library.
+// @see https://github.com/jakubroztocil/rrule/issues/523
+const dateWithZone = (d: Date, timeZone?: string) => {
+  const dateInLocalTZ = new Date(d.toLocaleString("en-US", { timeZone: "UTC" }));
+  const dateInTargetTZ = new Date(d.toLocaleString("en-US", { timeZone: timeZone || "UTC" }));
+  const tzOffset = dateInTargetTZ.getTime() - dateInLocalTZ.getTime();
+  return new Date(d.getTime() - tzOffset);
+};
+
 export const parseRecurringDates = (
   {
     startDate,
@@ -39,12 +48,16 @@ export const parseRecurringDates = (
   const rule = new RRule({
     ...restRecurringEvent,
     count: recurringCount,
-    dtstart: dayjs(startDate).toDate(),
+    dtstart: dayjs(startDate).utc(true).toDate(),
   });
-  const dateStrings = rule.all().map((r) => {
-    return processDate(dayjs(r).tz(timeZone), i18n);
+  // UTC times with tzOffset applied to account for DST
+  const times = rule.all().map((t) => dateWithZone(t, timeZone));
+  const dateStrings = times.map((t) => {
+    // undo DST diffs for localized display.
+    return processDate(dayjs.utc(t).tz(timeZone), i18n);
   });
-  return [dateStrings, rule.all()];
+
+  return [dateStrings, times];
 };
 
 export const extractRecurringDates = (
@@ -56,6 +69,7 @@ export const extractRecurringDates = (
   timeZone: string | undefined,
   i18n: I18n
 ): [string[], Date[]] => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { count = 0, ...rest } =
     booking.eventType.recurringEvent !== null ? booking.eventType.recurringEvent : {};
   const recurringInfo = booking.recurringBookings.find(
@@ -66,8 +80,9 @@ export const extractRecurringDates = (
     count: recurringInfo?._count.recurringEventId,
     dtstart: recurringInfo?._min.startTime,
   }).all();
+  const utcOffset = dayjs(recurringInfo?._min.startTime).tz(timeZone).utcOffset();
   const dateStrings = allDates.map((r) => {
-    return processDate(dayjs(r).tz(timeZone), i18n);
+    return processDate(dayjs.utc(r).utcOffset(utcOffset), i18n);
   });
   return [dateStrings, allDates];
 };

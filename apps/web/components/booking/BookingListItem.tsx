@@ -1,20 +1,22 @@
 import { BookingStatus } from "@prisma/client";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
+import { formatTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
-import { Tooltip } from "@calcom/ui/Tooltip";
 import { TextArea } from "@calcom/ui/form/fields";
 import Badge from "@calcom/ui/v2/core/Badge";
 import Button from "@calcom/ui/v2/core/Button";
+import MeetingTimeInTimezones from "@calcom/ui/v2/core/MeetingTimeInTimezones";
+import Tooltip from "@calcom/ui/v2/core/Tooltip";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 import { extractRecurringDates } from "@lib/parseDate";
@@ -174,17 +176,20 @@ function BookingListItem(booking: BookingItemProps) {
     setLocationMutation.mutate({ bookingId: booking.id, newLocation });
   };
 
+  // Extract recurring dates is intensive to run, so use useMemo.
   // Calculate the booking date(s) and setup recurring event data to show
-  let recurringStrings: string[] = [];
-  let recurringDates: Date[] = [];
-
-  if (booking.recurringBookings !== undefined && booking.eventType.recurringEvent?.freq !== undefined) {
-    [recurringStrings, recurringDates] = extractRecurringDates(booking, user?.timeZone, i18n);
-  }
+  // @FIXME: This is importing the RRULE library which is already heavy. Find out a more optimal way do this.
+  const [recurringStrings, recurringDates] = useMemo(() => {
+    if (booking.recurringBookings !== undefined && booking.eventType.recurringEvent?.freq !== undefined) {
+      return extractRecurringDates(booking, user?.timeZone, i18n);
+    }
+    return [[], []];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.timeZone, i18n.language, booking.recurringBookings]);
 
   const location = booking.location || "";
 
-  const onClick = () => {
+  const onClickTableData = () => {
     router.push({
       pathname: "/success",
       query: {
@@ -192,7 +197,7 @@ function BookingListItem(booking: BookingItemProps) {
         // TODO: Booking when fetched should have id 0 already(for Dynamic Events).
         type: booking.eventType.id || 0,
         eventSlug: booking.eventType.slug,
-        user: user?.username || "",
+        username: user?.username || "",
         name: booking.attendees[0] ? booking.attendees[0].name : undefined,
         email: booking.attendees[0] ? booking.attendees[0].email : undefined,
         location: location,
@@ -205,6 +210,7 @@ function BookingListItem(booking: BookingItemProps) {
       },
     });
   };
+
   return (
     <>
       <RescheduleDialog
@@ -253,17 +259,21 @@ function BookingListItem(booking: BookingItemProps) {
       </Dialog>
 
       <tr className="flex flex-col hover:bg-neutral-50 sm:flex-row">
-        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:min-w-[10rem]" onClick={onClick}>
+        <td
+          className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:min-w-[12rem]"
+          onClick={onClickTableData}>
           <div className="cursor-pointer py-4">
             <div className="text-sm leading-6 text-gray-900">{startTime}</div>
             <div className="text-sm text-gray-500">
-              {dayjs(booking.startTime)
-                .tz(user?.timeZone)
-                .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}{" "}
-              -{" "}
-              {dayjs(booking.endTime)
-                .tz(user?.timeZone)
-                .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
+              {formatTime(booking.startTime, user?.timeFormat, user?.timeZone)} -{" "}
+              {formatTime(booking.endTime, user?.timeFormat, user?.timeZone)}
+              <MeetingTimeInTimezones
+                timeFormat={user?.timeFormat}
+                userTimezone={user?.timeZone}
+                startTime={booking.startTime}
+                endTime={booking.endTime}
+                attendees={booking.attendees}
+              />
             </div>
 
             {isPending && (
@@ -284,27 +294,25 @@ function BookingListItem(booking: BookingItemProps) {
             )}
 
             <div className="mt-2 text-sm text-gray-400">
-              <RecurringBookingsTooltip
-                booking={booking}
-                recurringStrings={recurringStrings}
-                recurringDates={recurringDates}
-              />
+              <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
             </div>
           </div>
         </td>
-        <td className={"w-full px-4" + (isRejected ? " line-through" : "")} onClick={onClick}>
+        <td className={"w-full px-4" + (isRejected ? " line-through" : "")} onClick={onClickTableData}>
           {/* Time and Badges for mobile */}
           <div className="w-full pt-4 pb-2 sm:hidden">
             <div className="flex w-full items-center justify-between sm:hidden">
               <div className="text-sm leading-6 text-gray-900">{startTime}</div>
               <div className="pr-2 text-sm text-gray-500">
-                {dayjs(booking.startTime)
-                  .tz(user?.timeZone)
-                  .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}{" "}
-                -{" "}
-                {dayjs(booking.endTime)
-                  .tz(user?.timeZone)
-                  .format(user && user.timeFormat === 12 ? "h:mma" : "HH:mm")}
+                {formatTime(booking.startTime, user?.timeFormat, user?.timeZone)} -{" "}
+                {formatTime(booking.endTime, user?.timeFormat, user?.timeZone)}
+                <MeetingTimeInTimezones
+                  timeFormat={user?.timeFormat}
+                  userTimezone={user?.timeZone}
+                  startTime={booking.startTime}
+                  endTime={booking.endTime}
+                  attendees={booking.attendees}
+                />
               </div>
             </div>
 
@@ -324,11 +332,7 @@ function BookingListItem(booking: BookingItemProps) {
               </Badge>
             )}
             <div className="text-sm text-gray-400 sm:hidden">
-              <RecurringBookingsTooltip
-                booking={booking}
-                recurringStrings={recurringStrings}
-                recurringDates={recurringDates}
-              />
+              <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
             </div>
           </div>
 
@@ -348,7 +352,7 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
             {booking.description && (
               <div
-                className="max-w-52 md:max-w-96 truncate text-sm text-gray-600"
+                className="max-w-10/12 sm:max-w-40 md:max-w-56 xl:max-w-80 lg:max-w-64 truncate text-sm text-gray-600"
                 title={booking.description}>
                 &quot;{booking.description}&quot;
               </div>
@@ -389,17 +393,18 @@ function BookingListItem(booking: BookingItemProps) {
 
 interface RecurringBookingsTooltipProps {
   booking: BookingItemProps;
-  recurringStrings: string[];
   recurringDates: Date[];
 }
 
-const RecurringBookingsTooltip = ({
-  booking,
-  recurringStrings,
-  recurringDates,
-}: RecurringBookingsTooltipProps) => {
+const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookingsTooltipProps) => {
+  // Get user so we can determine 12/24 hour format preferences
+  const query = useMeQuery();
+  const user = query.data;
   const { t } = useLocale();
   const now = new Date();
+  const recurringCount = recurringDates.filter((date) => {
+    return date >= now;
+  }).length;
 
   return (
     (booking.recurringBookings &&
@@ -410,9 +415,11 @@ const RecurringBookingsTooltip = ({
         <div className="underline decoration-gray-400 decoration-dashed underline-offset-2">
           <div className="flex">
             <Tooltip
-              content={recurringStrings.map((aDate, key) => (
+              content={recurringDates.map((aDate, key) => (
                 <p key={key} className={classNames(recurringDates[key] < now && "line-through")}>
-                  {aDate}
+                  {formatTime(booking.startTime, user?.timeFormat, user?.timeZone)}
+                  {" - "}
+                  {dayjs(aDate).format("D MMMM YYYY")}
                 </p>
               ))}>
               <div className="text-gray-600 dark:text-white">
@@ -423,14 +430,12 @@ const RecurringBookingsTooltip = ({
                 <p className="mt-1 pl-5 text-xs">
                   {booking.status === BookingStatus.ACCEPTED
                     ? `${t("event_remaining", {
-                        count: recurringDates.length,
+                        count: recurringCount,
                       })}`
                     : getEveryFreqFor({
                         t,
                         recurringEvent: booking.eventType.recurringEvent,
-                        recurringCount: recurringDates.filter((date) => {
-                          return date >= now;
-                        }).length,
+                        recurringCount,
                       })}
                 </p>
               </div>

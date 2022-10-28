@@ -1,8 +1,8 @@
-import autoAnimate from "@formkit/auto-animate";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
-import { useEffect, useRef, useState } from "react";
+import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
+import { useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
@@ -85,11 +85,8 @@ export const EventSetupTab = (
 
   const Locations = () => {
     const { t } = useLocale();
-    const animationRef = useRef(null);
 
-    useEffect(() => {
-      animationRef.current && autoAnimate(animationRef.current);
-    }, [animationRef]);
+    const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
     const validLocations = formMethods.getValues("locations").filter((location) => {
       const eventLocation = getEventLocationType(location.type);
@@ -135,14 +132,14 @@ export const EventSetupTab = (
               }
               return (
                 <li key={location.type} className="mb-2 rounded-md border border-neutral-300 py-1.5 px-2">
-                  <div className="flex justify-between">
+                  <div className="flex max-w-full justify-between">
                     <div key={index} className="flex flex-grow items-center">
                       <img
                         src={eventLocationType.iconUrl}
                         className="h-6 w-6"
                         alt={`${eventLocationType.label} logo`}
                       />
-                      <span className="text-sm ltr:ml-2 rtl:mr-2">
+                      <span className="truncate text-sm ltr:ml-2 rtl:mr-2">
                         {location[eventLocationType.defaultValueVariable] || eventLocationType.label}
                       </span>
                     </div>
