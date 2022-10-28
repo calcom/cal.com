@@ -89,7 +89,7 @@ export const scheduleSMSReminder = async (
   }
 
   if (message.length > 0 && reminderPhone) {
-    //send SMS when event is booked/cancelled/Reschdeuled
+    //send SMS when event is booked/cancelled/rescheduled
     if (
       triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
       triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ||

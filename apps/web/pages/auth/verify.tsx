@@ -7,9 +7,9 @@ import { useEffect, useState, useRef } from "react";
 import z from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/v2/";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 import Loader from "@components/Loader";
 

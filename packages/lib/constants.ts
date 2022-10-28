@@ -34,5 +34,5 @@ export const POWERED_BY_URL = `${WEBSITE_URL}/?utm_source=embed&utm_medium=power
 export const DOCS_URL = "https://docs.cal.com";
 export const DEVELOPER_DOCS = "https://developer.cal.com";
 export const SEO_IMG_DEFAULT = `${WEBSITE_URL}/og-image.png`;
-export const SEO_IMG_OGIMG = "https://og-image-one-pi.vercel.app/";
+export const SEO_IMG_OGIMG = `${CAL_URL}/api/social/og/image`;
 export const SEO_IMG_OGIMG_VIDEO = `${WEBSITE_URL}/video-og-image.png`;
