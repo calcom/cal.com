@@ -481,13 +481,42 @@ export const viewerTeamsRouter = createProtectedRouter()
   })
   .mutation("purchaseTeamSubscription", {
     input: z.object({
-      teamId: z.number(),
-      seats: z.number(),
+      name: z.string(),
+      slug: z.string(),
+      avatar: z.string().optional(),
+      members: z.array(
+        z.object({
+          name: z.union([z.string(), z.null()]),
+          email: z.string(),
+          username: z.union([z.string(), z.null()]),
+          role: z.union([z.literal("OWNER"), z.literal("ADMIN"), z.literal("MEMBER")]),
+          avatar: z.string().optional(),
+          sendInviteEmail: z.boolean().optional(),
+        })
+      ),
     }),
     async resolve({ ctx, input }) {
-      if (!IS_STRIPE_ENABLED)
-        throw new TRPCError({ code: "FORBIDDEN", message: "Team billing is not enabled" });
-      return await purchaseTeamSubscription({ ...input, email: ctx.user.email });
+      const { slug, name, logo } = input;
+      console.log("🚀 ~ file: teams.tsx ~ line 499 ~ resolve ~ input", input);
+      // Tentatively create the team in the DB
+      const createTeam = await ctx.prisma.team.create({
+        data: {
+          name,
+          slug,
+          logo,
+          members: {
+            create: {
+              userId: ctx.user.id,
+              role: MembershipRole.OWNER,
+              accepted: true,
+            },
+          },
+        },
+      });
+      // if (!IS_STRIPE_ENABLED)
+      //   throw new TRPCError({ code: "FORBIDDEN", message: "Team billing is not enabled" });
+      // return await purchaseTeamSubscription({ ...input, email: ctx.user.email });
+      return true;
     },
   })
   .query("getTeamSeats", {

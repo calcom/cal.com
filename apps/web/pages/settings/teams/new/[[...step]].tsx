@@ -14,6 +14,7 @@ import {
 } from "@calcom/features/ee/teams/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
+import { trpc } from "@calcom/trpc/react";
 
 import { StepCard } from "@components/getting-started/components/StepCard";
 import { Steps } from "@components/getting-started/components/Steps";
@@ -44,9 +45,6 @@ const CreateNewTeamPage = () => {
   });
 
   const { t } = useLocale();
-  useEffect(() => {
-    console.log(newTeamData);
-  }, [newTeamData]);
 
   const result = stepRouteSchema.safeParse(router.query);
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
@@ -77,6 +75,8 @@ const CreateNewTeamPage = () => {
   };
 
   const currentStepIndex = steps.indexOf(currentStep);
+
+  const purchaseTeamMutation = trpc.useMutation(["viewer.teams.purchaseTeamSubscription"]);
 
   return (
     <div
@@ -110,6 +110,7 @@ const CreateNewTeamPage = () => {
                 <CreateNewTeam
                   nextStep={(values: NewTeamFormValues) => {
                     setNewTeamData({ ...values, members: [] });
+                    localStorage.setItem("newTeamValues", JSON.stringify(values));
                     goToIndex(1);
                   }}
                 />
@@ -122,7 +123,8 @@ const CreateNewTeamPage = () => {
               {currentStep === "add-team-members" && (
                 <AddNewTeamMembers
                   nextStep={(values: PendingMember[]) => {
-                    setNewTeamData({ ...newTeamData, members: [...values] });
+                    // setNewTeamData({ ...newTeamData, members: [...values] });
+                    purchaseTeamMutation.mutate({ ...newTeamData, members: [...values] });
                   }}
                 />
               )}

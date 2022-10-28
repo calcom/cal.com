@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
+import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Button, Avatar } from "@calcom/ui/v2";
@@ -13,9 +15,13 @@ import { NewTeamFormValues } from "../../lib/types";
 
 const CreateANewTeamForm = (props: { nextStep: (values: NewTeamFormValues) => void }) => {
   const { t } = useLocale();
-
+  const storedTeamData = JSON.parse(localStorage.getItem("newTeamValues"));
   const newTeamFormMethods = useForm<NewTeamFormValues>({
-    mode: "all",
+    defaultValues: {
+      name: storedTeamData?.name || "",
+      slug: storedTeamData?.slug || "",
+      avatar: storedTeamData?.avatar || "",
+    },
   });
 
   const validateTeamNameQuery = trpc.useQuery(
