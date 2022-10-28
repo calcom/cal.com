@@ -1225,6 +1225,8 @@
   "exchange_authentication_ntlm": "NTLM authentication",
   "exchange_compression": "GZip compression",
   "routing_forms_description": "You can see all forms and routes you have created here.",
+  "routing_forms_send_email_owner": "Send Email to Owner",
+  "routing_forms_send_email_owner_description": "Sends an email to the owner when the form is submitted",
   "add_new_form": "Add new form",
   "form_description": "Create your form to route a booker",
   "copy_link_to_form": "Copy link to form",

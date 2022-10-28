@@ -5,6 +5,7 @@ import { z } from "zod";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
+import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
 import { createProtectedRouter, createRouter } from "@calcom/trpc/server/createRouter";
 import { Ensure } from "@calcom/types/utils";
@@ -50,7 +51,9 @@ async function onFormSubmission(
   });
 
   await Promise.all(promises);
-  await sendResponseEmail(form, response, form.user.email);
+  if (form.settings?.emailOwnerOnSubmission) {
+    await sendResponseEmail(form, response, form.user.email);
+  }
 }
 
 const sendResponseEmail = async (
@@ -229,9 +232,10 @@ const app_RoutingForms = createRouter()
           routes: zodRoutes,
           addFallback: z.boolean().optional(),
           duplicateFrom: z.string().nullable().optional(),
+          settings: RoutingFormSettings.optional(),
         }),
         async resolve({ ctx: { user, prisma }, input }) {
-          const { name, id, description, disabled, addFallback, duplicateFrom } = input;
+          const { name, id, description, settings, disabled, addFallback, duplicateFrom } = input;
           if (!(await isAllowed({ userId: user.id, formId: id }))) {
             throw new TRPCError({
               code: "FORBIDDEN",
@@ -312,6 +316,7 @@ const app_RoutingForms = createRouter()
               fields: fields,
               name: name,
               description,
+              settings: settings === null ? Prisma.JsonNull : settings,
               routes: routes === null ? Prisma.JsonNull : routes,
             },
           });

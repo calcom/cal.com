@@ -37,7 +37,14 @@ export const ResponseEmail = ({
       {...props}>
       {Object.entries(response).map(([fieldId, fieldResponse]) => {
         return (
-          <Info withSpacer key={fieldId} label={fieldResponse.label} description={fieldResponse.value} />
+          <Info
+            withSpacer
+            key={fieldId}
+            label={fieldResponse.label}
+            description={
+              fieldResponse.value instanceof Array ? fieldResponse.value.join(",") : fieldResponse.value
+            }
+          />
         );
       })}
     </BaseEmailHtml>
