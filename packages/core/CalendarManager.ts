@@ -153,7 +153,7 @@ const getCachedResults = async (
     }));
     /** We save the availability to a few seconds so recurrent calls are nearly instant */
 
-    redisClient.set(cacheHashedKey, availability, { EX: 30 });
+    await redisClient.set(cacheHashedKey, availability, { EX: 30 });
     return availability;
   });
   const awaitedResults = await Promise.all(results);
