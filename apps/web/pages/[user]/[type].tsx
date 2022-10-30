@@ -115,20 +115,23 @@ async function getUserPageProps(context: GetStaticPropsContext) {
   if (!user || !user.eventTypes) return { notFound: true };
 
   const [eventType]: (typeof user.eventTypes[number] & {
-    users?: Pick<User, "name" | "username" | "hideBranding" | "plan" | "timeZone">[];
-  })[] = user.eventTypes;
-
-  if (!eventType) return { notFound: true };
-  // the eventType.users array should always be this user for the selected user event.
-  eventType.users = [
+    users: Pick<User, "name" | "username" | "hideBranding" | "plan" | "timeZone">[];
+  })[] = [
     {
-      name: user.name,
-      username: user.username,
-      hideBranding: user.hideBranding,
-      plan: user.plan,
-      timeZone: user.timeZone,
+      ...user.eventTypes[0],
+      users: [
+        {
+          name: user.name,
+          username: user.username,
+          hideBranding: user.hideBranding,
+          plan: user.plan,
+          timeZone: user.timeZone,
+        },
+      ],
     },
   ];
+
+  if (!eventType) return { notFound: true };
 
   //TODO: Use zodSchema to verify it instead of using Type Assertion
   const locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
