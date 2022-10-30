@@ -187,26 +187,12 @@ function BookingListItem(booking: BookingItemProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.timeZone, i18n.language, booking.recurringBookings]);
 
-  const location = booking.location || "";
-
   const onClickTableData = () => {
     router.push({
       pathname: "/success",
       query: {
-        date: booking.startTime,
-        // TODO: Booking when fetched should have id 0 already(for Dynamic Events).
-        type: booking.eventType.id || 0,
-        eventSlug: booking.eventType.slug,
-        username: user?.username || "",
-        name: booking.attendees[0] ? booking.attendees[0].name : undefined,
-        email: booking.attendees[0] ? booking.attendees[0].email : undefined,
-        location: location,
-        eventName: booking.eventType.eventName || "",
-        bookingId: booking.id,
-        recur: booking.recurringEventId,
-        reschedule: isConfirmed,
+        uid: booking.uid,
         listingStatus: booking.listingStatus,
-        status: booking.status,
       },
     });
   };

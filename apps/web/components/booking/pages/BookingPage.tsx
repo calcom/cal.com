@@ -120,7 +120,7 @@ const BookingPage = ({
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
-      const { id, paymentUid } = responseData;
+      const { uid, paymentUid } = responseData;
       if (paymentUid) {
         return await router.push(
           createPaymentLink({
@@ -136,16 +136,7 @@ const BookingPage = ({
       return router.push({
         pathname: "/success",
         query: {
-          date,
-          type: eventType.id,
-          eventSlug: eventType.slug,
-          username: profile.slug,
-          reschedule: !!rescheduleUid,
-          name: bookingForm.getValues("name"),
-          email: bookingForm.getValues("email"),
-          location: responseData.location,
-          eventName: profile.eventName || "",
-          bookingId: id,
+          uid,
           isSuccessBookingPage: true,
         },
       });
