@@ -8,6 +8,7 @@ import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defa
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import prisma from "@calcom/prisma";
+import { User } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -78,8 +79,27 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       brandColor: true,
       darkBrandColor: true,
       eventTypes: {
-        select: { id: true },
-        // Order by position is important to ensure that the event-type that's enabled is the first in the list because for Free user only first is allowed.
+        where: {
+          // Many-to-many relationship causes inclusion of the team events - cool -
+          // but to prevent these from being selected, make sure the teamId is NULL.
+          AND: [{ slug }, { teamId: null }],
+        },
+        select: {
+          title: true,
+          slug: true,
+          hidden: true,
+          recurringEvent: true,
+          length: true,
+          locations: true,
+          id: true,
+          description: true,
+          price: true,
+          currency: true,
+          requiresConfirmation: true,
+          schedulingType: true,
+          metadata: true,
+          seatsPerTimeSlot: true,
+        },
         orderBy: [
           {
             position: "desc",
@@ -92,57 +112,24 @@ async function getUserPageProps(context: GetStaticPropsContext) {
     },
   });
 
-  if (!user) return { notFound: true };
+  if (!user || !user.eventTypes) return { notFound: true };
 
-  const eventTypes = await prisma.eventType.findMany({
-    where: {
-      slug,
-      OR: [{ userId: user.id }, { users: { some: { id: user.id } } }],
-    },
-    // Order is important to ensure that given a slug if there are duplicates, we choose the same event type consistently when showing in event-types list UI(in terms of ordering and disabled event types)
-    // TODO: If we can ensure that there are no duplicates for a [slug, userId] combination in existing data, this requirement might be avoided.
-    orderBy: [
-      {
-        position: "desc",
-      },
-      {
-        id: "asc",
-      },
-    ],
-    select: {
-      title: true,
-      slug: true,
-      hidden: true,
-      recurringEvent: true,
-      length: true,
-      locations: true,
-      id: true,
-      description: true,
-      price: true,
-      currency: true,
-      requiresConfirmation: true,
-      schedulingType: true,
-      metadata: true,
-      seatsPerTimeSlot: true,
-      users: {
-        select: {
-          name: true,
-          username: true,
-          hideBranding: true,
-          brandColor: true,
-          darkBrandColor: true,
-          theme: true,
-          plan: true,
-          allowDynamicBooking: true,
-          timeZone: true,
+  const [eventType]: (typeof user.eventTypes[number] & {
+    users: Pick<User, "name" | "username" | "hideBranding" | "plan" | "timeZone">[];
+  })[] = [
+    {
+      ...user.eventTypes[0],
+      users: [
+        {
+          name: user.name,
+          username: user.username,
+          hideBranding: user.hideBranding,
+          plan: user.plan,
+          timeZone: user.timeZone,
         },
-      },
+      ],
     },
-  });
-
-  if (!eventTypes) return { notFound: true };
-
-  const [eventType] = eventTypes;
+  ];
 
   if (!eventType) return { notFound: true };
 
@@ -152,33 +139,20 @@ async function getUserPageProps(context: GetStaticPropsContext) {
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
     locations: privacyFilteredLocations(locations),
-    users: eventType.users.map((user) => ({
-      name: user.name,
-      username: user.username,
-      hideBranding: user.hideBranding,
-      plan: user.plan,
-      timeZone: user.timeZone,
-    })),
   });
-
-  const profile = eventType.users[0] || user;
 
   return {
     props: {
       eventType: eventTypeObject,
       profile: {
+        ...eventType.users[0],
         theme: user.theme,
-        name: user.name,
-        username: user.username,
-        hideBranding: user.hideBranding,
-        plan: user.plan,
-        timeZone: user.timeZone,
         allowDynamicBooking: false,
         weekStart: user.weekStart,
         brandColor: user.brandColor,
         darkBrandColor: user.darkBrandColor,
-        slug: `${profile.username}/${eventType.slug}`,
-        image: `${WEBAPP_URL}/${profile.username}/avatar.png`,
+        slug: `${user.username}/${eventType.slug}`,
+        image: `${WEBAPP_URL}/${user.username}/avatar.png`,
       },
       away: user?.away,
       isDynamic: false,
