@@ -40,6 +40,7 @@ import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
+import AddressInput from "@calcom/ui/form/AddressInputLazy";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { EmailInput, Form } from "@calcom/ui/form/fields";
 import { Button } from "@calcom/ui/v2";
@@ -301,6 +302,8 @@ const BookingPage = ({
       ? "input"
       : selectedLocation?.attendeeInputType === "phone"
       ? PhoneInput
+      : selectedLocation?.attendeeInputType === "address"
+      ? AddressInput
       : null;
 
   // Calculate the booking date(s)
@@ -657,16 +660,38 @@ const BookingPage = ({
                 {AttendeeInput && (
                   <div className="mb-4">
                     <label
-                      htmlFor="phone"
+                      htmlFor={
+                        selectedLocationType === LocationType.Phone
+                          ? "phone"
+                          : selectedLocationType === LocationType.AttendeeInPerson
+                          ? "address"
+                          : ""
+                      }
                       className="block text-sm font-medium text-gray-700 dark:text-white">
-                      {t("phone_number")}
+                      {selectedLocationType === LocationType.Phone
+                        ? t("phone_number")
+                        : selectedLocationType === LocationType.AttendeeInPerson
+                        ? t("Address")
+                        : ""}
                     </label>
                     <div className="mt-1">
                       <AttendeeInput<BookingFormValues>
                         control={bookingForm.control}
-                        name="phone"
+                        name={
+                          selectedLocationType === LocationType.Phone
+                            ? "phone"
+                            : selectedLocationType === LocationType.AttendeeInPerson
+                            ? "address"
+                            : ""
+                        }
                         placeholder={t(selectedLocation?.attendeeInputPlaceholder || "")}
-                        id="phone"
+                        id={
+                          selectedLocationType === LocationType.Phone
+                            ? "phone"
+                            : selectedLocationType === LocationType.AttendeeInPerson
+                            ? "address"
+                            : ""
+                        }
                         required
                         disabled={disableInput}
                       />
