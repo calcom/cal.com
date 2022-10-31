@@ -62,7 +62,7 @@ export async function getBusyTimes(params: {
       bookings.map(({ startTime, endTime, title, id, eventType }) => ({
         start: startTime,
         end: dayjs(endTime)
-          .add(Math.max(eventType?.afterEventBuffer || 0, beforeEventBuffer || 0), "minute")
+          .add((eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0), "minute")
           .toDate(),
         title,
         source: `eventType-${eventTypeId}-booking-${id}`,
@@ -78,7 +78,7 @@ export async function getBusyTimes(params: {
       ...calendarBusyTimes.map((value) => ({
         ...value,
         start: dayjs(value.start)
-          .subtract(afterEventBuffer || 0, "minute")
+          .subtract((afterEventBuffer || 0) + (beforeEventBuffer || 0), "minute")
           .toDate(),
       }))
     ); /*
