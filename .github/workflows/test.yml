@@ -2,7 +2,7 @@ name: Unit tests
 on:
   push:
     branches: [fixes/e2e-consolidation] # TODO: Remove this after merged in main
-  pull_request_target: # So we can test on forks
+  pull_request: # So we can test on forks
     branches:
       - main
     paths:
