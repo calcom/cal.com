@@ -1007,7 +1007,6 @@
   "app_removed_successfully": "Ứng dụng được gỡ bỏ thành công",
   "error_removing_app": "Lỗi khi gỡ bỏ ứng dụng",
   "web_conference": "Hội nghị web",
-  "number_for_sms_reminders": "Số điện thoại (để gửi lời nhắc SMS)",
   "requires_confirmation": "Yêu cầu xác nhận",
   "nr_event_type_one": "{{count}} loại sự kiện",
   "nr_event_type_other": "{{count}} loại sự kiện",

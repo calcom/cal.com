@@ -1007,7 +1007,6 @@
   "app_removed_successfully": "Aplicativo removido com sucesso",
   "error_removing_app": "Erro ao remover o aplicativo",
   "web_conference": "Conferência via web",
-  "number_for_sms_reminders": "Número de telefone (para lembretes de SMS)",
   "requires_confirmation": "Requer confirmação",
   "nr_event_type_one": "{{count}} tipo de evento",
   "nr_event_type_other": "{{count}} tipos de evento",

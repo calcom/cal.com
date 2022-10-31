@@ -1007,7 +1007,6 @@
   "app_removed_successfully": "应用已成功删除",
   "error_removing_app": "删除应用时出错",
   "web_conference": "网络会议",
-  "number_for_sms_reminders": "电话号码（用于短信提醒）",
   "requires_confirmation": "需要确认",
   "nr_event_type_one": "{{count}} 种活动类型",
   "nr_event_type_other": "{{count}} 种活动类型",

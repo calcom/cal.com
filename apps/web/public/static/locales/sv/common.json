@@ -1007,7 +1007,6 @@
   "app_removed_successfully": "Appen har tagits bort",
   "error_removing_app": "Det gick inte att ta bort app",
   "web_conference": "Webbkonferens",
-  "number_for_sms_reminders": "Telefonnummer (för SMS-påminnelser)",
   "requires_confirmation": "Kräver bekräftelse",
   "nr_event_type_one": "{{count}} händelsetyp",
   "nr_event_type_other": "{{count}} händelsetyper",

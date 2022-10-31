@@ -1007,7 +1007,6 @@
   "app_removed_successfully": "앱이 제거됨",
   "error_removing_app": "앱 제거 중 오류 발생",
   "web_conference": "웹 화상 회의",
-  "number_for_sms_reminders": "전화번호(SMS 미리 알림)",
   "requires_confirmation": "확인 필수",
   "nr_event_type_one": "{{count}} 이벤트 타입",
   "nr_event_type_other": "{{count}} 이벤트 타입",

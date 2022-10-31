@@ -76,6 +76,7 @@ export const scheduleSMSReminder = async (
         eventName: evt.title,
         organizerName: evt.organizer.name,
         attendeeName: evt.attendees[0].name,
+        attendeeEmail: evt.attendees[0].email,
         eventDate: dayjs(evt.startTime).tz(timeZone),
         eventTime: dayjs(evt.startTime).tz(timeZone),
         timeZone: timeZone,

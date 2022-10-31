@@ -297,7 +297,7 @@ export default function Success(props: SuccessProps) {
               aria-hidden="true">
               <div
                 className={classNames(
-                  "inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
+                  "main inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
                   isBackgroundTransparent ? "" : "dark:bg-darkgray-100 bg-white dark:border-neutral-700",
                   "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
@@ -427,6 +427,14 @@ export default function Success(props: SuccessProps) {
                           </>
                         );
                       })}
+                    {bookingInfo?.smsReminderNumber && (
+                      <>
+                        <div className="mt-9 font-medium">{t("number_sms_notifications")}</div>
+                        <div className="col-span-2 mb-2 mt-9">
+                          <p>{bookingInfo.smsReminderNumber}</p>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
                 {!needsConfirmation &&
@@ -857,6 +865,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       uid: true,
       description: true,
       customInputs: true,
+      smsReminderNumber: true,
       user: {
         select: {
           id: true,
