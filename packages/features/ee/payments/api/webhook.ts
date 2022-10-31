@@ -6,6 +6,7 @@ import Stripe from "stripe";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
 import { sendScheduledEmails } from "@calcom/emails";
+import { sendTeamInvite } from "@calcom/features/ee/teams/lib/inviteMember";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
@@ -169,18 +170,56 @@ async function handleTeamSubscriptionSuccess(event: Stripe.Event) {
 
   // Update team record with Stripe ids
   if (checkoutSession.payment_status === "paid") {
-    await prisma.team.update({
+    const team = await prisma.team.update({
       where: {
         id: parseInt(checkoutSession.metadata.teamId),
       },
       data: {
+        subscriptionStatus: "ACTIVE",
         metadata: {
           stripeCustomerId: checkoutSession.customer as string,
           stripeSubscriptionId: checkoutSession.subscription as string,
-          subscriptionStatus: "active",
         },
       },
     });
+
+    const members = await prisma.membership.findMany({
+      where: {
+        teamId: parseInt(checkoutSession.metadata.teamId),
+      },
+      select: {
+        role: true,
+        user: {
+          select: {
+            email: true,
+            name: true,
+            username: true,
+            locale: true,
+          },
+        },
+      },
+    });
+    console.log("🚀 ~ file: webhook.ts ~ line 199 ~ handleTeamSubscriptionSuccess ~ members", members);
+
+    const teamOwner = members.find((member) => member.role === "OWNER");
+    console.log("🚀 ~ file: webhook.ts ~ line 204 ~ handleTeamSubscriptionSuccess ~ teamOwner", teamOwner);
+
+    console.log("🚀 ~ file: webhook.ts ~ line 184 ~ handleTeamSubscriptionSuccess ~ team", team);
+
+    await Promise.all(
+      members.map(
+        (member) =>
+          new Promise((resolve, reject) => {
+            sendTeamInvite({
+              member: member.user,
+              inviter: teamOwner.user.name,
+              teamOwnerLocale: teamOwner.user.locale,
+              teamId: team.id,
+              teamName: team.name,
+            });
+          })
+      )
+    );
   } else {
     throw new HttpCode({
       statusCode: 200,

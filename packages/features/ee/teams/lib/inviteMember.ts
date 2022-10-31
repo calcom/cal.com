@@ -8,7 +8,7 @@ import { prisma } from "@calcom/prisma";
 
 import { PendingMember } from "./types";
 
-const inviteMember = async ({
+export const createMember = async ({
   teamId,
   teamName,
   inviter,
@@ -22,7 +22,6 @@ const inviteMember = async ({
   language: string;
   teamSubscriptionActive?: boolean;
 } => {
-  const translation = await getTranslation(language ?? "en", "common");
   if (pendingMember.username) {
     await prisma.membership.create({
       data: {
@@ -43,7 +42,6 @@ const inviteMember = async ({
         id: true,
       },
     });
-    console.log("🚀 ~ file: inviteMember.ts ~ line 31 ~ user", user);
     if (user) {
       await prisma.user.update({
         where: {
@@ -73,26 +71,42 @@ const inviteMember = async ({
         },
       });
     }
-
-    if (teamSubscriptionActive) {
-      const token: string = randomBytes(32).toString("hex");
-
-      await prisma.verificationToken.create({
-        data: {
-          identifier: pendingMember.email,
-          token,
-          expires: new Date(new Date().setHours(168)), // +1 week
-        },
-      });
-
-      await sendTeamInviteEmail({
-        language: translation,
-        from: inviter,
-        to: pendingMember.email,
-        teamName: teamName,
-        joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/settings/teams`,
-      });
-    }
   }
 };
-export default inviteMember;
+
+export const sendTeamInvite = async ({ member, inviter, teamOwnerLocale, teamId, teamName }) => {
+  if (member.role === "OWNER") return;
+
+  const translation = await getTranslation(member.locale || teamOwnerLocale || "en", "common");
+
+  if (member.username) {
+    await sendTeamInviteEmail({
+      language: translation,
+      from: inviter,
+      to: member.email,
+      teamName,
+      joinLink: WEBAPP_URL + `/settings/teams/${teamId}/members`,
+    });
+    // Send an invite with a signup link if not a user
+  } else {
+    const token: string = randomBytes(32).toString("hex");
+
+    await prisma.verificationToken.create({
+      data: {
+        identifier: pendingMember.email,
+        token,
+        expires: new Date(new Date().setHours(168)), // +1 week
+      },
+    });
+
+    await sendTeamInviteEmail({
+      language: translation,
+      from: inviter,
+      to: member.email,
+      teamName: teamName,
+      joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/settings/teams`,
+    });
+  }
+
+  console.log("🚀 ~ file: inviteMember.ts ~ line 100 ~ sendTeamInvite ~ member", member);
+};

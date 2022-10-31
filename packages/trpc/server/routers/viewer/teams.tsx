@@ -10,7 +10,7 @@ import {
 } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
-import inviteMember from "@calcom/features/ee/teams/lib/inviteMember";
+import { createMember } from "@calcom/features/ee/teams/lib/inviteMember";
 import { deleteTeamFromStripe, purchaseTeamSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { HOSTED_CAL_FEATURES, IS_STRIPE_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -501,7 +501,6 @@ export const viewerTeamsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const { slug, name, logo, members } = input;
       const { prisma } = ctx;
-      console.log("🚀 ~ file: teams.tsx ~ line 499 ~ resolve ~ input", input);
 
       // Tentatively create the team in the DB
       const createTeam = await prisma.team.create({
@@ -509,29 +508,35 @@ export const viewerTeamsRouter = createProtectedRouter()
           name,
           slug,
           logo,
-          // members: {
-          //   create: {
-          //     userId: ctx.user.id,
-          //     role: MembershipRole.OWNER,
-          //     accepted: true,
-          //   },
-          // },
+          members: {
+            create: {
+              userId: ctx.user.id,
+              accepted: true,
+              role: "OWNER",
+            },
+          },
+          subscriptionStatus: "PENDING",
         },
       });
 
       // Tentatively create members on team
       for (const member of members) {
-        inviteMember({
-          teamId: createTeam.id,
-          teamName: name,
-          inviter: ctx.user.name,
-          pendingMember: member,
-        });
+        if (member.userId !== ctx.user.id)
+          createMember({
+            teamId: createTeam.id,
+            teamName: name,
+            inviter: ctx.user.name,
+            pendingMember: member,
+          });
       }
 
       if (!IS_STRIPE_ENABLED)
         throw new TRPCError({ code: "FORBIDDEN", message: "Team billing is not enabled" });
-      return await purchaseTeamSubscription({ ...input, email: ctx.user.email });
+      return await purchaseTeamSubscription({
+        teamId: createTeam.id,
+        seats: members.length,
+        email: ctx.user.email,
+      });
       return true;
     },
   })

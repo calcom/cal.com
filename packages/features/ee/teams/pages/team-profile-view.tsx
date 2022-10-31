@@ -56,6 +56,11 @@ const ProfileView = () => {
       router.push("/settings");
     },
     onSuccess: (team) => {
+      console.log(
+        "🚀 ~ file: team-profile-view.tsx ~ line 59 ~ const{data:team,isLoading}=trpc.useQuery ~ team",
+        team
+      );
+
       if (team) {
         form.setValue("name", team.name || "");
         form.setValue("url", team.slug || "");

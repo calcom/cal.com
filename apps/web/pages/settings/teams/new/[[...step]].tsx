@@ -76,7 +76,11 @@ const CreateNewTeamPage = () => {
 
   const currentStepIndex = steps.indexOf(currentStep);
 
-  const purchaseTeamMutation = trpc.useMutation(["viewer.teams.purchaseTeamSubscription"]);
+  const purchaseTeamMutation = trpc.useMutation(["viewer.teams.purchaseTeamSubscription"], {
+    onSuccess: (data) => {
+      router.push(data.url);
+    },
+  });
 
   return (
     <div
