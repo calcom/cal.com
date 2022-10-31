@@ -942,14 +942,20 @@ const loggedInViewerRouter = createProtectedRouter()
       // Checking the status of payment directly from stripe allows to avoid the situation where the user has got the refund or maybe something else happened asyncly at stripe but our DB thinks it's still paid for
       // TODO: Test the case where one time payment is refunded.
       const premiumUsernameCheckoutSessionId = metadata?.checkoutSessionId;
-      if (premiumUsernameCheckoutSessionId) {
-        const checkoutSession = await stripe.checkout.sessions.retrieve(premiumUsernameCheckoutSessionId);
-        const canUserHavePremiumUsername = checkoutSession.payment_status == "paid";
-
-        if (isPremiumUsername && !canUserHavePremiumUsername) {
+      if (isPremiumUsername) {
+        // You can't have premium username without every going to a checkout session
+        if (!premiumUsernameCheckoutSessionId) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "You need to pay for premium username",
+          });
+        }
+        const checkoutSession = await stripe.checkout.sessions.retrieve(premiumUsernameCheckoutSessionId);
+        const canUserHavePremiumUsername = checkoutSession.payment_status == "paid";
+        if (!canUserHavePremiumUsername) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Your last checkout session for premium username is not paid",
           });
         }
       }
