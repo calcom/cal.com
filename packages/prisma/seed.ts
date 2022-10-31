@@ -574,6 +574,7 @@ async function main() {
           ],
         },
       },
+      subscriptionStatus: "ACTIVE",
     },
     [
       {
