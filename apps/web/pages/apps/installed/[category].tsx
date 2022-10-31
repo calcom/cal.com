@@ -19,8 +19,8 @@ import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/Disconnect
 
 import { QueryCell } from "@lib/QueryCell";
 
-import { CalendarListContainer } from "@components/v2/apps/CalendarListContainer";
-import IntegrationListItem from "@components/v2/apps/IntegrationListItem";
+import { CalendarListContainer } from "@components/apps/CalendarListContainer";
+import IntegrationListItem from "@components/apps/IntegrationListItem";
 import SkeletonLoader from "@components/v2/availability/SkeletonLoader";
 
 function ConnectOrDisconnectIntegrationButton(props: {

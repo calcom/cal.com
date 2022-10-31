@@ -460,7 +460,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const eventType = {
     ...restEventType,
-    schedule: rawEventType.schedule?.id || rawEventType.users[0].defaultScheduleId,
+    schedule: rawEventType.schedule?.id || rawEventType.users[0]?.defaultScheduleId || null,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
     bookingLimits: parseBookingLimit(restEventType.bookingLimits),
     locations: locations as unknown as LocationObject[],
