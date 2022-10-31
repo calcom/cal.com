@@ -299,6 +299,8 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ ctx }) {
       const { prisma } = ctx;
       const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+        // Position is required by lodash to sort on it. Don't remove it, TS won't complain but it would silently break reordering
+        position: true,
         hashedLink: true,
         destinationCalendar: true,
         team: {
