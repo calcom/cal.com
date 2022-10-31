@@ -13,7 +13,7 @@ type Props = { children: React.ReactNode; combined?: boolean; containerProps?: J
  * We dont need to add border to the right as we never remove it
  */
 
-export default function ButtonGroup({ children, combined = false, containerProps }: Props) {
+export function ButtonGroup({ children, combined = false, containerProps }: Props) {
   return (
     <div
       {...containerProps}

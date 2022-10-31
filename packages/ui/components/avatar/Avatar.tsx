@@ -24,7 +24,7 @@ const sizesPropsBySize = {
   lg: "w-16", // 64px
 } as const;
 
-export default function Avatar(props: AvatarProps) {
+export function Avatar(props: AvatarProps) {
   const { imageSrc, gravatarFallbackMd5, size, alt, title } = props;
   const sizeClassname = sizesPropsBySize[size];
   const rootClass = classNames("rounded-full aspect-square", sizeClassname, "h-auto");

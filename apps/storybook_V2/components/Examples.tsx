@@ -1,3 +1,5 @@
+import { classNames } from "@calcom/lib";
+
 interface ExampleProps {
   children: React.ReactNode;
   title: string;
@@ -15,11 +17,12 @@ interface ExamplesProps {
   children: React.ReactNode;
   title: string;
   footnote?: React.ReactNode;
+  dark?: boolean;
 }
 
-export const Examples = ({ children, title, footnote = null }: ExamplesProps) => {
+export const Examples = ({ children, title, footnote = null, dark }: ExamplesProps) => {
   return (
-    <div className="examples">
+    <div className={classNames("examples", dark && "dark")}>
       <h2 className="examples-title">{title}</h2>
       <div className="examples-content">{children}</div>
       {!!footnote && <div className="examples-footnote">{footnote}</div>}
