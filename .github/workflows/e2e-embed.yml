@@ -1,6 +1,6 @@
 name: E2E Embed tests and booking flow(for non-embed as well)
 on:
-  pull_request_target: # So we can test on forks
+  pull_request: # So we can test on forks
     branches:
       - main
     # Embed e2e - tests verify booking flow which is applicable to non-embed case also. So, don't ignore apps/web changes.
