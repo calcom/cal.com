@@ -184,7 +184,7 @@ export default function Success(props: SuccessProps) {
   const giphyImage = giphyAppData?.thankYouPage;
 
   const eventName = getEventName(eventNameObject, true);
-  const needsConfirmation = eventType.requiresConfirmation && reschedule != "true";
+  const needsConfirmation = eventType.requiresConfirmation && reschedule != true;
   const isCancelled = status === "CANCELLED" || status === "REJECTED";
   const telemetry = useTelemetry();
   useEffect(() => {
@@ -762,7 +762,7 @@ const getEventTypesFromDB = async (id: number) => {
 };
 
 const schema = z.object({
-  uid: z.string().uuid(),
+  uid: z.string(),
 });
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
@@ -781,6 +781,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       uid: true,
       description: true,
       customInputs: true,
+      smsReminderNumber: true,
       recurringEventId: true,
       startTime: true,
       location: true,
@@ -857,11 +858,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   };
 
   let recurringBookings = null;
-  if (bookingInfo.recurringEventIdQuery) {
+  if (bookingInfo.recurringEventId) {
     // We need to get the dates for the bookings to be able to show them in the UI
     recurringBookings = await prisma.booking.findMany({
       where: {
-        recurringEventId: bookingInfo.recurringEventIdQuery,
+        recurringEventId: bookingInfo.recurringEventId,
       },
       select: {
         startTime: true,
