@@ -65,7 +65,7 @@ export default function Tips() {
   return (
     <div
       className="mb-4 hidden lg:grid"
-      ref={animationRef}
+      /* ref={animationRef} */
       style={{
         gridTemplateColumns: "1fr",
       }}>
