@@ -299,6 +299,8 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ ctx }) {
       const { prisma } = ctx;
       const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+        // Position is required by lodash to sort on it. Don't remove it, TS won't complain but it would silently break reordering
+        position: true,
         hashedLink: true,
         destinationCalendar: true,
         team: {
@@ -770,11 +772,19 @@ const loggedInViewerRouter = createProtectedRouter()
       const { variant, exclude, onlyInstalled } = input;
       const { credentials } = user;
       let apps = getApps(credentials).map(
-        ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => ({
-          ...app,
-          credentialIds: credentials.filter((c) => c.type === app.type).map((c) => c.id),
-        })
+        ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => {
+          const credentialIds = credentials.filter((c) => c.type === app.type).map((c) => c.id);
+          const invalidCredentialIds = credentials
+            .filter((c) => c.type === app.type && c.invalid)
+            .map((c) => c.id);
+          return {
+            ...app,
+            credentialIds,
+            invalidCredentialIds,
+          };
+        }
       );
+
       if (exclude) {
         // exclusion filter
         apps = apps.filter((item) => (exclude ? !exclude.includes(item.variant) : true));
