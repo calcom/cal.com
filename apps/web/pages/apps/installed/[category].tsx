@@ -1,4 +1,3 @@
-import { InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/router";
 import z from "zod";
 
@@ -10,7 +9,6 @@ import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { App } from "@calcom/types/App";
 import { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
 import { Icon } from "@calcom/ui/Icon";
-import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
 import { Alert } from "@calcom/ui/v2/core/Alert";
 import Button from "@calcom/ui/v2/core/Button";
 import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
@@ -23,16 +21,19 @@ import { QueryCell } from "@lib/QueryCell";
 
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import IntegrationListItem from "@components/apps/IntegrationListItem";
+import SkeletonLoader from "@components/v2/availability/SkeletonLoader";
 
 function ConnectOrDisconnectIntegrationButton(props: {
   credentialIds: number[];
   type: App["type"];
   isGlobal?: boolean;
   installed?: boolean;
+  invalidCredentialIds?: number[];
 }) {
+  const { type, credentialIds, isGlobal, installed, invalidCredentialIds } = props;
   const { t } = useLocale();
-  const [credentialId] = props.credentialIds;
-  const type = props.type;
+  const [credentialId] = credentialIds;
+
   const utils = trpc.useContext();
   const handleOpenChange = () => {
     utils.invalidateQueries(["viewer.integrations"]);
@@ -49,6 +50,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
         />
       );
     }
+
     return (
       <DisconnectIntegration
         credentialId={credentialId}
@@ -58,7 +60,8 @@ function ConnectOrDisconnectIntegrationButton(props: {
       />
     );
   }
-  if (!props.installed) {
+
+  if (!installed) {
     return (
       <div className="flex items-center truncate">
         <Alert severity="warning" title={t("not_installed")} />
@@ -66,7 +69,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
     );
   }
   /** We don't need to "Connect", just show that it's installed */
-  if (props.isGlobal) {
+  if (isGlobal) {
     return (
       <div className="truncate px-3 py-2">
         <h3 className="text-sm font-medium text-gray-700">{t("default")}</h3>
@@ -75,7 +78,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   }
   return (
     <InstallAppButton
-      type={props.type}
+      type={type}
       render={(buttonProps) => (
         <Button color="secondary" {...buttonProps} data-testid="integration-connection-button">
           {t("install")}
@@ -99,28 +102,32 @@ interface IntegrationsListProps {
 const IntegrationsList = ({ data }: IntegrationsListProps) => {
   return (
     <List className="flex flex-col gap-6" noBorderTreatment>
-      {data.items.map((item) => (
-        <IntegrationListItem
-          name={item.name}
-          slug={item.slug}
-          key={item.title}
-          title={item.title}
-          logo={item.logo}
-          description={item.description}
-          separate={true}
-          actions={
-            <div className="flex w-16 justify-end">
-              <ConnectOrDisconnectIntegrationButton
-                credentialIds={item.credentialIds}
-                type={item.type}
-                isGlobal={item.isGlobal}
-                installed
-              />
-            </div>
-          }>
-          <AppSettings slug={item.slug} />
-        </IntegrationListItem>
-      ))}
+      {data.items
+        .filter((item) => item.invalidCredentialIds)
+        .map((item) => (
+          <IntegrationListItem
+            name={item.name}
+            slug={item.slug}
+            key={item.title}
+            title={item.title}
+            logo={item.logo}
+            description={item.description}
+            separate={true}
+            invalidCredential={item.invalidCredentialIds.length > 0}
+            actions={
+              <div className="flex w-16 justify-end">
+                <ConnectOrDisconnectIntegrationButton
+                  credentialIds={item.credentialIds}
+                  type={item.type}
+                  isGlobal={item.isGlobal}
+                  installed
+                  invalidCredentialIds={item.invalidCredentialIds}
+                />
+              </div>
+            }>
+            <AppSettings slug={item.slug} />
+          </IntegrationListItem>
+        ))}
     </List>
   );
 };

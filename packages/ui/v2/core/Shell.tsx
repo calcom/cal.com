@@ -30,8 +30,8 @@ import Dropdown, {
 import { Icon } from "@calcom/ui/Icon";
 import TimezoneChangeDialog from "@calcom/ui/TimezoneChangeDialog";
 import Button from "@calcom/ui/v2/core/Button";
-import Tips from "@calcom/ui/v2/modules/tips/Tips";
 import showToast from "@calcom/ui/v2/core/notifications";
+import Tips from "@calcom/ui/v2/modules/tips/Tips";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
