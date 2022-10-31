@@ -2,44 +2,16 @@ import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
 import React from "react";
 import { useFormContext } from "react-hook-form";
 
-import EventTypeAppContext, { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppContext";
-import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
+import { EventTypeAppCard } from "@calcom/app-store/_components/EventTypeAppCard";
 import { EventTypeAppCardComponentProps } from "@calcom/app-store/types";
 import { EventTypeAppsList } from "@calcom/app-store/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import ErrorBoundary from "@calcom/ui/ErrorBoundary";
 import { Button, EmptyScreen } from "@calcom/ui/v2";
 
 type EventType = Pick<EventTypeSetupInfered, "eventType">["eventType"] &
   EventTypeAppCardComponentProps["eventType"];
-
-function AppCardWrapper({
-  app,
-  eventType,
-  getAppData,
-  setAppData,
-}: {
-  app: inferQueryOutput<"viewer.apps">[number];
-  eventType: EventType;
-  getAppData: GetAppData;
-  setAppData: SetAppData;
-}) {
-  const dirName = app.slug === "stripe" ? "stripepayment" : app.slug;
-  const Component = EventTypeAddonMap[dirName as keyof typeof EventTypeAddonMap];
-
-  if (!Component) {
-    throw new Error('No component found for "' + dirName + '"');
-  }
-  return (
-    <ErrorBoundary message={`There is some problem with ${app.name} App`}>
-      <EventTypeAppContext.Provider value={[getAppData, setAppData]}>
-        <Component key={app.slug} app={app} eventType={eventType} />
-      </EventTypeAppContext.Provider>
-    </ErrorBoundary>
-  );
-}
 
 export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
   const { t } = useLocale();
@@ -103,7 +75,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
             />
           ) : null}
           {installedApps?.map((app) => (
-            <AppCardWrapper
+            <EventTypeAppCard
               getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
               setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
               key={app.slug}
@@ -119,7 +91,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
         ) : null}
         <div className="before:border-0">
           {notInstalledApps?.map((app) => (
-            <AppCardWrapper
+            <EventTypeAppCard
               getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
               setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
               key={app.slug}

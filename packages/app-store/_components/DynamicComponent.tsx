@@ -4,10 +4,13 @@ export function DynamicComponent<T extends Record<string, any>>(props: {
   wrapperClassName?: string;
 }) {
   const { componentMap, slug, ...rest } = props;
+  const dirName = slug === "stripe" ? "stripepayment" : slug;
 
-  if (!componentMap[slug]) return null;
+  if (!componentMap[dirName]) {
+    throw new Error('No component found for "' + dirName + '"');
+  }
 
-  const Component = componentMap[slug];
+  const Component = componentMap[dirName];
 
   return (
     <div className={props.wrapperClassName || ""}>
