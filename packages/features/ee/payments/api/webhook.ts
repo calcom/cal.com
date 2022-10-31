@@ -199,12 +199,8 @@ async function handleTeamSubscriptionSuccess(event: Stripe.Event) {
         },
       },
     });
-    console.log("🚀 ~ file: webhook.ts ~ line 199 ~ handleTeamSubscriptionSuccess ~ members", members);
 
     const teamOwner = members.find((member) => member.role === "OWNER");
-    console.log("🚀 ~ file: webhook.ts ~ line 204 ~ handleTeamSubscriptionSuccess ~ teamOwner", teamOwner);
-
-    console.log("🚀 ~ file: webhook.ts ~ line 184 ~ handleTeamSubscriptionSuccess ~ team", team);
 
     await Promise.all(
       members.map(

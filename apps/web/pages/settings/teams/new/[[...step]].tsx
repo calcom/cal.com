@@ -127,8 +127,7 @@ const CreateNewTeamPage = () => {
               {currentStep === "add-team-members" && (
                 <AddNewTeamMembers
                   nextStep={(values: PendingMember[]) => {
-                    console.log("🚀 ~ file: [[...step]].tsx ~ line 126 ~ CreateNewTeamPage ~ values", values);
-                    // setNewTeamData({ ...newTeamData, members: [...values] });
+                    localStorage.removeItem("newTeamValues");
                     purchaseTeamMutation.mutate({
                       ...newTeamData,
                       members: [...values],
