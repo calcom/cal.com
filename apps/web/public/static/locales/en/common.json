@@ -1336,5 +1336,7 @@
   "limit_future_bookings_description":"Limit how far in the future this event can be booked",
   "no_event_types": "No event types setup",
   "no_event_types_description": "{{name}} has not setup any event types for you to book.",
-  "number_sms_notifications": "Phone number (SMS\u00a0notifications)"
+  "number_sms_notifications": "Phone number (SMS\u00a0notifications)",
+  "attendee_email_workflow": "Attendee email",
+  "attendee_email_info": "The person booking's email"
 }

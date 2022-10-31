@@ -1007,7 +1007,6 @@
   "app_removed_successfully": "האפליקציה הוסרה בהצלחה",
   "error_removing_app": "שגיאה בהסרת האפליקציה",
   "web_conference": "שיחת ועידה מקוונת",
-  "number_for_sms_reminders": "מספר טלפון (לתזכורות ב-SMS)",
   "requires_confirmation": "נדרש אישור",
   "nr_event_type_one": "סוג אירוע {{count}}",
   "nr_event_type_other": "{{count}} סוגי אירועים",
