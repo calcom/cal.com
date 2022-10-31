@@ -30,6 +30,7 @@ import Dropdown, {
 import { Icon } from "@calcom/ui/Icon";
 import TimezoneChangeDialog from "@calcom/ui/TimezoneChangeDialog";
 import Button from "@calcom/ui/v2/core/Button";
+import Tips from "@calcom/ui/v2/modules/tips/Tips";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 /* TODO: Get this from endpoint */
@@ -37,7 +38,6 @@ import pkg from "../../../../apps/web/package.json";
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
-import Tips from "../modules/tips/Tips";
 import HeadSeo from "./head-seo";
 import { SkeletonText } from "./skeleton";
 
