@@ -1,13 +1,12 @@
-import { Credential } from "@prisma/client";
-
 import logger from "@calcom/lib/logger";
 import type { Calendar } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 
 import appStore from "..";
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
 
-export const getCalendar = (credential: Credential | null): Calendar | null => {
+export const getCalendar = (credential: CredentialPayload | null): Calendar | null => {
   if (!credential || !credential.key) return null;
   const { type: calendarType } = credential;
   const calendarApp = appStore[calendarType.split("_").join("") as keyof typeof appStore];

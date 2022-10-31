@@ -1,21 +1,20 @@
-import { Credential, SelectedCalendar } from "@prisma/client";
+import { SelectedCalendar } from "@prisma/client";
 import { createHash } from "crypto";
 import _ from "lodash";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
-import type { ExtendedCredential } from "@calcom/core/EventManager";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
-import { App } from "@calcom/types/App";
 import type { CalendarEvent, EventBusyDate, NewCalendarEventType } from "@calcom/types/Calendar";
+import { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { EventResult } from "@calcom/types/EventManager";
 import redis from "@calcom/web/lib/redis";
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
 
-export const getCalendarCredentials = (credentials: Array<Credential>) => {
+export const getCalendarCredentials = (credentials: Array<CredentialPayload>) => {
   const calendarCredentials = getApps(credentials)
     .filter((app) => app.type.endsWith("_calendar"))
     .flatMap((app) => {
@@ -105,8 +104,8 @@ export const getConnectedCalendars = async (
  */
 const cleanIntegrationKeys = (
   appIntegration: ReturnType<typeof getCalendarCredentials>[number]["integration"] & {
-    credentials?: Array<Credential>;
-    credential: Credential;
+    credentials?: Array<CredentialPayload>;
+    credential: CredentialPayload;
   }
 ) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -115,7 +114,7 @@ const cleanIntegrationKeys = (
 };
 
 const getCachedResults = async (
-  withCredentials: Credential[],
+  withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[]
@@ -169,7 +168,7 @@ const getCachedResults = async (
 };
 
 export const getBusyCalendarTimes = async (
-  withCredentials: Credential[],
+  withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[]
@@ -184,7 +183,7 @@ export const getBusyCalendarTimes = async (
 };
 
 export const createEvent = async (
-  credential: ExtendedCredential,
+  credential: CredentialWithAppName,
   calEvent: CalendarEvent
 ): Promise<EventResult<NewCalendarEventType>> => {
   const uid: string = getUid(calEvent);
@@ -227,7 +226,7 @@ export const createEvent = async (
 };
 
 export const updateEvent = async (
-  credential: ExtendedCredential,
+  credential: CredentialWithAppName,
   calEvent: CalendarEvent,
   bookingRefUid: string | null,
   externalCalendarId: string | null
@@ -265,7 +264,11 @@ export const updateEvent = async (
   };
 };
 
-export const deleteEvent = (credential: Credential, uid: string, event: CalendarEvent): Promise<unknown> => {
+export const deleteEvent = (
+  credential: CredentialPayload,
+  uid: string,
+  event: CalendarEvent
+): Promise<unknown> => {
   const calendar = getCalendar(credential);
   if (calendar) {
     return calendar.deleteEvent(uid, event);
