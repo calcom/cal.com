@@ -137,13 +137,12 @@ export async function getUserAvailability(
     userId: currentUser.id,
     selectedCalendars,
     beforeEventBuffer,
+    afterEventBuffer,
   });
 
   const bufferedBusyTimes: EventBusyDetails[] = busyTimes.map((a) => ({
     ...a,
-    start: dayjs(a.start)
-      .subtract(afterEventBuffer || 0, "minutes")
-      .toISOString(),
+    start: dayjs(a.start).toISOString(),
     end: dayjs(a.end).toISOString(),
     title: a.title,
     source: query.withSource ? a.source : undefined,
