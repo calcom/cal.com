@@ -77,8 +77,7 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
   const { title, description, siteName, canonical = defaultUrl, nextSeoProps = {}, app, meeting } = props;
 
   const image = getSeoImage("ogImage") + constructGenericImage({ title, description });
-  const truncatedDescription = truncate(description, 158);
-  const longerTruncatedDescriptionOnWords = truncateOnWord(description, 148);
+  const truncatedDescription = truncateOnWord(description, 158);
 
   const pageTitle = title + " | Cal.com";
   let seoObject = buildSeoMeta({
@@ -102,7 +101,7 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
 
   if (app) {
     const pageImage =
-      getSeoImage("ogImage") + constructAppImage({ ...app, description: longerTruncatedDescriptionOnWords });
+      getSeoImage("ogImage") + constructAppImage({ ...app, description: truncatedDescription });
     seoObject = buildSeoMeta({
       title: pageTitle,
       description: truncatedDescription,
