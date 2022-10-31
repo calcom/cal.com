@@ -135,30 +135,26 @@ export const getRichDescription = (calEvent: CalendarEvent /*, attendee?: Person
 
   return `
 ${getCancellationReason(calEvent)}
-${calEvent.organizer.language.translate("where")}:
+<b>${calEvent.organizer.language.translate("where")}:</b>
 ${getLocation(calEvent)}
 
-Prepare for your session
-
+<b>Prepare for your session</b>
 🏔 <a href="${appUrl}/growth" target="_blank">Review your Growth Plan</a> to help think about what you'd like to work on during the upcoming session. If this is one of your first 3 sessions, don't worry about it — we'll start with some exploration and goal-setting.
 
-🪷 <a href="${appUrl}/reflection" target="_blank">Take a Pre-Session Reflection</a> designed to inspire topics to discuss at your next 1:1.
+✍️ <a href="${appUrl}/reflection" target="_blank">Take a Pre-Session Reflection</a> designed to inspire topics to discuss at your next 1:1.
 
-Questions?
-
+<b>Questions?</b>
 💬 <a href="${appUrl}" target="_blank">Message your coach</a> on Mento
 
-Running late?
-
+<b>Running late?</b>
 Coaching time is valuable. Please send your coach a message letting them know you're late. Your coach will wait for up to 10 minutes for you to arrive before considering it a <a href="${cancelationPolicyURL}" target="_blank">missed session</a>.
 
-Can't make it?
-
+<b>Can't make it?</b>
 📆 <a href="${getCancelLink(
     calEvent
   )}" target="_blank">Reschedule or cancel this session</a> you can reschedule or cancel your session up to 48 hours before the session time. If you need to cancel within 24hrs or missed a session, please read our <a href="${cancelationPolicyURL}" target="_blank">cancelation policy</a>.
 
-See and manage my Coaching Session <a href="${appUrl}" target="_blank">Go to my Mento dashboard</a>
+<a href="${appUrl}/coaching" target="_blank">See and manage my Coaching Sessions</a> - <a href="${appUrl}" target="_blank">Go to my Mento dashboard</a>
 
 ${getAdditionalNotes(calEvent)}
   `.trim();
