@@ -143,7 +143,7 @@ const getCachedResults = async (
 
     if (cachedAvailability) {
       log.debug(`Cache HIT: Calendar Availability for key: ${cacheKey}`);
-      return cachedAvailability;
+      return JSON.parse(cachedAvailability);
     }
     log.debug(`Cache MISS: Calendar Availability for key ${cacheKey}`);
     /** If we don't then we actually fetch external calendars (which can be very slow) */
@@ -153,7 +153,7 @@ const getCachedResults = async (
     }));
     /** We save the availability to a few seconds so recurrent calls are nearly instant */
 
-    await redisClient.set(cacheHashedKey, availability, { EX: 30 });
+    await redisClient.set(cacheHashedKey, JSON.stringify(availability), { EX: 30 });
     return availability;
   });
   const awaitedResults = await Promise.all(results);
