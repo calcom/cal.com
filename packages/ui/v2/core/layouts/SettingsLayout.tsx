@@ -113,6 +113,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
 
   useEffect(() => {
     if (teams) {
+      console.log("🚀 ~ file: SettingsLayout.tsx ~ line 116 ~ useEffect ~ teams", teams);
       const teamStates = teams?.map((team) => ({ teamId: team.id, teamMenuOpen: false }));
       setTeamMenuState(teamStates);
     }
@@ -167,7 +168,10 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                 {teams &&
                   teamMenuState &&
                   teams.map((team, index: number) => {
-                    if (teamMenuState.some((teamState) => teamState.teamId === team.id))
+                    if (
+                      teamMenuState.some((teamState) => teamState.teamId === team.id) &&
+                      team.subscriptionStatus !== "PENDING"
+                    )
                       return (
                         <Collapsible
                           key={team.id}
