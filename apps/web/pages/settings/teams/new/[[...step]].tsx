@@ -40,11 +40,11 @@ const CreateNewTeamPage = () => {
   const [newTeamData, setNewTeamData] = useState<NewTeamFormValues & NewTeamMembersFieldArray>({
     name: "",
     slug: "",
-    avatar: "",
+    logo: "",
     members: [],
   });
 
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
 
   const result = stepRouteSchema.safeParse(router.query);
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
@@ -123,8 +123,13 @@ const CreateNewTeamPage = () => {
               {currentStep === "add-team-members" && (
                 <AddNewTeamMembers
                   nextStep={(values: PendingMember[]) => {
+                    console.log("🚀 ~ file: [[...step]].tsx ~ line 126 ~ CreateNewTeamPage ~ values", values);
                     // setNewTeamData({ ...newTeamData, members: [...values] });
-                    purchaseTeamMutation.mutate({ ...newTeamData, members: [...values] });
+                    purchaseTeamMutation.mutate({
+                      ...newTeamData,
+                      members: [...values],
+                      language: i18n.language,
+                    });
                   }}
                 />
               )}

@@ -37,6 +37,7 @@ const AddNewTeamMembers = (props: { nextStep: (values: PendingMember[]) => void 
     refetchOnWindowFocus: false,
     enabled: false,
     onSuccess: (newMember) => {
+      console.log("🚀 ~ file: AddNewTeamMembers.tsx ~ line 40 ~ AddNewTeamMembers ~ newMember", newMember);
       membersFieldArray.append(newMember);
       setSkeletonMember(false);
     },
@@ -48,10 +49,16 @@ const AddNewTeamMembers = (props: { nextStep: (values: PendingMember[]) => void 
 
   useEffect(() => {
     if (session.status !== "loading" && !formMethods.getValues("members").length) {
+      console.log(
+        "🚀 ~ file: AddNewTeamMembers.tsx ~ line 54 ~ useEffect ~ session?.data.user",
+        session?.data.user
+      );
+
       membersFieldArray.append({
         name: session?.data.user.name || "",
         email: session?.data.user.email || "",
         username: session?.data.user.username || "",
+        userId: session?.data.user.id || "",
         role: "OWNER",
       });
     }

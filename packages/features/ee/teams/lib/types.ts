@@ -5,12 +5,13 @@ export interface NewTeamMembersFieldArray {
 export interface NewTeamFormValues {
   name: string;
   slug: string;
-  avatar: string;
+  logo: string;
 }
 
 export interface PendingMember {
   name: string | null;
   email: string;
+  id?: number;
   username: string | null;
   role: "OWNER" | "ADMIN" | "MEMBER";
   avatar: string | null;

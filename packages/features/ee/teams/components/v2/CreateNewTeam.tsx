@@ -15,12 +15,14 @@ import { NewTeamFormValues } from "../../lib/types";
 
 const CreateANewTeamForm = (props: { nextStep: (values: NewTeamFormValues) => void }) => {
   const { t } = useLocale();
-  const storedTeamData = JSON.parse(localStorage.getItem("newTeamValues"));
+  const storedTeamData = localStorage.getItem("newTeamValues")
+    ? JSON.parse(localStorage.getItem("newTeamValues"))
+    : "";
   const newTeamFormMethods = useForm<NewTeamFormValues>({
     defaultValues: {
       name: storedTeamData?.name || "",
       slug: storedTeamData?.slug || "",
-      avatar: storedTeamData?.avatar || "",
+      logo: storedTeamData?.avatar || "",
     },
   });
 

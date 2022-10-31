@@ -1,6 +1,6 @@
 import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import { randomBytes } from "crypto";
-import { z } from "zod";
+import { undefined, z } from "zod";
 
 import {
   addSeat,
@@ -10,7 +10,8 @@ import {
 } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
-import { deleteTeamFromStripe, purchaseTeamSubscription } from "@calcom/features/ee/teams/payments";
+import inviteMember from "@calcom/features/ee/teams/lib/inviteMember";
+import { deleteTeamFromStripe, purchaseTeamSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { HOSTED_CAL_FEATURES, IS_STRIPE_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTeamWithMembers, isTeamAdmin, isTeamMember, isTeamOwner } from "@calcom/lib/server/queries/teams";
@@ -483,39 +484,54 @@ export const viewerTeamsRouter = createProtectedRouter()
     input: z.object({
       name: z.string(),
       slug: z.string(),
-      avatar: z.string().optional(),
+      logo: z.string().optional(),
       members: z.array(
         z.object({
           name: z.union([z.string(), z.null()]),
           email: z.string(),
+          userId: z.number().optional(),
           username: z.union([z.string(), z.null()]),
           role: z.union([z.literal("OWNER"), z.literal("ADMIN"), z.literal("MEMBER")]),
           avatar: z.string().optional(),
           sendInviteEmail: z.boolean().optional(),
         })
       ),
+      language: z.string(),
     }),
     async resolve({ ctx, input }) {
-      const { slug, name, logo } = input;
+      const { slug, name, logo, members } = input;
+      const { prisma } = ctx;
       console.log("🚀 ~ file: teams.tsx ~ line 499 ~ resolve ~ input", input);
+
       // Tentatively create the team in the DB
-      const createTeam = await ctx.prisma.team.create({
+      const createTeam = await prisma.team.create({
         data: {
           name,
           slug,
           logo,
-          members: {
-            create: {
-              userId: ctx.user.id,
-              role: MembershipRole.OWNER,
-              accepted: true,
-            },
-          },
+          // members: {
+          //   create: {
+          //     userId: ctx.user.id,
+          //     role: MembershipRole.OWNER,
+          //     accepted: true,
+          //   },
+          // },
         },
       });
-      // if (!IS_STRIPE_ENABLED)
-      //   throw new TRPCError({ code: "FORBIDDEN", message: "Team billing is not enabled" });
-      // return await purchaseTeamSubscription({ ...input, email: ctx.user.email });
+
+      // Tentatively create members on team
+      for (const member of members) {
+        inviteMember({
+          teamId: createTeam.id,
+          teamName: name,
+          inviter: ctx.user.name,
+          pendingMember: member,
+        });
+      }
+
+      if (!IS_STRIPE_ENABLED)
+        throw new TRPCError({ code: "FORBIDDEN", message: "Team billing is not enabled" });
+      return await purchaseTeamSubscription({ ...input, email: ctx.user.email });
       return true;
     },
   })
@@ -629,6 +645,7 @@ export const viewerTeamsRouter = createProtectedRouter()
           OR: [{ username: emailOrUsername }, { email: emailOrUsername }],
         },
         select: {
+          id: true,
           name: true,
           username: true,
           avatar: true,
@@ -644,6 +661,7 @@ export const viewerTeamsRouter = createProtectedRouter()
       }
 
       return {
+        userId: user?.id || undefined,
         name: user?.name || "",
         email: user?.email || emailOrUsername,
         username: user?.username || "",

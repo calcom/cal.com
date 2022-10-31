@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getStripeIdsForTeam } from "@calcom/features/ee/teams/payments";
+import { getStripeIdsForTeam } from "@calcom/features/ee/teams/lib/payments";
 
 import { getStripeCustomerIdFromUserId } from "../lib/customer";
 import stripe from "../lib/server";

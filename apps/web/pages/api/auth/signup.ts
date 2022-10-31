@@ -71,6 +71,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   // If user has been invitedTo a team, we accept the membership
+  // TODO check memberships instead of single invitedTo
   if (user.invitedTo) {
     const team = await prisma.team.findFirst({
       where: { id: user.invitedTo },
