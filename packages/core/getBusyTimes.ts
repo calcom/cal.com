@@ -39,7 +39,6 @@ export async function getBusyTimes(params: {
     .findMany({
       where: {
         userId,
-        eventTypeId,
         startTime: { gte: new Date(startTime) },
         endTime: { lte: new Date(endTime) },
         status: {
@@ -62,7 +61,7 @@ export async function getBusyTimes(params: {
       bookings.map(({ startTime, endTime, title, id, eventType }) => ({
         start: startTime,
         end: dayjs(endTime)
-          .add((eventType?.afterEventBuffer || afterEventBuffer || 0) + (beforeEventBuffer || 0), "minute")
+          .add(eventType?.afterEventBuffer || 0, "minute")
           .toDate(),
         title,
         source: `eventType-${eventTypeId}-booking-${id}`,
