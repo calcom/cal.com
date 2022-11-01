@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import prisma from "@calcom/prisma";
 
@@ -11,6 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const username = req.query.username as string;
   const teamname = req.query.teamname as string;
   let identity;
+  let linksToThisRoute = false;
   if (username) {
     const user = await prisma.user.findUnique({
       where: {
@@ -26,6 +28,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       email: user?.email,
       avatar: user?.avatar,
     };
+    linksToThisRoute =
+      identity.avatar === `${CAL_URL}/${username}/avatar.png` ||
+      identity.avatar === `${WEBAPP_URL}/${username}/avatar.png`;
   } else if (teamname) {
     const team = await prisma.team.findUnique({
       where: {
@@ -40,6 +45,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       shouldDefaultBeNameBased: true,
       avatar: team?.logo,
     };
+    linksToThisRoute =
+      identity.avatar === `${CAL_URL}/team/${teamname}/avatar.png` ||
+      identity.avatar === `${WEBAPP_URL}/team/${teamname}/avatar.png`;
   }
 
   const emailMd5 = crypto
@@ -47,7 +55,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .update((identity?.email as string) || "guest@example.com")
     .digest("hex");
   const img = identity?.avatar;
-  if (!img) {
+  // If image isn't set or links to this route itself, use default avatar
+  if (!img || linksToThisRoute) {
     let defaultSrc = defaultAvatarSrc({ md5: emailMd5 });
     if (identity?.shouldDefaultBeNameBased) {
       defaultSrc = getPlaceholderAvatar(null, identity.name);
