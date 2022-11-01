@@ -21,7 +21,7 @@ import { QueryCell } from "@lib/QueryCell";
 
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import IntegrationListItem from "@components/apps/IntegrationListItem";
-import SkeletonLoader from "@components/v2/availability/SkeletonLoader";
+import SkeletonLoader from "@components/availability/SkeletonLoader";
 
 function ConnectOrDisconnectIntegrationButton(props: {
   credentialIds: number[];
