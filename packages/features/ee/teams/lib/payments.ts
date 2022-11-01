@@ -4,6 +4,18 @@ import prisma from "@calcom/prisma";
 
 export type BillingFrequency = "monthly" | "yearly";
 
+export const getTeamPricing = async () => {
+  if (!process.env.STRIPE_TEAM_MONTHLY_PRICE_ID || !process.env.STRIPE_TEAM_YEARLY_PRICE_ID)
+    throw new Error("Missing Stripe price ids");
+  const monthlyPriceQuery = await stripe.prices.retrieve(process.env.STRIPE_TEAM_MONTHLY_PRICE_ID);
+  const yearlyPriceQuery = await stripe.prices.retrieve(process.env.STRIPE_TEAM_YEARLY_PRICE_ID);
+  if (!monthlyPriceQuery || !yearlyPriceQuery) return null;
+  return {
+    monthly: monthlyPriceQuery.unit_amount / 100,
+    yearly: yearlyPriceQuery.unit_amount / 100,
+  };
+};
+
 export const purchaseTeamSubscription = async (input: { teamId: number; seats: number; email: string }) => {
   const { teamId, seats, email } = input;
   return await stripe.checkout.sessions.create({
@@ -60,4 +72,24 @@ export const deleteTeamFromStripe = async (teamId: number) => {
   } else {
     console.error(`Couldn't deleteTeamFromStripe, Team id: ${teamId} didn't have a stripeCustomerId`);
   }
+};
+
+export const createPaymentIntent = ({ amount, receiptEmail }: { amount: number; receiptEmail: string }) => {
+  return stripe.paymentIntents.create({
+    amount,
+    currency: "usd",
+    receipt_email: receiptEmail,
+  });
+};
+
+export const updatePaymentIntent = ({
+  amount,
+  paymentIntentId,
+}: {
+  amount: number;
+  paymentIntentId: string;
+}) => {
+  return stripe.paymentIntents.update(paymentIntentId, {
+    amount: amount * 100,
+  });
 };

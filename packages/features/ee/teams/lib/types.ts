@@ -17,3 +17,5 @@ export interface PendingMember {
   avatar: string | null;
   sendInviteEmail?: boolean;
 }
+
+export type NewTeamData = NewTeamFormValues & NewTeamMembersFieldArray;

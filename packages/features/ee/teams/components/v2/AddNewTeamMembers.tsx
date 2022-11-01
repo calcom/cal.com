@@ -10,14 +10,23 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Avatar, Badge, Button, showToast } from "@calcom/ui/v2/core";
+import { Avatar, Badge, Button, showToast, Switch } from "@calcom/ui/v2/core";
 import { Form } from "@calcom/ui/v2/core/form";
 import { SkeletonContainer, SkeletonText, SkeletonAvatar } from "@calcom/ui/v2/core/skeleton";
 
 import { NewTeamMembersFieldArray, PendingMember } from "../../lib/types";
 import { NewMemberForm } from "../MemberInvitationModal";
 
-const AddNewTeamMembers = (props: { nextStep: (values: PendingMember[]) => void }) => {
+const AddNewTeamMembers = ({
+  nextStep,
+  teamPrices,
+}: {
+  nextStep: (values: PendingMember[]) => void;
+  teamPrices: {
+    monthly: number;
+    yearly: number;
+  };
+}) => {
   const { t } = useLocale();
   const session = useSession();
   const router = useRouter();
@@ -29,6 +38,8 @@ const AddNewTeamMembers = (props: { nextStep: (values: PendingMember[]) => void 
     sendInviteEmail: false,
   });
   const [skeletonMember, setSkeletonMember] = useState(false);
+  const [numberOfMembers, setNumberOfMembers] = useState(1);
+  const [billingFrequency, setBillingFrequency] = useState("monthly");
 
   const formMethods = useForm();
   const membersFieldArray = useFieldArray<PendingMember[]>({
@@ -40,8 +51,8 @@ const AddNewTeamMembers = (props: { nextStep: (values: PendingMember[]) => void 
     refetchOnWindowFocus: false,
     enabled: false,
     onSuccess: (newMember) => {
-      console.log("🚀 ~ file: AddNewTeamMembers.tsx ~ line 40 ~ AddNewTeamMembers ~ newMember", newMember);
       membersFieldArray.append(newMember);
+      setNumberOfMembers(numberOfMembers + 1);
       setSkeletonMember(false);
     },
     onError: (error) => {
@@ -49,11 +60,6 @@ const AddNewTeamMembers = (props: { nextStep: (values: PendingMember[]) => void 
       setSkeletonMember(false);
     },
   });
-
-  useEffect(() => {
-    const newTeamValues = localStorage.getItem("newTeamValues");
-    if (!newTeamValues) router.push("/settings");
-  }, []);
 
   // Set current user as team owner
   useEffect(() => {
@@ -86,13 +92,14 @@ const AddNewTeamMembers = (props: { nextStep: (values: PendingMember[]) => void 
       .getValues("members")
       .findIndex((member: PendingMember) => member.email === email);
     membersFieldArray.remove(memberIndex);
+    setNumberOfMembers(numberOfMembers - 1);
   };
 
   if (session.status === "loading") return <AddNewTeamMemberSkeleton />;
 
   return (
     <>
-      <Form form={formMethods} handleSubmit={(values) => props.nextStep(values.members)}>
+      <Form form={formMethods} handleSubmit={(values) => nextStep(values.members)}>
         <Controller
           name="members"
           render={({ field: { value } }) => (
@@ -160,7 +167,26 @@ const AddNewTeamMembers = (props: { nextStep: (values: PendingMember[]) => void 
                 onSubmit={handleInviteTeamMember}
                 members={formMethods.getValues("members")}
               />
-              <hr className="my-6  border-neutral-200" />
+
+              <div className="mt-6 flex justify-between">
+                <p>Total</p>
+                <div>
+                  <p>
+                    {numberOfMembers} members x ${teamPrices[billingFrequency as keyof typeof teamPrices]} /{" "}
+                    {billingFrequency} ={" "}
+                    {numberOfMembers * teamPrices[billingFrequency as keyof typeof teamPrices]}
+                  </p>
+                </div>
+              </div>
+              <hr />
+              <div className="mt-4 flex space-x-2">
+                <Switch
+                  onClick={() => setBillingFrequency(billingFrequency === "monthly" ? "yearly" : "monthly")}
+                />
+                <p>
+                  Switch to yearly and save {numberOfMembers * (teamPrices.monthly * 12 - teamPrices.yearly)}
+                </p>
+              </div>
 
               <Button EndIcon={Icon.FiArrowRight} className="mt-6 w-full justify-center" type="submit">
                 {t("checkout")}

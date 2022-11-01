@@ -11,7 +11,13 @@ import {
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { createMember } from "@calcom/features/ee/teams/lib/inviteMember";
-import { deleteTeamFromStripe, purchaseTeamSubscription } from "@calcom/features/ee/teams/lib/payments";
+import {
+  deleteTeamFromStripe,
+  purchaseTeamSubscription,
+  createPaymentIntent,
+  getTeamPricing,
+  updatePaymentIntent,
+} from "@calcom/features/ee/teams/lib/payments";
 import { HOSTED_CAL_FEATURES, IS_STRIPE_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTeamWithMembers, isTeamAdmin, isTeamMember, isTeamOwner } from "@calcom/lib/server/queries/teams";
@@ -674,5 +680,31 @@ export const viewerTeamsRouter = createProtectedRouter()
         role: input.role.value,
         sendInviteEmail: input.sendInviteEmail,
       };
+    },
+  })
+  .query("getTeamPrices", {
+    async resolve() {
+      const teamPrices = getTeamPricing();
+      return teamPrices;
+    },
+  })
+  .mutation("mutatePaymentIntent", {
+    input: z.object({
+      amount: z.number(),
+      paymentIntentId: z.string().optional(),
+    }),
+    async resolve({ ctx, input }) {
+      const { amount, paymentIntentId } = input;
+      try {
+        // If there is no payment intent, then create one
+        if (!paymentIntentId) {
+          const paymentIntent = await createPaymentIntent({ amount, receiptEmail: ctx.user.email });
+          return paymentIntent;
+        }
+
+        await updatePaymentIntent({ amount, paymentIntentId });
+      } catch (e) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: e.message });
+      }
     },
   });

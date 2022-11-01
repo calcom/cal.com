@@ -1,3 +1,5 @@
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
@@ -7,11 +9,8 @@ import { z } from "zod";
 // import TeamGeneralSettings from "@calcom/features/teams/createNewTeam/TeamGeneralSettings";
 import AddNewTeamMembers from "@calcom/features/ee/teams/components/v2/AddNewTeamMembers";
 import CreateNewTeam from "@calcom/features/ee/teams/components/v2/CreateNewTeam";
-import {
-  NewTeamFormValues,
-  NewTeamMembersFieldArray,
-  PendingMember,
-} from "@calcom/features/ee/teams/lib/types";
+import { NewTeamFormValues, PendingMember, NewTeamData } from "@calcom/features/ee/teams/lib/types";
+import { STRIPE_PUBLISHABLE_KEY } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
@@ -19,9 +18,13 @@ import { trpc } from "@calcom/trpc/react";
 import { StepCard } from "@components/getting-started/components/StepCard";
 import { Steps } from "@components/getting-started/components/Steps";
 
+import PurchaseNewTeam from "../../../../components/team/PurchaseNewTeam";
+
+const stripe = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null;
+
 const INITIAL_STEP = "create-a-new-team";
 // TODO: Add teams general settings "general-settings"
-const steps = ["create-a-new-team", "add-team-members"] as const;
+const steps = ["create-a-new-team", "add-team-members", "purchase-new-team"] as const;
 
 const stepTransform = (step: typeof steps[number]) => {
   const stepIndex = steps.indexOf(step);
@@ -37,12 +40,15 @@ const stepRouteSchema = z.object({
 
 const CreateNewTeamPage = () => {
   const router = useRouter();
-  const [newTeamData, setNewTeamData] = useState<NewTeamFormValues & NewTeamMembersFieldArray>({
+  const [newTeamData, setNewTeamData] = useState<NewTeamData>({
     name: "",
     slug: "",
     logo: "",
     members: [],
   });
+  const [clientSecret, setClientSecret] = useState("");
+  const [paymentIntent, setPaymentIntent] = useState("");
+  const [teamPrices, setTeamPrices] = useState({});
 
   const { t, i18n } = useLocale();
 
@@ -76,11 +82,24 @@ const CreateNewTeamPage = () => {
 
   const currentStepIndex = steps.indexOf(currentStep);
 
-  const purchaseTeamMutation = trpc.useMutation(["viewer.teams.purchaseTeamSubscription"], {
+  const createPaymentIntentMutation = trpc.useMutation(["viewer.teams.mutatePaymentIntent"], {
     onSuccess: (data) => {
-      router.push(data.url);
+      console.log("🚀 ~ file: [[...step]].tsx ~ line 86 ~ CreateNewTeamPage ~ data", data);
+      setClientSecret(data.client_secret);
+      setPaymentIntent(data.id);
     },
   });
+
+  const getTeamPricesQuery = trpc.useQuery(["viewer.teams.getTeamPrices"], {
+    onSuccess: (data) => {
+      setTeamPrices(data);
+      console.log("🚀 ~ file: [[...step]].tsx ~ line 95 ~ CreateNewTeamPage ~ data", data);
+    },
+  });
+
+  useEffect(() => {
+    createPaymentIntentMutation.mutate({ amount: 1500 });
+  }, []);
 
   return (
     <div
@@ -126,15 +145,30 @@ const CreateNewTeamPage = () => {
 
               {currentStep === "add-team-members" && (
                 <AddNewTeamMembers
+                  teamPrices={teamPrices}
                   nextStep={(values: PendingMember[]) => {
-                    localStorage.removeItem("newTeamValues");
-                    purchaseTeamMutation.mutate({
-                      ...newTeamData,
-                      members: [...values],
-                      language: i18n.language,
-                    });
+                    console.log("🚀 ~ file: [[...step]].tsx ~ line 144 ~ CreateNewTeamPage ~ values", values);
+                    setNewTeamData({ ...newTeamData, members: [...values] });
+                    // localStorage.removeItem("newTeamValues");
+                    // purchaseTeamMutation.mutate({
+                    //   ...newTeamData,
+                    //   members: [...values],
+                    //   language: i18n.language,
+                    // });
+                    createPaymentIntentMutation.mutate({ amount: values.length * 15 * 100 });
+                    goToIndex(2);
                   }}
                 />
+              )}
+
+              {currentStep === "purchase-new-team" && (
+                <Elements stripe={stripe} options={{ clientSecret }}>
+                  <PurchaseNewTeam
+                    newTeamData={newTeamData}
+                    paymentIntent={paymentIntent}
+                    clientSecret={clientSecret}
+                  />
+                </Elements>
               )}
             </StepCard>
           </div>
