@@ -53,15 +53,18 @@ export async function getBusyTimes(params: {
         eventType: {
           select: {
             afterEventBuffer: true,
+            beforeEventBuffer: true,
           },
         },
       },
     })
     .then((bookings) =>
       bookings.map(({ startTime, endTime, title, id, eventType }) => ({
-        start: startTime,
+        start: dayjs(startTime)
+          .subtract((eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0), "minute")
+          .toDate(),
         end: dayjs(endTime)
-          .add(eventType?.afterEventBuffer || 0, "minute")
+          .add((eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0), "minute")
           .toDate(),
         title,
         source: `eventType-${eventTypeId}-booking-${id}`,
@@ -76,11 +79,16 @@ export async function getBusyTimes(params: {
     busyTimes.push(
       ...calendarBusyTimes.map((value) => ({
         ...value,
+        end: dayjs(value.end)
+          .add(beforeEventBuffer || 0, "minute")
+          .toDate(),
         start: dayjs(value.start)
-          .subtract((afterEventBuffer || 0) + (beforeEventBuffer || 0), "minute")
+          .subtract(afterEventBuffer || 0, "minute")
           .toDate(),
       }))
-    ); /*
+    );
+
+    /*
     // TODO: Disabled until we can filter Zoom events by date. Also this is adding too much latency.
     const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter(notEmpty);
     console.log("videoBusyTimes", videoBusyTimes);
