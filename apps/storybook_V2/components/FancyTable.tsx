@@ -8,20 +8,13 @@ export function FancyTable({
   const columns = React.Children.toArray(children) as ReactElement<ColumnProps>[];
   const headings = columns.map((column) => column.props.variant);
   return (
-    <table>
-      <thead>
-        <tr>
-          {headings.map((heading) => (
-            <th key={heading}>{heading}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {columns.map((item) => {
-          return <tr key={item.props.variant}>{item.props.children}</tr>;
-        })}
-      </tbody>
-    </table>
+    <div className="grid auto-cols-max grid-flow-col">
+      {headings.map((heading) => (
+        <div className="bg-gray-200 p-2" key={heading}>
+          {heading}
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -31,9 +24,5 @@ interface ColumnProps {
 }
 
 export function VarientColumn({ children, variant }: ColumnProps) {
-  return (
-    <tr>
-      <td>{children}</td>
-    </tr>
-  );
+  return <div>{children}</div>;
 }
