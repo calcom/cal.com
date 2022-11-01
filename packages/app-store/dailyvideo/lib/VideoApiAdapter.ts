@@ -1,8 +1,8 @@
-import { Credential } from "@prisma/client";
 import { z } from "zod";
 
 import { handleErrorsJson } from "@calcom/lib/errors";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
@@ -53,12 +53,13 @@ const meetingTokenSchema = z.object({
 });
 
 /** @deprecated use metadata on index file */
-export const FAKE_DAILY_CREDENTIAL: Credential = {
+export const FAKE_DAILY_CREDENTIAL: CredentialPayload & { invalid: boolean } = {
   id: +new Date().getTime(),
   type: "daily_video",
   key: { apikey: process.env.DAILY_API_KEY },
   userId: +new Date().getTime(),
   appId: "daily-video",
+  invalid: false,
 };
 
 const fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
