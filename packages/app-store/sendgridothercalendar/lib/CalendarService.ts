@@ -1,4 +1,3 @@
-import { Credential } from "@prisma/client";
 import z from "zod";
 
 import Sendgrid, { SendgridNewContact } from "@calcom/lib/Sendgrid";
@@ -11,6 +10,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 
 const apiKeySchema = z.object({
   encrypted: z.string(),
@@ -30,7 +30,7 @@ export default class CloseComCalendarService implements Calendar {
   private sendgrid: Sendgrid;
   private log: typeof logger;
 
-  constructor(credential: Credential) {
+  constructor(credential: CredentialPayload) {
     this.integrationName = "sendgrid_other_calendar";
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
 
