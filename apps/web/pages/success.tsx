@@ -479,7 +479,7 @@ export default function Success(props: SuccessProps) {
                 {userIsOwner && !needsConfirmation && !isCancellationMode && !isCancelled && (
                   <>
                     <hr className="border-bookinglightest dark:border-darkgray-300" />
-                    <div className="text-bookingdark align-center flex flex-row justify-center pt-8">
+                    <div className="text-bookingdark align-center flex flex-row justify-center py-8">
                       <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                         {t("add_to_calendar")}
                       </span>
