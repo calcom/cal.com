@@ -220,6 +220,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       enabledWorkflowsNumber={eventType.workflows.length}
       eventType={eventType}
       team={team}
+      isUpdateMutationLoading={updateMutation.isLoading}
       formMethods={formMethods}
       disableBorder={tabName === "apps" || tabName === "workflows"}
       currentUserMembership={props.currentUserMembership}>
