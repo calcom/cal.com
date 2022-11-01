@@ -3,7 +3,7 @@ import { NextApiRequest } from "next";
 import type { SatoriOptions } from "satori";
 import { z } from "zod";
 
-import { Meeting, App } from "@calcom/lib/OgImages";
+import { Meeting, App, Generic } from "@calcom/lib/OgImages";
 
 const calFont = fetch(new URL("../../../../public/fonts/cal.ttf", import.meta.url)).then((res) =>
   res.arrayBuffer()
@@ -35,6 +35,12 @@ const appSchema = z.object({
   name: z.string(),
   description: z.string(),
   slug: z.string(),
+});
+
+const genericSchema = z.object({
+  imageType: z.literal("generic"),
+  title: z.string(),
+  description: z.string(),
 });
 
 export default async function handler(req: NextApiRequest) {
@@ -85,6 +91,17 @@ export default async function handler(req: NextApiRequest) {
       });
       return new ImageResponse(<App name={name} description={description} slug={slug} />, ogConfig);
     }
+
+    case "generic": {
+      const { title, description } = genericSchema.parse({
+        title: searchParams.get("title"),
+        description: searchParams.get("description"),
+        imageType,
+      });
+
+      return new ImageResponse(<Generic title={title} description={description} />, ogConfig);
+    }
+
     default:
       return new Response("What you're looking for is not here..", { status: 404 });
   }
