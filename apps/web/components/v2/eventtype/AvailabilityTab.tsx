@@ -13,7 +13,7 @@ import Button from "@calcom/ui/v2/core/Button";
 import Select from "@calcom/ui/v2/core/form/select";
 import { SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
-import { SelectSkeletonLoader } from "@components/v2/availability/SkeletonLoader";
+import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 
 type AvailabilityOption = {
   label: string;
