@@ -23,7 +23,7 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import TwoFactor from "@components/auth/TwoFactor";
-import AuthContainer from "@components/v2/ui/AuthContainer";
+import AuthContainer from "@components/ui/AuthContainer";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 import { ssrInit } from "@server/lib/ssr";

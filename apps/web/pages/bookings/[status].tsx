@@ -15,7 +15,7 @@ import BookingLayout from "@calcom/ui/v2/core/layouts/BookingLayout";
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
 import BookingListItem from "@components/booking/BookingListItem";
-import SkeletonLoader from "@components/v2/bookings/SkeletonLoader";
+import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
 type BookingOutput = inferQueryOutput<"viewer.bookings">["bookings"][0];
