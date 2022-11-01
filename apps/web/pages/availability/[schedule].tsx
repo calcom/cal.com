@@ -23,8 +23,8 @@ import { Skeleton, SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
 import { HttpError } from "@lib/core/http/error";
 
+import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import EditableHeading from "@components/ui/EditableHeading";
-import { SelectSkeletonLoader } from "@components/v2/availability/SkeletonLoader";
 
 const querySchema = z.object({
   schedule: stringOrNumber,
