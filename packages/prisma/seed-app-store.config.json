@@ -101,5 +101,11 @@
     "categories": ["video"],
     "slug": "sirius_video",
     "type": "sirius_video_video"
+  },
+  {
+    "dirName": "sendgrid",
+    "categories": ["other"],
+    "slug": "sendgrid",
+    "type": "sendgrid_other_calendar"
   }
 ]

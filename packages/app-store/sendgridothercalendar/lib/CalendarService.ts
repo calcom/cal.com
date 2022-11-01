@@ -1,7 +1,7 @@
 import { Credential } from "@prisma/client";
 import z from "zod";
 
-import Sendgrid from "@calcom/lib/Sendgrid";
+import Sendgrid, { SendgridNewContact } from "@calcom/lib/Sendgrid";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import type {
@@ -50,23 +50,33 @@ export default class CloseComCalendarService implements Calendar {
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
     // Proceeding to just creating the user in Sendgrid, no event entity exists in Sendgrid
-    // TODO
+    const contactsData = event.attendees.map((attendee) => ({
+      first_name: attendee.name,
+      email: attendee.email,
+    }));
+    const result = await this.sendgrid.sendgridRequest<SendgridNewContact>({
+      url: `/v3/marketing/contacts`,
+      method: "PUT",
+      body: {
+        contacts: contactsData,
+      },
+    });
     return Promise.resolve({
-      uid: "",
       id: "",
-      type: this.integrationName,
+      uid: result.job_id,
       password: "",
       url: "",
+      type: this.integrationName,
       additionalInfo: {
-        //customActivityTypeInstanceData,
+        result,
       },
     });
   }
 
   async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
-    // We should only proceed to create additional attendees in case more
-    // were added to the updated event
-    // TODO
+    // Unless we want to be able to support modifying an event to add more attendees
+    // to have them created in Sendgrid, ingoring this use case for now
+    return Promise.resolve();
   }
 
   async deleteEvent(uid: string): Promise<void> {

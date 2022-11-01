@@ -20,7 +20,6 @@ export const InstallAppButtonMap = {
   office365calendar: dynamic(() => import("./office365calendar/components/InstallAppButton")),
   office365video: dynamic(() => import("./office365video/components/InstallAppButton")),
   riverside: dynamic(() => import("./riverside/components/InstallAppButton")),
-  sendgridothercalendar: dynamic(() => import("./sendgridothercalendar/components/InstallAppButton")),
   slackmessaging: dynamic(() => import("./slackmessaging/components/InstallAppButton")),
   tandemvideo: dynamic(() => import("./tandemvideo/components/InstallAppButton")),
   vital: dynamic(() => import("./vital/components/InstallAppButton")),
