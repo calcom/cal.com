@@ -48,7 +48,6 @@ type States =
 export default function PaymentComponent(props: Props) {
   const { t, i18n } = useLocale();
   const router = useRouter();
-  const { bookingUid } = router.query;
   const [state, setState] = useState<States>({ status: "idle" });
   const stripe = useStripe();
   const elements = useElements();
@@ -84,7 +83,7 @@ export default function PaymentComponent(props: Props) {
       });
     } else {
       const params: { [k: string]: any } = {
-        uid: bookingUid,
+        uid: props.bookingUid,
       };
 
       if (props.location) {
