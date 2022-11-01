@@ -10,7 +10,7 @@ import Button from "@calcom/ui/v2/core/Button";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import AuthContainer from "@components/v2/ui/AuthContainer";
+import AuthContainer from "@components/ui/AuthContainer";
 
 import { ssrInit } from "@server/lib/ssr";
 
