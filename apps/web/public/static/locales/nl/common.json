@@ -1007,7 +1007,6 @@
   "app_removed_successfully": "De app is verwijderd",
   "error_removing_app": "Fout bij het verwijderen van de app",
   "web_conference": "Webconferentie",
-  "number_for_sms_reminders": "Telefoonnummer (voor sms-herinneringen)",
   "requires_confirmation": "Vereist bevestiging",
   "nr_event_type_one": "{{count}} gebeurtenistype",
   "nr_event_type_other": "{{count}} gebeurtenistypen",

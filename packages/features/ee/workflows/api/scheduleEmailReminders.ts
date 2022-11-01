@@ -118,6 +118,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               eventName: reminder.booking?.eventType?.title || "",
               organizerName: reminder.booking?.user?.name || "",
               attendeeName: reminder.booking?.attendees[0].name,
+              attendeeEmail: reminder.booking?.attendees[0].email,
               eventDate: dayjs(reminder.booking?.startTime).tz(timeZone),
               eventTime: dayjs(reminder.booking?.startTime).tz(timeZone),
               timeZone: timeZone,
@@ -154,6 +155,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             html: emailContent.emailBody.html,
             batchId: batchId,
             sendAt: dayjs(reminder.scheduledDate).unix(),
+            replyTo: reminder.booking?.user?.email || senderEmail,
           });
 
           await prisma.workflowReminder.update({

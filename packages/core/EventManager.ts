@@ -1,4 +1,4 @@
-import { Credential, DestinationCalendar } from "@prisma/client";
+import { DestinationCalendar } from "@prisma/client";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 import { z } from "zod";
@@ -9,6 +9,7 @@ import getApps from "@calcom/app-store/utils";
 import prisma from "@calcom/prisma";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
+import { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { Event } from "@calcom/types/Event";
 import type {
   CreateUpdateResult,
@@ -58,17 +59,15 @@ export const processLocation = (event: CalendarEvent): CalendarEvent => {
 };
 
 type EventManagerUser = {
-  credentials: Credential[];
+  credentials: CredentialPayload[];
   destinationCalendar: DestinationCalendar | null;
 };
 
 type createdEventSchema = z.infer<typeof createdEventSchema>;
 
-export type ExtendedCredential = Credential & { appName: string };
-
 export default class EventManager {
-  calendarCredentials: ExtendedCredential[];
-  videoCredentials: ExtendedCredential[];
+  calendarCredentials: CredentialWithAppName[];
+  videoCredentials: CredentialWithAppName[];
 
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
@@ -98,8 +97,11 @@ export default class EventManager {
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
     if (isDedicated) {
       const result = await this.createVideoEvent(evt);
+
       if (result.createdEvent) {
         evt.videoCallData = result.createdEvent;
+        evt.location = result.originalEvent.location;
+        result.type = result.createdEvent.type;
       }
 
       results.push(result);
@@ -113,6 +115,7 @@ export default class EventManager {
       if (typeof result?.createdEvent === "string") {
         createdEventObj = createdEventSchema.parse(JSON.parse(result.createdEvent));
       }
+
       return {
         type: result.type,
         uid: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString() ?? "",
@@ -355,7 +358,7 @@ export default class EventManager {
    * @private
    */
 
-  private getVideoCredential(event: CalendarEvent): ExtendedCredential | undefined {
+  private getVideoCredential(event: CalendarEvent): CredentialWithAppName | undefined {
     if (!event.location) {
       return undefined;
     }
@@ -369,7 +372,7 @@ export default class EventManager {
       .sort((a, b) => {
         return b.id - a.id;
       })
-      .find((credential: Credential) => credential.type.includes(integrationName));
+      .find((credential: CredentialPayload) => credential.type.includes(integrationName));
 
     /**
      * This might happen if someone tries to use a location with a missing credential, so we fallback to Cal Video.
