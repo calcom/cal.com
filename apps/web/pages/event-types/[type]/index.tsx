@@ -133,12 +133,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         message = `${err.data.code}: You are not able to update this event`;
       }
 
-      if (err.data?.code === "PARSE_ERROR") {
+      if (err.data?.code === "PARSE_ERROR" || err.data?.code === "BAD_REQUEST") {
         message = `${err.data.code}: ${err.message}`;
       }
 
       if (message) {
         showToast(message, "error");
+      } else {
+        showToast(err.message, "error");
       }
     },
   });
