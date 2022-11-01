@@ -801,7 +801,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         },
       },
       eventTypeId: true,
-      eventType: true,
+      eventType: {
+        select: {
+          slug: true,
+        },
+      },
     },
   });
 
@@ -844,6 +848,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventType = {
     ...eventTypeRaw,
+    periodStartDate: eventTypeRaw.periodStartDate?.toString() ?? null,
+    periodEndDate: eventTypeRaw.periodEndDate?.toString() ?? null,
     metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
   };
