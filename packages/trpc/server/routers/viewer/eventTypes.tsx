@@ -5,8 +5,9 @@ import { z } from "zod";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
+import { validateBookingLimitOrder } from "@calcom/lib";
 import { _DestinationCalendarModel, _EventTypeCustomInputModel, _EventTypeModel } from "@calcom/prisma/zod";
-import { stringOrNumber } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, stringOrNumber } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 
 import { TRPCError } from "@trpc/server";
@@ -76,6 +77,9 @@ const EventTypeUpdateInput = _EventTypeModel
     hashedLink: z.string(),
   })
   .partial()
+  .extend({
+    metadata: EventTypeMetaDataSchema.optional(),
+  })
   .merge(
     _EventTypeModel
       /** Required fields */
@@ -257,6 +261,7 @@ export const eventTypesRouter = createProtectedRouter()
         schedule,
         periodType,
         locations,
+        bookingLimits,
         destinationCalendar,
         customInputs,
         recurringEvent,
@@ -265,7 +270,10 @@ export const eventTypesRouter = createProtectedRouter()
         hashedLink,
         ...rest
       } = input;
-      const data: Prisma.EventTypeUpdateInput = rest;
+      const data: Prisma.EventTypeUpdateInput = {
+        ...rest,
+        metadata: rest.metadata === null ? Prisma.DbNull : rest.metadata,
+      };
       data.locations = locations ?? undefined;
       if (periodType) {
         data.periodType = handlePeriodType(periodType);
@@ -280,7 +288,7 @@ export const eventTypesRouter = createProtectedRouter()
           until: recurringEvent.until as unknown as Prisma.InputJsonObject,
           tzid: recurringEvent.tzid,
         };
-      } else {
+      } else if (recurringEvent === null) {
         data.recurringEvent = Prisma.DbNull;
       }
 
@@ -294,6 +302,13 @@ export const eventTypesRouter = createProtectedRouter()
 
       if (customInputs) {
         data.customInputs = handleCustomInputs(customInputs, id);
+      }
+
+      if (bookingLimits) {
+        const isValid = validateBookingLimitOrder(bookingLimits);
+        if (!isValid)
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Booking limits must be in ascending order." });
+        data.bookingLimits = bookingLimits;
       }
 
       if (schedule) {

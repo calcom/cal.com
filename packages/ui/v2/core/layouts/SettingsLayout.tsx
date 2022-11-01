@@ -1,10 +1,12 @@
 import { MembershipRole, UserPermissionRole } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 import React, { ComponentProps, useEffect, useState } from "react";
 
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -38,18 +40,16 @@ const tabs: VerticalTabItemProps[] = [
     href: "/settings/security",
     icon: Icon.FiKey,
     children: [
-      //
       { name: "password", href: "/settings/security/password" },
       { name: "2fa_auth", href: "/settings/security/two-factor-auth" },
+      { name: "impersonation", href: "/settings/security/impersonation" },
     ],
   },
   {
     name: "billing",
     href: "/settings/billing",
     icon: Icon.FiCreditCard,
-    children: [
-      { name: "Manage Billing", href: "/api/integrations/stripepayment/portal", isExternalLink: true },
-    ],
+    children: [{ name: "manage_billing", href: "/settings/billing" }],
   },
   {
     name: "developer",
@@ -82,6 +82,13 @@ const tabs: VerticalTabItemProps[] = [
   },
 ];
 
+tabs.find((tab) => {
+  // Add "SAML SSO" to the tab
+  if (tab.name === "security" && !HOSTED_CAL_FEATURES) {
+    tab.children?.push({ name: "saml_config", href: "/settings/security/sso" });
+  }
+});
+
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
 
@@ -101,7 +108,6 @@ const SettingsSidebarContainer = ({ className = "" }) => {
   const tabsWithPermissions = useTabs();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
-  const [isLoading, setIsLoading] = useState(true);
 
   const { data: teams } = trpc.useQuery(["viewer.teams.list"]);
 
@@ -237,13 +243,14 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                                   textClassNames="px-3 text-gray-900 font-medium text-sm"
                                   disableChevron
                                 />
-                                {/* TODO: Implement saml configuration page */}
-                                {/* <VerticalTabItem
-                              name={t("saml_config")}
-                              href={`${WEBAPP_URL}/settings/teams/${team.id}/samlConfig`}
-                              textClassNames="px-3 text-gray-900 font-medium text-sm"
-                              disableChevron
-                            /> */}
+                                {HOSTED_CAL_FEATURES && (
+                                  <VerticalTabItem
+                                    name={t("saml_config")}
+                                    href={`/settings/teams/${team.id}/sso`}
+                                    textClassNames="px-3 text-gray-900 font-medium text-sm"
+                                    disableChevron
+                                  />
+                                )}
                               </>
                             )}
                           </CollapsibleContent>
@@ -293,6 +300,7 @@ export default function SettingsLayout({
   children,
   ...rest
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
+  const router = useRouter();
   const state = useState(false);
   const [sideContainerOpen, setSideContainerOpen] = state;
 
@@ -309,6 +317,12 @@ export default function SettingsLayout({
     };
   }, []);
 
+  useEffect(() => {
+    if (sideContainerOpen) {
+      setSideContainerOpen(!sideContainerOpen);
+    }
+  }, [router.asPath]);
+
   return (
     <Shell
       flexChildrenContainer
@@ -319,7 +333,7 @@ export default function SettingsLayout({
       SettingsSidebarContainer={
         <div
           className={classNames(
-            "absolute inset-y-0 z-50 m-0 h-screen transform overflow-y-scroll border-gray-100 bg-gray-50 transition duration-200 ease-in-out",
+            "fixed inset-y-0 z-50 m-0 h-screen transform overflow-y-scroll border-gray-100 bg-gray-50 transition duration-200 ease-in-out",
             sideContainerOpen ? "translate-x-0" : "-translate-x-full"
           )}>
           <SettingsSidebarContainer />
@@ -329,7 +343,7 @@ export default function SettingsLayout({
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
       <div className="flex flex-1 [&>*]:flex-1">
-        <div className="mx-auto max-w-3xl justify-center">
+        <div className="mx-auto max-w-full justify-center md:max-w-3xl">
           <ShellHeader />
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
@@ -363,6 +377,7 @@ function ShellHeader() {
             <div className="mb-1 h-6 w-32 animate-pulse rounded-md bg-gray-200" />
           )}
         </div>
+        <div className="ml-auto">{meta.CTA}</div>
       </div>
     </header>
   );

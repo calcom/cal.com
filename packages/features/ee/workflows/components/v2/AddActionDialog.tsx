@@ -7,7 +7,18 @@ import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
-import { Button, Dialog, DialogClose, DialogContent, DialogFooter, Form, Label, Select } from "@calcom/ui/v2";
+import {
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  EmailField,
+  Form,
+  Label,
+  Select,
+} from "@calcom/ui/v2";
+import CheckboxField from "@calcom/ui/v2/core/form/Checkbox";
 
 import { WORKFLOW_ACTIONS } from "../../lib/constants";
 import { getWorkflowActionOptions } from "../../lib/getOptions";
@@ -15,26 +26,29 @@ import { getWorkflowActionOptions } from "../../lib/getOptions";
 interface IAddActionDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
-  addAction: (action: WorkflowActions, sendTo?: string) => void;
+  addAction: (action: WorkflowActions, sendTo?: string, numberRequired?: boolean) => void;
 }
 
 type AddActionFormValues = {
   action: WorkflowActions;
   sendTo?: string;
+  numberRequired?: boolean;
 };
 
 export const AddActionDialog = (props: IAddActionDialog) => {
   const { t } = useLocale();
   const { isOpenDialog, setIsOpenDialog, addAction } = props;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(false);
+  const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(false);
   const actionOptions = getWorkflowActionOptions(t);
 
   const formSchema = z.object({
     action: z.enum(WORKFLOW_ACTIONS),
     sendTo: z
       .string()
-      .refine((val) => isValidPhoneNumber(val))
+      .refine((val) => isValidPhoneNumber(val) || val.includes("@"))
       .optional(),
+    numberRequired: z.boolean().optional(),
   });
 
   const form = useForm<AddActionFormValues>({
@@ -53,11 +67,13 @@ export const AddActionDialog = (props: IAddActionDialog) => {
             <Form
               form={form}
               handleSubmit={(values) => {
-                addAction(values.action, values.sendTo);
+                addAction(values.action, values.sendTo, values.numberRequired);
                 form.unregister("sendTo");
                 form.unregister("action");
+                form.unregister("numberRequired");
                 setIsOpenDialog(false);
                 setIsPhoneNumberNeeded(false);
+                setIsEmailAddressNeeded(false);
               }}>
               <div className="mt-5 space-y-1">
                 <Label htmlFor="label">{t("action")}:</Label>
@@ -75,11 +91,18 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                             form.setValue("action", val.value);
                             if (val.value === WorkflowActions.SMS_NUMBER) {
                               setIsPhoneNumberNeeded(true);
-                            } else {
+                              setIsEmailAddressNeeded(false);
+                            } else if (val.value === WorkflowActions.EMAIL_ADDRESS) {
+                              setIsEmailAddressNeeded(true);
                               setIsPhoneNumberNeeded(false);
-                              form.unregister("sendTo");
+                            } else {
+                              setIsEmailAddressNeeded(false);
+                              setIsPhoneNumberNeeded(false);
                             }
+                            form.unregister("sendTo");
+                            form.unregister("numberRequired");
                             form.clearErrors("action");
+                            form.clearErrors("sendTo");
                           }
                         }}
                         options={actionOptions}
@@ -91,6 +114,21 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                   <p className="mt-1 text-sm text-red-500">{form.formState.errors.action.message}</p>
                 )}
               </div>
+              {form.getValues("action") === WorkflowActions.SMS_ATTENDEE && (
+                <div className="mt-5">
+                  <Controller
+                    name="numberRequired"
+                    control={form.control}
+                    render={() => (
+                      <CheckboxField
+                        defaultChecked={form.getValues("numberRequired") || false}
+                        description={t("make_phone_number_required")}
+                        onChange={(e) => form.setValue("numberRequired", e.target.checked)}
+                      />
+                    )}
+                  />
+                </div>
+              )}
               {isPhoneNumberNeeded && (
                 <div className="mt-5 space-y-1">
                   <Label htmlFor="sendTo">{t("phone_number")}</Label>
@@ -109,6 +147,11 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                   </div>
                 </div>
               )}
+              {isEmailAddressNeeded && (
+                <div className="mt-5">
+                  <EmailField required label={t("email_address")} {...form.register("sendTo")} />
+                </div>
+              )}
               <DialogFooter>
                 <DialogClose asChild>
                   <Button
@@ -117,7 +160,9 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                       setIsOpenDialog(false);
                       form.unregister("sendTo");
                       form.unregister("action");
+                      form.unregister("numberRequired");
                       setIsPhoneNumberNeeded(false);
+                      setIsEmailAddressNeeded(false);
                     }}>
                     {t("cancel")}
                   </Button>

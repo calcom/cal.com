@@ -2,7 +2,6 @@ import * as hubspot from "@hubspot/api-client";
 import { BatchInputPublicAssociation } from "@hubspot/api-client/lib/codegen/crm/associations";
 import { PublicObjectSearchRequest } from "@hubspot/api-client/lib/codegen/crm/contacts";
 import { SimplePublicObjectInput } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
-import { Credential } from "@prisma/client";
 
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -17,6 +16,7 @@ import type {
   NewCalendarEventType,
   Person,
 } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { HubspotToken } from "../api/callback";
@@ -31,7 +31,7 @@ export default class HubspotOtherCalendarService implements Calendar {
   private client_id = "";
   private client_secret = "";
 
-  constructor(credential: Credential) {
+  constructor(credential: CredentialPayload) {
     this.integrationName = "hubspot_other_calendar";
 
     this.auth = this.hubspotAuth(credential).then((r) => r);
@@ -51,7 +51,19 @@ export default class HubspotOtherCalendarService implements Calendar {
       };
     });
     return Promise.all(
-      simplePublicObjectInputs.map((contact) => hubspotClient.crm.contacts.basicApi.create(contact))
+      simplePublicObjectInputs.map((contact) =>
+        hubspotClient.crm.contacts.basicApi.create(contact).catch((error) => {
+          // If multiple events are created, subsequent events may fail due to
+          // contact was created by previous event creation, so we introduce a
+          // fallback taking advantage of the error message providing the contact id
+          if (error.body.message.includes("Contact already exists. Existing ID:")) {
+            const split = error.body.message.split("Contact already exists. Existing ID: ");
+            return { id: split[1] };
+          } else {
+            throw error;
+          }
+        })
+      )
     );
   };
 
@@ -136,7 +148,7 @@ export default class HubspotOtherCalendarService implements Calendar {
     return hubspotClient.crm.objects.meetings.basicApi.archive(uid);
   };
 
-  private hubspotAuth = async (credential: Credential) => {
+  private hubspotAuth = async (credential: CredentialPayload) => {
     const appKeys = await getAppKeysFromSlug("hubspot");
     if (typeof appKeys.client_id === "string") this.client_id = appKeys.client_id;
     if (typeof appKeys.client_secret === "string") this.client_secret = appKeys.client_secret;
@@ -233,7 +245,10 @@ export default class HubspotOtherCalendarService implements Calendar {
         // Continue with meeting creation and association only when all contacts are present in HubSpot
         if (createContacts.length) {
           this.log.debug("contact:creation:ok");
-          return await this.handleMeetingCreation(event, createContacts.concat(contacts));
+          return await this.handleMeetingCreation(
+            event,
+            createContacts.concat(contacts) as SimplePublicObjectInput[]
+          );
         }
         return Promise.reject("Something went wrong when creating non-existing attendees in HubSpot");
       }
@@ -243,7 +258,7 @@ export default class HubspotOtherCalendarService implements Calendar {
       this.log.debug("contact:created", { createContacts });
       if (createContacts.length) {
         this.log.debug("contact:creation:ok");
-        return await this.handleMeetingCreation(event, createContacts);
+        return await this.handleMeetingCreation(event, createContacts as SimplePublicObjectInput[]);
       }
     }
     return Promise.reject("Something went wrong when searching/creating the attendees in HubSpot");

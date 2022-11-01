@@ -22,7 +22,9 @@ export type Person = {
   timeZone: string;
   language: { translate: TFunction; locale: string };
   username?: string;
-  id?: string;
+  id?: number;
+  bookingId?: number;
+  locale?: string;
 };
 
 export type EventBusyDate = {
@@ -105,6 +107,20 @@ export interface RecurringEvent {
   tzid?: string | undefined;
 }
 
+export interface BookingLimit {
+  PER_DAY?: number | undefined;
+  PER_WEEK?: number | undefined;
+  PER_MONTH?: number | undefined;
+  PER_YEAR?: number | undefined;
+}
+
+export type AppsStatus = {
+  appName: string;
+  type: typeof App["type"];
+  success: number;
+  failures: number;
+};
+
 // If modifying this interface, probably should update builders/calendarEvent files
 export interface CalendarEvent {
   type: string;
@@ -134,6 +150,8 @@ export interface CalendarEvent {
   recurrence?: string;
   recurringEvent?: RecurringEvent | null;
   eventTypeId?: number | null;
+  appsStatus?: AppsStatus[];
+  seatsShowAttendees?: boolean | null;
 }
 
 export interface EntryPoint {

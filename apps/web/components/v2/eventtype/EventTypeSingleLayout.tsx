@@ -1,6 +1,6 @@
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { EventTypeSetupInfered, FormValues } from "pages/v2/event-types/[type]";
+import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
 import { useMemo, useState } from "react";
 import { Loader } from "react-feather";
 import { UseFormReturn } from "react-hook-form";
@@ -23,6 +23,7 @@ import {
 } from "@calcom/ui/v2";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import { Dialog } from "@calcom/ui/v2/core/Dialog";
+import Divider from "@calcom/ui/v2/core/Divider";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -42,8 +43,10 @@ type Props = {
   team: EventTypeSetupInfered["team"];
   disableBorder?: boolean;
   enabledAppsNumber: number;
+  installedAppsNumber: number;
   enabledWorkflowsNumber: number;
   formMethods: UseFormReturn<FormValues>;
+  isUpdateMutationLoading?: boolean;
 };
 
 function getNavigation(props: {
@@ -51,8 +54,9 @@ function getNavigation(props: {
   eventType: Props["eventType"];
   enabledAppsNumber: number;
   enabledWorkflowsNumber: number;
+  installedAppsNumber: number;
 }) {
-  const { eventType, t, enabledAppsNumber, enabledWorkflowsNumber } = props;
+  const { eventType, t, enabledAppsNumber, installedAppsNumber, enabledWorkflowsNumber } = props;
   return [
     {
       name: "event_setup_tab_title",
@@ -88,7 +92,8 @@ function getNavigation(props: {
       name: "apps",
       href: `/event-types/${eventType.id}?tabName=apps`,
       icon: Icon.FiGrid,
-      info: `${enabledAppsNumber} ${t("active")}`,
+      //TODO: Handle proper translation with count handling
+      info: `${installedAppsNumber} apps, ${enabledAppsNumber} ${t("active")}`,
     },
     {
       name: "workflows",
@@ -106,7 +111,9 @@ function EventTypeSingleLayout({
   team,
   disableBorder,
   enabledAppsNumber,
+  installedAppsNumber,
   enabledWorkflowsNumber,
+  isUpdateMutationLoading,
   formMethods,
 }: Props) {
   const utils = trpc.useContext();
@@ -136,7 +143,13 @@ function EventTypeSingleLayout({
 
   // Define tab navigation here
   const EventTypeTabs = useMemo(() => {
-    const navigation = getNavigation({ t, eventType, enabledAppsNumber, enabledWorkflowsNumber });
+    const navigation = getNavigation({
+      t,
+      eventType,
+      enabledAppsNumber,
+      installedAppsNumber,
+      enabledWorkflowsNumber,
+    });
     // If there is a team put this navigation item within the tabs
     if (team)
       navigation.splice(2, 0, {
@@ -146,7 +159,7 @@ function EventTypeSingleLayout({
         info: eventType.schedulingType === "COLLECTIVE" ? "collective" : "round_robin",
       });
     return navigation;
-  }, [t, eventType, enabledAppsNumber, enabledWorkflowsNumber, team]);
+  }, [t, eventType, installedAppsNumber, enabledAppsNumber, enabledWorkflowsNumber, team]);
 
   const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
     eventType.slug
@@ -162,11 +175,11 @@ function EventTypeSingleLayout({
       subtitle={eventType.description || ""}
       CTA={
         <div className="flex items-center justify-end">
-          <div className="flex items-center rounded-md px-2 sm:hover:bg-gray-100">
+          <div className="hidden items-center rounded-md px-2 sm:flex sm:hover:bg-gray-100">
             <Skeleton
               as={Label}
               htmlFor="hiddenSwitch"
-              className="mt-2 hidden cursor-pointer self-center pr-2 sm:inline">
+              className="mt-2 hidden cursor-pointer self-center whitespace-nowrap pr-2 sm:inline">
               {t("hide_from_profile")}
             </Skeleton>
             <Switch
@@ -221,43 +234,62 @@ function EventTypeSingleLayout({
             />
           </ButtonGroup>
 
-          <VerticalDivider />
+          <VerticalDivider className="hidden lg:block" />
 
           <Dropdown>
-            <DropdownMenuTrigger className="focus:ring-brand-900 block h-9 w-9 justify-center rounded-md border border-gray-200 bg-transparent text-gray-700 focus:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-1 lg:hidden">
+            <DropdownMenuTrigger className="block h-9 w-9 justify-center rounded-md border border-gray-200 bg-transparent text-gray-700 lg:hidden">
               <Icon.FiMoreHorizontal className="group-hover:text-gray-800" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem>
+              <DropdownMenuItem className="focus:ring-gray-100">
                 <Button
                   color="minimal"
                   StartIcon={Icon.FiExternalLink}
                   target="_blank"
                   href={permalink}
-                  rel="noreferrer">
+                  rel="noreferrer"
+                  className="min-w-full">
                   {t("preview")}
                 </Button>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem className="focus:ring-gray-100">
                 <Button color="minimal" StartIcon={Icon.FiLink}>
                   {t("copy_link")}
                 </Button>
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem className="focus:ring-gray-100">
                 <Button
                   color="minimal"
                   StartIcon={Icon.FiTrash}
                   disabled={!hasPermsToDelete}
-                  onClick={() => setDeleteDialogOpen(true)}>
+                  onClick={() => setDeleteDialogOpen(true)}
+                  className="min-w-full">
                   {t("delete")}
                 </Button>
               </DropdownMenuItem>
+              <Divider />
+              <div className="flex items-center rounded-md py-1.5 px-4 sm:hidden sm:hover:bg-gray-100">
+                <Skeleton
+                  as={Label}
+                  htmlFor="hiddenSwitch"
+                  className="mt-2 inline cursor-pointer self-center pr-2 sm:hidden">
+                  {t("hide_from_profile")}
+                </Skeleton>
+                <Switch
+                  id="hiddenSwitch"
+                  defaultChecked={formMethods.getValues("hidden")}
+                  onCheckedChange={(e) => {
+                    formMethods.setValue("hidden", e);
+                  }}
+                />
+              </div>
             </DropdownMenuContent>
           </Dropdown>
           <div className="border-l-2 border-gray-300" />
           <Button
             className="ml-4 lg:ml-0"
             type="submit"
+            loading={formMethods.formState.isSubmitting || isUpdateMutationLoading}
             data-testid="update-eventtype"
             form="event-type-form">
             {t("save")}

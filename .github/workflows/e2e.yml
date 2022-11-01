@@ -2,7 +2,7 @@ name: E2E test
 on:
   push:
     branches: [fixes/e2e-consolidation] # TODO: Remove this after merged in main
-  pull_request_target: # So we can test on forks
+  pull_request: # So we can test on forks
     branches:
       - main
     paths:
@@ -25,6 +25,7 @@ jobs:
       GOOGLE_LOGIN_ENABLED: true
       # CRON_API_KEY: xxx
       CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
+      DAILY_API_KEY: ${{ secrets.CI_DAILY_API_KEY }}
       NEXT_PUBLIC_STRIPE_PUBLIC_KEY: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PUBLIC_KEY }}
       NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE }}
       NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE: ${{ secrets.CI_NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE }}

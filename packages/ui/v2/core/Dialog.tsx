@@ -4,6 +4,7 @@ import React, { ReactNode, useState } from "react";
 import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import Button from "./Button";
 
@@ -79,73 +80,77 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
 };
 
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
-  ({ children, Icon, actionProps, ...props }, forwardedRef) => (
-    <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-40 bg-gray-500 bg-opacity-75 transition-opacity" />
-      {/*zIndex one less than Toast */}
-      <DialogPrimitive.Content
-        {...props}
-        className={classNames(
-          "fadeIn fixed left-1/2 top-1/2 z-[9998] min-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded bg-white text-left shadow-xl focus-visible:outline-none sm:w-full sm:align-middle",
-          props.size == "xl"
-            ? "p-8 sm:max-w-[90rem]"
-            : props.size == "lg"
-            ? "p-8 sm:max-w-[70rem]"
-            : props.size == "md"
-            ? "p-8 sm:max-w-[40rem]"
-            : "p-8 sm:max-w-[35rem]",
-          "max-h-[560px] overflow-visible overscroll-auto md:h-auto md:max-h-[inherit]",
-          `${props.className || ""}`
-        )}
-        ref={forwardedRef}>
-        {props.type === "creation" && (
-          <div>
-            {props.title && <DialogHeader title={props.title} />}
-            {props.description && <p className="pb-5 text-sm text-gray-500">{props.description}</p>}
-            <div className="flex flex-col space-y-6">{children}</div>
-          </div>
-        )}
-        {props.type === "confirmation" && (
-          <div className="flex">
-            {Icon && (
-              <div className="mr-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-300">
-                <Icon className="h-4 w-4 text-black" />
-              </div>
-            )}
+  ({ children, title, Icon, actionProps, ...props }, forwardedRef) => {
+    const { t } = useLocale();
+
+    return (
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-40 bg-gray-500 bg-opacity-75 transition-opacity" />
+        {/*zIndex one less than Toast */}
+        <DialogPrimitive.Content
+          {...props}
+          className={classNames(
+            "fadeIn fixed left-1/2 top-1/2 z-[9998] min-w-[360px] -translate-x-1/2 -translate-y-1/2 rounded bg-white text-left shadow-xl focus-visible:outline-none sm:w-full sm:align-middle",
+            props.size == "xl"
+              ? "p-8 sm:max-w-[90rem]"
+              : props.size == "lg"
+              ? "p-8 sm:max-w-[70rem]"
+              : props.size == "md"
+              ? "p-8 sm:max-w-[40rem]"
+              : "p-8 sm:max-w-[35rem]",
+            "max-h-[560px] overflow-visible overscroll-auto md:h-auto md:max-h-[inherit]",
+            `${props.className || ""}`
+          )}
+          ref={forwardedRef}>
+          {props.type === "creation" && (
             <div>
-              {props.title && <DialogHeader title={props.title} />}
-              {props.description && <p className="mb-6 text-sm text-gray-500">{props.description}</p>}
+              {title && <DialogHeader title={title} />}
+              {props.description && <p className="pb-5 text-sm text-gray-500">{props.description}</p>}
+              <div className="flex flex-col space-y-6">{children}</div>
             </div>
-          </div>
-        )}
-        {!props.useOwnActionButtons && (
-          <DialogFooter>
-            <div className="mt-2 flex space-x-2">
-              <DialogClose asChild>
-                {/* This will require the i18n string passed in */}
-                <Button color="minimal" onClick={props.actionOnClose}>
-                  {props.closeText ?? "Close"}
-                </Button>
-              </DialogClose>
-              {props.actionOnClick ? (
-                <Button
-                  color="primary"
-                  disabled={props.actionDisabled}
-                  onClick={props.actionOnClick}
-                  {...actionProps}>
-                  {props.actionText}
-                </Button>
-              ) : (
-                <Button color="primary" type="submit" disabled={props.actionDisabled} {...actionProps}>
-                  {props.actionText}
-                </Button>
+          )}
+          {props.type === "confirmation" && (
+            <div className="flex">
+              {Icon && (
+                <div className="mr-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-300">
+                  <Icon className="h-4 w-4 text-black" />
+                </div>
               )}
+              <div>
+                {title && <DialogHeader title={title} />}
+                {props.description && <p className="mb-6 text-sm text-gray-500">{props.description}</p>}
+              </div>
             </div>
-          </DialogFooter>
-        )}
-      </DialogPrimitive.Content>
-    </DialogPrimitive.Portal>
-  )
+          )}
+          {!props.useOwnActionButtons && (
+            <DialogFooter>
+              <div className="mt-2 flex space-x-2">
+                <DialogClose asChild>
+                  {/* This will require the i18n string passed in */}
+                  <Button color="minimal" onClick={props.actionOnClose}>
+                    {props.closeText ?? t("close")}
+                  </Button>
+                </DialogClose>
+                {props.actionOnClick ? (
+                  <Button
+                    color="primary"
+                    disabled={props.actionDisabled}
+                    onClick={props.actionOnClick}
+                    {...actionProps}>
+                    {props.actionText}
+                  </Button>
+                ) : (
+                  <Button color="primary" type="submit" disabled={props.actionDisabled} {...actionProps}>
+                    {props.actionText}
+                  </Button>
+                )}
+              </div>
+            </DialogFooter>
+          )}
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    );
+  }
 );
 
 type DialogHeaderProps = {

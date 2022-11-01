@@ -42,7 +42,7 @@ export const scheduleSMSReminder = async (
   reminderPhone: string | null,
   triggerEvent: WorkflowTriggerEvents,
   action: WorkflowActions,
-  timeBefore: {
+  timeSpan: {
     time: number | null;
     timeUnit: TimeUnit | null;
   },
@@ -50,13 +50,17 @@ export const scheduleSMSReminder = async (
   workflowStepId: number,
   template: WorkflowTemplates
 ) => {
-  const { startTime } = evt;
+  const { startTime, endTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
-  const timeUnit: timeUnitLowerCase | undefined =
-    timeBefore.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase;
-  const scheduledDate =
-    timeBefore.time && timeUnit ? dayjs(startTime).subtract(timeBefore.time, timeUnit) : null;
+  const timeUnit: timeUnitLowerCase | undefined = timeSpan.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase;
+  let scheduledDate = null;
+
+  if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
+    scheduledDate = timeSpan.time && timeUnit ? dayjs(startTime).subtract(timeSpan.time, timeUnit) : null;
+  } else if (triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) {
+    scheduledDate = timeSpan.time && timeUnit ? dayjs(endTime).add(timeSpan.time, timeUnit) : null;
+  }
 
   const name = action === WorkflowActions.SMS_ATTENDEE ? evt.attendees[0].name : "";
   const attendeeName = action === WorkflowActions.SMS_ATTENDEE ? evt.organizer.name : evt.attendees[0].name;
@@ -72,6 +76,7 @@ export const scheduleSMSReminder = async (
         eventName: evt.title,
         organizerName: evt.organizer.name,
         attendeeName: evt.attendees[0].name,
+        attendeeEmail: evt.attendees[0].email,
         eventDate: dayjs(evt.startTime).tz(timeZone),
         eventTime: dayjs(evt.startTime).tz(timeZone),
         timeZone: timeZone,
@@ -85,7 +90,7 @@ export const scheduleSMSReminder = async (
   }
 
   if (message.length > 0 && reminderPhone) {
-    //send SMS when event is booked/cancelled/Reschdeuled
+    //send SMS when event is booked/cancelled/rescheduled
     if (
       triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
       triggerEvent === WorkflowTriggerEvents.EVENT_CANCELLED ||
@@ -96,7 +101,11 @@ export const scheduleSMSReminder = async (
       } catch (error) {
         console.log(`Error sending SMS with error ${error}`);
       }
-    } else if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT && scheduledDate) {
+    } else if (
+      (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT ||
+        triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) &&
+      scheduledDate
+    ) {
       // Can only schedule at least 60 minutes in advance and at most 7 days in advance
       if (
         currentDate.isBefore(scheduledDate.subtract(1, "hour")) &&

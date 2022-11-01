@@ -26,7 +26,6 @@ export const baseUserSelect = Prisma.validator<Prisma.UserSelect>()({
   destinationCalendar: true,
   locale: true,
   plan: true,
-  avatar: true,
   hideBranding: true,
   theme: true,
   brandColor: true,

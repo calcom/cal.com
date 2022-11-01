@@ -10,7 +10,7 @@ test.describe("SAML tests", () => {
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(!IS_SAML_LOGIN_ENABLED, "It should only run if SAML is enabled");
     // Try to go Security page
-    await page.goto("/settings/security");
+    await page.goto("/settings/security/sso");
     // It should redirect you to the event-types page
     // await page.waitForSelector("[data-testid=saml_config]");
   });

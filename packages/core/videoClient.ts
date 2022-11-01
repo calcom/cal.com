@@ -1,12 +1,13 @@
-import { Credential } from "@prisma/client";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import appStore from "@calcom/app-store";
+import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
+import { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoApiAdapterFactory, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
@@ -15,7 +16,7 @@ const log = logger.getChildLogger({ prefix: ["[lib] videoClient"] });
 const translator = short();
 
 // factory
-const getVideoAdapters = (withCredentials: Credential[]): VideoApiAdapter[] =>
+const getVideoAdapters = (withCredentials: CredentialPayload[]): VideoApiAdapter[] =>
   withCredentials.reduce<VideoApiAdapter[]>((acc, cred) => {
     const appName = cred.type.split("_").join(""); // Transform `zoom_video` to `zoomvideo`;
     const app = appStore[appName as keyof typeof appStore];
@@ -28,12 +29,12 @@ const getVideoAdapters = (withCredentials: Credential[]): VideoApiAdapter[] =>
     return acc;
   }, []);
 
-const getBusyVideoTimes = (withCredentials: Credential[]) =>
+const getBusyVideoTimes = (withCredentials: CredentialPayload[]) =>
   Promise.all(getVideoAdapters(withCredentials).map((c) => c?.getAvailability())).then((results) =>
     results.reduce((acc, availability) => acc.concat(availability), [] as (EventBusyDate | undefined)[])
   );
 
-const createMeeting = async (credential: Credential, calEvent: CalendarEvent) => {
+const createMeeting = async (credential: CredentialWithAppName, calEvent: CalendarEvent) => {
   const uid: string = getUid(calEvent);
 
   if (!credential) {
@@ -44,21 +45,33 @@ const createMeeting = async (credential: Credential, calEvent: CalendarEvent) =>
 
   const videoAdapters = getVideoAdapters([credential]);
   const [firstVideoAdapter] = videoAdapters;
-  const createdMeeting = await firstVideoAdapter?.createMeeting(calEvent).catch(async (e) => {
-    await sendBrokenIntegrationEmail(calEvent, "video");
-    console.error("createMeeting failed", e, calEvent);
-  });
+  let createdMeeting;
+  try {
+    createdMeeting = await firstVideoAdapter?.createMeeting(calEvent);
 
-  if (!createdMeeting) {
-    return {
-      type: credential.type,
-      success: false,
-      uid,
-      originalEvent: calEvent,
-    };
+    if (!createdMeeting) {
+      return {
+        appName: credential.appName,
+        type: credential.type,
+        success: false,
+        uid,
+        originalEvent: calEvent,
+      };
+    }
+  } catch (err) {
+    await sendBrokenIntegrationEmail(calEvent, "video");
+    console.error("createMeeting failed", err, calEvent);
+
+    // Default to calVideo
+    const defaultMeeting = await createMeetingWithCalVideo(calEvent);
+    if (defaultMeeting) {
+      createdMeeting = defaultMeeting;
+      calEvent.location = "integrations:dailyvideo";
+    }
   }
 
   return {
+    appName: credential.appName,
     type: credential.type,
     success: true,
     uid,
@@ -68,7 +81,7 @@ const createMeeting = async (credential: Credential, calEvent: CalendarEvent) =>
 };
 
 const updateMeeting = async (
-  credential: Credential,
+  credential: CredentialWithAppName,
   calEvent: CalendarEvent,
   bookingRef: PartialReference | null
 ): Promise<EventResult<VideoCallData>> => {
@@ -89,6 +102,7 @@ const updateMeeting = async (
 
   if (!updatedMeeting) {
     return {
+      appName: credential.appName,
       type: credential.type,
       success,
       uid,
@@ -97,6 +111,7 @@ const updateMeeting = async (
   }
 
   return {
+    appName: credential.appName,
     type: credential.type,
     success,
     uid,
@@ -105,7 +120,7 @@ const updateMeeting = async (
   };
 };
 
-const deleteMeeting = (credential: Credential, uid: string): Promise<unknown> => {
+const deleteMeeting = (credential: CredentialPayload, uid: string): Promise<unknown> => {
   if (credential) {
     const videoAdapter = getVideoAdapters([credential])[0];
     // There are certain video apps with no video adapter defined. e.g. riverby,whereby
@@ -115,6 +130,20 @@ const deleteMeeting = (credential: Credential, uid: string): Promise<unknown> =>
   }
 
   return Promise.resolve({});
+};
+
+// @TODO: This is a temporary solution to create a meeting with cal.com video as fallback url
+const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
+  const [videoAdapter] = getVideoAdapters([
+    {
+      id: 0,
+      appId: "daily-video",
+      type: "daily_video",
+      userId: null,
+      key: await getDailyAppKeys(),
+    },
+  ]);
+  return videoAdapter?.createMeeting(calEvent);
 };
 
 export { getBusyVideoTimes, createMeeting, updateMeeting, deleteMeeting };

@@ -229,6 +229,7 @@ export const workflowsRouter = createProtectedRouter()
           reminderBody: z.string().optional().nullable(),
           emailSubject: z.string().optional().nullable(),
           template: z.enum(WORKFLOW_TEMPLATES),
+          numberRequired: z.boolean().nullable(),
         })
         .array(),
       trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
@@ -249,7 +250,12 @@ export const workflowsRouter = createProtectedRouter()
         },
       });
 
-      if (!userWorkflow || userWorkflow.userId !== user.id) throw new TRPCError({ code: "UNAUTHORIZED" });
+      if (
+        !userWorkflow ||
+        userWorkflow.userId !== user.id ||
+        steps.filter((step) => step.workflowId != id).length > 0
+      )
+        throw new TRPCError({ code: "UNAUTHORIZED" });
 
       const oldActiveOnEventTypes = await ctx.prisma.workflowsOnEventTypes.findMany({
         where: {
@@ -280,6 +286,7 @@ export const workflowsRouter = createProtectedRouter()
             id: newEventTypeId,
           },
           include: {
+            users: true,
             team: {
               include: {
                 members: true,
@@ -290,7 +297,8 @@ export const workflowsRouter = createProtectedRouter()
         if (
           newEventType &&
           newEventType.userId !== user.id &&
-          newEventType?.team?.members.filter((membership) => membership.userId === user.id).length === 0
+          !newEventType?.team?.members.find((membership) => membership.userId === user.id) &&
+          !newEventType?.users.find((eventTypeUser) => eventTypeUser.id === user.id)
         ) {
           throw new TRPCError({ code: "UNAUTHORIZED" });
         }
@@ -372,7 +380,7 @@ export const workflowsRouter = createProtectedRouter()
 
       let newEventTypes: number[] = [];
       if (activeOn.length) {
-        if (trigger === WorkflowTriggerEvents.BEFORE_EVENT) {
+        if (trigger === WorkflowTriggerEvents.BEFORE_EVENT || trigger === WorkflowTriggerEvents.AFTER_EVENT) {
           newEventTypes = newActiveEventTypes;
         }
         if (newEventTypes.length > 0) {
@@ -416,15 +424,25 @@ export const workflowsRouter = createProtectedRouter()
                 };
                 if (
                   step.action === WorkflowActions.EMAIL_HOST ||
-                  step.action === WorkflowActions.EMAIL_ATTENDEE
+                  step.action === WorkflowActions.EMAIL_ATTENDEE ||
+                  step.action === WorkflowActions.EMAIL_ADDRESS
                 ) {
-                  const sendTo =
-                    step.action === WorkflowActions.EMAIL_HOST
-                      ? bookingInfo.organizer?.email
-                      : bookingInfo.attendees[0].email;
+                  let sendTo = "";
+
+                  switch (step.action) {
+                    case WorkflowActions.EMAIL_HOST:
+                      sendTo = bookingInfo.organizer?.email;
+                      break;
+                    case WorkflowActions.EMAIL_ATTENDEE:
+                      sendTo = bookingInfo.attendees[0].email;
+                      break;
+                    case WorkflowActions.EMAIL_ADDRESS:
+                      sendTo = step.sendTo || "";
+                  }
+
                   await scheduleEmailReminder(
                     bookingInfo,
-                    WorkflowTriggerEvents.BEFORE_EVENT,
+                    trigger,
                     step.action,
                     {
                       time,
@@ -440,7 +458,7 @@ export const workflowsRouter = createProtectedRouter()
                   await scheduleSMSReminder(
                     bookingInfo,
                     step.sendTo || "",
-                    WorkflowTriggerEvents.BEFORE_EVENT,
+                    trigger,
                     step.action,
                     {
                       time,
@@ -503,12 +521,17 @@ export const workflowsRouter = createProtectedRouter()
             },
             data: {
               action: newStep.action,
-              sendTo: newStep.action === WorkflowActions.SMS_NUMBER ? newStep.sendTo : null,
+              sendTo:
+                newStep.action === WorkflowActions.SMS_NUMBER ||
+                newStep.action === WorkflowActions.EMAIL_ADDRESS
+                  ? newStep.sendTo
+                  : null,
               stepNumber: newStep.stepNumber,
               workflowId: newStep.workflowId,
               reminderBody: newStep.template === WorkflowTemplates.CUSTOM ? newStep.reminderBody : null,
               emailSubject: newStep.template === WorkflowTemplates.CUSTOM ? newStep.emailSubject : null,
               template: newStep.template,
+              numberRequired: newStep.numberRequired,
             },
           });
           //cancel all reminders of step and create new ones (not for newEventTypes)
@@ -536,7 +559,10 @@ export const workflowsRouter = createProtectedRouter()
               return eventTypeId;
             }
           });
-          if (eventTypesToUpdateReminders && trigger === WorkflowTriggerEvents.BEFORE_EVENT) {
+          if (
+            eventTypesToUpdateReminders &&
+            (trigger === WorkflowTriggerEvents.BEFORE_EVENT || trigger === WorkflowTriggerEvents.AFTER_EVENT)
+          ) {
             const bookingsOfEventTypes = await ctx.prisma.booking.findMany({
               where: {
                 eventTypeId: {
@@ -574,15 +600,25 @@ export const workflowsRouter = createProtectedRouter()
               };
               if (
                 newStep.action === WorkflowActions.EMAIL_HOST ||
-                newStep.action === WorkflowActions.EMAIL_ATTENDEE
+                newStep.action === WorkflowActions.EMAIL_ATTENDEE ||
+                newStep.action === WorkflowActions.EMAIL_ADDRESS
               ) {
-                const sendTo =
-                  newStep.action === WorkflowActions.EMAIL_HOST
-                    ? bookingInfo.organizer?.email
-                    : bookingInfo.attendees[0].email;
+                let sendTo = "";
+
+                switch (newStep.action) {
+                  case WorkflowActions.EMAIL_HOST:
+                    sendTo = bookingInfo.organizer?.email;
+                    break;
+                  case WorkflowActions.EMAIL_ATTENDEE:
+                    sendTo = bookingInfo.attendees[0].email;
+                    break;
+                  case WorkflowActions.EMAIL_ADDRESS:
+                    sendTo = newStep.sendTo || "";
+                }
+
                 await scheduleEmailReminder(
                   bookingInfo,
-                  WorkflowTriggerEvents.BEFORE_EVENT,
+                  trigger,
                   newStep.action,
                   {
                     time,
@@ -598,7 +634,7 @@ export const workflowsRouter = createProtectedRouter()
                 await scheduleSMSReminder(
                   bookingInfo,
                   newStep.sendTo || "",
-                  WorkflowTriggerEvents.BEFORE_EVENT,
+                  trigger,
                   newStep.action,
                   {
                     time,
@@ -617,11 +653,7 @@ export const workflowsRouter = createProtectedRouter()
       const addedSteps = steps.map((s) => {
         if (s.id <= 0) {
           const { id: stepId, ...stepToAdd } = s;
-          if (stepToAdd.workflowId === id) {
-            return stepToAdd;
-          } else {
-            throw new TRPCError({ code: "UNAUTHORIZED" });
-          }
+          return stepToAdd;
         }
       });
 
@@ -637,7 +669,8 @@ export const workflowsRouter = createProtectedRouter()
               data: step,
             });
             if (
-              trigger === WorkflowTriggerEvents.BEFORE_EVENT &&
+              (trigger === WorkflowTriggerEvents.BEFORE_EVENT ||
+                trigger === WorkflowTriggerEvents.AFTER_EVENT) &&
               eventTypesToCreateReminders &&
               step.action !== WorkflowActions.SMS_ATTENDEE
             ) {
@@ -677,12 +710,22 @@ export const workflowsRouter = createProtectedRouter()
 
                 if (
                   step.action === WorkflowActions.EMAIL_ATTENDEE ||
-                  step.action === WorkflowActions.EMAIL_HOST
+                  step.action === WorkflowActions.EMAIL_HOST ||
+                  step.action === WorkflowActions.EMAIL_ADDRESS
                 ) {
-                  const sendTo =
-                    step.action === WorkflowActions.EMAIL_HOST
-                      ? bookingInfo.organizer?.email
-                      : bookingInfo.attendees[0].email;
+                  let sendTo = "";
+
+                  switch (step.action) {
+                    case WorkflowActions.EMAIL_HOST:
+                      sendTo = bookingInfo.organizer?.email;
+                      break;
+                    case WorkflowActions.EMAIL_ATTENDEE:
+                      sendTo = bookingInfo.attendees[0].email;
+                      break;
+                    case WorkflowActions.EMAIL_ADDRESS:
+                      sendTo = step.sendTo || "";
+                  }
+
                   await scheduleEmailReminder(
                     bookingInfo,
                     trigger,
@@ -701,7 +744,7 @@ export const workflowsRouter = createProtectedRouter()
                   await scheduleSMSReminder(
                     bookingInfo,
                     step.sendTo,
-                    WorkflowTriggerEvents.BEFORE_EVENT,
+                    trigger,
                     step.action,
                     {
                       time,
@@ -817,7 +860,11 @@ export const workflowsRouter = createProtectedRouter()
           };
         }
 
-        if (action === WorkflowActions.EMAIL_ATTENDEE || action === WorkflowActions.EMAIL_HOST) {
+        if (
+          action === WorkflowActions.EMAIL_ATTENDEE ||
+          action === WorkflowActions.EMAIL_HOST ||
+          action === WorkflowActions.EMAIL_ADDRESS
+        ) {
           scheduleEmailReminder(
             evt,
             WorkflowTriggerEvents.NEW_EVENT,
