@@ -99,6 +99,7 @@ export const scheduleEmailReminder = async (
         eventName: evt.title || "",
         organizerName: evt.organizer.name,
         attendeeName: evt.attendees[0].name,
+        attendeeEmail: evt.attendees[0].email,
         eventDate: dayjs(startTime).tz(timeZone),
         eventTime: dayjs(startTime).tz(timeZone),
         timeZone: timeZone,
@@ -130,6 +131,7 @@ export const scheduleEmailReminder = async (
         text: emailContent.emailBody.text,
         html: emailContent.emailBody.html,
         batchId: batchIdResponse[1].batch_id,
+        replyTo: evt.organizer.email,
       });
     } catch (error) {
       console.log("Error sending Email");
@@ -154,6 +156,7 @@ export const scheduleEmailReminder = async (
           html: emailContent.emailBody.html,
           batchId: batchIdResponse[1].batch_id,
           sendAt: scheduledDate.unix(),
+          replyTo: evt.organizer.email,
         });
 
         await prisma.workflowReminder.create({

@@ -1,8 +1,9 @@
 import React from "react";
 
-import { SkeletonText } from "@calcom/ui";
+import { SkeletonText } from "@calcom/ui/v2";
 
-/** @deprecated Use `apps/web/components/v2/availability/SkeletonLoader.tsx` */
+import classNames from "@lib/classNames";
+
 function SkeletonLoader() {
   return (
     <ul className="animate-pulse divide-y divide-neutral-200 rounded-md border border-gray-200 bg-white sm:mx-0 sm:overflow-hidden">
@@ -20,26 +21,30 @@ function SkeletonItem() {
     <li className="group flex w-full items-center justify-between px-2 py-[23px] sm:px-6">
       <div className="flex-grow truncate text-sm">
         <div className="flex flex-col space-y-2">
-          <SkeletonText width="32" height="4" />
-          <SkeletonText width="32" height="2" />
+          <SkeletonText className="h-4 w-32" />
+          <SkeletonText className="h-2 w-32" />
         </div>
       </div>
       <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 lg:flex">
         <div className="flex justify-between space-x-2 rtl:space-x-reverse">
-          <SkeletonText width="12" height="6" />
+          <SkeletonText className="h-6 w-12" />
         </div>
       </div>
     </li>
   );
 }
 
-export const AvailabilitySelectSkeletonLoader = () => {
+export const SelectSkeletonLoader = ({ className }: { className?: string }) => {
   return (
-    <li className="group flex w-full items-center justify-between rounded-sm border border-gray-200 px-[10px] py-3">
+    <li
+      className={classNames(
+        "group flex w-full items-center justify-between rounded-sm border border-gray-200 px-[10px] py-3",
+        className
+      )}>
       <div className="flex-grow truncate text-sm">
         <div className="flex justify-between">
-          <SkeletonText width="32" height="4" />
-          <SkeletonText width="4" height="4" />
+          <SkeletonText className="h-4 w-32" />
+          <SkeletonText className="h-4 w-4" />
         </div>
       </div>
     </li>

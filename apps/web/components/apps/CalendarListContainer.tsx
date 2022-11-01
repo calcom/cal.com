@@ -17,9 +17,9 @@ import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/Disconnect
 
 import { QueryCell } from "@lib/QueryCell";
 
+import AdditionalCalendarSelector from "@components/apps/AdditionalCalendarSelector";
+import IntegrationListItem from "@components/apps/IntegrationListItem";
 import SubHeadingTitleWithConnections from "@components/integrations/SubHeadingTitleWithConnections";
-import AdditionalCalendarSelector from "@components/v2/apps/AdditionalCalendarSelector";
-import IntegrationListItem from "@components/v2/apps/IntegrationListItem";
 
 type Props = {
   onChanged: () => unknown | Promise<unknown>;
