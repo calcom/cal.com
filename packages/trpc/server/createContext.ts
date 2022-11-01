@@ -88,7 +88,8 @@ async function getUserFromSession({
     return null;
   }
   // This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url
-  if (user.avatar) user.avatar = `${CAL_URL}/${user.username}/avatar.png`;
+  // TODO: Setting avatar value to /avatar.png(which is a dynamic route) would actually reset the avatar because /avatar.png is supposed to return the value of user.avatar
+  // if (user.avatar) user.avatar = `${CAL_URL}/${user.username}/avatar.png`;
   const avatar = user.avatar || defaultAvatarSrc({ email });
 
   const locale = user.locale || getLocaleFromHeaders(req);
