@@ -1,10 +1,10 @@
 import merge from "lodash/merge";
 import { NextSeo, NextSeoProps } from "next-seo";
 
-import { constructAppImage, constructMeetingImage } from "@calcom/lib/OgImages";
+import { constructAppImage, constructGenericImage, constructMeetingImage } from "@calcom/lib/OgImages";
 import { getBrowserInfo } from "@calcom/lib/browser/browser.utils";
 import { seoConfig, getSeoImage, HeadSeoProps } from "@calcom/lib/next-seo.config";
-import { truncate, truncateOnWord } from "@calcom/lib/text";
+import { truncateOnWord } from "@calcom/lib/text";
 
 /**
  * Build full seo tags from title, desc, canonical and url
@@ -55,12 +55,11 @@ const buildSeoMeta = (pageProps: {
 
 export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
   const defaultUrl = getBrowserInfo()?.url;
-  const image = getSeoImage("default");
 
   const { title, description, siteName, canonical = defaultUrl, nextSeoProps = {}, app, meeting } = props;
 
-  const truncatedDescription = truncate(description, 24);
-  const longerTruncatedDescriptionOnWords = truncateOnWord(description, 148);
+  const image = getSeoImage("ogImage") + constructGenericImage({ title, description });
+  const truncatedDescription = truncateOnWord(description, 158);
 
   const pageTitle = title + " | Cal.com";
   let seoObject = buildSeoMeta({
@@ -84,7 +83,7 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
 
   if (app) {
     const pageImage =
-      getSeoImage("ogImage") + constructAppImage({ ...app, description: longerTruncatedDescriptionOnWords });
+      getSeoImage("ogImage") + constructAppImage({ ...app, description: truncatedDescription });
     seoObject = buildSeoMeta({
       title: pageTitle,
       description: truncatedDescription,
