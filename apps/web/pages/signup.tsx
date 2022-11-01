@@ -137,7 +137,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
     isSAMLLoginEnabled,
     trpcState: ssr.dehydrate(),
-    prepopulateFormValues: undefined,
+    prepopulateFormValues: null,
   };
 
   // no token given, treat as a normal signup without verification token
