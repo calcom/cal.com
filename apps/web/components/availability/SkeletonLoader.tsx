@@ -1,7 +1,8 @@
-import classNames from "classnames";
 import React from "react";
 
 import { SkeletonText } from "@calcom/ui/v2";
+
+import classNames from "@lib/classNames";
 
 function SkeletonLoader() {
   return (
