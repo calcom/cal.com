@@ -1,7 +1,4 @@
-import { DotsHorizontalIcon } from "@heroicons/react/solid";
-
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/v2";
 
 import { CalendarSwitch } from "./CalendarSwitch";
 

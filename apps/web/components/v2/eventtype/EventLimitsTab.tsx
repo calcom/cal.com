@@ -9,7 +9,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PeriodType } from "@calcom/prisma/client";
 import type { BookingLimit } from "@calcom/types/Calendar";
 import { Icon } from "@calcom/ui";
-import { Select, Switch, Label, Input, MinutesField, Button, SettingsToggle } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/components";
+import { Select, Switch, Label, Input, MinutesField, SettingsToggle } from "@calcom/ui/v2";
 import DateRangePicker from "@calcom/ui/v2/core/form/date-range-picker/DateRangePicker";
 
 export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) => {

@@ -8,7 +8,7 @@ import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Alert } from "@calcom/ui/Alert";
-import Button from "@calcom/ui/v2/core/Button";
+import { Button } from "@calcom/ui/components/button";
 import { EmailField, PasswordField, TextField } from "@calcom/ui/v2/core/form/fields";
 import { HeadSeo } from "@calcom/web/components/seo/head-seo";
 import { asStringOrNull } from "@calcom/web/lib/asStringOrNull";

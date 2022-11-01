@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 
-import Badge, { badgeClassNameByVariant } from "./Badge";
+import { Badge, badgeClassNameByVariant } from "../../components/badge";
 
 type Props = {
   title: string;

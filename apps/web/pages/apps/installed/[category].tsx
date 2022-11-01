@@ -10,7 +10,7 @@ import { App } from "@calcom/types/App";
 import { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
 import { Icon } from "@calcom/ui/Icon";
 import { Alert } from "@calcom/ui/v2/core/Alert";
-import Button from "@calcom/ui/v2/core/Button";
+import { Button } from "@calcom/ui/components/button";
 import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
 import { List } from "@calcom/ui/v2/core/List";
 import { ShellSubHeading } from "@calcom/ui/v2/core/Shell";

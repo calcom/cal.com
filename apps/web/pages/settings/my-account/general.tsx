@@ -4,7 +4,7 @@ import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/v2/core/Button";
+import { Button } from "@calcom/ui/components/button";
 import Meta from "@calcom/ui/v2/core/Meta";
 import TimezoneSelect from "@calcom/ui/v2/core/TimezoneSelect";
 import { Form, Label } from "@calcom/ui/v2/core/form/fields";

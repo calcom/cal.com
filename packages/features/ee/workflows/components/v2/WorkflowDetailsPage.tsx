@@ -7,7 +7,7 @@ import { Controller, UseFormReturn } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/components/button";
 import { Label, TextField } from "@calcom/ui/v2";
 import MultiSelectCheckboxes, { Option } from "@calcom/ui/v2/core/form/MultiSelectCheckboxes";
 

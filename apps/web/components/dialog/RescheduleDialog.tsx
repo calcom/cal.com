@@ -5,7 +5,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { TextArea } from "@calcom/ui/form/fields";
-import Button from "@calcom/ui/v2/core/Button";
+import { Button } from "@calcom/ui/components/button";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 interface IRescheduleDialog {

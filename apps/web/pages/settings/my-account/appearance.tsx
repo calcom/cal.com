@@ -2,8 +2,8 @@ import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import Badge from "@calcom/ui/v2/core/Badge";
-import { Button } from "@calcom/ui/v2/core/Button";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
 import Meta from "@calcom/ui/v2/core/Meta";
 import Switch from "@calcom/ui/v2/core/Switch";
 import ColorPicker from "@calcom/ui/v2/core/colorpicker";

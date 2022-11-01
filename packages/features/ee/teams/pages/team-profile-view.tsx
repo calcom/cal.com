@@ -10,6 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import objectKeys from "@calcom/lib/objectKeys";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
+import Avatar from "@calcom/ui/components/avatar";
 import {
   Button,
   Dialog,
@@ -19,7 +20,6 @@ import {
   showToast,
   TextField,
 } from "@calcom/ui/v2/core";
-import Avatar from "@calcom/ui/v2/core/Avatar";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
 import Meta from "@calcom/ui/v2/core/Meta";

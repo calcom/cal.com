@@ -7,11 +7,11 @@ import React, { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import { Button, Input, TextField } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/components";
+import { TextField } from "@calcom/ui/v2";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
-import { HeadSeo } from "@components/seo/head-seo";
 import AuthContainer from "@components/v2/ui/AuthContainer";
 
 type Props = {

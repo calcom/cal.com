@@ -8,7 +8,8 @@ import { v4 as uuidv4 } from "uuid";
 import classNames from "@calcom/lib/classNames";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { Icon } from "@calcom/ui";
-import { Button, EmptyScreen, SelectField, TextAreaField, TextField, Shell } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/components";
+import { EmptyScreen, SelectField, TextAreaField, TextField, Shell } from "@calcom/ui/v2";
 import { BooleanToggleGroupField } from "@calcom/ui/v2/core/form/BooleanToggleGroup";
 import FormCard from "@calcom/ui/v2/core/form/FormCard";
 

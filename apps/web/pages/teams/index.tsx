@@ -5,7 +5,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import { Shell } from "@calcom/ui/v2";
 import { Alert } from "@calcom/ui/v2/core/Alert";
-import Button from "@calcom/ui/v2/core/Button";
+import { Button } from "@calcom/ui/components/button";
 import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
 
 import SkeletonLoaderTeamList from "@components/team/SkeletonloaderTeamList";

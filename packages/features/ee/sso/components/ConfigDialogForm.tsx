@@ -6,7 +6,7 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { trpc } from "@calcom/trpc/react";
 import { DialogFooter } from "@calcom/ui/Dialog";
 import { showToast } from "@calcom/ui/v2";
-import Button from "@calcom/ui/v2/core/Button";
+import { Button } from "@calcom/ui/components/button";
 import { Form, TextArea } from "@calcom/ui/v2/core/form/fields";
 
 interface TeamSSOValues {

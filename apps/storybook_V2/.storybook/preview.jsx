@@ -1,5 +1,8 @@
 import "../styles/globals.css";
 import "../styles/storybook-styles.css";
+import { addDecorator } from '@storybook/react';
+import { I18nextProvider } from 'react-i18next';
+import i18n from './i18next';
 
 export const parameters = {
   actions: { argTypesRegex: "^on[A-Z].*" },
@@ -10,6 +13,13 @@ export const parameters = {
     },
   },
 };
+
+addDecorator(storyFn => (
+  <I18nextProvider i18n={i18n}>
+    {storyFn()}
+  </I18nextProvider>
+));
+
 
 window.getEmbedNamespace = () => {
   const url = new URL(document.URL);
