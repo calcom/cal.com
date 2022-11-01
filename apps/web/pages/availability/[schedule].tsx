@@ -42,7 +42,7 @@ export default function Availability({ schedule }: { schedule: number }) {
   const router = useRouter();
   const utils = trpc.useContext();
   const me = useMeQuery();
-
+  const { timeFormat } = me.data || { timeFormat: null };
   const { data, isLoading } = trpc.useQuery(["viewer.availability.schedule", { scheduleId: schedule }]);
 
   const form = useForm<AvailabilityFormValues>();
@@ -94,7 +94,7 @@ export default function Availability({ schedule }: { schedule: number }) {
         data ? (
           data.schedule.availability.map((availability) => (
             <span key={availability.id}>
-              {availabilityAsString(availability, { locale: i18n.language })}
+              {availabilityAsString(availability, { locale: i18n.language, hour12: timeFormat === 12 })}
               <br />
             </span>
           ))
