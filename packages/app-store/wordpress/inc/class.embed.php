@@ -30,10 +30,16 @@ class Embed
 
         if ($atts) {
 
-            $output = '<div id="calcom-embed"></div>';
-
             $this->load_embed_script();
-            $output .= $this->get_inline_embed_script($atts['url']);
+
+            switch ($atts['type']) {
+                case 2:
+                    $output = '<span id="calcom-embed-link" data-cal-link="' . $atts['url'] . '">' . $atts['text'] . '</span>';
+                    break;
+                default:
+                    $output = '<div id="calcom-embed"></div>';
+                    $output .= $this->get_inline_embed_script($atts['url']);
+            }
 
             return $output;
         }
@@ -41,8 +47,9 @@ class Embed
         return '';
     }
 
+
     /**
-     * Adds inline embed js
+     * Adds inline embed JS
      * 
      * @param $url Booking link
      * @return string
@@ -68,6 +75,7 @@ class Embed
     private function load_embed_script(): void
     {
         wp_enqueue_script('calcom-embed-js');
+        wp_enqueue_style('calcom-embed-css');
     }
 
     /**
@@ -81,6 +89,10 @@ class Embed
 
         if ($atts) {
 
+            $embed_url = '';
+            $embed_type = '';
+            $embed_text = 'Book me';
+
             if (isset($atts['url']) && $atts['url']) {
 
                 $url = sanitize_text_field($atts['url']);
@@ -88,8 +100,20 @@ class Embed
                 // ensure url is sanitized correctly
                 $url = str_replace('https://cal.com/', '/', $url);
 
-                return ['url' => $url];
+                $embed_url = $url;
             }
+
+            if (isset($atts['type']) && $atts['type']) {
+
+                if (isset($atts['text']) && $atts['text']) {
+
+                    $embed_text = sanitize_text_field($atts['text']);
+                }
+
+                $embed_type = sanitize_text_field($atts['type']);
+            }
+
+            return ['url' => $embed_url, 'type' => $embed_type, 'text' => $embed_text];
         }
 
         return [];
