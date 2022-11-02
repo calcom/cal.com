@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { FormEvent, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP } from "@calcom/features/webhooks/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
@@ -36,14 +37,6 @@ const UserProfile = (props: IUserProfile) => {
   const router = useRouter();
   const createEventType = trpc.useMutation("viewer.eventTypes.create");
   const createWebhookMutation = trpc.useMutation("viewer.webhook.create");
-
-  const DEFAULT_WEBHOOK = {
-    subscriberUrl: "http://localhost:3000",
-    eventTriggers: ["BOOKING_CANCELLED", "BOOKING_CREATED", "BOOKING_RESCHEDULED", "MEETING_ENDED"],
-    active: true,
-    payloadTemplate: null,
-    secret: "",
-  };
 
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: async (_data, context) => {
@@ -111,6 +104,14 @@ const UserProfile = (props: IUserProfile) => {
     //   hidden: true,
     // },
   ];
+
+  const DEFAULT_WEBHOOK = {
+    subscriberUrl: "http://localhost:3000",
+    eventTriggers: [...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP["core"]],
+    active: true,
+    payloadTemplate: null,
+    secret: "",
+  };
 
   return (
     <form onSubmit={onSubmit}>
