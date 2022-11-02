@@ -2,7 +2,6 @@ import { SchedulingType } from "@prisma/client";
 import { z } from "zod";
 
 import { getBufferedBusyTimes } from "@calcom/core/getBusyTimes";
-import type { CurrentSeats } from "@calcom/core/getUserAvailability";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
@@ -52,18 +51,12 @@ const checkIfIsAvailable = ({
   busy,
   eventLength,
   beforeBufferTime,
-  currentSeats,
 }: {
   time: Dayjs;
   busy: (TimeRange | { start: string; end: string } | EventBusyDate)[];
   eventLength: number;
   beforeBufferTime: number;
-  currentSeats?: CurrentSeats;
 }): boolean => {
-  if (currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString())) {
-    return true;
-  }
-
   const slotEndTime = time.add(eventLength, "minutes").utc();
   const slotStartTime = time.utc();
 
@@ -213,7 +206,6 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   if (!startTime.isValid() || !endTime.isValid()) {
     throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
   }
-  const currentSeats: CurrentSeats | undefined = undefined;
 
   /* We get all users working hours and busy slots */
   const usersWorkingHoursAndBusySlots = await Promise.all(
@@ -241,7 +233,6 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   const availabilityCheckProps = {
     eventLength: eventType.length,
     beforeBufferTime: eventType.beforeEventBuffer,
-    currentSeats,
   };
 
   const isTimeWithinBounds = (_time: Parameters<typeof isTimeOutOfBounds>[0]) =>
@@ -299,17 +290,6 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     computedAvailableSlots[currentCheckedTime.format("YYYY-MM-DD")] = availableTimeSlots.map((time) => ({
       time: time.toISOString(),
       users: eventType.users.filter((user) => userIsAvailable(user, time)).map((user) => user.username || ""),
-      // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
-      ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
-        attendees:
-          currentSeats[
-            currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-          ]._count.attendees,
-        bookingUid:
-          currentSeats[
-            currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-          ].uid,
-      }),
     }));
     currentCheckedTime = currentCheckedTime.add(1, "day");
   } while (currentCheckedTime.isBefore(endTime));
