@@ -16,8 +16,6 @@ import type {
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
 import { googleCredentialSchema } from "./googleCredentialSchema";
 
-google.options({ http2: true });
-
 interface GoogleCalError extends Error {
   code?: number;
 }
