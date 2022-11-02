@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { POWERED_BY_URL, WEBSITE_DOMAIN } from "@calcom/lib/constants";
+import { POWERED_BY_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 const PoweredByCal = () => {
@@ -17,7 +17,7 @@ const PoweredByCal = () => {
             <img
               className="relative -mt-px inline h-[10px] w-auto dark:hidden"
               src="/cal-logo-word.svg"
-              alt={`${WEBSITE_DOMAIN} Logo`}
+              alt="Cal.com Logo"
             />
           }
           {
@@ -25,7 +25,7 @@ const PoweredByCal = () => {
             <img
               className="relativ -mt-px hidden h-[10px] w-auto dark:inline"
               src="/cal-logo-word-dark.svg"
-              alt={`${WEBSITE_DOMAIN} Logo`}
+              alt="Cal.com Logo"
             />
           }
         </a>
