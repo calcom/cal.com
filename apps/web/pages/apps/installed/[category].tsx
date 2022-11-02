@@ -9,8 +9,8 @@ import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { App } from "@calcom/types/App";
 import { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
 import { Icon } from "@calcom/ui/Icon";
-import { Alert } from "@calcom/ui/v2/core/Alert";
 import { Button } from "@calcom/ui/components/button";
+import { Alert } from "@calcom/ui/v2/core/Alert";
 import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
 import { List } from "@calcom/ui/v2/core/List";
 import { ShellSubHeading } from "@calcom/ui/v2/core/Shell";
@@ -21,7 +21,7 @@ import { QueryCell } from "@lib/QueryCell";
 
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import IntegrationListItem from "@components/apps/IntegrationListItem";
-import SkeletonLoader from "@components/v2/availability/SkeletonLoader";
+import SkeletonLoader from "@components/availability/SkeletonLoader";
 
 function ConnectOrDisconnectIntegrationButton(props: {
   credentialIds: number[];
