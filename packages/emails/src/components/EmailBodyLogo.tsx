@@ -8,7 +8,7 @@ const CommentIE = ({ html = "" }) => <RawHtml html={`<!--[if mso | IE]>${html}<!
 const EmailBodyLogo = () => {
   const image = IS_PRODUCTION
     ? WEBAPP_URL + "/emails/PestoLogo.png"
-    : "https://app.pesto.tech/emails/PestoLogo.png"; //TODO: Replace with prod url
+    : "http://localhost:3000/emails/PestoLogo.png"; //TODO: Replace with prod url
 
   return (
     <>
@@ -47,7 +47,7 @@ const EmailBodyLogo = () => {
                     wordBreak: "break-word",
                   }}>
                   <Row border="0" style={{ borderCollapse: "collapse", borderSpacing: "0px" }}>
-                    <td style={{ width: "89px" }}>
+                    <td style={{ width: "66px" }}>
                       <a href={WEBAPP_URL} target="_blank" rel="noreferrer">
                         <img
                           height="19"
@@ -61,7 +61,7 @@ const EmailBodyLogo = () => {
                             width: "100%",
                             fontSize: "13px",
                           }}
-                          width="89"
+                          width="66"
                           alt=""
                         />
                       </a>
