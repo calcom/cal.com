@@ -109,7 +109,9 @@ function BookingListItem(booking: BookingItemProps) {
       label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel"),
       /* When cancelling we need to let the UI and the API know if the intention is to
          cancel all remaining bookings or just that booking instance. */
-      href: `/cancel/${booking.uid}${isTabRecurring && isRecurring ? "?allRemainingBookings=true" : ""}`,
+      href: `/success?uid=${booking.uid}&cancel=true${
+        isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
+      }`,
       icon: Icon.FiX,
     },
     {
@@ -192,7 +194,6 @@ function BookingListItem(booking: BookingItemProps) {
       pathname: "/success",
       query: {
         uid: booking.uid,
-        listingStatus: booking.listingStatus,
       },
     });
   };

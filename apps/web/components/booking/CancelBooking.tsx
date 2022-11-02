@@ -22,6 +22,7 @@ type Props = {
   team?: string | null;
   setIsCancellationMode: (value: boolean) => void;
   theme: string | null;
+  allRecurringBookings: boolean;
 };
 
 export default function CancelBooking(props: Props) {
@@ -103,7 +104,7 @@ export default function CancelBooking(props: Props) {
                   }
                 }}
                 loading={loading}>
-                {t("cancel_event")}
+                {props.allRecurringBookings ? t("cancel_all_remaining") : t("cancel_event")}
               </Button>
             </div>
           </div>

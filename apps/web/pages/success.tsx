@@ -138,10 +138,30 @@ function RedirectionToast({ url }: { url: string }) {
 
 type SuccessProps = inferSSRProps<typeof getServerSideProps>;
 
+const querySchema = z.object({
+  uid: z.string(),
+  allRemainingBookings: z
+    .string()
+    .optional()
+    .transform((val) => (val ? JSON.parse(val) : false)),
+  cancel: z
+    .string()
+    .optional()
+    .transform((val) => (val ? JSON.parse(val) : false)),
+  reschedule: z
+    .string()
+    .optional()
+    .transform((val) => (val ? JSON.parse(val) : false)),
+  isSuccessBookingPage: z.string().optional(),
+});
+
 export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
-  const { listingStatus, isSuccessBookingPage } = router.query;
+
+  const { uid, allRemainingBookings, isSuccessBookingPage, cancel } = querySchema.parse(router.query);
+
+  const {} = router.query;
 
   const location: ReturnType<typeof getEventLocationValue> = Array.isArray(props.bookingInfo.location)
     ? props.bookingInfo.location[0] || ""
@@ -167,7 +187,7 @@ export default function Success(props: SuccessProps) {
   const isEmbed = useIsEmbed();
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
-  const [isCancellationMode, setIsCancellationMode] = useState(false);
+  const [isCancellationMode, setIsCancellationMode] = useState(cancel);
 
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
@@ -348,7 +368,7 @@ export default function Success(props: SuccessProps) {
                       <RecurringBookings
                         eventType={props.eventType}
                         recurringBookings={props.recurringBookings}
-                        listingStatus={(listingStatus as string) || "recurring"}
+                        allRecurringBookings={allRemainingBookings}
                         date={date}
                         is24h={is24h}
                       />
@@ -474,6 +494,7 @@ export default function Success(props: SuccessProps) {
                         team={eventType?.team?.name}
                         setIsCancellationMode={setIsCancellationMode}
                         theme={isSuccessBookingPage ? props.profile.theme : "light"}
+                        allRecurringBookings={allRemainingBookings}
                       />
                     </>
                   ))}
@@ -630,14 +651,14 @@ type RecurringBookingsProps = {
   recurringBookings: SuccessProps["recurringBookings"];
   date: dayjs.Dayjs;
   is24h: boolean;
-  listingStatus: string;
+  allRecurringBookings: boolean;
 };
 
 export function RecurringBookings({
   eventType,
   recurringBookings,
   date,
-  listingStatus,
+  allRecurringBookings,
 }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const { t } = useLocale();
@@ -646,7 +667,7 @@ export function RecurringBookings({
     ? recurringBookings.sort((a, b) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
     : null;
 
-  if (recurringBookingsSorted && listingStatus === "recurring") {
+  if (recurringBookingsSorted && allRecurringBookings) {
     return (
       <>
         {eventType.recurringEvent?.count && (
