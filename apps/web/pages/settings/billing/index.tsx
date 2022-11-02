@@ -72,7 +72,7 @@ const BillingView = () => {
 
         <CtaRow title={t("billing_help_title")} description={t("billing_help_description")}>
           <Button color="secondary" onClick={onContactSupportClick}>
-            {t("contact_support")}
+            {t("billing_help_cta")}
           </Button>
         </CtaRow>
         {showChat && <HelpScout color="#292929" icon="message" horizontalPosition="right" zIndex="1" />}

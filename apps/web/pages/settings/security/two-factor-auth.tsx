@@ -24,7 +24,7 @@ const TwoFactorAuthView = () => {
 
   return (
     <>
-      <Meta title={t("2fa")} description={t("2fa_description")} />
+      <Meta title="Two-Factor Authentication" description="Manage settings for your account passwords" />
       <div className="mt-6 flex items-start space-x-4">
         <Switch
           checked={user?.twoFactorEnabled}
@@ -39,7 +39,7 @@ const TwoFactorAuthView = () => {
               {user?.twoFactorEnabled ? t("enabled") : t("disabled")}
             </Badge>
           </div>
-          <p className="text-sm text-gray-600">{t("add_an_extra_layer_of_security")}</p>
+          <p className="text-sm text-gray-600">Add an extra layer of security to your account.</p>
         </div>
       </div>
 

@@ -36,7 +36,7 @@ const MembersView = () => {
 
   return (
     <>
-      <Meta title={t("team_members")} description={t("members_team_description")} />
+      <Meta title="Team Members" description="Users that are in the group" />
       {!isLoading && (
         <>
           <div>

@@ -29,7 +29,7 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
       ) : (
         <EmptyScreen
           Icon={Icon.FiAlertTriangle}
-          headline={t("enterprise_license")}
+          headline="This is an enterprise feature"
           description={
             <div
               dangerouslySetInnerHTML={{

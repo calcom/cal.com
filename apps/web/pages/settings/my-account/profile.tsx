@@ -207,7 +207,7 @@ const ProfileView = () => {
             mutation.mutate(values);
           }
         }}>
-        <Meta title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
+        <Meta title="Profile" description={t("profile_description", { appName: APP_NAME })} />
         <div className="flex items-center">
           <Controller
             control={formMethods.control}

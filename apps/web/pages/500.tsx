@@ -27,7 +27,7 @@ export default function Error500() {
           Something went wrong on our end. Get in touch with our support team, and we’ll get it fixed right
           away for you.
         </p>
-        <Button href={`${WEBSITE_URL}/support`}>{t("contact_support")}</Button>
+        <Button href={`${WEBSITE_URL}/support`}>Contact support</Button>
         <Button color="secondary" href="javascript:history.back()" className="ml-2">
           Go back
         </Button>

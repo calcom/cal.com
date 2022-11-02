@@ -125,7 +125,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
       <>
         <div className="desktop-only pt-4" />
         <VerticalTabItem
-          name={t("back")}
+          name="Back"
           href="/."
           icon={Icon.FiArrowLeft}
           textClassNames="text-md font-medium leading-none text-black"
