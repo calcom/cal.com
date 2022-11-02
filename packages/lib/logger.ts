@@ -3,7 +3,8 @@ import { Logger } from "tslog";
 import { IS_PRODUCTION } from "./constants";
 
 const logger = new Logger({
-  dateTimePattern: "hour:minute:second.millisecond timeZoneName",
+  type: IS_PRODUCTION ? "json" : "pretty",
+  dateTimePattern: "hour:minute:second.millisecond",
   displayFunctionName: false,
   displayFilePath: "hidden",
   dateTimeTimezone: IS_PRODUCTION ? "utc" : Intl.DateTimeFormat().resolvedOptions().timeZone,
