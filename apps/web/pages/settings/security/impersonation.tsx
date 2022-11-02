@@ -33,7 +33,7 @@ const ProfileImpersonationView = () => {
 
   return (
     <>
-      <Meta title={t("impersonation")} description="" />
+      <Meta title="Impersonation Settings" description="" />
       <Form
         form={formMethods}
         handleSubmit={({ disableImpersonation }) => {
