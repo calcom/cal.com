@@ -58,7 +58,9 @@ const VerticalTabItem = function ({
               {props.icon && <props.icon className="mr-[10px] h-[16px] w-[16px] stroke-[2px] md:mt-0" />}
               <div>
                 <span className="flex items-center space-x-2">
-                  <Skeleton as="p">{t(name)}</Skeleton>
+                  <Skeleton title={t(name)} as="p" className="max-w-36 truncate">
+                    {t(name)}
+                  </Skeleton>
                   {props.isExternalLink ? <Icon.FiExternalLink /> : null}
                 </span>
                 {info && (

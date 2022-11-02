@@ -23,8 +23,8 @@ import { Skeleton, SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
 import { HttpError } from "@lib/core/http/error";
 
+import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import EditableHeading from "@components/ui/EditableHeading";
-import { SelectSkeletonLoader } from "@components/v2/availability/SkeletonLoader";
 
 const querySchema = z.object({
   schedule: stringOrNumber,
@@ -42,7 +42,7 @@ export default function Availability({ schedule }: { schedule: number }) {
   const router = useRouter();
   const utils = trpc.useContext();
   const me = useMeQuery();
-
+  const { timeFormat } = me.data || { timeFormat: null };
   const { data, isLoading } = trpc.useQuery(["viewer.availability.schedule", { scheduleId: schedule }]);
 
   const form = useForm<AvailabilityFormValues>();
@@ -94,7 +94,7 @@ export default function Availability({ schedule }: { schedule: number }) {
         data ? (
           data.schedule.availability.map((availability) => (
             <span key={availability.id}>
-              {availabilityAsString(availability, { locale: i18n.language })}
+              {availabilityAsString(availability, { locale: i18n.language, hour12: timeFormat === 12 })}
               <br />
             </span>
           ))
@@ -162,7 +162,7 @@ export default function Availability({ schedule }: { schedule: number }) {
               </div>
             </div>
             <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
-              <div className="xl:max-w-80 w-full pr-4 sm:p-0">
+              <div className="xl:max-w-80 mt-4 w-full pr-4 sm:p-0">
                 <div>
                   <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
                     {t("timezone")}

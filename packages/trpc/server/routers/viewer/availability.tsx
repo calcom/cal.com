@@ -15,6 +15,7 @@ export const availabilityRouter = createProtectedRouter()
   .query("list", {
     async resolve({ ctx }) {
       const { prisma, user } = ctx;
+
       const schedules = await prisma.schedule.findMany({
         where: {
           userId: user.id,
@@ -29,10 +30,13 @@ export const availabilityRouter = createProtectedRouter()
           id: "asc",
         },
       });
+
+      const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
+
       return {
         schedules: schedules.map((schedule) => ({
           ...schedule,
-          isDefault: user.defaultScheduleId === schedule.id || schedules.length === 1,
+          isDefault: schedule.id === defaultScheduleId,
         })),
       };
     },
@@ -102,6 +106,7 @@ export const availabilityRouter = createProtectedRouter()
           )
         )
         .optional(),
+      eventTypeId: z.number().optional(),
     }),
     async resolve({ input, ctx }) {
       const { user, prisma } = ctx;
@@ -112,6 +117,8 @@ export const availabilityRouter = createProtectedRouter()
             id: user.id,
           },
         },
+        // If an eventTypeId is provided then connect the new schedule to that event type
+        ...(input.eventTypeId && { eventType: { connect: { id: input.eventTypeId } } }),
       };
 
       const availability = getAvailabilityFromSchedule(input.schedule || DEFAULT_SCHEDULE);
