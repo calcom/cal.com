@@ -6,7 +6,7 @@ export function VariantsTable({
   children,
   titles,
   isDark,
-  columnMinWidth,
+  columnMinWidth = 150,
 }: {
   children: ReactElement<RowProps> | ReactElement<RowProps>[];
   titles: string[];
@@ -42,7 +42,7 @@ export function VariantsTable({
         </table>
       </div>
       {!isDark && (
-        <div className="dark">
+        <div data-mode="dark">
           <VariantsTable titles={titles} isDark columnMinWidth={columnMinWidth}>
             {children}
           </VariantsTable>

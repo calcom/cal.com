@@ -1,5 +1,5 @@
 import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
-import { Examples, Example, Note, Title,CustomArgsTable } from '@calcom/storybook_v2/components'
+import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable, VariantRow } from '@calcom/storybook_v2/components'
 import { Icon } from "@calcom/ui/Icon";
 import { Badge } from './Badge';
 
@@ -53,12 +53,31 @@ Alet badge is used in conjunction with an item, profile or label to indicate num
 
 
 
-<Title offset title="Buttons" suffix="Variants" />
+<Title offset title="Badge" suffix="Variants" />
+
 <Canvas>
-  <Story name="All variants">
-    <Badge variant="gray" >Badge text</Badge>
-    <Badge variant="success">Badge text</Badge>
-    <Badge variant="default">Badge text</Badge>
-    <Badge variant="error">Badge text</Badge>
+  <Story name="All Variants">
+    <VariantsTable titles={['Default','With Dot', 'With Icon']} columnMinWidth={150}>
+      <VariantRow variant="Default">
+        <Badge variant="default" >Badge text</Badge>
+        <Badge variant="default" withDot>Badge text</Badge>
+        <Badge variant="default" StartIcon={Icon.FiPlus}>Badge text</Badge>
+      </VariantRow>
+      <VariantRow variant="Success">
+        <Badge variant="success" >Badge text</Badge>
+        <Badge variant="success" withDot>Badge text</Badge>
+        <Badge variant="success" StartIcon={Icon.FiPlus}>Badge text</Badge>
+      </VariantRow>
+      <VariantRow variant="gray">
+        <Badge variant="gray" >Badge text</Badge>
+        <Badge variant="gray" withDot>Badge text</Badge>
+        <Badge variant="gray" StartIcon={Icon.FiPlus}>Badge text</Badge>
+      </VariantRow>
+      <VariantRow variant="error">
+        <Badge variant="error" >Badge text</Badge>
+        <Badge variant="error" withDot>Badge text</Badge>
+        <Badge variant="error" StartIcon={Icon.FiPlus}>Badge text</Badge>
+      </VariantRow>
+    </VariantsTable>
   </Story>
 </Canvas>

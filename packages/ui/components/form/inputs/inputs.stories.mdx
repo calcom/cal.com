@@ -1,5 +1,5 @@
 import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
-import { Examples, Example, Note, Title,CustomArgsTable } from '@calcom/storybook_v2/components'
+import { Examples, Example, Note, Title,CustomArgsTable, VariantRow,VariantsTable} from '@calcom/storybook_v2/components'
 import { Icon } from "@calcom/ui/Icon";
 
 import {InputField} from "./Input"
@@ -33,7 +33,7 @@ Text fields allow users to input and edit text into the product. Usually appear 
     <InputField placeholder="Prefix" addOnLeading={<>Prefix</>}/>
   </Example>
   <Example title="Suffix">
-    <InputField placeholder="Suffic" addOnLeading={<>Suffix</>}/>
+    <InputField placeholder="Suffic" addOnSuffix={<>Suffix</>}/>
   </Example>
   <Example title="Focused">
     <InputField placeholder="Focused"  className="sb-pseudo--focus"/>
@@ -57,3 +57,27 @@ Text fields allow users to input and edit text into the product. Usually appear 
     <InputField value="Filled"/>
   </Example>
 </Examples>
+
+<Title offset title="Input" suffix="Variants" />
+
+<Canvas>
+  <Story name="All Variants">
+    <VariantsTable titles={['Default','Focused', 'Hovered']} columnMinWidth={150}>
+      <VariantRow variant="Default">
+        <InputField placeholder="Default"/>
+        <InputField placeholder="Focused"  className="sb-pseudo--focus"/>
+        <InputField placeholder="Hovered" className="sb-pseudo--hover"/>
+      </VariantRow>
+      <VariantRow variant="Prefixed">
+        <InputField placeholder="Default" addOnLeading={<>Prefix</>}/>
+        <InputField placeholder="Focused"  className="sb-pseudo--focus" addOnLeading={<>Prefix</>}/>
+        <InputField placeholder="Hovered" className="sb-pseudo--hover" addOnLeading={<>Prefix</>}/>
+      </VariantRow>
+      <VariantRow variant="Suffix">
+        <InputField placeholder="Default" addOnSuffix={<>Prefix</>}/>
+        <InputField placeholder="Focused"  className="sb-pseudo--focus" addOnSuffix={<>Prefix</>}/>
+        <InputField placeholder="Hovered" className="sb-pseudo--hover" addOnSuffix={<>Prefix</>}/>
+      </VariantRow>
+    </VariantsTable>
+  </Story>
+</Canvas>
