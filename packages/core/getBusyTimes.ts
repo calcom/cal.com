@@ -1,6 +1,7 @@
 import { BookingStatus, Credential, SelectedCalendar } from "@prisma/client";
 
 import { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
+import dayjs from "@calcom/dayjs";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
@@ -11,10 +12,21 @@ export async function getBusyTimes(params: {
   userId: number;
   eventTypeId?: number;
   startTime: string;
+  beforeEventBuffer?: number;
+  afterEventBuffer?: number;
   endTime: string;
   selectedCalendars: SelectedCalendar[];
 }) {
-  const { credentials, userId, eventTypeId, startTime, endTime, selectedCalendars } = params;
+  const {
+    credentials,
+    userId,
+    eventTypeId,
+    startTime,
+    endTime,
+    selectedCalendars,
+    beforeEventBuffer,
+    afterEventBuffer,
+  } = params;
   logger.silly(
     `Checking Busy time from Cal Bookings in range ${startTime} to ${endTime} for input ${JSON.stringify({
       userId,
@@ -27,7 +39,6 @@ export async function getBusyTimes(params: {
     .findMany({
       where: {
         userId,
-        eventTypeId,
         startTime: { gte: new Date(startTime) },
         endTime: { lte: new Date(endTime) },
         status: {
@@ -39,12 +50,22 @@ export async function getBusyTimes(params: {
         startTime: true,
         endTime: true,
         title: true,
+        eventType: {
+          select: {
+            afterEventBuffer: true,
+            beforeEventBuffer: true,
+          },
+        },
       },
     })
     .then((bookings) =>
-      bookings.map(({ startTime, endTime, title, id }) => ({
-        end: endTime,
-        start: startTime,
+      bookings.map(({ startTime, endTime, title, id, eventType }) => ({
+        start: dayjs(startTime)
+          .subtract((eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0), "minute")
+          .toDate(),
+        end: dayjs(endTime)
+          .add((eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0), "minute")
+          .toDate(),
         title,
         source: `eventType-${eventTypeId}-booking-${id}`,
       }))
@@ -55,7 +76,19 @@ export async function getBusyTimes(params: {
   if (credentials?.length > 0) {
     const calendarBusyTimes = await getBusyCalendarTimes(credentials, startTime, endTime, selectedCalendars);
 
-    busyTimes.push(...calendarBusyTimes); /*
+    busyTimes.push(
+      ...calendarBusyTimes.map((value) => ({
+        ...value,
+        end: dayjs(value.end)
+          .add(beforeEventBuffer || 0, "minute")
+          .toDate(),
+        start: dayjs(value.start)
+          .subtract(afterEventBuffer || 0, "minute")
+          .toDate(),
+      }))
+    );
+
+    /*
     // TODO: Disabled until we can filter Zoom events by date. Also this is adding too much latency.
     const videoBusyTimes = (await getBusyVideoTimes(credentials)).filter(notEmpty);
     console.log("videoBusyTimes", videoBusyTimes);
