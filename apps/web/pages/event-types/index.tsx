@@ -37,6 +37,7 @@ type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
 interface EventTypeListHeadingProps {
   profile: EventTypeGroupProfile;
   membershipCount: number;
+  teamId?: number | null;
 }
 
 type EventTypeGroup = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"][number];
@@ -500,10 +501,14 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   );
 };
 
-const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeadingProps): JSX.Element => {
+const EventTypeListHeading = ({
+  profile,
+  membershipCount,
+  teamId,
+}: EventTypeListHeadingProps): JSX.Element => {
   return (
     <div className="mb-4 flex">
-      <Link href="/settings/teams">
+      <Link href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}>
         <a>
           <Avatar
             alt={profile?.name || ""}
@@ -514,7 +519,7 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
         </a>
       </Link>
       <div>
-        <Link href="/settings/teams">
+        <Link href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}>
           <a className="font-bold">{profile?.name || ""}</a>
         </Link>
         {membershipCount && (
@@ -586,6 +591,7 @@ const EventTypesPage = () => {
                     <EventTypeListHeading
                       profile={group.profile}
                       membershipCount={group.metadata.membershipCount}
+                      teamId={group.teamId}
                     />
                   )}
                   <EventTypeList
