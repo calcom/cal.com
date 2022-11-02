@@ -1353,5 +1353,8 @@
   "number_sms_notifications": "Phone number (SMS\u00a0notifications)",
   "attendee_email_workflow": "Attendee email",
   "attendee_email_info": "The person booking's email",
-  "invalid_credential": "Oh no! Looks like permission expired or was revoked. Please reinstall again."
+  "invalid_credential": "Oh no! Looks like permission expired or was revoked. Please reinstall again.",
+  "purchase_team_subscription": "Purchase team subscription",
+  "purchase_team_subscription_description": "All payment details are handled by Stripe",
+  "error_processing_payment": "Error processing payment"
 }

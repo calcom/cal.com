@@ -1,18 +1,16 @@
 import { PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { NewTeamData } from "@calcom/features/ee/teams/lib/types";
 import { CAL_URL } from "@calcom/lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Switch, Button } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/v2";
 
 const PurchaseNewTeam = ({
-  paymentIntent,
-  clientSecret,
   total,
-  billingFrequency,
   newTeamData,
 }: {
   paymentIntent: string;
@@ -21,6 +19,7 @@ const PurchaseNewTeam = ({
   billingFrequency: string;
   newTeamData: NewTeamData;
 }) => {
+  const { t } = useLocale();
   const [errorMessage, setErrorMessage] = useState("");
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const stripe = useStripe();
@@ -47,7 +46,8 @@ const PurchaseNewTeam = ({
     });
 
     if (error) {
-      console.log("🚀 ~ file: PurchaseNewTeam.tsx ~ line 71 ~ handleSubmit ~ error", error);
+      setPaymentProcessing(false);
+      setErrorMessage(error.message || t("error_processing_payment"));
     } else {
       createTeamMutation.mutate(newTeamData);
     }
@@ -60,9 +60,9 @@ const PurchaseNewTeam = ({
         className="mt-4 w-full justify-center"
         loading={paymentProcessing}
         onClick={() => handleSubmit()}>
-        Pay ${total} / {billingFrequency}
+        Pay ${total} / {newTeamData.billingFrequency}
       </Button>
-      <p>Error processing payment: {errorMessage}</p>
+      {errorMessage && <p className="mt-2 text-red-900">Error processing payment: {errorMessage}</p>}
     </>
   );
 };

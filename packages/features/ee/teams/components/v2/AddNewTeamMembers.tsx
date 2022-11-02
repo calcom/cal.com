@@ -168,35 +168,39 @@ const AddNewTeamMembers = ({
                 members={formMethods.getValues("members")}
               />
 
-              <div className="mt-6 flex justify-between">
-                <p>Total</p>
-                <div>
-                  <p>
-                    {numberOfMembers} members x ${teamPrices[billingFrequency as keyof typeof teamPrices]} /{" "}
-                    {billingFrequency} ={" "}
-                    {numberOfMembers * teamPrices[billingFrequency as keyof typeof teamPrices]}
-                  </p>
-                </div>
-              </div>
-              <hr />
+              <hr className="mb-4 mt-6" />
+
               <Controller
                 control={formMethods.control}
                 name="billingFrequency"
                 defaultValue={"monthly"}
-                render={(field: { value }) => (
-                  <div className="mt-4 flex space-x-2">
+                render={() => (
+                  <div className="flex space-x-2">
                     <Switch
-                      onCheckedChange={(e) =>
-                        formMethods.setValue("billingFrequency", e ? "yearly" : "monthly")
-                      }
+                      onCheckedChange={(e) => {
+                        formMethods.setValue("billingFrequency", e ? "yearly" : "monthly");
+                        setBillingFrequency(e ? "yearly" : "monthly");
+                      }}
                     />
                     <p>
-                      Switch to yearly and save{" "}
+                      Switch to yearly and save $
                       {numberOfMembers * (teamPrices.monthly * 12 - teamPrices.yearly)}
                     </p>
                   </div>
                 )}
               />
+
+              <div className="mt-6 flex justify-between">
+                <p>Total</p>
+                <div>
+                  <p>
+                    {numberOfMembers} members × ${teamPrices[billingFrequency as keyof typeof teamPrices]} /{" "}
+                    {billingFrequency} = $
+                    {numberOfMembers * teamPrices[billingFrequency as keyof typeof teamPrices]}
+                  </p>
+                </div>
+              </div>
+
               <Button EndIcon={Icon.FiArrowRight} className="mt-6 w-full justify-center" type="submit">
                 {t("checkout")}
               </Button>

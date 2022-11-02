@@ -69,6 +69,10 @@ const CreateNewTeamPage = () => {
       title: `${t("add_team_members")}`,
       subtitle: [`${t("add_team_members_description")}`],
     },
+    {
+      title: `${t("purchase_team_subscription")}`,
+      subtitle: [`${t("purchase_team_subscription_description")}`],
+    },
   ];
 
   const goToIndex = (index: number) => {
