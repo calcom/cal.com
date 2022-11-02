@@ -61,7 +61,7 @@ const CreateNewTeamPage = () => {
     name: "",
     slug: "",
     logo: "",
-    members: [],
+    members: defaultMember,
     billingFrequency: "monthly",
   });
   const [clientSecret, setClientSecret] = useState("");
@@ -149,8 +149,9 @@ const CreateNewTeamPage = () => {
             <StepCard>
               {currentStep === "create-a-new-team" && (
                 <CreateNewTeam
+                  newTeamData={newTeamData}
                   nextStep={(values: NewTeamFormValues) => {
-                    setNewTeamData({ ...values, members: defaultMember, billingFrequency: "monthly" });
+                    setNewTeamData({ ...newTeamData, ...values });
                     goToIndex(1);
                   }}
                 />

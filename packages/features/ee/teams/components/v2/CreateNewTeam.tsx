@@ -1,28 +1,29 @@
-import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
-import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Button, Avatar } from "@calcom/ui/v2";
 import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
 import { Form, TextField } from "@calcom/ui/v2/core/form/fields";
 
-import { NewTeamFormValues } from "../../lib/types";
+import { NewTeamData, NewTeamFormValues } from "../../lib/types";
 
-const CreateANewTeamForm = (props: { nextStep: (values: NewTeamFormValues) => void }) => {
+const CreateANewTeamForm = ({
+  nextStep,
+  newTeamData,
+}: {
+  nextStep: (values: NewTeamFormValues) => void;
+  newTeamData: NewTeamData;
+}) => {
   const { t } = useLocale();
-  const storedTeamData = localStorage.getItem("newTeamValues")
-    ? JSON.parse(localStorage.getItem("newTeamValues"))
-    : "";
   const newTeamFormMethods = useForm<NewTeamFormValues>({
     defaultValues: {
-      name: storedTeamData?.name || "",
-      slug: storedTeamData?.slug || "",
-      logo: storedTeamData?.avatar || "",
+      name: newTeamData?.name || "",
+      slug: newTeamData?.slug || "",
+      logo: newTeamData?.logo || "",
     },
   });
 
@@ -57,7 +58,7 @@ const CreateANewTeamForm = (props: { nextStep: (values: NewTeamFormValues) => vo
       <Form
         form={newTeamFormMethods}
         handleSubmit={(values) => {
-          props.nextStep(values);
+          nextStep(values);
         }}>
         <div className="mb-8">
           <Controller
@@ -110,7 +111,7 @@ const CreateANewTeamForm = (props: { nextStep: (values: NewTeamFormValues) => vo
         <div className="mb-8">
           <Controller
             control={newTeamFormMethods.control}
-            name="avatar"
+            name="logo"
             render={({ field: { value } }) => (
               <div className="flex items-center">
                 <Avatar alt="" imageSrc={value || null} gravatarFallbackMd5="newTeam" size="lg" />
@@ -120,7 +121,7 @@ const CreateANewTeamForm = (props: { nextStep: (values: NewTeamFormValues) => vo
                     id="avatar-upload"
                     buttonMsg={t("update")}
                     handleAvatarChange={(newAvatar: string) => {
-                      newTeamFormMethods.setValue("avatar", newAvatar);
+                      newTeamFormMethods.setValue("logo", newAvatar);
                     }}
                     imageSrc={value}
                   />
@@ -133,15 +134,7 @@ const CreateANewTeamForm = (props: { nextStep: (values: NewTeamFormValues) => vo
           <Button color="secondary" href="/settings" className="w-full justify-center">
             {t("cancel")}
           </Button>
-          <Button
-            color="primary"
-            type="submit"
-            // onClick={() => {
-            //   console.log(newTeamFormMethods.getValues());
-            //   props.nextStep();
-            // }}
-            EndIcon={Icon.FiArrowRight}
-            className="w-full justify-center">
+          <Button color="primary" type="submit" EndIcon={Icon.FiArrowRight} className="w-full justify-center">
             {t("continue")}
           </Button>
         </div>
