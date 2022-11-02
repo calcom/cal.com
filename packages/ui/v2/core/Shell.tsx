@@ -129,7 +129,7 @@ const Layout = (props: LayoutProps) => {
     <>
       {!props.withoutSeo && (
         <HeadSeo
-          title={pageTitle ?? "Cal.com"}
+          title={pageTitle ?? "Pesto"}
           description={props.subtitle ? props.subtitle?.toString() : ""}
           nextSeoProps={{
             nofollow: true,

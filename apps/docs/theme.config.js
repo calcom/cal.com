@@ -4,7 +4,7 @@ const themeConfig = {
   github: "https://github.com/calcom/cal.com",
   docsRepositoryBase: "https://github.com/calcom/cal.com/blob/main/apps/docs/pages",
   titleSuffix: " | Pesto",
-  logo: <h4 className="m-0">Cal.com</h4>,
+  logo: <h4 className="m-0">Pesto</h4>,
   head: (
     <>
       <meta name="msapplication-TileColor" content="#ffffff" />
@@ -41,7 +41,7 @@ const themeConfig = {
   nextLinks: true,
   footer: true,
   footerEditLink: "Edit this page on GitHub",
-  footerText: <>© {new Date().getFullYear()} Cal.com, Inc. All rights reserved.</>,
+  footerText: <>© {new Date().getFullYear()} Pesto, Inc. All rights reserved.</>,
 };
 
 export default themeConfig;
