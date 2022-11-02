@@ -30,10 +30,21 @@ interface IAddActionDialog {
   isFreeUser: boolean;
 }
 
+interface ISelectActionOption {
+  label: string;
+  value: WorkflowActions;
+}
+
 type AddActionFormValues = {
   action: WorkflowActions;
   sendTo?: string;
   numberRequired?: boolean;
+};
+
+const cleanUpActionsForFreeUser = (actions: ISelectActionOption[]) => {
+  return actions.filter(
+    (item) => item.value !== WorkflowActions.SMS_ATTENDEE && item.value !== WorkflowActions.SMS_NUMBER
+  );
 };
 
 export const AddActionDialog = (props: IAddActionDialog) => {
@@ -41,7 +52,8 @@ export const AddActionDialog = (props: IAddActionDialog) => {
   const { isOpenDialog, setIsOpenDialog, addAction, isFreeUser } = props;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(false);
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(false);
-  const actionOptions = getWorkflowActionOptions(t);
+  const workflowActions = getWorkflowActionOptions(t);
+  const actionOptions = isFreeUser ? cleanUpActionsForFreeUser(workflowActions) : workflowActions;
 
   const formSchema = z.object({
     action: z.enum(WORKFLOW_ACTIONS),
@@ -59,6 +71,26 @@ export const AddActionDialog = (props: IAddActionDialog) => {
     },
     resolver: zodResolver(formSchema),
   });
+
+  const handleSelectAction = (newValue: ISelectActionOption | null) => {
+    if (newValue) {
+      form.setValue("action", newValue.value);
+      if (newValue.value === WorkflowActions.SMS_NUMBER) {
+        setIsPhoneNumberNeeded(true);
+        setIsEmailAddressNeeded(false);
+      } else if (newValue.value === WorkflowActions.EMAIL_ADDRESS) {
+        setIsEmailAddressNeeded(true);
+        setIsPhoneNumberNeeded(false);
+      } else {
+        setIsEmailAddressNeeded(false);
+        setIsPhoneNumberNeeded(false);
+      }
+      form.unregister("sendTo");
+      form.unregister("numberRequired");
+      form.clearErrors("action");
+      form.clearErrors("sendTo");
+    }
+  };
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
@@ -87,34 +119,8 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                         isSearchable={false}
                         className="text-sm"
                         defaultValue={actionOptions[0]}
-                        onChange={(val) => {
-                          if (val) {
-                            form.setValue("action", val.value);
-                            if (val.value === WorkflowActions.SMS_NUMBER) {
-                              setIsPhoneNumberNeeded(true);
-                              setIsEmailAddressNeeded(false);
-                            } else if (val.value === WorkflowActions.EMAIL_ADDRESS) {
-                              setIsEmailAddressNeeded(true);
-                              setIsPhoneNumberNeeded(false);
-                            } else {
-                              setIsEmailAddressNeeded(false);
-                              setIsPhoneNumberNeeded(false);
-                            }
-                            form.unregister("sendTo");
-                            form.unregister("numberRequired");
-                            form.clearErrors("action");
-                            form.clearErrors("sendTo");
-                          }
-                        }}
-                        options={
-                          isFreeUser
-                            ? actionOptions.filter(
-                                (actionOption) =>
-                                  actionOption.value !== WorkflowActions.SMS_ATTENDEE &&
-                                  actionOption.value !== WorkflowActions.SMS_NUMBER
-                              )
-                            : actionOptions
-                        }
+                        onChange={handleSelectAction}
+                        options={actionOptions}
                       />
                     );
                   }}
