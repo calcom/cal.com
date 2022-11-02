@@ -52,7 +52,7 @@ const EditWebhook = () => {
 
     return (
       <>
-        <Meta title="Edit Webhook" description={t("add_webhook_description")} backButton />
+        <Meta title={t("edit_webhook")} description={t("add_webhook_description")} backButton />
         <WebhookForm
           webhook={webhook}
           onSubmit={(values: WebhookFormSubmitData) => {

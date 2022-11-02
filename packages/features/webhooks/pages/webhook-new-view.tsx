@@ -63,7 +63,7 @@ const NewWebhookView = () => {
 
   return (
     <>
-      <Meta title="Add Webhook" description={t("add_webhook_description")} backButton />
+      <Meta title={t("add_webhook")} description={t("add_webhook_description")} backButton />
 
       <WebhookForm onSubmit={onCreateWebhook} apps={installedApps?.items.map((app) => app.slug)} />
     </>
