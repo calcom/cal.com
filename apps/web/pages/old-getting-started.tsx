@@ -15,7 +15,7 @@ import * as z from "zod";
 import getApps from "@calcom/app-store/utils";
 import dayjs from "@calcom/dayjs";
 import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
-import { DOCS_URL } from "@calcom/lib/constants";
+import { DOCS_URL, WEBSITE_DOMAIN } from "@calcom/lib/constants";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -264,7 +264,7 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   const steps = [
     {
       id: t("welcome"),
-      title: t("welcome_to_calcom"),
+      title: t("welcome_to_calcom", { domainName: WEBSITE_DOMAIN }),
       description: t("welcome_instructions"),
       Component: (
         <>
@@ -566,7 +566,9 @@ export default function Onboarding(props: inferSSRProps<typeof getServerSideProp
   return (
     <div className="bg-brand min-h-screen" data-testid="onboarding">
       <Head>
-        <title>Cal.com - {t("getting_started")}</title>
+        <title>
+          {WEBSITE_DOMAIN} - {t("getting_started")}
+        </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 

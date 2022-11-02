@@ -13,7 +13,7 @@ import path from "path";
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, WEBSITE_DOMAIN } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import rateLimit from "@calcom/lib/rateLimit";
@@ -182,9 +182,9 @@ if (true) {
         });
         const emailTemplate = Handlebars.compile(emailFile);
         transporter.sendMail({
-          from: `${process.env.EMAIL_FROM}` || "Cal.com",
+          from: `${process.env.EMAIL_FROM}` || WEBSITE_DOMAIN,
           to: identifier,
-          subject: "Your sign-in link for Cal.com",
+          subject: "Your sign-in link for " + WEBSITE_DOMAIN,
           html: emailTemplate({
             base_url: WEBAPP_URL,
             signin_url: url,

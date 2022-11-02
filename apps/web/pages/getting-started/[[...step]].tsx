@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { z } from "zod";
 
 import { getSession } from "@calcom/lib/auth";
+import { WEBSITE_DOMAIN } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
 import { Button } from "@calcom/ui/v2";
@@ -48,7 +49,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
 
   const headers = [
     {
-      title: `${t("welcome_to_cal_header")}`,
+      title: `${t("welcome_to_cal_header", { domainName: WEBSITE_DOMAIN })}`,
       subtitle: [`${t("we_just_need_basic_info")}`, `${t("edit_form_later_subtitle")}`],
     },
     {
@@ -88,7 +89,9 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
       data-testid="onboarding"
       key={router.asPath}>
       <Head>
-        <title>Cal.com - {t("getting_started")}</title>
+        <title>
+          {WEBSITE_DOMAIN} - {t("getting_started")}
+        </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 

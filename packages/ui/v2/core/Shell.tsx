@@ -13,7 +13,7 @@ import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/Im
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { JOIN_SLACK, ROADMAP, DESKTOP_APP_LINK, WEBAPP_URL } from "@calcom/lib/constants";
+import { JOIN_SLACK, ROADMAP, DESKTOP_APP_LINK, WEBAPP_URL, WEBSITE_DOMAIN } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import isCalcom from "@calcom/lib/isCalcom";
@@ -129,7 +129,7 @@ const Layout = (props: LayoutProps) => {
     <>
       {!props.withoutSeo && (
         <HeadSeo
-          title={pageTitle ?? "Cal.com"}
+          title={pageTitle ?? WEBSITE_DOMAIN}
           description={props.subtitle ? props.subtitle?.toString() : ""}
           nextSeoProps={{
             nofollow: true,
@@ -707,7 +707,7 @@ function DeploymentInfo() {
         fontSize: "0.5rem",
       }}
       className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
-      &copy; {new Date().getFullYear()} Cal.com, Inc. v.{pkg.version + "-"}
+      &copy; {new Date().getFullYear()} {WEBSITE_DOMAIN}, Inc. v.{pkg.version + "-"}
       {process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"}
       <span className="lowercase" data-testid={`plan-${user?.plan.toLowerCase()}`}>
         -{user?.plan}

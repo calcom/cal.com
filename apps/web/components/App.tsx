@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import { SUPPORT_MAIL_ADDRESS, WEBSITE_DOMAIN } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
@@ -259,11 +260,12 @@ const Component = ({
           </ul>
           <hr className="my-6" />
           <small className="leading-1 block text-gray-500">
-            Every app published on the Cal.com App Store is open source and thoroughly tested via peer
-            reviews. Nevertheless, Cal.com, Inc. does not endorse or certify these apps unless they are
-            published by Cal.com. If you encounter inappropriate content or behaviour please report it.
+            Every app published on the {WEBSITE_DOMAIN} App Store is open source and thoroughly tested via
+            peer peer reviews. Nevertheless, {WEBSITE_DOMAIN}, Inc. does not endorse or certify these apps
+            they are published by {WEBSITE_DOMAIN}. If you encounter inappropriate content or behaviour please
+            report it.
           </small>
-          <a className="mt-2 block text-xs text-red-500" href="mailto:help@cal.com">
+          <a className="mt-2 block text-xs text-red-500" href={`mailto:${SUPPORT_MAIL_ADDRESS}`}>
             <Icon.FiFlag className="inline h-3 w-3" /> Report App
           </a>
         </div>

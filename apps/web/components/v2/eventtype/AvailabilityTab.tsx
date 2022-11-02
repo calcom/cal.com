@@ -60,6 +60,8 @@ const AvailabilitySelect = ({
   onChange: (value: AvailabilityOption | null) => void;
 }) => {
   const { data, isLoading } = trpc.useQuery(["viewer.availability.list"]);
+  const { t } = useLocale();
+
   if (isLoading) {
     return <SelectSkeletonLoader />;
   }
@@ -80,6 +82,7 @@ const AvailabilitySelect = ({
 
   return (
     <Select
+      placeholder={t("select")}
       options={options}
       isSearchable={false}
       onChange={props.onChange}
@@ -172,7 +175,6 @@ export const AvailabilityTab = () => {
             color="minimal"
             EndIcon={Icon.FiExternalLink}
             target="_blank"
-            className="justify-center border sm:border-0"
             rel="noopener noreferrer">
             {t("edit_availability")}
           </Button>
