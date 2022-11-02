@@ -1,3 +1,5 @@
+import { Stripe } from "stripe";
+
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { CAL_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
@@ -9,7 +11,7 @@ export const getTeamPricing = async () => {
     throw new Error("Missing Stripe price ids");
   const monthlyPriceQuery = await stripe.prices.retrieve(process.env.STRIPE_TEAM_MONTHLY_PRICE_ID);
   const yearlyPriceQuery = await stripe.prices.retrieve(process.env.STRIPE_TEAM_YEARLY_PRICE_ID);
-  if (!monthlyPriceQuery || !yearlyPriceQuery) return null;
+  if (!monthlyPriceQuery.unit_amount || !yearlyPriceQuery.unit_amount) return null;
   return {
     monthly: monthlyPriceQuery.unit_amount / 100,
     yearly: yearlyPriceQuery.unit_amount / 100,
@@ -21,6 +23,15 @@ export const createTeamCustomer = async (teamName: string, ownerEmail: string) =
     name: teamName,
     email: ownerEmail,
   });
+};
+
+export const retrieveTeamCustomer = async (customerId: string) => {
+  const customer = await stripe.customers.retrieve(customerId);
+  return customer.deleted ? null : (customer as Stripe.Customer);
+};
+
+export const updateTeamCustomerName = async (customerId: string, teamName: string) => {
+  return await stripe.customers.update(customerId, { name: teamName });
 };
 
 export const createTeamSubscription = async (customerId: string, billingFrequency: string, seats: number) => {

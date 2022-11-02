@@ -16,9 +16,9 @@ import {
   purchaseTeamSubscription,
   createTeamCustomer,
   createTeamSubscription,
-  createPaymentIntent,
   getTeamPricing,
-  updatePaymentIntent,
+  retrieveTeamCustomer,
+  updateTeamCustomerName,
 } from "@calcom/features/ee/teams/lib/payments";
 import { HOSTED_CAL_FEATURES, IS_STRIPE_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -695,8 +695,26 @@ export const viewerTeamsRouter = createProtectedRouter()
       teamName: z.string(),
       billingFrequency: z.string(),
       seats: z.number(),
+      customerId: z.string().optional(),
+      subscriptionId: z.string().optional(),
     }),
     async resolve({ ctx, input }) {
+      const { teamName, billingFrequency, seats, customerId, subscriptionId } = input;
+      // Check to see if team name has changed
+      if (customerId) {
+        const customer = await retrieveTeamCustomer(customerId);
+        if (teamName !== customer.name) {
+          await updateTeamCustomerName(customerId, teamName);
+        }
+        // If different then update the customer on Stripe
+
+        // Retrieve the Stripe subscription
+        // Compare the quantity of the subscription vs input.seats
+        // If different then update the subscription
+
+        // If no changes then do not create a new customer & subscription, just return
+      }
+
       // First create the customer
       const customer = await createTeamCustomer(input.teamName, ctx.user.email);
 
@@ -762,6 +780,8 @@ export const viewerTeamsRouter = createProtectedRouter()
             pendingMember: member,
           });
       }
+
+      // TODO update stripe metadata with the new team id
       return createTeam;
     },
   });

@@ -51,6 +51,7 @@ const PurchaseNewTeam = ({ total, newTeamData }: { total: number; newTeamData: N
         className="mt-4 w-full justify-center"
         loading={paymentProcessing}
         onClick={() => handleSubmit()}>
+        {/* TODO Subscribe for $15/month */}
         Pay ${total} / {newTeamData.billingFrequency}
       </Button>
       {errorMessage && <p className="mt-2 text-red-900">Error processing payment: {errorMessage}</p>}

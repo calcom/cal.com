@@ -174,6 +174,8 @@ const CreateNewTeamPage = () => {
                       teamName: newTeamData.name,
                       billingFrequency: values.billingFrequency,
                       seats: values.members.length,
+                      ...(newTeamData.customerId && { customerId: newTeamData.customerId }),
+                      ...(newTeamData.subscriptionId && { subscriptionId: newTeamData.subscriptionId }),
                     });
                     setNewTeamData({
                       ...newTeamData,
