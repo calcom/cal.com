@@ -54,9 +54,10 @@ export default function Signup() {
       .then(async () => {
         console.log(data);
         console.log(`${WEBAPP_URL}/${router.query.callbackUrl}`);
+        const gettingStartedUrl = "/getting-started";
 
         await signIn("Cal.com", {
-          callbackUrl: (`${WEBAPP_URL}/${router.query.callbackUrl}` || "") as string,
+          callbackUrl: (`${WEBAPP_URL}${gettingStartedUrl}` || "") as string,
         });
       })
       .catch((err) => {
