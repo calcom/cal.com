@@ -465,14 +465,17 @@ export default function Success(props: SuccessProps) {
                       </div>
                     </>
                   ) : (
-                    <CancelBooking
-                      booking={{ uid: bookingInfo?.uid, title: bookingInfo?.title, id: bookingInfo?.id }}
-                      profile={{ name: props.profile.name, slug: props.profile.slug }}
-                      recurringEvent={eventType.recurringEvent}
-                      team={eventType?.team?.name}
-                      setIsCancellationMode={setIsCancellationMode}
-                      theme={isSuccessBookingPage ? props.profile.theme : "light"}
-                    />
+                    <>
+                      <div className="my-7 border-t border-gray-200" />
+                      <CancelBooking
+                        booking={{ uid: bookingInfo?.uid, title: bookingInfo?.title, id: bookingInfo?.id }}
+                        profile={{ name: props.profile.name, slug: props.profile.slug }}
+                        recurringEvent={eventType.recurringEvent}
+                        team={eventType?.team?.name}
+                        setIsCancellationMode={setIsCancellationMode}
+                        theme={isSuccessBookingPage ? props.profile.theme : "light"}
+                      />
+                    </>
                   ))}
                 {userIsOwner && !needsConfirmation && !isCancellationMode && !isCancelled && (
                   <>
