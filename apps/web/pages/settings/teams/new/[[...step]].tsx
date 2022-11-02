@@ -109,6 +109,7 @@ const CreateNewTeamPage = () => {
   const createPaymentIntentMutation = trpc.useMutation(["viewer.teams.createPaymentIntent"], {
     onSuccess: (data: { clientSecret: string }) => {
       setClientSecret(data.clientSecret);
+      setNewTeamData({ ...newTeamData, customerId: data.customerId, subscriptionId: data.subscriptionId });
       goToIndex(2);
     },
   });

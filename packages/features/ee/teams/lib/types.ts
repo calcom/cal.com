@@ -18,6 +18,8 @@ export interface PendingMember {
   role: MembershipRole;
   avatar: string | null;
   sendInviteEmail?: boolean;
+  customerId?: string;
+  subscriptionId: string;
 }
 
 export type NewTeamData = NewTeamFormValues &

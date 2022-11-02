@@ -704,7 +704,11 @@ export const viewerTeamsRouter = createProtectedRouter()
       const subscription = await createTeamSubscription(customer.id, input.billingFrequency, input.seats);
 
       // We just need the client secret for the payment intent
-      return { clientSecret: subscription.latest_invoice.payment_intent.client_secret };
+      return {
+        clientSecret: subscription?.latest_invoice?.payment_intent?.client_secret,
+        customerId: customer.id,
+        subscriptionId: subscription.id,
+      };
     },
   })
   .mutation("createTeam", {
@@ -723,9 +727,11 @@ export const viewerTeamsRouter = createProtectedRouter()
           sendInviteEmail: z.boolean().optional(),
         })
       ),
+      customerId: z.string(),
+      subscriptionId: z.string(),
     }),
     async resolve({ ctx, input }) {
-      const { name, slug, logo, members } = input;
+      const { name, slug, logo, members, customerId, subscriptionId } = input;
 
       const createTeam = await ctx.prisma.team.create({
         data: {
@@ -739,6 +745,10 @@ export const viewerTeamsRouter = createProtectedRouter()
               role: MembershipRole.OWNER,
               accepted: true,
             },
+          },
+          metadata: {
+            stripeCustomerId: customerId,
+            stripeSubscriptionId: subscriptionId,
           },
         },
       });
