@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useFormContext, Controller, useWatch } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
@@ -14,12 +14,18 @@ import { Icon } from "@calcom/ui";
 import { Select, Switch, Label, Input, Button, SettingsToggle, InputField } from "@calcom/ui/v2";
 import DateRangePicker from "@calcom/ui/v2/core/form/date-range-picker/DateRangePicker";
 
-export const durationArray = ["minutes"];
+export const durationArray: string[] = ["minutes"];
 
 export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const { eventType } = props;
+  let minimumBookingNoticeType = findDurationType(eventType.minimumBookingNotice);
+  const displayValue = convertToNewDurationType(
+    "minutes",
+    minimumBookingNoticeType,
+    eventType.minimumBookingNotice
+  );
   const PERIOD_TYPES = [
     {
       type: "ROLLING" as const,
@@ -34,6 +40,11 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
       prefix: t("indefinitely_into_future"),
     },
   ];
+
+  useEffect(() => {
+    durationArray.unshift(minimumBookingNoticeType);
+    formMethods.setValue("minimumBookingNotice", displayValue);
+  }, []);
 
   const periodType =
     PERIOD_TYPES.find((s) => s.type === eventType.periodType) ||
@@ -123,8 +134,6 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
             name="minimumBookingNotice"
             control={formMethods.control}
             render={() => {
-              let displayValue = eventType.minimumBookingNotice;
-              let minimumBookingNoticeType = findDurationType(displayValue);
               const minBookingValue = formMethods.watch("minimumBookingNotice");
               const durationTypeOptions = [
                 {
@@ -141,8 +150,6 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
                 },
               ];
 
-              displayValue = convertToNewDurationType("minutes", minimumBookingNoticeType, displayValue);
-
               return (
                 <>
                   <div className="w-1/2 md:w-3/4">
@@ -155,6 +162,11 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
                       defaultValue={displayValue}
                       {...formMethods.register("minimumBookingNotice", {
                         valueAsNumber: true,
+                        onChange: (value) => {
+                          value.target.value
+                            ? (eventType.minimumBookingNotice = JSON.parse(value.target.value))
+                            : null;
+                        },
                       })}
                     />
                   </div>
@@ -169,10 +181,10 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
                         durationArray.unshift(val.value);
                         const previousValue = durationArray[1];
                         minimumBookingNoticeType = val.value;
-                        formMethods.setValue(
-                          "minimumBookingNotice",
-                          Math.ceil(convertToNewDurationType(previousValue, val.value, minBookingValue))
+                        eventType.minimumBookingNotice = Math.ceil(
+                          convertToNewDurationType(previousValue, val.value, minBookingValue)
                         );
+                        formMethods.setValue("minimumBookingNotice", eventType.minimumBookingNotice);
                       }
                     }}
                     options={durationTypeOptions}

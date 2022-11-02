@@ -157,6 +157,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     eventType.minimumBookingNotice
   );
 
+  console.log(minimumBookingNoticeInMinutes, durationArray, eventType.minimumBookingNotice);
+
   const formMethods = useForm<FormValues>({
     defaultValues: {
       title: eventType.title,
