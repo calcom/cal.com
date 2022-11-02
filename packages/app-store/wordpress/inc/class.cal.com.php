@@ -10,7 +10,7 @@ class Cal
 
     private function includes(): void
     {
-        include_once(CALCOM_DIR . 'inc/class.embed.php');
+        include_once(CALCOM_DIR_PATH . 'inc/class.embed.php');
     }
 
     private function __construct()
@@ -18,11 +18,23 @@ class Cal
         $this->includes();
         $embed = new \CalCom\Embed;
         $embed->hooks();
+        $this->hooks();
     }
 
-    // private function hooks(): void
-    // {
-    // }
+    private function hooks(): void
+    {
+        add_action('wp_enqueue_scripts', [$this, 'register_scripts']);
+    }
+
+    /**
+     * Register needed JS scripts
+     * 
+     * @return void
+     */
+    public function register_scripts(): void
+    {
+        wp_register_script('calcom-embed-js', CALCOM_ASSETS_URL . 'js/embed.js');
+    }
 
     public static function get_instance(): self
     {

@@ -11,8 +11,10 @@
 
 defined('ABSPATH') || exit;
 
-defined('CALCOM_DIR') || define('CALCOM_DIR', plugin_dir_path(__FILE__));
+defined('CALCOM_DIR_PATH')          || define('CALCOM_DIR_PATH', plugin_dir_path(__FILE__));
+defined('CALCOM_DIR_URL')           || define('CALCOM_DIR_URL', plugin_dir_url(__FILE__));
+defined('CALCOM_ASSETS_URL')        || define('CALCOM_ASSETS_URL', CALCOM_DIR_URL . 'assets/');
 
-include_once(CALCOM_DIR . 'inc/class.cal.com.php');
+include_once(CALCOM_DIR_PATH . 'inc/class.cal.com.php');
 
 \CalCom\Cal::get_instance();

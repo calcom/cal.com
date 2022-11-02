@@ -12,6 +12,7 @@ class Embed
         add_shortcode('cal', [$this, 'shortcode']);
     }
 
+
     public function shortcode($atts): string
     {
         $atts = $this->prepare_atts($atts);
@@ -28,10 +29,45 @@ class Embed
     {
 
         if ($atts) {
-            return 'URL: ' . $atts['url'];
+
+            $output = '<div id="calcom-embed"></div>';
+
+            $this->load_embed_script();
+            $output .= $this->get_inline_embed_script($atts['url']);
+
+            return $output;
         }
 
         return '';
+    }
+
+    /**
+     * Adds inline embed js
+     * 
+     * @param $url Booking link
+     * @return string
+     */
+    public function get_inline_embed_script($url): string
+    {
+        $script = '<script>
+            const selector = document.getElementById("calcom-embed");
+            Cal("inline", {
+                elementOrSelector: selector,
+                calLink: "' . $url . '"
+            });
+        </script>';
+
+        return $script;
+    }
+
+    /**
+     * Enqueues embed script
+     * 
+     * @return void
+     */
+    private function load_embed_script(): void
+    {
+        wp_enqueue_script('calcom-embed-js');
     }
 
     /**
