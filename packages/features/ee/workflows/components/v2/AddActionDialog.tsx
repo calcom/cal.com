@@ -27,6 +27,7 @@ interface IAddActionDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   addAction: (action: WorkflowActions, sendTo?: string, numberRequired?: boolean) => void;
+  isFreeUser: boolean;
 }
 
 type AddActionFormValues = {
@@ -37,7 +38,7 @@ type AddActionFormValues = {
 
 export const AddActionDialog = (props: IAddActionDialog) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, addAction } = props;
+  const { isOpenDialog, setIsOpenDialog, addAction, isFreeUser } = props;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(false);
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(false);
   const actionOptions = getWorkflowActionOptions(t);
@@ -105,7 +106,15 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                             form.clearErrors("sendTo");
                           }
                         }}
-                        options={actionOptions}
+                        options={
+                          isFreeUser
+                            ? actionOptions.filter(
+                                (actionOption) =>
+                                  actionOption.value !== WorkflowActions.SMS_ATTENDEE &&
+                                  actionOption.value !== WorkflowActions.SMS_NUMBER
+                              )
+                            : actionOptions
+                        }
                       />
                     );
                   }}
