@@ -6,6 +6,9 @@ export const WEBAPP_URL =
 /** @deprecated use `WEBAPP_URL` */
 export const BASE_URL = WEBAPP_URL;
 export const WEBSITE_URL = process.env.NEXT_PUBLIC_WEBSITE_URL || "https://cal.com";
+export const WEBSITE_DOMAIN = WEBSITE_URL.replace(/http(s):\/\//, "");
+export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Cal";
+export const SUPPORT_MAIL_ADDRESS = process.env.NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS || "help@cal.com";
 
 // This is the URL from which all Cal Links and their assets are served.
 // Use website URL to make links shorter(cal.com and not app.cal.com)
