@@ -143,7 +143,7 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       section: "Security Settings",
       shortcut: ["c", "p"],
       keywords: "change modify password",
-      perform: () => router.push("/settings/security"),
+      perform: () => router.push("/settings/security/password"),
     },
     {
       id: "two-factor",
