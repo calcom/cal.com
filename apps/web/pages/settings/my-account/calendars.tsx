@@ -18,7 +18,7 @@ import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/Disconnect
 
 import { QueryCell } from "@lib/QueryCell";
 
-import { CalendarSwitch } from "@components/v2/settings/CalendarSwitch";
+import { CalendarSwitch } from "@components/settings/CalendarSwitch";
 
 const SkeletonLoader = () => {
   return (

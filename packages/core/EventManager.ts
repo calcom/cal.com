@@ -78,6 +78,9 @@ export default class EventManager {
     const appCredentials = getApps(user.credentials).flatMap((app) =>
       app.credentials.map((creds) => ({ ...creds, appName: app.name }))
     );
+    // This includes all calendar-related apps, traditional calendars such as Google Calendar
+    // (type google_calendar) and non-traditional calendars such as CRMs like Close.com
+    // (type closecom_other_calendar)
     this.calendarCredentials = appCredentials.filter((cred) => cred.type.endsWith("_calendar"));
     this.videoCredentials = appCredentials.filter((cred) => cred.type.endsWith("_video"));
   }
@@ -317,7 +320,10 @@ export default class EventManager {
         );
 
         if (credential) {
-          createdEvents.push(await createEvent(credential, event));
+          const createdEvent = await createEvent(credential, event);
+          if (createdEvent) {
+            createdEvents.push(createdEvent);
+          }
         }
       } else {
         const destinationCalendarCredentials = this.calendarCredentials.filter(
@@ -332,11 +338,13 @@ export default class EventManager {
        *  Not ideal but, if we don't find a destination calendar,
        * fallback to the first connected calendar
        */
-      const [credential] = this.calendarCredentials;
-      if (!credential) {
-        return [];
+      const [credential] = this.calendarCredentials.filter((cred) => cred.type === "calendar");
+      if (credential) {
+        const createdEvent = await createEvent(credential, event);
+        if (createdEvent) {
+          createdEvents.push(createdEvent);
+        }
       }
-      createdEvents.push(await createEvent(credential, event));
     }
 
     // Taking care of non-traditional calendar integrations

@@ -10,7 +10,7 @@ import { EmailField, Button } from "@calcom/ui/v2";
 import { getSession } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
 
-import AuthContainer from "@components/v2/ui/AuthContainer";
+import AuthContainer from "@components/ui/AuthContainer";
 
 export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
   const { t, i18n } = useLocale();
