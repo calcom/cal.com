@@ -14,6 +14,8 @@ import { createMember } from "@calcom/features/ee/teams/lib/inviteMember";
 import {
   deleteTeamFromStripe,
   purchaseTeamSubscription,
+  createTeamCustomer,
+  createTeamSubscription,
   createPaymentIntent,
   getTeamPricing,
   updatePaymentIntent,
@@ -688,23 +690,69 @@ export const viewerTeamsRouter = createProtectedRouter()
       return teamPrices;
     },
   })
-  .mutation("mutatePaymentIntent", {
+  .mutation("createPaymentIntent", {
     input: z.object({
-      amount: z.number(),
-      paymentIntentId: z.string().optional(),
+      teamName: z.string(),
+      billingFrequency: z.string(),
+      seats: z.number(),
     }),
     async resolve({ ctx, input }) {
-      const { amount, paymentIntentId } = input;
-      try {
-        // If there is no payment intent, then create one
-        if (!paymentIntentId) {
-          const paymentIntent = await createPaymentIntent({ amount, receiptEmail: ctx.user.email });
-          return paymentIntent;
-        }
+      console.log("🚀 ~ file: teams.tsx ~ line 699 ~ resolve ~ input", input);
+      // First create the customer
+      const customer = await createTeamCustomer(input.teamName, ctx.user.email);
 
-        await updatePaymentIntent({ amount, paymentIntentId });
-      } catch (e) {
-        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: e.message });
+      // Create the subscription for the team
+      const subscription = await createTeamSubscription(customer.id, input.billingFrequency, input.seats);
+
+      // We just need the client secret for the payment intent
+      return { clientSecret: subscription.latest_invoice.payment_intent.client_secret };
+    },
+  })
+  .mutation("createTeam", {
+    input: z.object({
+      name: z.string(),
+      slug: z.string(),
+      logo: z.string().optional(),
+      members: z.array(
+        z.object({
+          name: z.union([z.string(), z.null()]),
+          email: z.string(),
+          id: z.number().optional(),
+          username: z.union([z.string(), z.null()]),
+          role: z.union([z.literal("OWNER"), z.literal("ADMIN"), z.literal("MEMBER")]),
+          avatar: z.union([z.string(), z.null()]).optional(),
+          sendInviteEmail: z.boolean().optional(),
+        })
+      ),
+    }),
+    async resolve({ ctx, input }) {
+      const { name, slug, logo, members } = input;
+
+      const createTeam = await ctx.prisma.team.create({
+        data: {
+          name,
+          slug,
+          logo,
+          subscriptionStatus: "ACTIVE",
+          members: {
+            create: {
+              userId: ctx.user.id,
+              role: MembershipRole.OWNER,
+              accepted: true,
+            },
+          },
+        },
+      });
+
+      for (const member of members) {
+        if (member.id !== ctx.user.id)
+          createMember({
+            teamId: createTeam.id,
+            teamName: name,
+            inviter: ctx.user.name || "Owner",
+            pendingMember: member,
+          });
       }
+      return createTeam;
     },
   });

@@ -1,90 +1,68 @@
 import { PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import { NewTeamData } from "@calcom/features/ee/teams/lib/types";
+import { CAL_URL } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc/react";
 import { Switch, Button } from "@calcom/ui/v2";
 
 const PurchaseNewTeam = ({
-  newTeamData,
   paymentIntent,
   clientSecret,
-  teamPrices,
+  total,
+  billingFrequency,
+  newTeamData,
 }: {
-  newTeamData: NewTeamData;
   paymentIntent: string;
   clientSecret: string;
-  teamPrices: {
-    monthly: number;
-    yearly: number;
-  };
+  total: number;
+  billingFrequency: string;
+  newTeamData: NewTeamData;
 }) => {
-  const [message, setMessage] = useState("");
-  const [billingFrequency, setBillingFrequency] = useState("monthly");
+  const [errorMessage, setErrorMessage] = useState("");
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const stripe = useStripe();
   const elements = useElements();
+  const router = useRouter();
 
-  const updatePaymentIntentMutation = trpc.useMutation(["viewer.teams.mutatePaymentIntent"]);
+  const createTeamMutation = trpc.useMutation(["viewer.teams.createTeam"], {
+    onSuccess: (data) => {
+      router.push(`${CAL_URL}/settings/teams/${data.id}/profile`);
+    },
+  });
 
-  // Handle Stripe payment
-  useEffect(() => {
-    if (!stripe) {
-      return;
-    }
+  const handleSubmit = async () => {
+    if (!stripe || !elements) return;
 
-    if (!paymentIntent) {
-      return;
-    }
+    setPaymentProcessing(true);
 
-    stripe.retrievePaymentIntent(clientSecret).then(({ paymentIntent }) => {
-      switch (paymentIntent.status) {
-        case "succeeded":
-          setMessage("Payment succeeded!");
-          break;
-        case "processing":
-          setMessage("Your payment is processing.");
-          break;
-        case "requires_payment_method":
-          setMessage("Your payment was not successful, please try again.");
-          break;
-        default:
-          setMessage("Something went wrong.");
-          break;
-      }
+    const { error } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: `${CAL_URL}/settings/profile`,
+      },
+      redirect: "if_required",
     });
-  }, [stripe]);
+
+    if (error) {
+      console.log("🚀 ~ file: PurchaseNewTeam.tsx ~ line 71 ~ handleSubmit ~ error", error);
+    } else {
+      createTeamMutation.mutate(newTeamData);
+    }
+  };
 
   return (
     <>
-      {/* <div className="flex justify-between">
-        <p>Total</p>
-        <div>
-          <p>
-            {newTeamData.members.length} members x ${teamPrices[billingFrequency as keyof typeof teamPrices]}{" "}
-            / {billingFrequency} ={" "}
-            {newTeamData.members.length * teamPrices[billingFrequency as keyof typeof teamPrices]}
-          </p>
-        </div>
-      </div>
-      <hr />
-      <div className="mt-4 flex space-x-2">
-        <Switch onClick={() => setBillingFrequency(billingFrequency === "monthly" ? "yearly" : "monthly")} />
-        <p>
-          Switch to yearly and save{" "}
-          {newTeamData.members.length * (teamPrices.monthly * 12 - teamPrices.yearly)}
-        </p>
-      </div> */}
-      <hr className="my-4" />
       <PaymentElement />
-
       <Button
         className="mt-4 w-full justify-center"
         loading={paymentProcessing}
         onClick={() => handleSubmit()}>
-        Pay ${teamPrices[billingFrequency as keyof typeof teamPrices]}
+        Pay ${total} / {billingFrequency}
       </Button>
+      <p>Error processing payment: {errorMessage}</p>
     </>
   );
 };

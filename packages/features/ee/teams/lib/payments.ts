@@ -16,6 +16,30 @@ export const getTeamPricing = async () => {
   };
 };
 
+export const createTeamCustomer = async (teamName: string, ownerEmail: string) => {
+  return await stripe.customers.create({
+    name: teamName,
+    email: ownerEmail,
+  });
+};
+
+export const createTeamSubscription = async (customerId: string, billingFrequency: string, seats: number) => {
+  return await stripe.subscriptions.create({
+    customer: customerId,
+    items: [
+      {
+        price:
+          billingFrequency === "monthly"
+            ? process.env.STRIPE_TEAM_MONTHLY_PRICE_ID
+            : process.env.STRIPE_TEAM_YEARLY_PRICE_ID,
+        quantity: seats,
+      },
+    ],
+    payment_behavior: "default_incomplete",
+    expand: ["latest_invoice.payment_intent"],
+  });
+};
+
 export const purchaseTeamSubscription = async (input: { teamId: number; seats: number; email: string }) => {
   const { teamId, seats, email } = input;
   return await stripe.checkout.sessions.create({

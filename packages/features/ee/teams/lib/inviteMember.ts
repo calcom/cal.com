@@ -15,18 +15,19 @@ export const createMember = async ({
   pendingMember,
   language,
   teamSubscriptionActive,
-}): {
+}: {
   teamId: number;
   teamName: string;
+  inviter: string;
   pendingMember: PendingMember;
   language: string;
   teamSubscriptionActive?: boolean;
-} => {
-  if (pendingMember.username) {
+}) => {
+  if (pendingMember.username & pendingMember.id) {
     await prisma.membership.create({
       data: {
         teamId,
-        userId: pendingMember.userId,
+        userId: pendingMember.id,
         role: pendingMember.role as MembershipRole,
       },
     });

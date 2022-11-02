@@ -21,7 +21,7 @@ const AddNewTeamMembers = ({
   nextStep,
   teamPrices,
 }: {
-  nextStep: (values: PendingMember[]) => void;
+  nextStep: (values: { members: PendingMember[]; billingFrequency: "monthly" | "yearly" }) => void;
   teamPrices: {
     monthly: number;
     yearly: number;
@@ -68,7 +68,7 @@ const AddNewTeamMembers = ({
         name: session?.data.user.name || "",
         email: session?.data.user.email || "",
         username: session?.data.user.username || "",
-        userId: session?.data.user.id || "",
+        id: session?.data.user.id || "",
         role: "OWNER",
       });
     }
@@ -99,7 +99,7 @@ const AddNewTeamMembers = ({
 
   return (
     <>
-      <Form form={formMethods} handleSubmit={(values) => nextStep(values.members)}>
+      <Form form={formMethods} handleSubmit={(values) => nextStep(values)}>
         <Controller
           name="members"
           render={({ field: { value } }) => (
@@ -179,15 +179,24 @@ const AddNewTeamMembers = ({
                 </div>
               </div>
               <hr />
-              <div className="mt-4 flex space-x-2">
-                <Switch
-                  onClick={() => setBillingFrequency(billingFrequency === "monthly" ? "yearly" : "monthly")}
-                />
-                <p>
-                  Switch to yearly and save {numberOfMembers * (teamPrices.monthly * 12 - teamPrices.yearly)}
-                </p>
-              </div>
-
+              <Controller
+                control={formMethods.control}
+                name="billingFrequency"
+                defaultValue={"monthly"}
+                render={(field: { value }) => (
+                  <div className="mt-4 flex space-x-2">
+                    <Switch
+                      onCheckedChange={(e) =>
+                        formMethods.setValue("billingFrequency", e ? "yearly" : "monthly")
+                      }
+                    />
+                    <p>
+                      Switch to yearly and save{" "}
+                      {numberOfMembers * (teamPrices.monthly * 12 - teamPrices.yearly)}
+                    </p>
+                  </div>
+                )}
+              />
               <Button EndIcon={Icon.FiArrowRight} className="mt-6 w-full justify-center" type="submit">
                 {t("checkout")}
               </Button>

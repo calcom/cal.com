@@ -1,4 +1,4 @@
-import { Elements } from "@stripe/react-stripe-js";
+import { Elements, useElements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -45,6 +45,7 @@ const CreateNewTeamPage = () => {
     slug: "",
     logo: "",
     members: [],
+    billingFrequency: "monthly",
   });
   const [clientSecret, setClientSecret] = useState("");
   const [paymentIntent, setPaymentIntent] = useState("");
@@ -82,24 +83,18 @@ const CreateNewTeamPage = () => {
 
   const currentStepIndex = steps.indexOf(currentStep);
 
-  const createPaymentIntentMutation = trpc.useMutation(["viewer.teams.mutatePaymentIntent"], {
+  const createPaymentIntentMutation = trpc.useMutation(["viewer.teams.createPaymentIntent"], {
     onSuccess: (data) => {
-      console.log("🚀 ~ file: [[...step]].tsx ~ line 86 ~ CreateNewTeamPage ~ data", data);
-      setClientSecret(data.client_secret);
-      setPaymentIntent(data.id);
+      setClientSecret(data.clientSecret);
+      goToIndex(2);
     },
   });
 
   const getTeamPricesQuery = trpc.useQuery(["viewer.teams.getTeamPrices"], {
     onSuccess: (data) => {
       setTeamPrices(data);
-      console.log("🚀 ~ file: [[...step]].tsx ~ line 95 ~ CreateNewTeamPage ~ data", data);
     },
   });
-
-  useEffect(() => {
-    createPaymentIntentMutation.mutate({ amount: 1500 });
-  }, []);
 
   return (
     <div
@@ -133,7 +128,6 @@ const CreateNewTeamPage = () => {
                 <CreateNewTeam
                   nextStep={(values: NewTeamFormValues) => {
                     setNewTeamData({ ...values, members: [] });
-                    localStorage.setItem("newTeamValues", JSON.stringify(values));
                     goToIndex(1);
                   }}
                 />
@@ -146,17 +140,21 @@ const CreateNewTeamPage = () => {
               {currentStep === "add-team-members" && (
                 <AddNewTeamMembers
                   teamPrices={teamPrices}
-                  nextStep={(values: PendingMember[]) => {
-                    console.log("🚀 ~ file: [[...step]].tsx ~ line 144 ~ CreateNewTeamPage ~ values", values);
-                    setNewTeamData({ ...newTeamData, members: [...values] });
-                    // localStorage.removeItem("newTeamValues");
-                    // purchaseTeamMutation.mutate({
-                    //   ...newTeamData,
-                    //   members: [...values],
-                    //   language: i18n.language,
-                    // });
-                    createPaymentIntentMutation.mutate({ amount: values.length * 15 * 100 });
-                    goToIndex(2);
+                  nextStep={(values: {
+                    members: PendingMember[];
+                    billingFrequency: "monthly" | "yearly";
+                  }) => {
+                    console.log("🚀 ~ file: [[...step]].tsx ~ line 148 ~ CreateNewTeamPage ~ values", values);
+                    createPaymentIntentMutation.mutate({
+                      teamName: newTeamData.name,
+                      billingFrequency: values.billingFrequency,
+                      seats: values.members.length,
+                    });
+                    setNewTeamData({
+                      ...newTeamData,
+                      members: [...values.members],
+                      billingFrequency: values.billingFrequency,
+                    });
                   }}
                 />
               )}
@@ -164,9 +162,13 @@ const CreateNewTeamPage = () => {
               {currentStep === "purchase-new-team" && (
                 <Elements stripe={stripe} options={{ clientSecret }}>
                   <PurchaseNewTeam
-                    newTeamData={newTeamData}
                     paymentIntent={paymentIntent}
                     clientSecret={clientSecret}
+                    total={
+                      newTeamData.members.length *
+                      teamPrices[newTeamData.billingFrequency as keyof typeof teamPrices]
+                    }
+                    newTeamData={newTeamData}
                   />
                 </Elements>
               )}

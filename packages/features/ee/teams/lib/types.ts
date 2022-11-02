@@ -18,4 +18,5 @@ export interface PendingMember {
   sendInviteEmail?: boolean;
 }
 
-export type NewTeamData = NewTeamFormValues & NewTeamMembersFieldArray;
+export type NewTeamData = NewTeamFormValues &
+  NewTeamMembersFieldArray & { billingFrequency: "monthly" | "yearly" };
