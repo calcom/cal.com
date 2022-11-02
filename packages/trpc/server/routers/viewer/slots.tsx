@@ -1,9 +1,8 @@
 import { SchedulingType } from "@prisma/client";
 import { z } from "zod";
 
-import { getAggregateWorkingHours } from "@calcom/core/getAggregateWorkingHours";
+import { getBufferedBusyTimes } from "@calcom/core/getBusyTimes";
 import type { CurrentSeats } from "@calcom/core/getUserAvailability";
-import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
@@ -214,38 +213,30 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   if (!startTime.isValid() || !endTime.isValid()) {
     throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
   }
-  let currentSeats: CurrentSeats | undefined = undefined;
+  const currentSeats: CurrentSeats | undefined = undefined;
 
   /* We get all users working hours and busy slots */
   const usersWorkingHoursAndBusySlots = await Promise.all(
     eventType.users.map(async (currentUser) => {
-      const {
-        busy,
-        workingHours,
-        currentSeats: _currentSeats,
-        timeZone,
-      } = await getUserAvailability(
-        {
-          userId: currentUser.id,
-          username: currentUser.username || "",
-          dateFrom: startTime.format(),
-          dateTo: endTime.format(),
-          eventTypeId: input.eventTypeId,
-          afterEventBuffer: eventType.afterEventBuffer,
-        },
-        { user: currentUser, eventType, currentSeats }
-      );
-      if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
+      const busy = await getBufferedBusyTimes({
+        credentials: currentUser.credentials,
+        userId: currentUser.id,
+        eventTypeId: input.eventTypeId,
+        startTime: startTime.format(),
+        endTime: endTime.format(),
+        selectedCalendars: currentUser.selectedCalendars,
+        userBufferTime: currentUser.bufferTime,
+        afterEventBuffer: eventType.afterEventBuffer,
+      });
 
       return {
-        timeZone,
-        workingHours,
         busy,
         user: currentUser,
       };
     })
   );
-  const workingHours = getAggregateWorkingHours(usersWorkingHoursAndBusySlots, eventType.schedulingType);
+  // standard working hours for all users
+  const workingHours = [{ days: [0, 1, 2, 3, 4, 5, 6], startTime: 420, endTime: 1140 }];
   const computedAvailableSlots: Record<string, Slot[]> = {};
   const availabilityCheckProps = {
     eventLength: eventType.length,
@@ -299,22 +290,9 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       })
     );
 
-    //const timeInWorkingHours = (time: Dayjs, userWorkingHours: WorkingHours[]) => {
-    //return userWorkingHours.some((wh) => {
-    //const startOfAppointment = time.utc();
-    //const workFrom = startOfAppointment.startOf("day").add(wh.startTime, "minute");
-    //const workUntil = startOfAppointment.startOf("day").add(wh.endTime, "minute");
-    //const endOfAppointment = startOfAppointment.add(eventType.length, "minute");
-    //return wh.days.includes(startOfAppointment.day()) &&
-    //startOfAppointment.isBetween(workFrom, workUntil, null, "[]") &&
-    //endOfAppointment.isBetween(workFrom, workUntil, null, "[]");
-    //});
-    //}
-
     const userIsAvailable = (user: typeof eventType.users[number], time: Dayjs) => {
       const schedule = usersWorkingHoursAndBusySlots.find((s) => s.user.id === user.id);
       if (!schedule) return false;
-      //const inWorkingHours = timeInWorkingHours(time, schedule.workingHours);
       return checkIfIsAvailable({ time, ...schedule, ...availabilityCheckProps });
     };
 
@@ -341,7 +319,6 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   logger.debug(
     `checkForAvailability took ${checkForAvailabilityTime}ms and executed ${checkForAvailabilityCount} times`
   );
-  logger.silly(`Available slots: ${JSON.stringify(computedAvailableSlots)}`);
 
   return {
     slots: computedAvailableSlots,
