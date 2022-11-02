@@ -2,7 +2,7 @@ import { Suspense, useState } from "react";
 
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import { classNames } from "@calcom/lib";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBSITE_DOMAIN, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
@@ -75,7 +75,7 @@ const AddNewTeamMembers = (props: { teamId: number }) => {
                     {member.username ? (
                       <p className="text-gray-600">{`${WEBAPP_URL}/${member?.username}`}</p>
                     ) : (
-                      <p className="text-gray-600">{t("not_on_cal")}</p>
+                      <p className="text-gray-600">{t("not_on_cal", { domainName: WEBSITE_DOMAIN })}</p>
                     )}
                   </div>
                 </div>

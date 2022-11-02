@@ -1,5 +1,6 @@
 import { useRouter } from "next/router";
 
+import { WEBSITE_DOMAIN } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { SkeletonContainer } from "@calcom/ui/v2";
@@ -65,7 +66,7 @@ const NewWebhookView = () => {
     <>
       <Meta
         title="Add Webhook"
-        description="Receive meeting data in real-time when something happens in Cal.com"
+        description={t("add_webhook_description", { domainName: WEBSITE_DOMAIN })}
         backButton
       />
 

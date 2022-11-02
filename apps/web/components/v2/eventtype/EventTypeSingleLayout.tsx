@@ -67,7 +67,7 @@ function getNavigation(props: {
       name: "availability",
       href: `/event-types/${eventType.id}?tabName=availability`,
       icon: Icon.FiCalendar,
-      info: `Working Hours`, // TODO: Get this from props
+      info: `default_schedule_name`, // TODO: Get this from props
     },
     {
       name: "event_limit_tab_title",

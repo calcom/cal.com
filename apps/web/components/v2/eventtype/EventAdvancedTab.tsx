@@ -8,7 +8,7 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
-import { CAL_URL } from "@calcom/lib/constants";
+import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
@@ -101,7 +101,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
         <TextField
           label={t("event_name")}
           type="text"
-          placeholder={t("meeting_with_user")}
+          placeholder={t("meeting_with_user", { attendeeName: eventType.users[0]?.name })}
           defaultValue={eventType.eventName || ""}
           {...formMethods.register("eventName")}
           addOnSuffix={
@@ -256,7 +256,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
       <SettingsToggle
         data-testid="hashedLinkCheck"
         title={t("private_link")}
-        description={t("private_link_description")}
+        description={t("private_link_description", { appName: APP_NAME })}
         checked={hashedLinkVisible}
         onCheckedChange={(e) => {
           formMethods.setValue("hashedLink", e ? hashedUrl : undefined);
@@ -361,7 +361,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
             <TextField
               label={t("event_name")}
               type="text"
-              placeholder={t("meeting_with_user")}
+              placeholder={t("meeting_with_user", { attendeeName: eventType.users[0]?.name })}
               defaultValue={eventType.eventName || ""}
               {...formMethods.register("eventName")}
             />

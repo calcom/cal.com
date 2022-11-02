@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { Suspense } from "react";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBSITE_DOMAIN, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
@@ -13,12 +13,10 @@ import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import { WebhookListItem, WebhookListSkeleton } from "../components";
 
 const WebhooksView = () => {
+  const { t } = useLocale();
   return (
     <>
-      <Meta
-        title="Webhooks"
-        description="Receive meeting data in real-time when something happens in Cal.com"
-      />
+      <Meta title="Webhooks" description={t("webhooks_description", { domainName: WEBSITE_DOMAIN })} />
       <div>
         <Suspense fallback={<WebhookListSkeleton />}>
           <WebhooksList />
@@ -70,7 +68,7 @@ const WebhooksList = () => {
         <EmptyScreen
           Icon={Icon.FiLink}
           headline={t("create_your_first_webhook")}
-          description={t("create_your_first_webhook_description")}
+          description={t("create_your_first_webhook_description", { domainName: WEBSITE_DOMAIN })}
           buttonRaw={<NewWebhookButton />}
         />
       )}

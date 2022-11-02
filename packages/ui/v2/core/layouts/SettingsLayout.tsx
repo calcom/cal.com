@@ -125,7 +125,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
       <>
         <div className="desktop-only pt-4" />
         <VerticalTabItem
-          name="Back"
+          name={t("back")}
           href="/."
           icon={Icon.FiArrowLeft}
           textClassNames="text-md font-medium leading-none text-black"
@@ -377,7 +377,6 @@ function ShellHeader() {
             <div className="mb-1 h-6 w-32 animate-pulse rounded-md bg-gray-200" />
           )}
         </div>
-        <div className="ml-auto">{meta.CTA}</div>
       </div>
     </header>
   );
