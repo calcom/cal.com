@@ -1,4 +1,4 @@
 export * from "./Examples";
 export * from "./Note";
-export * from "./FancyTable";
+export * from "./VariantsTable";
 export * from "./Title";

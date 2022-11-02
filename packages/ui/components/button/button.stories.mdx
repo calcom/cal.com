@@ -1,5 +1,5 @@
 import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
-import { Examples, Example, Note, Title,FancyTable,VarientColumn} from '@calcom/storybook_v2/components'
+import { Examples, Example, Note, Title, VariantsTable, VariantColumn, RowTitles} from '@calcom/storybook_v2/components'
 import { Icon } from "@calcom/ui/Icon";
 
 import { Button } from './Button';
@@ -80,16 +80,32 @@ Button are clickable elements that initiates user actions. Labels in the button 
 
 <Canvas>
   <Story name="All variants">
-    <FancyTable >
-      <VarientColumn variant="Default">
+    <VariantsTable titles={['Primary', 'Secondary', 'Minimal']} columnMinWidth={150}>
+      <VariantRow variant="Default">
         <Button>Button text</Button>
-      </VarientColumn>
-      <VarientColumn variant="Secondary">
         <Button color="secondary">Button text</Button>
-      </VarientColumn>
-      <VarientColumn variant="Minimal">
         <Button color="minimal">Button text</Button>
-      </VarientColumn>
-    </FancyTable>
+      </VariantRow>
+      <VariantRow variant="Hover">
+        <Button className="sb-pseudo--hover">Button text</Button>
+        <Button className="sb-pseudo--hover" color="secondary">Button text</Button>
+        <Button className="sb-pseudo--hover" color="minimal">Button text</Button>
+      </VariantRow>
+      <VariantRow variant="Focus">
+        <Button className="sb-pseudo--focus">Button text</Button>
+        <Button className="sb-pseudo--focus" color="secondary">Button text</Button>
+        <Button className="sb-pseudo--focus" color="minimal">Button text</Button>
+      </VariantRow>
+      <VariantRow variant="Loading">
+        <Button loading>Button text</Button>
+        <Button loading color="secondary">Button text</Button>
+        <Button loading color="minimal">Button text</Button>
+      </VariantRow>
+      <VariantRow variant="Disabled">
+        <Button disabled>Button text</Button>
+        <Button disabled color="secondary">Button text</Button>
+        <Button disabled color="minimal">Button text</Button>
+      </VariantRow>
+    </VariantsTable>
   </Story>
 </Canvas>
