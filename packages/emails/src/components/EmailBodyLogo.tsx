@@ -8,7 +8,7 @@ const CommentIE = ({ html = "" }) => <RawHtml html={`<!--[if mso | IE]>${html}<!
 const EmailBodyLogo = () => {
   const image = IS_PRODUCTION
     ? WEBAPP_URL + "/emails/PestoLogo.png"
-    : "http://localhost:3000/emails/PestoLogo.png"; //TODO: Replace with prod url
+    : "http://calendar.pesto.tech/emails/PestoLogo.png";
 
   return (
     <>
