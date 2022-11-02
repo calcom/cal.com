@@ -697,7 +697,6 @@ export const viewerTeamsRouter = createProtectedRouter()
       seats: z.number(),
     }),
     async resolve({ ctx, input }) {
-      console.log("🚀 ~ file: teams.tsx ~ line 699 ~ resolve ~ input", input);
       // First create the customer
       const customer = await createTeamCustomer(input.teamName, ctx.user.email);
 

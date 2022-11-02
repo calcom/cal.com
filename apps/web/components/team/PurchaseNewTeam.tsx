@@ -9,16 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/v2";
 
-const PurchaseNewTeam = ({
-  total,
-  newTeamData,
-}: {
-  paymentIntent: string;
-  clientSecret: string;
-  total: number;
-  billingFrequency: string;
-  newTeamData: NewTeamData;
-}) => {
+const PurchaseNewTeam = ({ total, newTeamData }: { total: number; newTeamData: NewTeamData }) => {
   const { t } = useLocale();
   const [errorMessage, setErrorMessage] = useState("");
   const [paymentProcessing, setPaymentProcessing] = useState(false);

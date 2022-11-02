@@ -1,3 +1,5 @@
+import { MembershipRole } from "@prisma/client";
+
 export interface NewTeamMembersFieldArray {
   members: PendingMember[];
 }
@@ -13,10 +15,15 @@ export interface PendingMember {
   email: string;
   id?: number;
   username: string | null;
-  role: "OWNER" | "ADMIN" | "MEMBER";
+  role: MembershipRole;
   avatar: string | null;
   sendInviteEmail?: boolean;
 }
 
 export type NewTeamData = NewTeamFormValues &
   NewTeamMembersFieldArray & { billingFrequency: "monthly" | "yearly" };
+
+export interface TeamPrices {
+  monthly: number;
+  yearly: number;
+}

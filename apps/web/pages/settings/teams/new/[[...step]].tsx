@@ -1,18 +1,23 @@
-import { Elements, useElements } from "@stripe/react-stripe-js";
+import { MembershipRole } from "@prisma/client";
+import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { z } from "zod";
 
 // import TeamGeneralSettings from "@calcom/features/teams/createNewTeam/TeamGeneralSettings";
 import AddNewTeamMembers from "@calcom/features/ee/teams/components/v2/AddNewTeamMembers";
 import CreateNewTeam from "@calcom/features/ee/teams/components/v2/CreateNewTeam";
-import { NewTeamFormValues, PendingMember, NewTeamData } from "@calcom/features/ee/teams/lib/types";
+import {
+  NewTeamFormValues,
+  PendingMember,
+  NewTeamData,
+  TeamPrices,
+} from "@calcom/features/ee/teams/lib/types";
 import { STRIPE_PUBLISHABLE_KEY } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 
 import { StepCard } from "@components/getting-started/components/StepCard";
@@ -38,6 +43,18 @@ const stepRouteSchema = z.object({
   step: z.array(z.enum(steps)).default([INITIAL_STEP]),
 });
 
+const defaultMember = [
+  {
+    name: "",
+    email: "",
+    username: "",
+    id: 0,
+    role: "MEMBER" as MembershipRole,
+    avatar: null,
+    sendInviteEmail: false,
+  },
+];
+
 const CreateNewTeamPage = () => {
   const router = useRouter();
   const [newTeamData, setNewTeamData] = useState<NewTeamData>({
@@ -48,10 +65,12 @@ const CreateNewTeamPage = () => {
     billingFrequency: "monthly",
   });
   const [clientSecret, setClientSecret] = useState("");
-  const [paymentIntent, setPaymentIntent] = useState("");
-  const [teamPrices, setTeamPrices] = useState({});
+  const [teamPrices, setTeamPrices] = useState({
+    monthly: 0,
+    yearly: 0,
+  });
 
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
 
   const result = stepRouteSchema.safeParse(router.query);
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
@@ -88,14 +107,14 @@ const CreateNewTeamPage = () => {
   const currentStepIndex = steps.indexOf(currentStep);
 
   const createPaymentIntentMutation = trpc.useMutation(["viewer.teams.createPaymentIntent"], {
-    onSuccess: (data) => {
+    onSuccess: (data: { clientSecret: string }) => {
       setClientSecret(data.clientSecret);
       goToIndex(2);
     },
   });
 
   const getTeamPricesQuery = trpc.useQuery(["viewer.teams.getTeamPrices"], {
-    onSuccess: (data) => {
+    onSuccess: (data: TeamPrices) => {
       setTeamPrices(data);
     },
   });
@@ -131,7 +150,7 @@ const CreateNewTeamPage = () => {
               {currentStep === "create-a-new-team" && (
                 <CreateNewTeam
                   nextStep={(values: NewTeamFormValues) => {
-                    setNewTeamData({ ...values, members: [] });
+                    setNewTeamData({ ...values, members: defaultMember, billingFrequency: "monthly" });
                     goToIndex(1);
                   }}
                 />
@@ -148,7 +167,6 @@ const CreateNewTeamPage = () => {
                     members: PendingMember[];
                     billingFrequency: "monthly" | "yearly";
                   }) => {
-                    console.log("🚀 ~ file: [[...step]].tsx ~ line 148 ~ CreateNewTeamPage ~ values", values);
                     createPaymentIntentMutation.mutate({
                       teamName: newTeamData.name,
                       billingFrequency: values.billingFrequency,
@@ -166,8 +184,6 @@ const CreateNewTeamPage = () => {
               {currentStep === "purchase-new-team" && (
                 <Elements stripe={stripe} options={{ clientSecret }}>
                   <PurchaseNewTeam
-                    paymentIntent={paymentIntent}
-                    clientSecret={clientSecret}
                     total={
                       newTeamData.members.length *
                       teamPrices[newTeamData.billingFrequency as keyof typeof teamPrices]

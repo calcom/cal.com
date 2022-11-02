@@ -1,5 +1,4 @@
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 
@@ -7,14 +6,13 @@ import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberIn
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Avatar, Badge, Button, showToast, Switch } from "@calcom/ui/v2/core";
 import { Form } from "@calcom/ui/v2/core/form";
 import { SkeletonContainer, SkeletonText, SkeletonAvatar } from "@calcom/ui/v2/core/skeleton";
 
-import { NewTeamMembersFieldArray, PendingMember } from "../../lib/types";
+import { PendingMember, TeamPrices } from "../../lib/types";
 import { NewMemberForm } from "../MemberInvitationModal";
 
 const AddNewTeamMembers = ({
@@ -22,14 +20,10 @@ const AddNewTeamMembers = ({
   teamPrices,
 }: {
   nextStep: (values: { members: PendingMember[]; billingFrequency: "monthly" | "yearly" }) => void;
-  teamPrices: {
-    monthly: number;
-    yearly: number;
-  };
+  teamPrices: TeamPrices;
 }) => {
   const { t } = useLocale();
   const session = useSession();
-  const router = useRouter();
 
   const [memberInviteModal, setMemberInviteModal] = useState(false);
   const [inviteMemberInput, setInviteMemberInput] = useState<NewMemberForm>({
