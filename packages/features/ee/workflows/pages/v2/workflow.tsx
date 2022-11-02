@@ -85,7 +85,6 @@ function WorkflowPage() {
     data: workflow,
     isError,
     error,
-    dataUpdatedAt,
   } = trpc.viewer.workflows.get.useQuery(
     { id: +workflowId },
     {
@@ -94,7 +93,7 @@ function WorkflowPage() {
   );
 
   useEffect(() => {
-    if (workflow && !form.getValues("trigger")) {
+    if (workflow) {
       setSelectedEventTypes(
         workflow.activeOn.map((active) => ({
           value: String(active.eventType.id),
@@ -134,7 +133,7 @@ function WorkflowPage() {
       form.setValue("activeOn", activeOn || []);
       setIsAllDataLoaded(true);
     }
-  }, [dataUpdatedAt]);
+  }, [workflow]);
 
   const updateMutation = trpc.viewer.workflows.update.useMutation({
     onSuccess: async ({ workflow }) => {
