@@ -246,6 +246,40 @@ const loggedInViewerRouter = createProtectedRouter()
       return;
     },
   })
+  .mutation("deleteMeWithoutPassword", {
+    async resolve({ ctx }) {
+      const user = await prisma.user.findUnique({
+        where: {
+          email: ctx.user.email.toLowerCase(),
+        },
+      });
+      if (!user) {
+        throw new Error(ErrorCode.UserNotFound);
+      }
+
+      if (user.identityProvider === IdentityProvider.CAL) {
+        throw new Error(ErrorCode.SocialIdentityProviderRequired);
+      }
+
+      if (user.twoFactorEnabled) {
+        throw new Error(ErrorCode.SocialIdentityProviderRequired);
+      }
+
+      // Remove me from Stripe
+      await deleteStripeCustomer(user).catch(console.warn);
+
+      // Remove my account
+      const deletedUser = await ctx.prisma.user.delete({
+        where: {
+          id: ctx.user.id,
+        },
+      });
+      // Sync Services
+      syncServicesDeleteWebUser(deletedUser);
+
+      return;
+    },
+  })
   .mutation("away", {
     input: z.object({
       away: z.boolean(),
@@ -265,6 +299,8 @@ const loggedInViewerRouter = createProtectedRouter()
     async resolve({ ctx }) {
       const { prisma } = ctx;
       const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+        // Position is required by lodash to sort on it. Don't remove it, TS won't complain but it would silently break reordering
+        position: true,
         hashedLink: true,
         destinationCalendar: true,
         team: {
@@ -736,11 +772,19 @@ const loggedInViewerRouter = createProtectedRouter()
       const { variant, exclude, onlyInstalled } = input;
       const { credentials } = user;
       let apps = getApps(credentials).map(
-        ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => ({
-          ...app,
-          credentialIds: credentials.filter((c) => c.type === app.type).map((c) => c.id),
-        })
+        ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => {
+          const credentialIds = credentials.filter((c) => c.type === app.type).map((c) => c.id);
+          const invalidCredentialIds = credentials
+            .filter((c) => c.type === app.type && c.invalid)
+            .map((c) => c.id);
+          return {
+            ...app,
+            credentialIds,
+            invalidCredentialIds,
+          };
+        }
       );
+
       if (exclude) {
         // exclusion filter
         apps = apps.filter((item) => (exclude ? !exclude.includes(item.variant) : true));
@@ -898,14 +942,20 @@ const loggedInViewerRouter = createProtectedRouter()
       // Checking the status of payment directly from stripe allows to avoid the situation where the user has got the refund or maybe something else happened asyncly at stripe but our DB thinks it's still paid for
       // TODO: Test the case where one time payment is refunded.
       const premiumUsernameCheckoutSessionId = metadata?.checkoutSessionId;
-      if (premiumUsernameCheckoutSessionId) {
-        const checkoutSession = await stripe.checkout.sessions.retrieve(premiumUsernameCheckoutSessionId);
-        const canUserHavePremiumUsername = checkoutSession.payment_status == "paid";
-
-        if (isPremiumUsername && !canUserHavePremiumUsername) {
+      if (isPremiumUsername) {
+        // You can't have premium username without every going to a checkout session
+        if (!premiumUsernameCheckoutSessionId) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "You need to pay for premium username",
+          });
+        }
+        const checkoutSession = await stripe.checkout.sessions.retrieve(premiumUsernameCheckoutSessionId);
+        const canUserHavePremiumUsername = checkoutSession.payment_status == "paid";
+        if (!canUserHavePremiumUsername) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Your last checkout session for premium username is not paid",
           });
         }
       }

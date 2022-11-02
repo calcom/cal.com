@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /// <reference path="../types/ical.d.ts"/>
-import { Credential, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import ICAL from "ical.js";
 import type { Attendee, DateArray, DurationObject, Person } from "ics";
 import { createEvent } from "ics";
@@ -26,6 +26,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 
 import { getLocation, getRichDescription } from "./CalEventParser";
 import { symmetricDecrypt } from "./crypto";
@@ -68,7 +69,7 @@ export default abstract class BaseCalendarService implements Calendar {
   protected integrationName = "";
   private log: typeof logger;
 
-  constructor(credential: Credential, integrationName: string, url?: string) {
+  constructor(credential: CredentialPayload, integrationName: string, url?: string) {
     this.integrationName = integrationName;
 
     const {
@@ -187,23 +188,49 @@ export default abstract class BaseCalendarService implements Calendar {
           additionalInfo: {},
         };
       }
-
+      let calendarEvent: CalendarEventType;
       const eventsToUpdate = events.filter((e) => e.uid === uid);
       return Promise.all(
-        eventsToUpdate.map((e) => {
+        eventsToUpdate.map((eventItem) => {
+          calendarEvent = eventItem;
           return updateCalendarObject({
             calendarObject: {
-              url: e.url,
-              data: iCalString,
-              etag: e?.etag,
+              url: calendarEvent.url,
+              // ensures compliance with standard iCal string (known as iCal2.0 by some) required by various providers
+              data: iCalString?.replace(/METHOD:[^\r\n]+\r\n/g, ""),
+              etag: calendarEvent?.etag,
             },
             headers: this.headers,
           });
         })
-      ).then((p) => p.map((r) => r.json() as unknown as NewCalendarEventType));
+      ).then((responses) =>
+        responses.map((response) => {
+          if (response.status >= 200 && response.status < 300) {
+            return {
+              uid,
+              type: this.credentials.type,
+              id: typeof calendarEvent.uid === "string" ? calendarEvent.uid : "-1",
+              password: "",
+              url: calendarEvent.url,
+              additionalInfo:
+                typeof event.additionalInformation === "string" ? event.additionalInformation : {},
+            };
+          } else {
+            this.log.error("Error: Status Code", response.status);
+            return {
+              uid,
+              type: event.type,
+              id: typeof event.uid === "string" ? event.uid : "-1",
+              password: "",
+              url: typeof event.location === "string" ? event.location : "-1",
+              additionalInfo:
+                typeof event.additionalInformation === "string" ? event.additionalInformation : {},
+            };
+          }
+        })
+      );
     } catch (reason) {
       this.log.error(reason);
-
       throw reason;
     }
   }
@@ -213,7 +240,6 @@ export default abstract class BaseCalendarService implements Calendar {
       const events = await this.getEventsByUID(uid);
 
       const eventsToDelete = events.filter((event) => event.uid === uid);
-
       await Promise.all(
         eventsToDelete.map((event) => {
           return deleteCalendarObject({
@@ -275,7 +301,7 @@ export default abstract class BaseCalendarService implements Calendar {
     const events: { start: string; end: string }[] = [];
 
     objects.forEach((object) => {
-      if (object.data == null) return;
+      if (object.data == null || JSON.stringify(object.data) == "{}") return;
 
       const jcalData = ICAL.parse(sanitizeCalendarObject(object));
       const vcalendar = new ICAL.Component(jcalData);
@@ -330,7 +356,7 @@ export default abstract class BaseCalendarService implements Calendar {
           } catch (error) {
             if (error instanceof Error && error.message !== currentError) {
               currentError = error.message;
-              console.log("error", error);
+              this.log.error("error", error);
             }
           }
           if (!currentEvent) return;
