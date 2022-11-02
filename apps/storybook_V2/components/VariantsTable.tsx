@@ -19,9 +19,9 @@ export function VariantsTable({
     <div
       className={classNames(
         isDark &&
-          "relative py-8 pr-8 before:absolute before:left-0 before:top-0 before:block before:h-full before:w-screen before:bg-[#22252A]"
+          "relative py-8 before:absolute before:left-0 before:top-0 before:block before:h-full before:w-screen before:bg-[#22252A]"
       )}>
-      <div className="z-1 relative mx-auto w-full max-w-[1200px] overflow-auto pt-6">
+      <div className="z-1 relative mx-auto w-full max-w-[1200px] overflow-auto pr-8 pt-6">
         <table>
           <RowTitles titles={titles} />
           {columns.map((column) => (
