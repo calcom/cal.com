@@ -57,5 +57,3 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
     </ul>
   );
 };
-
-export default AvatarGroup;

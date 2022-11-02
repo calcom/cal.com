@@ -2,7 +2,7 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
-import Badge from "@calcom/ui/components/badge";
+import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import Switch from "@calcom/ui/v2/core/Switch";
 import { Tooltip } from "@calcom/ui/v2/core/Tooltip";

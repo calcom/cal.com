@@ -60,5 +60,3 @@ export const Badge = function Badge(props: BadgeProps) {
     </div>
   );
 };
-
-export default Badge;
