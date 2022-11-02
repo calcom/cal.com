@@ -163,6 +163,7 @@ const CreateNewTeamPage = () => {
 
               {currentStep === "add-team-members" && (
                 <AddNewTeamMembers
+                  newTeamData={newTeamData}
                   teamPrices={teamPrices}
                   nextStep={(values: {
                     members: PendingMember[];

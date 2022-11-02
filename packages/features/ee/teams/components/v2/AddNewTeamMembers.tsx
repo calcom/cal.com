@@ -1,9 +1,11 @@
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import { useForm, Controller, useFieldArray } from "react-hook-form";
 
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import { classNames } from "@calcom/lib";
+import { CAL_URL } from "@calcom/lib/constants";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -12,18 +14,21 @@ import { Avatar, Badge, Button, showToast, Switch } from "@calcom/ui/v2/core";
 import { Form } from "@calcom/ui/v2/core/form";
 import { SkeletonContainer, SkeletonText, SkeletonAvatar } from "@calcom/ui/v2/core/skeleton";
 
-import { PendingMember, TeamPrices } from "../../lib/types";
+import { PendingMember, TeamPrices, NewTeamData, NewTeamMembersFieldArray } from "../../lib/types";
 import { NewMemberForm } from "../MemberInvitationModal";
 
 const AddNewTeamMembers = ({
   nextStep,
   teamPrices,
+  newTeamData,
 }: {
   nextStep: (values: { members: PendingMember[]; billingFrequency: "monthly" | "yearly" }) => void;
   teamPrices: TeamPrices;
+  newTeamData: NewTeamData;
 }) => {
   const { t } = useLocale();
   const session = useSession();
+  const router = useRouter();
 
   const [memberInviteModal, setMemberInviteModal] = useState(false);
   const [inviteMemberInput, setInviteMemberInput] = useState<NewMemberForm>({
@@ -36,7 +41,7 @@ const AddNewTeamMembers = ({
   const [billingFrequency, setBillingFrequency] = useState("monthly");
 
   const formMethods = useForm();
-  const membersFieldArray = useFieldArray<PendingMember[]>({
+  const membersFieldArray = useFieldArray({
     control: formMethods.control,
     name: "members",
   });
@@ -57,12 +62,13 @@ const AddNewTeamMembers = ({
 
   // Set current user as team owner
   useEffect(() => {
+    if (!session.data) router.push(`${CAL_URL}/settings/profile`);
     if (session.status !== "loading" && !formMethods.getValues("members").length) {
       membersFieldArray.append({
-        name: session?.data.user.name || "",
-        email: session?.data.user.email || "",
-        username: session?.data.user.username || "",
-        id: session?.data.user.id || "",
+        name: session?.data?.user.name || "",
+        email: session?.data?.user.email || "",
+        username: session?.data?.user.username || "",
+        id: session?.data?.user.id || "",
         role: "OWNER",
       });
     }
