@@ -7,7 +7,7 @@ import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
 import { EventTypeAppCardComponentProps } from "@calcom/app-store/types";
 import { EventTypeAppsList } from "@calcom/app-store/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import ErrorBoundary from "@calcom/ui/ErrorBoundary";
 import { Button, EmptyScreen } from "@calcom/ui/v2";
@@ -21,7 +21,7 @@ function AppCardWrapper({
   getAppData,
   setAppData,
 }: {
-  app: inferQueryOutput<"viewer.apps">[number];
+  app: RouterOutputs["viewer"]["apps"][number];
   eventType: EventType;
   getAppData: GetAppData;
   setAppData: SetAppData;
@@ -43,12 +43,9 @@ function AppCardWrapper({
 
 export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
   const { t } = useLocale();
-  const { data: eventTypeApps, isLoading } = trpc.useQuery([
-    "viewer.apps",
-    {
-      extendsFeature: "EventType",
-    },
-  ]);
+  const { data: eventTypeApps, isLoading } = trpc.viewer.apps.useQuery({
+    extendsFeature: "EventType",
+  });
   const methods = useFormContext<FormValues>();
   const installedApps = eventTypeApps?.filter((app) => app.credentials.length);
   const notInstalledApps = eventTypeApps?.filter((app) => !app.credentials.length);

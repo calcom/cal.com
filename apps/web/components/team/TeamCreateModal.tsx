@@ -2,10 +2,9 @@ import { useRef, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui";
 import { Icon } from "@calcom/ui/Icon";
 import { Alert } from "@calcom/ui/v2/core/Alert";
-import { Dialog, DialogContent, DialogFooter } from "@calcom/ui/v2/core/Dialog";
+import { Dialog, DialogContent } from "@calcom/ui/v2/core/Dialog";
 
 interface Props {
   isOpen: boolean;
@@ -18,9 +17,9 @@ export default function TeamCreate(props: Props) {
   const [errorMessage, setErrorMessage] = useState<null | string>(null);
   const nameRef = useRef<HTMLInputElement>() as React.MutableRefObject<HTMLInputElement>;
 
-  const createTeamMutation = trpc.useMutation("viewer.teams.create", {
+  const createTeamMutation = trpc.viewer.teams.create.useMutation({
     onSuccess: () => {
-      utils.invalidateQueries(["viewer.teams.list"]);
+      utils.viewer.teams.list.invalidate();
       props.onClose();
     },
     onError: (e) => {

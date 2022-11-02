@@ -24,9 +24,12 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
   const router = useRouter();
   let queryAvailability;
   if (defaultScheduleId) {
-    queryAvailability = trpc.useQuery(["viewer.availability.schedule", { scheduleId: defaultScheduleId }], {
-      enabled: router.isReady,
-    });
+    queryAvailability = trpc.viewer.availability.schedule.get.useQuery(
+      { scheduleId: defaultScheduleId },
+      {
+        enabled: router.isReady,
+      }
+    );
   }
 
   const availabilityForm = useForm({
@@ -43,8 +46,8 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
       nextStep();
     },
   };
-  const createSchedule = trpc.useMutation("viewer.availability.schedule.create", mutationOptions);
-  const updateSchedule = trpc.useMutation("viewer.availability.schedule.update", mutationOptions);
+  const createSchedule = trpc.viewer.availability.schedule.create.useMutation(mutationOptions);
+  const updateSchedule = trpc.viewer.availability.schedule.update.useMutation(mutationOptions);
   return (
     <Form
       className="w-full bg-white text-black dark:bg-opacity-5 dark:text-white"

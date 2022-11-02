@@ -1,4 +1,3 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventTypeCustomInput } from "@prisma/client/";
 import Link from "next/link";
 import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
@@ -20,8 +19,6 @@ import {
   Label,
   SettingsToggle,
   showToast,
-  Skeleton,
-  Switch,
   TextField,
   Tooltip,
 } from "@calcom/ui/v2";
@@ -37,7 +34,7 @@ const generateHashedLink = (id: number) => {
 };
 
 export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered, "eventType" | "team">) => {
-  const connectedCalendarsQuery = trpc.useQuery(["viewer.connectedCalendars"]);
+  const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
   const [showEventNameTip, setShowEventNameTip] = useState(false);

@@ -76,7 +76,7 @@ function CalendarSwitch(props: {
     },
     {
       async onSettled() {
-        await utils.invalidateQueries(["viewer.integrations"]);
+        await utils.viewer.integrations.invalidate();
       },
       onError() {
         showToast(`Something went wrong when toggling "${props.title}""`, "error");
@@ -106,7 +106,7 @@ function CalendarSwitch(props: {
 
 function CalendarList(props: Props) {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.integrations", { variant: "calendar", onlyInstalled: false }]);
+  const query = trpc.viewer.integrations.useQuery({ variant: "calendar", onlyInstalled: false });
 
   return (
     <QueryCell
@@ -143,7 +143,9 @@ function CalendarList(props: Props) {
 // todo: @hariom extract this into packages/apps-store as "GeneralAppSettings"
 function ConnectedCalendarsList(props: Props) {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.connectedCalendars"], { suspense: true });
+  const query = trpc.viewer.connectedCalendars.useQuery(undefined, {
+    suspense: true,
+  });
   const { fromOnboarding } = props;
   return (
     <QueryCell
@@ -234,19 +236,19 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
   const utils = trpc.useContext();
   const onChanged = () =>
     Promise.allSettled([
-      utils.invalidateQueries(["viewer.integrations", { variant: "calendar", onlyInstalled: true }], {
-        exact: true,
-      }),
-      utils.invalidateQueries(["viewer.connectedCalendars"]),
+      utils.viewer.integrations.invalidate(
+        { variant: "calendar", onlyInstalled: true },
+        {
+          exact: true,
+        }
+      ),
+      utils.viewer.connectedCalendars.invalidate(),
     ]);
-  const query = trpc.useQuery(["viewer.connectedCalendars"]);
-  const installedCalendars = trpc.useQuery([
-    "viewer.integrations",
-    { variant: "calendar", onlyInstalled: true },
-  ]);
-  const mutation = trpc.useMutation("viewer.setDestinationCalendar", {
+  const query = trpc.viewer.connectedCalendars.useQuery();
+  const installedCalendars = trpc.viewer.integrations.useQuery({ variant: "calendar", onlyInstalled: true });
+  const mutation = trpc.viewer.setDestinationCalendar.useMutation({
     onSuccess: () => {
-      utils.invalidateQueries(["viewer.connectedCalendars"]);
+      utils.viewer.connectedCalendars.invalidate();
     },
   });
   return (

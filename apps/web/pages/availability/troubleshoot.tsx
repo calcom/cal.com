@@ -19,18 +19,16 @@ const AvailabilityView = ({ user }: { user: User }) => {
   const { t } = useLocale();
   const [selectedDate, setSelectedDate] = useState(dayjs());
 
-  const { data, isLoading } = trpc.useQuery(
-    [
-      "viewer.availability.user",
-      {
-        username: user.username!,
-        dateFrom: selectedDate.startOf("day").utc().format(),
-        dateTo: selectedDate.endOf("day").utc().format(),
-        withSource: true,
-      },
-    ],
+  const { data, isLoading } = trpc.viewer.availability.user.useQuery(
+    {
+      username: user.username!,
+      dateFrom: selectedDate.startOf("day").utc().format(),
+      dateTo: selectedDate.endOf("day").utc().format(),
+      withSource: true,
+    },
     {
       enabled: !!user.username,
+      trpc: {},
     }
   );
 
@@ -99,7 +97,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
 };
 
 export default function Troubleshoot() {
-  const { data, isLoading } = trpc.useQuery(["viewer.me"]);
+  const { data, isLoading } = trpc.viewer.me.useQuery();
   const { t } = useLocale();
   return (
     <div>

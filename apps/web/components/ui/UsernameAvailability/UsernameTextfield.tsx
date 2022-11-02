@@ -58,7 +58,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
 
   const utils = trpc.useContext();
 
-  const updateUsername = trpc.useMutation("viewer.updateProfile", {
+  const updateUsername = trpc.viewer.updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
       setCurrentUsername(inputUsernameValue);
@@ -68,7 +68,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
       onErrorMutation && onErrorMutation(error);
     },
     async onSettled() {
-      await utils.invalidateQueries(["viewer.public.i18n"]);
+      await utils.viewer.public.i18n.invalidate();
     },
   });
 

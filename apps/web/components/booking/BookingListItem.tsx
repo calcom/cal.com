@@ -43,15 +43,15 @@ function BookingListItem(booking: BookingItemProps) {
   const router = useRouter();
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
-  const mutation = trpc.useMutation(["viewer.bookings.confirm"], {
+  const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: () => {
       setRejectionDialogIsOpen(false);
       showToast(t("booking_confirmation_success"), "success");
-      utils.invalidateQueries("viewer.bookings");
+      utils.viewer.bookings.invalidate();
     },
     onError: () => {
       showToast(t("booking_confirmation_failed"), "error");
-      utils.invalidateQueries("viewer.bookings");
+      utils.viewer.bookings.invalidate();
     },
   });
 
@@ -159,11 +159,11 @@ function BookingListItem(booking: BookingItemProps) {
   const startTime = dayjs(booking.startTime).format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
-  const setLocationMutation = trpc.useMutation("viewer.bookings.editLocation", {
+  const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
       showToast(t("location_updated"), "success");
       setIsOpenLocationDialog(false);
-      utils.invalidateQueries("viewer.bookings");
+      utils.viewer.bookings.invalidate();
     },
   });
 

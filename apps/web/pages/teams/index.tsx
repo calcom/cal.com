@@ -17,7 +17,7 @@ function Teams() {
   const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const { data, isLoading } = trpc.useQuery(["viewer.teams.list"], {
+  const { data, isLoading } = trpc.viewer.teams.list.useQuery(undefined, {
     onError: (e) => {
       setErrorMessage(e.message);
     },

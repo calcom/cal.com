@@ -16,15 +16,15 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const meQuery = trpc.useQuery(["viewer.me"]);
+  const meQuery = trpc.viewer.me.useQuery();
 
-  const deleteMutation = trpc.useMutation("viewer.availability.schedule.delete", {
+  const deleteMutation = trpc.viewer.availability.schedule.delete.useMutation({
     onMutate: async ({ scheduleId }) => {
-      await utils.cancelQuery(["viewer.availability.list"]);
-      const previousValue = utils.getQueryData(["viewer.availability.list"]);
+      await utils.viewer.availability.list.cancel();
+      const previousValue = utils.viewer.availability.list.getData();
       if (previousValue) {
         const filteredValue = previousValue.schedules.filter(({ id }) => id !== scheduleId);
-        utils.setQueryData(["viewer.availability.list"], { ...previousValue, schedules: filteredValue });
+        utils.viewer.availability.list.setData(undefined, { ...previousValue, schedules: filteredValue });
       }
 
       return { previousValue };
@@ -32,7 +32,7 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
 
     onError: (err, variables, context) => {
       if (context?.previousValue) {
-        utils.setQueryData(["viewer.availability.list"], context.previousValue);
+        utils.viewer.availability.list.setData(undefined, context.previousValue);
       }
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
@@ -40,7 +40,7 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
       }
     },
     onSettled: () => {
-      utils.invalidateQueries(["viewer.availability.list"]);
+      utils.viewer.availability.list.invalidate();
     },
     onSuccess: () => {
       showToast(t("schedule_deleted_successfully"), "success");

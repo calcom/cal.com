@@ -1,11 +1,15 @@
 import { EventTypeCustomInput, MembershipRole, PeriodType, Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+// REVIEW: From lint error
+import _ from "lodash";
 import { z } from "zod";
 
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import { validateBookingLimitOrder } from "@calcom/lib";
+import { CAL_URL } from "@calcom/lib/constants";
+import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
 import { _DestinationCalendarModel, _EventTypeCustomInputModel, _EventTypeModel } from "@calcom/prisma/zod";
 import { EventTypeMetaDataSchema, stringOrNumber } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
@@ -145,6 +149,183 @@ const eventOwnerProcedure = authedProcedure.use(async ({ ctx, rawInput, next }) 
 });
 
 export const eventTypesRouter = router({
+  // REVIEW: What should we name this procedure?
+  getByViewer: authedProcedure.query(async ({ ctx }) => {
+    const { prisma } = ctx;
+    const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+      // Position is required by lodash to sort on it. Don't remove it, TS won't complain but it would silently break reordering
+      position: true,
+      hashedLink: true,
+      destinationCalendar: true,
+      team: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          // logo: true, // Skipping to avoid 4mb limit
+          bio: true,
+          hideBranding: true,
+        },
+      },
+      metadata: true,
+      users: {
+        select: baseUserSelect,
+      },
+      ...baseEventTypeSelect,
+    });
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: ctx.user.id,
+      },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        startTime: true,
+        endTime: true,
+        bufferTime: true,
+        plan: true,
+        teams: {
+          where: {
+            accepted: true,
+          },
+          select: {
+            role: true,
+            team: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                members: {
+                  select: {
+                    userId: true,
+                  },
+                },
+                eventTypes: {
+                  select: eventTypeSelect,
+                  orderBy: [
+                    {
+                      position: "desc",
+                    },
+                    {
+                      id: "asc",
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+        eventTypes: {
+          where: {
+            team: null,
+          },
+          select: eventTypeSelect,
+          orderBy: [
+            {
+              position: "desc",
+            },
+            {
+              id: "asc",
+            },
+          ],
+        },
+      },
+    });
+
+    if (!user) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    }
+
+    const mapEventType = (eventType: typeof user.eventTypes[number]) => ({
+      ...eventType,
+      // @FIXME: cc @hariombalhara This is failing with production data
+      // metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+    });
+
+    const userEventTypes = user.eventTypes.map(mapEventType);
+    // backwards compatibility, TMP:
+    const typesRaw = (
+      await prisma.eventType.findMany({
+        where: {
+          userId: ctx.user.id,
+        },
+        select: eventTypeSelect,
+        orderBy: [
+          {
+            position: "desc",
+          },
+          {
+            id: "asc",
+          },
+        ],
+      })
+    ).map(mapEventType);
+
+    type EventTypeGroup = {
+      teamId?: number | null;
+      profile: {
+        slug: typeof user["username"];
+        name: typeof user["name"];
+      };
+      metadata: {
+        membershipCount: number;
+        readOnly: boolean;
+      };
+      eventTypes: typeof userEventTypes;
+    };
+
+    let eventTypeGroups: EventTypeGroup[] = [];
+    const eventTypesHashMap = userEventTypes.concat(typesRaw).reduce((hashMap, newItem) => {
+      const oldItem = hashMap[newItem.id];
+      hashMap[newItem.id] = { ...oldItem, ...newItem };
+      return hashMap;
+    }, {} as Record<number, EventTypeGroup["eventTypes"][number]>);
+    const mergedEventTypes = Object.values(eventTypesHashMap).map((eventType) => eventType);
+    eventTypeGroups.push({
+      teamId: null,
+      profile: {
+        slug: user.username,
+        name: user.name,
+      },
+      eventTypes: _.orderBy(mergedEventTypes, ["position", "id"], ["desc", "asc"]),
+      metadata: {
+        membershipCount: 1,
+        readOnly: false,
+      },
+    });
+
+    eventTypeGroups = ([] as EventTypeGroup[]).concat(
+      eventTypeGroups,
+      user.teams.map((membership) => ({
+        teamId: membership.team.id,
+        profile: {
+          name: membership.team.name,
+          image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
+          slug: "team/" + membership.team.slug,
+        },
+        metadata: {
+          membershipCount: membership.team.members.length,
+          readOnly: membership.role === MembershipRole.MEMBER,
+        },
+        eventTypes: membership.team.eventTypes.map(mapEventType),
+      }))
+    );
+    return {
+      viewer: {
+        plan: user.plan,
+      },
+      // don't display event teams without event types,
+      eventTypeGroups: eventTypeGroups.filter((groupBy) => !!groupBy.eventTypes?.length),
+      // so we can show a dropdown when the user has teams
+      profiles: eventTypeGroups.map((group) => ({
+        teamId: group.teamId,
+        ...group.profile,
+        ...group.metadata,
+      })),
+    };
+  }),
   list: authedProcedure.query(async ({ ctx }) => {
     return await ctx.prisma.eventType.findMany({
       where: {

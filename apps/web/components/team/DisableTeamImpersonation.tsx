@@ -10,15 +10,15 @@ const DisableTeamImpersonation = ({ teamId, memberId }: { teamId: number; member
 
   const utils = trpc.useContext();
 
-  const query = trpc.useQuery(["viewer.teams.getMembershipbyUser", { teamId, memberId }]);
+  const query = trpc.viewer.teams.getMembershipbyUser.useQuery({ teamId, memberId });
 
-  const mutation = trpc.useMutation("viewer.teams.updateMembership", {
+  const mutation = trpc.viewer.teams.updateMembership.useMutation({
     onSuccess: async () => {
       showToast(t("your_user_profile_updated_successfully"), "success");
-      await utils.invalidateQueries(["viewer.teams.getMembershipbyUser"]);
+      await utils.viewer.teams.getMembershipbyUser.invalidate();
     },
     async onSettled() {
-      await utils.invalidateQueries(["viewer.public.i18n"]);
+      await utils.viewer.public.i18n.invalidate();
     },
   });
   if (query.isLoading) return <></>;

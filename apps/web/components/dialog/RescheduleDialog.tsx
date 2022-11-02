@@ -20,11 +20,11 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
   const { isOpenDialog, setIsOpenDialog, bookingUId: bookingId } = props;
   const [rescheduleReason, setRescheduleReason] = useState("");
 
-  const { mutate: rescheduleApi, isLoading } = trpc.useMutation("viewer.bookings.requestReschedule", {
+  const { mutate: rescheduleApi, isLoading } = trpc.viewer.bookings.requestReschedule.useMutation({
     async onSuccess() {
       showToast(t("reschedule_request_sent"), "success");
       setIsOpenDialog(false);
-      await utils.invalidateQueries(["viewer.bookings"]);
+      await utils.viewer.bookings.invalidate();
     },
     onError() {
       showToast(t("unexpected_error_try_again"), "error");

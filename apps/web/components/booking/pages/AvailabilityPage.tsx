@@ -79,19 +79,18 @@ const useSlots = ({
   usernameList: string[];
   timeZone?: string;
 }) => {
-  const { data, isLoading, isPaused } = trpc.useQuery(
-    [
-      "viewer.public.slots.getSchedule",
-      {
-        eventTypeId,
-        eventTypeSlug,
-        usernameList,
-        startTime: startTime?.toISOString() || "",
-        endTime: endTime?.toISOString() || "",
-        timeZone,
-      },
-    ],
-    { enabled: !!startTime && !!endTime }
+  const { data, isLoading, isPaused } = trpc.viewer.public.slots.getSchedule.useQuery(
+    {
+      eventTypeId,
+      eventTypeSlug,
+      usernameList,
+      startTime: startTime?.toISOString() || "",
+      endTime: endTime?.toISOString() || "",
+      timeZone,
+    },
+    {
+      enabled: !!startTime && !!endTime,
+    }
   );
   const [cachedSlots, setCachedSlots] = useState<NonNullable<typeof data>["slots"]>({});
 
