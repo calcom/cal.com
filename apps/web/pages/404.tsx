@@ -3,14 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 
-import {
-  CONSOLE_URL,
-  DEVELOPER_DOCS,
-  DOCS_URL,
-  JOIN_SLACK,
-  WEBSITE_DOMAIN,
-  WEBSITE_URL,
-} from "@calcom/lib/constants";
+import { DEVELOPER_DOCS, DOCS_URL, JOIN_SLACK, WEBSITE_DOMAIN, WEBSITE_URL } from "@calcom/lib/constants";
 import { Icon } from "@calcom/ui/Icon";
 
 import { useLocale } from "@lib/hooks/useLocale";
@@ -80,7 +73,7 @@ export default function Custom404() {
                 <ul role="list" className="mt-4">
                   <li className="border-2 border-green-500 px-4 py-2">
                     <a
-                      href={CONSOLE_URL}
+                      href="https://console.cal.com"
                       className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                       <div className="flex-shrink-0">
                         <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
