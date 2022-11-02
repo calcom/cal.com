@@ -196,7 +196,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
     hookForm.reset(form);
   }, [form, hookForm]);
 
-  const mutation = trpc.useMutation("viewer.app_routing_forms.formMutation", {
+  const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess() {
       showToast("Form updated successfully.", "success");
     },
@@ -204,7 +204,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
       showToast(`Something went wrong`, "error");
     },
     onSettled() {
-      utils.invalidateQueries(["viewer.app_routing_forms.formQuery", { id: form.id }]);
+      utils.viewer.appRoutingForms.formQuery.invalidate({ id: form.id });
     },
   });
   return (
@@ -265,9 +265,13 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
 }
 
 export default function SingleFormWrapper({ form: _form, ...props }: SingleFormComponentProps) {
-  const { data: form, isLoading } = trpc.useQuery(["viewer.app_routing_forms.formQuery", { id: _form.id }], {
-    initialData: _form,
-  });
+  const { data: form, isLoading } = trpc.viewer.appRoutingForms.formQuery.useQuery(
+    { id: _form.id },
+    {
+      initialData: _form,
+      trpc: {},
+    }
+  );
   const { t } = useLocale();
 
   if (isLoading) {

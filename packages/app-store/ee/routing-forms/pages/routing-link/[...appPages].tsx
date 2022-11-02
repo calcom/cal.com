@@ -59,7 +59,7 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
     sdkActionManager?.fire("__routeChanged", {});
   }, [customPageMessage]);
 
-  const responseMutation = trpc.useMutation("viewer.app_routing_forms.public.response", {
+  const responseMutation = trpc.viewer.appRoutingForms.public.response.useMutation({
     onSuccess: () => {
       const decidedAction = decidedActionRef.current;
       if (!decidedAction) {
