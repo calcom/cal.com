@@ -25,7 +25,7 @@ export type BadgeProps = {
   size?: keyof typeof classNameBySize;
   StartIcon?: Icon;
   bold?: boolean;
-  withDot: boolean;
+  withDot?: boolean;
   rounded?: boolean;
 } & JSX.IntrinsicElements["div"];
 
