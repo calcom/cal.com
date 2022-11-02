@@ -39,7 +39,7 @@ export type SendgridNewContact = {
   job_id: string;
 };
 
-const environmentApiKey = process.env.SENDGRID_API_KEY || "";
+const environmentApiKey = process.env.SENDGRID_SYNC_API_KEY || "";
 
 /**
  * This class to instance communicating to Sendgrid APIs requires an API Key.
