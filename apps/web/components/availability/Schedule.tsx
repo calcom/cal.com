@@ -318,9 +318,7 @@ const ScheduleBlock = ({ name, day, weekday }: ScheduleBlockProps) => {
           <span className="ml-2 inline-block text-sm capitalize">{weekday}</span>
         </div>
         {!watchAvailable.length && (
-          <div className="flex-grow text-right text-sm text-gray-500 sm:flex-shrink">
-            {t("no_availability")}
-          </div>
+          <div className="flex-grow text-right text-sm text-gray-500 sm:flex-shrink">{t("unavailable")}</div>
         )}
       </label>
       {!!watchAvailable.length && (
