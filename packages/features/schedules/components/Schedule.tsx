@@ -46,7 +46,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
   return (
     <div className="mb-1 flex w-full flex-col py-1 sm:flex-row">
       {/* Label & switch container */}
-      <div className="flex h-11 items-center justify-between">
+      <div className="flex h-11 items-center justify-between sm:w-32">
         <div>
           <label className="flex flex-row items-center space-x-2">
             <div>
