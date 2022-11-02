@@ -1,6 +1,5 @@
 import { useRouter } from "next/router";
 
-import { WEBSITE_DOMAIN } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { SkeletonContainer } from "@calcom/ui/v2";
@@ -64,11 +63,7 @@ const NewWebhookView = () => {
 
   return (
     <>
-      <Meta
-        title="Add Webhook"
-        description={t("add_webhook_description", { domainName: WEBSITE_DOMAIN })}
-        backButton
-      />
+      <Meta title="Add Webhook" description={t("add_webhook_description")} backButton />
 
       <WebhookForm onSubmit={onCreateWebhook} apps={installedApps?.items.map((app) => app.slug)} />
     </>

@@ -1,7 +1,5 @@
 import type { TFunction } from "next-i18next";
 
-import { WEBSITE_DOMAIN } from "@calcom/lib/constants";
-
 import { BaseEmailHtml, CallToAction } from "../components";
 
 type TeamInvite = {
@@ -18,20 +16,18 @@ export const TeamInviteEmail = (props: TeamInvite & Partial<React.ComponentProps
       subject={props.language("user_invited_you", {
         user: props.from,
         team: props.teamName,
-        domainName: WEBSITE_DOMAIN,
       })}>
       <p>
         <>
           {props.language("user_invited_you", {
             user: props.from,
             team: props.teamName,
-            domainName: WEBSITE_DOMAIN,
           })}
           !
         </>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px" }}>
-        <>{props.language("calcom_explained", { domainName: WEBSITE_DOMAIN })}</>
+        <>{props.language("calcom_explained")}</>
       </p>
       <CallToAction label={props.language("accept_invitation")} href={props.joinLink} />
 

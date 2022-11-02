@@ -1,7 +1,5 @@
 import { TFunction } from "next-i18next";
 
-import { WEBSITE_DOMAIN } from "@calcom/lib/constants";
-
 import { renderEmail } from "../";
 import BaseEmail from "./_base-email";
 
@@ -29,9 +27,7 @@ export default class ForgotPasswordEmail extends BaseEmail {
     return {
       to: `${this.passwordEvent.user.name} <${this.passwordEvent.user.email}>`,
       from: `Cal.com <${this.getMailerOptions().from}>`,
-      subject: this.passwordEvent.language("reset_password_subject", {
-        domainName: WEBSITE_DOMAIN,
-      }),
+      subject: this.passwordEvent.language("reset_password_subject"),
       html: renderEmail("ForgotPasswordEmail", this.passwordEvent),
       text: this.getTextBody(),
     };
@@ -39,7 +35,7 @@ export default class ForgotPasswordEmail extends BaseEmail {
 
   protected getTextBody(): string {
     return `
-${this.passwordEvent.language("reset_password_subject", { domainName: WEBSITE_DOMAIN })}
+${this.passwordEvent.language("reset_password_subject")}
 ${this.passwordEvent.language("hi_user_name", { name: this.passwordEvent.user.name })},
 ${this.passwordEvent.language("someone_requested_password_reset")}
 ${this.passwordEvent.language("change_password")}: ${this.passwordEvent.resetLink}

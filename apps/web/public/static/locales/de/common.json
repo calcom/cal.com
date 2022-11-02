@@ -1326,5 +1326,7 @@
   "saml_sp_entity_id": "SP-Entitäts-ID",
   "saml_sp_acs_url_copied": "ACS-URL kopiert!",
   "saml_sp_entity_id_copied": "SP-Entitäts-ID kopiert!",
-  "saml_btn_configure": "Konfigurieren"
+  "saml_btn_configure": "Konfigurieren",
+  "kbar_search_placeholder": "Geben Sie einen Befehl ein oder suchen Sie...",
+  "free_to_use_apps": "Kostenlos"
 }

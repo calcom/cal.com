@@ -1339,5 +1339,7 @@
   "number_sms_notifications": "Phone number (SMS\u00a0notifications)",
   "attendee_email_workflow": "Attendee email",
   "attendee_email_info": "The person booking's email",
-  "invalid_credential": "Oh no! Looks like permission expired or was revoked. Please reinstall again."
+  "invalid_credential": "Oh no! Looks like permission expired or was revoked. Please reinstall again.",
+  "kbar_search_placeholder": "Type a command or search...",
+  "free_to_use_apps": "Free"
 }

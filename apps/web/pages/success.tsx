@@ -23,7 +23,6 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import { parseRecurringEvent } from "@calcom/lib";
 import CustomBranding from "@calcom/lib/CustomBranding";
-import { WEBSITE_DOMAIN } from "@calcom/lib/constants";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -589,9 +588,7 @@ export default function Success(props: SuccessProps) {
                   <>
                     <hr className="border-bookinglightest dark:border-darkgray-300" />
                     <div className="border-bookinglightest text-booking-lighter dark:border-darkgray-300 pt-8 text-center text-xs dark:text-white">
-                      <a href="https://cal.com/signup">
-                        {t("create_booking_link_with_calcom", { domainName: WEBSITE_DOMAIN })}
-                      </a>
+                      <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
 
                       <form
                         onSubmit={(e) => {

@@ -1,7 +1,6 @@
 import { useRouter } from "next/router";
 import z from "zod";
 
-import { WEBSITE_DOMAIN } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { SkeletonContainer } from "@calcom/ui/v2";
@@ -53,11 +52,7 @@ const EditWebhook = () => {
 
     return (
       <>
-        <Meta
-          title="Edit Webhook"
-          description={t("add_webhook_description", { domainName: WEBSITE_DOMAIN })}
-          backButton
-        />
+        <Meta title="Edit Webhook" description={t("add_webhook_description")} backButton />
         <WebhookForm
           webhook={webhook}
           onSubmit={(values: WebhookFormSubmitData) => {

@@ -6,7 +6,6 @@ import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import classNames from "@calcom/lib/classNames";
-import { SUPPORT_MAIL_ADDRESS, WEBSITE_DOMAIN } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
@@ -268,10 +267,8 @@ const Component = ({
           )}
         </ul>
         <hr className="my-8" />
-        <span className="leading-1 block text-xs text-gray-500">
-          {t("every_app_published", { domainName: WEBSITE_DOMAIN })}
-        </span>
-        <a className="mt-2 block text-xs text-red-500" href={`mailto:${SUPPORT_MAIL_ADDRESS}`}>
+        <span className="leading-1 block text-xs text-gray-500">{t("every_app_published")}</span>
+        <a className="mt-2 block text-xs text-red-500" href="mailto:help@cal.com">
           <Icon.FiFlag className="inline h-3 w-3" /> {t("report_app")}
         </a>
       </div>
