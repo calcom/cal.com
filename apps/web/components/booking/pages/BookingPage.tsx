@@ -145,7 +145,7 @@ const BookingPage = ({
 
   const recurringMutation = useMutation(createRecurringBooking, {
     onSuccess: async (responseData = []) => {
-      const { attendees = [], id, recurringEventId } = responseData[0] || {};
+      const { uid } = responseData[0];
       const location = (function humanReadableLocation(location) {
         if (!location) {
           return;
@@ -159,17 +159,9 @@ const BookingPage = ({
       return router.push({
         pathname: "/success",
         query: {
-          date,
-          type: eventType.id,
-          eventSlug: eventType.slug,
-          recur: recurringEventId,
-          username: profile.slug,
-          reschedule: !!rescheduleUid,
-          name: attendees[0].name,
-          email: attendees[0].email,
-          location,
-          eventName: profile.eventName || "",
-          bookingId: id,
+          uid,
+          isSuccessBookingPage: true,
+          allRemainingBookings: true,
         },
       });
     },
