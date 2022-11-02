@@ -35,6 +35,15 @@ const UserProfile = (props: IUserProfile) => {
   const utils = trpc.useContext();
   const router = useRouter();
   const createEventType = trpc.useMutation("viewer.eventTypes.create");
+  const createWebhookMutation = trpc.useMutation("viewer.webhook.create");
+
+  const DEFAULT_WEBHOOK = {
+    subscriberUrl: "http://localhost:3000",
+    eventTriggers: ["BOOKING_CANCELLED", "BOOKING_CREATED", "BOOKING_RESCHEDULED", "MEETING_ENDED"],
+    active: true,
+    payloadTemplate: null,
+    secret: "",
+  };
 
   const mutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: async (_data, context) => {
@@ -50,6 +59,11 @@ const UserProfile = (props: IUserProfile) => {
               })
             );
           }
+        } catch (error) {
+          console.error(error);
+        }
+        try {
+          await createWebhookMutation.mutate(DEFAULT_WEBHOOK);
         } catch (error) {
           console.error(error);
         }
