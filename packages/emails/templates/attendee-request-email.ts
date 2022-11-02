@@ -14,8 +14,7 @@ export default class AttendeeRequestEmail extends AttendeeScheduledEmail {
     }
 
     return {
-      //TODO: Change sender name
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `Pesto <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.calEvent.organizer.language.translate("booking_submitted_subject", {
         eventType: this.calEvent.type,

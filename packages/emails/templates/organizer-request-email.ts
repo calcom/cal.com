@@ -14,7 +14,7 @@ export default class OrganizerRequestEmail extends OrganizerScheduledEmail {
     }
 
     return {
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `Pesto <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.t("event_awaiting_approval_subject", {
         eventType: this.calEvent.type,
