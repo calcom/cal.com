@@ -39,7 +39,7 @@ import type { AdditionalInformation, CalendarEvent, Person } from "@calcom/types
 
 import { TRPCError } from "@trpc/server";
 
-import { createProtectedRouter } from "../../createRouter";
+import { router, authedProcedure } from "../../trpc";
 
 export type PersonAttendeeCommonFields = Pick<
   User,
@@ -53,13 +53,60 @@ const commonBookingSchema = z.object({
 
 const log = logger.getChildLogger({ prefix: ["[api] book:user"] });
 
-export const bookingsRouter = createProtectedRouter()
-  .mutation("requestReschedule", {
-    input: z.object({
-      bookingId: z.string(),
-      rescheduleReason: z.string().optional(),
-    }),
-    async resolve({ ctx, input }) {
+const bookingsProcedure = authedProcedure.input(commonBookingSchema).use(async ({ ctx, input, next }) => {
+  // Endpoints that just read the logged in user's data - like 'list' don't necessary have any input
+  const { bookingId } = input;
+  const booking = await ctx.prisma.booking.findFirst({
+    where: {
+      id: bookingId,
+      AND: [
+        {
+          OR: [
+            /* If user is organizer */
+            { userId: ctx.user.id },
+            /* Or part of a collective booking */
+            {
+              eventType: {
+                schedulingType: SchedulingType.COLLECTIVE,
+                users: {
+                  some: {
+                    id: ctx.user.id,
+                  },
+                },
+              },
+            },
+          ],
+        },
+      ],
+    },
+    include: {
+      attendees: true,
+      eventType: true,
+      destinationCalendar: true,
+      references: true,
+      user: {
+        include: {
+          destinationCalendar: true,
+          credentials: true,
+        },
+      },
+    },
+  });
+
+  if (!booking) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+  return next({ ctx: { booking } });
+});
+
+export const bookingsRouter = router({
+  requestReschedule: authedProcedure
+    .input(
+      z.object({
+        bookingId: z.string(),
+        rescheduleReason: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       const { user, prisma } = ctx;
       const { bookingId, rescheduleReason: cancellationReason } = input;
 
@@ -262,65 +309,15 @@ export const bookingsRouter = createProtectedRouter()
         );
         await Promise.all(promises);
       }
-    },
-  })
-  .middleware(async ({ ctx, rawInput, next }) => {
-    // Endpoints that just read the logged in user's data - like 'list' don't necessary have any input
-    if (!rawInput) return next({ ctx: { ...ctx, booking: null } });
-    const webhookIdAndEventTypeId = commonBookingSchema.safeParse(rawInput);
-    if (!webhookIdAndEventTypeId.success) throw new TRPCError({ code: "PARSE_ERROR" });
-
-    const { bookingId } = webhookIdAndEventTypeId.data;
-    const booking = await ctx.prisma.booking.findFirst({
-      where: {
-        id: bookingId,
-        AND: [
-          {
-            OR: [
-              /* If user is organizer */
-              { userId: ctx.user.id },
-              /* Or part of a collective booking */
-              {
-                eventType: {
-                  schedulingType: SchedulingType.COLLECTIVE,
-                  users: {
-                    some: {
-                      id: ctx.user.id,
-                    },
-                  },
-                },
-              },
-            ],
-          },
-        ],
-      },
-      include: {
-        attendees: true,
-        eventType: true,
-        destinationCalendar: true,
-        references: true,
-        user: {
-          include: {
-            destinationCalendar: true,
-            credentials: true,
-          },
-        },
-      },
-    });
-    return next({ ctx: { ...ctx, booking } });
-  })
-  .middleware(async ({ ctx, next }) => {
-    // So TS doesn't compain in the previous middleware.
-    // This means the user doesn't have access to this booking
-    if (!ctx.booking) throw new TRPCError({ code: "UNAUTHORIZED" });
-    // Booking here is non-nullable anymore
-    return next({ ctx: { ...ctx, booking: ctx.booking } });
-  })
-  .mutation("editLocation", {
-    input: commonBookingSchema.extend({
-      newLocation: z.string().transform((val) => val || DailyLocationType),
     }),
-    async resolve({ ctx, input }) {
+  editLocation: bookingsProcedure
+    .input(
+      commonBookingSchema.extend({
+        newLocation: z.string().transform((val) => val || DailyLocationType),
+      })
+    )
+
+    .mutation(async ({ ctx, input }) => {
       const { bookingId, newLocation: location } = input;
       const { booking } = ctx;
 
@@ -411,253 +408,212 @@ export const bookingsRouter = createProtectedRouter()
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
       return { message: "Location updated" };
-    },
-  })
-  .mutation("confirm", {
-    input: bookingConfirmPatchBodySchema,
-    async resolve({ ctx, input }) {
-      const { user, prisma } = ctx;
-      const { bookingId, recurringEventId, reason: rejectionReason, confirmed } = input;
+    }),
+  confirm: bookingsProcedure.input(bookingConfirmPatchBodySchema).mutation(async ({ ctx, input }) => {
+    const { user, prisma } = ctx;
+    const { bookingId, recurringEventId, reason: rejectionReason, confirmed } = input;
 
-      const tOrganizer = await getTranslation(user.locale ?? "en", "common");
+    const tOrganizer = await getTranslation(user.locale ?? "en", "common");
 
-      const booking = await prisma.booking.findFirst({
+    const booking = await prisma.booking.findFirst({
+      where: {
+        id: bookingId,
+      },
+      rejectOnNotFound() {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
+      },
+      // should trpc handle this error  ?
+      select: {
+        title: true,
+        description: true,
+        customInputs: true,
+        startTime: true,
+        endTime: true,
+        attendees: true,
+        eventTypeId: true,
+        eventType: {
+          select: {
+            id: true,
+            recurringEvent: true,
+            title: true,
+            requiresConfirmation: true,
+            workflows: {
+              include: {
+                workflow: {
+                  include: {
+                    steps: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        location: true,
+        userId: true,
+        id: true,
+        uid: true,
+        payment: true,
+        destinationCalendar: true,
+        paid: true,
+        recurringEventId: true,
+        status: true,
+        smsReminderNumber: true,
+        scheduledJobs: true,
+      },
+    });
+    const authorized = async () => {
+      // if the organizer
+      if (booking.userId === user.id) {
+        return true;
+      }
+      const eventType = await prisma.eventType.findUnique({
+        where: {
+          id: booking.eventTypeId || undefined,
+        },
+        select: {
+          id: true,
+          schedulingType: true,
+          users: true,
+        },
+      });
+      if (
+        eventType?.schedulingType === SchedulingType.COLLECTIVE &&
+        eventType.users.find((user) => user.id === user.id)
+      ) {
+        return true;
+      }
+      return false;
+    };
+
+    if (!(await authorized())) throw new TRPCError({ code: "UNAUTHORIZED", message: "UNAUTHORIZED" });
+
+    const isConfirmed = booking.status === BookingStatus.ACCEPTED;
+    if (isConfirmed) throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
+
+    /** When a booking that requires payment its being confirmed but doesn't have any payment,
+     * we shouldn’t save it on DestinationCalendars
+     */
+    if (booking.payment.length > 0 && !booking.paid) {
+      await prisma.booking.update({
         where: {
           id: bookingId,
         },
-        rejectOnNotFound() {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
-        },
-        // should trpc handle this error  ?
-        select: {
-          title: true,
-          description: true,
-          customInputs: true,
-          startTime: true,
-          endTime: true,
-          attendees: true,
-          eventTypeId: true,
-          eventType: {
-            select: {
-              id: true,
-              recurringEvent: true,
-              title: true,
-              requiresConfirmation: true,
-              workflows: {
-                include: {
-                  workflow: {
-                    include: {
-                      steps: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-          location: true,
-          userId: true,
-          id: true,
-          uid: true,
-          payment: true,
-          destinationCalendar: true,
-          paid: true,
-          recurringEventId: true,
-          status: true,
-          smsReminderNumber: true,
-          scheduledJobs: true,
+        data: {
+          status: BookingStatus.ACCEPTED,
         },
       });
-      const authorized = async () => {
-        // if the organizer
-        if (booking.userId === user.id) {
-          return true;
-        }
-        const eventType = await prisma.eventType.findUnique({
-          where: {
-            id: booking.eventTypeId || undefined,
-          },
-          select: {
-            id: true,
-            schedulingType: true,
-            users: true,
-          },
-        });
-        if (
-          eventType?.schedulingType === SchedulingType.COLLECTIVE &&
-          eventType.users.find((user) => user.id === user.id)
-        ) {
-          return true;
-        }
-        return false;
+
+      return { message: "Booking confirmed" };
+    }
+    const attendeesListPromises = booking.attendees.map(async (attendee) => {
+      return {
+        name: attendee.name,
+        email: attendee.email,
+        timeZone: attendee.timeZone,
+        language: {
+          translate: await getTranslation(attendee.locale ?? "en", "common"),
+          locale: attendee.locale ?? "en",
+        },
       };
+    });
 
-      if (!(await authorized())) throw new TRPCError({ code: "UNAUTHORIZED", message: "UNAUTHORIZED" });
+    const attendeesList = await Promise.all(attendeesListPromises);
 
-      const isConfirmed = booking.status === BookingStatus.ACCEPTED;
-      if (isConfirmed) throw new TRPCError({ code: "BAD_REQUEST", message: "Booking already confirmed" });
+    const evt: CalendarEvent = {
+      type: booking.eventType?.title || booking.title,
+      title: booking.title,
+      description: booking.description,
+      customInputs: isPrismaObjOrUndefined(booking.customInputs),
+      startTime: booking.startTime.toISOString(),
+      endTime: booking.endTime.toISOString(),
+      organizer: {
+        email: user.email,
+        name: user.name || "Unnamed",
+        timeZone: user.timeZone,
+        language: { translate: tOrganizer, locale: user.locale ?? "en" },
+      },
+      attendees: attendeesList,
+      location: booking.location ?? "",
+      uid: booking.uid,
+      destinationCalendar: booking?.destinationCalendar || user.destinationCalendar,
+      requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
+      eventTypeId: booking.eventType?.id,
+    };
 
-      /** When a booking that requires payment its being confirmed but doesn't have any payment,
-       * we shouldn’t save it on DestinationCalendars
-       */
-      if (booking.payment.length > 0 && !booking.paid) {
-        await prisma.booking.update({
-          where: {
-            id: bookingId,
-          },
-          data: {
-            status: BookingStatus.ACCEPTED,
-          },
-        });
+    const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
+    if (recurringEventId && recurringEvent) {
+      const groupedRecurringBookings = await prisma.booking.groupBy({
+        where: {
+          recurringEventId: booking.recurringEventId,
+        },
+        by: [Prisma.BookingScalarFieldEnum.recurringEventId],
+        _count: true,
+      });
+      // Overriding the recurring event configuration count to be the actual number of events booked for
+      // the recurring event (equal or less than recurring event configuration count)
+      recurringEvent.count = groupedRecurringBookings[0]._count;
+      // count changed, parsing again to get the new value in
+      evt.recurringEvent = parseRecurringEvent(recurringEvent);
+    }
 
-        return { message: "Booking confirmed" };
-      }
-      const attendeesListPromises = booking.attendees.map(async (attendee) => {
-        return {
-          name: attendee.name,
-          email: attendee.email,
-          timeZone: attendee.timeZone,
-          language: {
-            translate: await getTranslation(attendee.locale ?? "en", "common"),
-            locale: attendee.locale ?? "en",
-          },
+    if (confirmed) {
+      const eventManager = new EventManager(user);
+      const scheduleResult = await eventManager.create(evt);
+
+      const results = scheduleResult.results;
+
+      if (results.length > 0 && results.every((res) => !res.success)) {
+        const error = {
+          errorCode: "BookingCreatingMeetingFailed",
+          message: "Booking failed",
         };
-      });
 
-      const attendeesList = await Promise.all(attendeesListPromises);
+        log.error(`Booking ${user.username} failed`, error, results);
+      } else {
+        const metadata: AdditionalInformation = {};
 
-      const evt: CalendarEvent = {
-        type: booking.eventType?.title || booking.title,
-        title: booking.title,
-        description: booking.description,
-        customInputs: isPrismaObjOrUndefined(booking.customInputs),
-        startTime: booking.startTime.toISOString(),
-        endTime: booking.endTime.toISOString(),
-        organizer: {
-          email: user.email,
-          name: user.name || "Unnamed",
-          timeZone: user.timeZone,
-          language: { translate: tOrganizer, locale: user.locale ?? "en" },
-        },
-        attendees: attendeesList,
-        location: booking.location ?? "",
-        uid: booking.uid,
-        destinationCalendar: booking?.destinationCalendar || user.destinationCalendar,
-        requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
-        eventTypeId: booking.eventType?.id,
-      };
-
-      const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
-      if (recurringEventId && recurringEvent) {
-        const groupedRecurringBookings = await prisma.booking.groupBy({
-          where: {
-            recurringEventId: booking.recurringEventId,
-          },
-          by: [Prisma.BookingScalarFieldEnum.recurringEventId],
-          _count: true,
-        });
-        // Overriding the recurring event configuration count to be the actual number of events booked for
-        // the recurring event (equal or less than recurring event configuration count)
-        recurringEvent.count = groupedRecurringBookings[0]._count;
-        // count changed, parsing again to get the new value in
-        evt.recurringEvent = parseRecurringEvent(recurringEvent);
-      }
-
-      if (confirmed) {
-        const eventManager = new EventManager(user);
-        const scheduleResult = await eventManager.create(evt);
-
-        const results = scheduleResult.results;
-
-        if (results.length > 0 && results.every((res) => !res.success)) {
-          const error = {
-            errorCode: "BookingCreatingMeetingFailed",
-            message: "Booking failed",
-          };
-
-          log.error(`Booking ${user.username} failed`, error, results);
-        } else {
-          const metadata: AdditionalInformation = {};
-
-          if (results.length) {
-            // TODO: Handle created event metadata more elegantly
-            metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
-            metadata.conferenceData = results[0].createdEvent?.conferenceData;
-            metadata.entryPoints = results[0].createdEvent?.entryPoints;
-          }
-          try {
-            await sendScheduledEmails({ ...evt, additionalInformation: metadata });
-          } catch (error) {
-            log.error(error);
-          }
+        if (results.length) {
+          // TODO: Handle created event metadata more elegantly
+          metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
+          metadata.conferenceData = results[0].createdEvent?.conferenceData;
+          metadata.entryPoints = results[0].createdEvent?.entryPoints;
         }
-        let updatedBookings: {
-          scheduledJobs: string[];
-          id: number;
-          startTime: Date;
-          endTime: Date;
-          uid: string;
-          smsReminderNumber: string | null;
-          eventType: {
-            workflows: (WorkflowsOnEventTypes & {
-              workflow: Workflow & {
-                steps: WorkflowStep[];
-              };
-            })[];
-          } | null;
-        }[] = [];
+        try {
+          await sendScheduledEmails({ ...evt, additionalInformation: metadata });
+        } catch (error) {
+          log.error(error);
+        }
+      }
+      let updatedBookings: {
+        scheduledJobs: string[];
+        id: number;
+        startTime: Date;
+        endTime: Date;
+        uid: string;
+        smsReminderNumber: string | null;
+        eventType: {
+          workflows: (WorkflowsOnEventTypes & {
+            workflow: Workflow & {
+              steps: WorkflowStep[];
+            };
+          })[];
+        } | null;
+      }[] = [];
 
-        if (recurringEventId) {
-          // The booking to confirm is a recurring event and comes from /booking/recurring, proceeding to mark all related
-          // bookings as confirmed. Prisma updateMany does not support relations, so doing this in two steps for now.
-          const unconfirmedRecurringBookings = await prisma.booking.findMany({
-            where: {
-              recurringEventId,
-              status: BookingStatus.PENDING,
-            },
-          });
+      if (recurringEventId) {
+        // The booking to confirm is a recurring event and comes from /booking/recurring, proceeding to mark all related
+        // bookings as confirmed. Prisma updateMany does not support relations, so doing this in two steps for now.
+        const unconfirmedRecurringBookings = await prisma.booking.findMany({
+          where: {
+            recurringEventId,
+            status: BookingStatus.PENDING,
+          },
+        });
 
-          const updateBookingsPromise = unconfirmedRecurringBookings.map((recurringBooking) => {
-            return prisma.booking.update({
-              where: {
-                id: recurringBooking.id,
-              },
-              data: {
-                status: BookingStatus.ACCEPTED,
-                references: {
-                  create: scheduleResult.referencesToCreate,
-                },
-              },
-              select: {
-                eventType: {
-                  select: {
-                    workflows: {
-                      include: {
-                        workflow: {
-                          include: {
-                            steps: true,
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-                uid: true,
-                startTime: true,
-                endTime: true,
-                smsReminderNumber: true,
-                id: true,
-                scheduledJobs: true,
-              },
-            });
-          });
-          const updatedBookingsResult = await Promise.all(updateBookingsPromise);
-          updatedBookings = updatedBookings.concat(updatedBookingsResult);
-        } else {
-          // @NOTE: be careful with this as if any error occurs before this booking doesn't get confirmed
-          // Should perform update on booking (confirm) -> then trigger the rest handlers
-          const updatedBooking = await prisma.booking.update({
+        const updateBookingsPromise = unconfirmedRecurringBookings.map((recurringBooking) => {
+          return prisma.booking.update({
             where: {
-              id: bookingId,
+              id: recurringBooking.id,
             },
             data: {
               status: BookingStatus.ACCEPTED,
@@ -687,82 +643,120 @@ export const bookingsRouter = createProtectedRouter()
               scheduledJobs: true,
             },
           });
-          updatedBookings.push(updatedBooking);
-        }
-
-        //Workflows - set reminders for confirmed events
-
-        try {
-          for (const updatedBooking of updatedBookings) {
-            if (updatedBooking.eventType?.workflows) {
-              const evtOfBooking = evt;
-              evtOfBooking.startTime = updatedBooking.startTime.toISOString();
-              evtOfBooking.endTime = updatedBooking.endTime.toISOString();
-              evtOfBooking.uid = updatedBooking.uid;
-
-              await scheduleWorkflowReminders(
-                updatedBooking.eventType.workflows,
-                updatedBooking.smsReminderNumber,
-                evtOfBooking,
-                false,
-                false
-              );
-            }
-          }
-        } catch (error) {
-          // Silently fail
-          console.error(error);
-        }
-
-        try {
-          // schedule job for zapier trigger 'when meeting ends'
-          const subscriberOptionsMeetingEnded = {
-            userId: booking.userId || 0,
-            eventTypeId: booking.eventTypeId || 0,
-            triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-          };
-
-          const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
-
-          subscribersMeetingEnded.forEach((subscriber) => {
-            updatedBookings.forEach((booking) => {
-              scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
-            });
-          });
-        } catch (error) {
-          // Silently fail
-          console.error(error);
-        }
+        });
+        const updatedBookingsResult = await Promise.all(updateBookingsPromise);
+        updatedBookings = updatedBookings.concat(updatedBookingsResult);
       } else {
-        evt.rejectionReason = rejectionReason;
-        if (recurringEventId) {
-          // The booking to reject is a recurring event and comes from /booking/upcoming, proceeding to mark all related
-          // bookings as rejected.
-          await prisma.booking.updateMany({
-            where: {
-              recurringEventId,
-              status: BookingStatus.PENDING,
+        // @NOTE: be careful with this as if any error occurs before this booking doesn't get confirmed
+        // Should perform update on booking (confirm) -> then trigger the rest handlers
+        const updatedBooking = await prisma.booking.update({
+          where: {
+            id: bookingId,
+          },
+          data: {
+            status: BookingStatus.ACCEPTED,
+            references: {
+              create: scheduleResult.referencesToCreate,
             },
-            data: {
-              status: BookingStatus.REJECTED,
-              rejectionReason,
+          },
+          select: {
+            eventType: {
+              select: {
+                workflows: {
+                  include: {
+                    workflow: {
+                      include: {
+                        steps: true,
+                      },
+                    },
+                  },
+                },
+              },
             },
-          });
-        } else {
-          await refund(booking, evt); // No payment integration for recurring events for v1
-          await prisma.booking.update({
-            where: {
-              id: bookingId,
-            },
-            data: {
-              status: BookingStatus.REJECTED,
-              rejectionReason,
-            },
-          });
-        }
-
-        await sendDeclinedEmails(evt);
+            uid: true,
+            startTime: true,
+            endTime: true,
+            smsReminderNumber: true,
+            id: true,
+            scheduledJobs: true,
+          },
+        });
+        updatedBookings.push(updatedBooking);
       }
-      return { message: "Booking " + confirmed ? "confirmed" : "rejected" };
-    },
-  });
+
+      //Workflows - set reminders for confirmed events
+
+      try {
+        for (const updatedBooking of updatedBookings) {
+          if (updatedBooking.eventType?.workflows) {
+            const evtOfBooking = evt;
+            evtOfBooking.startTime = updatedBooking.startTime.toISOString();
+            evtOfBooking.endTime = updatedBooking.endTime.toISOString();
+            evtOfBooking.uid = updatedBooking.uid;
+
+            await scheduleWorkflowReminders(
+              updatedBooking.eventType.workflows,
+              updatedBooking.smsReminderNumber,
+              evtOfBooking,
+              false,
+              false
+            );
+          }
+        }
+      } catch (error) {
+        // Silently fail
+        console.error(error);
+      }
+
+      try {
+        // schedule job for zapier trigger 'when meeting ends'
+        const subscriberOptionsMeetingEnded = {
+          userId: booking.userId || 0,
+          eventTypeId: booking.eventTypeId || 0,
+          triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+        };
+
+        const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
+
+        subscribersMeetingEnded.forEach((subscriber) => {
+          updatedBookings.forEach((booking) => {
+            scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
+          });
+        });
+      } catch (error) {
+        // Silently fail
+        console.error(error);
+      }
+    } else {
+      evt.rejectionReason = rejectionReason;
+      if (recurringEventId) {
+        // The booking to reject is a recurring event and comes from /booking/upcoming, proceeding to mark all related
+        // bookings as rejected.
+        await prisma.booking.updateMany({
+          where: {
+            recurringEventId,
+            status: BookingStatus.PENDING,
+          },
+          data: {
+            status: BookingStatus.REJECTED,
+            rejectionReason,
+          },
+        });
+      } else {
+        await refund(booking, evt); // No payment integration for recurring events for v1
+        await prisma.booking.update({
+          where: {
+            id: bookingId,
+          },
+          data: {
+            status: BookingStatus.REJECTED,
+            rejectionReason,
+          },
+        });
+      }
+
+      await sendDeclinedEmails(evt);
+    }
+    return { message: "Booking " + confirmed ? "confirmed" : "rejected" };
+  }),
+});

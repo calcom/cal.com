@@ -9,43 +9,43 @@ import { Schedule } from "@calcom/types/schedule";
 
 import { TRPCError } from "@trpc/server";
 
-import { createProtectedRouter } from "../../createRouter";
+import { router, authedProcedure } from "../../trpc";
 
-export const availabilityRouter = createProtectedRouter()
-  .query("list", {
-    async resolve({ ctx }) {
-      const { prisma, user } = ctx;
+export const availabilityRouter = router({
+  list: authedProcedure.query(async ({ ctx }) => {
+    const { prisma, user } = ctx;
 
-      const schedules = await prisma.schedule.findMany({
-        where: {
-          userId: user.id,
-        },
-        select: {
-          id: true,
-          name: true,
-          availability: true,
-          timeZone: true,
-        },
-        orderBy: {
-          id: "asc",
-        },
-      });
+    const schedules = await prisma.schedule.findMany({
+      where: {
+        userId: user.id,
+      },
+      select: {
+        id: true,
+        name: true,
+        availability: true,
+        timeZone: true,
+      },
+      orderBy: {
+        id: "asc",
+      },
+    });
 
-      const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
+    const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
 
-      return {
-        schedules: schedules.map((schedule) => ({
-          ...schedule,
-          isDefault: schedule.id === defaultScheduleId,
-        })),
-      };
-    },
-  })
-  .query("schedule", {
-    input: z.object({
-      scheduleId: z.optional(z.number()),
-    }),
-    async resolve({ ctx, input }) {
+    return {
+      schedules: schedules.map((schedule) => ({
+        ...schedule,
+        isDefault: schedule.id === defaultScheduleId,
+      })),
+    };
+  }),
+  schedule: authedProcedure
+    .input(
+      z.object({
+        scheduleId: z.optional(z.number()),
+      })
+    )
+    .query(async ({ ctx, input }) => {
       const { prisma, user } = ctx;
       const schedule = await prisma.schedule.findUnique({
         where: {
@@ -78,37 +78,39 @@ export const availabilityRouter = createProtectedRouter()
         timeZone: schedule.timeZone || user.timeZone,
         isDefault: !input.scheduleId || user.defaultScheduleId === schedule.id,
       };
-    },
-  })
-  .query("user", {
-    input: z.object({
-      username: z.string(),
-      dateFrom: z.string(),
-      dateTo: z.string(),
-      eventTypeId: stringOrNumber.optional(),
-      withSource: z.boolean().optional(),
     }),
-    async resolve({ input }) {
+  user: authedProcedure
+    .input(
+      z.object({
+        username: z.string(),
+        dateFrom: z.string(),
+        dateTo: z.string(),
+        eventTypeId: stringOrNumber.optional(),
+        withSource: z.boolean().optional(),
+      })
+    )
+    .query(({ input }) => {
       return getUserAvailability(input);
-    },
-  })
-  .mutation("schedule.create", {
-    input: z.object({
-      name: z.string(),
-      copyScheduleId: z.number().optional(),
-      schedule: z
-        .array(
-          z.array(
-            z.object({
-              start: z.date(),
-              end: z.date(),
-            })
-          )
-        )
-        .optional(),
-      eventTypeId: z.number().optional(),
     }),
-    async resolve({ input, ctx }) {
+  "schedule.create": authedProcedure
+    .input(
+      z.object({
+        name: z.string(),
+        copyScheduleId: z.number().optional(),
+        schedule: z
+          .array(
+            z.array(
+              z.object({
+                start: z.date(),
+                end: z.date(),
+              })
+            )
+          )
+          .optional(),
+        eventTypeId: z.number().optional(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
       const { user, prisma } = ctx;
       const data: Prisma.ScheduleCreateInput = {
         name: input.name,
@@ -141,13 +143,14 @@ export const availabilityRouter = createProtectedRouter()
       }
 
       return { schedule };
-    },
-  })
-  .mutation("schedule.delete", {
-    input: z.object({
-      scheduleId: z.number(),
     }),
-    async resolve({ input, ctx }) {
+  "schedule.delete": authedProcedure
+    .input(
+      z.object({
+        scheduleId: z.number(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
       const { user, prisma } = ctx;
 
       const scheduleToDelete = await prisma.schedule.findFirst({
@@ -189,24 +192,25 @@ export const availabilityRouter = createProtectedRouter()
           id: input.scheduleId,
         },
       });
-    },
-  })
-  .mutation("schedule.update", {
-    input: z.object({
-      scheduleId: z.number(),
-      timeZone: z.string().optional(),
-      name: z.string().optional(),
-      isDefault: z.boolean().optional(),
-      schedule: z.array(
-        z.array(
-          z.object({
-            start: z.date(),
-            end: z.date(),
-          })
-        )
-      ),
     }),
-    async resolve({ input, ctx }) {
+  "schedule.update": authedProcedure
+    .input(
+      z.object({
+        scheduleId: z.number(),
+        timeZone: z.string().optional(),
+        name: z.string().optional(),
+        isDefault: z.boolean().optional(),
+        schedule: z.array(
+          z.array(
+            z.object({
+              start: z.date(),
+              end: z.date(),
+            })
+          )
+        ),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
       const { user, prisma } = ctx;
       const availability = getAvailabilityFromSchedule(input.schedule);
 
@@ -260,8 +264,8 @@ export const availabilityRouter = createProtectedRouter()
       return {
         schedule,
       };
-    },
-  });
+    }),
+});
 
 export const convertScheduleToAvailability = (
   schedule: Partial<ScheduleModel> & { availability: AvailabilityModel[] }
