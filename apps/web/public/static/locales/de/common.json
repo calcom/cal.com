@@ -1328,5 +1328,6 @@
   "saml_sp_entity_id_copied": "SP-Entitäts-ID kopiert!",
   "saml_btn_configure": "Konfigurieren",
   "kbar_search_placeholder": "Geben Sie einen Befehl ein oder suchen Sie...",
-  "free_to_use_apps": "Kostenlos"
+  "free_to_use_apps": "Kostenlos",
+  "enterprise_license": "Das ist eine Enterprise-Funktion"
 }
