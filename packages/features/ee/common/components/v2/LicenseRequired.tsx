@@ -1,7 +1,8 @@
 import { useSession } from "next-auth/react";
 import React, { AriaRole, ComponentType, Fragment } from "react";
 
-import { CONSOLE_URL } from "@calcom/lib/constants";
+import { CONSOLE_URL, SUPPORT_MAIL_ADDRESS, WEBSITE_DOMAIN } from "@calcom/lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/Icon";
 import { EmptyScreen } from "@calcom/ui/v2";
 
@@ -18,6 +19,7 @@ type LicenseRequiredProps = {
  */
 const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) => {
   const session = useSession();
+  const { t } = useLocale();
   const Component = as || Fragment;
   const hasValidLicense = session.data ? session.data.hasValidLicense : null;
   return (
@@ -27,20 +29,20 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
       ) : (
         <EmptyScreen
           Icon={Icon.FiAlertTriangle}
-          headline="This is an enterprise feature"
+          headline={t("enterprise_license")}
           description={
-            <>
-              To enable this feature, get a deployment key at{" "}
-              <a href={CONSOLE_URL} target="_blank" rel="noopener noreferrer" className="underline">
-                Cal.com console
-              </a>{" "}
-              and add it to your .env as <code>CALCOM_LICENSE_KEY</code>. If your team already has a license,
-              please contact{" "}
-              <a href="mailto:peer@cal.com" className="underline">
-                peer@cal.com
-              </a>{" "}
-              for help.
-            </>
+            <div
+              dangerouslySetInnerHTML={{
+                __html: t("enterprise_license_description", {
+                  consoleUrl: `<a href="${CONSOLE_URL}" target="_blank" rel="noopener noreferrer" class="underline">
+                ${WEBSITE_DOMAIN}
+              </a>`,
+                  supportMail: `<a href="mailto:${SUPPORT_MAIL_ADDRESS}" class="underline">
+                ${SUPPORT_MAIL_ADDRESS}
+              </a>`,
+                }),
+              }}
+            />
           }
         />
       )}

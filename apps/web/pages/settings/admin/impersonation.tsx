@@ -12,7 +12,7 @@ function AdminView() {
 
   return (
     <>
-      <Meta title="Admin" description="Impersonation" />
+      <Meta title="Admin" description={t("impersonation")} />
       <form
         className="mb-6 w-full sm:w-1/2"
         onSubmit={(e) => {
@@ -25,7 +25,7 @@ function AdminView() {
         <div className="flex items-center space-x-2">
           <TextField
             containerClassName="w-full"
-            name="Impersonate User"
+            name={t("user_impersonation_heading")}
             addOnLeading={<>{process.env.NEXT_PUBLIC_WEBSITE_URL}/</>}
             ref={usernameRef}
             hint={t("impersonate_user_tip")}

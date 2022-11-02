@@ -1,5 +1,6 @@
 import { Controller, useForm } from "react-hook-form";
 
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import Badge from "@calcom/ui/v2/core/Badge";
@@ -63,7 +64,7 @@ const AppearanceView = () => {
             theme: values.theme || null,
           });
         }}>
-        <Meta title="Appearance" description="Manage settings for your booking appearance" />
+        <Meta title={t("appearance")} description={t("appearance_description")} />
         <div className="mb-6 flex items-center text-sm">
           <div>
             <p className="font-semibold">{t("theme")}</p>
@@ -150,10 +151,10 @@ const AppearanceView = () => {
               <div className="flex w-full text-sm">
                 <div className="mr-1 flex-grow">
                   <div className="flex items-center">
-                    <p className="mr-2 font-semibold">{t("disable_cal_branding")}</p>{" "}
+                    <p className="mr-2 font-semibold">{t("disable_cal_branding", { appName: APP_NAME })}</p>{" "}
                     <Badge variant="gray">{t("pro")}</Badge>
                   </div>
-                  <p className="mt-0.5  text-gray-600">{t("removes_cal_branding")}</p>
+                  <p className="mt-0.5  text-gray-600">{t("removes_cal_branding", { appName: APP_NAME })}</p>
                 </div>
                 <div className="flex-none">
                   <Switch

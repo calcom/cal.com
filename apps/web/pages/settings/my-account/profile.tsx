@@ -5,7 +5,7 @@ import { useRef, useState, BaseSyntheticEvent, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/lib/auth";
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME, WEBSITE_DOMAIN } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
@@ -207,7 +207,7 @@ const ProfileView = () => {
             mutation.mutate(values);
           }
         }}>
-        <Meta title="Profile" description="Manage settings for your cal profile" />
+        <Meta title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
         <div className="flex items-center">
           <Controller
             control={formMethods.control}
@@ -272,7 +272,7 @@ const ProfileView = () => {
           </DialogTrigger>
           <DialogContent
             title={t("delete_account_modal_title")}
-            description={t("confirm_delete_account_modal")}
+            description={t("confirm_delete_account_modal", { domainName: WEBSITE_DOMAIN })}
             type="creation"
             actionText={t("delete_my_account")}
             actionProps={{
@@ -282,7 +282,9 @@ const ProfileView = () => {
             Icon={Icon.FiAlertTriangle}
             actionOnClick={(e) => e && onConfirmButton(e)}>
             <>
-              <p className="mb-7">{t("delete_account_confirmation_message")}</p>
+              <p className="mb-7">
+                {t("delete_account_confirmation_message", { domainName: WEBSITE_DOMAIN })}
+              </p>
               {isCALIdentityProviver && (
                 <PasswordField
                   data-testid="password"

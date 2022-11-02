@@ -62,11 +62,7 @@ const CalendarsView = () => {
 
   return (
     <>
-      <Meta
-        title="Calendars"
-        description="Configure how your event types interact with your calendars"
-        CTA={<AddCalendarButton />}
-      />
+      <Meta title={t("calendars")} description={t("calendars_description")} CTA={<AddCalendarButton />} />
       <QueryCell
         query={query}
         customLoader={<SkeletonLoader />}

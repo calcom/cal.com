@@ -122,7 +122,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           weekStart: values.weekStart.value,
         });
       }}>
-      <Meta title="General" description="Manage settings for your language and timezone" />
+      <Meta title={t("general")} description={t("general_description")} />
       <Controller
         name="locale"
         render={({ field: { value, onChange } }) => (

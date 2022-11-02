@@ -102,6 +102,7 @@ export const EventSetupTab = (
         {validLocations.length === 0 && (
           <div className="flex">
             <Select
+              placeholder={t("select")}
               options={locationOptions}
               isSearchable={false}
               className="block w-full min-w-0 flex-1 rounded-sm text-sm"
@@ -183,7 +184,7 @@ export const EventSetupTab = (
       <div className="space-y-8">
         <TextField
           required
-          label={t("Title")}
+          label={t("title")}
           defaultValue={eventType.title}
           {...formMethods.register("title")}
         />
