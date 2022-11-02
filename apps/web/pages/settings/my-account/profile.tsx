@@ -158,9 +158,12 @@ const ProfileView = () => {
   }>();
 
   const { reset } = formMethods;
-
+  const formInitializedRef = useRef(false);
   useEffect(() => {
-    if (user)
+    // The purpose of reset is to set the initial value obtained from tRPC.
+    // `user` would change for many reasons (e.g. when viewer.me automatically fetches on window re-focus(a react query feature))
+    if (user && !formInitializedRef.current) {
+      formInitializedRef.current = true;
       reset({
         avatar: user?.avatar || "",
         username: user?.username || "",
@@ -168,6 +171,7 @@ const ProfileView = () => {
         email: user?.email || "",
         bio: user?.bio || "",
       });
+    }
   }, [reset, user]);
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

@@ -46,6 +46,7 @@ type Props = {
   installedAppsNumber: number;
   enabledWorkflowsNumber: number;
   formMethods: UseFormReturn<FormValues>;
+  isUpdateMutationLoading?: boolean;
 };
 
 function getNavigation(props: {
@@ -112,6 +113,7 @@ function EventTypeSingleLayout({
   enabledAppsNumber,
   installedAppsNumber,
   enabledWorkflowsNumber,
+  isUpdateMutationLoading,
   formMethods,
 }: Props) {
   const utils = trpc.useContext();
@@ -287,6 +289,7 @@ function EventTypeSingleLayout({
           <Button
             className="ml-4 lg:ml-0"
             type="submit"
+            loading={formMethods.formState.isSubmitting || isUpdateMutationLoading}
             data-testid="update-eventtype"
             form="event-type-form">
             {t("save")}

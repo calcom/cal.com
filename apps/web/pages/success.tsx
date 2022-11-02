@@ -298,7 +298,7 @@ export default function Success(props: SuccessProps) {
               aria-hidden="true">
               <div
                 className={classNames(
-                  "inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
+                  "main inline-block transform overflow-hidden rounded-lg border sm:my-8 sm:max-w-xl",
                   isBackgroundTransparent ? "" : "dark:bg-darkgray-100 bg-white dark:border-neutral-700",
                   "px-8 pt-5 pb-4 text-left align-bottom transition-all sm:w-full sm:py-8 sm:align-middle"
                 )}
@@ -428,6 +428,14 @@ export default function Success(props: SuccessProps) {
                           </>
                         );
                       })}
+                    {bookingInfo?.smsReminderNumber && (
+                      <>
+                        <div className="mt-9 font-medium">{t("number_sms_notifications")}</div>
+                        <div className="col-span-2 mb-2 mt-9">
+                          <p>{bookingInfo.smsReminderNumber}</p>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
                 {!needsConfirmation &&
@@ -472,7 +480,7 @@ export default function Success(props: SuccessProps) {
                 {userIsOwner && !needsConfirmation && !isCancellationMode && !isCancelled && (
                   <>
                     <hr className="border-bookinglightest dark:border-darkgray-300" />
-                    <div className="text-bookingdark align-center flex flex-row justify-center pt-8">
+                    <div className="text-bookingdark align-center flex flex-row justify-center py-8">
                       <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                         {t("add_to_calendar")}
                       </span>
@@ -579,7 +587,7 @@ export default function Success(props: SuccessProps) {
                 )}
                 {session === null && !(userIsOwner || props.hideBranding) && (
                   <>
-                    <hr className="border-bookinglightest" />
+                    <hr className="border-bookinglightest dark:border-darkgray-300" />
                     <div className="border-bookinglightest text-booking-lighter dark:border-darkgray-300 pt-8 text-center text-xs dark:text-white">
                       <a href="https://cal.com/signup">
                         {t("create_booking_link_with_calcom", { domainName: WEBSITE_DOMAIN })}
@@ -860,6 +868,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       uid: true,
       description: true,
       customInputs: true,
+      smsReminderNumber: true,
       user: {
         select: {
           id: true,
