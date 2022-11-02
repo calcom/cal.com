@@ -648,7 +648,7 @@
   "show_advanced_settings": "Erweiterte Einstellungen anzeigen",
   "event_name": "Termin Name",
   "event_name_tooltip": "Der Name, der in Kalendern angezeigt wird",
-  "meeting_with_user": "Meeting mit {{attendeeName}}",
+  "meeting_with_user": "Meeting mit {ATTENDEE}",
   "additional_inputs": "Zusätzliche Notizen",
   "additional_input_description": "Erfordert die Eingabe zusätzlicher Eingaben durch den Planer vor der Buchungsbestätigung",
   "label": "Bezeichnung",

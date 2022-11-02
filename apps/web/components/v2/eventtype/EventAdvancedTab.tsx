@@ -101,7 +101,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
         <TextField
           label={t("event_name")}
           type="text"
-          placeholder={t("meeting_with_user", { attendeeName: eventType.users[0]?.name })}
+          placeholder={t("meeting_with_user")}
           defaultValue={eventType.eventName || ""}
           {...formMethods.register("eventName")}
           addOnSuffix={
@@ -361,7 +361,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
             <TextField
               label={t("event_name")}
               type="text"
-              placeholder={t("meeting_with_user", { attendeeName: eventType.users[0]?.name })}
+              placeholder={t("meeting_with_user")}
               defaultValue={eventType.eventName || ""}
               {...formMethods.register("eventName")}
             />
