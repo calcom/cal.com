@@ -216,9 +216,9 @@ function UserDropdown({ small }: { small?: boolean }) {
         screenResolution: `${screen.width}x${screen.height}`,
       });
   });
-  const mutation = trpc.useMutation("viewer.away", {
+  const mutation = trpc.viewer.away.useMutation({
     onSettled() {
-      utils.invalidateQueries("viewer.me");
+      utils.viewer.me.invalidate();
     },
   });
   const utils = trpc.useContext();
@@ -298,7 +298,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 <button
                   onClick={() => {
                     mutation.mutate({ away: !user?.away });
-                    utils.invalidateQueries("viewer.me");
+                    utils.viewer.me.invalidate();
                   }}
                   className="flex min-w-max cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
                   <Icon.FiMoon
@@ -554,9 +554,13 @@ const Navigation = () => {
 
 function useShouldDisplayNavigationItem(item: NavigationItemType) {
   const { status } = useSession();
-  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing-forms" }], {
-    enabled: status === "authenticated" && requiredCredentialNavigationItems.includes(item.name),
-  });
+  const { data: routingForms } = trpc.viewer.appById.useQuery(
+    { appId: "routing-forms" },
+    {
+      enabled: status === "authenticated" && requiredCredentialNavigationItems.includes(item.name),
+      trpc: {},
+    }
+  );
   return !requiredCredentialNavigationItems.includes(item.name) || routingForms?.isInstalled;
 }
 

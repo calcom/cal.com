@@ -21,11 +21,14 @@ const MembersView = () => {
   const router = useRouter();
   const session = useSession();
 
-  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
-    onError: () => {
-      router.push("/settings");
-    },
-  });
+  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
+    { teamId: Number(router.query.id) },
+    {
+      onError: () => {
+        router.push("/settings");
+      },
+    }
+  );
 
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
 

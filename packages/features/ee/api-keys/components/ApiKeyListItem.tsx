@@ -17,9 +17,9 @@ export default function ApiKeyListItem(props: { apiKey: TApiKeys; onEditApiKey: 
   const utils = trpc.useContext();
   const isExpired = props?.apiKey?.expiresAt ? props.apiKey.expiresAt < new Date() : null;
   const neverExpires = props?.apiKey?.expiresAt === null;
-  const deleteApiKey = trpc.useMutation("viewer.apiKeys.delete", {
+  const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.apiKeys.list"]);
+      await utils.viewer.apiKeys.list.invalidate();
     },
   });
   return (

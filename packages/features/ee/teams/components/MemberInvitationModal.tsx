@@ -4,7 +4,6 @@ import React, { useState, SyntheticEvent, useMemo } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/Icon";
 import { Button, Dialog, DialogContent, DialogFooter, Select, TextField } from "@calcom/ui/v2";
 
 type MemberInvitationModalProps = {
@@ -33,9 +32,9 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     return _options;
   }, [t]);
 
-  const inviteMemberMutation = trpc.useMutation("viewer.teams.inviteMember", {
+  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
+      await utils.viewer.teams.get.invalidate();
       props.onExit();
     },
     async onError(err) {

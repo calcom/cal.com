@@ -28,7 +28,7 @@ export default function TeamAvailabilityModal(props: Props) {
   const [frequency, setFrequency] = useState<15 | 30 | 60>(30);
 
   useEffect(() => {
-    utils.invalidateQueries(["viewer.teams.getMemberAvailability"]);
+    utils.viewer.teams.getMemberAvailability.invalidate();
   }, [utils, selectedTimeZone, selectedDate]);
 
   return (

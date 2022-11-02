@@ -25,7 +25,7 @@ export default function DisconnectIntegration({
   const { t } = useLocale();
   const [modalOpen, setModalOpen] = useState(false);
 
-  const mutation = trpc.useMutation("viewer.deleteCredential", {
+  const mutation = trpc.viewer.deleteCredential.useMutation({
     onSuccess: () => {
       showToast(t("app_removed_successfully"), "success");
       setModalOpen(false);

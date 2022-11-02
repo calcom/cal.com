@@ -22,20 +22,23 @@ export default function SAMLConfiguration({ teamId }: { teamId: number | null })
   const [errorMessage, setErrorMessage] = useState("");
   const [configModal, setConfigModal] = useState(false);
 
-  const { data: connection, isLoading } = trpc.useQuery(["viewer.saml.get", { teamId }], {
-    onError: (err) => {
-      setHasError(true);
-      setErrorMessage(err.message);
-    },
-    onSuccess: () => {
-      setHasError(false);
-      setErrorMessage("");
-    },
-  });
+  const { data: connection, isLoading } = trpc.viewer.saml.get.useQuery(
+    { teamId },
+    {
+      onError: (err) => {
+        setHasError(true);
+        setErrorMessage(err.message);
+      },
+      onSuccess: () => {
+        setHasError(false);
+        setErrorMessage("");
+      },
+    }
+  );
 
-  const mutation = trpc.useMutation("viewer.saml.delete", {
+  const mutation = trpc.viewer.saml.delete.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.saml.get"]);
+      await utils.viewer.saml.get.invalidate();
       showToast(t("saml_config_deleted_successfully"), "success");
     },
     onError: (err) => {

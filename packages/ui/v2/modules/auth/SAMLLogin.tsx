@@ -25,7 +25,7 @@ export default function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage
   const methods = useFormContext();
   const telemetry = useTelemetry();
 
-  const mutation = trpc.useMutation("viewer.public.samlTenantProduct", {
+  const mutation = trpc.viewer.public.samlTenantProduct.useMutation({
     onSuccess: async (data) => {
       await signIn("saml", {}, { tenant: data.tenant, product: data.product });
     },

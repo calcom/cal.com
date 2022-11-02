@@ -45,7 +45,7 @@ const WebhooksList = () => {
   const { t } = useLocale();
   const router = useRouter();
 
-  const { data: webhooks } = trpc.useQuery(["viewer.webhook.list"], {
+  const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
     suspense: true,
     enabled: router.isReady,
   });

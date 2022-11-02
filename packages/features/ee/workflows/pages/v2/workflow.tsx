@@ -86,9 +86,12 @@ function WorkflowPage() {
     isError,
     error,
     dataUpdatedAt,
-  } = trpc.useQuery(["viewer.workflows.get", { id: +workflowId }], {
-    enabled: router.isReady && !!workflowId,
-  });
+  } = trpc.viewer.workflows.get.useQuery(
+    { id: +workflowId },
+    {
+      enabled: router.isReady && !!workflowId,
+    }
+  );
 
   useEffect(() => {
     if (workflow && !form.getValues("trigger")) {
@@ -133,10 +136,10 @@ function WorkflowPage() {
     }
   }, [dataUpdatedAt]);
 
-  const updateMutation = trpc.useMutation("viewer.workflows.update", {
+  const updateMutation = trpc.viewer.workflows.update.useMutation({
     onSuccess: async ({ workflow }) => {
       if (workflow) {
-        utils.setQueryData(["viewer.workflows.get", { id: +workflow.id }], workflow);
+        utils.viewer.workflows.get.setData(workflow, { id: +workflow.id });
 
         showToast(
           t("workflow_updated_successfully", {

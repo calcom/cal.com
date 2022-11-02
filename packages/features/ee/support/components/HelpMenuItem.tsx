@@ -22,7 +22,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
   const [, loadChat] = useChat();
   const { t } = useLocale();
 
-  const mutation = trpc.useMutation("viewer.submitFeedback", {
+  const mutation = trpc.viewer.submitFeedback.useMutation({
     onSuccess: () => {
       setDisableSubmit(true);
       showToast("Thank you, feedback submitted", "success");
