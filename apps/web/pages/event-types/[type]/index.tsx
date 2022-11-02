@@ -55,8 +55,8 @@ export type FormValues = {
   hashedLink: string | undefined;
   locations: {
     type: EventLocationType["type"];
-    hostAddress?: string;
     address?: string;
+    attendeeAddress?: string;
     link?: string;
     hostPhoneNumber?: string;
     displayLocationPublicly?: boolean;

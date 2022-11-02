@@ -71,6 +71,18 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
         }
       />
     );
+  } else if (!isPhone) {
+    return (
+      <Info
+        label={t("where")}
+        withSpacer
+        description={
+          <p title="Phone" style={{ color: "#3E3E3E" }}>
+            {location}
+          </p>
+        }
+      />
+    );
   }
 
   return (

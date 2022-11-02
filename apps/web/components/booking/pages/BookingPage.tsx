@@ -69,6 +69,8 @@ type BookingFormValues = {
   notes?: string;
   locationType?: EventLocationType["type"];
   guests?: string[];
+  address?: string;
+  attendeeAddress?: string;
   phone?: string;
   hostPhoneNumber?: string; // Maybe come up with a better way to name this to distingish between two types of phone numbers
   customInputs?: {
@@ -270,6 +272,7 @@ const BookingPage = ({
         .refine((val) => isValidPhoneNumber(val))
         .optional()
         .nullable(),
+      attendeeAddress: z.string().min(1).optional().nullable(),
       smsReminderNumber: z
         .string()
         .refine((val) => isValidPhoneNumber(val))
@@ -298,11 +301,9 @@ const BookingPage = ({
 
   const selectedLocation = getEventLocationType(selectedLocationType);
   const AttendeeInput =
-    selectedLocation?.attendeeInputType === "text"
-      ? "input"
-      : selectedLocation?.attendeeInputType === "phone"
+    selectedLocation?.attendeeInputType === "phone"
       ? PhoneInput
-      : selectedLocation?.attendeeInputType === "address"
+      : selectedLocation?.attendeeInputType === "attendeeAddress"
       ? AddressInput
       : null;
 
@@ -359,6 +360,7 @@ const BookingPage = ({
         location: getEventLocationValue(locations, {
           type: booking.locationType ? booking.locationType : selectedLocationType || "",
           phone: booking.phone,
+          attendeeAddress: booking.attendeeAddress,
         }),
         metadata,
         customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
@@ -389,6 +391,7 @@ const BookingPage = ({
         location: getEventLocationValue(locations, {
           type: (booking.locationType ? booking.locationType : selectedLocationType) || "",
           phone: booking.phone,
+          attendeeAddress: booking.attendeeAddress,
         }),
         metadata,
         customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
@@ -664,7 +667,7 @@ const BookingPage = ({
                         selectedLocationType === LocationType.Phone
                           ? "phone"
                           : selectedLocationType === LocationType.AttendeeInPerson
-                          ? "address"
+                          ? "attendeeAddress"
                           : ""
                       }
                       className="block text-sm font-medium text-gray-700 dark:text-white">
@@ -677,11 +680,12 @@ const BookingPage = ({
                     <div className="mt-1">
                       <AttendeeInput<BookingFormValues>
                         control={bookingForm.control}
+                        bookingForm={bookingForm}
                         name={
                           selectedLocationType === LocationType.Phone
                             ? "phone"
                             : selectedLocationType === LocationType.AttendeeInPerson
-                            ? "address"
+                            ? "attendeeAddress"
                             : ""
                         }
                         placeholder={t(selectedLocation?.attendeeInputPlaceholder || "")}
@@ -689,7 +693,7 @@ const BookingPage = ({
                           selectedLocationType === LocationType.Phone
                             ? "phone"
                             : selectedLocationType === LocationType.AttendeeInPerson
-                            ? "address"
+                            ? "attendeeAddress"
                             : ""
                         }
                         required
