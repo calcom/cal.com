@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
+import { SIGNUP_DISABLED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Alert } from "@calcom/ui/Alert";
@@ -130,6 +131,15 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
 }
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+  if (SIGNUP_DISABLED) {
+    return {
+      redirect: {
+        destination: "/auth/login",
+        permanent: true,
+      },
+    };
+  }
+
   const ssr = await ssrInit(ctx);
   const token = asStringOrNull(ctx.query.token);
 
