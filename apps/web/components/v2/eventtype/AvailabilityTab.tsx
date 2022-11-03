@@ -195,8 +195,8 @@ export const AvailabilityTab = ({ isTeamEvent }: { isTeamEvent: boolean }) => {
           onCheckedChange={(checked) => {
             onChange(!checked);
           }}
-          title="Choose a common schedule"
-          description="Enable this if you want to have a common schedule for all members, otherwise, team members' default schedules would be used while choosing them">
+          title={t("choose_common_schedule_team_event")}
+          description={t("choose_common_schedule_team_event_description")}>
           <EventTypeSchedule />
         </SettingsToggle>
       )}
