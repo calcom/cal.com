@@ -35,6 +35,7 @@ const getEventType = (id: number) =>
       seatsPerTimeSlot: true,
       bookingLimits: true,
       timeZone: true,
+      metadata: true,
       schedule: {
         select: {
           availability: true,
@@ -200,13 +201,20 @@ export async function getUserAvailability(
       });
     }
   }
-  const schedule = eventType?.schedule
-    ? { ...eventType?.schedule }
-    : {
-        ...currentUser.schedules.filter(
-          (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
-        )[0],
-      };
+
+  console.log(
+    "eventType?.metadata?.useMemberSchedulesForTeamEvent ",
+    eventType?.metadata?.useMemberSchedulesForTeamEvent,
+    eventType?.schedule
+  );
+  const schedule =
+    !eventType?.metadata?.useMemberSchedulesForTeamEvent && eventType?.schedule
+      ? { ...eventType?.schedule }
+      : {
+          ...currentUser.schedules.filter(
+            (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
+          )[0],
+        };
 
   const startGetWorkingHours = performance.now();
 
