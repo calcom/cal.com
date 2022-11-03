@@ -17,12 +17,15 @@ export type SchedulerPublicActions = {
 
 // We have private actions here that we want to be avalbile in state but not as component props.
 export type SchedulerPrivateActions = {
+  // initState is used to init the state from public props -> Doesnt override internal state
   initState: (state: SchedulerState & SchedulerPublicActions) => void;
   setView: (view: SchedulerComponentProps["view"]) => void;
   setStartDate: (startDate: SchedulerComponentProps["startDate"]) => void;
   setEndDate: (endDate: SchedulerComponentProps["endDate"]) => void;
   setEvents: (events: SchedulerComponentProps["events"]) => void;
   setStartingDayOfWeek: (startingDayOfWeek: SchedulerComponentProps["startingDayOfWeek"]) => void;
+  selectedEvent?: SchedulerEvent;
+  setSelectedEvent: (event: SchedulerEvent) => void;
 };
 
 export type SchedulerState = {

@@ -10,4 +10,11 @@ export const DUMMY_DATA: SchedulerEvent[] = [
     end: dayjs().add(1, "hour").toDate(),
     status: "ACCEPTED",
   },
+  {
+    id: 2,
+    title: "Event 2",
+    start: new Date(),
+    end: dayjs().add(1, "hour").toDate(),
+    status: "PENDING",
+  },
 ];

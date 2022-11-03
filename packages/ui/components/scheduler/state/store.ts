@@ -20,10 +20,11 @@ export const useSchedulerStore = create<SchedulerStoreProps>((set) => ({
   setEvents: (events: SchedulerComponentProps["events"]) => set({ events }),
   setStartingDayOfWeek: (startingDayOfWeek: SchedulerComponentProps["startingDayOfWeek"]) =>
     set({ startingDayOfWeek }),
-  // This looks a bit odd but init state only overrides the public props + actions
+  // This looks a bit odd but init state only overrides the public props + actions as we don't want to override our internal state
   initState: (state) => {
     set({
       ...state,
     });
   },
+  setSelectedEvent: (event) => set({ selectedEvent: event }),
 }));
