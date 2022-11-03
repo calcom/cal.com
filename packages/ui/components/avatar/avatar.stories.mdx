@@ -1,5 +1,5 @@
 import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
-import { Examples, Example, Note, Title,CustomArgsTable } from '@calcom/storybook/components'
+import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable,VariantRow } from '@calcom/storybook/components'
 import { Icon } from "@calcom/ui/Icon";
 import {Avatar} from './Avatar';
 import {AvatarGroup} from './AvatarGroup';
@@ -122,3 +122,18 @@ Avatar group can be composed differently based on the number of user profile.
   </Example>
 </Examples>
 
+<Title offset title="Avatar" suffix="Variants" />
+
+<Canvas>
+  <Story
+    name="Avatar">
+    <VariantsTable titles={['Default']} columnMinWidth={150}>
+      <VariantRow variant="Sm">
+        <Avatar size="sm" alt="Avatar Story" gravatarFallbackMd5="Ui@CAL.com" />
+      </VariantRow>
+      <VariantRow variant="Lg">
+        <Avatar size="lg" alt="Avatar Story" gravatarFallbackMd5="Ui@CAL.com" />
+      </VariantRow>
+    </VariantsTable>
+  </Story>
+</Canvas>
