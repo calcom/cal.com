@@ -60,7 +60,9 @@ export default function Availability({ schedule }: { schedule: number }) {
   const updateMutation = trpc.useMutation("viewer.availability.schedule.update", {
     onSuccess: async ({ prevDefaultId, currentDefaultId, ...data }) => {
       if (prevDefaultId && currentDefaultId) {
+        // check weather the default schedule has been changed by comparing  previous default schedule id and current default schedule id.
         if (prevDefaultId !== currentDefaultId) {
+          // if not equal, invalidate previous default schedule id and refetch previous default schedule id.
           utils.invalidateQueries(["viewer.availability.schedule", { scheduleId: prevDefaultId }]);
           utils.refetchQueries(["viewer.availability.schedule", { scheduleId: prevDefaultId }]);
         }
