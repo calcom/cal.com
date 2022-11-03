@@ -6,12 +6,10 @@ defined('ABSPATH') || exit;
 
 class Embed
 {
-
     public function hooks(): void
     {
         add_shortcode('cal', [$this, 'shortcode']);
     }
-
 
     public function shortcode($atts): string
     {
@@ -30,11 +28,11 @@ class Embed
 
         if ($atts) {
 
-            $this->load_embed_script();
+            $this->load_embed_scripts();
 
             switch ($atts['type']) {
                 case 2:
-                    $output = '<span id="calcom-embed-link" data-cal-link="' . $atts['url'] . '">' . $atts['text'] . '</span>';
+                    $output = '<span id="calcom-embed-link" data-cal-link="' . esc_attr($atts['url']) . '">' . esc_attr($atts['text']) . '</span>';
                     break;
                 default:
                     $output = '<div id="calcom-embed"></div>';
@@ -46,7 +44,6 @@ class Embed
 
         return '';
     }
-
 
     /**
      * Adds inline embed JS
@@ -68,29 +65,28 @@ class Embed
     }
 
     /**
-     * Enqueues embed script
+     * Enqueues registered embed scripts
      * 
      * @return void
      */
-    private function load_embed_script(): void
+    private function load_embed_scripts(): void
     {
         wp_enqueue_script('calcom-embed-js');
         wp_enqueue_style('calcom-embed-css');
     }
 
     /**
-     * Sanitizes embed attributes
+     * Sanitizes embed shortcode attributes
      * 
      * @param $atts Shortcode attributess
      * @return $array
      */
     private function prepare_atts($atts): array
     {
-
         if ($atts) {
 
             $embed_url = '';
-            $embed_type = '';
+            $embed_type = '1';
             $embed_text = 'Book me';
 
             if (isset($atts['url']) && $atts['url']) {

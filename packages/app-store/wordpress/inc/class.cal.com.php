@@ -17,8 +17,8 @@ class Cal
     {
         $this->includes();
         $embed = new \CalCom\Embed;
-        $embed->hooks();
         $this->hooks();
+        $embed->hooks();
     }
 
     private function hooks(): void

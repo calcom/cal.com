@@ -1,5 +1,5 @@
 ## Cal.com Official WordPress plugin
 
-Embed Cal.com directly in WordPress.
+With a simple and customizable shortcode, embed Cal.com booking calendar directly and easily in WordPress. 
 
 Plugin url: []()
