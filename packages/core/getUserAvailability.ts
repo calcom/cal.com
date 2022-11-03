@@ -22,6 +22,7 @@ const availabilitySchema = z
     username: z.string().optional(),
     userId: z.number().optional(),
     afterEventBuffer: z.number().optional(),
+    beforeEventBuffer: z.number().optional(),
     withSource: z.boolean().optional(),
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
@@ -92,6 +93,7 @@ export async function getUserAvailability(
     dateTo: string;
     eventTypeId?: number;
     afterEventBuffer?: number;
+    beforeEventBuffer?: number;
   },
   initialData?: {
     user?: User;
@@ -99,7 +101,7 @@ export async function getUserAvailability(
     currentSeats?: CurrentSeats;
   }
 ) {
-  const { username, userId, dateFrom, dateTo, eventTypeId, afterEventBuffer } =
+  const { username, userId, dateFrom, dateTo, eventTypeId, afterEventBuffer, beforeEventBuffer } =
     availabilitySchema.parse(query);
 
   if (!dateFrom.isValid() || !dateTo.isValid())
@@ -134,14 +136,14 @@ export async function getUserAvailability(
     eventTypeId,
     userId: currentUser.id,
     selectedCalendars,
+    beforeEventBuffer,
+    afterEventBuffer,
   });
 
   const bufferedBusyTimes: EventBusyDetails[] = busyTimes.map((a) => ({
     ...a,
-    start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toISOString(),
-    end: dayjs(a.end)
-      .add(currentUser.bufferTime + (afterEventBuffer || 0), "minute")
-      .toISOString(),
+    start: dayjs(a.start).toISOString(),
+    end: dayjs(a.end).toISOString(),
     title: a.title,
     source: query.withSource ? a.source : undefined,
   }));

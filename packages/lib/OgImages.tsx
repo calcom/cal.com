@@ -21,6 +21,11 @@ export interface AppImageProps {
   slug: string;
 }
 
+export interface GenericImageProps {
+  title: string;
+  description: string;
+}
+
 const joinMultipleNames = (names: string[] = []) => {
   const lastName = names.pop();
   return `${names.length > 0 ? `${names.join(", ")} & ${lastName}` : lastName}`;
@@ -42,7 +47,7 @@ export const constructMeetingImage = ({ title, users = [], profile }: MeetingIma
     profile.image && `&meetingImage=${encodeURIComponent(profile.image)}`,
     `${users.map((user) => `&names=${encodeURIComponent(user.name)}`).join("")}`,
     `${users.map((user) => `&usernames=${encodeURIComponent(user.username)}`).join("")}`,
-    // Joinining a multiline string for readability.
+    // Joining a multiline string for readability.
   ].join("");
 };
 
@@ -56,7 +61,16 @@ export const constructAppImage = ({ name, slug, description }: AppImageProps): s
     `&name=${encodeURIComponent(name)}`,
     `&slug=${encodeURIComponent(slug)}`,
     `&description=${encodeURIComponent(description)}`,
-    // Joinining a multiline string for readability.
+    // Joining a multiline string for readability.
+  ].join("");
+};
+
+export const constructGenericImage = ({ title, description }: GenericImageProps) => {
+  return [
+    `?type=generic`,
+    `&title=${encodeURIComponent(title)}`,
+    `&description=${encodeURIComponent(description)}`,
+    // Joining a multiline string for readability.
   ].join("");
 };
 
@@ -195,6 +209,25 @@ export const App = ({ name, description, slug }: AppImageProps) => (
       </div>
       <div tw="flex text-[36px]" style={{ fontFamily: "inter" }}>
         {description}
+      </div>
+    </div>
+  </Wrapper>
+);
+
+export const Generic = ({ title, description }: GenericImageProps) => (
+  <Wrapper>
+    <div tw="h-full flex flex-col justify-start">
+      <div tw="flex items-center justify-center" style={{ fontFamily: "cal", fontWeight: 300 }}>
+        <img src={`${CAL_URL}/cal-logo-word-black.svg`} width="350" alt="Logo" />
+      </div>
+
+      <div tw="relative flex text-[54px] w-full flex-col text-black mt-auto">
+        <div tw="flex w-[1040px]" style={{ fontFamily: "cal" }}>
+          {title}
+        </div>
+        <div tw="flex mt-3 w-[1040px]" style={{ fontFamily: "inter" }}>
+          {description}
+        </div>
       </div>
     </div>
   </Wrapper>
