@@ -231,6 +231,7 @@ export default NextAuth({
           email: existingUser.email,
           role: existingUser.role,
           impersonatedByUID: token?.impersonatedByUID as number,
+          avatar: existingUser.avatar,
         };
       };
       if (!user) {
@@ -296,6 +297,7 @@ export default NextAuth({
           username: token.username as string,
           role: token.role as UserPermissionRole,
           impersonatedByUID: token.impersonatedByUID as number,
+          avatar: token.avatar as string,
         },
       };
       return calendsoSession;
