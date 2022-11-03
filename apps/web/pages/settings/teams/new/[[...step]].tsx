@@ -1,4 +1,3 @@
-import { MembershipRole } from "@prisma/client";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { useSession } from "next-auth/react";
@@ -22,6 +21,7 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { STRIPE_PUBLISHABLE_KEY } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { showToast } from "@calcom/ui/v2";
 
 import { StepCard } from "@components/getting-started/components/StepCard";
 import { Steps } from "@components/getting-started/components/Steps";
@@ -66,13 +66,6 @@ const CreateNewTeamPage = () => {
 
   const result = stepRouteSchema.safeParse(router.query);
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
-
-  useEffect(() => {
-    console.log(
-      "🚀 ~ file: [[...step]].tsx ~ line 69 ~ CreateNewTeamPage ~ newTeamData",
-      newTeamData.members
-    );
-  }, [newTeamData.members]);
 
   // Set current user as team owner
   useEffect(() => {
@@ -140,9 +133,11 @@ const CreateNewTeamPage = () => {
       if (data) {
         setClientSecret(data.clientSecret);
         setNewTeamData({ ...newTeamData, customerId: data.customerId, subscriptionId: data.subscriptionId });
+        goToIndex(2);
       }
-
-      goToIndex(2);
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
     },
   });
 
@@ -200,21 +195,13 @@ const CreateNewTeamPage = () => {
                   teamPrices={teamPrices}
                   addNewTeamMember={addNewTeamMember}
                   deleteNewTeamMember={deleteNewTeamMember}
-                  nextStep={(values: {
-                    members: PendingMember[];
-                    billingFrequency: "monthly" | "yearly";
-                  }) => {
+                  nextStep={(values: { billingFrequency: "monthly" | "yearly" }) => {
                     createPaymentIntentMutation.mutate({
                       teamName: newTeamData.name,
                       billingFrequency: values.billingFrequency,
-                      seats: values.members.length,
+                      seats: newTeamData.members.length,
                       ...(newTeamData.customerId && { customerId: newTeamData.customerId }),
                       ...(newTeamData.subscriptionId && { subscriptionId: newTeamData.subscriptionId }),
-                    });
-                    setNewTeamData({
-                      ...newTeamData,
-                      members: [...values.members],
-                      billingFrequency: values.billingFrequency,
                     });
                   }}
                 />
@@ -227,7 +214,7 @@ const CreateNewTeamPage = () => {
                       newTeamData.members.length *
                       teamPrices[newTeamData.billingFrequency as keyof typeof teamPrices]
                     }
-                    newTeamData={newTeamData}
+                    newTeamData={newTeamData as NewTeamData & { customerId: string; subscriptionId: string }}
                   />
                 </Elements>
               )}

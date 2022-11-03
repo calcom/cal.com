@@ -1,6 +1,5 @@
-import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import { classNames } from "@calcom/lib";
@@ -12,7 +11,7 @@ import { Avatar, Badge, Button, showToast, Switch } from "@calcom/ui/v2/core";
 import { Form } from "@calcom/ui/v2/core/form";
 import { SkeletonContainer, SkeletonText, SkeletonAvatar } from "@calcom/ui/v2/core/skeleton";
 
-import { PendingMember, TeamPrices, NewTeamData, NewTeamMembersFieldArray } from "../../lib/types";
+import { PendingMember, TeamPrices, NewTeamData } from "../../lib/types";
 import { NewMemberForm } from "../MemberInvitationModal";
 
 const AddNewTeamMembers = ({
@@ -22,14 +21,13 @@ const AddNewTeamMembers = ({
   addNewTeamMember,
   deleteNewTeamMember,
 }: {
-  nextStep: (values: { members: PendingMember[]; billingFrequency: "monthly" | "yearly" }) => void;
+  nextStep: (values: { billingFrequency: "monthly" | "yearly" }) => void;
   teamPrices: TeamPrices;
   newTeamData: NewTeamData;
   addNewTeamMember: (newMember: PendingMember) => void;
   deleteNewTeamMember: (email: string) => void;
 }) => {
   const { t } = useLocale();
-  const router = useRouter();
 
   const [memberInviteModal, setMemberInviteModal] = useState(false);
   const [inviteMemberInput, setInviteMemberInput] = useState<NewMemberForm>({
@@ -47,10 +45,6 @@ const AddNewTeamMembers = ({
       members: newTeamData.members,
       billingFrequency: "monthly",
     },
-  });
-  const membersFieldArray = useFieldArray({
-    control: formMethods.control,
-    name: "members",
   });
 
   const { refetch } = trpc.useQuery(["viewer.teams.findUser", inviteMemberInput], {
@@ -70,20 +64,13 @@ const AddNewTeamMembers = ({
     if (inviteMemberInput.emailOrUsername) {
       refetch();
     }
+    // eslint-disable-next-line
   }, [inviteMemberInput]);
 
   const handleInviteTeamMember = (values: NewMemberForm) => {
     setInviteMemberInput(values);
     setMemberInviteModal(false);
     setSkeletonMember(true);
-  };
-
-  const handleDeleteMember = (email: string) => {
-    const memberIndex = formMethods
-      .getValues("members")
-      .findIndex((member: PendingMember) => member.email === email);
-    membersFieldArray.remove(memberIndex);
-    setNumberOfMembers(numberOfMembers - 1);
   };
 
   return (
@@ -169,18 +156,20 @@ const AddNewTeamMembers = ({
                   }}
                 />
                 <p>
-                  Switch to yearly and save ${numberOfMembers * (teamPrices.monthly * 12 - teamPrices.yearly)}
+                  {t("switch_to_yearly", {
+                    total: numberOfMembers * (teamPrices.monthly * 12 - teamPrices.yearly),
+                  })}
                 </p>
               </div>
             )}
           />
 
           <div className="mt-6 flex justify-between">
-            <p>Total</p>
+            <p>{t("total")}</p>
             <div>
               <p>
-                {numberOfMembers} members × ${teamPrices[billingFrequency as keyof typeof teamPrices]} /{" "}
-                {billingFrequency} = $
+                {numberOfMembers} {t("members").toLowerCase()} × $
+                {teamPrices[billingFrequency as keyof typeof teamPrices]} / {billingFrequency} = $
                 {numberOfMembers * teamPrices[billingFrequency as keyof typeof teamPrices]}
               </p>
             </div>
@@ -196,23 +185,6 @@ const AddNewTeamMembers = ({
 };
 
 export default AddNewTeamMembers;
-
-const AddNewTeamMemberSkeleton = () => {
-  return (
-    <SkeletonContainer className="rounded-md border">
-      <div className="flex w-full justify-between p-4">
-        <div>
-          <p className="text-sm font-medium text-gray-900">
-            <SkeletonText className="h-4 w-56" />
-          </p>
-          <div className="mt-2.5 w-max">
-            <SkeletonText className="h-5 w-28" />
-          </div>
-        </div>
-      </div>
-    </SkeletonContainer>
-  );
-};
 
 const SkeletonMember = () => {
   return (

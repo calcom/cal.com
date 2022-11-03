@@ -718,6 +718,8 @@ export const viewerTeamsRouter = createProtectedRouter()
           incomplete subscription and create a new one */
           await deleteTeamSubscriptionQuantity(subscriptionId, seats);
 
+          const customer = await retrieveTeamCustomer(customerId);
+
           const subscription = await createTeamSubscription(customerId, input.billingFrequency, input.seats);
 
           return {
@@ -772,6 +774,12 @@ export const viewerTeamsRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       const { name, slug, logo, members, customerId, subscriptionId } = input;
+
+      if (!customerId && !subscriptionId)
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Stripe Ids not found",
+        });
 
       const createTeam = await ctx.prisma.team.create({
         data: {

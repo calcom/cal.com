@@ -27,15 +27,11 @@ const CreateANewTeamForm = ({
     },
   });
 
-  // TODO: validate correctly on first try
   const validateTeamNameQuery = trpc.useQuery(
     ["viewer.teams.validateTeamName", { name: newTeamFormMethods.watch("name") }],
     {
       enabled: false,
       refetchOnWindowFocus: false,
-      onSuccess: (data) => {
-        console.log("🚀 ~ file: CreateNewTeam.tsx ~ line 37 ~ data", data);
-      },
     }
   );
 

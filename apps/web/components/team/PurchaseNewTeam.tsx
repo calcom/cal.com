@@ -9,7 +9,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/v2";
 
-const PurchaseNewTeam = ({ total, newTeamData }: { total: number; newTeamData: NewTeamData }) => {
+const PurchaseNewTeam = ({
+  total,
+  newTeamData,
+}: {
+  total: number;
+  newTeamData: NewTeamData & { customerId: string; subscriptionId: string };
+}) => {
   const { t } = useLocale();
   const [errorMessage, setErrorMessage] = useState("");
   const [paymentProcessing, setPaymentProcessing] = useState(false);
@@ -51,10 +57,13 @@ const PurchaseNewTeam = ({ total, newTeamData }: { total: number; newTeamData: N
         className="mt-4 w-full justify-center"
         loading={paymentProcessing}
         onClick={() => handleSubmit()}>
-        {/* TODO Subscribe for $15/month */}
-        Pay ${total} / {newTeamData.billingFrequency}
+        {t("subscribe")} ${total} / {t(newTeamData.billingFrequency)}
       </Button>
-      {errorMessage && <p className="mt-2 text-red-900">Error processing payment: {errorMessage}</p>}
+      {errorMessage && (
+        <p className="mt-2 text-red-900">
+          {t("error_processing_payment")}: {errorMessage}
+        </p>
+      )}
     </>
   );
 };

@@ -18,12 +18,14 @@ export interface PendingMember {
   role: MembershipRole;
   avatar: string | null;
   sendInviteEmail?: boolean;
-  customerId?: string;
-  subscriptionId?: string;
 }
 
 export type NewTeamData = NewTeamFormValues &
-  NewTeamMembersFieldArray & { billingFrequency: "monthly" | "yearly" };
+  NewTeamMembersFieldArray & {
+    billingFrequency: "monthly" | "yearly";
+    customerId?: string;
+    subscriptionId?: string;
+  };
 
 export interface TeamPrices {
   monthly: number;
