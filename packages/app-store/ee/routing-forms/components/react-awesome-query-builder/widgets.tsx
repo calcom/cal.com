@@ -49,7 +49,7 @@ const TextWidget = (props: TextWidgetProps & { type?: string }) => {
   const textValue = value || "";
   return (
     <TextField
-      containerClassName="w-full mt-2"
+      containerClassName="w-full"
       type={type}
       className="dark:border-darkgray-300 flex flex-grow border-gray-300 text-sm dark:bg-transparent dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500"
       value={textValue}
@@ -66,6 +66,7 @@ function NumberWidget({ value, setValue, ...remainingProps }: NumberWidgetProps)
   return (
     <TextField
       type="number"
+      containerClassName="w-full"
       className="dark:border-darkgray-300 mt-0 border-gray-300 text-sm dark:bg-transparent dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500"
       value={value}
       onChange={(e) => {
@@ -101,7 +102,7 @@ const MultiSelectWidget = ({
 
   return (
     <Select
-      className="dark:border-darkgray-300 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 dark:bg-transparent dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 sm:text-sm"
+      className="dark:border-darkgray-300 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 dark:bg-transparent dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 sm:text-sm"
       menuPosition="fixed"
       onChange={(items) => {
         setValue(items?.map((item) => item.value));
@@ -135,7 +136,7 @@ function SelectWidget({
 
   return (
     <Select
-      className="data-testid-select dark:border-darkgray-300 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 dark:bg-transparent dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 sm:text-sm"
+      className="data-testid-select dark:border-darkgray-300 mb-2 block w-full min-w-0 flex-1 rounded-none rounded-r-sm border-gray-300 dark:bg-transparent dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500 sm:text-sm"
       menuPosition="fixed"
       onChange={(item) => {
         if (!item) {
