@@ -6,7 +6,12 @@ import { UseFormReturn } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import classNames from "@calcom/lib/classNames";
-import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
+import {
+  AppGetServerSidePropsContext,
+  AppPrisma,
+  AppUser,
+  AppSsrInit,
+} from "@calcom/types/AppGetServerSideProps";
 import { Icon } from "@calcom/ui";
 import { Button, EmptyScreen, SelectField, TextAreaField, TextField, Shell } from "@calcom/ui/v2";
 import { BooleanToggleGroupField } from "@calcom/ui/v2/core/form/BooleanToggleGroup";
@@ -300,8 +305,10 @@ FormEditPage.getLayout = (page: React.ReactElement) => {
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
   prisma: AppPrisma,
-  user: AppUser
+  user: AppUser,
+  ssrInit: AppSsrInit
 ) {
+  const ssr = await ssrInit(context);
   if (!user) {
     return {
       redirect: {
@@ -349,6 +356,8 @@ export const getServerSideProps = async function getServerSideProps(
   }
   return {
     props: {
+      trpcState: ssr.dehydrate(),
+
       form: getSerializableForm(form),
     },
   };

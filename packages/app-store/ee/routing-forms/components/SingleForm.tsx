@@ -1,6 +1,6 @@
 import { App_RoutingForms_Form } from "@prisma/client";
 import { useEffect } from "react";
-import { useForm, UseFormReturn } from "react-hook-form";
+import { useForm, UseFormReturn, Controller } from "react-hook-form";
 
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -10,6 +10,7 @@ import { Form } from "@calcom/ui/form/fields";
 import { showToast, DropdownMenuSeparator } from "@calcom/ui/v2";
 import { ButtonGroup, TextAreaField, TextField, Tooltip, Button, VerticalDivider } from "@calcom/ui/v2";
 import Meta from "@calcom/ui/v2/core/Meta";
+import SettingsToggle from "@calcom/ui/v2/core/SettingsToggle";
 import { ShellMain } from "@calcom/ui/v2/core/Shell";
 import Banner from "@calcom/ui/v2/core/banner";
 
@@ -187,6 +188,7 @@ type SingleFormComponentProps = {
 
 function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
   const utils = trpc.useContext();
+  const { t } = useLocale();
 
   const hookForm = useForm({
     defaultValues: form,
@@ -241,6 +243,23 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                   {...hookForm.register("description")}
                   defaultValue={form.description || ""}
                 />
+
+                <div className="mt-6">
+                  <Controller
+                    name="settings.emailOwnerOnSubmission"
+                    control={hookForm.control}
+                    render={({ field: { value, onChange } }) => {
+                      return (
+                        <SettingsToggle
+                          title={t("routing_forms_send_email_owner")}
+                          description={t("routing_forms_send_email_owner_description")}
+                          checked={value}
+                          onCheckedChange={(val) => onChange(val)}
+                        />
+                      );
+                    }}
+                  />
+                </div>
                 {!form._count?.responses && (
                   <Banner
                     className="mt-6"
