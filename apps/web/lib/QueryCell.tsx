@@ -95,8 +95,7 @@ const withQuery = <
 ) => {
   return function WithQuery(
     opts: Omit<
-      Partial<QueryCellOptionsWithEmpty<inferProcedureOutput<TQuery>, TError>> &
-        QueryCellOptionsNoEmpty<inferProcedureOutput<TQuery>, TError>,
+      Partial<QueryCellOptionsWithEmpty<TOutput, TError>> & QueryCellOptionsNoEmpty<TOutput, TError>,
       "query"
     >
   ) {
