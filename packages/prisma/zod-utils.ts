@@ -213,6 +213,12 @@ export const successRedirectUrl = z
   ])
   .optional();
 
+export const RoutingFormSettings = z
+  .object({
+    emailOwnerOnSubmission: z.boolean(),
+  })
+  .nullable();
+
 export type ZodDenullish<T extends ZodTypeAny> = T extends ZodNullable<infer U> | ZodOptional<infer U>
   ? ZodDenullish<U>
   : T;
