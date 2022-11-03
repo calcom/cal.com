@@ -22,12 +22,15 @@ export function TeamAvailabilityPage() {
   const me = useMeQuery();
   const isFreeUser = me.data?.plan === "FREE";
 
-  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
-    refetchOnWindowFocus: false,
-    onError: (e) => {
-      setErrorMessage(e.message);
-    },
-  });
+  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
+    { teamId: Number(router.query.id) },
+    {
+      refetchOnWindowFocus: false,
+      onError: (e) => {
+        setErrorMessage(e.message);
+      },
+    }
+  );
 
   // prevent unnecessary re-renders due to shell queries
   const TeamAvailability = useMemo(() => {

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import TimezoneSelect, { ITimezone } from "@calcom/ui/form/TimezoneSelect";
 import { Avatar, Label, Select } from "@calcom/ui/v2";
 import { DatePicker } from "@calcom/ui/v2";
@@ -12,8 +12,8 @@ import LicenseRequired from "../../../common/components/LicenseRequired";
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 
 interface Props {
-  team?: inferQueryOutput<"viewer.teams.get">;
-  member?: inferQueryOutput<"viewer.teams.get">["members"][number];
+  team?: RouterOutputs["viewer"]["teams"]["get"];
+  member?: RouterOutputs["viewer"]["teams"]["get"]["members"][number];
 }
 
 export default function TeamAvailabilityModal(props: Props) {

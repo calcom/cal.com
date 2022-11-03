@@ -2,11 +2,11 @@ import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import Shell from "@calcom/ui/Shell";
 import { SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
-type User = inferQueryOutput<"viewer.me">;
+type User = RouterOutputs["viewer"]["me"];
 
 export interface IBusySlot {
   start: string | Date;

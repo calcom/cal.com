@@ -8,7 +8,7 @@ import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterInputs, RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { TextArea } from "@calcom/ui/form/fields";
@@ -25,13 +25,13 @@ import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 import TableActions, { ActionType } from "@components/ui/TableActions";
 
-type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
+type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["status"];
 
-type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
+type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
 type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
-  recurringBookings: inferQueryOutput<"viewer.bookings">["recurringInfo"];
+  recurringBookings: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"];
 };
 
 function BookingListItem(booking: BookingItemProps) {

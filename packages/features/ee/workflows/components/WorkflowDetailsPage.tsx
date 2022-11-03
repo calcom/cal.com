@@ -33,7 +33,7 @@ export default function WorkflowDetailsPage(props: Props) {
   const [reload, setReload] = useState(false);
   const [editCounter, setEditCounter] = useState(0);
 
-  const { data, isLoading } = trpc.useQuery(["viewer.eventTypes"]);
+  const { data, isLoading } = trpc.viewer.eventTypes.getByViewer.useQuery();
 
   const eventTypeOptions = useMemo(
     () =>
@@ -50,10 +50,10 @@ export default function WorkflowDetailsPage(props: Props) {
     [data]
   );
 
-  const updateMutation = trpc.useMutation("viewer.workflows.update", {
+  const updateMutation = trpc.viewer.workflows.update.useMutation({
     onSuccess: async ({ workflow }) => {
       if (workflow) {
-        utils.setQueryData(["viewer.workflows.get", { id: +workflow.id }], workflow);
+        utils.viewer.workflows.get.setData(workflow, { id: +workflow.id });
 
         showToast(
           t("workflow_updated_successfully", {

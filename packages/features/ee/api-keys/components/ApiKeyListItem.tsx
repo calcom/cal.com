@@ -1,7 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import Badge from "@calcom/ui/Badge";
 import Button from "@calcom/ui/Button";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
@@ -10,7 +10,7 @@ import { Icon } from "@calcom/ui/Icon";
 import { ListItem } from "@calcom/ui/List";
 import { Tooltip } from "@calcom/ui/Tooltip";
 
-export type TApiKeys = inferQueryOutput<"viewer.apiKeys.list">[number];
+export type TApiKeys = RouterOutputs["viewer"]["apiKeys"]["list"][number];
 
 export default function ApiKeyListItem(props: { apiKey: TApiKeys; onEditApiKey: () => void }) {
   const { t } = useLocale();

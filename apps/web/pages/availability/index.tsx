@@ -2,7 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
 import { EmptyScreen, showToast } from "@calcom/ui/v2";
@@ -12,7 +12,7 @@ import { HttpError } from "@lib/core/http/error";
 
 import SkeletonLoader from "@components/availability/SkeletonLoader";
 
-export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availability.list">) {
+export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availability"]["list"]) {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
@@ -24,7 +24,7 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
       const previousValue = utils.viewer.availability.list.getData();
       if (previousValue) {
         const filteredValue = previousValue.schedules.filter(({ id }) => id !== scheduleId);
-        utils.viewer.availability.list.setData(undefined, { ...previousValue, schedules: filteredValue });
+        utils.viewer.availability.list.setData({ ...previousValue, schedules: filteredValue });
       }
 
       return { previousValue };
@@ -32,7 +32,7 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
 
     onError: (err, variables, context) => {
       if (context?.previousValue) {
-        utils.viewer.availability.list.setData(undefined, context.previousValue);
+        utils.viewer.availability.list.setData(context.previousValue);
       }
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
@@ -83,7 +83,7 @@ export function AvailabilityList({ schedules }: inferQueryOutput<"viewer.availab
   );
 }
 
-const WithQuery = withQuery(["viewer.availability.list"]);
+const WithQuery = withQuery(trpc.viewer.availability.list);
 
 export default function AvailabilityPage() {
   const { t } = useLocale();

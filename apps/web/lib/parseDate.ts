@@ -3,7 +3,7 @@ import { RRule } from "rrule";
 
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
-import { inferQueryOutput } from "@calcom/trpc/react";
+import { RouterOutputs } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 
 import { parseZone } from "./parseZone";
@@ -61,10 +61,10 @@ export const parseRecurringDates = (
 };
 
 export const extractRecurringDates = (
-  booking: inferQueryOutput<"viewer.bookings">["bookings"][number] & {
+  booking: RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number] & {
     eventType: { recurringEvent: RecurringEvent | null };
     recurringEventId: string | null;
-    recurringBookings: inferQueryOutput<"viewer.bookings">["recurringInfo"];
+    recurringBookings: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"];
   },
   timeZone: string | undefined,
   i18n: I18n

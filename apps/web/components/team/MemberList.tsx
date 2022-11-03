@@ -1,10 +1,10 @@
-import { inferQueryOutput } from "@calcom/trpc/react";
+import { RouterOutputs } from "@calcom/trpc/react";
 
 import MemberListItem from "./MemberListItem";
 
 interface Props {
-  team: inferQueryOutput<"viewer.teams.get">;
-  members: inferQueryOutput<"viewer.teams.get">["members"];
+  team: RouterOutputs["viewer"]["teams"]["get"];
+  members: RouterOutputs["viewer"]["teams"]["get"]["members"];
 }
 
 export default function MemberList(props: Props) {
