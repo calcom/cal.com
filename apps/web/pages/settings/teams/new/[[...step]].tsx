@@ -1,6 +1,7 @@
 import { MembershipRole } from "@prisma/client";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -17,6 +18,7 @@ import {
   NewTeamData,
   TeamPrices,
 } from "@calcom/features/ee/teams/lib/types";
+import { CAL_URL } from "@calcom/lib/constants";
 import { STRIPE_PUBLISHABLE_KEY } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -44,18 +46,6 @@ const stepRouteSchema = z.object({
   step: z.array(z.enum(steps)).default([INITIAL_STEP]),
 });
 
-const defaultMember = [
-  {
-    name: "",
-    email: "",
-    username: "",
-    id: 0,
-    role: "MEMBER" as MembershipRole,
-    avatar: null,
-    sendInviteEmail: false,
-  },
-];
-
 const CreateNewTeamPage = () => {
   const router = useRouter();
   const [newTeamData, setNewTeamData] = useState<NewTeamData>({
@@ -72,6 +62,7 @@ const CreateNewTeamPage = () => {
   });
 
   const { t } = useLocale();
+  const session = useSession();
 
   const result = stepRouteSchema.safeParse(router.query);
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
@@ -82,6 +73,28 @@ const CreateNewTeamPage = () => {
       newTeamData.members
     );
   }, [newTeamData.members]);
+
+  // Set current user as team owner
+  useEffect(() => {
+    if (!session.data) router.push(`${CAL_URL}/settings/profile`);
+    if (session.status !== "loading" && !newTeamData.members.length) {
+      setNewTeamData({
+        ...newTeamData,
+        members: [
+          {
+            name: session?.data?.user.name || "",
+            email: session?.data?.user.email || "",
+            username: session?.data?.user.username || "",
+            id: session?.data?.user.id,
+            avatar: session?.data?.user.avatar || "",
+            role: "OWNER",
+          },
+        ],
+      });
+    }
+    /* eslint-disable */
+  }, [session]);
+
   const headers = [
     {
       title: `${t("create_new_team")}`,
@@ -112,6 +125,15 @@ const CreateNewTeamPage = () => {
   };
 
   const currentStepIndex = steps.indexOf(currentStep);
+
+  const addNewTeamMember = (newMember: PendingMember) => {
+    setNewTeamData({ ...newTeamData, members: [...newTeamData.members, newMember] });
+  };
+
+  const deleteNewTeamMember = (email: string) => {
+    const newMembersArray = newTeamData.members.filter((member) => member.email !== email);
+    setNewTeamData({ ...newTeamData, members: newMembersArray });
+  };
 
   const createPaymentIntentMutation = trpc.useMutation(["viewer.teams.createPaymentIntent"], {
     onSuccess: (data) => {
@@ -176,6 +198,8 @@ const CreateNewTeamPage = () => {
                 <AddNewTeamMembers
                   newTeamData={newTeamData}
                   teamPrices={teamPrices}
+                  addNewTeamMember={addNewTeamMember}
+                  deleteNewTeamMember={deleteNewTeamMember}
                   nextStep={(values: {
                     members: PendingMember[];
                     billingFrequency: "monthly" | "yearly";
