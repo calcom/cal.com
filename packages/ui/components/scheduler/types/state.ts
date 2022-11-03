@@ -1,8 +1,5 @@
 import { SchedulerEvent } from "./events";
 
-/**
- * @default "week"
- */
 export type View = "month" | "week" | "day";
 export type startingDayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -26,17 +23,20 @@ export type SchedulerPrivateActions = {
   setStartingDayOfWeek: (startingDayOfWeek: SchedulerComponentProps["startingDayOfWeek"]) => void;
   selectedEvent?: SchedulerEvent;
   setSelectedEvent: (event: SchedulerEvent) => void;
+  handleDateChange: (payload: "INCREMENT" | "DECREMENT") => void;
 };
 
 export type SchedulerState = {
   view?: View;
-  startDate?: Date;
+  startDate: Date;
   /** By default we just dynamically create endDate from the viewType */
-  endDate?: Date;
+  endDate: Date;
   events: SchedulerEvent[];
   loading?: boolean;
   editable?: boolean;
   startingDayOfWeek?: startingDayOfWeek;
+  minDate?: Date;
+  maxDate?: Date;
 };
 
 export type SchedulerComponentProps = SchedulerPublicActions & SchedulerState;
