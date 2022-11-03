@@ -27,17 +27,21 @@ const CreateANewTeamForm = ({
     },
   });
 
+  // TODO: validate correctly on first try
   const validateTeamNameQuery = trpc.useQuery(
     ["viewer.teams.validateTeamName", { name: newTeamFormMethods.watch("name") }],
     {
       enabled: false,
       refetchOnWindowFocus: false,
+      onSuccess: (data) => {
+        console.log("🚀 ~ file: CreateNewTeam.tsx ~ line 37 ~ data", data);
+      },
     }
   );
 
   const validateTeamName = async () => {
     await validateTeamNameQuery.refetch();
-    return validateTeamNameQuery.data || t("team_name_taken");
+    if (validateTeamNameQuery.data) return validateTeamNameQuery.data || t("team_name_taken");
   };
 
   const validateTeamSlugQuery = trpc.useQuery(
@@ -50,7 +54,7 @@ const CreateANewTeamForm = ({
 
   const validateTeamSlug = async () => {
     await validateTeamSlugQuery.refetch();
-    return validateTeamSlugQuery.data || t("team_url_taken");
+    if (validateTeamSlugQuery.data) return validateTeamSlugQuery.data || t("team_url_taken");
   };
 
   return (
