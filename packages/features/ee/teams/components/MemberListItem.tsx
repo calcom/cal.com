@@ -7,10 +7,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Icon } from "@calcom/ui/Icon";
-import Avatar from "@calcom/ui/components/avatar";
+import { Button, ButtonGroup, Avatar } from "@calcom/ui/components";
 import {
-  Button,
-  ButtonGroup,
   Dialog,
   DialogContent,
   DialogTrigger,

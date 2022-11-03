@@ -12,9 +12,8 @@ import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
+import { Button, ButtonProps } from "@calcom/ui/components/button";
 import {
-  Button,
-  ButtonProps,
   Dropdown,
   DropdownMenuItem,
   DropdownMenuContent,

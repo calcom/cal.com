@@ -6,8 +6,8 @@ import { Controller, useFormContext } from "react-hook-form";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui";
-import { Button } from "@calcom/ui/components";
-import { Avatar, Label, Select, CheckedTeamSelect } from "@calcom/ui/v2";
+import { Button, Avatar } from "@calcom/ui/components";
+import { Label, Select, CheckedTeamSelect } from "@calcom/ui/v2";
 
 interface IMemberToValue {
   id: number | null;

@@ -5,14 +5,13 @@ import { useRef, useState, BaseSyntheticEvent, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/lib/auth";
-import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Icon } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
-import Avatar from "@calcom/ui/components/avatar";
+import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
 import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
