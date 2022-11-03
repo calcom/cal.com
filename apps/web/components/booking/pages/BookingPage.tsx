@@ -84,6 +84,7 @@ const BookingPage = ({
   recurringEventCount,
   hasHashedBookingLink,
   hashedLink,
+  user,
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
   const isEmbed = useIsEmbed();
@@ -456,7 +457,7 @@ const BookingPage = ({
           )}>
           <div className="sm:flex">
             <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
-              <BookingDescription isBookingPage profile={profile} eventType={eventType}>
+              <BookingDescription isBookingPage profile={profile} eventType={eventType} user={user}>
                 {stripeAppData.price > 0 && (
                   <p className="text-bookinglight -ml-2 px-2 text-sm ">
                     <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
@@ -577,7 +578,7 @@ const BookingPage = ({
                     )}
                   </div>
                 </div>
-                <div className="mb-4">
+                <div className="mb-4 hidden">
                   <>
                     <span className="block text-sm font-medium text-gray-700 dark:text-white">
                       {t("location")}
@@ -797,7 +798,7 @@ const BookingPage = ({
                     )}
                   </div>
                 )}
-                <div className="mb-4">
+                <div className="mb-4 hidden">
                   <label
                     htmlFor="notes"
                     className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">

@@ -25,6 +25,7 @@ TeamBookingPage.isThemeSupported = true;
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const eventTypeId = parseInt(asStringOrThrow(context.query.type));
   const recurringEventCountQuery = asStringOrNull(context.query.count);
+  const username = asStringOrNull(context.query.username);
   if (typeof eventTypeId !== "number" || eventTypeId % 1 !== 0) {
     return {
       notFound: true,
@@ -123,6 +124,18 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
         : eventType.recurringEvent.count)) ||
     null;
 
+  // The user for which this appointment is being booked
+  const user = username
+    ? await prisma.user.findUnique({
+        where: { username },
+        select: {
+          id: true,
+          username: true,
+          name: true,
+        },
+      })
+    : null;
+
   return {
     props: {
       profile: {
@@ -141,6 +154,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       isDynamicGroupBooking: false,
       hasHashedBookingLink: false,
       hashedLink: null,
+      user,
     },
   };
 }
