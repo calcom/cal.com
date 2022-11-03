@@ -1,5 +1,6 @@
 require("dotenv").config({ path: "../../.env" });
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const { withSentryConfig } = require("@sentry/nextjs");
 
 const withTM = require("next-transpile-modules")([
   "@calcom/app-store",
@@ -228,6 +229,18 @@ const nextConfig = {
 
     return redirects;
   },
+  sentry: {
+    hideSourceMaps: true,
+  },
 };
 
-module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
+const sentryWebpackPluginOptions = {
+  silent: true, // Suppresses all logs
+};
+
+const moduleExports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
+
+// Sentry should be the last thing to export to catch everything right
+module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
+  ? withSentryConfig(moduleExports, sentryWebpackPluginOptions)
+  : moduleExports;
