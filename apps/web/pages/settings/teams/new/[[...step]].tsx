@@ -4,6 +4,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import { z } from "zod";
 
@@ -61,7 +62,7 @@ const CreateNewTeamPage = () => {
     name: "",
     slug: "",
     logo: "",
-    members: defaultMember,
+    members: [],
     billingFrequency: "monthly",
   });
   const [clientSecret, setClientSecret] = useState("");
@@ -75,6 +76,12 @@ const CreateNewTeamPage = () => {
   const result = stepRouteSchema.safeParse(router.query);
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
 
+  useEffect(() => {
+    console.log(
+      "🚀 ~ file: [[...step]].tsx ~ line 69 ~ CreateNewTeamPage ~ newTeamData",
+      newTeamData.members
+    );
+  }, [newTeamData.members]);
   const headers = [
     {
       title: `${t("create_new_team")}`,
@@ -107,9 +114,12 @@ const CreateNewTeamPage = () => {
   const currentStepIndex = steps.indexOf(currentStep);
 
   const createPaymentIntentMutation = trpc.useMutation(["viewer.teams.createPaymentIntent"], {
-    onSuccess: (data: { clientSecret: string }) => {
-      setClientSecret(data.clientSecret);
-      setNewTeamData({ ...newTeamData, customerId: data.customerId, subscriptionId: data.subscriptionId });
+    onSuccess: (data) => {
+      if (data) {
+        setClientSecret(data.clientSecret);
+        setNewTeamData({ ...newTeamData, customerId: data.customerId, subscriptionId: data.subscriptionId });
+      }
+
       goToIndex(2);
     },
   });

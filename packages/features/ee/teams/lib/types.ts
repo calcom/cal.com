@@ -1,7 +1,7 @@
 import { MembershipRole } from "@prisma/client";
 
 export interface NewTeamMembersFieldArray {
-  members: PendingMember[];
+  members: PendingMember[] | [];
 }
 
 export interface NewTeamFormValues {
@@ -19,7 +19,7 @@ export interface PendingMember {
   avatar: string | null;
   sendInviteEmail?: boolean;
   customerId?: string;
-  subscriptionId: string;
+  subscriptionId?: string;
 }
 
 export type NewTeamData = NewTeamFormValues &

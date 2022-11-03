@@ -51,6 +51,15 @@ export const createTeamSubscription = async (customerId: string, billingFrequenc
   });
 };
 
+export const retrieveTeamSubscription = async (subscriptionId: string) => {
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  return subscription as Stripe.Subscription;
+};
+
+export const deleteTeamSubscriptionQuantity = async (subscriptionId: string, seats: number) => {
+  return await stripe.subscriptions.del(subscriptionId);
+};
+
 export const purchaseTeamSubscription = async (input: { teamId: number; seats: number; email: string }) => {
   const { teamId, seats, email } = input;
   return await stripe.checkout.sessions.create({

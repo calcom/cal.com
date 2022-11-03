@@ -19,6 +19,8 @@ import {
   getTeamPricing,
   retrieveTeamCustomer,
   updateTeamCustomerName,
+  retrieveTeamSubscription,
+  deleteTeamSubscriptionQuantity,
 } from "@calcom/features/ee/teams/lib/payments";
 import { HOSTED_CAL_FEATURES, IS_STRIPE_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -700,33 +702,53 @@ export const viewerTeamsRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       const { teamName, billingFrequency, seats, customerId, subscriptionId } = input;
+
       // Check to see if team name has changed
       if (customerId) {
         const customer = await retrieveTeamCustomer(customerId);
-        if (teamName !== customer.name) {
+        if (teamName !== customer?.name) {
           await updateTeamCustomerName(customerId, teamName);
         }
-        // If different then update the customer on Stripe
-
-        // Retrieve the Stripe subscription
-        // Compare the quantity of the subscription vs input.seats
-        // If different then update the subscription
-
-        // If no changes then do not create a new customer & subscription, just return
       }
 
-      // First create the customer
-      const customer = await createTeamCustomer(input.teamName, ctx.user.email);
+      if (subscriptionId) {
+        const subscription = await retrieveTeamSubscription(subscriptionId);
+        if (seats !== subscription.quantity) {
+          /* If the number of seats changed we need to cancel the current 
+          incomplete subscription and create a new one */
+          await deleteTeamSubscriptionQuantity(subscriptionId, seats);
 
-      // Create the subscription for the team
-      const subscription = await createTeamSubscription(customer.id, input.billingFrequency, input.seats);
+          const subscription = await createTeamSubscription(customerId, input.billingFrequency, input.seats);
 
-      // We just need the client secret for the payment intent
-      return {
-        clientSecret: subscription?.latest_invoice?.payment_intent?.client_secret,
-        customerId: customer.id,
-        subscriptionId: subscription.id,
-      };
+          return {
+            clientSecret: subscription?.latest_invoice?.payment_intent?.client_secret,
+            customerId: customer.id,
+            subscriptionId: subscription.id,
+          };
+        }
+      }
+      // Retrieve the Stripe subscription
+      // Compare the quantity of the subscription vs input.seats
+      // If different then update the subscription
+
+      // If no changes then do not create a new customer & subscription, just return
+
+      if (!customerId && !subscriptionId) {
+        // First create the customer
+        const customer = await createTeamCustomer(input.teamName, ctx.user.email);
+
+        // Create the subscription for the team
+        const subscription = await createTeamSubscription(customer.id, input.billingFrequency, input.seats);
+
+        // We just need the client secret for the payment intent
+        return {
+          clientSecret: subscription?.latest_invoice?.payment_intent?.client_secret,
+          customerId: customer.id,
+          subscriptionId: subscription.id,
+        };
+      }
+
+      return;
     },
   })
   .mutation("createTeam", {

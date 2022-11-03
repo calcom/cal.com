@@ -40,7 +40,11 @@ const AddNewTeamMembers = ({
   const [numberOfMembers, setNumberOfMembers] = useState(1);
   const [billingFrequency, setBillingFrequency] = useState("monthly");
 
-  const formMethods = useForm();
+  const formMethods = useForm({
+    defaultValues: {
+      members: newTeamData.members,
+    },
+  });
   const membersFieldArray = useFieldArray({
     control: formMethods.control,
     name: "members",
@@ -62,13 +66,20 @@ const AddNewTeamMembers = ({
 
   // Set current user as team owner
   useEffect(() => {
+    console.log(
+      "🚀 ~ file: AddNewTeamMembers.tsx ~ line 71 ~ useEffect ~ formMethods.getValues()",
+      formMethods.getValues("members")
+    );
+    console.log("🚀 ~ file: AddNewTeamMembers.tsx ~ line 76 ~ useEffect ~ session", session);
+
     if (!session.data) router.push(`${CAL_URL}/settings/profile`);
     if (session.status !== "loading" && !formMethods.getValues("members").length) {
       membersFieldArray.append({
         name: session?.data?.user.name || "",
         email: session?.data?.user.email || "",
         username: session?.data?.user.username || "",
-        id: session?.data?.user.id || "",
+        id: session?.data?.user.id,
+        avatar: session?.data?.user.avatar || "",
         role: "OWNER",
       });
     }
