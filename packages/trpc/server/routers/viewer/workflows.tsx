@@ -27,11 +27,16 @@ import {
   scheduleSMSReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import { getTranslation } from "@calcom/lib/server/i18n";
 
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter } from "../../createRouter";
+
+function isSMSAction(action: WorkflowActions) {
+  if (action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.SMS_NUMBER) {
+    return true;
+  }
+}
 
 export const workflowsRouter = createProtectedRouter()
   .query("list", {
@@ -515,6 +520,9 @@ export const workflowsRouter = createProtectedRouter()
           });
           //step was edited
         } else if (JSON.stringify(oldStep) !== JSON.stringify(newStep)) {
+          if (user.plan === "FREE" && !isSMSAction(oldStep.action) && isSMSAction(newStep.action)) {
+            throw new TRPCError({ code: "UNAUTHORIZED" });
+          }
           await ctx.prisma.workflowStep.update({
             where: {
               id: oldStep.id,
@@ -652,6 +660,9 @@ export const workflowsRouter = createProtectedRouter()
       //added steps
       const addedSteps = steps.map((s) => {
         if (s.id <= 0) {
+          if (user.plan === "FREE" && isSMSAction(s.action)) {
+            throw new TRPCError({ code: "UNAUTHORIZED" });
+          }
           const { id: stepId, ...stepToAdd } = s;
           return stepToAdd;
         }
