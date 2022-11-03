@@ -117,7 +117,7 @@ function checkForConflicts(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType,
     return false; // guaranteed no conflicts when there is no busy times.
   }
 
-  busyTimes.forEach((busyTime) => {
+  for (const busyTime of busyTimes) {
     const startTime = dayjs(busyTime.start);
     const endTime = dayjs(busyTime.end);
     // Check if time is between start and end times
@@ -132,7 +132,7 @@ function checkForConflicts(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType,
     if (startTime.isBetween(dayjs(time), dayjs(time).add(length, "minutes"))) {
       return true;
     }
-  });
+  }
   return false;
 }
 
