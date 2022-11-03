@@ -39,6 +39,10 @@ const middleware: NextMiddleware = async (req) => {
   return NextResponse.next();
 };
 
+export const config = {
+  matcher: ["/api/collect-events/:path*", "/api/auth/:path*", "/apps/routing_forms/:path*", "/:path*/embed"],
+};
+
 export default collectEvents({
   middleware,
   ...nextCollectBasicSettings,
