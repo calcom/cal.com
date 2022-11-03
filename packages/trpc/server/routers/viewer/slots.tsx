@@ -228,7 +228,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     })
   );
   // standard working hours for all users
-  const workingHours = [{ days: [0, 1, 2, 3, 4, 5, 6], startTime: 420, endTime: 1140 }];
+  const workingHours = [{ days: [1, 2, 3, 4, 5, 6], startTime: 420, endTime: 1140 }];
   const computedAvailableSlots: Record<string, Slot[]> = {};
   const availabilityCheckProps = {
     eventLength: eventType.length,
