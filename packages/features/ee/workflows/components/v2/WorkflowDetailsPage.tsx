@@ -6,6 +6,7 @@ import { Controller, UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Icon } from "@calcom/ui/Icon";
 import { Button } from "@calcom/ui/v2";
 import { Label, TextField } from "@calcom/ui/v2";
@@ -27,6 +28,9 @@ export default function WorkflowDetailsPage(props: Props) {
   const { form, workflowId, selectedEventTypes, setSelectedEventTypes } = props;
   const { t } = useLocale();
   const router = useRouter();
+
+  const me = useMeQuery();
+  const isFreeUser = me.data?.plan === "FREE";
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
   const [reload, setReload] = useState(false);
@@ -120,7 +124,7 @@ export default function WorkflowDetailsPage(props: Props) {
         <div className="w-full rounded-md border border-gray-200 bg-gray-50 p-3 py-5 md:ml-3 md:p-8">
           {form.getValues("trigger") && (
             <div>
-              <WorkflowStepContainer form={form} />
+              <WorkflowStepContainer form={form} isFreeUser={isFreeUser} />
             </div>
           )}
           {form.getValues("steps") && (
@@ -133,6 +137,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     step={step}
                     reload={reload}
                     setReload={setReload}
+                    isFreeUser={isFreeUser}
                   />
                 );
               })}
@@ -152,6 +157,7 @@ export default function WorkflowDetailsPage(props: Props) {
         isOpenDialog={isAddActionDialogOpen}
         setIsOpenDialog={setIsAddActionDialogOpen}
         addAction={addAction}
+        isFreeUser={isFreeUser}
       />
       <DeleteDialog
         isOpenDialog={deleteDialogOpen}
