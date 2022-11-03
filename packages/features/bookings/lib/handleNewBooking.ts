@@ -94,7 +94,7 @@ const isWithinAvailableHours = (
 ) => {
   const timeSlotStart = dayjs(timeSlot.start).utc();
   const timeSlotEnd = dayjs(timeSlot.end).utc();
-  workingHours.forEach((workingHour) => {
+  for (const workingHour of workingHours) {
     // TODO: Double check & possibly fix timezone conversions.
     const startTime = timeSlotStart.startOf("day").add(workingHour.startTime, "minute");
     const endTime = timeSlotEnd.startOf("day").add(workingHour.endTime, "minute");
@@ -106,7 +106,7 @@ const isWithinAvailableHours = (
     ) {
       return true;
     }
-  });
+  }
   return false;
 };
 
@@ -235,7 +235,6 @@ async function ensureAvailableUsers(
       )
     ) {
       // user does not have availability at this time, skip user.
-      console.log({ skipped: user });
       continue;
     }
 
