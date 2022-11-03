@@ -35,10 +35,11 @@ interface Props {
   children: ReactNode;
   isMobile?: boolean;
   rescheduleUid?: string;
+  user?: TeamBookingPageProps["user"] | BookPageProps["user"] | HashLinkPageProps["user"];
 }
 
 const BookingDescription: FC<Props> = (props) => {
-  const { profile, eventType, isBookingPage = false, children } = props;
+  const { profile, eventType, user, isBookingPage = false, children } = props;
   const { t } = useLocale();
   return (
     <>
@@ -98,6 +99,16 @@ const BookingDescription: FC<Props> = (props) => {
           <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
           {eventType.length} {t("minutes")}
         </p>
+        {user && (
+          <p
+            className={classNames(
+              "text-sm font-medium",
+              isBookingPage && "dark:text-darkgray-600 text-gray-600"
+            )}>
+            <Icon.FiUser className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
+            {user.name}
+          </p>
+        )}
         {children}
       </div>
     </>
