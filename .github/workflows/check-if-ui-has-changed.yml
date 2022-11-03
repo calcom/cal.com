@@ -5,7 +5,7 @@ name: 'Chromatic'
 
 # Event for the workflow
 on:
-  pull_request: # So we can test on forks
+  pull_request_target: # So we can test on forks
     branches:
       - main
     paths:
