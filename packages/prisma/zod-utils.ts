@@ -32,6 +32,11 @@ export const EventTypeMetaDataSchema = z
     giphyThankYouPage: z.string().optional(),
     apps: z.object(appDataSchemas).partial().optional(),
     additionalNotesRequired: z.boolean().optional(),
+    config: z
+      .object({
+        useHostSchedulesForTeamEvent: z.boolean().optional(),
+      })
+      .optional(),
   })
   .nullable();
 
