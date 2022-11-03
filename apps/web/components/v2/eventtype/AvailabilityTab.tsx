@@ -101,7 +101,7 @@ export const AvailabilityTab = () => {
   const { t, i18n } = useLocale();
   const { watch } = useFormContext<FormValues>();
   const me = useMeQuery();
-  const { timeFormat } = me.data || { timeFormat: null };
+  const timeFormat = me?.data?.timeFormat;
   const scheduleId = watch("schedule");
   const { isLoading, data: schedule } = trpc.useQuery(["viewer.availability.schedule", { scheduleId }]);
 
