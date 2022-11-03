@@ -406,9 +406,8 @@ const BookingPage = ({
   };
 
   // Should be disabled when rescheduleUid is present and data was found in defaultUserValues name/email fields.
-  const disableInput =
-    (!!rescheduleUid && !!defaultUserValues.email && !!defaultUserValues.name) ||
-    (!!shouldDisableInput && !!defaultUserValues.email && !!defaultUserValues.name);
+  const disableInput = !!rescheduleUid && !!defaultUserValues.email && !!defaultUserValues.name;
+  const forceDisable = shouldDisableInput && !!defaultUserValues.email && !!defaultUserValues.name;
   const disableLocations = !!rescheduleUid;
   const disabledExceptForOwner = disableInput && !loggedInIsOwner;
   const inputClassName =
@@ -594,7 +593,7 @@ const BookingPage = ({
                       required
                       className={inputClassName}
                       placeholder={t("example_name")}
-                      disabled={disableInput}
+                      disabled={disableInput || forceDisable}
                     />
                   </div>
                 </div>
@@ -612,7 +611,7 @@ const BookingPage = ({
                       )}
                       placeholder="you@example.com"
                       type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
-                      disabled={disableInput}
+                      disabled={disableInput || forceDisable}
                     />
                     {bookingForm.formState.errors.email && (
                       <div className="mt-2 flex items-center text-sm text-red-700 ">

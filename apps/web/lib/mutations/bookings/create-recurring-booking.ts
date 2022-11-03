@@ -9,7 +9,7 @@ const createRecurringBooking = async (data: ExtendedBookingCreateBody[]) => {
   const createdBookings: BookingResponse[] = [];
   // Reversing to accumulate results for noEmail instances first, to then lastly, create the
   // emailed booking taking into account accumulated results to send app status accurately
-  for (let key = 0; key < data.length; key++) {
+  for (let key = 0; key < data.reverse().length; key++) {
     const booking = data[key];
     if (key === data.length - 1) {
       const calcAppsStatus: { [key: string]: AppsStatus } = createdBookings
