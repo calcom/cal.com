@@ -2,7 +2,13 @@ import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
 import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable,VariantRow } from '@calcom/storybook/components'
 import { Icon } from "@calcom/ui/Icon";
 import {Event} from "./Event"
-
+import {DUMMY_DATA} from "./DUMMY_DATA"
 <Meta title="UI/Scheduler/Event" component={Event} />
 
 <Title title="Event" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022"/>
+
+<Examples>
+  <Example title="Basic" description="Basic Scheduler">
+    {/* <Event event={DUMMY_DATA[0]}/> */}
+  </Example>
+</Examples>

@@ -2,6 +2,10 @@ import React from "react";
 
 import { SchedulerEvent } from "../../types/events";
 
-export function Event({}: SchedulerEvent) {
+type EventProps = {
+  event: SchedulerEvent;
+};
+
+export function Event({ event }: EventProps) {
   return <div>Event</div>;
 }

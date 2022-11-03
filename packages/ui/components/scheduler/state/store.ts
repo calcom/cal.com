@@ -2,7 +2,7 @@ import create from "zustand";
 
 import dayjs from "@calcom/dayjs";
 
-import { SchedulerComponentProps, SchedulerStoreProps } from "../types/defaultState";
+import { SchedulerComponentProps, SchedulerStoreProps } from "../types/state";
 
 export const defaultState: SchedulerComponentProps = {
   view: "week",
@@ -12,7 +12,7 @@ export const defaultState: SchedulerComponentProps = {
   startingDayOfWeek: 0,
 };
 
-const useSchedulerStore = create<SchedulerStoreProps>((set) => ({
+export const useSchedulerStore = create<SchedulerStoreProps>((set) => ({
   ...defaultState,
   setView: (view: SchedulerComponentProps["view"]) => set({ view }),
   setStartDate: (startDate: SchedulerComponentProps["startDate"]) => set({ startDate }),
