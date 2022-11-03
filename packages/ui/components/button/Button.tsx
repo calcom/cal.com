@@ -6,8 +6,6 @@ import classNames from "@calcom/lib/classNames";
 
 import Tooltip from "../../v2/core/Tooltip";
 
-// import { Tooltip } from "./Tooltip";
-
 export type ButtonBaseProps = {
   /* Primary: Signals most important actions at any given point in the application.
        Secondary: Gives visual weight to actions that are important
