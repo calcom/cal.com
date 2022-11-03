@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFormContext, Controller, useWatch } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
@@ -14,16 +14,17 @@ import { Icon } from "@calcom/ui";
 import { Select, Switch, Label, Input, Button, SettingsToggle, InputField } from "@calcom/ui/v2";
 import DateRangePicker from "@calcom/ui/v2/core/form/date-range-picker/DateRangePicker";
 
-export const durationArray: string[] = ["minutes"];
+export let CurrentDurationType: string | "minutes" | "hours" | "days";
 
 export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const { eventType } = props;
-  let minimumBookingNoticeType = findDurationType(eventType.minimumBookingNotice);
+  const minimumBookingNoticeType = useRef(findDurationType(eventType.minimumBookingNotice));
+  const prevBookingNoticeType = useRef(minimumBookingNoticeType.current);
   const displayValue = convertToNewDurationType(
     "minutes",
-    minimumBookingNoticeType,
+    minimumBookingNoticeType.current,
     eventType.minimumBookingNotice
   );
   const PERIOD_TYPES = [
@@ -42,7 +43,6 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
   ];
 
   useEffect(() => {
-    durationArray.unshift(minimumBookingNoticeType);
     formMethods.setValue("minimumBookingNotice", displayValue);
   }, []);
 
@@ -174,17 +174,17 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
                     isSearchable={false}
                     className="mb-2 ml-2 w-full capitalize md:min-w-[150px] md:max-w-[200px]"
                     defaultValue={durationTypeOptions.find(
-                      (option) => option.value === minimumBookingNoticeType
+                      (option) => option.value === minimumBookingNoticeType.current
                     )}
                     onChange={(val) => {
                       if (val) {
-                        durationArray.unshift(val.value);
-                        const previousValue = durationArray[1];
-                        minimumBookingNoticeType = val.value;
+                        minimumBookingNoticeType.current = val.value;
+                        CurrentDurationType = val.value;
                         eventType.minimumBookingNotice = Math.ceil(
-                          convertToNewDurationType(previousValue, val.value, minBookingValue)
+                          convertToNewDurationType(prevBookingNoticeType.current, val.value, minBookingValue)
                         );
                         formMethods.setValue("minimumBookingNotice", eventType.minimumBookingNotice);
+                        prevBookingNoticeType.current = val.value;
                       }
                     }}
                     options={durationTypeOptions}

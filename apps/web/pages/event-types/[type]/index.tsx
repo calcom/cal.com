@@ -31,7 +31,7 @@ import { AvailabilityTab } from "@components/v2/eventtype/AvailabilityTab";
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings
 import { EventAdvancedTab } from "@components/v2/eventtype/EventAdvancedTab";
 import { EventAppsTab } from "@components/v2/eventtype/EventAppsTab";
-import { durationArray, EventLimitsTab } from "@components/v2/eventtype/EventLimitsTab";
+import { CurrentDurationType, EventLimitsTab } from "@components/v2/eventtype/EventLimitsTab";
 import { EventRecurringTab } from "@components/v2/eventtype/EventRecurringTab";
 import { EventSetupTab } from "@components/v2/eventtype/EventSetupTab";
 import { EventTeamTab } from "@components/v2/eventtype/EventTeamTab";
@@ -152,12 +152,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   });
 
   const minimumBookingNoticeInMinutes = convertToNewDurationType(
-    durationArray[0],
+    CurrentDurationType,
     "minutes",
     eventType.minimumBookingNotice
   );
-
-  console.log(minimumBookingNoticeInMinutes, durationArray, eventType.minimumBookingNotice);
 
   const formMethods = useForm<FormValues>({
     defaultValues: {
