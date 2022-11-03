@@ -210,8 +210,10 @@ export const availabilityRouter = createProtectedRouter()
       const { user, prisma } = ctx;
       const availability = getAvailabilityFromSchedule(input.schedule);
 
+      let updatedUser;
       if (input.isDefault) {
-        setupDefaultSchedule(user.id, input.scheduleId, prisma);
+        const setupDefault = await setupDefaultSchedule(user.id, input.scheduleId, prisma);
+        updatedUser = setupDefault;
       }
 
       // Not able to update the schedule with userId where clause, so fetch schedule separately and then validate
@@ -255,10 +257,33 @@ export const availabilityRouter = createProtectedRouter()
             },
           },
         },
+        select: {
+          id: true,
+          userId: true,
+          name: true,
+          availability: true,
+          timeZone: true,
+          eventType: {
+            select: {
+              _count: true,
+              id: true,
+              eventName: true,
+            },
+          },
+        },
       });
+
+      const userAvailability = convertScheduleToAvailability(schedule);
 
       return {
         schedule,
+        availability: userAvailability,
+        timeZone: schedule.timeZone || user.timeZone,
+        isDefault: updatedUser
+          ? updatedUser.defaultScheduleId === schedule.id
+          : user.defaultScheduleId === schedule.id,
+        prevDefaultId: user.defaultScheduleId,
+        currentDefaultId: updatedUser ? updatedUser.defaultScheduleId : user.defaultScheduleId,
       };
     },
   });
@@ -297,7 +322,7 @@ export const convertScheduleToAvailability = (
 };
 
 const setupDefaultSchedule = async (userId: number, scheduleId: number, prisma: PrismaClient) => {
-  await prisma.user.update({
+  return prisma.user.update({
     where: {
       id: userId,
     },
