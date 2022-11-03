@@ -96,7 +96,7 @@ const format = (date: Date) =>
     new Date(dayjs.utc(date).format("YYYY-MM-DDTHH:mm:ss"))
   );
 
-export const AvailabilityTab = ({ isTeamEvent }) => {
+export const AvailabilityTab = ({ isTeamEvent }: { isTeamEvent: boolean }) => {
   const { t, i18n } = useLocale();
   const { watch } = useFormContext<FormValues>();
 
@@ -195,8 +195,8 @@ export const AvailabilityTab = ({ isTeamEvent }) => {
           onCheckedChange={(checked) => {
             onChange(!checked);
           }}
-          title="Choose a Schedule"
-          description="Enable this if you want to have a common Schedule for all members, otherwise, team members' default schedules would be used while choosing them">
+          title="Choose a common schedule"
+          description="Enable this if you want to have a common schedule for all members, otherwise, team members' default schedules would be used while choosing them">
           <EventTypeSchedule />
         </SettingsToggle>
       )}

@@ -9,7 +9,7 @@ import logger from "@calcom/lib/logger";
 import { checkLimit } from "@calcom/lib/server";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
-import { stringToDayjs } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, stringToDayjs } from "@calcom/prisma/zod-utils";
 import { BookingLimit, EventBusyDetails } from "@calcom/types/Calendar";
 
 import { getBusyTimes } from "./getBusyTimes";
@@ -27,8 +27,8 @@ const availabilitySchema = z
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
-const getEventType = (id: number) =>
-  prisma.eventType.findUnique({
+const getEventType = async (id: number) => {
+  const eventType = await prisma.eventType.findUnique({
     where: { id },
     select: {
       id: true,
@@ -51,6 +51,14 @@ const getEventType = (id: number) =>
       },
     },
   });
+  if (!eventType) {
+    return eventType;
+  }
+  return {
+    ...eventType,
+    metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+  };
+};
 
 type EventType = Awaited<ReturnType<typeof getEventType>>;
 
@@ -202,11 +210,6 @@ export async function getUserAvailability(
     }
   }
 
-  console.log(
-    "eventType?.metadata?.useMemberSchedulesForTeamEvent ",
-    eventType?.metadata?.useMemberSchedulesForTeamEvent,
-    eventType?.schedule
-  );
   const schedule =
     !eventType?.metadata?.useMemberSchedulesForTeamEvent && eventType?.schedule
       ? { ...eventType?.schedule }
