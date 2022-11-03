@@ -2,8 +2,8 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
+import { Button } from "@calcom/ui/v2";
 
 import { HeadSeo } from "@components/seo/head-seo";
 
