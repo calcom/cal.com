@@ -249,10 +249,8 @@ async function ensureAvailableUsers(
         // DONE: Decreased computational complexity from O(2^n) to O(n) by refactoring this loop to stop
         // running at the first unavailable time.
         let i = 0;
-        while (foundConflict === false && i < allBookingDates.length) {
+        while (!foundConflict && i < allBookingDates.length) {
           foundConflict = checkForConflicts(bufferedBusyTimes, allBookingDates[i++], eventType.length);
-          // We bail at the first conflict, we don't need to keep checking for more.
-          if (foundConflict) break;
         }
       } else {
         foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, eventType.length);
