@@ -649,12 +649,22 @@ const BookingPage = ({
                   .sort((a, b) => a.id - b.id)
                   .map((input) => (
                     <div className="mb-4" key={input.id}>
-                      {input.type !== EventTypeCustomInputType.BOOL && (
-                        <label
-                          htmlFor={"custom_" + input.id}
-                          className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                          {input.label}
-                        </label>
+                      {input.type !== EventTypeCustomInputType.BOOL &&
+                        input.type !== EventTypeCustomInputType.HIDDEN && (
+                          <label
+                            htmlFor={"custom_" + input.id}
+                            className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
+                            {input.label}
+                          </label>
+                        )}
+                      {input.type === EventTypeCustomInputType.HIDDEN && (
+                        <input
+                          type="hidden"
+                          {...bookingForm.register(`customInputs.${input.id}`, {
+                            required: input.required,
+                          })}
+                          id={"custom_" + input.id}
+                        />
                       )}
                       {input.type === EventTypeCustomInputType.TEXTLONG && (
                         <textarea

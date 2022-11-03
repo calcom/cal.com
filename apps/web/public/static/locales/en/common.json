@@ -155,6 +155,7 @@
   "multiline_text": "Multiline Text",
   "number": "Number",
   "checkbox": "Checkbox",
+  "hidden": "Hidden",
   "is_required": "Is required",
   "required": "Required",
   "optional": "Optional",
