@@ -43,7 +43,7 @@ export default function Availability({ schedule }: { schedule: number }) {
   const utils = trpc.useContext();
   const me = useMeQuery();
   const { timeFormat } = me.data || { timeFormat: null };
-  const { data, isLoading } = trpc.viewer.availability.schedule.useQuery({ scheduleId: schedule });
+  const { data, isLoading } = trpc.viewer.availability.schedule.get.useQuery({ scheduleId: schedule });
 
   const form = useForm<AvailabilityFormValues>();
   const { control, reset } = form;
@@ -62,7 +62,7 @@ export default function Availability({ schedule }: { schedule: number }) {
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async ({ schedule }) => {
       await utils.viewer.availability.schedule.invalidate();
-      await utils.viewer.availability.schedule.refetch();
+      await utils.viewer.availability.schedule.get.refetch();
       await router.push("/availability");
       showToast(
         t("availability_updated_successfully", {
