@@ -2,7 +2,6 @@ import * as hubspot from "@hubspot/api-client";
 import { BatchInputPublicAssociation } from "@hubspot/api-client/lib/codegen/crm/associations";
 import { PublicObjectSearchRequest } from "@hubspot/api-client/lib/codegen/crm/contacts";
 import { SimplePublicObjectInput } from "@hubspot/api-client/lib/codegen/crm/objects/meetings";
-import { Credential } from "@prisma/client";
 
 import { getLocation } from "@calcom/lib/CalEventParser";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -17,6 +16,7 @@ import type {
   NewCalendarEventType,
   Person,
 } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { HubspotToken } from "../api/callback";
@@ -31,7 +31,7 @@ export default class HubspotOtherCalendarService implements Calendar {
   private client_id = "";
   private client_secret = "";
 
-  constructor(credential: Credential) {
+  constructor(credential: CredentialPayload) {
     this.integrationName = "hubspot_other_calendar";
 
     this.auth = this.hubspotAuth(credential).then((r) => r);
@@ -148,7 +148,7 @@ export default class HubspotOtherCalendarService implements Calendar {
     return hubspotClient.crm.objects.meetings.basicApi.archive(uid);
   };
 
-  private hubspotAuth = async (credential: Credential) => {
+  private hubspotAuth = async (credential: CredentialPayload) => {
     const appKeys = await getAppKeysFromSlug("hubspot");
     if (typeof appKeys.client_id === "string") this.client_id = appKeys.client_id;
     if (typeof appKeys.client_secret === "string") this.client_secret = appKeys.client_secret;

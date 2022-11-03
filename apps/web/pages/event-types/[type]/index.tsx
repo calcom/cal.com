@@ -133,12 +133,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         message = `${err.data.code}: You are not able to update this event`;
       }
 
-      if (err.data?.code === "PARSE_ERROR") {
+      if (err.data?.code === "PARSE_ERROR" || err.data?.code === "BAD_REQUEST") {
         message = `${err.data.code}: ${err.message}`;
       }
 
       if (message) {
         showToast(message, "error");
+      } else {
+        showToast(err.message, "error");
       }
     },
   });
@@ -218,6 +220,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       enabledWorkflowsNumber={eventType.workflows.length}
       eventType={eventType}
       team={team}
+      isUpdateMutationLoading={updateMutation.isLoading}
       formMethods={formMethods}
       disableBorder={tabName === "apps" || tabName === "workflows"}
       currentUserMembership={props.currentUserMembership}>
@@ -460,7 +463,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   const eventType = {
     ...restEventType,
-    schedule: rawEventType.schedule?.id || rawEventType.users[0].defaultScheduleId,
+    schedule: rawEventType.schedule?.id || rawEventType.users[0]?.defaultScheduleId || null,
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
     bookingLimits: parseBookingLimit(restEventType.bookingLimits),
     locations: locations as unknown as LocationObject[],
