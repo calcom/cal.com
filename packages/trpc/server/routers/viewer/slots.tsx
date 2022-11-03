@@ -50,13 +50,11 @@ const checkIfIsAvailable = ({
   time,
   busy,
   eventLength,
-  beforeBufferTime,
   currentSeats,
 }: {
   time: Dayjs;
-  busy: (TimeRange | { start: string; end: string } | EventBusyDate)[];
+  busy: EventBusyDate[];
   eventLength: number;
-  beforeBufferTime: number;
   currentSeats?: CurrentSeats;
 }): boolean => {
   if (currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString())) {
@@ -67,7 +65,7 @@ const checkIfIsAvailable = ({
   const slotStartTime = time.utc();
 
   return busy.every((busyTime) => {
-    const startTime = dayjs.utc(busyTime.start).subtract(beforeBufferTime, "minutes").utc();
+    const startTime = dayjs.utc(busyTime.start).utc();
     const endTime = dayjs.utc(busyTime.end);
 
     if (endTime.isBefore(slotStartTime) || startTime.isAfter(slotEndTime)) {
@@ -230,6 +228,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
           dateTo: endTime.format(),
           eventTypeId: input.eventTypeId,
           afterEventBuffer: eventType.afterEventBuffer,
+          beforeEventBuffer: eventType.beforeEventBuffer,
         },
         { user: currentUser, eventType, currentSeats }
       );
@@ -246,7 +245,6 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   const computedAvailableSlots: Record<string, Slot[]> = {};
   const availabilityCheckProps = {
     eventLength: eventType.length,
-    beforeBufferTime: eventType.beforeEventBuffer,
     currentSeats,
   };
 
