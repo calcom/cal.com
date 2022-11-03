@@ -211,7 +211,7 @@ export async function getUserAvailability(
   }
 
   const schedule =
-    !eventType?.metadata?.useMemberSchedulesForTeamEvent && eventType?.schedule
+    !eventType?.metadata?.useHostSchedulesForTeamEvent && eventType?.schedule
       ? { ...eventType?.schedule }
       : {
           ...currentUser.schedules.filter(

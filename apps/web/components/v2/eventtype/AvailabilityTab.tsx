@@ -188,7 +188,7 @@ export const AvailabilityTab = ({ isTeamEvent }: { isTeamEvent: boolean }) => {
 
   return (
     <Controller
-      name="metadata.useMemberSchedulesForTeamEvent"
+      name="metadata.useHostSchedulesForTeamEvent"
       render={({ field: { value, onChange } }) => (
         <SettingsToggle
           checked={!value}
