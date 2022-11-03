@@ -32,9 +32,9 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma, { baseUserSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
-import { EmailInput } from "@calcom/ui/form/fields";
+import Button from "@calcom/ui/v2/core/Button";
+import { EmailInput } from "@calcom/ui/v2/core/form/fields";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -459,8 +459,8 @@ export default function Success(props: SuccessProps) {
                   !isCancelled &&
                   (!isCancellationMode ? (
                     <>
-                      <hr className="border-bookinglightest dark:border-darkgray-300" />
-                      <div className="py-8 text-center last:pb-0">
+                      <hr className="border-bookinglightest dark:border-darkgray-300 mb-8" />
+                      <div className="text-center last:pb-0">
                         <span className="text-gray-900 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                           {t("need_to_make_a_change")}
                         </span>
@@ -486,7 +486,7 @@ export default function Success(props: SuccessProps) {
                     </>
                   ) : (
                     <>
-                      <div className="my-7 border-t border-gray-200" />
+                      <hr className="border-bookinglightest dark:border-darkgray-300" />
                       <CancelBooking
                         booking={{ uid: bookingInfo?.uid, title: bookingInfo?.title, id: bookingInfo?.id }}
                         profile={{ name: props.profile.name, slug: props.profile.slug }}
@@ -500,7 +500,7 @@ export default function Success(props: SuccessProps) {
                   ))}
                 {userIsOwner && !needsConfirmation && !isCancellationMode && !isCancelled && (
                   <>
-                    <hr className="border-bookinglightest dark:border-darkgray-300" />
+                    <hr className="border-bookinglightest  dark:border-darkgray-300 mt-8" />
                     <div className="text-bookingdark align-center flex flex-row justify-center py-8">
                       <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                         {t("add_to_calendar")}
@@ -608,7 +608,7 @@ export default function Success(props: SuccessProps) {
                 )}
                 {session === null && !(userIsOwner || props.hideBranding) && (
                   <>
-                    <hr className="border-bookinglightest dark:border-darkgray-300" />
+                    <hr className="border-bookinglightest dark:border-darkgray-300 mt-8" />
                     <div className="border-bookinglightest text-booking-lighter dark:border-darkgray-300 pt-8 text-center text-xs dark:text-white">
                       <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
 
@@ -625,10 +625,14 @@ export default function Success(props: SuccessProps) {
                           name="email"
                           id="email"
                           defaultValue={email || ""}
-                          className="focus:border-brand border-bookinglightest dark:border-darkgray-300 mt-0 block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:bg-black dark:text-white sm:text-sm"
+                          className="mr- focus:border-brand border-bookinglightest dark:border-darkgray-300 mt-0 block w-full rounded-none rounded-l-md border-gray-300 shadow-sm focus:ring-black dark:bg-black dark:text-white sm:text-sm"
                           placeholder="rick.astley@cal.com"
                         />
-                        <Button size="lg" type="submit" className="min-w-max" color="primary">
+                        <Button
+                          size="lg"
+                          type="submit"
+                          className="min-w-max rounded-none rounded-r-md"
+                          color="primary">
                           {t("try_for_free")}
                         </Button>
                       </form>

@@ -60,7 +60,7 @@ export default function CancelBooking(props: Props) {
             rows={3}
           />
           <div className="flex flex-col-reverse rtl:space-x-reverse ">
-            <div className="mb-2 ml-auto flex w-full space-x-4 ">
+            <div className="ml-auto flex w-full space-x-4 ">
               <Button
                 className="ml-auto"
                 color="secondary"
