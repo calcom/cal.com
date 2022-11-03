@@ -6,16 +6,8 @@ import { Toaster } from "react-hot-toast";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import {
-  Alert,
-  Button,
-  EmailField,
-  Form,
-  PasswordField,
-  TextField,
-  SelectField,
-  Switch,
-} from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/components";
+import { Alert, EmailField, Form, PasswordField, TextField, SelectField, Switch } from "@calcom/ui/v2";
 
 import { ExchangeAuthentication } from "../../enums";
 

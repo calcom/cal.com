@@ -15,7 +15,7 @@ import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import { Icon } from "@calcom/ui/Icon";
-import Avatar from "@calcom/ui/components/avatar";
+import { Avatar } from "@calcom/ui/components/avatar";
 import { Button } from "@calcom/ui/components/button";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/v2/core/Dialog";
 import Dropdown, {
