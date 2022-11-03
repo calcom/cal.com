@@ -7,6 +7,7 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Icon } from "@calcom/ui";
 import { Badge } from "@calcom/ui/v2";
 import Button from "@calcom/ui/v2/core/Button";
@@ -91,15 +92,16 @@ const AvailabilitySelect = ({
   );
 };
 
-const format = (date: Date) =>
-  Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "numeric" }).format(
+const format = (date: Date, hour12: boolean) =>
+  Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "numeric", hour12 }).format(
     new Date(dayjs.utc(date).format("YYYY-MM-DDTHH:mm:ss"))
   );
 
 export const AvailabilityTab = () => {
   const { t, i18n } = useLocale();
   const { watch } = useFormContext<FormValues>();
-
+  const me = useMeQuery();
+  const timeFormat = me?.data?.timeFormat;
   const scheduleId = watch("schedule");
   const { isLoading, data: schedule } = trpc.useQuery(["viewer.availability.schedule", { scheduleId }]);
 
@@ -148,9 +150,11 @@ export const AvailabilityTab = () => {
                   <div className="space-y-3 text-right">
                     {filterDays(index).map((dayRange, i) => (
                       <div key={i} className="flex items-center leading-4">
-                        <span className="w-16 sm:w-28 sm:text-left">{format(dayRange.startTime)}</span>
-                        <span className="ml-4">-</span>
-                        <div className="ml-6">{format(dayRange.endTime)}</div>
+                        <span className="w-16 sm:w-28 sm:text-left">
+                          {format(dayRange.startTime, timeFormat === 12)}
+                        </span>
+                        <span className="ml-4 sm:ml-0">-</span>
+                        <div className="ml-6">{format(dayRange.endTime, timeFormat === 12)}</div>
                       </div>
                     ))}
                   </div>
