@@ -181,8 +181,6 @@ function BookingListItem(booking: BookingItemProps) {
     .concat(booking.recurringInfo?.bookings[BookingStatus.PENDING])
     .sort((date1: Date, date2: Date) => date1.getTime() - date2.getTime());
 
-  console.log({ recurringDates });
-
   const location = booking.location || "";
 
   const onClickTableData = () => {
@@ -271,13 +269,11 @@ function BookingListItem(booking: BookingItemProps) {
                 attendees={booking.attendees}
               />
             </div>
-
             {isPending && (
               <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
                 {t("unconfirmed")}
               </Badge>
             )}
-
             {booking.eventType?.team && (
               <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
                 {booking.eventType.team.name}
