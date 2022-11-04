@@ -95,14 +95,19 @@ export default function Bookings() {
                 <tbody className="divide-y divide-gray-200 bg-white" data-testid="bookings">
                   {query.data.pages.map((page, index) => (
                     <Fragment key={index}>
-                      {page.bookings.filter(filterBookings).map((booking: BookingOutput) => (
-                        <BookingListItem
-                          key={booking.id}
-                          listingStatus={status}
-                          recurringBookings={page.recurringInfo}
-                          {...booking}
-                        />
-                      ))}
+                      {page.bookings.filter(filterBookings).map((booking: BookingOutput) => {
+                        const recurringInfo = page.recurringInfo.find(
+                          (info) => info.recurringEventId === booking.recurringEventId
+                        );
+                        return (
+                          <BookingListItem
+                            key={booking.id}
+                            listingStatus={status}
+                            recurringInfo={recurringInfo}
+                            {...booking}
+                          />
+                        );
+                      })}
                     </Fragment>
                   ))}
                 </tbody>

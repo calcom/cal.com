@@ -19,7 +19,6 @@ import Tooltip from "@calcom/ui/v2/core/Tooltip";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
-import { extractRecurringDates } from "@lib/parseDate";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
@@ -31,14 +30,14 @@ type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
 
 type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
-  recurringBookings: inferQueryOutput<"viewer.bookings">["recurringInfo"];
+  recurringInfo: inferQueryOutput<"viewer.bookings">["recurringInfo"][number] | undefined;
 };
 
 function BookingListItem(booking: BookingItemProps) {
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();
   const user = query.data;
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
   const [rejectionReason, setRejectionReason] = useState<string>("");
@@ -176,17 +175,11 @@ function BookingListItem(booking: BookingItemProps) {
     setLocationMutation.mutate({ bookingId: booking.id, newLocation });
   };
 
-  const [, recurringDates] = useMemo(() => {
-    if (
-      booking.recurringBookings !== undefined &&
-      booking.eventType.recurringEvent?.freq !== undefined &&
-      booking.recurringEventId
-    ) {
-      return extractRecurringDates(booking, user?.timeZone, i18n);
-    }
-    return [[], []];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.timeZone, i18n.language, booking.recurringBookings]);
+  // Getting accepted recurring dates to show
+  const recurringDates = booking.recurringInfo?.bookings[BookingStatus.ACCEPTED]
+    .concat(booking.recurringInfo?.bookings[BookingStatus.CANCELLED])
+    .concat(booking.recurringInfo?.bookings[BookingStatus.PENDING])
+    .sort((date1: Date, date2: Date) => date1.getTime() - date2.getTime());
 
   const location = booking.location || "";
 
@@ -291,9 +284,11 @@ function BookingListItem(booking: BookingItemProps) {
                 {t("pending_payment")}
               </Badge>
             )}
-            <div className="mt-2 text-sm text-gray-400">
-              <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
-            </div>
+            {recurringDates !== undefined && (
+              <div className="mt-2 text-sm text-gray-400">
+                <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
+              </div>
+            )}
           </div>
         </td>
         <td className={"w-full px-4" + (isRejected ? " line-through" : "")} onClick={onClickTableData}>
@@ -329,9 +324,11 @@ function BookingListItem(booking: BookingItemProps) {
                 {t("pending_payment")}
               </Badge>
             )}
-            <div className="text-sm text-gray-400 sm:hidden">
-              <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
-            </div>
+            {recurringDates !== undefined && (
+              <div className="text-sm text-gray-400 sm:hidden">
+                <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
+              </div>
+            )}
           </div>
 
           <div className="cursor-pointer py-4">
@@ -401,11 +398,16 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
   const { t } = useLocale();
   const now = new Date();
   const recurringCount = recurringDates.filter((date) => {
-    return date >= now;
+    return (
+      date >= now &&
+      !booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
+        .map((date) => date.toDateString())
+        .includes(date.toDateString())
+    );
   }).length;
 
   return (
-    (booking.recurringBookings &&
+    (booking.recurringInfo &&
       booking.eventType?.recurringEvent?.freq &&
       (booking.listingStatus === "recurring" ||
         booking.listingStatus === "unconfirmed" ||
@@ -413,13 +415,20 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
         <div className="underline decoration-gray-400 decoration-dashed underline-offset-2">
           <div className="flex">
             <Tooltip
-              content={recurringDates.map((aDate, key) => (
-                <p key={key} className={classNames(recurringDates[key] < now && "line-through")}>
-                  {formatTime(booking.startTime, user?.timeFormat, user?.timeZone)}
-                  {" - "}
-                  {dayjs(aDate).format("D MMMM YYYY")}
-                </p>
-              ))}>
+              content={recurringDates.map((aDate, key) => {
+                const pastOrCancelled =
+                  aDate < now ||
+                  booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
+                    .map((date) => date.toDateString())
+                    .includes(aDate.toDateString());
+                return (
+                  <p key={key} className={classNames(pastOrCancelled && "line-through")}>
+                    {formatTime(aDate, user?.timeFormat, user?.timeZone)}
+                    {" - "}
+                    {dayjs(aDate).format("D MMMM YYYY")}
+                  </p>
+                );
+              })}>
               <div className="text-gray-600 dark:text-white">
                 <Icon.FiRefreshCcw
                   strokeWidth="3"
@@ -433,7 +442,7 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
                     : getEveryFreqFor({
                         t,
                         recurringEvent: booking.eventType.recurringEvent,
-                        recurringCount,
+                        recurringCount: booking.recurringInfo.count,
                       })}
                 </p>
               </div>
