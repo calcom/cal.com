@@ -1,12 +1,12 @@
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import Button from "@calcom/ui/v2/core/Button";
-import { TextField } from "@calcom/ui/v2/core/form/fields";
+import { Button } from "@calcom/ui/components/button";
+import { TextField } from "@calcom/ui/components/form";
 
-/* 
+/*
 import * as Radio from "@calcom/ui/v2/core/form/radio-area/Radio";
-import { RadioField } from "@calcom/ui/v2/core/form/radio-area/Radio"; 
+import { RadioField } from "@calcom/ui/v2/core/form/radio-area/Radio";
 */
 
 export default function AppSettings() {

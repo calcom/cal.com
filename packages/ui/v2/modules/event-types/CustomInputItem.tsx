@@ -1,8 +1,8 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui";
-import Badge from "@calcom/ui/v2/core/Badge";
-import Button from "@calcom/ui/v2/core/Button";
-import ButtonGroup from "@calcom/ui/v2/core/ButtonGroup";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 
 type Props = {
   required?: boolean;
@@ -19,7 +19,7 @@ function CustomInputItem({ required, deleteOnClick, editOnClick, type, question 
       <div className="flex flex-col">
         <div className="flex items-center">
           <span className="pr-2 text-sm font-semibold leading-none text-black">{question}</span>
-          <Badge variant="default" color="gray">
+          <Badge variant="default" color="gray" withDot={false}>
             {required ? t("required") : t("optional")}
           </Badge>
         </div>
