@@ -25,15 +25,13 @@ export const createMember = async ({
   const translation = await getTranslation(pendingMember.locale || teamOwnerLocale || "en", "common");
 
   if (pendingMember.username && pendingMember.id) {
-    await prisma.membership.create({
+    const user = await prisma.membership.create({
       data: {
         teamId,
         userId: pendingMember.id,
         role: pendingMember.role as MembershipRole,
       },
     });
-
-    console.log("membership created");
 
     const sendEmail = await sendTeamInviteEmail({
       language: translation,
@@ -42,18 +40,8 @@ export const createMember = async ({
       teamName,
       joinLink: WEBAPP_URL + `/settings/teams/${teamId}/members`,
     });
-    console.log("🚀 ~ file: inviteMember.ts ~ line 43 ~ sendEamil", sendEmail);
     // If user's are not on Cal.com
   } else {
-    // Check if user is already in DB
-    const user = await prisma.user.findUnique({
-      where: {
-        email: pendingMember.email,
-      },
-      select: {
-        id: true,
-      },
-    });
     if (user) {
       await prisma.user.update({
         where: {
@@ -83,8 +71,6 @@ export const createMember = async ({
         },
       });
 
-      console.log("Creating member triggers");
-
       const token: string = randomBytes(32).toString("hex");
 
       await prisma.verificationToken.create({
@@ -95,50 +81,13 @@ export const createMember = async ({
         },
       });
 
-      console.log("token created");
-
-      const sendEmail = await sendTeamInviteEmail({
+      await sendTeamInviteEmail({
         language: translation,
         from: inviter,
         to: pendingMember.email,
         teamName: teamName,
         joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/settings/teams`,
       });
-
-      console.log("🚀 ~ file: inviteMember.ts ~ line 98 ~ sendEmail", sendEmail);
     }
   }
 };
-
-// export const sendTeamInvite = async ({ member, inviter, teamOwnerLocale, teamId, teamName }) => {
-//   if (member.role === "OWNER") return;
-
-//   if (member.username) {
-//     await sendTeamInviteEmail({
-//       language: translation,
-//       from: inviter,
-//       to: member.email,
-//       teamName,
-//       joinLink: WEBAPP_URL + `/settings/teams/${teamId}/members`,
-//     });
-//     // Send an invite with a signup link if not a user
-//   } else {
-//     const token: string = randomBytes(32).toString("hex");
-
-//     await prisma.verificationToken.create({
-//       data: {
-//         identifier: pendingMember.email,
-//         token,
-//         expires: new Date(new Date().setHours(168)), // +1 week
-//       },
-//     });
-
-//     await sendTeamInviteEmail({
-//       language: translation,
-//       from: inviter,
-//       to: member.email,
-//       teamName: teamName,
-//       joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/settings/teams`,
-//     });
-//   }
-// };

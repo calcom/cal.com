@@ -677,14 +677,13 @@ export const viewerTeamsRouter = createProtectedRouter()
       }
 
       return {
-        userId: user?.id || undefined,
+        id: user?.id || undefined,
         name: user?.name || "",
         email: user?.email || emailOrUsername,
         username: user?.username || "",
         avatar: user?.avatar || "",
         role: input.role.value,
-        sendInviteEmail: input.sendInviteEmail,
-        locale: user.locale || "en",
+        locale: user?.locale || "en",
       };
     },
   })
@@ -817,7 +816,7 @@ export const viewerTeamsRouter = createProtectedRouter()
       });
 
       for (const member of members) {
-        if (member.id !== ctx.user.id)
+        if (member.id !== ctx.user.id) {
           await createMember({
             teamId: createTeam.id,
             teamName: name,
@@ -825,6 +824,7 @@ export const viewerTeamsRouter = createProtectedRouter()
             pendingMember: member,
             teamOwnerLocale: ctx.user.locale,
           });
+        }
       }
 
       return createTeam;
