@@ -1,8 +1,8 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import React, { ReactNode } from "react";
+import { ReactNode } from "react";
 
+import { Label } from "../../components/form";
 import Switch from "./Switch";
-import { Label } from "./form";
 
 type Props = {
   children?: ReactNode;
@@ -44,8 +44,8 @@ function SettingsToggle({
             </div>
           </div>
           {children && (
-            <div className="mt-4 lg:ml-14" ref={animateRef}>
-              {checked && children}
+            <div className="lg:ml-14" ref={animateRef}>
+              {checked && <div className="mt-4">{children}</div>}
             </div>
           )}
         </fieldset>

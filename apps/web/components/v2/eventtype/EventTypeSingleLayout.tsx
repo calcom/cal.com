@@ -11,18 +11,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
-import {
-  Button,
-  ButtonGroup,
-  HorizontalTabs,
-  Label,
-  showToast,
-  Switch,
-  Tooltip,
-  VerticalTabs,
-} from "@calcom/ui/v2";
+import { Button, ButtonGroup, Label } from "@calcom/ui/components";
+import { HorizontalTabs, showToast, Switch, Tooltip, VerticalTabs } from "@calcom/ui/v2";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import { Dialog } from "@calcom/ui/v2/core/Dialog";
+import Divider from "@calcom/ui/v2/core/Divider";
 import Dropdown, {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -45,6 +38,7 @@ type Props = {
   installedAppsNumber: number;
   enabledWorkflowsNumber: number;
   formMethods: UseFormReturn<FormValues>;
+  isUpdateMutationLoading?: boolean;
 };
 
 function getNavigation(props: {
@@ -111,6 +105,7 @@ function EventTypeSingleLayout({
   enabledAppsNumber,
   installedAppsNumber,
   enabledWorkflowsNumber,
+  isUpdateMutationLoading,
   formMethods,
 }: Props) {
   const utils = trpc.useContext();
@@ -172,11 +167,11 @@ function EventTypeSingleLayout({
       subtitle={eventType.description || ""}
       CTA={
         <div className="flex items-center justify-end">
-          <div className="flex items-center rounded-md px-2 sm:hover:bg-gray-100">
+          <div className="hidden items-center rounded-md px-2 sm:flex sm:hover:bg-gray-100">
             <Skeleton
               as={Label}
               htmlFor="hiddenSwitch"
-              className="mt-2 hidden cursor-pointer self-center pr-2 sm:inline">
+              className="mt-2 hidden cursor-pointer self-center whitespace-nowrap pr-2 sm:inline">
               {t("hide_from_profile")}
             </Skeleton>
             <Switch
@@ -231,7 +226,7 @@ function EventTypeSingleLayout({
             />
           </ButtonGroup>
 
-          <VerticalDivider />
+          <VerticalDivider className="hidden lg:block" />
 
           <Dropdown>
             <DropdownMenuTrigger className="block h-9 w-9 justify-center rounded-md border border-gray-200 bg-transparent text-gray-700 lg:hidden">
@@ -264,12 +259,29 @@ function EventTypeSingleLayout({
                   {t("delete")}
                 </Button>
               </DropdownMenuItem>
+              <Divider />
+              <div className="flex items-center rounded-md py-1.5 px-4 sm:hidden sm:hover:bg-gray-100">
+                <Skeleton
+                  as={Label}
+                  htmlFor="hiddenSwitch"
+                  className="mt-2 inline cursor-pointer self-center pr-2 sm:hidden">
+                  {t("hide_from_profile")}
+                </Skeleton>
+                <Switch
+                  id="hiddenSwitch"
+                  defaultChecked={formMethods.getValues("hidden")}
+                  onCheckedChange={(e) => {
+                    formMethods.setValue("hidden", e);
+                  }}
+                />
+              </div>
             </DropdownMenuContent>
           </Dropdown>
           <div className="border-l-2 border-gray-300" />
           <Button
             className="ml-4 lg:ml-0"
             type="submit"
+            loading={formMethods.formState.isSubmitting || isUpdateMutationLoading}
             data-testid="update-eventtype"
             form="event-type-form">
             {t("save")}

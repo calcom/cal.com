@@ -32,6 +32,11 @@ export const EventTypeMetaDataSchema = z
     giphyThankYouPage: z.string().optional(),
     apps: z.object(appDataSchemas).partial().optional(),
     additionalNotesRequired: z.boolean().optional(),
+    config: z
+      .object({
+        useHostSchedulesForTeamEvent: z.boolean().optional(),
+      })
+      .optional(),
   })
   .nullable();
 
@@ -207,6 +212,12 @@ export const successRedirectUrl = z
       .regex(/^http(s)?:\/\/.*/),
   ])
   .optional();
+
+export const RoutingFormSettings = z
+  .object({
+    emailOwnerOnSubmission: z.boolean(),
+  })
+  .nullable();
 
 export type ZodDenullish<T extends ZodTypeAny> = T extends ZodNullable<infer U> | ZodOptional<infer U>
   ? ZodDenullish<U>

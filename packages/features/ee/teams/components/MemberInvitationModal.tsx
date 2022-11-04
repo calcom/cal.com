@@ -1,16 +1,14 @@
 import { MembershipRole } from "@prisma/client";
-import React, { useState, SyntheticEvent, useMemo } from "react";
-import { useForm, Controller, useFormContext } from "react-hook-form";
+import { useMemo } from "react";
+import { Controller, useForm, useFormContext } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
-import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/Icon";
-import { Button, Dialog, DialogContent, DialogFooter, Select, TextField } from "@calcom/ui/v2";
-import { Form } from "@calcom/ui/v2/core/form";
-import CheckboxField from "@calcom/ui/v2/core/form/Checkbox";
+import { Button, TextField } from "@calcom/ui/components";
+import CheckboxField from "@calcom/ui/components/form/checkbox/Checkbox";
+import { Form } from "@calcom/ui/form/fields";
+import { Dialog, DialogContent, DialogFooter, Select } from "@calcom/ui/v2";
 
-import { NewTeamFormValues, PendingMember } from "../lib/types";
+import { NewTeamFormValues } from "../lib/types";
 
 type MemberInvitationModalProps = {
   isOpen: boolean;
