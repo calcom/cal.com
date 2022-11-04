@@ -10,11 +10,11 @@ import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
+import Button from "@calcom/ui/v2/core/Button";
 
 import ErrorBoundary from "../../../ErrorBoundary";
 import { Icon } from "../../../Icon";
-import { Badge } from "../../../components/badge";
+import { Badge } from "../Badge";
 import { useMeta } from "../Meta";
 import Shell from "../Shell";
 import { VerticalTabItemProps } from "../navigation/tabs/VerticalTabItem";

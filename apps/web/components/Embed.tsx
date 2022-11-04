@@ -6,9 +6,8 @@ import { components, ControlProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components";
 import { InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
-import { HorizontalTabs, showToast, Switch } from "@calcom/ui/v2";
+import { Button, HorizontalTabs, showToast, Switch } from "@calcom/ui/v2";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/v2/core/Dialog";
 
 import { EMBED_LIB_URL, WEBAPP_URL } from "@lib/config/constants";

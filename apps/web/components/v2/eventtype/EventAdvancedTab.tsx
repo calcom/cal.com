@@ -1,3 +1,4 @@
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventTypeCustomInput } from "@prisma/client/";
 import Link from "next/link";
 import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
@@ -11,8 +12,20 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Checkbox, Button, TextField, Label } from "@calcom/ui/components";
-import { CustomInputItem, Dialog, DialogContent, SettingsToggle, showToast, Tooltip } from "@calcom/ui/v2";
+import {
+  Button,
+  CustomInputItem,
+  Dialog,
+  DialogContent,
+  Label,
+  SettingsToggle,
+  showToast,
+  Skeleton,
+  Switch,
+  TextField,
+  Tooltip,
+} from "@calcom/ui/v2";
+import CheckboxField from "@calcom/ui/v2/core/form/Checkbox";
 
 import CustomInputTypeForm from "@components/v2/eventtype/CustomInputTypeForm";
 
@@ -322,7 +335,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                     }}
                   />
                   <div className="mt-2">
-                    <Checkbox
+                    <CheckboxField
                       description={t("show_attendees")}
                       onChange={(e) => formMethods.setValue("seatsShowAttendees", e.target.checked)}
                       defaultChecked={!!eventType.seatsShowAttendees}

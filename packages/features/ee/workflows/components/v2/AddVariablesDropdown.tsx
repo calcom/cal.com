@@ -1,5 +1,6 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui";
+import { Label } from "@calcom/ui/v2";
 import {
   Dropdown,
   DropdownMenuContent,

@@ -10,8 +10,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import ErrorBoundary from "@calcom/ui/ErrorBoundary";
-import { Button } from "@calcom/ui/components";
-import { EmptyScreen } from "@calcom/ui/v2";
+import { Button, EmptyScreen } from "@calcom/ui/v2";
 
 type EventType = Pick<EventTypeSetupInfered, "eventType">["eventType"] &
   EventTypeAppCardComponentProps["eventType"];

@@ -4,8 +4,8 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
+import Badge from "@calcom/ui/v2/core/Badge";
+import Button from "@calcom/ui/v2/core/Button";
 import Dropdown, {
   DropdownItem,
   DropdownMenuContent,

@@ -1,3 +1,4 @@
+import { ArrowDownIcon } from "@heroicons/react/outline";
 import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
 import { useRouter } from "next/router";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
@@ -7,7 +8,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Icon } from "@calcom/ui/Icon";
-import { Button, Label, TextField } from "@calcom/ui/components";
+import { Button } from "@calcom/ui/v2";
+import { Label, TextField } from "@calcom/ui/v2";
 import MultiSelectCheckboxes, { Option } from "@calcom/ui/v2/core/form/MultiSelectCheckboxes";
 
 import type { FormValues } from "../../pages/v2/workflow";

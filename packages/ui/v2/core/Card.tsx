@@ -4,7 +4,7 @@ import React from "react";
 
 import classNames from "@calcom/lib/classNames";
 
-import { Button } from "../../components/button";
+import Button from "./Button";
 
 export type BaseCardProps = {
   image?: string;

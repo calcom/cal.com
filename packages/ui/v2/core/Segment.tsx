@@ -1,7 +1,7 @@
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import React from "react";
 
-import { Label } from "../../components/form";
+import { Label } from "./form";
 
 type SegmentProps = {
   label: string;

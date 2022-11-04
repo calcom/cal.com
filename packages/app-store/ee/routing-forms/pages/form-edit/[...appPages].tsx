@@ -13,8 +13,7 @@ import {
   AppSsrInit,
 } from "@calcom/types/AppGetServerSideProps";
 import { Icon } from "@calcom/ui";
-import { Button, TextAreaField, TextField } from "@calcom/ui/components";
-import { EmptyScreen, SelectField, Shell } from "@calcom/ui/v2";
+import { Button, EmptyScreen, SelectField, TextAreaField, TextField, Shell } from "@calcom/ui/v2";
 import { BooleanToggleGroupField } from "@calcom/ui/v2/core/form/BooleanToggleGroup";
 import FormCard from "@calcom/ui/v2/core/form/FormCard";
 

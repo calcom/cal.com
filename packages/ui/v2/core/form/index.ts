@@ -1,5 +1,6 @@
 export * from "./radio-area";
-export { default as Checkbox } from "../../../components/form/checkbox/Checkbox";
+export * from "./fields";
+export { default as Checkbox } from "./Checkbox";
 export { default as DatePicker } from "./DatePicker";
 export { default as Select, SelectWithValidation, SelectField, getReactSelectProps } from "./select";
 

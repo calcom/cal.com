@@ -9,8 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components";
-import { EmptyScreen } from "@calcom/ui/v2";
+import { Button, EmptyScreen } from "@calcom/ui/v2";
 import BookingLayout from "@calcom/ui/v2/core/layouts/BookingLayout";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
@@ -95,19 +94,14 @@ export default function Bookings() {
                 <tbody className="divide-y divide-gray-200 bg-white" data-testid="bookings">
                   {query.data.pages.map((page, index) => (
                     <Fragment key={index}>
-                      {page.bookings.filter(filterBookings).map((booking: BookingOutput) => {
-                        const recurringInfo = page.recurringInfo.find(
-                          (info) => info.recurringEventId === booking.recurringEventId
-                        );
-                        return (
-                          <BookingListItem
-                            key={booking.id}
-                            listingStatus={status}
-                            recurringInfo={recurringInfo}
-                            {...booking}
-                          />
-                        );
-                      })}
+                      {page.bookings.filter(filterBookings).map((booking: BookingOutput) => (
+                        <BookingListItem
+                          key={booking.id}
+                          listingStatus={status}
+                          recurringBookings={page.recurringInfo}
+                          {...booking}
+                        />
+                      ))}
                     </Fragment>
                   ))}
                 </tbody>

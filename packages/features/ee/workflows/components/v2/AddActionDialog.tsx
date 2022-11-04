@@ -6,9 +6,19 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Checkbox, EmailField, Form, Label } from "@calcom/ui/components";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
-import { Dialog, DialogClose, DialogContent, DialogFooter, Select } from "@calcom/ui/v2";
+import {
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  EmailField,
+  Form,
+  Label,
+  Select,
+} from "@calcom/ui/v2";
+import CheckboxField from "@calcom/ui/v2/core/form/Checkbox";
 
 import { WORKFLOW_ACTIONS } from "../../lib/constants";
 import { getWorkflowActionOptions } from "../../lib/getOptions";
@@ -125,7 +135,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                     name="numberRequired"
                     control={form.control}
                     render={() => (
-                      <Checkbox
+                      <CheckboxField
                         defaultChecked={form.getValues("numberRequired") || false}
                         description={t("make_phone_number_required")}
                         onChange={(e) => form.setValue("numberRequired", e.target.checked)}
