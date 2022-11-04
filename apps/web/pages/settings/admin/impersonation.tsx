@@ -2,7 +2,7 @@ import { signIn } from "next-auth/react";
 import { useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TextField, Button } from "@calcom/ui/v2";
+import { Button, TextField } from "@calcom/ui/components";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
 

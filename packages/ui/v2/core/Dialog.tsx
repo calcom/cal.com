@@ -6,7 +6,7 @@ import { Icon } from "react-feather";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import Button from "./Button";
+import { Button } from "../../components/button";
 
 export type DialogProps = React.ComponentProps<typeof DialogPrimitive["Root"]> & {
   name?: string;

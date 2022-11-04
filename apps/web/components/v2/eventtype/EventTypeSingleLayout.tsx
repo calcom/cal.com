@@ -11,16 +11,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
-import {
-  Button,
-  ButtonGroup,
-  HorizontalTabs,
-  Label,
-  showToast,
-  Switch,
-  Tooltip,
-  VerticalTabs,
-} from "@calcom/ui/v2";
+import { Button, ButtonGroup, Label } from "@calcom/ui/components";
+import { HorizontalTabs, showToast, Switch, Tooltip, VerticalTabs } from "@calcom/ui/v2";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import { Dialog } from "@calcom/ui/v2/core/Dialog";
 import Divider from "@calcom/ui/v2/core/Divider";
