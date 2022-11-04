@@ -1,0 +1,83 @@
+import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
+import { Examples, Example, Note, Title,CustomArgsTable, VariantRow,VariantsTable} from '@calcom/storybook/components'
+import { Icon } from "@calcom/ui/Icon";
+
+import {InputField} from "./Input"
+
+<Meta title="UI/Form/Input Field" component={InputField} />
+
+<Title title="Inputs" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022"/>
+
+## Definition
+Text fields allow users to input and edit text into the product. Usually appear in forms and modals. Various options can be shown with the field to communicate the input requirements.## Structure
+
+## Structure
+<CustomArgsTable of={InputField} />
+
+
+<Examples title="Inputs" footnote={
+  <ul>
+    <li>The width is flexible but the height is fixed for both desktop and mobile.  </li>
+  </ul>
+}>
+  <Example title="Default">
+    <InputField placeholder="Default"/>
+  </Example>
+</Examples>
+
+<Examples title="Input Types">
+  <Example title="Default">
+    <InputField placeholder="Default"/>
+  </Example>
+  <Example title="Prefix">
+    <InputField placeholder="Prefix" addOnLeading={<>Prefix</>}/>
+  </Example>
+  <Example title="Suffix">
+    <InputField placeholder="Suffic" addOnSuffix={<>Suffix</>}/>
+  </Example>
+  <Example title="Focused">
+    <InputField placeholder="Focused"  className="sb-pseudo--focus"/>
+  </Example>
+  <Example title="Hovered">
+    <InputField placeholder="Hovered" className="sb-pseudo--hover"/>
+  </Example>
+  <Example title="Error">
+    <InputField placeholder="Error" error="Error"/>
+  </Example>
+</Examples>
+
+<Examples title="Input Text">
+  <Example title="Default">
+    <InputField />
+  </Example>
+  <Example title="Placeholder">
+    <InputField placeholder="Placeholder"/>
+  </Example>
+  <Example title="Filled">
+    <InputField value="Filled"/>
+  </Example>
+</Examples>
+
+<Title offset title="Input" suffix="Variants" />
+
+<Canvas>
+  <Story name="All Variants">
+    <VariantsTable titles={['Default','Focused', 'Hovered']} columnMinWidth={150}>
+      <VariantRow variant="Default">
+        <InputField placeholder="Default"/>
+        <InputField placeholder="Focused"  className="sb-pseudo--focus"/>
+        <InputField placeholder="Hovered" className="sb-pseudo--hover"/>
+      </VariantRow>
+      <VariantRow variant="Prefixed">
+        <InputField placeholder="Default" addOnLeading={<>Prefix</>}/>
+        <InputField placeholder="Focused"  className="sb-pseudo--focus" addOnLeading={<>Prefix</>}/>
+        <InputField placeholder="Hovered" className="sb-pseudo--hover" addOnLeading={<>Prefix</>}/>
+      </VariantRow>
+      <VariantRow variant="Suffix">
+        <InputField placeholder="Default" addOnSuffix={<>Prefix</>}/>
+        <InputField placeholder="Focused"  className="sb-pseudo--focus" addOnSuffix={<>Prefix</>}/>
+        <InputField placeholder="Hovered" className="sb-pseudo--hover" addOnSuffix={<>Prefix</>}/>
+      </VariantRow>
+    </VariantsTable>
+  </Story>
+</Canvas>
