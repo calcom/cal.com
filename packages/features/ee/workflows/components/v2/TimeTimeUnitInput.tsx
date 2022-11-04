@@ -3,13 +3,8 @@ import { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/Icon";
-import {
-  Dropdown,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  TextField,
-} from "@calcom/ui/v2";
+import { TextField } from "@calcom/ui/components/form";
+import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/v2";
 
 import { getWorkflowTimeUnitOptions } from "../../lib/getOptions";
 import type { FormValues } from "../../pages/v2/workflow";

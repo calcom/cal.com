@@ -13,8 +13,8 @@ import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon, StarIconSolid } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/v2";
-import { Input, Label } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/components/button";
+import { Input, Label } from "@calcom/ui/components/form";
 
 export enum UsernameChangeStatusEnum {
   NORMAL = "NORMAL",
