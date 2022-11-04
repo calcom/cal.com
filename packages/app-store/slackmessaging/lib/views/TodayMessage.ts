@@ -18,7 +18,9 @@ const TodayMessage = (bookings: Booking[]) => {
       bookings.map((booking) =>
         Blocks.Section({
           text: `${booking.title} | ${dayjs(booking.startTime).format("HH:mm")}`,
-        }).accessory(Elements.Button({ text: "Cancel", url: `${WEBAPP_URL}/cancel/${booking.uid}` }))
+        }).accessory(
+          Elements.Button({ text: "Cancel", url: `${WEBAPP_URL}/success?uid=${booking.uid}&cancel=true` })
+        )
       )
     )
     .buildToObject();
