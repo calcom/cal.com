@@ -9,7 +9,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import { Icon } from "@calcom/ui/Icon";
-import { Button, EmptyScreen } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/components";
+import { EmptyScreen } from "@calcom/ui/v2";
 import BookingLayout from "@calcom/ui/v2/core/layouts/BookingLayout";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
