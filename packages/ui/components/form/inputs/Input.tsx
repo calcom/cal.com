@@ -1,10 +1,12 @@
-import { forwardRef, ReactNode, useId } from "react";
+import { forwardRef, ReactElement, ReactNode, Ref, useCallback, useId, useState } from "react";
+import React from "react";
 import { Eye, EyeOff } from "react-feather";
 import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn } from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
+import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Skeleton, Tooltip, Alert } from "@calcom/ui/v2";
+import { Skeleton, Tooltip, Alert, showToast } from "@calcom/ui/v2";
 
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
@@ -262,7 +264,7 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
         <Alert
           className="mt-1"
           severity="error"
-          message={<>{methods.formState.errors[props.name]!.message}</>}
+          message={<>{methods.formState.errors[props.name]?.message}</>}
         />
       )}
     </div>

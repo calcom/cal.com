@@ -18,9 +18,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components";
+import { Button, Form } from "@calcom/ui/components";
 import { Option } from "@calcom/ui/form/MultiSelectCheckboxes";
-import { Form, showToast, Alert } from "@calcom/ui/v2";
+import { showToast, Alert } from "@calcom/ui/v2";
 import Shell from "@calcom/ui/v2/core/Shell";
 
 import LicenseRequired from "../../../common/components/v2/LicenseRequired";

@@ -11,17 +11,8 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Checkbox, Button } from "@calcom/ui/components";
-import {
-  CustomInputItem,
-  Dialog,
-  DialogContent,
-  Label,
-  SettingsToggle,
-  showToast,
-  TextField,
-  Tooltip,
-} from "@calcom/ui/v2";
+import { Checkbox, Button, TextField, Label } from "@calcom/ui/components";
+import { CustomInputItem, Dialog, DialogContent, SettingsToggle, showToast, Tooltip } from "@calcom/ui/v2";
 
 import CustomInputTypeForm from "@components/v2/eventtype/CustomInputTypeForm";
 

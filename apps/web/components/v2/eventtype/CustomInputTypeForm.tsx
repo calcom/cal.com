@@ -3,7 +3,8 @@ import React, { FC } from "react";
 import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
 
 import { Button } from "@calcom/ui/components";
-import { Select, TextField } from "@calcom/ui/v2";
+import { TextField } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/v2";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
