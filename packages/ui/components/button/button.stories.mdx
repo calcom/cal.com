@@ -1,0 +1,111 @@
+import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
+import { Examples, Example, Note, Title, VariantsTable, VariantColumn, RowTitles, CustomArgsTable} from '@calcom/storybook/components'
+import { Icon } from "@calcom/ui/Icon";
+
+import { Button } from './Button';
+
+<Meta title="UI/Button" component={Button} />
+
+<Title title="Buttons" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022"/>
+
+
+## Definition
+Button are clickable elements that initiates user actions. Labels in the button guide users to what action will occur when the user interacts with it.
+
+## Structure
+
+<CustomArgsTable of={Button} />
+
+
+<Examples title="Button style" footnote={
+  <ul>
+  <li>Primary: Signals most important actions at any given point in the application.</li>
+  <li>Secondary: Gives visual weight to actions that are important</li>
+  <li>Minimal: Used for actions that we want to give very little significane to</li>
+  </ul>
+}>
+  <Example title="Primary">
+    <Button className="sb-fake-pseudo--focus">Button text</Button>
+  </Example>
+  <Example title="Secondary">
+    <Button color="secondary">Button text</Button>
+  </Example>
+  <Example title="Minimal">
+    <Button color="minimal">Button text</Button>
+  </Example>
+</Examples>
+
+<Examples title="State">
+  <Example title="Default">
+    <Button>Button text</Button>
+  </Example>
+  <Example title="Hover">
+      <Button className="sb-pseudo--hover">Button text</Button>
+  </Example>
+  <Example title="Focus">
+    <Button className="sb-pseudo--focus">Button text</Button>
+  </Example>
+  <Example title="Disabled">
+    <Button disabled>Button text</Button>
+  </Example>
+  <Example title="Loading">
+    <Button loading>Button text</Button>
+  </Example>
+</Examples>
+
+<Examples title="Icons">
+  <Example title="Default">
+    <Button>Button text</Button>
+  </Example>
+  <Example title="Icon left">
+      <Button StartIcon={Icon.FiPlus}>Button text</Button>
+  </Example>
+  <Example title="Icon right">
+    <Button EndIcon={Icon.FiPlus}>Button text</Button>
+  </Example>
+</Examples>
+
+
+## Anatomy
+Button are clickable elements that initiates user actions. Labels in the button guide users to what action will occur when the user interacts with it.
+
+## Usage
+
+<Note>In general, there should be only one Primary button in any application context</Note>
+<Note>Aim to use maximum 2 words for the button label. Button size can be flexible based on the visual hierarchy and devices. </Note>
+<Note>Hover state variant for Mobile button is an option for assistive device.</Note>
+
+<Title offset title="Buttons" suffix="Variants" />
+
+
+<Canvas>
+  <Story name="All variants">
+    <VariantsTable titles={['Primary', 'Secondary', 'Minimal']} columnMinWidth={150}>
+      <VariantRow variant="Default">
+        <Button>Button text</Button>
+        <Button color="secondary">Button text</Button>
+        <Button color="minimal">Button text</Button>
+      </VariantRow>
+      <VariantRow variant="Hover">
+        <Button className="sb-pseudo--hover">Button text</Button>
+        <Button className="sb-pseudo--hover" color="secondary">Button text</Button>
+        <Button className="sb-pseudo--hover" color="minimal">Button text</Button>
+      </VariantRow>
+      <VariantRow variant="Focus">
+        <Button className="sb-pseudo--focus">Button text</Button>
+        <Button className="sb-pseudo--focus" color="secondary">Button text</Button>
+        <Button className="sb-pseudo--focus" color="minimal">Button text</Button>
+      </VariantRow>
+      <VariantRow variant="Loading">
+        <Button loading>Button text</Button>
+        <Button loading color="secondary">Button text</Button>
+        <Button loading color="minimal">Button text</Button>
+      </VariantRow>
+      <VariantRow variant="Disabled">
+        <Button disabled>Button text</Button>
+        <Button disabled color="secondary">Button text</Button>
+        <Button disabled color="minimal">Button text</Button>
+      </VariantRow>
+    </VariantsTable>
+  </Story>
+</Canvas>
