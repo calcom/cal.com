@@ -9,10 +9,10 @@ import { trpc } from "@calcom/trpc/react";
 import { DialogFooter } from "@calcom/ui/Dialog";
 import { ClipboardCopyIcon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
+import { Button } from "@calcom/ui/components/button";
+import { Form, TextField } from "@calcom/ui/components/form";
 import { DatePicker } from "@calcom/ui/v2";
-import Button from "@calcom/ui/v2/core/Button";
 import Switch from "@calcom/ui/v2/core/Switch";
-import { Form, TextField } from "@calcom/ui/v2/core/form/fields";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 export default function ApiKeyDialogForm({
