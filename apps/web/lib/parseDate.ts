@@ -48,10 +48,10 @@ export const parseRecurringDates = (
   const rule = new RRule({
     ...restRecurringEvent,
     count: recurringCount,
-    dtstart: dayjs(startDate).utc(true).toDate(),
+    dtstart: dayjs.utc(startDate).toDate(),
   });
   // UTC times with tzOffset applied to account for DST
-  const times = rule.all().map((t) => dateWithZone(t, timeZone));
+  const times = rule.all();
   const dateStrings = times.map((t) => {
     // undo DST diffs for localized display.
     return processDate(dayjs.utc(t).tz(timeZone), i18n);
