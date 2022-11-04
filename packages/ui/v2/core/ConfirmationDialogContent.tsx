@@ -3,7 +3,8 @@ import React, { PropsWithChildren, ReactNode } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/Icon";
-import { Button, DialogClose, DialogContent } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/components";
+import { DialogClose, DialogContent } from "@calcom/ui/v2";
 
 export type ConfirmationDialogContentProps = {
   confirmBtn?: ReactNode;

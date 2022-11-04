@@ -1,8 +1,8 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import React, { ReactNode } from "react";
+import { ReactNode } from "react";
 
+import { Label } from "../../components/form";
 import Switch from "./Switch";
-import { Label } from "./form";
 
 type Props = {
   children?: ReactNode;
