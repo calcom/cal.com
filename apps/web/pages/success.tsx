@@ -773,6 +773,8 @@ const getEventTypesFromDB = async (id: number) => {
       },
       metadata: true,
       seatsShowAttendees: true,
+      periodStartDate: true,
+      periodEndDate: true,
     },
   });
 
@@ -831,6 +833,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       eventTypeId: true,
       eventType: {
         select: {
+          eventName: true,
           slug: true,
         },
       },

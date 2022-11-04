@@ -1,15 +1,76 @@
-import { Prisma, WebhookTriggerEvents } from "@prisma/client";
+import { App_RoutingForms_Form, Prisma, User, WebhookTriggerEvents } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
+import logger from "@calcom/lib/logger";
+import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
 import { createProtectedRouter, createRouter } from "@calcom/trpc/server/createRouter";
+import { Ensure } from "@calcom/types/utils";
 
+import ResponseEmail from "./emails/templates/response-email";
 import { getSerializableForm } from "./lib/getSerializableForm";
 import { isAllowed } from "./lib/isAllowed";
+import { Response, SerializableForm } from "./types/types";
 import { zodFields, zodRoutes } from "./zod";
+
+async function onFormSubmission(
+  form: Ensure<SerializableForm<App_RoutingForms_Form> & { user: User }, "fields">,
+  response: Response
+) {
+  const fieldResponsesByName: Record<string, typeof response[keyof typeof response]["value"]> = {};
+
+  for (const [fieldId, fieldResponse] of Object.entries(response)) {
+    // Use the label lowercased as the key to identify a field.
+    const key =
+      form.fields.find((f) => f.id === fieldId)?.identifier ||
+      (fieldResponse.label as keyof typeof fieldResponsesByName);
+    fieldResponsesByName[key] = fieldResponse.value;
+  }
+
+  const subscriberOptions = {
+    userId: form.user.id,
+    // It isn't an eventType webhook
+    eventTypeId: -1,
+    triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
+  };
+
+  const webhooks = await getWebhooks(subscriberOptions);
+  const promises = webhooks.map((webhook) => {
+    sendGenericWebhookPayload(
+      webhook.secret,
+      "FORM_SUBMITTED",
+      new Date().toISOString(),
+      webhook,
+      fieldResponsesByName
+    ).catch((e) => {
+      console.error(`Error executing routing form webhook`, webhook, e);
+    });
+  });
+
+  await Promise.all(promises);
+  if (form.settings?.emailOwnerOnSubmission) {
+    logger.debug(
+      `Preparing to send Form Response email for Form:${form.id} to form owner: ${form.user.email}`
+    );
+    await sendResponseEmail(form, response, form.user.email);
+  }
+}
+
+const sendResponseEmail = async (
+  form: Pick<App_RoutingForms_Form, "id" | "name">,
+  response: Response,
+  ownerEmail: string
+) => {
+  try {
+    const email = new ResponseEmail({ form: form, toAddresses: [ownerEmail], response: response });
+    await email.sendEmail();
+  } catch (e) {
+    logger.error("Error sending response email", e);
+  }
+};
 
 const app_RoutingForms = createRouter()
   .merge(
@@ -41,24 +102,21 @@ const app_RoutingForms = createRouter()
               code: "NOT_FOUND",
             });
           }
-          const fieldsParsed = zodFields.safeParse(form.fields);
-          if (!fieldsParsed.success) {
-            // This should not be possible normally as before saving the form it is verified by zod
-            throw new TRPCError({
-              code: "INTERNAL_SERVER_ERROR",
-            });
-          }
 
-          const fields = fieldsParsed.data;
-
-          if (!fields) {
+          const serializableForm = getSerializableForm(form);
+          if (!serializableForm.fields) {
             // There is no point in submitting a form that doesn't have fields defined
             throw new TRPCError({
               code: "BAD_REQUEST",
             });
           }
 
-          const missingFields = fields
+          const serializableFormWithFields = {
+            ...serializableForm,
+            fields: serializableForm.fields,
+          };
+
+          const missingFields = serializableFormWithFields.fields
             .filter((field) => !(field.required ? response[field.id]?.value : true))
             .map((f) => f.label);
 
@@ -68,7 +126,7 @@ const app_RoutingForms = createRouter()
               message: `Missing required fields ${missingFields.join(", ")}`,
             });
           }
-          const invalidFields = fields
+          const invalidFields = serializableFormWithFields.fields
             .filter((field) => {
               const fieldValue = response[field.id]?.value;
               // The field isn't required at this point. Validate only if it's set
@@ -94,39 +152,12 @@ const app_RoutingForms = createRouter()
             });
           }
 
-          const fieldResponsesByName: Record<string, typeof response[keyof typeof response]["value"]> = {};
-
-          for (const [fieldId, fieldResponse] of Object.entries(response)) {
-            // Use the label lowercased as the key to identify a field.
-            const key =
-              fields.find((f) => f.id === fieldId)?.identifier ||
-              (fieldResponse.label as keyof typeof fieldResponsesByName);
-            fieldResponsesByName[key] = fieldResponse.value;
-          }
-
-          const subscriberOptions = {
-            userId: form.user.id,
-            // It isn't an eventType webhook
-            eventTypeId: -1,
-            triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
-          };
-          const webhooks = await getWebhooks(subscriberOptions);
-          const promises = webhooks.map((webhook) => {
-            sendGenericWebhookPayload(
-              webhook.secret,
-              "FORM_SUBMITTED",
-              new Date().toISOString(),
-              webhook,
-              fieldResponsesByName
-            ).catch((e) => {
-              console.error(`Error executing routing form webhook`, webhook, e);
-            });
-          });
-          await Promise.all(promises);
-
-          return await prisma.app_RoutingForms_FormResponse.create({
+          const dbFormResponse = await prisma.app_RoutingForms_FormResponse.create({
             data: input,
           });
+
+          await onFormSubmission(serializableFormWithFields, dbFormResponse.response as Response);
+          return dbFormResponse;
         } catch (e) {
           if (e instanceof Prisma.PrismaClientKnownRequestError) {
             if (e.code === "P2002") {
@@ -201,9 +232,10 @@ const app_RoutingForms = createRouter()
           routes: zodRoutes,
           addFallback: z.boolean().optional(),
           duplicateFrom: z.string().nullable().optional(),
+          settings: RoutingFormSettings.optional(),
         }),
         async resolve({ ctx: { user, prisma }, input }) {
-          const { name, id, description, disabled, addFallback, duplicateFrom } = input;
+          const { name, id, description, settings, disabled, addFallback, duplicateFrom } = input;
           if (!(await isAllowed({ userId: user.id, formId: id }))) {
             throw new TRPCError({
               code: "FORBIDDEN",
@@ -284,6 +316,7 @@ const app_RoutingForms = createRouter()
               fields: fields,
               name: name,
               description,
+              settings: settings === null ? Prisma.JsonNull : settings,
               routes: routes === null ? Prisma.JsonNull : routes,
             },
           });

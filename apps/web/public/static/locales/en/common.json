@@ -1225,6 +1225,8 @@
   "exchange_authentication_ntlm": "NTLM authentication",
   "exchange_compression": "GZip compression",
   "routing_forms_description": "You can see all forms and routes you have created here.",
+  "routing_forms_send_email_owner": "Send Email to Owner",
+  "routing_forms_send_email_owner_description": "Sends an email to the owner when the form is submitted",
   "add_new_form": "Add new form",
   "form_description": "Create your form to route a booker",
   "copy_link_to_form": "Copy link to form",
@@ -1339,5 +1341,7 @@
   "number_sms_notifications": "Phone number (SMS\u00a0notifications)",
   "attendee_email_workflow": "Attendee email",
   "attendee_email_info": "The person booking's email",
-  "invalid_credential": "Oh no! Looks like permission expired or was revoked. Please reinstall again."
+  "invalid_credential": "Oh no! Looks like permission expired or was revoked. Please reinstall again.",
+  "choose_common_schedule_team_event": "Choose a common schedule",
+  "choose_common_schedule_team_event_description": "Enable this if you want to use a common schedule between hosts. When disabled, each host will be booked based on their default schedule."
 }

@@ -145,23 +145,12 @@ const BookingPage = ({
 
   const recurringMutation = useMutation(createRecurringBooking, {
     onSuccess: async (responseData = []) => {
-      const { uid } = responseData[0];
-      const location = (function humanReadableLocation(location) {
-        if (!location) {
-          return;
-        }
-        if (location.includes("integration")) {
-          return t("web_conferencing_details_to_follow");
-        }
-        return location;
-      })(responseData[0].location);
+      const { uid } = responseData[0] || {};
 
       return router.push({
         pathname: "/success",
         query: {
           uid,
-          isSuccessBookingPage: true,
-          allRemainingBookings: true,
         },
       });
     },
