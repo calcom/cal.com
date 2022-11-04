@@ -28,7 +28,6 @@ const AvailabilityView = ({ user }: { user: User }) => {
     },
     {
       enabled: !!user.username,
-      trpc: {},
     }
   );
 

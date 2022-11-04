@@ -99,7 +99,6 @@ const withQuery = <
       "query"
     >
   ) {
-    // const query = trpc.useQuery(undefined, pathAndInput, params);
     const query = queryProcedure.useQuery(input, params);
     return <QueryCell query={query} {...opts} />;
   };

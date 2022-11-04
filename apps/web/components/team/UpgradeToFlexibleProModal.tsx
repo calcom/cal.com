@@ -30,7 +30,6 @@ export function UpgradeToFlexibleProModal(props: Props) {
       onError: (err) => {
         setErrorMessage(err.message);
       },
-      trpc: {},
     }
   );
   const mutation = trpc.viewer.teams.upgradeTeam.useMutation({

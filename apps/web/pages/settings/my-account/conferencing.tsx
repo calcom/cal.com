@@ -30,7 +30,6 @@ const ConferencingLayout = () => {
     { variant: "conferencing", onlyInstalled: true },
     {
       suspense: true,
-      trpc: {},
     }
   );
   const deleteAppMutation = trpc.viewer.deleteCredential.useMutation({
