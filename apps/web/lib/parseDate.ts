@@ -20,15 +20,6 @@ export const parseDate = (date: string | null | Dayjs, i18n: I18n) => {
   return processDate(date, i18n);
 };
 
-// tzid is currently broken in rrule library.
-// @see https://github.com/jakubroztocil/rrule/issues/523
-const dateWithZone = (d: Date, timeZone?: string) => {
-  const dateInLocalTZ = new Date(d.toLocaleString("en-US", { timeZone: "UTC" }));
-  const dateInTargetTZ = new Date(d.toLocaleString("en-US", { timeZone: timeZone || "UTC" }));
-  const tzOffset = dateInTargetTZ.getTime() - dateInLocalTZ.getTime();
-  return new Date(d.getTime() - tzOffset);
-};
-
 export const parseRecurringDates = (
   {
     startDate,
@@ -48,46 +39,19 @@ export const parseRecurringDates = (
   const rule = new RRule({
     ...restRecurringEvent,
     count: recurringCount,
-    dtstart: dayjs(startDate).utc(true).toDate(),
+    dtstart: new Date(dayjs(startDate).valueOf()),
   });
-  // UTC times with tzOffset applied to account for DST
-  const times = rule.all().map((t) => dateWithZone(t, timeZone));
+
+  const startUtcOffset = dayjs(startDate).utcOffset();
+  // UTC still need to have DST applied, rrule does not do this.
+  const times = rule.all().map((t) => {
+    // applying the DST offset.
+    return dayjs.utc(t).add(startUtcOffset - dayjs(t).utcOffset(), "minute");
+  });
   const dateStrings = times.map((t) => {
-    // undo DST diffs for localized display.
-    return processDate(dayjs.utc(t).tz(timeZone), i18n);
+    // finally; show in local timeZone again
+    return processDate(t.tz(timeZone), i18n);
   });
 
-  return [dateStrings, times];
-};
-
-export const extractRecurringDates = (
-  booking: inferQueryOutput<"viewer.bookings">["bookings"][number] & {
-    eventType: { recurringEvent: RecurringEvent | null };
-    recurringEventId: string | null;
-    recurringBookings: inferQueryOutput<"viewer.bookings">["recurringInfo"];
-  },
-  timeZone: string | undefined,
-  i18n: I18n
-): [string[], Date[]] => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { count = 0, ...rest } =
-    booking.eventType.recurringEvent !== null ? booking.eventType.recurringEvent : {};
-  const recurringInfo = booking.recurringBookings.find(
-    (val) => val.recurringEventId === booking.recurringEventId
-  );
-  if (!recurringInfo) {
-    // something went wrong, fail here before RRule.
-    return [[], []];
-  }
-  const allDates = new RRule({
-    ...rest,
-    count: recurringInfo?._count.recurringEventId,
-    dtstart: recurringInfo?._min.startTime,
-  }).all();
-
-  const utcOffset = dayjs(recurringInfo?._min.startTime).tz(timeZone).utcOffset();
-  const dateStrings = allDates.map((r) => {
-    return processDate(dayjs.utc(r).utcOffset(utcOffset), i18n);
-  });
-  return [dateStrings, allDates];
+  return [dateStrings, times.map((t) => t.toDate())];
 };

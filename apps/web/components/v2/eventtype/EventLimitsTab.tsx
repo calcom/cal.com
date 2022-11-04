@@ -11,7 +11,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PeriodType } from "@calcom/prisma/client";
 import type { BookingLimit } from "@calcom/types/Calendar";
 import { Icon } from "@calcom/ui";
-import { Select, Switch, Label, Input, Button, SettingsToggle, InputField } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/components";
+import { Label, Input, InputField } from "@calcom/ui/components/form";
+import { Select, SettingsToggle } from "@calcom/ui/v2";
 import DateRangePicker from "@calcom/ui/v2/core/form/date-range-picker/DateRangePicker";
 
 export let CurrentDurationType: string | "minutes" | "hours" | "days";

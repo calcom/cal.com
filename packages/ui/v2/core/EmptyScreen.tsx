@@ -4,7 +4,7 @@ import { IconType } from "react-icons";
 
 import { SVGComponent } from "@calcom/types/SVGComponent";
 
-import Button from "./Button";
+import { Button } from "../../components/button";
 
 export default function EmptyScreen({
   Icon,

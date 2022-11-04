@@ -612,7 +612,7 @@ const loggedInViewerRouter = createProtectedRouter()
         skip,
       });
 
-      const recurringInfo = await prisma.booking.groupBy({
+      const recurringInfoBasic = await prisma.booking.groupBy({
         by: ["recurringEventId"],
         _min: {
           startTime: true,
@@ -624,12 +624,53 @@ const loggedInViewerRouter = createProtectedRouter()
           recurringEventId: {
             not: { equals: null },
           },
-          status: {
-            notIn: [BookingStatus.CANCELLED],
+          userId: user.id,
+        },
+      });
+
+      const recurringInfoExtended = await prisma.booking.groupBy({
+        by: ["recurringEventId", "status", "startTime"],
+        _min: {
+          startTime: true,
+        },
+        where: {
+          recurringEventId: {
+            not: { equals: null },
           },
           userId: user.id,
         },
       });
+
+      const recurringInfo = recurringInfoBasic.map(
+        (
+          info: typeof recurringInfoBasic[number]
+        ): {
+          recurringEventId: string | null;
+          count: number;
+          firstDate: Date | null;
+          bookings: {
+            [key: string]: Date[];
+          };
+        } => {
+          const bookings = recurringInfoExtended
+            .filter((ext) => ext.recurringEventId === info.recurringEventId)
+            .reduce(
+              (prev, curr) => {
+                prev[curr.status].push(curr.startTime);
+                return prev;
+              },
+              { ACCEPTED: [], CANCELLED: [], REJECTED: [], PENDING: [] } as {
+                [key in BookingStatus]: Date[];
+              }
+            );
+          return {
+            recurringEventId: info.recurringEventId,
+            count: info._count.recurringEventId,
+            firstDate: info._min.startTime,
+            bookings,
+          };
+        }
+      );
 
       const bookings = bookingsQuery.map((booking) => {
         return {
