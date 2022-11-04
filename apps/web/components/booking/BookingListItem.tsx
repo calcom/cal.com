@@ -195,6 +195,7 @@ function BookingListItem(booking: BookingItemProps) {
       pathname: "/success",
       query: {
         uid: booking.uid,
+        allRemainingBookings: isTabRecurring,
       },
     });
   };

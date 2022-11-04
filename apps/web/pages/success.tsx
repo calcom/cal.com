@@ -36,7 +36,6 @@ import { Icon } from "@calcom/ui/Icon";
 import Button from "@calcom/ui/v2/core/Button";
 import { EmailInput } from "@calcom/ui/v2/core/form/fields";
 
-import { asStringOrThrow } from "@lib/asStringOrNull";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
@@ -292,7 +291,7 @@ export default function Success(props: SuccessProps) {
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
       {userIsOwner && !isEmbed && (
         <div className="mt-2 ml-4 -mb-4">
-          <Link href={eventType.recurringEvent?.count ? "/bookings/recurring" : "/bookings/upcoming"}>
+          <Link href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}>
             <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-transparent dark:hover:text-white">
               <Icon.FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
             </a>
@@ -368,7 +367,7 @@ export default function Success(props: SuccessProps) {
                       <RecurringBookings
                         eventType={props.eventType}
                         recurringBookings={props.recurringBookings}
-                        allRecurringBookings={allRemainingBookings}
+                        allRemainingBookings={allRemainingBookings}
                         date={date}
                         is24h={is24h}
                       />
@@ -494,14 +493,14 @@ export default function Success(props: SuccessProps) {
                         team={eventType?.team?.name}
                         setIsCancellationMode={setIsCancellationMode}
                         theme={isSuccessBookingPage ? props.profile.theme : "light"}
-                        allRecurringBookings={allRemainingBookings}
+                        allRemainingBookings={allRemainingBookings}
                       />
                     </>
                   ))}
                 {userIsOwner && !needsConfirmation && !isCancellationMode && !isCancelled && (
                   <>
-                    <hr className="border-bookinglightest  dark:border-darkgray-300 mt-8" />
-                    <div className="text-bookingdark align-center flex flex-row justify-center py-8">
+                    <hr className="border-bookinglightest dark:border-darkgray-300 mt-8" />
+                    <div className="text-bookingdark align-center flex flex-row justify-center pt-8">
                       <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                         {t("add_to_calendar")}
                       </span>
@@ -655,14 +654,14 @@ type RecurringBookingsProps = {
   recurringBookings: SuccessProps["recurringBookings"];
   date: dayjs.Dayjs;
   is24h: boolean;
-  allRecurringBookings: boolean;
+  allRemainingBookings: boolean;
 };
 
 export function RecurringBookings({
   eventType,
   recurringBookings,
   date,
-  allRecurringBookings,
+  allRemainingBookings,
 }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const { t } = useLocale();
@@ -671,7 +670,7 @@ export function RecurringBookings({
     ? recurringBookings.sort((a, b) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
     : null;
 
-  if (recurringBookingsSorted && allRecurringBookings) {
+  if (recurringBookingsSorted && allRemainingBookings) {
     return (
       <>
         {eventType.recurringEvent?.count && (
