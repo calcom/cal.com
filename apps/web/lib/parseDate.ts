@@ -55,35 +55,3 @@ export const parseRecurringDates = (
 
   return [dateStrings, times.map((t) => t.toDate())];
 };
-
-export const extractRecurringDates = (
-  booking: inferQueryOutput<"viewer.bookings">["bookings"][number] & {
-    eventType: { recurringEvent: RecurringEvent | null };
-    recurringEventId: string | null;
-    recurringBookings: inferQueryOutput<"viewer.bookings">["recurringInfo"];
-  },
-  timeZone: string | undefined,
-  i18n: I18n
-): [string[], Date[]] => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { count = 0, ...rest } =
-    booking.eventType.recurringEvent !== null ? booking.eventType.recurringEvent : {};
-  const recurringInfo = booking.recurringBookings.find(
-    (val) => val.recurringEventId === booking.recurringEventId
-  );
-  if (!recurringInfo) {
-    // something went wrong, fail here before RRule.
-    return [[], []];
-  }
-  const allDates = new RRule({
-    ...rest,
-    count: recurringInfo?._count.recurringEventId,
-    dtstart: recurringInfo?._min.startTime,
-  }).all();
-
-  const utcOffset = dayjs(recurringInfo?._min.startTime).tz(timeZone).utcOffset();
-  const dateStrings = allDates.map((r) => {
-    return processDate(dayjs.utc(r).utcOffset(utcOffset), i18n);
-  });
-  return [dateStrings, allDates];
-};
