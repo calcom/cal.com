@@ -134,7 +134,7 @@ export const getUid = (calEvent: CalendarEvent): string => {
 export const getCancelLink = (calEvent: CalendarEvent): string => {
   return (
     WEBAPP_URL +
-    `/success?uid=${getUid(calEvent)}&cancel=true&allRemmainingBookings=${calEvent.recurringEvent}`
+    `/success?uid=${getUid(calEvent)}&cancel=true&allRemainingBookings=${!!calEvent.recurringEvent}`
   );
 };
 
