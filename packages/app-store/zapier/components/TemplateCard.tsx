@@ -5,7 +5,7 @@ import { Template } from "./AppSettings";
 export default function TemplateCard({ template }: { template: Template }) {
   return (
     <div className="rounded-md border border-gray-200 bg-white p-5">
-      <div className="min-h-14 flex items-center justify-start">
+      <div className="min-h-16 flex items-start justify-start">
         <div>
           <div className="mr-4 flex h-12 w-12 items-center justify-center rounded-md p-1">
             <img className="h-8" alt={template.app} src={`/api/app-store/zapier/${template.icon}`} />
