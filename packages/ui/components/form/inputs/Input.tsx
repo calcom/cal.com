@@ -6,7 +6,10 @@ import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn
 import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Skeleton, Tooltip, Alert, showToast } from "@calcom/ui/v2";
+import { Alert } from "@calcom/ui/v2/core/Alert";
+import { Tooltip } from "@calcom/ui/v2/core/Tooltip";
+import showToast from "@calcom/ui/v2/core/notifications";
+import { Skeleton } from "@calcom/ui/v2/core/skeleton";
 
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
