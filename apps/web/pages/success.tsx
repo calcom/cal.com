@@ -15,6 +15,7 @@ import { getEventLocationValue, getSuccessPageLocationMessage } from "@calcom/ap
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
+import { ConfigType } from "@calcom/dayjs";
 import {
   sdkActionManager,
   useEmbedNonStylesConfig,
@@ -23,6 +24,7 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import { parseRecurringEvent } from "@calcom/lib";
 import CustomBranding from "@calcom/lib/CustomBranding";
+import { formatTime } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -37,6 +39,7 @@ import { Icon } from "@calcom/ui/Icon";
 import { EmailInput } from "@calcom/ui/form/fields";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
+import { timeZone } from "@lib/clock";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
@@ -638,13 +641,14 @@ export function RecurringBookings({
   eventType,
   recurringBookings,
   date,
+  is24h,
   listingStatus,
 }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const { t } = useLocale();
 
   const recurringBookingsSorted = recurringBookings
-    ? recurringBookings.sort((a, b) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
+    ? recurringBookings.sort((a: ConfigType, b: ConfigType) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
     : null;
 
   if (recurringBookingsSorted && listingStatus === "recurring") {
@@ -660,14 +664,13 @@ export function RecurringBookings({
           </span>
         )}
         {eventType.recurringEvent?.count &&
-          recurringBookingsSorted.slice(0, 4).map((dateStr, idx) => (
+          recurringBookingsSorted.slice(0, 4).map((dateStr: string, idx: number) => (
             <div key={idx} className="mb-2">
-              {dayjs(dateStr).format("MMMM DD, YYYY")}
+              {dayjs.tz(dateStr, timeZone()).format("MMMM DD, YYYY")}
               <br />
-              {dayjs(dateStr).format("LT")} - {dayjs(dateStr).add(eventType.length, "m").format("LT")}{" "}
-              <span className="text-bookinglight">
-                ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-              </span>
+              {formatTime(dateStr, is24h ? 24 : 12, timeZone())} -{" "}
+              {formatTime(dayjs(dateStr).add(eventType.length, "m"), is24h ? 24 : 12, timeZone())}{" "}
+              <span className="text-bookinglight">({timeZone()})</span>
             </div>
           ))}
         {recurringBookingsSorted.length > 4 && (
@@ -679,14 +682,13 @@ export function RecurringBookings({
             </CollapsibleTrigger>
             <CollapsibleContent>
               {eventType.recurringEvent?.count &&
-                recurringBookingsSorted.slice(4).map((dateStr, idx) => (
+                recurringBookingsSorted.slice(4).map((dateStr: string, idx: number) => (
                   <div key={idx} className="mb-2">
-                    {dayjs(dateStr).format("MMMM DD, YYYY")}
+                    {dayjs.tz(dateStr, timeZone()).format("MMMM DD, YYYY")}
                     <br />
-                    {dayjs(dateStr).format("LT")} - {dayjs(dateStr).add(eventType.length, "m").format("LT")}{" "}
-                    <span className="text-bookinglight">
-                      ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-                    </span>
+                    {formatTime(dateStr, is24h ? 24 : 12, timeZone())} -{" "}
+                    {formatTime(dayjs(dateStr).add(eventType.length, "m"), is24h ? 24 : 12, timeZone())}{" "}
+                    <span className="text-bookinglight">({timeZone()})</span>
                   </div>
                 ))}
             </CollapsibleContent>
@@ -698,12 +700,11 @@ export function RecurringBookings({
 
   return (
     <>
-      {date.format("MMMM DD, YYYY")}
+      {dayjs.tz(date, timeZone()).format("MMMM DD, YYYY")}
       <br />
-      {date.format("LT")} - {date.add(eventType.length, "m").format("LT")}{" "}
-      <span className="text-bookinglight">
-        ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-      </span>
+      {formatTime(date, is24h ? 24 : 12, timeZone())} -{" "}
+      {formatTime(dayjs(date).add(eventType.length, "m"), is24h ? 24 : 12, timeZone())}{" "}
+      <span className="text-bookinglight">({timeZone()})</span>
     </>
   );
 }

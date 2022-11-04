@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import "../../../packages/ui/styles/shared-globals.css";
+
 body  {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
