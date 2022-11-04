@@ -4,8 +4,8 @@ import React, { useState, SyntheticEvent, useMemo } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/Icon";
-import { Button, Dialog, DialogContent, DialogFooter, Select, TextField } from "@calcom/ui/v2";
+import { Button, TextField } from "@calcom/ui/components";
+import { Dialog, DialogContent, DialogFooter, Select } from "@calcom/ui/v2";
 
 type MemberInvitationModalProps = {
   isOpen: boolean;
