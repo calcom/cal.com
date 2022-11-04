@@ -93,7 +93,7 @@ export default function CancelBooking(props: Props) {
                     await router.push(
                       `/cancel/success?name=${props.profile.name}&title=${booking?.title}&eventPage=${
                         profile.slug
-                      }&team=${team ? 1 : 0}&recurring=${!!props.recurringEvent}`
+                      }&team=${team ? 1 : 0}&allRemainingBookings=${allRemainingBookings}`
                     );
                   } else {
                     setLoading(false);
