@@ -6,8 +6,8 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
+import { Button } from "@calcom/ui/components/button";
 import TimezoneSelect from "@calcom/ui/form/TimezoneSelect";
-import { Button } from "@calcom/ui/v2";
 
 import { UsernameAvailability } from "@components/ui/UsernameAvailability";
 

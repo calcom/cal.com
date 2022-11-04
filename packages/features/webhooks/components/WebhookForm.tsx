@@ -6,9 +6,9 @@ import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput } from "@calcom/trpc/react";
-import Button from "@calcom/ui/v2/core/Button";
+import { Button } from "@calcom/ui/components/button";
+import { Form, Label, TextArea, TextField } from "@calcom/ui/components/form";
 import Switch from "@calcom/ui/v2/core/Switch";
-import { Form, Label, TextArea, TextField } from "@calcom/ui/v2/core/form/fields";
 import Select from "@calcom/ui/v2/core/form/select";
 
 import customTemplate, { hasTemplateIntegration } from "../lib/integrationTemplate";

@@ -7,7 +7,7 @@ import { z } from "zod";
 import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
-import { Button } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/components/button";
 
 import prisma from "@lib/prisma";
 
