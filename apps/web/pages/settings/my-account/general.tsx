@@ -4,10 +4,10 @@ import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/v2/core/Button";
+import { Button } from "@calcom/ui/components/button";
+import { Form, Label } from "@calcom/ui/components/form";
 import Meta from "@calcom/ui/v2/core/Meta";
 import TimezoneSelect from "@calcom/ui/v2/core/TimezoneSelect";
-import { Form, Label } from "@calcom/ui/v2/core/form/fields";
 import Select from "@calcom/ui/v2/core/form/select";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import showToast from "@calcom/ui/v2/core/notifications";

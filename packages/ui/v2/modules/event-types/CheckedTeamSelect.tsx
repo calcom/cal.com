@@ -5,7 +5,8 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/Icon";
 
-import { Avatar, Select } from "../..";
+import { Avatar } from "../../../components";
+import { Select } from "../../core/form";
 
 type CheckedSelectOption = {
   avatar: string;

@@ -6,8 +6,8 @@ import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
-import Button from "@calcom/ui/v2/core/Button";
-import ButtonGroup from "@calcom/ui/v2/core/ButtonGroup";
+import { Button } from "@calcom/ui/components/button";
+import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
 import Dropdown, {

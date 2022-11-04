@@ -14,7 +14,8 @@ import {
 } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Icon } from "@calcom/ui";
-import { Button, TextField, SelectWithValidation as Select, TextArea, Shell } from "@calcom/ui/v2";
+import { Button, TextField, TextArea } from "@calcom/ui/components";
+import { SelectWithValidation as Select, Shell } from "@calcom/ui/v2";
 import FormCard from "@calcom/ui/v2/core/form/FormCard";
 
 import SingleForm from "../../components/SingleForm";

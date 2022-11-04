@@ -40,9 +40,9 @@ import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
+import { Button } from "@calcom/ui/components";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { EmailInput, Form } from "@calcom/ui/form/fields";
-import { Button } from "@calcom/ui/v2";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -469,26 +469,17 @@ const BookingPage = ({
                 <div className="text-bookinghighlight flex items-start text-sm">
                   <Icon.FiCalendar className="mr-[10px] ml-[2px] mt-[2px] inline-block h-4 w-4" />
                   <div className="text-sm font-medium">
-                    {(rescheduleUid || !eventType.recurringEvent?.freq) &&
-                      `${formatTime(dayjs(date).toDate(), user?.timeFormat, user?.timeZone)}, ${dayjs(
-                        date
-                      ).format("dddd, D MMMM YYYY")}`}
+                    {(rescheduleUid || !eventType.recurringEvent?.freq) && `${parseDate(date, i18n)}`}
                     {!rescheduleUid &&
                       eventType.recurringEvent?.freq &&
-                      recurringDates.slice(0, 5).map((aDate, key) => {
-                        return (
-                          <p key={key}>{`${formatTime(aDate, user?.timeFormat, user?.timeZone)}, ${dayjs(
-                            aDate
-                          ).format("dddd, D MMMM YYYY")}`}</p>
-                        );
+                      recurringStrings.slice(0, 5).map((timeFormatted, key) => {
+                        return <p key={key}>{timeFormatted}</p>;
                       })}
                     {!rescheduleUid && eventType.recurringEvent?.freq && recurringStrings.length > 5 && (
                       <div className="flex">
                         <Tooltip
-                          content={recurringDates.slice(5).map((aDate, key) => (
-                            <p key={key}>{`${formatTime(aDate, user?.timeFormat, user?.timeZone)}, ${dayjs(
-                              aDate
-                            ).format("dddd, D MMMM YYYY")}`}</p>
+                          content={recurringStrings.slice(5).map((timeFormatted, key) => (
+                            <p key={key}>{timeFormatted}</p>
                           ))}>
                           <p className="dark:text-darkgray-600 text-sm">
                             {t("plus_more", { count: recurringStrings.length - 5 })}

@@ -1,0 +1,84 @@
+import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
+import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable,VariantsRow } from '@calcom/storybook/components'
+import { Icon } from "@calcom/ui/Icon";
+
+import { ButtonGroup} from './ButtonGroup';
+import { Button} from '../button/Button';
+
+<Meta title="UI/Button Group" component={ButtonGroup} />
+
+<Title title="Button Group" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022"/>
+
+## Definition
+Button group enables multiple buttons to be combined into a single unit. It offers users access to frequently performed, related actions.
+
+## Structure
+
+<CustomArgsTable of={ButtonGroup} />
+
+
+<Examples title="Breadcrumb style"
+  footNote ={
+    <ul>
+      <li>
+        Seperated: In general, seperated button group style can be included in container such as card, modal, and page.
+      </li>
+      <li>
+        Combined: Combined button group can be used standalone e.g. mini toggles for calendars
+      </li>
+    </ul>
+  }
+>
+  <Example title="Default" >
+    <ButtonGroup>
+      <Button StartIcon={Icon.FiTrash} size="icon" color="secondary" />
+      <Button StartIcon={Icon.FiNavigation} size="icon" color="secondary" />
+      <Button StartIcon={Icon.FiClipboard} size="icon" color="secondary" />
+    </ButtonGroup>
+  </Example>
+  <Example title="Combined">
+    <ButtonGroup combined>
+      <Button StartIcon={Icon.FiTrash} size="icon" color="secondary" />
+      <Button StartIcon={Icon.FiNavigation} size="icon" color="secondary" />
+      <Button StartIcon={Icon.FiClipboard} size="icon" color="secondary" />
+    </ButtonGroup>
+  </Example>
+</Examples>
+
+
+<Canvas>
+  <Story
+    name="All Variatns">
+    <VariantsTable titles={["Default",'Secondary',"Minimal"]} columnMinWidth={150}>
+      <VariantRow variant="Default">
+        <ButtonGroup>
+          <Button StartIcon={Icon.FiTrash} size="icon"  />
+          <Button StartIcon={Icon.FiNavigation} size="icon"/>
+          <Button StartIcon={Icon.FiClipboard} size="icon"  />
+        </ButtonGroup>
+        <ButtonGroup>
+          <Button StartIcon={Icon.FiTrash} size="icon" color="secondary" />
+          <Button StartIcon={Icon.FiNavigation} size="icon" color="secondary" />
+          <Button StartIcon={Icon.FiClipboard} size="icon" color="secondary" />
+        </ButtonGroup>
+        <ButtonGroup>
+          <Button StartIcon={Icon.FiTrash} size="icon" color="minimal" />
+          <Button StartIcon={Icon.FiNavigation} size="icon" color="minimal" />
+          <Button StartIcon={Icon.FiClipboard} size="icon" color="minimal" />
+        </ButtonGroup>
+      </VariantRow>
+      <VariantRow variant="Combined">
+        <ButtonGroup combined>
+          <Button StartIcon={Icon.FiTrash} size="icon"  />
+          <Button StartIcon={Icon.FiNavigation} size="icon"  />
+          <Button StartIcon={Icon.FiClipboard} size="icon"  />
+        </ButtonGroup>
+         <ButtonGroup combined>
+          <Button StartIcon={Icon.FiTrash} size="icon" color="secondary"  />
+          <Button StartIcon={Icon.FiNavigation} size="icon" color="secondary"  />
+          <Button StartIcon={Icon.FiClipboard} size="icon" color="secondary"  />
+        </ButtonGroup>
+      </VariantRow>
+    </VariantsTable>
+  </Story>
+</Canvas>

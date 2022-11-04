@@ -13,7 +13,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button } from "@calcom/ui/v2/";
+import { Button } from "@calcom/ui/components";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
