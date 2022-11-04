@@ -1,4 +1,4 @@
-import { PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -7,7 +7,7 @@ import { NewTeamData } from "@calcom/features/ee/teams/lib/types";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui";
 
 const PurchaseNewTeam = ({
   total,
