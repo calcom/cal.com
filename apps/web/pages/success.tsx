@@ -360,7 +360,6 @@ export default function Success(props: SuccessProps) {
                         <div className="font-medium">{t("who")}</div>
                         <div className="col-span-2 mb-6 last:mb-0">
                           <>
-                            {console.log(eventType.seatsShowAttendees)}
                             {bookingInfo?.user && (
                               <div className="mb-3">
                                 <p>{bookingInfo.user.name}</p>
