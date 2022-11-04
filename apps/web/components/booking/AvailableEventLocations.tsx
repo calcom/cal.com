@@ -24,14 +24,7 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
               alt={`${eventLocationType.label} icon`}
             />
             <Tooltip content={locationKeyToString(location)}>
-              <a
-                target="_blank"
-                href={locationKeyToString(location) ?? "/"}
-                className="truncate"
-                key={location.type}
-                rel="noreferrer">
-                {locationKeyToString(location)}
-              </a>
+              <p className="truncate">{locationKeyToString(location)}</p>
             </Tooltip>
           </div>
         );
