@@ -359,29 +359,31 @@ export default function Success(props: SuccessProps) {
                       <>
                         <div className="font-medium">{t("who")}</div>
                         <div className="col-span-2 mb-6 last:mb-0">
-                          {bookingInfo?.user && (
-                            <div className="mb-3">
-                              <p>{bookingInfo.user.name}</p>
-                              <p className="text-bookinglight">{bookingInfo.user.email}</p>
-                            </div>
-                          )}
-                          {!!eventType.seatsShowAttendees
-                            ? bookingInfo?.attendees
-                                .filter((attendee) => attendee.email === email)
-                                .map((attendee) => (
-                                  <div key={attendee.name} className="mb-3">
+                          <>
+                            {bookingInfo?.user && (
+                              <div className="mb-3">
+                                <p>{bookingInfo.user.name}</p>
+                                <p className="text-bookinglight">{bookingInfo.user.email}</p>
+                              </div>
+                            )}
+                            {!eventType.seatsShowAttendees
+                              ? bookingInfo?.attendees
+                                  .filter((attendee) => attendee.email === email)
+                                  .map((attendee) => (
+                                    <div key={attendee.name} className="mb-3">
+                                      <p>{attendee.name}</p>
+                                      <p className="text-bookinglight">{attendee.email}</p>
+                                    </div>
+                                  ))
+                              : bookingInfo?.attendees.map((attendee, index) => (
+                                  <div
+                                    key={attendee.name}
+                                    className={index === bookingInfo.attendees.length - 1 ? "" : "mb-3"}>
                                     <p>{attendee.name}</p>
                                     <p className="text-bookinglight">{attendee.email}</p>
                                   </div>
-                                ))
-                            : bookingInfo?.attendees.map((attendee, index) => (
-                                <div
-                                  key={attendee.name}
-                                  className={index === bookingInfo.attendees.length - 1 ? "" : "mb-3"}>
-                                  <p>{attendee.name}</p>
-                                  <p className="text-bookinglight">{attendee.email}</p>
-                                </div>
-                              ))}
+                                ))}
+                          </>
                         </div>
                       </>
                     )}
