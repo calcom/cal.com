@@ -158,10 +158,13 @@ export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
 
-  const { uid, allRemainingBookings, isSuccessBookingPage, cancel } = querySchema.parse(router.query);
+  const { allRemainingBookings, isSuccessBookingPage, cancel } = querySchema.parse(router.query);
 
   const {} = router.query;
 
+  if (cancel && typeof window !== "undefined") {
+    window.scrollTo(0, document.body.scrollHeight);
+  }
   const location: ReturnType<typeof getEventLocationValue> = Array.isArray(props.bookingInfo.location)
     ? props.bookingInfo.location[0] || ""
     : props.bookingInfo.location || "";
