@@ -102,7 +102,6 @@ const AddNewTeamMembers = ({
                           {member.role !== "OWNER" && <Badge variant="orange">{t("pending")}</Badge>}
                           {member.role === "MEMBER" && <Badge variant="gray">{t("member")}</Badge>}
                           {member.role === "ADMIN" && <Badge variant="default">{t("admin")}</Badge>}
-                          {member.sendInviteEmail && <Badge variant="blue">{t("send_email")}</Badge>}
                         </div>
                         {member.username ? (
                           <p className="text-gray-600">{`${WEBAPP_URL}/${member?.username}`}</p>

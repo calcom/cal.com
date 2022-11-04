@@ -42,52 +42,36 @@ export const createMember = async ({
     });
     // If user's are not on Cal.com
   } else {
-    if (user) {
-      await prisma.user.update({
-        where: {
-          id: user.id,
-        },
-        data: {
-          teams: {
-            create: {
-              teamId: teamId,
-              role: pendingMember.role as MembershipRole,
-            },
+    // If user is not in DB
+    const createdMember = await prisma.user.create({
+      data: {
+        email: pendingMember.email,
+        invitedTo: teamId,
+        teams: {
+          create: {
+            teamId: teamId,
+            role: pendingMember.role as MembershipRole,
           },
         },
-      });
-    } else {
-      // If user is not in DB
-      const createdMember = await prisma.user.create({
-        data: {
-          email: pendingMember.email,
-          invitedTo: teamId,
-          teams: {
-            create: {
-              teamId: teamId,
-              role: pendingMember.role as MembershipRole,
-            },
-          },
-        },
-      });
+      },
+    });
 
-      const token: string = randomBytes(32).toString("hex");
+    const token: string = randomBytes(32).toString("hex");
 
-      await prisma.verificationToken.create({
-        data: {
-          identifier: pendingMember.email,
-          token,
-          expires: new Date(new Date().setHours(168)), // +1 week
-        },
-      });
+    await prisma.verificationToken.create({
+      data: {
+        identifier: pendingMember.email,
+        token,
+        expires: new Date(new Date().setHours(168)), // +1 week
+      },
+    });
 
-      await sendTeamInviteEmail({
-        language: translation,
-        from: inviter,
-        to: pendingMember.email,
-        teamName: teamName,
-        joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/settings/teams`,
-      });
-    }
+    await sendTeamInviteEmail({
+      language: translation,
+      from: inviter,
+      to: pendingMember.email,
+      teamName: teamName,
+      joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/settings/teams`,
+    });
   }
 };

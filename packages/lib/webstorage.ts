@@ -21,12 +21,4 @@ export const localStorage = {
       return;
     }
   },
-  removeItem(key: string) {
-    try {
-      // eslint-disable-next-line @calcom/eslint/avoid-web-storage
-      window.localStorage.removeItem(key);
-    } catch (e) {
-      return;
-    }
-  },
 };

@@ -28,10 +28,6 @@ export interface NewMemberForm {
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const { t } = useLocale();
 
-  useEffect(() => {
-    console.log("🚀 ~ file: MemberInvitationModal.tsx ~ line 18 ~ members", props.members);
-  }, [props.members]);
-
   const options: MembershipRoleOption[] = useMemo(() => {
     return [
       { value: "MEMBER", label: t("member") },
@@ -123,7 +119,6 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               {t("cancel")}
             </Button>
             <Button
-              // onClick={() => props.onSubmit(newMemberFormMethods.getValues())}
               type="submit"
               color="primary"
               className="ltr:ml-2 rtl:mr-2"

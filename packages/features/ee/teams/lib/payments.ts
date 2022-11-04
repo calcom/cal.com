@@ -60,7 +60,7 @@ export const createTeamSubscription = async (customerId: string, billingFrequenc
     expand: ["latest_invoice.payment_intent"],
   });
 
-  return subscription as Stripe.Subscription & {
+  return subscription as unknown as Stripe.Subscription & {
     quantity: number;
     latest_invoice: Stripe.Invoice & { payment_intent: Stripe.PaymentIntent };
   };
@@ -102,33 +102,6 @@ export const deleteTeamSubscriptionQuantity = async (subscriptionId: string) => 
   return await stripe.subscriptions.del(subscriptionId);
 };
 
-export const purchaseTeamSubscription = async (input: { teamId: number; seats: number; email: string }) => {
-  const { teamId, seats, email } = input;
-  return await stripe.checkout.sessions.create({
-    mode: "subscription",
-    success_url: `${CAL_URL}/settings/teams/${teamId}/profile`,
-    cancel_url: `${CAL_URL}/settings/profile`,
-    locale: "en",
-    line_items: [
-      {
-        /** We only need to set the base price and we can upsell it directly on Stripe's checkout  */
-        price: process.env.STRIPE_TEAM_MONTHLY_PRICE_ID,
-        quantity: seats,
-      },
-    ],
-    customer_email: email,
-    metadata: {
-      teamId,
-    },
-    payment_method_types: ["card"],
-    subscription_data: {
-      metadata: {
-        teamId,
-      },
-    },
-  });
-};
-
 export const getStripeIdsForTeam = async (teamId: number) => {
   const teamQuery = await prisma.team.findFirst({
     where: {
@@ -158,24 +131,4 @@ export const deleteTeamFromStripe = async (teamId: number) => {
   } else {
     console.error(`Couldn't deleteTeamFromStripe, Team id: ${teamId} didn't have a stripeCustomerId`);
   }
-};
-
-export const createPaymentIntent = ({ amount, receiptEmail }: { amount: number; receiptEmail: string }) => {
-  return stripe.paymentIntents.create({
-    amount,
-    currency: "usd",
-    receipt_email: receiptEmail,
-  });
-};
-
-export const updatePaymentIntent = ({
-  amount,
-  paymentIntentId,
-}: {
-  amount: number;
-  paymentIntentId: string;
-}) => {
-  return stripe.paymentIntents.update(paymentIntentId, {
-    amount: amount * 100,
-  });
 };

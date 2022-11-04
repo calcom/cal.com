@@ -13,7 +13,6 @@ import { sendTeamInviteEmail } from "@calcom/emails";
 import { createMember } from "@calcom/features/ee/teams/lib/inviteMember";
 import {
   deleteTeamFromStripe,
-  purchaseTeamSubscription,
   createTeamCustomer,
   createTeamSubscription,
   getTeamPricing,
@@ -489,66 +488,6 @@ export const viewerTeamsRouter = createProtectedRouter()
         },
         { user: member.user }
       );
-    },
-  })
-  .mutation("purchaseTeamSubscription", {
-    input: z.object({
-      name: z.string(),
-      slug: z.string(),
-      logo: z.string().optional(),
-      members: z.array(
-        z.object({
-          name: z.union([z.string(), z.null()]),
-          email: z.string(),
-          userId: z.number().optional(),
-          username: z.union([z.string(), z.null()]),
-          role: z.union([z.literal("OWNER"), z.literal("ADMIN"), z.literal("MEMBER")]),
-          avatar: z.string().optional(),
-          sendInviteEmail: z.boolean().optional(),
-        })
-      ),
-      language: z.string(),
-    }),
-    async resolve({ ctx, input }) {
-      const { slug, name, logo, members } = input;
-      const { prisma } = ctx;
-
-      // Tentatively create the team in the DB
-      const createTeam = await prisma.team.create({
-        data: {
-          name,
-          slug,
-          logo,
-          members: {
-            create: {
-              userId: ctx.user.id,
-              accepted: true,
-              role: "OWNER",
-            },
-          },
-          subscriptionStatus: "PENDING",
-        },
-      });
-
-      // Tentatively create members on team
-      for (const member of members) {
-        if (member.userId !== ctx.user.id)
-          createMember({
-            teamId: createTeam.id,
-            teamName: name,
-            inviter: ctx.user.name,
-            pendingMember: member,
-          });
-      }
-
-      if (!IS_STRIPE_ENABLED)
-        throw new TRPCError({ code: "FORBIDDEN", message: "Team billing is not enabled" });
-      return await purchaseTeamSubscription({
-        teamId: createTeam.id,
-        seats: members.length,
-        email: ctx.user.email,
-      });
-      return true;
     },
   })
   .query("getTeamSeats", {
