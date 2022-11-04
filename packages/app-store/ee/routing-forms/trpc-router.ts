@@ -7,6 +7,8 @@ import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPay
 import { TRPCError } from "@calcom/trpc/server";
 import { createProtectedRouter, createRouter } from "@calcom/trpc/server/createRouter";
 
+import ResponseEmail from "./emails/templates/response-email";
+import { jsonLogicToPrisma } from "./jsonLogicToPrisma";
 import { getSerializableForm } from "./lib/getSerializableForm";
 import { isAllowed } from "./lib/isAllowed";
 import { zodFields, zodRoutes } from "./zod";
@@ -189,6 +191,36 @@ const app_RoutingForms = createRouter()
           }
 
           return getSerializableForm(form);
+        },
+      })
+      .query("report", {
+        input: z.object({
+          formId: z.string(),
+          jsonLogicQuery: z.any(),
+        }),
+        async resolve({ ctx: { prisma, user }, input }) {
+          const prismaWhere = jsonLogicToPrisma(input.jsonLogicQuery);
+          console.log(
+            `Built Prisma where ${JSON.stringify(prismaWhere)} from jsonLogicQuery ${JSON.stringify(
+              input.jsonLogicQuery
+            )}`
+          );
+          const form = await prisma.app_RoutingForms_Form.findUnique({
+            where: {
+              id: input.formId,
+            },
+          });
+          const responses = await prisma.app_RoutingForms_FormResponse.findMany({
+            where: {
+              formId: input.formId,
+              ...prismaWhere,
+            },
+          });
+          const headers = form?.fields.map((field) => field.label);
+          return {
+            headers,
+            responses,
+          };
         },
       })
       .mutation("formMutation", {
