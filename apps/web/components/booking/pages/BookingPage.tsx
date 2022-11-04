@@ -151,6 +151,7 @@ const BookingPage = ({
         pathname: "/success",
         query: {
           uid,
+          allRemainingBookings: true,
         },
       });
     },
