@@ -54,12 +54,11 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
       method: "POST",
     })
       .then(handleErrors)
-      .then(
-        async () =>
-          await signIn("Cal.com", {
-            callbackUrl: (`${WEBAPP_URL}/${router.query.callbackUrl}` || "") as string,
-          })
-      )
+      .then(async () => {
+        await signIn("Cal.com", {
+          callbackUrl: router.query.callbackUrl ? `${WEBAPP_URL}/${router.query.callbackUrl}` : WEBAPP_URL,
+        });
+      })
       .catch((err) => {
         methods.setError("apiError", { message: err.message });
       });
@@ -143,7 +142,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   // no token given, treat as a normal signup without verification token
   if (!token) {
     return {
-      props,
+      props: JSON.parse(JSON.stringify(props)),
     };
   }
 
