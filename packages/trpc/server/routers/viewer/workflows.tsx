@@ -32,6 +32,12 @@ import { TRPCError } from "@trpc/server";
 
 import { router, authedProcedure } from "../../trpc";
 
+function isSMSAction(action: WorkflowActions) {
+  if (action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.SMS_NUMBER) {
+    return true;
+  }
+}
+
 export const workflowsRouter = router({
   list: authedProcedure.query(async ({ ctx }) => {
     const workflows = await ctx.prisma.workflow.findMany({
@@ -515,6 +521,9 @@ export const workflowsRouter = router({
           });
           //step was edited
         } else if (JSON.stringify(oldStep) !== JSON.stringify(newStep)) {
+          if (user.plan === "FREE" && !isSMSAction(oldStep.action) && isSMSAction(newStep.action)) {
+            throw new TRPCError({ code: "UNAUTHORIZED" });
+          }
           await ctx.prisma.workflowStep.update({
             where: {
               id: oldStep.id,
@@ -652,6 +661,9 @@ export const workflowsRouter = router({
       //added steps
       const addedSteps = steps.map((s) => {
         if (s.id <= 0) {
+          if (user.plan === "FREE" && isSMSAction(s.action)) {
+            throw new TRPCError({ code: "UNAUTHORIZED" });
+          }
           const { id: stepId, ...stepToAdd } = s;
           return stepToAdd;
         }

@@ -75,11 +75,16 @@ export const extractRecurringDates = (
   const recurringInfo = booking.recurringBookings.find(
     (val) => val.recurringEventId === booking.recurringEventId
   );
+  if (!recurringInfo) {
+    // something went wrong, fail here before RRule.
+    return [[], []];
+  }
   const allDates = new RRule({
     ...rest,
     count: recurringInfo?._count.recurringEventId,
     dtstart: recurringInfo?._min.startTime,
   }).all();
+
   const utcOffset = dayjs(recurringInfo?._min.startTime).tz(timeZone).utcOffset();
   const dateStrings = allDates.map((r) => {
     return processDate(dayjs.utc(r).utcOffset(utcOffset), i18n);

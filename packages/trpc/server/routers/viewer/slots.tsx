@@ -11,6 +11,7 @@ import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import getTimeSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { EventBusyDate } from "@calcom/types/Calendar";
 import { TimeRange } from "@calcom/types/schedule";
 
@@ -103,7 +104,7 @@ export const slotsRouter = router({
 });
 
 async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeof getScheduleSchema>) {
-  return ctx.prisma.eventType.findUnique({
+  const eventType = await ctx.prisma.eventType.findUnique({
     where: {
       id: input.eventTypeId,
     },
@@ -123,6 +124,7 @@ async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeo
       periodEndDate: true,
       periodCountCalendarDays: true,
       periodDays: true,
+      metadata: true,
       schedule: {
         select: {
           availability: true,
@@ -143,6 +145,14 @@ async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeo
       },
     },
   });
+  if (!eventType) {
+    return eventType;
+  }
+
+  return {
+    ...eventType,
+    metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+  };
 }
 
 async function getDynamicEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeof getScheduleSchema>) {

@@ -1,5 +1,4 @@
 import { GetStaticPaths, GetStaticProps } from "next";
-import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -39,7 +38,6 @@ type AvailabilityFormValues = {
 
 export default function Availability({ schedule }: { schedule: number }) {
   const { t, i18n } = useLocale();
-  const router = useRouter();
   const utils = trpc.useContext();
   const me = useMeQuery();
   const { timeFormat } = me.data || { timeFormat: null };
@@ -60,13 +58,20 @@ export default function Availability({ schedule }: { schedule: number }) {
   }, [data, isLoading, reset]);
 
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
-    onSuccess: async ({ schedule }) => {
-      await utils.viewer.availability.schedule.invalidate();
-      await utils.viewer.availability.schedule.get.refetch();
-      await router.push("/availability");
+    onSuccess: async ({ prevDefaultId, currentDefaultId, ...data }) => {
+      if (prevDefaultId && currentDefaultId) {
+        // check weather the default schedule has been changed by comparing  previous default schedule id and current default schedule id.
+        if (prevDefaultId !== currentDefaultId) {
+          // if not equal, invalidate previous default schedule id and refetch previous default schedule id.
+          utils.viewer.availability.schedule.get.invalidate({ scheduleId: prevDefaultId });
+          utils.viewer.availability.schedule.get.refetch({ scheduleId: prevDefaultId });
+        }
+      }
+      utils.viewer.availability.schedule.get.setData(data, { scheduleId: data.schedule.id });
+      utils.viewer.availability.list.invalidate();
       showToast(
         t("availability_updated_successfully", {
-          scheduleName: schedule.name,
+          scheduleName: data.schedule.name,
         }),
         "success"
       );
