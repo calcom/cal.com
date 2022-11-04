@@ -53,7 +53,7 @@ export const parseRecurringDates = (
     return processDate(t.tz(timeZone), i18n);
   });
 
-  return [dateStrings, times];
+  return [dateStrings, times.map((t) => t.toDate())];
 };
 
 export const extractRecurringDates = (
