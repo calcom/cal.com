@@ -176,11 +176,12 @@ function BookingListItem(booking: BookingItemProps) {
     setLocationMutation.mutate({ bookingId: booking.id, newLocation });
   };
 
-  // Extract recurring dates is intensive to run, so use useMemo.
-  // Calculate the booking date(s) and setup recurring event data to show
-  // @FIXME: This is importing the RRULE library which is already heavy. Find out a more optimal way do this.
-  const [recurringStrings, recurringDates] = useMemo(() => {
-    if (booking.recurringBookings !== undefined && booking.eventType.recurringEvent?.freq !== undefined) {
+  const [, recurringDates] = useMemo(() => {
+    if (
+      booking.recurringBookings !== undefined &&
+      booking.eventType.recurringEvent?.freq !== undefined &&
+      booking.recurringEventId
+    ) {
       return extractRecurringDates(booking, user?.timeZone, i18n);
     }
     return [[], []];
@@ -275,13 +276,11 @@ function BookingListItem(booking: BookingItemProps) {
                 attendees={booking.attendees}
               />
             </div>
-
             {isPending && (
               <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
                 {t("unconfirmed")}
               </Badge>
             )}
-
             {booking.eventType?.team && (
               <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
                 {booking.eventType.team.name}
@@ -292,7 +291,6 @@ function BookingListItem(booking: BookingItemProps) {
                 {t("pending_payment")}
               </Badge>
             )}
-
             <div className="mt-2 text-sm text-gray-400">
               <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
             </div>

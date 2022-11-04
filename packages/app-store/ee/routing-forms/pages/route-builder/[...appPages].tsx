@@ -6,7 +6,12 @@ import { Query, Config, Builder, Utils as QbUtils } from "react-awesome-query-bu
 import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
 
 import { trpc } from "@calcom/trpc/react";
-import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
+import {
+  AppGetServerSidePropsContext,
+  AppPrisma,
+  AppUser,
+  AppSsrInit,
+} from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Icon } from "@calcom/ui";
 import { Button, TextField, TextArea } from "@calcom/ui/components";
@@ -464,8 +469,11 @@ RouteBuilder.getLayout = (page: React.ReactElement) => {
 export const getServerSideProps = async function getServerSideProps(
   context: AppGetServerSidePropsContext,
   prisma: AppPrisma,
-  user: AppUser
+  user: AppUser,
+  ssrInit: AppSsrInit
 ) {
+  const ssr = await ssrInit(context);
+
   if (!user) {
     return {
       redirect: {
@@ -514,6 +522,7 @@ export const getServerSideProps = async function getServerSideProps(
 
   return {
     props: {
+      trpcState: ssr.dehydrate(),
       form: getSerializableForm(form),
     },
   };

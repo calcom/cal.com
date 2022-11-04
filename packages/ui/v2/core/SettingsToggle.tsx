@@ -44,8 +44,8 @@ function SettingsToggle({
             </div>
           </div>
           {children && (
-            <div className="mt-4 lg:ml-14" ref={animateRef}>
-              {checked && children}
+            <div className="lg:ml-14" ref={animateRef}>
+              {checked && <div className="mt-4">{children}</div>}
             </div>
           )}
         </fieldset>
