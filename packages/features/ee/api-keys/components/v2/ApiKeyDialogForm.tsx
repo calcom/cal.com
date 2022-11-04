@@ -104,8 +104,7 @@ export default function ApiKeyDialogForm({
               console.log("Name changed");
               await updateApiKeyMutation.mutate({ id: defaultValues.id, note: event.note });
             } else {
-              // @ts-expect-error - FIXME: add proxy to utils.client in trpc/trpc
-              const apiKey = await utils.client.viewer.apiKeys.create(event);
+              const apiKey = await utils.client.viewer.apiKeys.create.mutate(event);
               setApiKey(apiKey);
               setApiKeyDetails({ ...event });
               await utils.viewer.apiKeys.list.invalidate();

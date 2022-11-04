@@ -31,8 +31,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
 
   async function createApiKey() {
     const event = { note: "Zapier", expiresAt: null, appId: ZAPIER };
-    // @ts-expect-error - FIXME: add proxy to utils.client in trpc/trpc
-    const apiKey = await utils.client.viewer.apiKeys.create(event);
+    const apiKey = await utils.client.viewer.apiKeys.create.mutate(event);
     if (oldApiKey.data) {
       deleteApiKey.mutate({
         id: oldApiKey.data.id,
