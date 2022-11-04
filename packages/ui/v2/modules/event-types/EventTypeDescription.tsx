@@ -9,7 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { baseEventTypeSelect } from "@calcom/prisma";
 import { EventTypeModel } from "@calcom/prisma/zod";
 import { Icon } from "@calcom/ui";
-import Badge from "@calcom/ui/v2/core/Badge";
+import { Badge } from "@calcom/ui/components/badge";
 
 export type EventTypeDescriptionProps = {
   eventType: Pick<

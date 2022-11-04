@@ -5,7 +5,7 @@ import { ErrorCode } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
 import { Dialog, DialogContent } from "@calcom/ui/Dialog";
-import { Form } from "@calcom/ui/v2/core/form/fields";
+import { Form } from "@calcom/ui/components/form";
 
 import TwoFactor from "@components/auth/TwoFactor";
 
