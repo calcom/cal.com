@@ -13,8 +13,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { Icon } from "@calcom/ui/Icon";
-import { Avatar } from "@calcom/ui/v2";
-import { Button } from "@calcom/ui/v2/core";
+import { Button, Avatar } from "@calcom/ui/components";
 import EventTypeDescription from "@calcom/ui/v2/modules/event-types/EventTypeDescription";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";

@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import { classNames } from "@calcom/lib";
@@ -7,11 +7,14 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Avatar, Badge, Button, showToast, Switch } from "@calcom/ui/v2/core";
-import { Form } from "@calcom/ui/v2/core/form";
-import { SkeletonContainer, SkeletonText, SkeletonAvatar } from "@calcom/ui/v2/core/skeleton";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { Form } from "@calcom/ui/form/fields";
+import { showToast, Switch } from "@calcom/ui/v2/core";
+import { SkeletonAvatar, SkeletonContainer, SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
-import { PendingMember, TeamPrices, NewTeamData } from "../../lib/types";
+import { NewTeamData, PendingMember, TeamPrices } from "../../lib/types";
 import { NewMemberForm } from "../MemberInvitationModal";
 
 const AddNewTeamMembers = ({

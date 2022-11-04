@@ -1,10 +1,11 @@
 import { MembershipRole } from "@prisma/client";
-import { useMemo, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useMemo } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Dialog, DialogContent, DialogFooter, Select, TextField } from "@calcom/ui/v2";
-import { Form } from "@calcom/ui/v2/core/form";
+import { Button, TextField } from "@calcom/ui/components";
+import { Form } from "@calcom/ui/form/fields";
+import { Dialog, DialogContent, DialogFooter, Select } from "@calcom/ui/v2";
 
 import { PendingMember } from "../lib/types";
 
