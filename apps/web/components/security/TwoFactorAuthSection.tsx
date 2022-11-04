@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-import Badge from "@calcom/ui/Badge";
 import Button from "@calcom/ui/Button";
+import { Badge } from "@calcom/ui/components/badge";
 
 import { useLocale } from "@lib/hooks/useLocale";
 

@@ -11,7 +11,8 @@ import {
 } from "react-awesome-query-builder";
 
 import { Icon } from "@calcom/ui/Icon";
-import { Button as CalButton, TextArea, TextField, SelectWithValidation as Select } from "@calcom/ui/v2";
+import { Button as CalButton, TextArea, TextField } from "@calcom/ui/components";
+import { SelectWithValidation as Select } from "@calcom/ui/v2";
 
 // import { mapListValues } from "../../../../utils/stuff";
 
