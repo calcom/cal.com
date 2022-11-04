@@ -237,10 +237,6 @@ export const sendPasswordResetEmail = async (passwordResetEvent: PasswordReset) 
 };
 
 export const sendTeamInviteEmail = async (teamInviteEvent: TeamInvite) => {
-  console.log(
-    "🚀 ~ file: email-manager.ts ~ line 240 ~ sendTeamInviteEmail ~ teamInviteEvent",
-    teamInviteEvent
-  );
   await new Promise((resolve, reject) => {
     try {
       const teamInviteEmail = new TeamInviteEmail(teamInviteEvent);
