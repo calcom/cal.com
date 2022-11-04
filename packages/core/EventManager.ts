@@ -437,11 +437,14 @@ export default class EventManager {
     try {
       // Bookings should only have one calendar reference
       calendarReference = booking.references.filter((reference) => reference.type.includes("_calendar"))[0];
-      if (!calendarReference) throw new Error("bookingRef");
-
+      if (!calendarReference) {
+        throw new Error("bookingRef");
+      }
       const { uid: bookingRefUid, externalCalendarId: bookingExternalCalendarId } = calendarReference;
 
-      if (!bookingExternalCalendarId) throw new Error("externalCalendarId");
+      if (!bookingExternalCalendarId) {
+        throw new Error("externalCalendarId");
+      }
 
       let result = [];
       if (calendarReference.credentialId) {
@@ -465,13 +468,15 @@ export default class EventManager {
           .map(async (cred) => {
             const calendarReference = booking.references.find((ref) => ref.type === cred.type);
             if (!calendarReference)
-              return {
-                appName: cred.appName,
-                type: cred.type,
-                success: false,
-                uid: "",
-                originalEvent: event,
-              };
+              if (!calendarReference) {
+                return {
+                  appName: cred.appName,
+                  type: cred.type,
+                  success: false,
+                  uid: "",
+                  originalEvent: event,
+                };
+              }
             const { externalCalendarId: bookingExternalCalendarId, meetingId: bookingRefUid } =
               calendarReference;
             return await updateEvent(cred, event, bookingRefUid ?? null, bookingExternalCalendarId ?? null);
@@ -481,7 +486,9 @@ export default class EventManager {
       return Promise.all(result);
     } catch (error) {
       let message = `Tried to 'updateAllCalendarEvents' but there was no '{thing}' for '${credential?.type}', userId: '${credential?.userId}', bookingId: '${booking?.id}'`;
-      if (error instanceof Error) message = message.replace("{thing}", error.message);
+      if (error instanceof Error) {
+        message = message.replace("{thing}", error.message);
+      }
       console.error(message);
       return Promise.resolve([
         {
