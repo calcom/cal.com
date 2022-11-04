@@ -18,6 +18,15 @@ export const getTeamPricing = async () => {
   };
 };
 
+export const searchForTeamCustomer = async (teamName: string, ownerEmail: string) => {
+  // Search to see if the customer is already in Stripe
+  const customer = await stripe.customers.search({
+    query: `name: \'${teamName}\' AND email: \'${ownerEmail}\'`,
+  });
+
+  return customer.data[0];
+};
+
 export const createTeamCustomer = async (teamName: string, ownerEmail: string) => {
   return await stripe.customers.create({
     name: teamName,
@@ -27,7 +36,8 @@ export const createTeamCustomer = async (teamName: string, ownerEmail: string) =
 
 export const retrieveTeamCustomer = async (customerId: string) => {
   const customer = await stripe.customers.retrieve(customerId);
-  return customer.deleted ? null : (customer as Stripe.Customer);
+  if (customer.deleted) throw new Error("Customer has been deleted off Stripe");
+  return customer as Stripe.Customer;
 };
 
 export const updateTeamCustomerName = async (customerId: string, teamName: string) => {
@@ -35,7 +45,7 @@ export const updateTeamCustomerName = async (customerId: string, teamName: strin
 };
 
 export const createTeamSubscription = async (customerId: string, billingFrequency: string, seats: number) => {
-  return await stripe.subscriptions.create({
+  const subscription = await stripe.subscriptions.create({
     customer: customerId,
     items: [
       {
@@ -49,14 +59,46 @@ export const createTeamSubscription = async (customerId: string, billingFrequenc
     payment_behavior: "default_incomplete",
     expand: ["latest_invoice.payment_intent"],
   });
+
+  return subscription as Stripe.Subscription & {
+    quantity: number;
+    latest_invoice: Stripe.Invoice & { payment_intent: Stripe.PaymentIntent };
+  };
 };
 
-export const retrieveTeamSubscription = async (subscriptionId: string) => {
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-  return subscription as Stripe.Subscription;
+export const retrieveTeamSubscription = async ({
+  subscriptionId,
+  customerId,
+}: {
+  subscriptionId?: string;
+  customerId?: string;
+}) => {
+  if (!subscriptionId && !customerId) throw new Error("No Stripe subscriptions found");
+  if (subscriptionId) {
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+      expand: ["latest_invoice.payment_intent"],
+    });
+    return subscription as unknown as Stripe.Subscription & {
+      quantity: number;
+      latest_invoice: Stripe.Invoice & { payment_intent: Stripe.PaymentIntent };
+    };
+  }
+
+  if (customerId) {
+    const subscription = await stripe.subscriptions.list({
+      customer: customerId,
+      status: "incomplete",
+      limit: 1,
+      expand: ["data.latest_invoice.payment_intent"],
+    });
+    return subscription.data[0] as Stripe.Subscription & {
+      quantity: number;
+      latest_invoice: Stripe.Invoice & { payment_intent: Stripe.PaymentIntent };
+    };
+  }
 };
 
-export const deleteTeamSubscriptionQuantity = async (subscriptionId: string, seats: number) => {
+export const deleteTeamSubscriptionQuantity = async (subscriptionId: string) => {
   return await stripe.subscriptions.del(subscriptionId);
 };
 

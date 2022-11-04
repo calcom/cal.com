@@ -21,6 +21,7 @@ import {
   updateTeamCustomerName,
   retrieveTeamSubscription,
   deleteTeamSubscriptionQuantity,
+  searchForTeamCustomer,
 } from "@calcom/features/ee/teams/lib/payments";
 import { HOSTED_CAL_FEATURES, IS_STRIPE_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -703,24 +704,38 @@ export const viewerTeamsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       const { teamName, billingFrequency, seats, customerId, subscriptionId } = input;
 
-      // Check to see if team name has changed
+      // Check to see if customer already exists in DB from another session
+      let customer = await searchForTeamCustomer(teamName, ctx.user.email);
+
+      // Check to see if team name has changed if within same session
       if (customerId) {
-        const customer = await retrieveTeamCustomer(customerId);
+        customer = await retrieveTeamCustomer(customerId);
         if (teamName !== customer?.name) {
           await updateTeamCustomerName(customerId, teamName);
         }
       }
 
-      if (subscriptionId) {
-        const subscription = await retrieveTeamSubscription(subscriptionId);
-        if (seats !== subscription.quantity) {
+      // Check to that subscription quantity is the same
+      if (subscriptionId || customer) {
+        // Grab current "incomplete" subscription
+        const subscriptionQuery = await retrieveTeamSubscription({
+          subscriptionId: subscriptionId,
+          customerId: customer.id,
+        });
+
+        if (!subscriptionQuery)
+          throw new TRPCError({ code: "NOT_FOUND", message: "Could not find subscription" });
+
+        if (subscriptionQuery && seats !== subscriptionQuery?.quantity) {
           /* If the number of seats changed we need to cancel the current 
           incomplete subscription and create a new one */
-          await deleteTeamSubscriptionQuantity(subscriptionId, seats);
+          await deleteTeamSubscriptionQuantity(subscriptionId || subscriptionQuery.id);
 
-          const customer = await retrieveTeamCustomer(customerId);
-
-          const subscription = await createTeamSubscription(customerId, input.billingFrequency, input.seats);
+          const subscription = await createTeamSubscription(
+            customerId || customer.id,
+            input.billingFrequency,
+            input.seats
+          );
 
           return {
             clientSecret: subscription?.latest_invoice?.payment_intent?.client_secret,
@@ -728,19 +743,22 @@ export const viewerTeamsRouter = createProtectedRouter()
             subscriptionId: subscription.id,
           };
         }
+
+        // If customer exists and no changes were made to the subscription
+        return {
+          clientSecret: subscriptionQuery?.latest_invoice?.payment_intent?.client_secret,
+          customerId: customer.id,
+          subscriptionId: subscriptionQuery.id,
+        };
       }
-      // Retrieve the Stripe subscription
-      // Compare the quantity of the subscription vs input.seats
-      // If different then update the subscription
 
       // If no changes then do not create a new customer & subscription, just return
-
       if (!customerId && !subscriptionId) {
-        // First create the customer
-        const customer = await createTeamCustomer(input.teamName, ctx.user.email);
+        // First create the customer if it does not exist
+        customer = customer || (await createTeamCustomer(teamName, ctx.user.email));
 
         // Create the subscription for the team
-        const subscription = await createTeamSubscription(customer.id, input.billingFrequency, input.seats);
+        const subscription = await createTeamSubscription(customer.id, billingFrequency, seats);
 
         // We just need the client secret for the payment intent
         return {
@@ -749,8 +767,6 @@ export const viewerTeamsRouter = createProtectedRouter()
           subscriptionId: subscription.id,
         };
       }
-
-      return;
     },
   })
   .mutation("createTeam", {
