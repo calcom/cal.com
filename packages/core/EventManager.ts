@@ -294,6 +294,13 @@ export default class EventManager {
   }
 
   public async updateCalendarAttendees(event: CalendarEvent, booking: PartialBooking) {
+    const attendees = booking.attendees.map((attendee) => {
+      return {
+        email: attendee.email,
+        name: attendee.name,
+      };
+    });
+    event.attendees = attendees;
     await this.updateAllCalendarEvents(event, booking);
   }
 
