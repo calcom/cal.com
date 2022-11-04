@@ -111,7 +111,24 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, 
   });
 
   slotsTimeFrameAvailable.forEach((item) => {
-    const slot = startOfInviteeDay.add(item.startTime, "minute");
+    // XXX: Hack alert, as dayjs is supposedly not aware of timezone the current slot may have invalid UTC offset.
+    const timeZone = (startOfInviteeDay as unknown as { $x: { $timezone: string } })["$x"]["$timezone"];
+    /*
+     * @calcom/web:dev: 2022-11-06T00:00:00-04:00
+     * @calcom/web:dev: 2022-11-06T01:00:00-04:00
+     * @calcom/web:dev: 2022-11-06T01:00:00-04:00 <-- note there is no offset change, but we did lose an hour.
+     * @calcom/web:dev: 2022-11-06T02:00:00-04:00
+     * @calcom/web:dev: 2022-11-06T03:00:00-04:00
+     * ...
+     */
+    let slot = dayjs.tz(
+      startOfInviteeDay.add(item.startTime, "minute").format("YYYY-MM-DDTHH:mm:ss"),
+      timeZone
+    );
+    // If the startOfInviteeDay has a different UTC offset than the slot, a DST change has occurred.
+    // As the time has now fallen backwards, or forwards; this difference -
+    // needs to be manually added as this is not done for us. Usually 0.
+    slot = slot.add(startOfInviteeDay.utcOffset() - slot.utcOffset(), "minutes");
     // Validating slot its not on the past
     if (!slot.isBefore(startDate)) {
       slots.push(slot);

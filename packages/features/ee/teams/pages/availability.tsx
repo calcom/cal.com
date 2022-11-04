@@ -8,7 +8,7 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/Alert";
 import Loader from "@calcom/ui/Loader";
 import Shell from "@calcom/ui/Shell";
-import { Avatar } from "@calcom/ui/v2";
+import { Avatar } from "@calcom/ui/components/avatar";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import TeamAvailabilityScreen from "../components/TeamAvailabilityScreen";

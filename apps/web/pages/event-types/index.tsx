@@ -9,7 +9,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { TRPCClientError } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Badge, Button, ButtonGroup, Dialog, EmptyScreen, showToast, Switch, Tooltip } from "@calcom/ui/v2";
+import { Button, ButtonGroup, Badge } from "@calcom/ui/components";
+import { Dialog, EmptyScreen, showToast, Switch, Tooltip } from "@calcom/ui/v2";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import Dropdown, {
   DropdownItem,
@@ -37,6 +38,7 @@ type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
 interface EventTypeListHeadingProps {
   profile: EventTypeGroupProfile;
   membershipCount: number;
+  teamId?: number | null;
 }
 
 type EventTypeGroup = EventTypeGroups[number];
@@ -504,10 +506,14 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   );
 };
 
-const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeadingProps): JSX.Element => {
+const EventTypeListHeading = ({
+  profile,
+  membershipCount,
+  teamId,
+}: EventTypeListHeadingProps): JSX.Element => {
   return (
     <div className="mb-4 flex">
-      <Link href="/settings/teams">
+      <Link href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}>
         <a>
           <Avatar
             alt={profile?.name || ""}
@@ -518,7 +524,7 @@ const EventTypeListHeading = ({ profile, membershipCount }: EventTypeListHeading
         </a>
       </Link>
       <div>
-        <Link href="/settings/teams">
+        <Link href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}>
           <a className="font-bold">{profile?.name || ""}</a>
         </Link>
         {membershipCount && (
@@ -590,6 +596,7 @@ const EventTypesPage = () => {
                     <EventTypeListHeading
                       profile={group.profile}
                       membershipCount={group.metadata.membershipCount}
+                      teamId={group.teamId}
                     />
                   )}
                   <EventTypeList

@@ -15,8 +15,9 @@ import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import { Icon } from "@calcom/ui/Icon";
-import Avatar from "@calcom/ui/v2/core/Avatar";
-import Button from "@calcom/ui/v2/core/Button";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { Form, TextAreaField, TextField } from "@calcom/ui/components/form";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/v2/core/Dialog";
 import Dropdown, {
   DropdownMenuContent,
@@ -25,7 +26,6 @@ import Dropdown, {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@calcom/ui/v2/core/Dropdown";
-import { Form, TextAreaField, TextField } from "@calcom/ui/v2/core/form/fields";
 import * as RadioArea from "@calcom/ui/v2/core/form/radio-area/RadioAreaGroup";
 import showToast from "@calcom/ui/v2/core/notifications";
 

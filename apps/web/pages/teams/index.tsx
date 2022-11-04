@@ -3,9 +3,9 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
+import { Button } from "@calcom/ui/components/button";
 import { Shell } from "@calcom/ui/v2";
 import { Alert } from "@calcom/ui/v2/core/Alert";
-import Button from "@calcom/ui/v2/core/Button";
 import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
 
 import SkeletonLoaderTeamList from "@components/team/SkeletonloaderTeamList";

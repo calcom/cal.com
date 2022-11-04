@@ -11,12 +11,12 @@ import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Schedule as ScheduleType } from "@calcom/types/schedule";
 import { Icon } from "@calcom/ui";
-import Button from "@calcom/ui/v2/core/Button";
+import { Button } from "@calcom/ui/components/button";
+import { Form, Label } from "@calcom/ui/components/form";
 import Shell from "@calcom/ui/v2/core/Shell";
 import Switch from "@calcom/ui/v2/core/Switch";
 import TimezoneSelect from "@calcom/ui/v2/core/TimezoneSelect";
 import VerticalDivider from "@calcom/ui/v2/core/VerticalDivider";
-import { Form, Label } from "@calcom/ui/v2/core/form/fields";
 import showToast from "@calcom/ui/v2/core/notifications";
 import { Skeleton, SkeletonText } from "@calcom/ui/v2/core/skeleton";
 

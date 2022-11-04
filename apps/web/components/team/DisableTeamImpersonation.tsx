@@ -1,7 +1,7 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import Badge from "@calcom/ui/Badge";
 import Button from "@calcom/ui/Button";
+import { Badge } from "@calcom/ui/components/badge";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 /** @deprecated Use `packages/features/ee/teams/components/DisableTeamImpersonation.tsx` */

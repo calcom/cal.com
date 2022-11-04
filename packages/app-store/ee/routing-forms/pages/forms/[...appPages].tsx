@@ -6,9 +6,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { Icon } from "@calcom/ui/Icon";
-import { ButtonGroup, DropdownMenuSeparator, Tooltip } from "@calcom/ui/v2";
+import { Badge, ButtonGroup } from "@calcom/ui/components";
+import { DropdownMenuSeparator, Tooltip } from "@calcom/ui/v2";
 import { EmptyScreen } from "@calcom/ui/v2";
-import { Badge } from "@calcom/ui/v2";
 import { List, ListLinkItem } from "@calcom/ui/v2/core/List";
 import Shell, { ShellMain } from "@calcom/ui/v2/core/Shell";
 

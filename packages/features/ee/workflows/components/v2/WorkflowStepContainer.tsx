@@ -15,11 +15,12 @@ import { trpc } from "@calcom/trpc/react";
 import { Dialog } from "@calcom/ui/Dialog";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
+import { Button } from "@calcom/ui/components";
+import { Checkbox } from "@calcom/ui/components";
+import { EmailField, Label, TextArea } from "@calcom/ui/components/form";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
-import { Button, DialogClose, DialogContent } from "@calcom/ui/v2";
+import { DialogClose, DialogContent } from "@calcom/ui/v2";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
-import CheckboxField from "@calcom/ui/v2/core/form/Checkbox";
-import { EmailField, Label, TextArea } from "@calcom/ui/v2/core/form/fields";
 import Select from "@calcom/ui/v2/core/form/select";
 import showToast from "@calcom/ui/v2/core/notifications";
 
@@ -320,7 +321,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       name={`steps.${step.stepNumber - 1}.numberRequired`}
                       control={form.control}
                       render={() => (
-                        <CheckboxField
+                        <Checkbox
                           defaultChecked={
                             form.getValues(`steps.${step.stepNumber - 1}.numberRequired`) || false
                           }

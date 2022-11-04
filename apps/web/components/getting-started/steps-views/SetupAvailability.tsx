@@ -7,8 +7,8 @@ import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc, TRPCClientErrorLike } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
+import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/form/fields";
-import { Button } from "@calcom/ui/v2";
 
 interface ISetupAvailabilityProps {
   nextStep: () => void;
