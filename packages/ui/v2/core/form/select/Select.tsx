@@ -12,7 +12,7 @@ import ReactSelect, {
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Label } from "../fields";
+import { Label } from "../../../../components/form/inputs/Label";
 import {
   ControlComponent,
   InputComponent,

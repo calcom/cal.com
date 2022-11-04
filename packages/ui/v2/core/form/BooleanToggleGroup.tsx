@@ -5,7 +5,7 @@ import { useState } from "react";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Label } from "./fields";
+import { Label } from "../../../components/form/inputs/Label";
 
 const boolean = (yesNo: "yes" | "no") => (yesNo === "yes" ? true : yesNo === "no" ? false : undefined);
 const yesNo = (boolean?: boolean) => (boolean === true ? "yes" : boolean === false ? "no" : undefined);
