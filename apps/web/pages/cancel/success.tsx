@@ -1,5 +1,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
+import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/Icon";
@@ -7,11 +8,21 @@ import { Button } from "@calcom/ui/v2";
 
 import { HeadSeo } from "@components/seo/head-seo";
 
+const querySchema = z.object({
+  title: z.string(),
+  name: z.string().optional(),
+  eventPage: z.string().optional(),
+  allRemainingBookings: z
+    .string()
+    .optional()
+    .transform((val) => (val ? JSON.parse(val) : false)),
+});
+
 export default function CancelSuccess() {
   const { t } = useLocale();
   // Get router variables
   const router = useRouter();
-  const { title, name, eventPage, allRemainingBookings } = router.query;
+  const { title, name, eventPage, allRemainingBookings } = querySchema.parse(router.query);
   let team: string | string[] | number | undefined = router.query.team;
   const { data: session, status } = useSession();
   const loading = status === "loading";
@@ -62,7 +73,7 @@ export default function CancelSuccess() {
                     {!loading && session?.user && (
                       <Button
                         data-testid="back-to-bookings"
-                        href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
+                        href={!!allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
                         StartIcon={Icon.FiArrowLeft}>
                         {t("back_to_bookings")}
                       </Button>
