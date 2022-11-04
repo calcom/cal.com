@@ -13,17 +13,18 @@ export const createMember = async ({
   teamName,
   inviter,
   pendingMember,
-  language,
-  teamSubscriptionActive,
+  teamOwnerLocale,
 }: {
   teamId: number;
   teamName: string;
   inviter: string;
   pendingMember: PendingMember;
-  language: string;
+  teamOwnerLocale: string;
   teamSubscriptionActive?: boolean;
 }) => {
-  if (pendingMember.username & pendingMember.id) {
+  const translation = await getTranslation(pendingMember.locale || teamOwnerLocale || "en", "common");
+
+  if (pendingMember.username && pendingMember.id) {
     await prisma.membership.create({
       data: {
         teamId,
@@ -31,7 +32,17 @@ export const createMember = async ({
         role: pendingMember.role as MembershipRole,
       },
     });
-    console.log(pendingMember);
+
+    console.log("membership created");
+
+    const sendEmail = await sendTeamInviteEmail({
+      language: translation,
+      from: inviter,
+      to: pendingMember.email,
+      teamName,
+      joinLink: WEBAPP_URL + `/settings/teams/${teamId}/members`,
+    });
+    console.log("🚀 ~ file: inviteMember.ts ~ line 43 ~ sendEamil", sendEmail);
     // If user's are not on Cal.com
   } else {
     // Check if user is already in DB
@@ -71,43 +82,63 @@ export const createMember = async ({
           },
         },
       });
+
+      console.log("Creating member triggers");
+
+      const token: string = randomBytes(32).toString("hex");
+
+      await prisma.verificationToken.create({
+        data: {
+          identifier: pendingMember.email,
+          token,
+          expires: new Date(new Date().setHours(168)), // +1 week
+        },
+      });
+
+      console.log("token created");
+
+      const sendEmail = await sendTeamInviteEmail({
+        language: translation,
+        from: inviter,
+        to: pendingMember.email,
+        teamName: teamName,
+        joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/settings/teams`,
+      });
+
+      console.log("🚀 ~ file: inviteMember.ts ~ line 98 ~ sendEmail", sendEmail);
     }
   }
 };
 
-export const sendTeamInvite = async ({ member, inviter, teamOwnerLocale, teamId, teamName }) => {
-  if (member.role === "OWNER") return;
+// export const sendTeamInvite = async ({ member, inviter, teamOwnerLocale, teamId, teamName }) => {
+//   if (member.role === "OWNER") return;
 
-  const translation = await getTranslation(member.locale || teamOwnerLocale || "en", "common");
+//   if (member.username) {
+//     await sendTeamInviteEmail({
+//       language: translation,
+//       from: inviter,
+//       to: member.email,
+//       teamName,
+//       joinLink: WEBAPP_URL + `/settings/teams/${teamId}/members`,
+//     });
+//     // Send an invite with a signup link if not a user
+//   } else {
+//     const token: string = randomBytes(32).toString("hex");
 
-  if (member.username) {
-    await sendTeamInviteEmail({
-      language: translation,
-      from: inviter,
-      to: member.email,
-      teamName,
-      joinLink: WEBAPP_URL + `/settings/teams/${teamId}/members`,
-    });
-    // Send an invite with a signup link if not a user
-  } else {
-    const token: string = randomBytes(32).toString("hex");
+//     await prisma.verificationToken.create({
+//       data: {
+//         identifier: pendingMember.email,
+//         token,
+//         expires: new Date(new Date().setHours(168)), // +1 week
+//       },
+//     });
 
-    await prisma.verificationToken.create({
-      data: {
-        identifier: pendingMember.email,
-        token,
-        expires: new Date(new Date().setHours(168)), // +1 week
-      },
-    });
-
-    await sendTeamInviteEmail({
-      language: translation,
-      from: inviter,
-      to: member.email,
-      teamName: teamName,
-      joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/settings/teams`,
-    });
-  }
-
-  console.log("🚀 ~ file: inviteMember.ts ~ line 100 ~ sendTeamInvite ~ member", member);
-};
+//     await sendTeamInviteEmail({
+//       language: translation,
+//       from: inviter,
+//       to: member.email,
+//       teamName: teamName,
+//       joinLink: `${WEBAPP_URL}/signup?token=${token}&callbackUrl=/settings/teams`,
+//     });
+//   }
+// };

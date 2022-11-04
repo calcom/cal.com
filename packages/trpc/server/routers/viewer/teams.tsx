@@ -652,7 +652,6 @@ export const viewerTeamsRouter = createProtectedRouter()
         value: z.union([z.literal("OWNER"), z.literal("ADMIN"), z.literal("MEMBER")]),
         label: z.string(),
       }),
-      sendInviteEmail: z.boolean(),
     }),
     async resolve({ ctx, input }) {
       const { emailOrUsername } = input;
@@ -666,6 +665,7 @@ export const viewerTeamsRouter = createProtectedRouter()
           username: true,
           avatar: true,
           email: true,
+          locale: true,
         },
       });
 
@@ -684,6 +684,7 @@ export const viewerTeamsRouter = createProtectedRouter()
         avatar: user?.avatar || "",
         role: input.role.value,
         sendInviteEmail: input.sendInviteEmail,
+        locale: user.locale || "en",
       };
     },
   })
@@ -723,9 +724,6 @@ export const viewerTeamsRouter = createProtectedRouter()
           customerId: customer.id,
         });
 
-        if (!subscriptionQuery)
-          throw new TRPCError({ code: "NOT_FOUND", message: "Could not find subscription" });
-
         if (subscriptionQuery && seats !== subscriptionQuery?.quantity) {
           /* If the number of seats changed we need to cancel the current 
           incomplete subscription and create a new one */
@@ -745,11 +743,12 @@ export const viewerTeamsRouter = createProtectedRouter()
         }
 
         // If customer exists and no changes were made to the subscription
-        return {
-          clientSecret: subscriptionQuery?.latest_invoice?.payment_intent?.client_secret,
-          customerId: customer.id,
-          subscriptionId: subscriptionQuery.id,
-        };
+        if (subscriptionQuery)
+          return {
+            clientSecret: subscriptionQuery?.latest_invoice?.payment_intent?.client_secret,
+            customerId: customer.id,
+            subscriptionId: subscriptionQuery.id,
+          };
       }
 
       // If no changes then do not create a new customer & subscription, just return
@@ -781,8 +780,8 @@ export const viewerTeamsRouter = createProtectedRouter()
           id: z.number().optional(),
           username: z.union([z.string(), z.null()]),
           role: z.union([z.literal("OWNER"), z.literal("ADMIN"), z.literal("MEMBER")]),
-          avatar: z.union([z.string(), z.null()]).optional(),
-          sendInviteEmail: z.boolean().optional(),
+          avatar: z.union([z.string(), z.null()]),
+          locale: z.string(),
         })
       ),
       customerId: z.string(),
@@ -819,15 +818,15 @@ export const viewerTeamsRouter = createProtectedRouter()
 
       for (const member of members) {
         if (member.id !== ctx.user.id)
-          createMember({
+          await createMember({
             teamId: createTeam.id,
             teamName: name,
             inviter: ctx.user.name || "Owner",
             pendingMember: member,
+            teamOwnerLocale: ctx.user.locale,
           });
       }
 
-      // TODO update stripe metadata with the new team id
       return createTeam;
     },
   });

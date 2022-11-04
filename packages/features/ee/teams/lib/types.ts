@@ -17,7 +17,7 @@ export interface PendingMember {
   username: string | null;
   role: MembershipRole;
   avatar: string | null;
-  sendInviteEmail?: boolean;
+  locale: string;
 }
 
 export type NewTeamData = NewTeamFormValues &

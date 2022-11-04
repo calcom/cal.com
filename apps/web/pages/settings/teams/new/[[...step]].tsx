@@ -81,6 +81,7 @@ const CreateNewTeamPage = () => {
             id: session?.data?.user.id,
             avatar: session?.data?.user.avatar || "",
             role: "OWNER",
+            locale: session?.data?.user.locale || "en",
           },
         ],
       });

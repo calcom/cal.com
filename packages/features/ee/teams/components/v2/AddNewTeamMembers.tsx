@@ -138,7 +138,7 @@ const AddNewTeamMembers = ({
             isOpen={memberInviteModal}
             onExit={() => setMemberInviteModal(false)}
             onSubmit={handleInviteTeamMember}
-            members={formMethods.getValues("members")}
+            members={newTeamData.members}
           />
 
           <hr className="mb-4 mt-6" />

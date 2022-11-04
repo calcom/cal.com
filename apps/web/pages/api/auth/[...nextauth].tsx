@@ -232,6 +232,7 @@ export default NextAuth({
           role: existingUser.role,
           impersonatedByUID: token?.impersonatedByUID as number,
           avatar: existingUser.avatar,
+          locale: existingUser.locale,
         };
       };
       if (!user) {
@@ -298,6 +299,7 @@ export default NextAuth({
           role: token.role as UserPermissionRole,
           impersonatedByUID: token.impersonatedByUID as number,
           avatar: token.avatar as string,
+          locale: token.locale as string,
         },
       };
       return calendsoSession;

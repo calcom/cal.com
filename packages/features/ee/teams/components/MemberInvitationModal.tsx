@@ -1,11 +1,10 @@
 import { MembershipRole } from "@prisma/client";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Dialog, DialogContent, DialogFooter, Select, TextField } from "@calcom/ui/v2";
 import { Form } from "@calcom/ui/v2/core/form";
-import CheckboxField from "@calcom/ui/v2/core/form/Checkbox";
 
 import { PendingMember } from "../lib/types";
 
@@ -24,11 +23,14 @@ type MembershipRoleOption = {
 export interface NewMemberForm {
   emailOrUsername: string;
   role: MembershipRoleOption;
-  sendInviteEmail: boolean;
 }
 
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const { t } = useLocale();
+
+  useEffect(() => {
+    console.log("🚀 ~ file: MemberInvitationModal.tsx ~ line 18 ~ members", props.members);
+  }, [props.members]);
 
   const options: MembershipRoleOption[] = useMemo(() => {
     return [
@@ -105,19 +107,6 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     name="role"
                     className="mt-1 block w-full rounded-sm border-gray-300 text-sm"
                     onChange={onChange}
-                  />
-                </div>
-              )}
-            />
-            <Controller
-              name="sendInviteEmail"
-              control={newMemberFormMethods.control}
-              defaultValue={false}
-              render={() => (
-                <div className="relative flex items-start">
-                  <CheckboxField
-                    description={t("send_invite_email")}
-                    onChange={(e) => newMemberFormMethods.setValue("sendInviteEmail", e.target.checked)}
                   />
                 </div>
               )}

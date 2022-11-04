@@ -9,6 +9,7 @@ declare module "next-auth" {
     impersonatedByUID?: number;
     role: UserPermissionRole;
     avatar: string | null;
+    locale: string;
   };
   /**
    * Returned by `useSession`, `getSession` and received as a prop on the `Provider` React Context
