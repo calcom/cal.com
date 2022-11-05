@@ -7,6 +7,7 @@ import {
   WebhookTriggerEvents,
 } from "@prisma/client";
 import async from "async";
+import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
 import { RRule } from "rrule";
 import short from "short-uuid";
@@ -482,8 +483,9 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (reqBody.bookingUid) {
-    if (!eventType.seatsPerTimeSlot)
+    if (!eventType.seatsPerTimeSlot) {
       throw new HttpError({ statusCode: 404, message: "Event type does not have seats" });
+    }
 
     const booking = await prisma.booking.findUnique({
       where: {
@@ -505,7 +507,9 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         },
       },
     });
-    if (!booking) throw new HttpError({ statusCode: 404, message: "Booking not found" });
+    if (!booking) {
+      throw new HttpError({ statusCode: 404, message: "Booking not found" });
+    }
 
     // Need to add translation for attendees to pass type checks. Since these values are never written to the db we can just use the new attendee language
     const bookingAttendees = booking.attendees.map((attendee) => {
@@ -514,11 +518,13 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
     evt = { ...evt, attendees: [...bookingAttendees, invitee[0]] };
 
-    if (eventType.seatsPerTimeSlot <= booking.attendees.length)
+    if (eventType.seatsPerTimeSlot <= booking.attendees.length) {
       throw new HttpError({ statusCode: 409, message: "Booking seats are full" });
+    }
 
-    if (booking.attendees.some((attendee) => attendee.email === invitee[0].email))
+    if (booking.attendees.find((attendee) => attendee.email === invitee[0].email)) {
       throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
+    }
 
     await prisma.booking.update({
       where: {
@@ -537,8 +543,13 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     });
 
     const newSeat = booking.attendees.length !== 0;
-
-    await sendScheduledSeatsEmails(evt, invitee[0], newSeat, !!eventType.seatsShowAttendees);
+    /**
+     * Remember objects are passed into functions as references
+     * so if you modify it in a inner function it will be modified in the outer function
+     * deep cloning evt to avoid this
+     */
+    const copyEvent = cloneDeep(evt);
+    await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
 
     const credentials = await refreshCredentials(organizerUser.credentials);
     const eventManager = new EventManager({ ...organizerUser, credentials });
