@@ -299,17 +299,8 @@ export default class EventManager {
     };
   }
 
-  public async updateCalendarAttendees(
-    event: CalendarEvent,
-    booking: PartialBooking & { attendees: Attendee[] }
-  ) {
-    const attendees = booking.attendees.map((attendee) => {
-      return {
-        email: attendee.email,
-        name: attendee.name,
-      } as Person;
-    });
-    event.attendees = attendees;
+  public async updateCalendarAttendees(event: CalendarEvent, booking: PartialBooking) {
+    // @NOTE: This function is only used for updating attendees on a calendar event. Can we remove this?
     await this.updateAllCalendarEvents(event, booking);
   }
 

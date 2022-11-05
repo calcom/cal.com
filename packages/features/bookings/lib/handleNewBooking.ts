@@ -7,6 +7,7 @@ import {
   WebhookTriggerEvents,
 } from "@prisma/client";
 import async from "async";
+import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
 import { RRule } from "rrule";
 import short from "short-uuid";
@@ -494,10 +495,10 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     if (eventType.seatsPerTimeSlot <= booking.attendees.length) {
       throw new HttpError({ statusCode: 409, message: "Booking seats are full" });
     }
-    if (booking.attendees.some((attendee) => attendee.email === invitee[0].email))
-      if (booking.attendees.some((attendee) => attendee.email === invitee[0].email)) {
-        throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
-      }
+
+    if (booking.attendees.find((attendee) => attendee.email === invitee[0].email)) {
+      throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
+    }
 
     await prisma.booking.update({
       where: {
@@ -516,8 +517,13 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     });
 
     const newSeat = booking.attendees.length !== 0;
-
-    await sendScheduledSeatsEmails(evt, invitee[0], newSeat, !!eventType.seatsShowAttendees);
+    /**
+     * Remember objects are passed into functions as references
+     * so if you modify it in a inner function it will be modified in the outer function
+     * deep cloning evt to avoid this
+     */
+    const copyEvent = cloneDeep(evt);
+    await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
 
     const credentials = await refreshCredentials(organizerUser.credentials);
     const eventManager = new EventManager({ ...organizerUser, credentials });
