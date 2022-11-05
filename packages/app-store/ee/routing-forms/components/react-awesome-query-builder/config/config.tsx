@@ -123,6 +123,13 @@ operators.between.label = "Between";
 delete operators.proximity;
 delete operators.is_null;
 delete operators.is_not_null;
+
+/**
+ * Not supported with JSONLogic
+ */
+delete operators.starts_with;
+delete operators.ends_with;
+
 const config = {
   conjunctions: BasicConfig.conjunctions,
   operators,

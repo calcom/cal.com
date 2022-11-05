@@ -1,10 +1,12 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { App_RoutingForms_Form } from "@prisma/client";
-import React, { useState, useCallback } from "react";
+import React, { useRef, useState, useCallback } from "react";
 import { Query, Config, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
 import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
 
+import { classNames } from "@calcom/lib";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
   AppGetServerSidePropsContext,
@@ -13,21 +15,17 @@ import {
   AppSsrInit,
 } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Icon } from "@calcom/ui";
-import { Button, TextField, SelectWithValidation as Select, TextArea, Shell } from "@calcom/ui/v2";
-import FormCard from "@calcom/ui/v2/core/form/FormCard";
+import { Button } from "@calcom/ui";
+import { SelectWithValidation as Select, TextArea, Shell } from "@calcom/ui/v2";
+
+import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
 import SingleForm from "../../components/SingleForm";
 import QueryBuilderInitialConfig from "../../components/react-awesome-query-builder/config/config";
 import "../../components/react-awesome-query-builder/styles.css";
 import { getSerializableForm } from "../../lib/getSerializableForm";
-import { SerializableForm } from "../../types/types";
-import { FieldTypes } from "../form-edit/[...appPages]";
 import { getQueryBuilderConfig } from "../route-builder/[...appPages]";
 
-type RoutingForm = SerializableForm<App_RoutingForms_Form>;
-
-const InitialConfig = QueryBuilderInitialConfig;
 const hasRules = (route: Route) =>
   route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
 type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Config["fields"] };
@@ -79,37 +77,71 @@ type SerializableRoute = Pick<Route, "id" | "action"> & {
 };
 
 const Result = ({ formId, jsonLogicQuery }) => {
-  const { isLoading, data: report } = trpc.useQuery([
-    "viewer.app_routing_forms.report",
-    {
-      formId: formId,
-      jsonLogicQuery,
-    },
-  ]);
-  if (isLoading) {
-    return <div>Report is loading</div>;
-  }
-  if (!report) {
-    return <div>Couldn't load report</div>;
-  }
-  return (
-    <table className="w-full table-auto">
-      <tr>
-        {report.headers.map((header, index) => (
-          <th key={index}>{header}</th>
-        ))}
-      </tr>
+  const { t } = useLocale();
 
-      {report.responses?.map((response, index) => {
-        return (
-          <tr key={index} className="text-center">
-            {Object.entries(response.response).map(([_, r], index) => (
-              <td key={index}>{r.value}</td>
-            ))}
-          </tr>
-        );
-      })}
-    </table>
+  const { isLoading, status, data, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage } =
+    trpc.useInfiniteQuery(
+      [
+        "viewer.app_routing_forms.report",
+        {
+          formId: formId,
+          jsonLogicQuery,
+        },
+      ],
+      {
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+      }
+    );
+  const buttonInView = useInViewObserver(() => {
+    if (hasNextPage) {
+      fetchNextPage();
+    }
+  });
+
+  const headers = useRef(null);
+
+  if (!isLoading && !data) {
+    return <div>Error loading report</div>;
+  }
+  headers.current = (data?.pages && data?.pages[0]?.headers) || headers.current;
+  return (
+    <>
+      <table className="w-full table-auto border border-gray-300">
+        <tr className="bg-gray-300">
+          {headers.current?.map((header, index) => (
+            <th className="py-3 text-left text-base font-medium first:pl-2" key={index}>
+              {header}
+            </th>
+          ))}
+        </tr>
+        {isLoading ? <div>Report is loading</div> : ""}
+        {!isLoading &&
+          data?.pages.map((page) => {
+            return page.responses?.map((responses, index) => {
+              return (
+                <tr
+                  key={index}
+                  className={classNames(" text-center text-sm", index % 2 ? "bg-gray-100" : "")}>
+                  {responses.map((r, index) => (
+                    <td className="py-3 text-left first:pl-2" key={index}>
+                      {r}
+                    </td>
+                  ))}
+                </tr>
+              );
+            });
+          })}
+      </table>
+      <Button
+        type="button"
+        color="minimal"
+        ref={buttonInView.ref}
+        loading={isFetchingNextPage}
+        disabled={!hasNextPage}
+        onClick={() => fetchNextPage()}>
+        {hasNextPage ? t("load_more_results") : t("no_more_results")}
+      </Button>
+    </>
   );
 };
 
@@ -161,8 +193,6 @@ const ReporterRow = ({
 
   return (
     <>
-      <div>{JSON.stringify(QbUtils.jsonLogicFormat(reporterRowQuery.state.tree, config))}</div>
-      <hr className="mt-10" />
       <Query
         {...config}
         value={reporterRowQuery.state.tree}
@@ -171,7 +201,7 @@ const ReporterRow = ({
         }}
         renderBuilder={renderBuilder}
       />
-      <hr className="mt-10" />
+      <hr className="mt-6" />
       <Result formId={formId} jsonLogicQuery={jsonLogicQuery} />
     </>
   );
@@ -194,11 +224,11 @@ const Reporter = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   hookForm: any;
 }) => {
-  const config = getQueryBuilderConfig(form);
+  const config = getQueryBuilderConfig(form, true);
 
   return (
     <div className="flex flex-col-reverse md:flex-row">
-      <div className="w-full ltr:mr-2 rtl:ml-2">
+      <div className="cal-query-builder w-full ltr:mr-2 rtl:ml-2">
         <ReporterRow formId={form.id} reporterRow={getInitialReporterRow(config)} config={config} />
       </div>
     </div>

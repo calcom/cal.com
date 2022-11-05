@@ -227,9 +227,12 @@ const app_RoutingForms = createRouter()
         input: z.object({
           formId: z.string(),
           jsonLogicQuery: z.any(),
+          cursor: z.number().nullish(), // <-- "cursor" needs to exist when using useInfiniteQuery, but can be any type
         }),
         async resolve({ ctx: { prisma, user }, input }) {
           const prismaWhere = jsonLogicToPrisma(input.jsonLogicQuery);
+          const skip = input.cursor ?? 0;
+          const take = 50;
           console.log(
             `Built Prisma where ${JSON.stringify(prismaWhere)} from jsonLogicQuery ${JSON.stringify(
               input.jsonLogicQuery
@@ -240,16 +243,30 @@ const app_RoutingForms = createRouter()
               id: input.formId,
             },
           });
-          const responses = await prisma.app_RoutingForms_FormResponse.findMany({
+
+          const res = await prisma.app_RoutingForms_FormResponse.findMany({
             where: {
               formId: input.formId,
               ...prismaWhere,
             },
+            take,
+            skip,
           });
-          const headers = form?.fields.map((field) => field.label);
+
+          const headers = form?.fields.map((f) => f.label);
+          const responses = [];
+          res.forEach((r) => {
+            const rowResponses = [];
+            responses.push(rowResponses);
+            form?.fields.forEach((field) => {
+              rowResponses.push(r.response[field.id]?.value || "");
+            });
+          });
+
           return {
             headers,
             responses,
+            nextCursor: !res.length || res.length < take ? null : skip + res.length,
           };
         },
       })

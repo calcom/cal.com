@@ -152,7 +152,7 @@ function SelectWidget({
   );
 }
 
-function Button({ type, label, onClick, readonly }: ButtonProps) {
+function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   if (type === "delRule" || type == "delGroup") {
     return (
       <button className="ml-5">
@@ -162,7 +162,7 @@ function Button({ type, label, onClick, readonly }: ButtonProps) {
   }
   let dataTestId = "";
   if (type === "addRule") {
-    label = "Add rule";
+    label = config.operators.__calReporting ? "Add Query" : "Add rule";
     dataTestId = "add-rule";
   } else if (type == "addGroup") {
     label = "Add rule group";
@@ -224,10 +224,10 @@ function Conjs({ not, setNot, config, conjunctionOptions, setConjunction, disabl
       value = value == "any" ? "none" : "all";
     }
     const selectValue = options.find((option) => option.value === value);
-
+    const summary = !config.operators.__calReporting ? "Rule group when" : "Query where";
     return (
       <div className="flex items-center text-sm">
-        <span>Rule group when</span>
+        <span>{summary}</span>
         <Select
           className="flex px-2"
           defaultValue={selectValue}

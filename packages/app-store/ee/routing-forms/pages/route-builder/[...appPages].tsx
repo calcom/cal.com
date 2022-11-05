@@ -31,7 +31,7 @@ const InitialConfig = QueryBuilderInitialConfig;
 const hasRules = (route: Route) =>
   route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
 type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Config["fields"] };
-export function getQueryBuilderConfig(form: RoutingForm) {
+export function getQueryBuilderConfig(form: RoutingForm, forReporting = false) {
   const fields: Record<
     string,
     {
@@ -74,9 +74,15 @@ export function getQueryBuilderConfig(form: RoutingForm) {
     }
   });
 
+  const initialConfigCopy = { ...InitialConfig };
+  if (forReporting) {
+    delete initialConfigCopy.operators.is_empty;
+    delete initialConfigCopy.operators.is_not_empty;
+    initialConfigCopy.operators.__calReporting = true;
+  }
   // You need to provide your own config. See below 'Config format'
   const config: QueryBuilderUpdatedConfig = {
-    ...InitialConfig,
+    ...initialConfigCopy,
     fields: fields,
   };
   return config;
