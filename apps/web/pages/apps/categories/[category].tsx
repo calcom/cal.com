@@ -6,7 +6,6 @@ import { useRouter } from "next/router";
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
-import { Icon } from "@calcom/ui/Icon";
 import { SkeletonText } from "@calcom/ui/v2";
 import Shell from "@calcom/ui/v2/core/Shell";
 import AppCard from "@calcom/ui/v2/core/apps/AppCard";

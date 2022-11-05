@@ -2,7 +2,7 @@ import Link from "next/link";
 import { TeamPageProps } from "pages/team/[slug]";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { Avatar } from "@calcom/ui/v2";
+import { Avatar } from "@calcom/ui/components";
 
 import { useLocale } from "@lib/hooks/useLocale";
 

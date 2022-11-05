@@ -2,6 +2,8 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { ReactNode, useEffect, useState } from "react";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Icon } from "@calcom/ui";
 import { ListItem, ListItemText, ListItemTitle } from "@calcom/ui/v2/core/List";
 
 import classNames from "@lib/classNames";
@@ -17,7 +19,9 @@ function IntegrationListItem(props: {
   logo: string;
   destination?: boolean;
   separate?: boolean;
+  invalidCredential?: boolean;
 }): JSX.Element {
+  const { t } = useLocale();
   const router = useRouter();
   const { hl } = router.query;
   const [highlight, setHighlight] = useState(hl === props.slug);
@@ -44,6 +48,15 @@ function IntegrationListItem(props: {
             <Link href={"/apps/" + props.slug}>{props.name || title}</Link>
           </ListItemTitle>
           <ListItemText component="p">{props.description}</ListItemText>
+          {/* Alert error that key stopped working. */}
+          {props.invalidCredential && (
+            <div className="flex items-center space-x-2">
+              <Icon.FiAlertCircle className="w-8 text-red-500 sm:w-4" />
+              <ListItemText component="p" className="whitespace-pre-wrap text-red-500">
+                {t("invalid_credential")}
+              </ListItemText>
+            </div>
+          )}
         </div>
         <div>{props.actions}</div>
       </div>

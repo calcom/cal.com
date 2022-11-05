@@ -15,6 +15,7 @@ import { getEventLocationValue, getSuccessPageLocationMessage } from "@calcom/ap
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
+import { ConfigType } from "@calcom/dayjs";
 import {
   sdkActionManager,
   useEmbedNonStylesConfig,
@@ -23,6 +24,7 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import { parseRecurringEvent } from "@calcom/lib";
 import CustomBranding from "@calcom/lib/CustomBranding";
+import { formatTime } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -37,6 +39,7 @@ import { Icon } from "@calcom/ui/Icon";
 import { EmailInput } from "@calcom/ui/form/fields";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
+import { timeZone } from "@lib/clock";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
@@ -359,29 +362,20 @@ export default function Success(props: SuccessProps) {
                       <>
                         <div className="font-medium">{t("who")}</div>
                         <div className="col-span-2 mb-6 last:mb-0">
-                          {bookingInfo?.user && (
-                            <div className="mb-3">
-                              <p>{bookingInfo.user.name}</p>
-                              <p className="text-bookinglight">{bookingInfo.user.email}</p>
-                            </div>
-                          )}
-                          {!!eventType.seatsShowAttendees
-                            ? bookingInfo?.attendees
-                                .filter((attendee) => attendee.email === email)
-                                .map((attendee) => (
-                                  <div key={attendee.name} className="mb-3">
-                                    <p>{attendee.name}</p>
-                                    <p className="text-bookinglight">{attendee.email}</p>
-                                  </div>
-                                ))
-                            : bookingInfo?.attendees.map((attendee, index) => (
-                                <div
-                                  key={attendee.name}
-                                  className={index === bookingInfo.attendees.length - 1 ? "" : "mb-3"}>
-                                  <p>{attendee.name}</p>
-                                  <p className="text-bookinglight">{attendee.email}</p>
-                                </div>
-                              ))}
+                          <>
+                            {bookingInfo?.user && (
+                              <div className="mb-3">
+                                <p>{bookingInfo.user.name}</p>
+                                <p className="text-bookinglight">{bookingInfo.user.email}</p>
+                              </div>
+                            )}
+                            {bookingInfo?.attendees.map((attendee, index) => (
+                              <div key={attendee.name} className="mb-3 last:mb-0">
+                                <p>{attendee.name}</p>
+                                <p className="text-bookinglight">{attendee.email}</p>
+                              </div>
+                            ))}
+                          </>
                         </div>
                       </>
                     )}
@@ -479,7 +473,7 @@ export default function Success(props: SuccessProps) {
                 {userIsOwner && !needsConfirmation && !isCancellationMode && !isCancelled && (
                   <>
                     <hr className="border-bookinglightest dark:border-darkgray-300" />
-                    <div className="text-bookingdark align-center flex flex-row justify-center pt-8">
+                    <div className="text-bookingdark align-center flex flex-row justify-center py-8">
                       <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                         {t("add_to_calendar")}
                       </span>
@@ -586,7 +580,7 @@ export default function Success(props: SuccessProps) {
                 )}
                 {session === null && !(userIsOwner || props.hideBranding) && (
                   <>
-                    <hr className="border-bookinglightest" />
+                    <hr className="border-bookinglightest dark:border-darkgray-300" />
                     <div className="border-bookinglightest text-booking-lighter dark:border-darkgray-300 pt-8 text-center text-xs dark:text-white">
                       <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
 
@@ -636,13 +630,14 @@ export function RecurringBookings({
   eventType,
   recurringBookings,
   date,
+  is24h,
   listingStatus,
 }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const { t } = useLocale();
 
   const recurringBookingsSorted = recurringBookings
-    ? recurringBookings.sort((a, b) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
+    ? recurringBookings.sort((a: ConfigType, b: ConfigType) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
     : null;
 
   if (recurringBookingsSorted && listingStatus === "recurring") {
@@ -658,14 +653,13 @@ export function RecurringBookings({
           </span>
         )}
         {eventType.recurringEvent?.count &&
-          recurringBookingsSorted.slice(0, 4).map((dateStr, idx) => (
+          recurringBookingsSorted.slice(0, 4).map((dateStr: string, idx: number) => (
             <div key={idx} className="mb-2">
-              {dayjs(dateStr).format("MMMM DD, YYYY")}
+              {dayjs.tz(dateStr, timeZone()).format("MMMM DD, YYYY")}
               <br />
-              {dayjs(dateStr).format("LT")} - {dayjs(dateStr).add(eventType.length, "m").format("LT")}{" "}
-              <span className="text-bookinglight">
-                ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-              </span>
+              {formatTime(dateStr, is24h ? 24 : 12, timeZone())} -{" "}
+              {formatTime(dayjs(dateStr).add(eventType.length, "m"), is24h ? 24 : 12, timeZone())}{" "}
+              <span className="text-bookinglight">({timeZone()})</span>
             </div>
           ))}
         {recurringBookingsSorted.length > 4 && (
@@ -677,14 +671,13 @@ export function RecurringBookings({
             </CollapsibleTrigger>
             <CollapsibleContent>
               {eventType.recurringEvent?.count &&
-                recurringBookingsSorted.slice(4).map((dateStr, idx) => (
+                recurringBookingsSorted.slice(4).map((dateStr: string, idx: number) => (
                   <div key={idx} className="mb-2">
-                    {dayjs(dateStr).format("MMMM DD, YYYY")}
+                    {dayjs.tz(dateStr, timeZone()).format("MMMM DD, YYYY")}
                     <br />
-                    {dayjs(dateStr).format("LT")} - {dayjs(dateStr).add(eventType.length, "m").format("LT")}{" "}
-                    <span className="text-bookinglight">
-                      ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-                    </span>
+                    {formatTime(dateStr, is24h ? 24 : 12, timeZone())} -{" "}
+                    {formatTime(dayjs(dateStr).add(eventType.length, "m"), is24h ? 24 : 12, timeZone())}{" "}
+                    <span className="text-bookinglight">({timeZone()})</span>
                   </div>
                 ))}
             </CollapsibleContent>
@@ -696,12 +689,11 @@ export function RecurringBookings({
 
   return (
     <>
-      {date.format("MMMM DD, YYYY")}
+      {dayjs.tz(date, timeZone()).format("MMMM DD, YYYY")}
       <br />
-      {date.format("LT")} - {date.add(eventType.length, "m").format("LT")}{" "}
-      <span className="text-bookinglight">
-        ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-      </span>
+      {formatTime(date, is24h ? 24 : 12, timeZone())} -{" "}
+      {formatTime(dayjs(date).add(eventType.length, "m"), is24h ? 24 : 12, timeZone())}{" "}
+      <span className="text-bookinglight">({timeZone()})</span>
     </>
   );
 }
@@ -782,6 +774,28 @@ const schema = z.object({
   eventName: z.string().default(""),
   bookingId: strToNumber,
 });
+
+const handleSeatsEventTypeOnBooking = (
+  eventType: {
+    seatsPerTimeSlot?: boolean | null;
+    seatsShowAttendees: boolean | null;
+    [x: string | number | symbol]: unknown;
+  },
+  booking: Partial<
+    Prisma.BookingGetPayload<{ include: { attendees: { select: { name: true; email: true } } } }>
+  >,
+  email: string
+) => {
+  if (eventType?.seatsPerTimeSlot !== null) {
+    // @TODO: right now bookings with seats doesn't save every description that its entered by every user
+    delete booking.description;
+  }
+  if (!eventType.seatsShowAttendees) {
+    const attendee = booking?.attendees?.find((a) => a.email === email);
+    booking["attendees"] = attendee ? [attendee] : [];
+  }
+  return;
+};
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
@@ -881,6 +895,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     },
   });
+  if (bookingInfo !== null && email) {
+    handleSeatsEventTypeOnBooking(eventType, bookingInfo, email);
+  }
+
   let recurringBookings = null;
   if (recurringEventIdQuery) {
     // We need to get the dates for the bookings to be able to show them in the UI
