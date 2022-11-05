@@ -7,9 +7,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Icon } from "@calcom/ui/Icon";
+import { Button, ButtonGroup, Avatar } from "@calcom/ui/components";
 import {
-  Button,
-  ButtonGroup,
   Dialog,
   DialogContent,
   DialogTrigger,
@@ -22,7 +21,6 @@ import {
   showToast,
   Tooltip,
 } from "@calcom/ui/v2/core";
-import Avatar from "@calcom/ui/v2/core/Avatar";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 
 import MemberChangeRoleModal from "./MemberChangeRoleModal";

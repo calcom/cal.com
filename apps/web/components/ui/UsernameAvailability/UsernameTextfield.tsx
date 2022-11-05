@@ -9,7 +9,7 @@ import { trpc } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
-import { Input, Label, Button } from "@calcom/ui/v2";
+import { Button, Input, Label } from "@calcom/ui/components";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
