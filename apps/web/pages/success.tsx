@@ -369,23 +369,12 @@ export default function Success(props: SuccessProps) {
                                 <p className="text-bookinglight">{bookingInfo.user.email}</p>
                               </div>
                             )}
-                            {!eventType.seatsShowAttendees
-                              ? bookingInfo?.attendees
-                                  .filter((attendee) => attendee.email === email)
-                                  .map((attendee) => (
-                                    <div key={attendee.name} className="mb-3">
-                                      <p>{attendee.name}</p>
-                                      <p className="text-bookinglight">{attendee.email}</p>
-                                    </div>
-                                  ))
-                              : bookingInfo?.attendees.map((attendee, index) => (
-                                  <div
-                                    key={attendee.name}
-                                    className={index === bookingInfo.attendees.length - 1 ? "" : "mb-3"}>
-                                    <p>{attendee.name}</p>
-                                    <p className="text-bookinglight">{attendee.email}</p>
-                                  </div>
-                                ))}
+                            {bookingInfo?.attendees.map((attendee, index) => (
+                              <div key={attendee.name} className="mb-3 last:mb-0">
+                                <p>{attendee.name}</p>
+                                <p className="text-bookinglight">{attendee.email}</p>
+                              </div>
+                            ))}
                           </>
                         </div>
                       </>
