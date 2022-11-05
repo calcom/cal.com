@@ -786,6 +786,27 @@ const schema = z.object({
   bookingId: strToNumber,
 });
 
+const handleSeatsEventTypeOnBooking = (
+  eventType: {
+    seatsShowAttendees: boolean | null;
+    [x: string | number | symbol]: unknown;
+  },
+  booking: Partial<
+    Prisma.BookingGetPayload<{ include: { attendees: { select: { name: true; email: true } } } }>
+  >,
+  email: string
+) => {
+  if (eventType.seatsShowAttendees !== null) {
+    // @TODO: right now bookings with seats doesn't save every description that its entered by every user
+    delete booking.description;
+  }
+  if (!eventType.seatsShowAttendees) {
+    const attendee = booking?.attendees?.find((a) => a.email === email);
+    booking["attendees"] = attendee ? [attendee] : [];
+  }
+  return;
+};
+
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const parsedQuery = schema.safeParse(context.query);
@@ -884,6 +905,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     },
   });
+  if (bookingInfo !== null && email) {
+    handleSeatsEventTypeOnBooking(eventType, bookingInfo, email);
+  }
+
   let recurringBookings = null;
   if (recurringEventIdQuery) {
     // We need to get the dates for the bookings to be able to show them in the UI
