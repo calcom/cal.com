@@ -788,7 +788,7 @@ const schema = z.object({
 
 const handleSeatsEventTypeOnBooking = (
   eventType: {
-    seatsPerTimeSlot: boolean | null;
+    seatsPerTimeSlot?: boolean | null;
     seatsShowAttendees: boolean | null;
     [x: string | number | symbol]: unknown;
   },
@@ -797,7 +797,7 @@ const handleSeatsEventTypeOnBooking = (
   >,
   email: string
 ) => {
-  if (eventType.seatsPerTimeSlot !== null) {
+  if (eventType?.seatsPerTimeSlot !== null) {
     // @TODO: right now bookings with seats doesn't save every description that its entered by every user
     delete booking.description;
   }
