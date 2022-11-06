@@ -5,8 +5,8 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { App } from "@calcom/types/App";
 import { Icon } from "@calcom/ui/Icon";
-import { showToast } from "@calcom/ui/v2";
 import { Button } from "@calcom/ui/components/button";
+import { showToast } from "@calcom/ui/v2";
 
 interface AppCardProps {
   app: App;
