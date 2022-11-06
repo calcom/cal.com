@@ -7,8 +7,14 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import prisma from "@calcom/prisma";
+import { Attendee } from "@calcom/prisma/client";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
-import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
+import type {
+  AdditionalInformation,
+  CalendarEvent,
+  NewCalendarEventType,
+  Person,
+} from "@calcom/types/Calendar";
 import { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { Event } from "@calcom/types/Event";
 import type {
@@ -294,6 +300,7 @@ export default class EventManager {
   }
 
   public async updateCalendarAttendees(event: CalendarEvent, booking: PartialBooking) {
+    // @NOTE: This function is only used for updating attendees on a calendar event. Can we remove this?
     await this.updateAllCalendarEvents(event, booking);
   }
 
@@ -430,11 +437,14 @@ export default class EventManager {
     try {
       // Bookings should only have one calendar reference
       calendarReference = booking.references.filter((reference) => reference.type.includes("_calendar"))[0];
-      if (!calendarReference) throw new Error("bookingRef");
-
+      if (!calendarReference) {
+        throw new Error("bookingRef");
+      }
       const { uid: bookingRefUid, externalCalendarId: bookingExternalCalendarId } = calendarReference;
 
-      if (!bookingExternalCalendarId) throw new Error("externalCalendarId");
+      if (!bookingExternalCalendarId) {
+        throw new Error("externalCalendarId");
+      }
 
       let result = [];
       if (calendarReference.credentialId) {
@@ -458,13 +468,15 @@ export default class EventManager {
           .map(async (cred) => {
             const calendarReference = booking.references.find((ref) => ref.type === cred.type);
             if (!calendarReference)
-              return {
-                appName: cred.appName,
-                type: cred.type,
-                success: false,
-                uid: "",
-                originalEvent: event,
-              };
+              if (!calendarReference) {
+                return {
+                  appName: cred.appName,
+                  type: cred.type,
+                  success: false,
+                  uid: "",
+                  originalEvent: event,
+                };
+              }
             const { externalCalendarId: bookingExternalCalendarId, meetingId: bookingRefUid } =
               calendarReference;
             return await updateEvent(cred, event, bookingRefUid ?? null, bookingExternalCalendarId ?? null);
@@ -474,7 +486,9 @@ export default class EventManager {
       return Promise.all(result);
     } catch (error) {
       let message = `Tried to 'updateAllCalendarEvents' but there was no '{thing}' for '${credential?.type}', userId: '${credential?.userId}', bookingId: '${booking?.id}'`;
-      if (error instanceof Error) message = message.replace("{thing}", error.message);
+      if (error instanceof Error) {
+        message = message.replace("{thing}", error.message);
+      }
       console.error(message);
       return Promise.resolve([
         {
