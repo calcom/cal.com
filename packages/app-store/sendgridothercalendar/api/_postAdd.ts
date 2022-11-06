@@ -13,7 +13,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const session = checkSession(req);
 
   const { api_key } = req.body;
-  if (!api_key) throw new HttpError({ statusCode: 400, message: "No Api Key provoided to check" });
+  if (!api_key) throw new HttpError({ statusCode: 400, message: "No Api Key provided to check" });
 
   const encrypted = symmetricEncrypt(JSON.stringify({ api_key }), process.env.CALENDSO_ENCRYPTION_KEY || "");
 
