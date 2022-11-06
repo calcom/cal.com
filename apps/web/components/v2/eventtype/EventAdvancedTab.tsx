@@ -1,4 +1,3 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventTypeCustomInput } from "@prisma/client/";
 import Link from "next/link";
 import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
@@ -12,20 +11,8 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import {
-  Button,
-  CustomInputItem,
-  Dialog,
-  DialogContent,
-  Label,
-  SettingsToggle,
-  showToast,
-  Skeleton,
-  Switch,
-  TextField,
-  Tooltip,
-} from "@calcom/ui/v2";
-import CheckboxField from "@calcom/ui/v2/core/form/Checkbox";
+import { Checkbox, Button, TextField, Label } from "@calcom/ui/components";
+import { CustomInputItem, Dialog, DialogContent, SettingsToggle, showToast, Tooltip } from "@calcom/ui/v2";
 
 import CustomInputTypeForm from "@components/v2/eventtype/CustomInputTypeForm";
 
@@ -67,7 +54,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
     <div className="flex flex-col space-y-8">
       {/**
        * Only display calendar selector if user has connected calendars AND if it's not
-       * a team event. Since we don't have logic to handle each attende calendar (for now).
+       * a team event. Since we don't have logic to handle each attendee calendar (for now).
        * This will fallback to each user selected destination calendar.
        */}
       {!!connectedCalendarsQuery.data?.connectedCalendars.length && !team && (
@@ -305,7 +292,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
             description={t("offer_seats_description")}
             checked={value}
             onCheckedChange={(e) => {
-              // Enabling seats will disable guests and requiring confimation until fully supported
+              // Enabling seats will disable guests and requiring confirmation until fully supported
               if (e) {
                 formMethods.setValue("disableGuests", true);
                 formMethods.setValue("requiresConfirmation", false);
@@ -329,13 +316,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                     label={t("number_of_seats")}
                     type="number"
                     defaultValue={value || 2}
+                    min={1}
                     addOnSuffix={<>{t("seats")}</>}
                     onChange={(e) => {
-                      onChange(Number(e.target.value));
+                      onChange(Math.abs(Number(e.target.value)));
                     }}
                   />
                   <div className="mt-2">
-                    <CheckboxField
+                    <Checkbox
                       description={t("show_attendees")}
                       onChange={(e) => formMethods.setValue("seatsShowAttendees", e.target.checked)}
                       defaultChecked={!!eventType.seatsShowAttendees}

@@ -160,6 +160,10 @@ export default class GoogleCalendarService implements Calendar {
   async updateEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<any> {
     return new Promise(async (resolve, reject) => {
       const myGoogleAuth = await this.auth.getToken();
+      const eventAttendees = event.attendees.map(({ id, ...rest }) => ({
+        ...rest,
+        responseStatus: "accepted",
+      }));
       const payload: calendar_v3.Schema$Event = {
         summary: event.title,
         description: getRichDescription(event),
@@ -179,10 +183,7 @@ export default class GoogleCalendarService implements Calendar {
             responseStatus: "accepted",
           },
           // eslint-disable-next-line
-          ...event.attendees.map(({ id, ...rest }) => ({
-            ...rest,
-            responseStatus: "accepted",
-          })),
+          ...eventAttendees,
         ],
         reminders: {
           useDefault: true,

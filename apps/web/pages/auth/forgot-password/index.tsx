@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { SyntheticEvent } from "react";
 
-import { EmailField, Button } from "@calcom/ui/v2";
+import { Button, EmailField } from "@calcom/ui/components";
 
 import { getSession } from "@lib/auth";
 import { useLocale } from "@lib/hooks/useLocale";
