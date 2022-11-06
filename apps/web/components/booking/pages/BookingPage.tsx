@@ -40,6 +40,7 @@ import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
+import AddressInput from "@calcom/ui/form/AddressInputLazy";
 import { Button } from "@calcom/ui/components";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { EmailInput, Form } from "@calcom/ui/form/fields";
@@ -68,6 +69,8 @@ type BookingFormValues = {
   notes?: string;
   locationType?: EventLocationType["type"];
   guests?: string[];
+  address?: string;
+  attendeeAddress?: string;
   phone?: string;
   hostPhoneNumber?: string; // Maybe come up with a better way to name this to distingish between two types of phone numbers
   customInputs?: {
@@ -269,6 +272,7 @@ const BookingPage = ({
         .refine((val) => isValidPhoneNumber(val))
         .optional()
         .nullable(),
+      attendeeAddress: z.string().optional().nullable(),
       smsReminderNumber: z
         .string()
         .refine((val) => isValidPhoneNumber(val))
@@ -297,10 +301,10 @@ const BookingPage = ({
 
   const selectedLocation = getEventLocationType(selectedLocationType);
   const AttendeeInput =
-    selectedLocation?.attendeeInputType === "text"
-      ? "input"
-      : selectedLocation?.attendeeInputType === "phone"
+    selectedLocation?.attendeeInputType === "phone"
       ? PhoneInput
+      : selectedLocation?.attendeeInputType === "attendeeAddress"
+      ? AddressInput
       : null;
 
   // Calculate the booking date(s)
@@ -356,6 +360,7 @@ const BookingPage = ({
         location: getEventLocationValue(locations, {
           type: booking.locationType ? booking.locationType : selectedLocationType || "",
           phone: booking.phone,
+          attendeeAddress: booking.attendeeAddress,
         }),
         metadata,
         customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
@@ -386,6 +391,7 @@ const BookingPage = ({
         location: getEventLocationValue(locations, {
           type: (booking.locationType ? booking.locationType : selectedLocationType) || "",
           phone: booking.phone,
+          attendeeAddress: booking.attendeeAddress,
         }),
         metadata,
         customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
@@ -648,16 +654,39 @@ const BookingPage = ({
                 {AttendeeInput && (
                   <div className="mb-4">
                     <label
-                      htmlFor="phone"
+                      htmlFor={
+                        selectedLocationType === LocationType.Phone
+                          ? "phone"
+                          : selectedLocationType === LocationType.AttendeeInPerson
+                          ? "attendeeAddress"
+                          : ""
+                      }
                       className="block text-sm font-medium text-gray-700 dark:text-white">
-                      {t("phone_number")}
+                      {selectedLocationType === LocationType.Phone
+                        ? t("phone_number")
+                        : selectedLocationType === LocationType.AttendeeInPerson
+                        ? t("Address")
+                        : ""}
                     </label>
                     <div className="mt-1">
                       <AttendeeInput<BookingFormValues>
                         control={bookingForm.control}
-                        name="phone"
+                        bookingForm={bookingForm}
+                        name={
+                          selectedLocationType === LocationType.Phone
+                            ? "phone"
+                            : selectedLocationType === LocationType.AttendeeInPerson
+                            ? "attendeeAddress"
+                            : ""
+                        }
                         placeholder={t(selectedLocation?.attendeeInputPlaceholder || "")}
-                        id="phone"
+                        id={
+                          selectedLocationType === LocationType.Phone
+                            ? "phone"
+                            : selectedLocationType === LocationType.AttendeeInPerson
+                            ? "attendeeAddress"
+                            : ""
+                        }
                         required
                         disabled={disableInput}
                       />
