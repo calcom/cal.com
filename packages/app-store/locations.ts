@@ -16,8 +16,8 @@ export type DefaultEventLocationType = {
   iconUrl: string;
 
   // HACK: `variable` and `defaultValueVariable` are required due to legacy reason where different locations were stored in different places.
-  variable: "locationType" | "locationAddress" | "locationLink" | "locationPhoneNumber" | "phone";
-  defaultValueVariable: "address" | "link" | "hostPhoneNumber" | "phone";
+  variable: "locationType" | "locationAddress" | "address" | "locationLink" | "locationPhoneNumber" | "phone";
+  defaultValueVariable: "address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "phone";
 } & (
   | {
       organizerInputType: "phone" | "text" | null;
@@ -26,7 +26,7 @@ export type DefaultEventLocationType = {
       attendeeInputPlaceholder?: null;
     }
   | {
-      attendeeInputType: "phone" | "text" | null;
+      attendeeInputType: "phone" | "attendeeAddress" | null;
       attendeeInputPlaceholder: string;
       organizerInputType?: null;
       organizerInputPlaceholder?: null;
@@ -40,6 +40,13 @@ export type EventLocationType = DefaultEventLocationType | EventLocationTypeFrom
 export const DailyLocationType = "integrations:daily";
 
 export enum DefaultEventLocationTypeEnum {
+  /**
+   * Booker Address
+   */
+  AttendeeInPerson = "attendeeInPerson",
+  /**
+   * Organizer Address
+   */
   InPerson = "inPerson",
   /**
    * Booker Phone
@@ -55,8 +62,20 @@ export enum DefaultEventLocationTypeEnum {
 export const defaultLocations: DefaultEventLocationType[] = [
   {
     default: true,
+    type: DefaultEventLocationTypeEnum.AttendeeInPerson,
+    label: "In Person (Attendee Address)",
+    variable: "address",
+    organizerInputType: null,
+    messageForOrganizer: "Cal will ask your invitee to enter an address before scheduling.",
+    attendeeInputType: "attendeeAddress",
+    attendeeInputPlaceholder: `Enter Address`,
+    defaultValueVariable: "attendeeAddress",
+    iconUrl: "/map-pin.svg",
+  },
+  {
+    default: true,
     type: DefaultEventLocationTypeEnum.InPerson,
-    label: "In Person",
+    label: "In Person (Organizer Address)",
     organizerInputType: "text",
     messageForOrganizer: "Provide an Address or Place",
     // HACK:
@@ -103,7 +122,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
 export type LocationObject = {
   type: string;
   displayLocationPublicly?: boolean;
-} & Partial<Record<"address" | "link" | "hostPhoneNumber" | "phone", string>>;
+} & Partial<Record<"address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "phone", string>>;
 
 // integrations:jitsi | 919999999999 | Delhi | https://manual.meeting.link | Around Video
 export type BookingLocationValue = string;
