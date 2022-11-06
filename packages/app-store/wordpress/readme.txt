@@ -54,3 +54,7 @@ Example:
     cursor: pointer;
 }
 `
+
+== Use of  3rd Party Software ==
+
+This plugin relies on [Cal.com embed](https://cal.com). See their [Privacy Policy](https://cal.com/privacy) and [Terms of use](https://cal.com/terms).

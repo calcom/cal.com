@@ -2,7 +2,7 @@
 
 namespace CalCom;
 
-defined('ABSPATH') || exit;
+defined('ABSPATH') || die();
 
 class Embed
 {

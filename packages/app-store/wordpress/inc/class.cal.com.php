@@ -2,7 +2,7 @@
 
 namespace CalCom;
 
-defined('ABSPATH') || exit;
+defined('ABSPATH') || die();
 
 class Cal
 {
@@ -10,7 +10,7 @@ class Cal
 
     private function includes(): void
     {
-        include_once(CALCOM_DIR_PATH . 'inc/class.embed.php');
+        include_once CALCOM_DIR_PATH . 'inc/class.embed.php';
     }
 
     private function __construct()
