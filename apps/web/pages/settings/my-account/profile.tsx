@@ -69,7 +69,10 @@ const ProfileView = () => {
   const [currentUsername, setCurrentUsername] = useState<string | undefined>(user?.username || undefined);
   const [inputUsernameValue, setInputUsernameValue] = useState(currentUsername);
   useEffect(() => {
-    if (user?.username) setCurrentUsername(user?.username);
+    if (user?.username) {
+      formMethods.setValue("username", user.username);
+      setCurrentUsername(user?.username);
+    }
   }, [user?.username]);
   const form = useForm<DeleteAccountValues>();
 
