@@ -784,9 +784,11 @@ export const viewerTeamsRouter = createProtectedRouter()
   })
   .query("retrieveTemporaryTeam", {
     input: z.object({
-      temporarySlug: z.string(),
+      temporarySlug: z.union[(z.string(), z.null())],
     }),
     async resolve({ ctx, input }) {
-      return;
+      if (!input.temporarySlug) {
+        return;
+      }
     },
   });

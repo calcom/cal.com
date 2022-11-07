@@ -1,3 +1,4 @@
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -5,6 +6,7 @@ import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberIn
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Avatar } from "@calcom/ui/components/avatar";
@@ -31,6 +33,7 @@ const AddNewTeamMembers = ({
   deleteNewTeamMember: (email: string) => void;
 }) => {
   const { t } = useLocale();
+  const session = useSession();
 
   const [memberInviteModal, setMemberInviteModal] = useState(false);
   const [inviteMemberInput, setInviteMemberInput] = useState<NewMemberForm>({
@@ -40,17 +43,47 @@ const AddNewTeamMembers = ({
   });
   const [skeletonMember, setSkeletonMember] = useState(false);
   const [billingFrequency, setBillingFrequency] = useState("monthly");
-
+  const [team, setTeam] = useState();
   const numberOfMembers = newTeamData.members.length;
 
   const formMethods = useForm({
     defaultValues: {
       members: newTeamData.members,
-      billingFrequency: "monthly",
     },
   });
 
-  const { refetch } = trpc.useQuery(["viewer.teams.findUser", inviteMemberInput], {
+  // Set current user as team owner
+  // useEffect(() => {
+  //   if (!session.data) router.push(`${CAL_URL}/settings/profile`);
+  //   if (session.status !== "loading" && !team.length) {
+  //     setNewTeamData({
+  //       ...newTeamData,
+  //       members: [
+  //         {
+  //           name: session?.data?.user.name || "",
+  //           email: session?.data?.user.email || "",
+  //           username: session?.data?.user.username || "",
+  //           id: session?.data?.user.id,
+  //           avatar: session?.data?.user.avatar || "",
+  //           role: "OWNER",
+  //           locale: session?.data?.user.locale || "en",
+  //         },
+  //       ],
+  //     });
+  //   }
+  //   /* eslint-disable */
+  // }, [session, team]);
+
+  const retrieveTemporaryTeam = trpc.useQuery(
+    ["viewer.teams.retrieveTemporaryTeam", { temporarySlug: localStorage.getItem("temporaryTeamSlug") }],
+    {
+      onSuccess: (data) => {
+        if (data) setTeam(data);
+      },
+    }
+  );
+
+  const findUser = trpc.useQuery(["viewer.teams.findUser", inviteMemberInput], {
     refetchOnWindowFocus: false,
     enabled: false,
     onSuccess: (newMember) => {
@@ -65,7 +98,7 @@ const AddNewTeamMembers = ({
 
   useEffect(() => {
     if (inviteMemberInput.emailOrUsername) {
-      refetch();
+      findUser.refetch();
     }
     // eslint-disable-next-line
   }, [inviteMemberInput]);
@@ -83,7 +116,7 @@ const AddNewTeamMembers = ({
           <div>
             <ul className="rounded-md border">
               {newTeamData.members &&
-                newTeamData.members.map((member: PendingMember, index: number) => (
+                team.members.map((member: PendingMember, index: number) => (
                   <li
                     key={member.email}
                     className={classNames(

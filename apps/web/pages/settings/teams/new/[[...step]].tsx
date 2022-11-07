@@ -20,6 +20,7 @@ import {
 import { CAL_URL } from "@calcom/lib/constants";
 import { STRIPE_PUBLISHABLE_KEY } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { showToast } from "@calcom/ui/v2";
 
@@ -67,30 +68,9 @@ const CreateNewTeamPage = () => {
   const result = stepRouteSchema.safeParse(router.query);
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
 
-  // Set current user as team owner
-  useEffect(() => {
-    if (!session.data) router.push(`${CAL_URL}/settings/profile`);
-    if (session.status !== "loading" && !newTeamData.members.length) {
-      setNewTeamData({
-        ...newTeamData,
-        members: [
-          {
-            name: session?.data?.user.name || "",
-            email: session?.data?.user.email || "",
-            username: session?.data?.user.username || "",
-            id: session?.data?.user.id,
-            avatar: session?.data?.user.avatar || "",
-            role: "OWNER",
-            locale: session?.data?.user.locale || "en",
-          },
-        ],
-      });
-    }
-    /* eslint-disable */
-  }, [session]);
-
   const createTemporaryTeamMutation = trpc.useMutation(["viewer.teams.createTemporaryTeam"], {
-    onSuccess: () => {
+    onSuccess: (data) => {
+      localStorage.setItem("temporaryTeamSlug", data.metadata.temporarySlug);
       goToIndex(1);
     },
   });
