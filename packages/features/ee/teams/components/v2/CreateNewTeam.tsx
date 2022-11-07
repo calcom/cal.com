@@ -22,26 +22,13 @@ const CreateANewTeamForm = ({
   const newTeamFormMethods = useForm<NewTeamFormValues>({
     defaultValues: {
       name: newTeamData?.name || "",
-      slug: newTeamData?.slug || "",
+      temporarySlug: newTeamData?.temporarySlug || "",
       logo: newTeamData?.logo || "",
     },
   });
 
-  const validateTeamNameQuery = trpc.useQuery(
-    ["viewer.teams.validateTeamName", { name: newTeamFormMethods.watch("name") }],
-    {
-      enabled: false,
-      refetchOnWindowFocus: false,
-    }
-  );
-
-  const validateTeamName = async () => {
-    await validateTeamNameQuery.refetch();
-    if (validateTeamNameQuery.data) return validateTeamNameQuery.data || t("team_name_taken");
-  };
-
   const validateTeamSlugQuery = trpc.useQuery(
-    ["viewer.teams.validateTeamSlug", { slug: newTeamFormMethods.watch("slug") }],
+    ["viewer.teams.validateTeamSlug", { temporarySlug: newTeamFormMethods.watch("temporarySlug") }],
     {
       enabled: false,
       refetchOnWindowFocus: false,
@@ -50,14 +37,14 @@ const CreateANewTeamForm = ({
 
   const validateTeamSlug = async () => {
     await validateTeamSlugQuery.refetch();
-    if (validateTeamSlugQuery.data) return validateTeamSlugQuery.data || t("team_url_taken");
+    if (validateTeamSlugQuery.isFetched) return validateTeamSlugQuery.data || t("team_url_taken");
   };
 
   return (
     <>
       <Form
         form={newTeamFormMethods}
-        handleSubmit={(values) => {
+        handleSubmit={async (values) => {
           nextStep(values);
         }}>
         <div className="mb-8">
@@ -66,7 +53,6 @@ const CreateANewTeamForm = ({
             control={newTeamFormMethods.control}
             defaultValue=""
             rules={{
-              validate: async () => validateTeamName(),
               required: t("must_enter_team_name"),
             }}
             render={({ field: { value } }) => (
@@ -78,8 +64,8 @@ const CreateANewTeamForm = ({
                   value={value}
                   onChange={(e) => {
                     newTeamFormMethods.setValue("name", e?.target.value);
-                    if (newTeamFormMethods.formState.touchedFields["slug"] === undefined) {
-                      newTeamFormMethods.setValue("slug", slugify(e?.target.value));
+                    if (newTeamFormMethods.formState.touchedFields["temporarySlug"] === undefined) {
+                      newTeamFormMethods.setValue("temporarySlug", slugify(e?.target.value));
                     }
                   }}
                   autoComplete="off"
@@ -91,18 +77,20 @@ const CreateANewTeamForm = ({
 
         <div className="mb-8">
           <Controller
-            name="slug"
+            name="temporarySlug"
             control={newTeamFormMethods.control}
-            rules={{ required: t("team_url_required"), validate: async () => validateTeamSlug() }}
+            rules={{ required: t("team_url_required"), validate: async () => await validateTeamSlug() }}
             render={({ field: { value } }) => (
               <TextField
                 className="mt-2"
-                name="slug"
+                name="temporarySlug"
                 label={t("team_url")}
                 addOnLeading={`${WEBAPP_URL}/team/`}
                 value={value}
                 onChange={(e) => {
-                  newTeamFormMethods.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
+                  newTeamFormMethods.setValue("temporarySlug", slugify(e?.target.value), {
+                    shouldTouch: true,
+                  });
                 }}
               />
             )}

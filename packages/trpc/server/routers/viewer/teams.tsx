@@ -556,31 +556,16 @@ export const viewerTeamsRouter = createProtectedRouter()
       });
     },
   })
-  .query("validateTeamName", {
-    input: z.object({
-      name: z.string(),
-    }),
-    async resolve({ ctx, input }) {
-      const team = await ctx.prisma.team.findFirst({
-        where: {
-          name: input.name,
-        },
-      });
-
-      return !team;
-    },
-  })
   .query("validateTeamSlug", {
     input: z.object({
-      slug: z.string(),
+      temporarySlug: z.string(),
     }),
     async resolve({ ctx, input }) {
       const team = await ctx.prisma.team.findFirst({
         where: {
-          slug: input.slug,
+          slug: input.temporarySlug,
         },
       });
-
       return !team;
     },
   })
@@ -767,5 +752,41 @@ export const viewerTeamsRouter = createProtectedRouter()
       }
 
       return createTeam;
+    },
+  })
+  .mutation("createTemporaryTeam", {
+    input: z.object({
+      name: z.string(),
+      temporarySlug: z.string(),
+      logo: z.string().optional(),
+    }),
+    async resolve({ ctx, input }) {
+      const { name, temporarySlug, logo } = input;
+      const createTempraryTeam = await ctx.prisma.team.create({
+        data: {
+          name,
+          logo,
+          members: {
+            create: {
+              userId: ctx.user.id,
+              role: MembershipRole.OWNER,
+              accepted: true,
+            },
+          },
+          subscriptionStatus: "PENDING",
+          metadata: {
+            temporarySlug,
+          },
+        },
+      });
+      return createTempraryTeam;
+    },
+  })
+  .query("retrieveTemporaryTeam", {
+    input: z.object({
+      temporarySlug: z.string(),
+    }),
+    async resolve({ ctx, input }) {
+      return;
     },
   });

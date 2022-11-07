@@ -50,7 +50,7 @@ const CreateNewTeamPage = () => {
   const router = useRouter();
   const [newTeamData, setNewTeamData] = useState<NewTeamData>({
     name: "",
-    slug: "",
+    temporarySlug: "",
     logo: "",
     members: [],
     billingFrequency: "monthly",
@@ -89,6 +89,11 @@ const CreateNewTeamPage = () => {
     /* eslint-disable */
   }, [session]);
 
+  const createTemporaryTeamMutation = trpc.useMutation(["viewer.teams.createTemporaryTeam"], {
+    onSuccess: () => {
+      goToIndex(1);
+    },
+  });
   const headers = [
     {
       title: `${t("create_new_team")}`,
@@ -178,11 +183,14 @@ const CreateNewTeamPage = () => {
             <StepCard>
               {currentStep === "create-a-new-team" && (
                 <CreateNewTeam
-                  newTeamData={newTeamData}
-                  nextStep={(values: NewTeamFormValues) => {
-                    setNewTeamData({ ...newTeamData, ...values });
-                    goToIndex(1);
+                  nextStep={(values) => {
+                    createTemporaryTeamMutation.mutate(values);
                   }}
+                  // newTeamData={newTeamData}
+                  // nextStep={(values: NewTeamFormValues) => {
+                  //   setNewTeamData({ ...newTeamData, ...values });
+                  //   goToIndex(1);
+                  // }}
                 />
               )}
 
