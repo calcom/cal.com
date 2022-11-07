@@ -32,7 +32,6 @@ import {
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import { WEBSITE_DOMAIN } from "@calcom/lib/constants";
-import { formatTime } from "@calcom/lib/date-fns";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
