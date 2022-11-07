@@ -8,5 +8,7 @@
 CREATE TYPE "SubscriptionStatus" AS ENUM ('PENDING', 'ACTIVE');
 
 -- AlterTable
-ALTER TABLE "Team" ADD COLUMN     "metadata" JSONB,
-ADD COLUMN     "subscriptionStatus" "SubscriptionStatus" NOT NULL;
+ALTER TABLE "Team" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "metadata" JSONB,
+ADD COLUMN     "subscriptionStatus" "SubscriptionStatus" NOT NULL,
+ALTER COLUMN "slug" DROP NOT NULL;
