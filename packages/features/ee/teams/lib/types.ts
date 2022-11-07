@@ -4,7 +4,7 @@ export interface NewTeamMembersFieldArray {
 
 export interface NewTeamFormValues {
   name: string;
-  slug: string;
+  temporarySlug: string;
   logo: string;
 }
 

@@ -36,6 +36,11 @@ const AddNewTeamMembers = (props: { nextStep: (values: PendingMember[]) => void 
     name: "members",
   });
 
+  const retrieveTemporaryTeam = trpc.useQuery([
+    "viewer.teams.retrieveTemporaryTeam",
+    { temporarySlug: localStorage.getItem("temporaryTeamSlug") },
+  ]);
+
   const { refetch } = trpc.useQuery(["viewer.teams.findUser", inviteMemberInput], {
     refetchOnWindowFocus: false,
     enabled: false,
@@ -50,24 +55,24 @@ const AddNewTeamMembers = (props: { nextStep: (values: PendingMember[]) => void 
     },
   });
 
-  useEffect(() => {
-    const newTeamValues = localStorage.getItem("newTeamValues");
-    if (!newTeamValues) router.push("/settings");
-  }, []);
+  // useEffect(() => {
+  //   const newTeamValues = localStorage.getItem("newTeamValues");
+  //   if (!newTeamValues) router.push("/settings");
+  // }, []);
 
   // Set current user as team owner
-  useEffect(() => {
-    if (session.status !== "loading" && !formMethods.getValues("members").length) {
-      membersFieldArray.append({
-        name: session?.data.user.name || "",
-        email: session?.data.user.email || "",
-        username: session?.data.user.username || "",
-        userId: session?.data.user.id || "",
-        role: "OWNER",
-      });
-    }
-    /* eslint-disable */
-  }, [session]);
+  // useEffect(() => {
+  //   if (session.status !== "loading" && !formMethods.getValues("members").length) {
+  //     membersFieldArray.append({
+  //       name: session?.data.user.name || "",
+  //       email: session?.data.user.email || "",
+  //       username: session?.data.user.username || "",
+  //       userId: session?.data.user.id || "",
+  //       role: "OWNER",
+  //     });
+  //   }
+  //   /* eslint-disable */
+  // }, [session]);
 
   useEffect(() => {
     if (inviteMemberInput.emailOrUsername) {

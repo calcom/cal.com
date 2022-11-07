@@ -39,7 +39,7 @@ const CreateNewTeamPage = () => {
   const router = useRouter();
   const [newTeamData, setNewTeamData] = useState<NewTeamFormValues & NewTeamMembersFieldArray>({
     name: "",
-    slug: "",
+    temporarySlug: "",
     logo: "",
     members: [],
   });
@@ -48,6 +48,13 @@ const CreateNewTeamPage = () => {
 
   const result = stepRouteSchema.safeParse(router.query);
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
+
+  const createTemporaryTeamMutation = trpc.useMutation(["viewer.teams.createTemporaryTeam"], {
+    onSuccess: (data) => {
+      localStorage.setItem("temporaryTeamSlug", data?.metadata?.temporarySlug);
+      goToIndex(1);
+    },
+  });
 
   const headers = [
     {
@@ -112,11 +119,15 @@ const CreateNewTeamPage = () => {
             <StepCard>
               {currentStep === "create-a-new-team" && (
                 <CreateNewTeam
-                  nextStep={(values: NewTeamFormValues) => {
-                    setNewTeamData({ ...values, members: [] });
-                    localStorage.setItem("newTeamValues", JSON.stringify(values));
-                    goToIndex(1);
+                  nextStep={(values) => {
+                    console.log("🚀 ~ file: [[...step]].tsx ~ line 123 ~ CreateNewTeamPage ~ values", values);
+                    createTemporaryTeamMutation.mutate(values);
                   }}
+                  // nextStep={(values: NewTeamFormValues) => {
+                  //   setNewTeamData({ ...values, members: [] });
+                  //   localStorage.setItem("newTeamValues", JSON.stringify(values));
+                  //   goToIndex(1);
+                  // }}
                 />
               )}
 

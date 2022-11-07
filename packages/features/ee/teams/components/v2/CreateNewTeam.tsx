@@ -15,41 +15,23 @@ import { NewTeamFormValues } from "../../lib/types";
 
 const CreateANewTeamForm = (props: { nextStep: (values: NewTeamFormValues) => void }) => {
   const { t } = useLocale();
-  const storedTeamData = localStorage.getItem("newTeamValues")
-    ? JSON.parse(localStorage.getItem("newTeamValues"))
-    : "";
-  const newTeamFormMethods = useForm<NewTeamFormValues>({
-    defaultValues: {
-      name: storedTeamData?.name || "",
-      slug: storedTeamData?.slug || "",
-      logo: storedTeamData?.avatar || "",
-    },
-  });
-
-  const validateTeamNameQuery = trpc.useQuery(
-    ["viewer.teams.validateTeamName", { name: newTeamFormMethods.watch("name") }],
-    {
-      enabled: false,
-      refetchOnWindowFocus: false,
-    }
-  );
-
-  const validateTeamName = async () => {
-    await validateTeamNameQuery.refetch();
-    return validateTeamNameQuery.data || t("team_name_taken");
-  };
+  const newTeamFormMethods = useForm<NewTeamFormValues>();
 
   const validateTeamSlugQuery = trpc.useQuery(
-    ["viewer.teams.validateTeamSlug", { slug: newTeamFormMethods.watch("slug") }],
+    ["viewer.teams.validateTeamSlug", { slug: newTeamFormMethods.watch("temporarySlug") }],
     {
       enabled: false,
       refetchOnWindowFocus: false,
+      onSuccess: (data) => {
+        console.log("🚀 ~ file: CreateNewTeam.tsx ~ line 26 ~ CreateANewTeamForm ~ data", data);
+      },
     }
   );
 
   const validateTeamSlug = async () => {
+    console.log("This triggers");
     await validateTeamSlugQuery.refetch();
-    return validateTeamSlugQuery.data || t("team_url_taken");
+    if (validateTeamSlugQuery.isFetched) return validateTeamSlugQuery.data || t("team_url_taken");
   };
 
   return (
@@ -57,6 +39,7 @@ const CreateANewTeamForm = (props: { nextStep: (values: NewTeamFormValues) => vo
       <Form
         form={newTeamFormMethods}
         handleSubmit={(values) => {
+          console.log("🚀 ~ file: CreateNewTeam.tsx ~ line 47 ~ CreateANewTeamForm ~ values", values);
           props.nextStep(values);
         }}>
         <div className="mb-8">
@@ -65,7 +48,6 @@ const CreateANewTeamForm = (props: { nextStep: (values: NewTeamFormValues) => vo
             control={newTeamFormMethods.control}
             defaultValue=""
             rules={{
-              validate: async () => validateTeamName(),
               required: t("must_enter_team_name"),
             }}
             render={({ field: { value } }) => (
@@ -77,8 +59,8 @@ const CreateANewTeamForm = (props: { nextStep: (values: NewTeamFormValues) => vo
                   value={value}
                   onChange={(e) => {
                     newTeamFormMethods.setValue("name", e?.target.value);
-                    if (newTeamFormMethods.formState.touchedFields["slug"] === undefined) {
-                      newTeamFormMethods.setValue("slug", slugify(e?.target.value));
+                    if (newTeamFormMethods.formState.touchedFields["temporarySlug"] === undefined) {
+                      newTeamFormMethods.setValue("temporarySlug", slugify(e?.target.value));
                     }
                   }}
                   autoComplete="off"
@@ -90,23 +72,26 @@ const CreateANewTeamForm = (props: { nextStep: (values: NewTeamFormValues) => vo
 
         <div className="mb-8">
           <Controller
-            name="slug"
+            name="temporarySlug"
             control={newTeamFormMethods.control}
-            rules={{ required: t("team_url_required"), validate: async () => validateTeamSlug() }}
+            rules={{ required: t("team_url_required"), validate: async () => await validateTeamSlug() }}
             render={({ field: { value } }) => (
               <TextField
                 className="mt-2"
-                name="slug"
+                name="temporarySlug"
                 label={t("team_url")}
                 addOnLeading={`${WEBAPP_URL}/team/`}
                 value={value}
                 onChange={(e) => {
-                  newTeamFormMethods.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
+                  newTeamFormMethods.setValue("temporarySlug", slugify(e?.target.value), {
+                    shouldTouch: true,
+                  });
                 }}
               />
             )}
           />
         </div>
+
         <div className="mb-8">
           <Controller
             control={newTeamFormMethods.control}
@@ -129,19 +114,12 @@ const CreateANewTeamForm = (props: { nextStep: (values: NewTeamFormValues) => vo
             )}
           />
         </div>
+
         <div className="flex space-x-2">
           <Button color="secondary" href="/settings" className="w-full justify-center">
             {t("cancel")}
           </Button>
-          <Button
-            color="primary"
-            type="submit"
-            // onClick={() => {
-            //   console.log(newTeamFormMethods.getValues());
-            //   props.nextStep();
-            // }}
-            EndIcon={Icon.FiArrowRight}
-            className="w-full justify-center">
+          <Button color="primary" type="submit" EndIcon={Icon.FiArrowRight} className="w-full justify-center">
             {t("continue")}
           </Button>
         </div>

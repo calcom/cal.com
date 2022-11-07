@@ -24,6 +24,7 @@ import {
 } from "@calcom/lib/sync/SyncServiceManager";
 import { availabilityUserSelect } from "@calcom/prisma";
 
+import { contextProps } from "@trpc/react/dist/internals/context";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter } from "../../createRouter";
@@ -606,20 +607,6 @@ export const viewerTeamsRouter = createProtectedRouter()
       });
     },
   })
-  .query("validateTeamName", {
-    input: z.object({
-      name: z.string(),
-    }),
-    async resolve({ ctx, input }) {
-      const team = await ctx.prisma.team.findFirst({
-        where: {
-          name: input.name,
-        },
-      });
-
-      return !team;
-    },
-  })
   .query("validateTeamSlug", {
     input: z.object({
       slug: z.string(),
@@ -674,5 +661,62 @@ export const viewerTeamsRouter = createProtectedRouter()
         role: input.role.value,
         sendInviteEmail: input.sendInviteEmail,
       };
+    },
+  })
+  .mutation("createTemporaryTeam", {
+    input: z.object({
+      name: z.string(),
+      temporarySlug: z.string(),
+      logo: z.string().optional(),
+    }),
+    async resolve({ ctx, input }) {
+      const { name, temporarySlug, logo } = input;
+      const createTempraryTeam = await ctx.prisma.team.create({
+        data: {
+          name,
+          logo,
+          members: {
+            create: {
+              userId: ctx.user.id,
+              role: MembershipRole.OWNER,
+              accepted: true,
+            },
+          },
+          subscriptionStatus: "PENDING",
+          metadata: {
+            temporarySlug,
+          },
+        },
+      });
+      return createTempraryTeam;
+    },
+  })
+  .query("retrieveTemporaryTeam", {
+    input: z.object({
+      temporarySlug: z.union([z.string(), z.null()]),
+    }),
+    async resolve({ ctx, input }) {
+      if (!input.temporarySlug) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Could not find team in DB or local storage",
+        });
+      }
+
+      const temporaryTeam = await ctx.prisma.team.findFirst({
+        where: {
+          members: {
+            userId: ctx.user.id,
+            role: "OWNER",
+          },
+          metadata: {
+            equals: {
+              temporarySlug: input.temporarySlug,
+            },
+          },
+        },
+      });
+
+      return temporaryTeam;
     },
   });
