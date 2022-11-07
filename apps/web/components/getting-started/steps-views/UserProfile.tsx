@@ -75,6 +75,7 @@ const UserProfile = (props: IUserProfile) => {
     mutation.mutate({
       bio,
       completedOnboarding: true,
+      weekStart: "Monday",
     });
   });
 
