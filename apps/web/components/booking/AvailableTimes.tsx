@@ -83,7 +83,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
               pathname: router.pathname.endsWith("/embed") ? "../book" : "book",
               query: {
                 ...router.query,
-                date: dayjs(slot.time).format(),
+                date: dayjs.utc(slot.time).tz(timeZone()).format(),
                 type: eventTypeId,
                 slug: eventTypeSlug,
                 /** Treat as recurring only when a count exist and it's not a rescheduling workflow */

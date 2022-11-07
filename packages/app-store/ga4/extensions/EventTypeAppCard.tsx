@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
-import { TextField } from "@calcom/ui/v2";
+import { TextField } from "@calcom/ui/components/form";
 
 import { appDataSchema } from "../zod";
 
