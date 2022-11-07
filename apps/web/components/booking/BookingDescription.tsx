@@ -35,7 +35,10 @@ interface Props {
   children: ReactNode;
   isMobile?: boolean;
   rescheduleUid?: string;
-  user?: TeamBookingPageProps["user"] | BookPageProps["user"] | HashLinkPageProps["user"];
+  user?:
+    | TeamBookingPageProps["userToBeBooked"]
+    | BookPageProps["userToBeBooked"]
+    | HashLinkPageProps["userToBeBooked"];
 }
 
 const BookingDescription: FC<Props> = (props) => {
