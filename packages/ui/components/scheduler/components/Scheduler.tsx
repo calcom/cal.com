@@ -88,12 +88,26 @@ export function Scheduler(props: SchedulerComponentProps) {
                 style={{
                   gridTemplateRows: `1.75rem repeat(${numberOfGridStopsPerDay}, minmax(0, 1fr)) auto`,
                 }}>
-                <li className="relative flex sm:col-start-1" style={{ gridRow: "2 / span 4" }}>
-                  <a
-                    href="#"
-                    className="group absolute inset-x-1 flex h-full flex-col overflow-y-auto rounded-lg bg-blue-50 p-2 text-xs leading-5 hover:bg-blue-100"
-                  />
-                </li>
+                {events.map((event) => {
+                  const foundDay = days.findIndex((day) => day.isSame(event.start, "day"));
+                  if (foundDay === -1) return null;
+                  return (
+                    <>
+                      <li
+                        className="relative flex sm:col-start-1"
+                        style={{
+                          gridRow: "2 / span 4",
+                          gridColumnStart: foundDay,
+                        }}>
+                        <a
+                          href="#"
+                          className="group absolute inset-x-1 flex h-full flex-col overflow-y-auto rounded-lg bg-blue-50 p-2 text-xs leading-5 hover:bg-blue-100">
+                          {event.start.toISOString()}
+                        </a>
+                      </li>
+                    </>
+                  );
+                })}
               </ol>
             </div>
           </div>

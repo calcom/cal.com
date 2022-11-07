@@ -2,7 +2,7 @@ import dayjs from "@calcom/dayjs";
 
 import { SchedulerEvent } from "./types/events";
 
-const startDate = dayjs().add(1, "D").set("hour", 13).set("minute", 0);
+const startDate = dayjs().add(2, "D").set("hour", 11).set("minute", 0);
 
 export const Events: SchedulerEvent[] = [
   {
