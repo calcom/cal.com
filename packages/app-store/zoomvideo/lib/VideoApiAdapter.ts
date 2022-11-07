@@ -326,6 +326,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
 
 const handleZoomResponse = async (response: Response, credentialId: Credential["id"]) => {
   let _response = response.clone();
+  const responseClone = response.clone();
   if (_response.headers.get("content-encoding") === "gzip") {
     const responseString = await response.text();
     _response = JSON.parse(responseString);
@@ -339,7 +340,7 @@ const handleZoomResponse = async (response: Response, credentialId: Credential["
     throw Error(response.statusText);
   }
 
-  return response.json();
+  return responseClone.json();
 };
 
 const invalidateCredential = async (credentialId: Credential["id"]) => {

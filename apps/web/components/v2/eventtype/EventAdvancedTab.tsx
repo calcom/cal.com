@@ -54,7 +54,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
     <div className="flex flex-col space-y-8">
       {/**
        * Only display calendar selector if user has connected calendars AND if it's not
-       * a team event. Since we don't have logic to handle each attende calendar (for now).
+       * a team event. Since we don't have logic to handle each attendee calendar (for now).
        * This will fallback to each user selected destination calendar.
        */}
       {!!connectedCalendarsQuery.data?.connectedCalendars.length && !team && (
@@ -292,7 +292,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
             description={t("offer_seats_description")}
             checked={value}
             onCheckedChange={(e) => {
-              // Enabling seats will disable guests and requiring confimation until fully supported
+              // Enabling seats will disable guests and requiring confirmation until fully supported
               if (e) {
                 formMethods.setValue("disableGuests", true);
                 formMethods.setValue("requiresConfirmation", false);
@@ -316,9 +316,10 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                     label={t("number_of_seats")}
                     type="number"
                     defaultValue={value || 2}
+                    min={1}
                     addOnSuffix={<>{t("seats")}</>}
                     onChange={(e) => {
-                      onChange(Number(e.target.value));
+                      onChange(Math.abs(Number(e.target.value)));
                     }}
                   />
                   <div className="mt-2">
