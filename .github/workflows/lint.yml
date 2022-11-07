@@ -30,8 +30,12 @@ jobs:
         if: steps.yarn-cache.outputs.cache-hit != 'true'
         run: yarn --frozen-lockfile
 
+      - name: Test Code Linting
+        run: yarn lint
+
       - name: Lint
         run: yarn lint:report
+        continue-on-error: true
 
       - name: Merge lint reports
         run: jq -s '[.[]]|flatten' lint-results/*.json &> lint-results/eslint_report.json
