@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { debounce } from "lodash";
 import { useRouter } from "next/router";
-import { MutableRefObject, useCallback, useEffect, useState } from "react";
+import { MutableRefObject, useMemo, useEffect, useState } from "react";
 
 import { getPremiumPlanMode, getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
@@ -24,7 +24,6 @@ export enum UsernameChangeStatusEnum {
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
-  setCurrentUsername: (value: string | undefined) => void;
   inputUsernameValue: string | undefined;
   usernameRef: MutableRefObject<HTMLInputElement | null>;
   setInputUsernameValue: (value: string) => void;
@@ -73,7 +72,6 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const { t } = useLocale();
   const {
     currentUsername,
-    setCurrentUsername,
     inputUsernameValue,
     setInputUsernameValue,
     usernameRef,
@@ -91,13 +89,14 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const isCurrentUsernamePremium =
     user && user.metadata && hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
   const [isInputUsernamePremium, setIsInputUsernamePremium] = useState(false);
-  const debouncedApiCall = useCallback(
-    debounce(async (username: string) => {
-      const { data } = await fetchUsername(username);
-      setMarkAsError(!data.available && !!currentUsername && username !== currentUsername);
-      setIsInputUsernamePremium(data.premium);
-      setUsernameIsAvailable(data.available);
-    }, 150),
+  const debouncedApiCall = useMemo(
+    () =>
+      debounce(async (username: string) => {
+        const { data } = await fetchUsername(username);
+        setMarkAsError(!data.available && !!currentUsername && username !== currentUsername);
+        setIsInputUsernamePremium(data.premium);
+        setUsernameIsAvailable(data.available);
+      }, 150),
     []
   );
 
@@ -107,7 +106,10 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   }, [setInputUsernameValue, currentUsername, stripeCustomer?.username]);
 
   useEffect(() => {
-    if (!inputUsernameValue) return;
+    if (!inputUsernameValue) {
+      debouncedApiCall.cancel();
+      return;
+    }
     debouncedApiCall(inputUsernameValue);
   }, [debouncedApiCall, inputUsernameValue]);
 
@@ -115,7 +117,6 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const updateUsername = trpc.useMutation("viewer.updateProfile", {
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
-      setCurrentUsername(inputUsernameValue);
       setOpenDialogSaveUsername(false);
     },
     onError: (error) => {
