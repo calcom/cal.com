@@ -23,8 +23,6 @@ const ConnectedCalendars = (props: IConnectCalendarsProps) => {
     { variant: "calendar", onlyInstalled: false },
   ]);
 
-  console.log(queryIntegrations);
-
   const firstCalendar = queryConnectedCalendars.data?.connectedCalendars.find(
     (item) => item.calendars && item.calendars?.length > 0
   );

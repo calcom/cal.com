@@ -706,9 +706,9 @@ function DeploymentInfo() {
       &copy; {new Date().getFullYear()} Pesto
       {/* , Inc. v.{pkg.version + "-"} */}
       {/* {process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"} */}
-      <span className="lowercase" data-testid={`plan-${user?.plan.toLowerCase()}`}>
+      {/* <span className="lowercase" data-testid={`plan-${user?.plan.toLowerCase()}`}>
         -{user?.plan}
-      </span>
+      </span> */}
     </small>
   );
 }
