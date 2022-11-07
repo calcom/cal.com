@@ -7,8 +7,8 @@ import { nameOfDay } from "./weekday";
 
 // sets the desired time in current date, needs to be current date for proper DST translation
 export const defaultDayRange: TimeRange = {
-  start: new Date(new Date().setUTCHours(9, 0, 0, 0)),
-  end: new Date(new Date().setUTCHours(17, 0, 0, 0)),
+  start: new Date(new Date().setUTCHours(11, 0, 0, 0)),
+  end: new Date(new Date().setUTCHours(23, 0, 0, 0)),
 };
 
 export const DEFAULT_SCHEDULE: Schedule = [
@@ -18,7 +18,7 @@ export const DEFAULT_SCHEDULE: Schedule = [
   [defaultDayRange],
   [defaultDayRange],
   [defaultDayRange],
-  [],
+  [defaultDayRange],
 ];
 
 export function getAvailabilityFromSchedule(schedule: Schedule): Availability[] {
