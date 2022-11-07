@@ -238,6 +238,12 @@ export default async function main() {
       client_secret: process.env.HUBSPOT_CLIENT_SECRET,
     });
   }
+  if (process.env.SALESFORCE_CONSUMER_KEY && process.env.SALESFORCE_CONSUMER_SECRET) {
+    await createApp("salesforce", "salesforceothercalendar", ["other"], "salesforce_other_calendar", {
+      consumer_key: process.env.SALESFORCE_CONSUMER_KEY,
+      consumer_secret: process.env.SALESFORCE_CONSUMER_SECRET,
+    });
+  }
   // No need to check if environment variable is present, the API Key is set up by the user, not the system
   await createApp("closecom", "closecomothercalendar", ["other"], "closecom_other_calendar");
   // No need to check if environment variable is present, the API Key is set up by the user, not the system

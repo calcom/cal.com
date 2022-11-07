@@ -43,8 +43,10 @@ const Component = ({
   const router = useRouter();
 
   const mutation = useAddAppMutation(null, {
-    onSuccess: () => {
-      showToast(t("app_successfully_installed"), "success");
+    onSuccess: (data: any) => {
+      if (data.showToast !== undefined && data.showToast) {
+        showToast(t("app_successfully_installed"), "success");
+      }
     },
     onError: (error) => {
       if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
