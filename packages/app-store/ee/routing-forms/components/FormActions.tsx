@@ -13,16 +13,14 @@ import { Icon } from "@calcom/ui";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
 import { Button, ButtonProps } from "@calcom/ui/components/button";
+import { Form, TextField, TextAreaField } from "@calcom/ui/components/form";
 import {
   Dropdown,
   DropdownMenuItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-  Form,
   showToast,
   Switch,
-  TextField,
-  TextAreaField,
 } from "@calcom/ui/v2";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";

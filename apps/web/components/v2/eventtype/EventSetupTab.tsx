@@ -11,7 +11,8 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/Icon";
 import { Button } from "@calcom/ui/components";
-import { Select, Label, TextField, Skeleton } from "@calcom/ui/v2";
+import { Label, TextField } from "@calcom/ui/components/form";
+import { Select, Skeleton } from "@calcom/ui/v2";
 
 import { slugify } from "@lib/slugify";
 

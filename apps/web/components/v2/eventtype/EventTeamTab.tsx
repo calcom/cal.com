@@ -7,7 +7,8 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui";
 import { Button, Avatar } from "@calcom/ui/components";
-import { Label, Select, CheckedTeamSelect } from "@calcom/ui/v2";
+import { Label } from "@calcom/ui/components/form";
+import { Select, CheckedTeamSelect } from "@calcom/ui/v2";
 
 interface IMemberToValue {
   id: number | null;

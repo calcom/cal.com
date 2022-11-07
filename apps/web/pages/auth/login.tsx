@@ -15,7 +15,7 @@ import prisma from "@calcom/prisma";
 import { Icon } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
 import { Button } from "@calcom/ui/components";
-import { EmailField, PasswordField } from "@calcom/ui/v2";
+import { EmailField, PasswordField } from "@calcom/ui/components/form";
 import SAMLLogin from "@calcom/ui/v2/modules/auth/SAMLLogin";
 
 import { ErrorCode, getSession } from "@lib/auth";

@@ -3,8 +3,8 @@ import { useForm } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components";
-import { Label, showToast } from "@calcom/ui/v2";
-import { Switch, Skeleton, Form } from "@calcom/ui/v2/core";
+import { Label, Form } from "@calcom/ui/components/form";
+import { Switch, Skeleton, showToast } from "@calcom/ui/v2/core";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 
