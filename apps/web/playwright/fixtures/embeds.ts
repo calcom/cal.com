@@ -13,7 +13,7 @@ export const createEmbedsFixture = (page: Page) => {
 
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             //@ts-ignore
-            window.initialBodyDisplay = document.body.style.display;
+            window.initialBodyVisibility = document.body.style.visibility;
 
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             //@ts-ignore

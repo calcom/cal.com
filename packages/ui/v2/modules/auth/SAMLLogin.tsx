@@ -1,7 +1,9 @@
 import { signIn } from "next-auth/react";
 import { Dispatch, SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
+import z from "zod";
 
+import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
@@ -9,14 +11,16 @@ import { Icon } from "@calcom/ui";
 import Button from "@calcom/ui/v2/core/Button";
 
 interface Props {
-  email: string;
   samlTenantID: string;
   samlProductID: string;
-  hostedCal: boolean;
   setErrorMessage: Dispatch<SetStateAction<string | null>>;
 }
 
-export default function SAMLLogin(props: Props) {
+const schema = z.object({
+  email: z.string().email({ message: "Please enter a valid email" }),
+});
+
+export default function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Props) {
   const { t } = useLocale();
   const methods = useFormContext();
   const telemetry = useTelemetry();
@@ -26,7 +30,7 @@ export default function SAMLLogin(props: Props) {
       await signIn("saml", {}, { tenant: data.tenant, product: data.product });
     },
     onError: (err) => {
-      props.setErrorMessage(err.message);
+      setErrorMessage(t(err.message));
     },
   });
 
@@ -42,18 +46,27 @@ export default function SAMLLogin(props: Props) {
         // track Google logins. Without personal data/payload
         telemetry.event(telemetryEventTypes.googleLogin, collectPageParameters());
 
-        if (!props.hostedCal) {
-          await signIn("saml", {}, { tenant: props.samlTenantID, product: props.samlProductID });
-        } else {
-          if (props.email.length === 0) {
-            props.setErrorMessage(t("saml_email_required"));
-            return;
-          }
-          // hosted solution, fetch tenant and product from the backend
-          mutation.mutate({
-            email: methods.getValues("email"),
-          });
+        if (!HOSTED_CAL_FEATURES) {
+          await signIn("saml", {}, { tenant: samlTenantID, product: samlProductID });
+          return;
         }
+
+        // Hosted solution, fetch tenant and product from the backend
+        const email = methods.getValues("email");
+        const parsed = schema.safeParse({ email });
+
+        if (!parsed.success) {
+          const {
+            fieldErrors: { email },
+          } = parsed.error.flatten();
+
+          setErrorMessage(email ? email[0] : null);
+          return;
+        }
+
+        mutation.mutate({
+          email,
+        });
       }}>
       {t("signin_with_saml")}
     </Button>

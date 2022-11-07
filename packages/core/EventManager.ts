@@ -1,5 +1,4 @@
 import { Credential, DestinationCalendar } from "@prisma/client";
-import async from "async";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 import { z } from "zod";
@@ -65,9 +64,11 @@ type EventManagerUser = {
 
 type createdEventSchema = z.infer<typeof createdEventSchema>;
 
+export type ExtendedCredential = Credential & { appName: string };
+
 export default class EventManager {
-  calendarCredentials: Credential[];
-  videoCredentials: Credential[];
+  calendarCredentials: ExtendedCredential[];
+  videoCredentials: ExtendedCredential[];
 
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
@@ -75,7 +76,9 @@ export default class EventManager {
    * @param user
    */
   constructor(user: EventManagerUser) {
-    const appCredentials = getApps(user.credentials).flatMap((app) => app.credentials);
+    const appCredentials = getApps(user.credentials).flatMap((app) =>
+      app.credentials.map((creds) => ({ ...creds, appName: app.name }))
+    );
     this.calendarCredentials = appCredentials.filter((cred) => cred.type.endsWith("_calendar"));
     this.videoCredentials = appCredentials.filter((cred) => cred.type.endsWith("_video"));
   }
@@ -306,11 +309,9 @@ export default class EventManager {
     let createdEvents: EventResult<NewCalendarEventType>[] = [];
     if (event.destinationCalendar) {
       if (event.destinationCalendar.credentialId) {
-        const credential = await prisma.credential.findFirst({
-          where: {
-            id: event.destinationCalendar.credentialId,
-          },
-        });
+        const credential = this.calendarCredentials.find(
+          (c) => c.id === event.destinationCalendar?.credentialId
+        );
 
         if (credential) {
           createdEvents.push(await createEvent(credential, event));
@@ -354,7 +355,7 @@ export default class EventManager {
    * @private
    */
 
-  private getVideoCredential(event: CalendarEvent): Credential | undefined {
+  private getVideoCredential(event: CalendarEvent): ExtendedCredential | undefined {
     if (!event.location) {
       return undefined;
     }
@@ -374,7 +375,7 @@ export default class EventManager {
      * This might happen if someone tries to use a location with a missing credential, so we fallback to Cal Video.
      * @todo remove location from event types that has missing credentials
      * */
-    if (!videoCredential) videoCredential = FAKE_DAILY_CREDENTIAL;
+    if (!videoCredential) videoCredential = { ...FAKE_DAILY_CREDENTIAL, appName: "FAKE" };
 
     return videoCredential;
   }
@@ -409,7 +410,7 @@ export default class EventManager {
    * @param booking
    * @private
    */
-  private updateAllCalendarEvents(
+  private async updateAllCalendarEvents(
     event: CalendarEvent,
     booking: PartialBooking
   ): Promise<Array<EventResult<NewCalendarEventType>>> {
@@ -424,7 +425,7 @@ export default class EventManager {
 
       if (!bookingExternalCalendarId) throw new Error("externalCalendarId");
 
-      const result = [];
+      let result = [];
       if (calendarReference.credentialId) {
         credential = this.calendarCredentials.filter(
           (credential) => credential.id === calendarReference?.credentialId
@@ -439,6 +440,26 @@ export default class EventManager {
         }
       }
 
+      // Taking care of non-traditional calendar integrations
+      result = result.concat(
+        this.calendarCredentials
+          .filter((cred) => cred.type.includes("other_calendar"))
+          .map(async (cred) => {
+            const calendarReference = booking.references.find((ref) => ref.type === cred.type);
+            if (!calendarReference)
+              return {
+                appName: cred.appName,
+                type: cred.type,
+                success: false,
+                uid: "",
+                originalEvent: event,
+              };
+            const { externalCalendarId: bookingExternalCalendarId, meetingId: bookingRefUid } =
+              calendarReference;
+            return await updateEvent(cred, event, bookingRefUid ?? null, bookingExternalCalendarId ?? null);
+          })
+      );
+
       return Promise.all(result);
     } catch (error) {
       let message = `Tried to 'updateAllCalendarEvents' but there was no '{thing}' for '${credential?.type}', userId: '${credential?.userId}', bookingId: '${booking?.id}'`;
@@ -446,6 +467,7 @@ export default class EventManager {
       console.error(message);
       return Promise.resolve([
         {
+          appName: "none",
           type: calendarReference?.type || "calendar",
           success: false,
           uid: "",

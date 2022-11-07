@@ -12,14 +12,24 @@ import BaseEmail from "./_base-email";
 export default class AttendeeScheduledEmail extends BaseEmail {
   calEvent: CalendarEvent;
   attendee: Person;
+  showAttendees: boolean | undefined;
   t: TFunction;
 
-  constructor(calEvent: CalendarEvent, attendee: Person) {
+  constructor(calEvent: CalendarEvent, attendee: Person, showAttendees?: boolean | undefined) {
     super();
     this.name = "SEND_BOOKING_CONFIRMATION";
     this.calEvent = calEvent;
     this.attendee = attendee;
+    this.showAttendees = showAttendees;
     this.t = attendee.language.translate;
+
+    if (!this.showAttendees) {
+      this.calEvent.attendees = [
+        {
+          ...this.attendee,
+        },
+      ];
+    }
   }
 
   protected getiCalEventAsString(): string | undefined {

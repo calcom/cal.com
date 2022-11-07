@@ -3,6 +3,7 @@ import type { Session } from "next-auth";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { getSession } from "@calcom/lib/auth";
+import { CAL_URL } from "@calcom/lib/constants";
 import { getLocaleFromHeaders } from "@calcom/lib/i18n";
 import { defaultAvatarSrc } from "@calcom/lib/profile";
 import prisma from "@calcom/prisma";
@@ -85,6 +86,8 @@ async function getUserFromSession({
   if (!email) {
     return null;
   }
+  // This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url
+  if (user.avatar) user.avatar = `${CAL_URL}/${user.username}/avatar.png`;
   const avatar = user.avatar || defaultAvatarSrc({ email });
 
   const locale = user.locale || getLocaleFromHeaders(req);

@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import classNames from "@calcom/lib/classNames";
-import showToast from "@calcom/lib/notification";
 import { Button, Select } from "@calcom/ui";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 export interface IAppConfigurationProps {
   credentialIds: number[];
