@@ -33,7 +33,7 @@ jobs:
       - name: Test Code Linting
         run: yarn lint
 
-      - name: Lint
+      - name: Save Code Linting Reports
         run: yarn lint:report
         continue-on-error: true
 
