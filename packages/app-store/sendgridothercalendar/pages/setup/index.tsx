@@ -1,13 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
-import { Check, X } from "react-feather";
 import { useForm, Controller } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
+import { Icon } from "@calcom/ui/Icon";
 import { Form, TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/v2";
 
@@ -109,7 +109,7 @@ export default function SendgridSetup() {
                     type="submit"
                     loading={testLoading}
                     disabled={testPassed === true}
-                    StartIcon={testPassed !== undefined ? (testPassed ? Check : X) : undefined}
+                    StartIcon={testPassed !== undefined ? (testPassed ? Icon.FiCheck : Icon.FiX) : undefined}
                     className={
                       testPassed !== undefined
                         ? testPassed
