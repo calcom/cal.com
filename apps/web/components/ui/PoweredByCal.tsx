@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { POWERED_BY_URL } from "@calcom/lib/constants";
-import { LOGO } from "@calcom/lib/constants";
+import { LOGO, LOGO_WHITE } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 const PoweredByCal = () => {
@@ -15,11 +15,19 @@ const PoweredByCal = () => {
           {t("powered_by")}{" "}
           {
             // eslint-disable-next-line @next/next/no-img-element
-            <img className="relative -mt-px inline h-[10px] w-auto dark:hidden" src={LOGO} alt="Pesto Logo" />
+            <img
+              className="relative -mt-px inline h-[10px] w-auto  dark:hidden"
+              src={LOGO}
+              alt="Pesto Logo"
+            />
           }
           {
             // eslint-disable-next-line @next/next/no-img-element
-            <img className="relativ -mt-px hidden h-[10px] w-auto dark:inline" src={LOGO} alt="Pesto Logo" />
+            <img
+              className="relativ -mt-px hidden h-[10px] w-auto dark:inline"
+              src={LOGO_WHITE}
+              alt="Pesto Logo"
+            />
           }
         </a>
       </Link>
