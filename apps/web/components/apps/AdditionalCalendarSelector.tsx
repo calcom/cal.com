@@ -7,7 +7,7 @@ import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import { Button } from "@calcom/ui";
 import { Icon } from "@calcom/ui/Icon";
-import { Select } from "@calcom/ui/v2";
+import { Select } from "@calcom/ui/components/form/select";
 
 import { QueryCell } from "@lib/QueryCell";
 

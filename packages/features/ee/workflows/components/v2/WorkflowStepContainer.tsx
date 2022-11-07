@@ -17,11 +17,10 @@ import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } 
 import { Icon } from "@calcom/ui/Icon";
 import { Button } from "@calcom/ui/components";
 import { Checkbox } from "@calcom/ui/components";
-import { EmailField, Label, TextArea } from "@calcom/ui/components/form";
+import { EmailField, Label, TextArea, Select } from "@calcom/ui/components/form";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { DialogClose, DialogContent } from "@calcom/ui/v2";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
-import Select from "@calcom/ui/v2/core/form/select";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 import { AddVariablesDropdown } from "../../components/v2/AddVariablesDropdown";

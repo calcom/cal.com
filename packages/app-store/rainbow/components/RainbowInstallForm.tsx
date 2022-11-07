@@ -3,7 +3,7 @@ import { z } from "zod";
 import { SetAppDataGeneric } from "@calcom/app-store/EventTypeAppContext";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SUPPORTED_CHAINS_FOR_FORM } from "@calcom/rainbow/utils/ethereum";
-import Select from "@calcom/ui/v2/core/form/select";
+import { Select } from "@calcom/ui/components/form/select";
 
 import { appDataSchema } from "../zod";
 

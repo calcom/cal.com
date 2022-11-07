@@ -6,7 +6,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Alert } from "@calcom/ui/Alert";
-import { Select, SettingsToggle } from "@calcom/ui/v2";
+import { Select } from "@calcom/ui/components/form/select";
+import { SettingsToggle } from "@calcom/ui/v2";
 
 type RecurringEventControllerProps = {
   recurringEvent: RecurringEvent | null;

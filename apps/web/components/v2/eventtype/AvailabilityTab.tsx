@@ -11,8 +11,8 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Icon } from "@calcom/ui";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
+import { Select } from "@calcom/ui/components/form/select";
 import { SettingsToggle } from "@calcom/ui/v2";
-import Select from "@calcom/ui/v2/core/form/select";
 import { SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";

@@ -19,9 +19,9 @@ import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import { Button } from "@calcom/ui/components";
 import { Label, Form } from "@calcom/ui/components/form";
+import { Select } from "@calcom/ui/components/form/select";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { Dialog, DialogContent } from "@calcom/ui/v2";
-import { Select } from "@calcom/ui/v2/";
 
 import { QueryCell } from "@lib/QueryCell";
 

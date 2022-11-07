@@ -12,7 +12,7 @@ import ReactSelect, {
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Label } from "../../../../components/form/inputs/Label";
+import { Label } from "../inputs/Label";
 import {
   ControlComponent,
   InputComponent,
@@ -58,7 +58,7 @@ export const getReactSelectProps = <
   },
 });
 
-const Select = <
+export const Select = <
   Option,
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
@@ -88,6 +88,20 @@ const Select = <
         }),
       }}
     />
+  );
+};
+
+type IconLeadingProps = {
+  icon: React.ReactNode;
+  children?: React.ReactNode;
+} & React.ComponentProps<typeof reactSelectComponents.Control>;
+
+export const IconLeading = ({ icon, children, ...props }: IconLeadingProps) => {
+  return (
+    <reactSelectComponents.Control {...props}>
+      {icon}
+      {children}
+    </reactSelectComponents.Control>
   );
 };
 
@@ -192,5 +206,3 @@ export function SelectWithValidation<
     </div>
   );
 }
-
-export default Select;

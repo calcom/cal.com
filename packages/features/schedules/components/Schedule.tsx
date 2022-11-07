@@ -21,8 +21,8 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { TimeRange } from "@calcom/types/schedule";
 import { Icon } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
-import { Button } from "@calcom/ui/components/button";
-import { Select, Switch } from "@calcom/ui/v2";
+import { Button, Select } from "@calcom/ui/components";
+import { Switch } from "@calcom/ui/v2";
 import { SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
 export type FieldPathByValue<TFieldValues extends FieldValues, TValue> = {
