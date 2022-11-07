@@ -53,7 +53,7 @@ export default function WorkflowDetailsPage(props: Props) {
   const updateMutation = trpc.viewer.workflows.update.useMutation({
     onSuccess: async ({ workflow }) => {
       if (workflow) {
-        utils.viewer.workflows.get.setData(workflow, { id: +workflow.id });
+        utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
 
         showToast(
           t("workflow_updated_successfully", {
@@ -95,6 +95,7 @@ export default function WorkflowDetailsPage(props: Props) {
       reminderBody: null,
       emailSubject: null,
       template: WorkflowTemplates.REMINDER,
+      numberRequired: null,
     };
     steps?.push(step);
     form.setValue("steps", steps);

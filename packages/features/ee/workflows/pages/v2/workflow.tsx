@@ -11,6 +11,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { WorkflowCumulativeStatisticsInstance } from "twilio/lib/rest/taskrouter/v1/workspace/workflow/workflowCumulativeStatistics";
 import { z } from "zod";
 
 import { classNames } from "@calcom/lib";
@@ -139,7 +140,7 @@ function WorkflowPage() {
   const updateMutation = trpc.viewer.workflows.update.useMutation({
     onSuccess: async ({ workflow }) => {
       if (workflow) {
-        utils.viewer.workflows.get.setData(workflow, { id: +workflow.id });
+        utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
 
         showToast(
           t("workflow_updated_successfully", {

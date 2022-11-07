@@ -167,7 +167,7 @@ function Dialogs({
       const previousValue = utils.viewer.appRoutingForms.forms.getData();
       if (previousValue) {
         const filtered = previousValue.filter(({ id }) => id !== formId);
-        utils.viewer.appRoutingForms.forms.setData(filtered);
+        utils.viewer.appRoutingForms.forms.setData(undefined, filtered);
       }
       return { previousValue };
     },
@@ -182,7 +182,7 @@ function Dialogs({
     },
     onError: (err, newTodo, context) => {
       if (context?.previousValue) {
-        utils.viewer.appRoutingForms.forms.setData(context.previousValue);
+        utils.viewer.appRoutingForms.forms.setData(undefined, context.previousValue);
       }
       showToast("Something went wrong", "error");
     },

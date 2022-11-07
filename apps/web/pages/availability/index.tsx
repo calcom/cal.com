@@ -24,7 +24,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
       const previousValue = utils.viewer.availability.list.getData();
       if (previousValue) {
         const filteredValue = previousValue.schedules.filter(({ id }) => id !== scheduleId);
-        utils.viewer.availability.list.setData({ ...previousValue, schedules: filteredValue });
+        utils.viewer.availability.list.setData(undefined, { ...previousValue, schedules: filteredValue });
       }
 
       return { previousValue };
@@ -32,7 +32,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
 
     onError: (err, variables, context) => {
       if (context?.previousValue) {
-        utils.viewer.availability.list.setData(context.previousValue);
+        utils.viewer.availability.list.setData(undefined, context.previousValue);
       }
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;

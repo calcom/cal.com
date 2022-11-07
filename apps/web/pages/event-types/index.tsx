@@ -111,7 +111,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
         if (itemIndex !== -1 && newList[itemIndex]) {
           newList[itemIndex].hidden = !newList[itemIndex].hidden;
         }
-        utils.viewer.eventTypes.getByViewer.setData({
+        utils.viewer.eventTypes.getByViewer.setData(undefined, {
           ...previousValue,
           eventTypeGroups: [
             ...previousValue.eventTypeGroups.slice(0, groupIndex),
@@ -124,7 +124,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     },
     onError: async (err, _, context) => {
       if (context?.previousValue) {
-        utils.viewer.eventTypes.getByViewer.setData(context.previousValue);
+        utils.viewer.eventTypes.getByViewer.setData(undefined, context.previousValue);
       }
       console.error(err.message);
     },
@@ -148,7 +148,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
 
     const previousValue = utils.viewer.eventTypes.getByViewer.getData();
     if (previousValue) {
-      utils.viewer.eventTypes.getByViewer.setData({
+      utils.viewer.eventTypes.getByViewer.setData(undefined, {
         ...previousValue,
         eventTypeGroups: [
           ...previousValue.eventTypeGroups.slice(0, groupIndex),
@@ -205,7 +205,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       if (previousValue) {
         const newList = types.filter((item) => item.id !== id);
 
-        utils.viewer.eventTypes.getByViewer.setData({
+        utils.viewer.eventTypes.getByViewer.setData(undefined, {
           ...previousValue,
           eventTypeGroups: [
             ...previousValue.eventTypeGroups.slice(0, groupIndex),
@@ -218,7 +218,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     },
     onError: (err, _, context) => {
       if (context?.previousValue) {
-        utils.viewer.eventTypes.getByViewer.setData(context.previousValue);
+        utils.viewer.eventTypes.getByViewer.setData(undefined, context.previousValue);
       }
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;

@@ -67,7 +67,7 @@ export default function Availability({ schedule }: { schedule: number }) {
           utils.viewer.availability.schedule.get.refetch({ scheduleId: prevDefaultId });
         }
       }
-      utils.viewer.availability.schedule.get.setData(data, { scheduleId: data.schedule.id });
+      utils.viewer.availability.schedule.get.setData({ scheduleId: data.schedule.id }, data);
       utils.viewer.availability.list.invalidate();
       showToast(
         t("availability_updated_successfully", {

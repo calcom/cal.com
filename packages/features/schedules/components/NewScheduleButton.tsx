@@ -24,7 +24,7 @@ export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) 
     onSuccess: async ({ schedule }) => {
       await router.push("/availability/" + schedule.id);
       showToast(t("schedule_created_successfully", { scheduleName: schedule.name }), "success");
-      utils.viewer.availability.list.setData((data) => {
+      utils.viewer.availability.list.setData(undefined, (data) => {
         const newSchedule = { ...schedule, isDefault: false, availability: [] };
         if (!data)
           return {
