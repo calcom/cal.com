@@ -181,6 +181,7 @@
     "$CI",
     "$CLOSECOM_API_KEY",
     "$SENDGRID_API_KEY",
+    "$SENDGRID_SYNC_API_KEY",
     "$SENDGRID_EMAIL",
     "$CRON_API_KEY",
     "$DAILY_API_KEY",

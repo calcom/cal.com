@@ -1,19 +1,5 @@
 import CloseCom from "@calcom/lib/CloseCom";
-import {
-  getCloseComContactIds,
-  getCustomActivityTypeInstanceData,
-  getCloseComCustomActivityTypeFieldsIds,
-  getCloseComLeadId,
-} from "@calcom/lib/CloseComeUtils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
-jest.mock("@calcom/lib/CloseCom", () => ({
-  default: class {
-    constructor() {
-      /* Mock */
-    }
-  },
-}));
 
 afterEach(() => {
   jest.resetAllMocks();
@@ -26,9 +12,8 @@ test("check generic lead generator: already exists", async () => {
       data: [{ name: "From Cal.com", id: "abc" }],
     }),
   } as any;
-
-  const closeCom = new CloseCom("someKey");
-  const id = await getCloseComLeadId(closeCom);
+  debugger;
+  const id = await CloseCom.prototype.getCloseComLeadId();
   expect(id).toEqual("abc");
 });
 
@@ -41,8 +26,7 @@ test("check generic lead generator: doesn't exist", async () => {
     create: () => ({ id: "def" }),
   } as any;
 
-  const closeCom = new CloseCom("someKey");
-  const id = await getCloseComLeadId(closeCom);
+  const id = await CloseCom.prototype.getCloseComLeadId();
   expect(id).toEqual("def");
 });
 
@@ -61,8 +45,7 @@ test("retrieve contact IDs: all exist", async () => {
     search: () => ({ data: attendees }),
   } as any;
 
-  const closeCom = new CloseCom("someKey");
-  const contactIds = await getCloseComContactIds(event.attendees, closeCom, "leadId");
+  const contactIds = await CloseCom.prototype.getCloseComContactIds(event.attendees, "leadId");
   expect(contactIds).toEqual(["test1", "test2"]);
 });
 
@@ -79,8 +62,7 @@ test("retrieve contact IDs: some don't exist", async () => {
     create: () => ({ id: "test3" }),
   } as any;
 
-  const closeCom = new CloseCom("someKey");
-  const contactIds = await getCloseComContactIds(event.attendees, closeCom, "leadId");
+  const contactIds = await CloseCom.prototype.getCloseComContactIds(event.attendees, "leadId");
   expect(contactIds).toEqual(["test1", "test3"]);
 });
 
@@ -105,15 +87,11 @@ test("retrieve custom fields for custom activity type: type doesn't exist, no fi
     },
   } as any;
 
-  const closeCom = new CloseCom("someKey");
-  const contactIds = await getCloseComCustomActivityTypeFieldsIds(
-    [
-      ["Attendees", "", true, true],
-      ["Date & Time", "", true, true],
-      ["Time Zone", "", true, true],
-    ],
-    closeCom
-  );
+  const contactIds = await CloseCom.prototype.getCloseComCustomActivityTypeFieldsIds([
+    ["Attendees", "", true, true],
+    ["Date & Time", "", true, true],
+    ["Time Zone", "", true, true],
+  ]);
   expect(contactIds).toEqual({
     activityType: "type1",
     fields: ["field9A", "field11D", "field9T"],
@@ -141,15 +119,11 @@ test("retrieve custom fields for custom activity type: type exists, no field cre
     },
   } as any;
 
-  const closeCom = new CloseCom("someKey");
-  const contactIds = await getCloseComCustomActivityTypeFieldsIds(
-    [
-      ["Attendees", "", true, true],
-      ["Date & Time", "", true, true],
-      ["Time Zone", "", true, true],
-    ],
-    closeCom
-  );
+  const contactIds = await CloseCom.prototype.getCloseComCustomActivityTypeFieldsIds([
+    ["Attendees", "", true, true],
+    ["Date & Time", "", true, true],
+    ["Time Zone", "", true, true],
+  ]);
   expect(contactIds).toEqual({
     activityType: "typeX",
     fields: ["fieldY", "field11D", "field9T"],
@@ -168,7 +142,7 @@ test("prepare data to create custom activity type instance: two attendees, no ad
   const event = {
     attendees,
     startTime: now.toISOString(),
-  } as CalendarEvent;
+  } as unknown as CalendarEvent;
 
   CloseCom.prototype.activity = {
     type: {
@@ -196,16 +170,11 @@ test("prepare data to create custom activity type instance: two attendees, no ad
     create: () => ({ id: "def" }),
   } as any;
 
-  const closeCom = new CloseCom("someKey");
-  const data = await getCustomActivityTypeInstanceData(
-    event,
-    [
-      ["Attendees", "", true, true],
-      ["Date & Time", "", true, true],
-      ["Time Zone", "", true, true],
-    ],
-    closeCom
-  );
+  const data = await CloseCom.prototype.getCustomActivityTypeInstanceData(event, [
+    ["Attendees", "", true, true],
+    ["Date & Time", "", true, true],
+    ["Time Zone", "", true, true],
+  ]);
   expect(data).toEqual({
     custom_activity_type_id: "type1",
     lead_id: "def",
@@ -252,16 +221,11 @@ test("prepare data to create custom activity type instance: one attendees, with 
     }),
   } as any;
 
-  const closeCom = new CloseCom("someKey");
-  const data = await getCustomActivityTypeInstanceData(
-    event,
-    [
-      ["Attendees", "", true, true],
-      ["Date & Time", "", true, true],
-      ["Time Zone", "", true, true],
-    ],
-    closeCom
-  );
+  const data = await CloseCom.prototype.getCustomActivityTypeInstanceData(event, [
+    ["Attendees", "", true, true],
+    ["Date & Time", "", true, true],
+    ["Time Zone", "", true, true],
+  ]);
   expect(data).toEqual({
     custom_activity_type_id: "type1",
     lead_id: "abc",
