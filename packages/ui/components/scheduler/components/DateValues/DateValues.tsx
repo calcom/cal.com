@@ -4,29 +4,11 @@ import dayjs from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
 
 type Props = {
-  startDate: Date;
-  endDate: Date;
+  days: dayjs.Dayjs[];
   containerNavRef: React.RefObject<HTMLDivElement>;
 };
 
-// TODO: Extract somewhere
-function getDaysBetweenDates(dateFrom: Date, dateTo: Date) {
-  const dates = []; // this is as dayjs date
-  let startDate = dayjs(dateFrom);
-  dates.push(startDate);
-  const endDate = dayjs(dateTo);
-  while (startDate.isBefore(endDate)) {
-    dates.push(startDate.add(1, "day"));
-    startDate = startDate.add(1, "day");
-  }
-  return dates;
-}
-
-export function DateValues({ startDate, endDate, containerNavRef }: Props) {
-  // day array between startDate and EndDate
-  // return list of days between startDate and endDate
-  const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
-
+export function DateValues({ days, containerNavRef }: Props) {
   return (
     <div
       ref={containerNavRef}

@@ -1,7 +1,31 @@
 import { SchedulerEvent } from "./events";
 
 export type View = "month" | "week" | "day";
-export type startingDayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+export type Hours =
+  | 0
+  | 1
+  | 2
+  | 3
+  | 4
+  | 5
+  | 6
+  | 7
+  | 8
+  | 9
+  | 10
+  | 11
+  | 12
+  | 13
+  | 14
+  | 15
+  | 16
+  | 17
+  | 18
+  | 19
+  | 20
+  | 21
+  | 22
+  | 23;
 
 // These will be on eventHandlers - e.g. do more actions on viewchange if required
 export type SchedulerPublicActions = {
@@ -20,7 +44,6 @@ export type SchedulerPrivateActions = {
   setStartDate: (startDate: SchedulerComponentProps["startDate"]) => void;
   setEndDate: (endDate: SchedulerComponentProps["endDate"]) => void;
   setEvents: (events: SchedulerComponentProps["events"]) => void;
-  setStartingDayOfWeek: (startingDayOfWeek: SchedulerComponentProps["startingDayOfWeek"]) => void;
   selectedEvent?: SchedulerEvent;
   setSelectedEvent: (event: SchedulerEvent) => void;
   handleDateChange: (payload: "INCREMENT" | "DECREMENT") => void;
@@ -34,9 +57,11 @@ export type SchedulerState = {
   events: SchedulerEvent[];
   loading?: boolean;
   editable?: boolean;
-  startingDayOfWeek?: startingDayOfWeek;
   minDate?: Date;
   maxDate?: Date;
+  /** This expects Hour */
+  startHour?: Hours;
+  endHour?: Hours;
 };
 
 export type SchedulerComponentProps = SchedulerPublicActions & SchedulerState;

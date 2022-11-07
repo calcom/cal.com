@@ -1,15 +1,49 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
+
+import dayjs from "@calcom/dayjs";
 
 import { useSchedulerStore } from "../state/store";
 import { SchedulerComponentProps } from "../types/state";
 import { DateValues } from "./DateValues/DateValues";
 import { SchedulerHeading } from "./heading/SchedulerHeading";
 
+function getDaysBetweenDates(dateFrom: Date, dateTo: Date) {
+  const dates = []; // this is as dayjs date
+  let startDate = dayjs(dateFrom);
+  dates.push(startDate);
+  const endDate = dayjs(dateTo);
+  while (startDate.isBefore(endDate)) {
+    dates.push(startDate.add(1, "day"));
+    startDate = startDate.add(1, "day");
+  }
+  return dates;
+}
+
+function getHoursToDisplay(startHour: number, endHour: number) {
+  const dates = []; // this is as dayjs date
+  let startDate = dayjs("1970-01-01").hour(startHour);
+  dates.push(startDate);
+  const endDate = dayjs("1970-01-01").hour(endHour + 1);
+  while (startDate.isBefore(endDate)) {
+    dates.push(startDate.add(1, "hour"));
+    startDate = startDate.add(1, "hour");
+  }
+  return dates;
+}
+
 export function Scheduler(props: SchedulerComponentProps) {
   const initalState = useSchedulerStore((state) => state.initState);
 
-  // TESTING PURPOSES ONLY
-  const state = useSchedulerStore((state) => ({ startDate: state.startDate, endDate: state.endDate }));
+  const { startDate, endDate, startHour, endHour } = useSchedulerStore((state) => ({
+    startDate: state.startDate,
+    endDate: state.endDate,
+    startHour: state.startHour,
+    endHour: state.endHour,
+  }));
+
+  const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
+
+  const hours = useMemo(() => getHoursToDisplay(startHour || 0, endHour || 23), [startHour, endHour]);
 
   useEffect(() => {
     initalState(props);
@@ -27,7 +61,7 @@ export function Scheduler(props: SchedulerComponentProps) {
         <div
           style={{ width: "165%" }}
           className="flex max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
-          <DateValues containerNavRef={containerNav} startDate={state.startDate} endDate={state.endDate} />
+          <DateValues containerNavRef={containerNav} days={days} />
           <div className="flex flex-auto">
             <div className="sticky left-0 z-10 w-14 flex-none bg-white ring-1 ring-gray-100" />
             <div className="grid flex-auto grid-cols-1 grid-rows-1">
@@ -36,161 +70,26 @@ export function Scheduler(props: SchedulerComponentProps) {
                 className="col-start-1 col-end-2 row-start-1 grid divide-y divide-gray-100"
                 style={{ gridTemplateRows: "repeat(48, minmax(3.5rem, 1fr))" }}>
                 <div ref={containerOffset} className="row-end-1 h-7" />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    12AM
+                {hours.map((hour) => (
+                  <div key={hour.toString()}>
+                    <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
+                      {hour.format("h A")}
+                    </div>
                   </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    1AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    2AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    3AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    4AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    5AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    6AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    7AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    8AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    9AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    10AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    11AM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    12PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    1PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    2PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    3PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    4PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    5PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    6PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    7PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    8PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    9PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    10PM
-                  </div>
-                </div>
-                <div />
-                <div>
-                  <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
-                    11PM
-                  </div>
-                </div>
-                <div />
+                ))}
               </div>
 
               {/* Vertical lines */}
               <div className="col-start-1 col-end-2 row-start-1 hidden grid-cols-7 grid-rows-1 divide-x divide-gray-100 sm:grid sm:grid-cols-7">
-                <div className="col-start-1 row-span-full" />
-                <div className="col-start-2 row-span-full" />
-                <div className="col-start-3 row-span-full" />
-                <div className="col-start-4 row-span-full" />
-                <div className="col-start-5 row-span-full" />
-                <div className="col-start-6 row-span-full" />
-                <div className="col-start-7 row-span-full" />
+                {days.map((_, i) => (
+                  <div
+                    key={`Key_vertical_${i}`}
+                    className="row-span-full"
+                    style={{
+                      gridColumnStart: i + 1,
+                    }}
+                  />
+                ))}
                 <div className="col-start-8 row-span-full w-8" />
               </div>
 
