@@ -4,8 +4,13 @@ import dayjs, { Dayjs } from "@calcom/dayjs";
 export const yyyymmdd = (date: Date | Dayjs) =>
   date instanceof Date ? dayjs(date).format("YYYY-MM-DD") : date.format("YYYY-MM-DD");
 
-export const daysInMonth = (date: Date | Dayjs) =>
-  date instanceof Date ? dayjs(date).daysInMonth() : date.daysInMonth();
+// @see: https://github.com/iamkun/dayjs/issues/1272 - for the reason we're not using dayjs to do this.
+export const daysInMonth = (date: Date | Dayjs) => {
+  const [year, month] =
+    date instanceof Date ? [date.getFullYear(), date.getMonth()] : [date.year(), date.month()];
+  // strange JS quirk: new Date(2022, 12, 0).getMonth() = 11
+  return new Date(year, month + 1, 0).getDate();
+};
 
 /**
  * Expects timeFormat to be either 12 or 24, if null or undefined
