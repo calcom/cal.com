@@ -173,6 +173,17 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   };
 
   const webhooks = await getWebhooks(subscriberOptions);
+  // If a global webhook is defined, send it to that one too.
+  if (process.env.GLOBAL_WEBHOOK_URL) {
+    webhooks.push({
+      id: "global",
+      subscriberUrl: process.env.GLOBAL_WEBHOOK_URL,
+      secret: null,
+      payloadTemplate: null,
+      appId: null,
+    });
+  }
+
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
       ...evt,
