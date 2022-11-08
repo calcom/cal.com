@@ -322,6 +322,44 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
             <div className="mt-5">
               {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
             </div>
+            <div>
+              {decidedAction && (
+                <div className="mt-5 rounded-md bg-gray-100 p-3">
+                  <div className="font-bold ">{t("route_to")}:</div>
+                  <div className="mt-2">
+                    {RoutingPages.map((page) => {
+                      if (page.value === decidedAction.type) {
+                        return <>{page.label}</>;
+                      }
+                    })}
+                    :{" "}
+                    {decidedAction.type === "customPageMessage" ? (
+                      <span className="text-gray-700">{decidedAction.value}</span>
+                    ) : decidedAction.type === "externalRedirectUrl" ? (
+                      <span className="text-gray-700 underline">
+                        <a
+                          target="_blank"
+                          href={
+                            decidedAction.value.includes("https://") ||
+                            decidedAction.value.includes("http://")
+                              ? decidedAction.value
+                              : `http://${decidedAction.value}`
+                          }
+                          rel="noreferrer">
+                          {decidedAction.value}
+                        </a>
+                      </span>
+                    ) : (
+                      <span className="text-gray-700 underline">
+                        <a target="_blank" href={`/${decidedAction.value}`} rel="noreferrer">
+                          {decidedAction.value}
+                        </a>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <DialogClose asChild>
