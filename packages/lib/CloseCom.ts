@@ -513,7 +513,6 @@ export default class CloseCom {
       description: "Generic Lead for Contacts created by Cal.com",
     }
   ): Promise<string> {
-    debugger;
     const closeComLeadNames = await this.lead.list({ query: { _fields: ["name", "id"] } });
     const searchLeadFromCalCom = closeComLeadNames.data.filter((lead) => lead.name === leadInfo.companyName);
     if (searchLeadFromCalCom.length === 0) {
