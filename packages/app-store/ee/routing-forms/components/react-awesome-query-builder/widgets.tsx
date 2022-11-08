@@ -162,7 +162,7 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   }
   let dataTestId = "";
   if (type === "addRule") {
-    label = config.operators.__calReporting ? "Add Query" : "Add rule";
+    label = config?.operators.__calReporting ? "Add Query" : "Add rule";
     dataTestId = "add-rule";
   } else if (type == "addGroup") {
     label = "Add rule group";
@@ -187,11 +187,15 @@ function ButtonGroup({ children }: ButtonGroupProps) {
   }
   return (
     <>
-      {children.map((button) => {
+      {children.map((button, key) => {
         if (!button) {
           return null;
         }
-        return button;
+        return (
+          <div key={key} className="mb-2">
+            {button}
+          </div>
+        );
       })}
     </>
   );

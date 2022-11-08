@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { App_RoutingForms_Form } from "@prisma/client";
 import React, { useRef, useState, useCallback } from "react";
-import { Query, Config, Builder, Utils as QbUtils } from "react-awesome-query-builder";
+import { Query, Config, Builder, Utils as QbUtils, JsonLogicResult } from "react-awesome-query-builder";
 // types
 import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
 
@@ -16,44 +16,18 @@ import {
 } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button } from "@calcom/ui";
-import { SelectWithValidation as Select, TextArea, Shell } from "@calcom/ui/v2";
+import { Shell } from "@calcom/ui/v2";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
 import SingleForm from "../../components/SingleForm";
 import QueryBuilderInitialConfig from "../../components/react-awesome-query-builder/config/config";
 import "../../components/react-awesome-query-builder/styles.css";
+import { JsonLogicQuery } from "../../jsonLogicToPrisma";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 import { getQueryBuilderConfig } from "../route-builder/[...appPages]";
 
-const hasRules = (route: Route) =>
-  route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
 type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Config["fields"] };
-
-const getEmptyRoute = (): SerializableRoute => {
-  const uuid = QbUtils.uuid();
-  return {
-    id: uuid,
-    action: {
-      type: "eventTypeRedirectUrl",
-      value: "",
-    },
-    queryValue: { id: uuid, type: "group" },
-  };
-};
-
-const createFallbackRoute = (): SerializableRoute => {
-  const uuid = QbUtils.uuid();
-  return {
-    id: uuid,
-    isFallback: true,
-    action: {
-      type: "customPageMessage",
-      value: "Thank you for your interest! We will be in touch soon.",
-    },
-    queryValue: { id: uuid, type: "group" },
-  };
-};
 
 type Route = {
   id: string;
@@ -71,21 +45,20 @@ type Route = {
   };
 };
 
-type SerializableRoute = Pick<Route, "id" | "action"> & {
-  queryValue: Route["queryValue"];
-  isFallback?: Route["isFallback"];
-};
-
-const Result = ({ formId, jsonLogicQuery }) => {
+const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: JsonLogicQuery | null }) => {
   const { t } = useLocale();
 
-  const { isLoading, status, data, isFetching, isFetchingNextPage, hasNextPage, fetchNextPage } =
+  const { isLoading, status, data, isFetching, error, isFetchingNextPage, hasNextPage, fetchNextPage } =
     trpc.useInfiniteQuery(
       [
         "viewer.app_routing_forms.report",
         {
           formId: formId,
-          jsonLogicQuery,
+          jsonLogicQuery: jsonLogicQuery?.logic
+            ? jsonLogicQuery
+            : {
+                logic: {},
+              },
         },
       ],
       {
@@ -93,15 +66,15 @@ const Result = ({ formId, jsonLogicQuery }) => {
       }
     );
   const buttonInView = useInViewObserver(() => {
-    if (hasNextPage) {
+    if (!isFetching && hasNextPage && status === "success") {
       fetchNextPage();
     }
   });
 
-  const headers = useRef(null);
+  const headers = useRef<string[] | null>(null);
 
   if (!isLoading && !data) {
-    return <div>Error loading report</div>;
+    return <div>Error loading report {error?.message} </div>;
   }
   headers.current = (data?.pages && data?.pages[0]?.headers) || headers.current;
   return (
@@ -114,7 +87,7 @@ const Result = ({ formId, jsonLogicQuery }) => {
             </th>
           ))}
         </tr>
-        {isLoading ? <div>Report is loading</div> : ""}
+        {isLoading ? <div className="p-2">Report is loading</div> : ""}
         {!isLoading &&
           data?.pages.map((page) => {
             return page.responses?.map((responses, index) => {
@@ -145,32 +118,23 @@ const Result = ({ formId, jsonLogicQuery }) => {
   );
 };
 
-const ReporterRow = ({
-  formId,
-  config,
-  reporterRow,
-}: {
-  formId: string;
-  reporterRow: any;
-  config: QueryBuilderUpdatedConfig;
-}) => {
-  // const { data: eventTypesByGroup } = trpc.useQuery(["viewer.eventTypes"]);
+const getInitialQuery = (config: ReturnType<typeof getQueryBuilderConfig>) => {
+  const uuid = QbUtils.uuid();
+  const queryValue: JsonTree = { id: uuid, type: "group" } as JsonTree;
+  const tree = QbUtils.checkTree(QbUtils.loadTree(queryValue), config);
+  return {
+    state: { tree, config },
+    queryValue,
+  };
+};
 
-  // const eventOptions: { label: string; value: string }[] = [];
-  // eventTypesByGroup?.eventTypeGroups.forEach((group) => {
-  //   group.eventTypes.forEach((eventType) => {
-  //     const uniqueSlug = `${group.profile.slug}/${eventType.slug}`;
-  //     eventOptions.push({
-  //       label: uniqueSlug,
-  //       value: uniqueSlug,
-  //     });
-  //   });
-  // });
-  const [reporterRowQuery, setReporterRowQuery] = useState(reporterRow);
-  const [jsonLogicQuery, setJsonLogicQuery] = useState();
+const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["form"] }) => {
+  const config = getQueryBuilderConfig(form, true);
+  const [query, setQuery] = useState(getInitialQuery(config));
+  const [jsonLogicQuery, setJsonLogicQuery] = useState<JsonLogicResult | null>(null);
   const onChange = (immutableTree: ImmutableTree, config: QueryBuilderUpdatedConfig) => {
     const jsonTree = QbUtils.getTree(immutableTree);
-    setReporterRowQuery(() => {
+    setQuery(() => {
       const newValue = {
         state: { tree: immutableTree, config: config },
         queryValue: jsonTree,
@@ -190,46 +154,19 @@ const ReporterRow = ({
     ),
     []
   );
-
-  return (
-    <>
-      <Query
-        {...config}
-        value={reporterRowQuery.state.tree}
-        onChange={(immutableTree, config) => {
-          onChange(immutableTree, config as QueryBuilderUpdatedConfig);
-        }}
-        renderBuilder={renderBuilder}
-      />
-      <hr className="mt-6" />
-      <Result formId={formId} jsonLogicQuery={jsonLogicQuery} />
-    </>
-  );
-};
-
-const getInitialReporterRow = (config) => {
-  const uuid = QbUtils.uuid();
-  const queryValue = { id: uuid, type: "group" };
-  const tree = QbUtils.checkTree(QbUtils.loadTree(queryValue), config);
-  return {
-    state: { tree, config },
-    queryValue,
-  };
-};
-const Reporter = ({
-  form,
-}: {
-  form: inferSSRProps<typeof getServerSideProps>["form"];
-  // Figure out the type
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  hookForm: any;
-}) => {
-  const config = getQueryBuilderConfig(form, true);
-
   return (
     <div className="flex flex-col-reverse md:flex-row">
       <div className="cal-query-builder w-full ltr:mr-2 rtl:ml-2">
-        <ReporterRow formId={form.id} reporterRow={getInitialReporterRow(config)} config={config} />
+        <Query
+          {...config}
+          value={query.state.tree}
+          onChange={(immutableTree, config) => {
+            onChange(immutableTree, config as QueryBuilderUpdatedConfig);
+          }}
+          renderBuilder={renderBuilder}
+        />
+        <hr className="mt-6" />
+        <Result formId={form.id} jsonLogicQuery={jsonLogicQuery as JsonLogicQuery} />
       </div>
     </div>
   );
@@ -243,7 +180,7 @@ export default function ReporterWrapper({
     <SingleForm
       form={form}
       appUrl={appUrl}
-      Page={({ hookForm, form }) => (
+      Page={({ form }) => (
         <div className="route-config">
           <Reporter form={form} />
         </div>

@@ -226,11 +226,18 @@ const app_RoutingForms = createRouter()
       .query("report", {
         input: z.object({
           formId: z.string(),
-          jsonLogicQuery: z.any(),
+          jsonLogicQuery: z.union([
+            z.object({
+              logic: z.union([z.record(z.any()), z.null()]),
+            }),
+            z.null(),
+          ]),
           cursor: z.number().nullish(), // <-- "cursor" needs to exist when using useInfiniteQuery, but can be any type
         }),
-        async resolve({ ctx: { prisma, user }, input }) {
-          const prismaWhere = jsonLogicToPrisma(input.jsonLogicQuery);
+        async resolve({ ctx: { prisma }, input }) {
+          // Can be any prisma `where` clause
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const prismaWhere: any = input.jsonLogicQuery ? jsonLogicToPrisma(input.jsonLogicQuery) : {};
           const skip = input.cursor ?? 0;
           const take = 50;
           console.log(
@@ -251,9 +258,9 @@ const app_RoutingForms = createRouter()
             });
           }
           // TODO: Second argument is required to return deleted operators.
-          const serializedForm = getSerializableForm(form);
+          const serializedForm = getSerializableForm(form /* true */);
 
-          const res = await prisma.app_RoutingForms_FormResponse.findMany({
+          const rows = await prisma.app_RoutingForms_FormResponse.findMany({
             where: {
               formId: input.formId,
               ...prismaWhere,
@@ -263,19 +270,30 @@ const app_RoutingForms = createRouter()
           });
           const fields = serializedForm?.fields || [];
           const headers = fields.map((f) => f.label);
-          const responses = [];
-          res.forEach((r) => {
-            const rowResponses = [];
+          const responses: string[][] = [];
+          rows.forEach((r) => {
+            const rowResponses: string[] = [];
             responses.push(rowResponses);
             fields.forEach((field) => {
-              rowResponses.push(r.response[field.id]?.value || "");
+              if (!r.response) {
+                return;
+              }
+              const response = r.response as Response;
+              const value = response[field.id]?.value || "";
+              let stringValue = "";
+              if (value instanceof Array) {
+                stringValue = value.join(", ");
+              } else {
+                stringValue = value;
+              }
+              rowResponses.push(stringValue);
             });
           });
 
           return {
             headers,
             responses,
-            nextCursor: !res.length || res.length < take ? null : skip + res.length,
+            nextCursor: !rows.length || rows.length < take ? null : skip + rows.length,
           };
         },
       })
