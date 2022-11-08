@@ -215,13 +215,22 @@ test.describe("Routing Forms", () => {
           resolve(body);
         });
       });
+      const csvRows = csv.trim().split("\n");
+      const csvHeaderRow = csvRows[0];
+      expect(csvHeaderRow).toEqual("Test field,Multi Select,Submission Time");
 
-      expect(csv.trim()).toEqual(
-        `
-"Test field :=> event-routing"
-"Test field :=> external-redirect"
-"Test field :=> custom-page"`.trim()
-      );
+      const firstResponseCells = csvRows[1].split(",");
+      const secondResponseCells = csvRows[2].split(",");
+      const thirdResponseCells = csvRows[3].split(",");
+
+      expect(firstResponseCells.slice(0, -1).join(",")).toEqual("event-routing,");
+      expect(new Date(firstResponseCells.at(-1)).getDay()).toEqual(new Date().getDay());
+
+      expect(secondResponseCells.slice(0, -1).join(",")).toEqual("external-redirect,");
+      expect(new Date(secondResponseCells.at(-1)).getDay()).toEqual(new Date().getDay());
+
+      expect(thirdResponseCells.slice(0, -1).join(",")).toEqual("custom-page,");
+      expect(new Date(thirdResponseCells.at(-1)).getDay()).toEqual(new Date().getDay());
     });
 
     test("Router URL should work", async ({ page, users }) => {

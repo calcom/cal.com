@@ -1127,6 +1127,7 @@
   "removes_cal_branding": "Removes any Cal related brandings, i.e. 'Powered by Cal.'",
   "profile_picture": "Profile picture",
   "upload": "Upload",
+  "add_profile_photo": "Add profile photo",
   "web3": "Web3",
   "rainbow_token_gated": "This event type is token gated.",
   "rainbow_connect_wallet_gate": "Connect your wallet if you own <1>{{name}}</1> (<3>{{symbol}}</3>).",

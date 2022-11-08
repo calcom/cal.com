@@ -232,6 +232,12 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             const { locationType: newLocation, displayLocationPublicly } = values;
 
             let details = {};
+            if (newLocation === LocationType.AttendeeInPerson) {
+              details = {
+                address: values.locationAddress,
+              };
+            }
+
             if (newLocation === LocationType.InPerson) {
               details = {
                 address: values.locationAddress,
