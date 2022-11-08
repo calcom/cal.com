@@ -3,7 +3,7 @@ import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
 
-import Button from "./Button";
+import { Button } from "../../components/button";
 
 const stylesByVariant = {
   neutral: { background: "bg-gray-100 ", text: "!text-gray-800", hover: "hover:!bg-gray-200" },

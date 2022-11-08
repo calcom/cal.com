@@ -29,15 +29,15 @@ import Dropdown, {
 } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import TimezoneChangeDialog from "@calcom/ui/TimezoneChangeDialog";
-import Button from "@calcom/ui/v2/core/Button";
+import { Button } from "@calcom/ui/components/button";
 import showToast from "@calcom/ui/v2/core/notifications";
+import Tips from "@calcom/ui/v2/modules/tips/Tips";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
-import Tips from "../modules/tips/Tips";
 import HeadSeo from "./head-seo";
 import { SkeletonText } from "./skeleton";
 
@@ -446,6 +446,10 @@ const navigation: NavigationItemType[] = [
     href: "/bookings/upcoming",
     icon: Icon.FiCalendar,
     badge: <UnconfirmedBookingBadge />,
+    isCurrent: ({ router }) => {
+      const path = router.asPath.split("?")[0];
+      return path.startsWith("/bookings");
+    },
   },
   {
     name: "availability",
@@ -513,7 +517,7 @@ const navigation: NavigationItemType[] = [
   // },
   {
     name: "settings",
-    href: "/settings",
+    href: "/settings/my-account/profile",
     icon: Icon.FiSettings,
   },
 ];

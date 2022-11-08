@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { inferQueryOutput } from "@calcom/trpc/react";
 import { Switch } from "@calcom/ui/v2";
-import OmniInstallAppButton from "@calcom/web/components/v2/apps/OmniInstallAppButton";
+import OmniInstallAppButton from "@calcom/web/components/apps/OmniInstallAppButton";
 
 import { SetAppDataGeneric } from "../EventTypeAppContext";
 import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
