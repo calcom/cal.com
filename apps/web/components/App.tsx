@@ -8,10 +8,11 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
-import { Button, SkeletonButton } from "@calcom/ui";
 import { Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
 import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
+import { SkeletonButton } from "@calcom/ui/v2";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
@@ -125,7 +126,10 @@ const Component = ({
                 <DisconnectIntegration
                   id={existingCredentials[0]}
                   render={(btnProps) => (
-                    <Button {...btnProps} color="warn" data-testid={type + "-integration-disconnect-button"}>
+                    <Button
+                      {...btnProps}
+                      color="destructive"
+                      data-testid={type + "-integration-disconnect-button"}>
                       {t("disconnect")}
                     </Button>
                   )}
@@ -153,7 +157,7 @@ const Component = ({
                 />
               ))
             ) : (
-              <SkeletonButton width="24" height="10" />
+              <SkeletonButton className="h-[10px] w-[24px]" />
             )}
             {price !== 0 && (
               <small className="block text-right">
