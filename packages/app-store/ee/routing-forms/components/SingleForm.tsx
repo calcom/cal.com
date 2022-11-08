@@ -292,7 +292,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                   </div>
                   <div className="mt-6">
                     <Button color="secondary" onClick={() => setIsTestPreviewOpen(true)}>
-                      Test Routing Form
+                      {t("test_preview")}
                     </Button>
                   </div>
                   {!form._count?.responses && (
@@ -318,7 +318,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
       <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
         <DialogContent type="creation" useOwnActionButtons={true} title={t("test_routing_form")}>
           <div className="">
-            <div className="mt-5 max-h-96 overflow-scroll">
+            <div className="mt-5 max-h-64 overflow-scroll sm:max-h-96">
               {form?.fields?.map((field) => {
                 const widget = queryBuilderConfig.widgets[field.type];
                 if (!("factory" in widget)) {
@@ -374,7 +374,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
             <div>
               {decidedAction && (
                 <div className="mt-5 rounded-md bg-gray-100 p-3">
-                  <div className="font-bold ">Routing to:</div>
+                  <div className="font-bold ">{t("route_to")}:</div>
                   <div className="mt-2">
                     {RoutingPages.map((page) => {
                       if (page.value === decidedAction.type) {
