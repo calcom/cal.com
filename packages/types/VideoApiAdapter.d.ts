@@ -1,6 +1,5 @@
-import type { Credential } from "@prisma/client";
-
 import type { EventBusyDate } from "./Calendar";
+import { CredentialPayload } from "./Credential";
 
 export interface VideoCallData {
   type: string;
@@ -22,4 +21,4 @@ export type VideoApiAdapter =
     }
   | undefined;
 
-export type VideoApiAdapterFactory = (credential: Credential) => VideoApiAdapter;
+export type VideoApiAdapterFactory = (credential: CredentialPayload) => VideoApiAdapter;

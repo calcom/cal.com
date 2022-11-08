@@ -21,8 +21,8 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { TimeRange } from "@calcom/types/schedule";
 import { Icon } from "@calcom/ui";
 import Dropdown, { DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
+import { Button } from "@calcom/ui/components/button";
 import { Select, Switch } from "@calcom/ui/v2";
-import Button from "@calcom/ui/v2/core/Button";
 import { SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
 export type FieldPathByValue<TFieldValues extends FieldValues, TValue> = {
@@ -46,7 +46,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
   return (
     <div className="mb-1 flex w-full flex-col py-1 sm:flex-row">
       {/* Label & switch container */}
-      <div className="flex h-11 items-center justify-between">
+      <div className="flex h-11 items-center justify-between sm:w-32">
         <div>
           <label className="flex flex-row items-center space-x-2">
             <div>

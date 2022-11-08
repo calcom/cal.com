@@ -1,8 +1,6 @@
-import { Credential } from "@prisma/client";
 import z from "zod";
 
 import CloseCom, { CloseComFieldOptions } from "@calcom/lib/CloseCom";
-import { getCustomActivityTypeInstanceData } from "@calcom/lib/CloseComeUtils";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import type {
@@ -12,6 +10,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 
 const apiKeySchema = z.object({
   encrypted: z.string(),
@@ -55,7 +54,7 @@ export default class CloseComCalendarService implements Calendar {
   private closeCom: CloseCom;
   private log: typeof logger;
 
-  constructor(credential: Credential) {
+  constructor(credential: CredentialPayload) {
     this.integrationName = "closecom_other_calendar";
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
 
@@ -74,10 +73,9 @@ export default class CloseComCalendarService implements Calendar {
   }
 
   closeComUpdateCustomActivity = async (uid: string, event: CalendarEvent) => {
-    const customActivityTypeInstanceData = await getCustomActivityTypeInstanceData(
+    const customActivityTypeInstanceData = await this.closeCom.getCustomActivityTypeInstanceData(
       event,
-      calComCustomActivityFields,
-      this.closeCom
+      calComCustomActivityFields
     );
     // Create Custom Activity type instance
     const customActivityTypeInstance = await this.closeCom.activity.custom.create(
@@ -91,10 +89,9 @@ export default class CloseComCalendarService implements Calendar {
   };
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
-    const customActivityTypeInstanceData = await getCustomActivityTypeInstanceData(
+    const customActivityTypeInstanceData = await this.closeCom.getCustomActivityTypeInstanceData(
       event,
-      calComCustomActivityFields,
-      this.closeCom
+      calComCustomActivityFields
     );
     // Create Custom Activity type instance
     const customActivityTypeInstance = await this.closeCom.activity.custom.create(

@@ -88,6 +88,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
               eventName: reminder.booking?.eventType?.title,
               organizerName: reminder.booking?.user?.name || "",
               attendeeName: reminder.booking?.attendees[0].name,
+              attendeeEmail: reminder.booking?.attendees[0].email,
               eventDate: dayjs(reminder.booking?.startTime).tz(timeZone),
               eventTime: dayjs(reminder.booking?.startTime).tz(timeZone),
               timeZone: timeZone,

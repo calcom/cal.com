@@ -8,7 +8,7 @@ import z from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/v2/";
+import { Button } from "@calcom/ui/components";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 import Loader from "@components/Loader";
