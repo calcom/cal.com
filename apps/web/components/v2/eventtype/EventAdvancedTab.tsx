@@ -1,4 +1,3 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventTypeCustomInput } from "@prisma/client/";
 import Link from "next/link";
 import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
@@ -12,19 +11,8 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import {
-  Button,
-  CustomInputItem,
-  Dialog,
-  DialogContent,
-  Label,
-  showToast,
-  Skeleton,
-  Switch,
-  TextField,
-  Tooltip,
-} from "@calcom/ui/v2";
-import CheckboxField from "@calcom/ui/v2/core/form/Checkbox";
+import { Checkbox, Button, TextField, Label } from "@calcom/ui/components";
+import { CustomInputItem, Dialog, DialogContent, SettingsToggle, showToast, Tooltip } from "@calcom/ui/v2";
 
 import CustomInputTypeForm from "@components/v2/eventtype/CustomInputTypeForm";
 
@@ -43,7 +31,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!eventType.successRedirectUrl);
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
-  const [seatsInputVisible, setSeatsInputVisible] = useState(!!eventType.seatsPerTimeSlot);
   const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
@@ -52,8 +39,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
 
   const seatsEnabled = formMethods.getValues("seatsPerTimeSlotEnabled");
-
-  const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
   const removeCustom = (index: number) => {
     formMethods.getValues("customInputs").splice(index, 1);
@@ -69,7 +54,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
     <div className="flex flex-col space-y-8">
       {/**
        * Only display calendar selector if user has connected calendars AND if it's not
-       * a team event. Since we don't have logic to handle each attende calendar (for now).
+       * a team event. Since we don't have logic to handle each attendee calendar (for now).
        * This will fallback to each user selected destination calendar.
        */}
       {!!connectedCalendarsQuery.data?.connectedCalendars.length && !team && (
@@ -120,80 +105,61 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
       </div>
       <hr />
       <div className="">
-        <div className="flex space-x-3 ">
-          <Switch
-            checked={customInputs.length > 0}
-            fitToHeight={true}
-            onCheckedChange={(e) => {
-              if (e && customInputs.length === 0) {
-                // Push a placeholders
-                setSelectedCustomInput(undefined);
-                setSelectedCustomInputModalOpen(true);
-              } else if (!e) {
-                setCustomInputs([]);
-                formMethods.setValue("customInputs", []);
-              }
-            }}
-          />
-          <div className="flex flex-col">
-            <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
-              {t("additional_inputs")}
-            </Skeleton>
-            <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
-              {t("additional_input_description")}
-            </Skeleton>
-          </div>
-        </div>
-        <ul className="my-4" ref={animationRef}>
-          {customInputs.map((customInput: EventTypeCustomInput, idx: number) => (
-            <CustomInputItem
-              key={idx}
-              question={customInput.label}
-              type={customInput.type}
-              required={customInput.required}
-              editOnClick={() => {
-                setSelectedCustomInput(customInput);
-                setSelectedCustomInputModalOpen(true);
-              }}
-              deleteOnClick={() => removeCustom(idx)}
-            />
-          ))}
-        </ul>
-        {customInputs.length > 0 && (
-          <Button
-            StartIcon={Icon.FiPlus}
-            color="minimal"
-            type="button"
-            onClick={() => {
+        <SettingsToggle
+          title={t("additional_inputs")}
+          description={t("additional_input_description")}
+          checked={customInputs.length > 0}
+          onCheckedChange={(e) => {
+            if (e && customInputs.length === 0) {
+              // Push a placeholders
               setSelectedCustomInput(undefined);
               setSelectedCustomInputModalOpen(true);
-            }}>
-            Add an input
-          </Button>
-        )}
+            } else if (!e) {
+              setCustomInputs([]);
+              formMethods.setValue("customInputs", []);
+            }
+          }}>
+          <ul className="my-4">
+            {customInputs.map((customInput: EventTypeCustomInput, idx: number) => (
+              <CustomInputItem
+                key={idx}
+                question={customInput.label}
+                type={customInput.type}
+                required={customInput.required}
+                editOnClick={() => {
+                  setSelectedCustomInput(customInput);
+                  setSelectedCustomInputModalOpen(true);
+                }}
+                deleteOnClick={() => removeCustom(idx)}
+              />
+            ))}
+          </ul>
+          {customInputs.length > 0 && (
+            <Button
+              StartIcon={Icon.FiPlus}
+              color="minimal"
+              type="button"
+              onClick={() => {
+                setSelectedCustomInput(undefined);
+                setSelectedCustomInputModalOpen(true);
+              }}>
+              Add an input
+            </Button>
+          )}
+        </SettingsToggle>
       </div>
       <hr />
       <Controller
         name="requiresConfirmation"
         defaultValue={eventType.requiresConfirmation}
         render={({ field: { value, onChange } }) => (
-          <div className="flex space-x-3">
-            <Switch
-              name="requireConfirmation"
-              checked={value}
-              onCheckedChange={(e) => onChange(e)}
-              disabled={seatsEnabled}
-              fitToHeight={true}
-            />
-            <div className="flex flex-col">
-              <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
-                {t("requires_confirmation")}
-              </Skeleton>
-              <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
-                {t("requires_confirmation_description")}
-              </Skeleton>
-            </div>
-          </div>
+          <SettingsToggle
+            title={t("requires_confirmation")}
+            description={t("requires_confirmation_description")}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+            disabled={seatsEnabled}
+          />
         )}
       />
       <hr />
@@ -202,23 +168,13 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
         control={formMethods.control}
         defaultValue={eventType.disableGuests}
         render={({ field: { value, onChange } }) => (
-          <div className="flex space-x-3 ">
-            <Switch
-              name="disableGuests"
-              fitToHeight={true}
-              checked={value}
-              onCheckedChange={(e) => onChange(e)}
-              disabled={seatsEnabled}
-            />
-            <div className="flex flex-col">
-              <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
-                {t("disable_guests")}
-              </Skeleton>
-              <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
-                {t("disable_guests_description")}
-              </Skeleton>
-            </div>
-          </div>
+          <SettingsToggle
+            title={t("disable_guests")}
+            description={t("disable_guests_description")}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+            disabled={seatsEnabled}
+          />
         )}
       />
 
@@ -228,22 +184,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
         control={formMethods.control}
         defaultValue={eventType.hideCalendarNotes}
         render={({ field: { value, onChange } }) => (
-          <div className="flex space-x-3 ">
-            <Switch
-              name="hideCalendarNotes"
-              fitToHeight={true}
-              checked={value}
-              onCheckedChange={(e) => onChange(e)}
-            />
-            <div className="flex flex-col">
-              <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
-                {t("disable_notes")}
-              </Skeleton>
-              <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
-                {t("disable_notes_description")}
-              </Skeleton>
-            </div>
-          </div>
+          <SettingsToggle
+            title={t("disable_notes")}
+            description={t("disable_notes_description")}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+          />
         )}
       />
       <hr />
@@ -253,20 +199,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
         defaultValue={!!eventType.metadata.additionalNotesRequired}
         render={({ field: { value, onChange } }) => (
           <div className="flex space-x-3 ">
-            <Switch
-              name="additionalNotesRequired"
-              fitToHeight={true}
-              checked={value}
+            <SettingsToggle
+              title={t("require_additional_notes")}
+              description={t("require_additional_notes_description")}
+              checked={!!value}
               onCheckedChange={(e) => onChange(e)}
             />
-            <div className="flex flex-col">
-              <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
-                {t("require_additional_notes")}
-              </Skeleton>
-              <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
-                {t("require_additional_notes_description")}
-              </Skeleton>
-            </div>
           </div>
         )}
       />
@@ -276,29 +214,19 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
         control={formMethods.control}
         render={({ field: { value, onChange } }) => (
           <>
-            <div className="flex space-x-3 ">
-              <Switch
-                name="successRedirectUrlCheck"
-                fitToHeight={true}
-                defaultChecked={redirectUrlVisible}
-                onCheckedChange={(e) => {
-                  setRedirectUrlVisible(e);
-                  onChange(e ? value : "");
-                }}
-              />
-              <div className="flex flex-col">
-                <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
-                  {t("redirect_success_booking")}
-                </Skeleton>
-                <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
-                  {t("redirect_url_description")}
-                </Skeleton>
-              </div>
-            </div>
-            {redirectUrlVisible && (
-              <div className="">
+            <SettingsToggle
+              title={t("redirect_success_booking")}
+              description={t("redirect_url_description")}
+              checked={redirectUrlVisible}
+              onCheckedChange={(e) => {
+                setRedirectUrlVisible(e);
+                onChange(e ? value : "");
+              }}>
+              {/* Textfield has some margin by default we remove that so we can keep consitant aligment */}
+              <div className="lg:-ml-2">
                 <TextField
                   label={t("redirect_success_booking")}
+                  labelSrOnly
                   placeholder={t("external_redirect_url")}
                   required={redirectUrlVisible}
                   type="text"
@@ -306,137 +234,108 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                   {...formMethods.register("successRedirectUrl")}
                 />
               </div>
-            )}
+            </SettingsToggle>
           </>
         )}
       />
       <hr />
-      <Controller
-        name="hashedLink"
-        control={formMethods.control}
-        defaultValue={hashedUrl}
-        render={({ field: { value, onChange } }) => (
-          <>
-            <div className="flex space-x-3 ">
-              <Switch
-                data-testid="hashedLinkCheck"
-                name="hashedLinkCheck"
-                fitToHeight={true}
-                defaultChecked={!!value}
-                onCheckedChange={(e) => {
-                  setHashedLinkVisible(e);
-                  onChange(e ? hashedUrl : undefined);
-                }}
-              />
-              <div className="flex flex-col">
-                <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
-                  {t("private_link")}
-                </Skeleton>
-                <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
-                  {t("private_link_description")}
-                </Skeleton>
-              </div>
-            </div>
 
-            {hashedLinkVisible && (
-              <div className="">
-                <TextField
-                  disabled
-                  name="hashedLink"
-                  label={t("private_link_label")}
-                  data-testid="generated-hash-url"
-                  type="text"
-                  hint={t("private_link_hint")}
-                  defaultValue={placeholderHashedLink}
-                  addOnSuffix={
-                    <Tooltip
-                      content={eventType.hashedLink ? t("copy_to_clipboard") : t("enabled_after_update")}>
-                      <Button
-                        color="minimal"
-                        onClick={() => {
-                          navigator.clipboard.writeText(placeholderHashedLink);
-                          if (eventType.hashedLink) {
-                            showToast(t("private_link_copied"), "success");
-                          } else {
-                            showToast(t("enabled_after_update_description"), "warning");
-                          }
-                        }}
-                        className="hover:stroke-3 hover:bg-transparent hover:text-black"
-                        type="button">
-                        <Icon.FiCopy />
-                      </Button>
-                    </Tooltip>
-                  }
-                />
-              </div>
-            )}
-          </>
-        )}
-      />
+      <SettingsToggle
+        data-testid="hashedLinkCheck"
+        title={t("private_link")}
+        description={t("private_link_description")}
+        checked={hashedLinkVisible}
+        onCheckedChange={(e) => {
+          formMethods.setValue("hashedLink", e ? hashedUrl : undefined);
+          setHashedLinkVisible(e);
+        }}>
+        {/* Textfield has some margin by default we remove that so we can keep consitant aligment */}
+        <div className="lg:-ml-2">
+          <TextField
+            disabled
+            name="hashedLink"
+            label={t("private_link_label")}
+            data-testid="generated-hash-url"
+            labelSrOnly
+            type="text"
+            hint={t("private_link_hint")}
+            defaultValue={placeholderHashedLink}
+            addOnSuffix={
+              <Tooltip content={eventType.hashedLink ? t("copy_to_clipboard") : t("enabled_after_update")}>
+                <Button
+                  color="minimal"
+                  onClick={() => {
+                    navigator.clipboard.writeText(placeholderHashedLink);
+                    if (eventType.hashedLink) {
+                      showToast(t("private_link_copied"), "success");
+                    } else {
+                      showToast(t("enabled_after_update_description"), "warning");
+                    }
+                  }}
+                  className="hover:stroke-3 hover:bg-transparent hover:text-black"
+                  type="button">
+                  <Icon.FiCopy />
+                </Button>
+              </Tooltip>
+            }
+          />
+        </div>
+      </SettingsToggle>
       <hr />
       <Controller
         name="seatsPerTimeSlotEnabled"
         control={formMethods.control}
         defaultValue={!!eventType.seatsPerTimeSlot}
         render={({ field: { value, onChange } }) => (
-          <div className="flex space-x-3">
-            <Switch
-              name="seatsPerTimeSlotEnabled"
-              checked={value}
-              onCheckedChange={(e) => {
-                setSeatsInputVisible(e);
-                // Enabling seats will disable guests and requiring confimation until fully supported
-                if (e) {
-                  formMethods.setValue("disableGuests", true);
-                  formMethods.setValue("requiresConfirmation", false);
-                  formMethods.setValue("seatsPerTimeSlot", 2);
-                } else {
-                  formMethods.setValue("seatsPerTimeSlot", null);
-                }
-                onChange(e);
-              }}
-              fitToHeight={true}
+          <SettingsToggle
+            title={t("offer_seats")}
+            description={t("offer_seats_description")}
+            checked={value}
+            onCheckedChange={(e) => {
+              // Enabling seats will disable guests and requiring confirmation until fully supported
+              if (e) {
+                formMethods.setValue("disableGuests", true);
+                formMethods.setValue("requiresConfirmation", false);
+                formMethods.setValue("seatsPerTimeSlot", 2);
+              } else {
+                formMethods.setValue("seatsPerTimeSlot", null);
+                formMethods.setValue("disableGuests", false);
+              }
+              onChange(e);
+            }}>
+            <Controller
+              name="seatsPerTimeSlot"
+              control={formMethods.control}
+              defaultValue={eventType.seatsPerTimeSlot}
+              render={({ field: { value, onChange } }) => (
+                <div className="lg:-ml-2">
+                  <TextField
+                    required
+                    name="seatsPerTimeSlot"
+                    labelSrOnly
+                    label={t("number_of_seats")}
+                    type="number"
+                    defaultValue={value || 2}
+                    min={1}
+                    addOnSuffix={<>{t("seats")}</>}
+                    onChange={(e) => {
+                      onChange(Math.abs(Number(e.target.value)));
+                    }}
+                  />
+                  <div className="mt-2">
+                    <Checkbox
+                      description={t("show_attendees")}
+                      onChange={(e) => formMethods.setValue("seatsShowAttendees", e.target.checked)}
+                      defaultChecked={!!eventType.seatsShowAttendees}
+                    />
+                  </div>
+                </div>
+              )}
             />
-            <div className="flex flex-col">
-              <Skeleton as={Label} className="text-sm font-semibold leading-none text-black">
-                {t("offer_seats")}
-              </Skeleton>
-              <Skeleton as="p" className="-mt-2 text-sm leading-normal text-gray-600">
-                {t("offer_seats_description")}
-              </Skeleton>
-            </div>
-          </div>
+          </SettingsToggle>
         )}
       />
-      {seatsInputVisible && (
-        <Controller
-          name="seatsPerTimeSlot"
-          control={formMethods.control}
-          defaultValue={eventType.seatsPerTimeSlot}
-          render={({ field: { value, onChange } }) => (
-            <div className="">
-              <TextField
-                required
-                name="seatsPerTimeSlot"
-                label={t("number_of_seats")}
-                type="number"
-                defaultValue={value || 2}
-                addOnSuffix={<>{t("seats")}</>}
-                onChange={(e) => {
-                  onChange(Number(e.target.value));
-                }}
-              />
-              <div className="mt-6">
-                <CheckboxField
-                  description={t("show_attendees")}
-                  onChange={(e) => formMethods.setValue("seatsShowAttendees", e.target.checked)}
-                  defaultChecked={!!eventType.seatsShowAttendees}
-                />
-              </div>
-            </div>
-          )}
-        />
-      )}
+
       {showEventNameTip && (
         <Dialog open={showEventNameTip} onOpenChange={setShowEventNameTip}>
           <DialogContent

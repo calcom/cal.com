@@ -3,12 +3,11 @@ import { useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { setIs24hClockInLocalStorage } from "@calcom/lib/timeFormat";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/v2/core/Button";
+import { Button } from "@calcom/ui/components/button";
+import { Form, Label } from "@calcom/ui/components/form";
 import Meta from "@calcom/ui/v2/core/Meta";
 import TimezoneSelect from "@calcom/ui/v2/core/TimezoneSelect";
-import { Form, Label } from "@calcom/ui/v2/core/form/fields";
 import Select from "@calcom/ui/v2/core/form/select";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
@@ -116,8 +115,6 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
     <Form
       form={formMethods}
       handleSubmit={(values) => {
-        setIs24hClockInLocalStorage(values.timeFormat.value === 24);
-
         mutation.mutate({
           ...values,
           locale: values.locale.value,
@@ -178,6 +175,9 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           </>
         )}
       />
+      <div className="text-gray mt-2 flex items-center text-sm text-gray-700">
+        {t("timeformat_profile_hint")}
+      </div>
       <Controller
         name="weekStart"
         control={formMethods.control}

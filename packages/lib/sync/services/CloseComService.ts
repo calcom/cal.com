@@ -1,7 +1,6 @@
 import { MembershipRole } from "@prisma/client";
 
 import CloseCom, { CloseComFieldOptions, CloseComLead } from "@calcom/lib/CloseCom";
-import { getCloseComContactIds, getCloseComLeadId, getCustomFieldsIds } from "@calcom/lib/CloseComeUtils";
 import logger from "@calcom/lib/logger";
 import SyncServiceCore, { TeamInfoType } from "@calcom/lib/sync/ISyncService";
 import ISyncService, { ConsoleUserInfoType, WebUserInfoType } from "@calcom/lib/sync/ISyncService";
@@ -20,6 +19,8 @@ const calComSharedFields: CloseComFieldOptions = [["Contact Role", "text", false
 const serviceName = "closecom_service";
 
 export default class CloseComService extends SyncServiceCore implements ISyncService {
+  protected declare service: CloseCom;
+
   constructor() {
     super(serviceName, CloseCom, logger.getChildLogger({ prefix: [`[[sync] ${serviceName}`] }));
   }
@@ -31,16 +32,16 @@ export default class CloseComService extends SyncServiceCore implements ISyncSer
   ) => {
     this.log.debug("sync:closecom:user", { user });
     // Get Cal.com Lead
-    const leadId = await getCloseComLeadId(this.service, leadInfo);
+    const leadId = await this.service.getCloseComLeadId(leadInfo);
     this.log.debug("sync:closecom:user:leadId", { leadId });
     // Get Contacts ids: already creates contacts
-    const [contactId] = await getCloseComContactIds([user], this.service, leadId);
+    const [contactId] = await this.service.getCloseComContactIds([user], leadId);
     this.log.debug("sync:closecom:user:contactsIds", { contactId });
     // Get Custom Contact fields ids
-    const customFieldsIds = await getCustomFieldsIds("contact", calComCustomContactFields, this.service);
+    const customFieldsIds = await this.service.getCustomFieldsIds("contact", calComCustomContactFields);
     this.log.debug("sync:closecom:user:customFieldsIds", { customFieldsIds });
     // Get shared fields ids
-    const sharedFieldsIds = await getCustomFieldsIds("shared", calComSharedFields, this.service);
+    const sharedFieldsIds = await this.service.getCustomFieldsIds("shared", calComSharedFields);
     this.log.debug("sync:closecom:user:sharedFieldsIds", { sharedFieldsIds });
     const allFields = customFieldsIds.concat(sharedFieldsIds);
     this.log.debug("sync:closecom:user:allFields", { allFields });
@@ -91,7 +92,7 @@ export default class CloseComService extends SyncServiceCore implements ISyncSer
       },
       delete: async (webUser: WebUserInfoType) => {
         this.log.debug("sync:closecom:web:user:delete", { webUser });
-        const [contactId] = await getCloseComContactIds([webUser], this.service);
+        const [contactId] = await this.service.getCloseComContactIds([webUser]);
         this.log.debug("sync:closecom:web:user:delete:contactId", { contactId });
         if (contactId) {
           return this.service.contact.delete(contactId);
@@ -112,21 +113,21 @@ export default class CloseComService extends SyncServiceCore implements ISyncSer
       },
       delete: async (team: TeamInfoType) => {
         this.log.debug("sync:closecom:web:team:delete", { team });
-        const leadId = await getCloseComLeadId(this.service, { companyName: team.name });
+        const leadId = await this.service.getCloseComLeadId({ companyName: team.name });
         this.log.debug("sync:closecom:web:team:delete:leadId", { leadId });
         this.service.lead.delete(leadId);
       },
       update: async (prevTeam: TeamInfoType, updatedTeam: TeamInfoType) => {
         this.log.debug("sync:closecom:web:team:update", { prevTeam, updatedTeam });
-        const leadId = await getCloseComLeadId(this.service, { companyName: prevTeam.name });
+        const leadId = await this.service.getCloseComLeadId({ companyName: prevTeam.name });
         this.log.debug("sync:closecom:web:team:update:leadId", { leadId });
-        this.service.lead.update(leadId, updatedTeam);
+        this.service.lead.update(leadId, { companyName: updatedTeam.name });
       },
     },
     membership: {
       delete: async (webUser: WebUserInfoType) => {
         this.log.debug("sync:closecom:web:membership:delete", { webUser });
-        const [contactId] = await getCloseComContactIds([webUser], this.service);
+        const [contactId] = await this.service.getCloseComContactIds([webUser]);
         this.log.debug("sync:closecom:web:membership:delete:contactId", { contactId });
         if (contactId) {
           return this.service.contact.delete(contactId);

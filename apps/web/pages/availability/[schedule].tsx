@@ -1,5 +1,4 @@
 import { GetStaticPaths, GetStaticProps } from "next";
-import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -12,19 +11,19 @@ import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Schedule as ScheduleType } from "@calcom/types/schedule";
 import { Icon } from "@calcom/ui";
-import Button from "@calcom/ui/v2/core/Button";
+import { Button } from "@calcom/ui/components/button";
+import { Form, Label } from "@calcom/ui/components/form";
 import Shell from "@calcom/ui/v2/core/Shell";
 import Switch from "@calcom/ui/v2/core/Switch";
 import TimezoneSelect from "@calcom/ui/v2/core/TimezoneSelect";
 import VerticalDivider from "@calcom/ui/v2/core/VerticalDivider";
-import { Form, Label } from "@calcom/ui/v2/core/form/fields";
 import showToast from "@calcom/ui/v2/core/notifications";
 import { Skeleton, SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
 import { HttpError } from "@lib/core/http/error";
 
+import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import EditableHeading from "@components/ui/EditableHeading";
-import { SelectSkeletonLoader } from "@components/v2/availability/SkeletonLoader";
 
 const querySchema = z.object({
   schedule: stringOrNumber,
@@ -39,10 +38,9 @@ type AvailabilityFormValues = {
 
 export default function Availability({ schedule }: { schedule: number }) {
   const { t, i18n } = useLocale();
-  const router = useRouter();
   const utils = trpc.useContext();
   const me = useMeQuery();
-
+  const { timeFormat } = me.data || { timeFormat: null };
   const { data, isLoading } = trpc.useQuery(["viewer.availability.schedule", { scheduleId: schedule }]);
 
   const form = useForm<AvailabilityFormValues>();
@@ -60,13 +58,20 @@ export default function Availability({ schedule }: { schedule: number }) {
   }, [data, isLoading, reset]);
 
   const updateMutation = trpc.useMutation("viewer.availability.schedule.update", {
-    onSuccess: async ({ schedule }) => {
-      await utils.invalidateQueries(["viewer.availability.schedule"]);
-      await utils.refetchQueries(["viewer.availability.schedule"]);
-      await router.push("/availability");
+    onSuccess: async ({ prevDefaultId, currentDefaultId, ...data }) => {
+      if (prevDefaultId && currentDefaultId) {
+        // check weather the default schedule has been changed by comparing  previous default schedule id and current default schedule id.
+        if (prevDefaultId !== currentDefaultId) {
+          // if not equal, invalidate previous default schedule id and refetch previous default schedule id.
+          utils.invalidateQueries(["viewer.availability.schedule", { scheduleId: prevDefaultId }]);
+          utils.refetchQueries(["viewer.availability.schedule", { scheduleId: prevDefaultId }]);
+        }
+      }
+      utils.setQueryData(["viewer.availability.schedule", { scheduleId: data.schedule.id }], data);
+      utils.invalidateQueries(["viewer.availability.list"]);
       showToast(
         t("availability_updated_successfully", {
-          scheduleName: schedule.name,
+          scheduleName: data.schedule.name,
         }),
         "success"
       );
@@ -94,7 +99,7 @@ export default function Availability({ schedule }: { schedule: number }) {
         data ? (
           data.schedule.availability.map((availability) => (
             <span key={availability.id}>
-              {availabilityAsString(availability, { locale: i18n.language })}
+              {availabilityAsString(availability, { locale: i18n.language, hour12: timeFormat === 12 })}
               <br />
             </span>
           ))
@@ -113,7 +118,7 @@ export default function Availability({ schedule }: { schedule: number }) {
             </Skeleton>
             <Switch
               id="hiddenSwitch"
-              disabled={isLoading}
+              disabled={isLoading || data?.isDefault}
               checked={form.watch("isDefault")}
               onCheckedChange={(e) => {
                 form.setValue("isDefault", e);
@@ -162,7 +167,7 @@ export default function Availability({ schedule }: { schedule: number }) {
               </div>
             </div>
             <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
-              <div className="xl:max-w-80 w-full pr-4 sm:p-0">
+              <div className="xl:max-w-80 mt-4 w-full pr-4 sm:p-0">
                 <div>
                   <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
                     {t("timezone")}

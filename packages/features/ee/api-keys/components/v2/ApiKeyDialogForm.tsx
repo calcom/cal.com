@@ -9,10 +9,10 @@ import { trpc } from "@calcom/trpc/react";
 import { DialogFooter } from "@calcom/ui/Dialog";
 import { ClipboardCopyIcon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
+import { Button } from "@calcom/ui/components/button";
+import { Form, TextField } from "@calcom/ui/components/form";
 import { DatePicker } from "@calcom/ui/v2";
-import Button from "@calcom/ui/v2/core/Button";
 import Switch from "@calcom/ui/v2/core/Switch";
-import { Form, TextField } from "@calcom/ui/v2/core/form/fields";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 export default function ApiKeyDialogForm({
@@ -68,7 +68,7 @@ export default function ApiKeyDialogForm({
           </div>
           <div>
             <div className="flex">
-              <code className="my-2 mr-1 w-full truncate rounded-sm bg-gray-100 py-2 px-3 align-middle font-mono text-gray-800">
+              <code className="mb-2 w-full truncate rounded-md rounded-r-none bg-gray-100 px-3 py-2 align-middle font-mono text-gray-800">
                 {apiKey}
               </code>
               <Tooltip side="top" content={t("copy_to_clipboard")}>
@@ -78,7 +78,7 @@ export default function ApiKeyDialogForm({
                     showToast(t("api_key_copied"), "success");
                   }}
                   type="button"
-                  className=" my-2 px-4 text-base">
+                  className="rounded-l-none py-[19px] text-base ">
                   <ClipboardCopyIcon className="mr-2 h-5 w-5 text-neutral-100" />
                   {t("copy")}
                 </Button>
@@ -112,7 +112,7 @@ export default function ApiKeyDialogForm({
             }
           }}
           className="space-y-4">
-          <div className="mb-10 mt-1">
+          <div className="mt-1 mb-10">
             <h2 className="font-semi-bold font-cal text-xl tracking-wide text-gray-900">
               {defaultValues ? t("edit_api_key") : t("create_api_key")}
             </h2>

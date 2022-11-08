@@ -1,22 +1,22 @@
+import { IdentityProvider } from "@prisma/client";
 import crypto from "crypto";
 import { signOut } from "next-auth/react";
 import { useRef, useState, BaseSyntheticEvent, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/lib/auth";
-import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Icon } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
-import Avatar from "@calcom/ui/v2/core/Avatar";
-import { Button } from "@calcom/ui/v2/core/Button";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { Form, Label, TextField, PasswordField } from "@calcom/ui/components/form";
 import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
 import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
 import Meta from "@calcom/ui/v2/core/Meta";
-import { Form, Label, TextField, PasswordField } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
 import { SkeletonContainer, SkeletonText, SkeletonButton, SkeletonAvatar } from "@calcom/ui/v2/core/skeleton";
@@ -111,23 +111,41 @@ const ProfileView = () => {
       await utils.invalidateQueries(["viewer.me"]);
     },
   });
+  const deleteMeWithoutPasswordMutation = trpc.useMutation("viewer.deleteMeWithoutPassword", {
+    onSuccess: onDeleteMeSuccessMutation,
+    onError: onDeleteMeErrorMutation,
+    async onSettled() {
+      await utils.invalidateQueries(["viewer.me"]);
+    },
+  });
+
+  const isCALIdentityProviver = user?.identityProvider === IdentityProvider.CAL;
 
   const onConfirmPassword = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
     e.preventDefault();
+
     const password = passwordRef.current.value;
     confirmPasswordMutation.mutate({ passwordInput: password });
   };
 
   const onConfirmButton = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
     e.preventDefault();
-    const totpCode = form.getValues("totpCode");
-    const password = passwordRef.current.value;
-    deleteMeMutation.mutate({ password, totpCode });
+    if (isCALIdentityProviver) {
+      const totpCode = form.getValues("totpCode");
+      const password = passwordRef.current.value;
+      deleteMeMutation.mutate({ password, totpCode });
+    } else {
+      deleteMeWithoutPasswordMutation.mutate();
+    }
   };
   const onConfirm = ({ totpCode }: DeleteAccountValues, e: BaseSyntheticEvent | undefined) => {
     e?.preventDefault();
-    const password = passwordRef.current.value;
-    deleteMeMutation.mutate({ password, totpCode });
+    if (isCALIdentityProviver) {
+      const password = passwordRef.current.value;
+      deleteMeMutation.mutate({ password, totpCode });
+    } else {
+      deleteMeWithoutPasswordMutation.mutate();
+    }
   };
 
   const formMethods = useForm<{
@@ -139,9 +157,12 @@ const ProfileView = () => {
   }>();
 
   const { reset } = formMethods;
-
+  const formInitializedRef = useRef(false);
   useEffect(() => {
-    if (user)
+    // The purpose of reset is to set the initial value obtained from tRPC.
+    // `user` would change for many reasons (e.g. when viewer.me automatically fetches on window re-focus(a react query feature))
+    if (user && !formInitializedRef.current) {
+      formInitializedRef.current = true;
       reset({
         avatar: user?.avatar || "",
         username: user?.username || "",
@@ -149,6 +170,7 @@ const ProfileView = () => {
         email: user?.email || "",
         bio: user?.bio || "",
       });
+    }
   }, [reset, user]);
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -178,7 +200,7 @@ const ProfileView = () => {
       <Form
         form={formMethods}
         handleSubmit={(values) => {
-          if (values.email !== user?.email) {
+          if (values.email !== user?.email && isCALIdentityProviver) {
             setConfirmPasswordOpen(true);
           } else {
             mutation.mutate(values);
@@ -260,18 +282,20 @@ const ProfileView = () => {
             actionOnClick={(e) => e && onConfirmButton(e)}>
             <>
               <p className="mb-7">{t("delete_account_confirmation_message")}</p>
-              <PasswordField
-                data-testid="password"
-                name="password"
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                label="Password"
-                ref={passwordRef}
-              />
+              {isCALIdentityProviver && (
+                <PasswordField
+                  data-testid="password"
+                  name="password"
+                  id="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  label="Password"
+                  ref={passwordRef}
+                />
+              )}
 
-              {user?.twoFactorEnabled && (
+              {user?.twoFactorEnabled && isCALIdentityProviver && (
                 <Form handleSubmit={onConfirm} className="pb-4" form={form}>
                   <TwoFactor center={false} />
                 </Form>

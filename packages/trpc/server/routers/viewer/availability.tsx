@@ -15,6 +15,7 @@ export const availabilityRouter = createProtectedRouter()
   .query("list", {
     async resolve({ ctx }) {
       const { prisma, user } = ctx;
+
       const schedules = await prisma.schedule.findMany({
         where: {
           userId: user.id,
@@ -29,10 +30,13 @@ export const availabilityRouter = createProtectedRouter()
           id: "asc",
         },
       });
+
+      const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
+
       return {
         schedules: schedules.map((schedule) => ({
           ...schedule,
-          isDefault: user.defaultScheduleId === schedule.id || schedules.length === 1,
+          isDefault: schedule.id === defaultScheduleId,
         })),
       };
     },
@@ -102,6 +106,7 @@ export const availabilityRouter = createProtectedRouter()
           )
         )
         .optional(),
+      eventTypeId: z.number().optional(),
     }),
     async resolve({ input, ctx }) {
       const { user, prisma } = ctx;
@@ -112,6 +117,8 @@ export const availabilityRouter = createProtectedRouter()
             id: user.id,
           },
         },
+        // If an eventTypeId is provided then connect the new schedule to that event type
+        ...(input.eventTypeId && { eventType: { connect: { id: input.eventTypeId } } }),
       };
 
       const availability = getAvailabilityFromSchedule(input.schedule || DEFAULT_SCHEDULE);
@@ -203,8 +210,10 @@ export const availabilityRouter = createProtectedRouter()
       const { user, prisma } = ctx;
       const availability = getAvailabilityFromSchedule(input.schedule);
 
+      let updatedUser;
       if (input.isDefault) {
-        setupDefaultSchedule(user.id, input.scheduleId, prisma);
+        const setupDefault = await setupDefaultSchedule(user.id, input.scheduleId, prisma);
+        updatedUser = setupDefault;
       }
 
       // Not able to update the schedule with userId where clause, so fetch schedule separately and then validate
@@ -248,10 +257,33 @@ export const availabilityRouter = createProtectedRouter()
             },
           },
         },
+        select: {
+          id: true,
+          userId: true,
+          name: true,
+          availability: true,
+          timeZone: true,
+          eventType: {
+            select: {
+              _count: true,
+              id: true,
+              eventName: true,
+            },
+          },
+        },
       });
+
+      const userAvailability = convertScheduleToAvailability(schedule);
 
       return {
         schedule,
+        availability: userAvailability,
+        timeZone: schedule.timeZone || user.timeZone,
+        isDefault: updatedUser
+          ? updatedUser.defaultScheduleId === schedule.id
+          : user.defaultScheduleId === schedule.id,
+        prevDefaultId: user.defaultScheduleId,
+        currentDefaultId: updatedUser ? updatedUser.defaultScheduleId : user.defaultScheduleId,
       };
     },
   });
@@ -290,7 +322,7 @@ export const convertScheduleToAvailability = (
 };
 
 const setupDefaultSchedule = async (userId: number, scheduleId: number, prisma: PrismaClient) => {
-  await prisma.user.update({
+  return prisma.user.update({
     where: {
       id: userId,
     },

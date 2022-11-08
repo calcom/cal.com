@@ -1,4 +1,4 @@
-import { Credential, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { calendar_v3, google } from "googleapis";
 
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
@@ -12,6 +12,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
 import { googleCredentialSchema } from "./googleCredentialSchema";
@@ -25,13 +26,13 @@ export default class GoogleCalendarService implements Calendar {
   private auth: { getToken: () => Promise<MyGoogleAuth> };
   private log: typeof logger;
 
-  constructor(credential: Credential) {
+  constructor(credential: CredentialPayload) {
     this.integrationName = "google_calendar";
     this.auth = this.googleAuth(credential);
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
-  private googleAuth = (credential: Credential) => {
+  private googleAuth = (credential: CredentialPayload) => {
     const googleCredentials = googleCredentialSchema.parse(credential.key);
 
     async function getGoogleAuth() {
@@ -90,7 +91,7 @@ export default class GoogleCalendarService implements Calendar {
           },
           // eslint-disable-next-line
           ...calEventRaw.attendees.map(({ id, ...rest }) => ({
-            rest,
+            ...rest,
             responseStatus: "accepted",
           })),
         ],
@@ -159,6 +160,10 @@ export default class GoogleCalendarService implements Calendar {
   async updateEvent(uid: string, event: CalendarEvent, externalCalendarId: string): Promise<any> {
     return new Promise(async (resolve, reject) => {
       const myGoogleAuth = await this.auth.getToken();
+      const eventAttendees = event.attendees.map(({ id, ...rest }) => ({
+        ...rest,
+        responseStatus: "accepted",
+      }));
       const payload: calendar_v3.Schema$Event = {
         summary: event.title,
         description: getRichDescription(event),
@@ -178,10 +183,7 @@ export default class GoogleCalendarService implements Calendar {
             responseStatus: "accepted",
           },
           // eslint-disable-next-line
-          ...event.attendees.map(({ id, ...rest }) => ({
-            rest,
-            responseStatus: "accepted",
-          })),
+          ...eventAttendees,
         ],
         reminders: {
           useDefault: true,
