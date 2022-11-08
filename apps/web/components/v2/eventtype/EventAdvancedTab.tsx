@@ -322,13 +322,13 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                       onChange(Math.abs(Number(e.target.value)));
                     }}
                   />
-                  <div className="mt-2">
-                    <Checkbox
-                      description={t("show_attendees")}
-                      onChange={(e) => formMethods.setValue("seatsShowAttendees", e.target.checked)}
-                      defaultChecked={!!eventType.seatsShowAttendees}
-                    />
-                  </div>
+                  {/*<div className="mt-2">*/}
+                  {/*  <Checkbox*/}
+                  {/*    description={t("show_attendees")}*/}
+                  {/*    onChange={(e) => formMethods.setValue("seatsShowAttendees", e.target.checked)}*/}
+                  {/*    defaultChecked={!!eventType.seatsShowAttendees}*/}
+                  {/*  />*/}
+                  {/*</div>*/}
                 </div>
               )}
             />
