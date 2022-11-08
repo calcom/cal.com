@@ -5,7 +5,13 @@ import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import { SerializableForm } from "../types/types";
 import { zodFields, zodRoutes } from "../zod";
 
-export function getSerializableForm<TForm extends App_RoutingForms_Form>(form: TForm) {
+/**
+ * Doesn't have deleted fields by default
+ */
+export function getSerializableForm<TForm extends App_RoutingForms_Form>(
+  form: TForm,
+  withDeletedFields = false
+) {
   const routesParsed = zodRoutes.safeParse(form.routes);
   if (!routesParsed.success) {
     throw new Error("Error parsing routes");
@@ -26,7 +32,11 @@ export function getSerializableForm<TForm extends App_RoutingForms_Form>(form: T
   const serializableForm: SerializableForm<TForm> = {
     ...form,
     settings: settings,
-    fields: fieldsParsed.data,
+    fields: fieldsParsed.data
+      ? withDeletedFields
+        ? fieldsParsed.data
+        : fieldsParsed.data.filter((f) => !f.deleted)
+      : [],
     routes: routesParsed.data,
     createdAt: form.createdAt.toString(),
     updatedAt: form.updatedAt.toString(),
