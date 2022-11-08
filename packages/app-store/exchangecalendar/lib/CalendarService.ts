@@ -1,5 +1,4 @@
 import { XhrApi } from "@ewsjs/xhr";
-import { Credential } from "@prisma/client";
 import {
   Appointment,
   Attendee,
@@ -39,6 +38,7 @@ import {
   NewCalendarEventType,
   Person,
 } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 
 import { ExchangeAuthentication } from "../enums";
 
@@ -47,7 +47,7 @@ export default class ExchangeCalendarService implements Calendar {
   private log: typeof logger;
   private payload;
 
-  constructor(credential: Credential) {
+  constructor(credential: CredentialPayload) {
     this.integrationName = "exchange_calendar";
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
     this.payload = JSON.parse(

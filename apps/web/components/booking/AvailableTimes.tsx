@@ -58,7 +58,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
             {nameOfDay(i18n.language, Number(date.format("d")), "short")}
           </span>
           <span className="text-bookinglight font-medium">
-            , {date.toDate().toLocaleString(i18n.language, { month: "long", day: "numeric" })}
+            , {date.toDate().toLocaleString(i18n.language, { month: "long" })} {date.format(" D ")}
           </span>
         </div>
         <div className="ml-auto">
@@ -83,7 +83,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
               pathname: router.pathname.endsWith("/embed") ? "../book" : "book",
               query: {
                 ...router.query,
-                date: dayjs(slot.time).format(),
+                date: dayjs.utc(slot.time).tz(timeZone()).format(),
                 type: eventTypeId,
                 slug: eventTypeSlug,
                 /** Treat as recurring only when a count exist and it's not a rescheduling workflow */

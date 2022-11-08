@@ -4,9 +4,8 @@ import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert } from "@calcom/ui/Alert";
-import Button from "@calcom/ui/Button";
-import { Form, TextField } from "@calcom/ui/form/fields";
+import { Button, Form, TextField } from "@calcom/ui/components";
+import { Alert } from "@calcom/ui/v2";
 
 export default function AppleCalendarSetup() {
   const { t } = useLocale();

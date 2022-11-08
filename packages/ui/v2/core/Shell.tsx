@@ -29,14 +29,15 @@ import Dropdown, {
 } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import TimezoneChangeDialog from "@calcom/ui/TimezoneChangeDialog";
-import Button from "@calcom/ui/v2/core/Button";
+import { Button } from "@calcom/ui/components/button";
+import showToast from "@calcom/ui/v2/core/notifications";
+import Tips from "@calcom/ui/v2/modules/tips/Tips";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
-import Tips from "../modules/tips/Tips";
 import HeadSeo from "./head-seo";
 import { SkeletonText } from "./skeleton";
 
@@ -294,16 +295,33 @@ function UserDropdown({ small }: { small?: boolean }) {
           ) : (
             <>
               {user.username && (
-                <DropdownMenuItem>
-                  <a
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
-                    className="flex items-center px-4 py-2 text-sm text-gray-700">
-                    <Icon.FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
-                    {t("view_public_page")}
-                  </a>
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem>
+                    <a
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
+                      className="flex items-center px-4 py-2 text-sm text-gray-700">
+                      <Icon.FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                      {t("view_public_page")}
+                    </a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <a
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigator.clipboard.writeText(
+                          `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`
+                        );
+                        showToast(t("link_copied"), "success");
+                      }}
+                      className="flex items-center px-4 py-2 text-sm text-gray-700">
+                      <Icon.FiLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                      {t("copy_public_page_link")}
+                    </a>
+                  </DropdownMenuItem>
+                </>
               )}
               <DropdownMenuSeparator className="h-px bg-gray-200" />
               <DropdownMenuItem>
@@ -367,6 +385,10 @@ const navigation: NavigationItemType[] = [
     href: "/bookings/upcoming",
     icon: Icon.FiCalendar,
     badge: <UnconfirmedBookingBadge />,
+    isCurrent: ({ router }) => {
+      const path = router.asPath.split("?")[0];
+      return path.startsWith("/bookings");
+    },
   },
   {
     name: "availability",
@@ -429,7 +451,7 @@ const navigation: NavigationItemType[] = [
   },
   {
     name: "settings",
-    href: "/settings",
+    href: "/settings/my-account/profile",
     icon: Icon.FiSettings,
   },
 ];

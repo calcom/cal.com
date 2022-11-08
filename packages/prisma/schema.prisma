@@ -100,6 +100,7 @@ model Credential {
   // How to make it a required column?
   appId                String?
   destinationCalendars DestinationCalendar[]
+  invalid              Boolean?
 }
 
 enum UserPlan {
@@ -517,6 +518,8 @@ model App_RoutingForms_Form {
   userId      Int
   responses   App_RoutingForms_FormResponse[]
   disabled    Boolean                         @default(false)
+  /// @zod.custom(imports.RoutingFormSettings)
+  settings    Json?
 }
 
 model App_RoutingForms_FormResponse {

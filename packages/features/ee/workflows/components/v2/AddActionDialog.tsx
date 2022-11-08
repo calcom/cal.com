@@ -6,19 +6,9 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button, Checkbox, EmailField, Form, Label } from "@calcom/ui/components";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
-import {
-  Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  EmailField,
-  Form,
-  Label,
-  Select,
-} from "@calcom/ui/v2";
-import CheckboxField from "@calcom/ui/v2/core/form/Checkbox";
+import { Dialog, DialogClose, DialogContent, DialogFooter, Select } from "@calcom/ui/v2";
 
 import { WORKFLOW_ACTIONS } from "../../lib/constants";
 import { getWorkflowActionOptions } from "../../lib/getOptions";
@@ -27,6 +17,12 @@ interface IAddActionDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   addAction: (action: WorkflowActions, sendTo?: string, numberRequired?: boolean) => void;
+  isFreeUser: boolean;
+}
+
+interface ISelectActionOption {
+  label: string;
+  value: WorkflowActions;
 }
 
 type AddActionFormValues = {
@@ -35,12 +31,19 @@ type AddActionFormValues = {
   numberRequired?: boolean;
 };
 
+const cleanUpActionsForFreeUser = (actions: ISelectActionOption[]) => {
+  return actions.filter(
+    (item) => item.value !== WorkflowActions.SMS_ATTENDEE && item.value !== WorkflowActions.SMS_NUMBER
+  );
+};
+
 export const AddActionDialog = (props: IAddActionDialog) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, addAction } = props;
+  const { isOpenDialog, setIsOpenDialog, addAction, isFreeUser } = props;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(false);
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(false);
-  const actionOptions = getWorkflowActionOptions(t);
+  const workflowActions = getWorkflowActionOptions(t);
+  const actionOptions = isFreeUser ? cleanUpActionsForFreeUser(workflowActions) : workflowActions;
 
   const formSchema = z.object({
     action: z.enum(WORKFLOW_ACTIONS),
@@ -58,6 +61,26 @@ export const AddActionDialog = (props: IAddActionDialog) => {
     },
     resolver: zodResolver(formSchema),
   });
+
+  const handleSelectAction = (newValue: ISelectActionOption | null) => {
+    if (newValue) {
+      form.setValue("action", newValue.value);
+      if (newValue.value === WorkflowActions.SMS_NUMBER) {
+        setIsPhoneNumberNeeded(true);
+        setIsEmailAddressNeeded(false);
+      } else if (newValue.value === WorkflowActions.EMAIL_ADDRESS) {
+        setIsEmailAddressNeeded(true);
+        setIsPhoneNumberNeeded(false);
+      } else {
+        setIsEmailAddressNeeded(false);
+        setIsPhoneNumberNeeded(false);
+      }
+      form.unregister("sendTo");
+      form.unregister("numberRequired");
+      form.clearErrors("action");
+      form.clearErrors("sendTo");
+    }
+  };
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
@@ -86,25 +109,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                         isSearchable={false}
                         className="text-sm"
                         defaultValue={actionOptions[0]}
-                        onChange={(val) => {
-                          if (val) {
-                            form.setValue("action", val.value);
-                            if (val.value === WorkflowActions.SMS_NUMBER) {
-                              setIsPhoneNumberNeeded(true);
-                              setIsEmailAddressNeeded(false);
-                            } else if (val.value === WorkflowActions.EMAIL_ADDRESS) {
-                              setIsEmailAddressNeeded(true);
-                              setIsPhoneNumberNeeded(false);
-                            } else {
-                              setIsEmailAddressNeeded(false);
-                              setIsPhoneNumberNeeded(false);
-                            }
-                            form.unregister("sendTo");
-                            form.unregister("numberRequired");
-                            form.clearErrors("action");
-                            form.clearErrors("sendTo");
-                          }
-                        }}
+                        onChange={handleSelectAction}
                         options={actionOptions}
                       />
                     );
@@ -120,7 +125,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                     name="numberRequired"
                     control={form.control}
                     render={() => (
-                      <CheckboxField
+                      <Checkbox
                         defaultChecked={form.getValues("numberRequired") || false}
                         description={t("make_phone_number_required")}
                         onChange={(e) => form.setValue("numberRequired", e.target.checked)}

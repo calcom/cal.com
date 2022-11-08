@@ -13,8 +13,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { Icon } from "@calcom/ui/Icon";
-import { Avatar } from "@calcom/ui/v2";
-import { Button } from "@calcom/ui/v2/core";
+import { Button, Avatar } from "@calcom/ui/components";
 import EventTypeDescription from "@calcom/ui/v2/modules/event-types/EventTypeDescription";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
@@ -51,7 +50,7 @@ function TeamPage({ team }: TeamPageProps) {
             "dark:bg-darkgray-100 dark:border-darkgray-200 group relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:hover:border-neutral-600",
             !isEmbed && "bg-white"
           )}>
-          <Link href={`${team.slug}/${type.slug}`}>
+          <Link href={`/team/${team.slug}/${type.slug}`}>
             <a className="flex justify-between px-6 py-4" data-testid="event-type-link">
               <div className="flex-shrink">
                 <div className="flex flex-wrap items-center space-x-2">

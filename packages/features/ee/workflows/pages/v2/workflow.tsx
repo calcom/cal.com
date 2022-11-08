@@ -18,8 +18,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
+import { Button, Form } from "@calcom/ui/components";
 import { Option } from "@calcom/ui/form/MultiSelectCheckboxes";
-import { Alert, Button, Form, showToast } from "@calcom/ui/v2";
+import { showToast, Alert } from "@calcom/ui/v2";
 import Shell from "@calcom/ui/v2/core/Shell";
 
 import LicenseRequired from "../../../common/components/v2/LicenseRequired";
@@ -85,13 +86,12 @@ function WorkflowPage() {
     data: workflow,
     isError,
     error,
-    dataUpdatedAt,
   } = trpc.useQuery(["viewer.workflows.get", { id: +workflowId }], {
     enabled: router.isReady && !!workflowId,
   });
 
   useEffect(() => {
-    if (workflow && !form.getValues("trigger")) {
+    if (workflow) {
       setSelectedEventTypes(
         workflow.activeOn.map((active) => ({
           value: String(active.eventType.id),
@@ -131,7 +131,7 @@ function WorkflowPage() {
       form.setValue("activeOn", activeOn || []);
       setIsAllDataLoaded(true);
     }
-  }, [dataUpdatedAt]);
+  }, [workflow]);
 
   const updateMutation = trpc.useMutation("viewer.workflows.update", {
     onSuccess: async ({ workflow }) => {

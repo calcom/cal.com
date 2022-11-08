@@ -10,6 +10,7 @@ export const AppSetupMap = {
   "caldav-calendar": dynamic(() => import("../../caldavcalendar/pages/setup")),
   zapier: dynamic(() => import("../../zapier/pages/setup")),
   closecom: dynamic(() => import("../../closecomothercalendar/pages/setup")),
+  sendgrid: dynamic(() => import("../../sendgridothercalendar/pages/setup")),
 };
 
 export const AppSetupPage = (props: { slug: string }) => {

@@ -7,6 +7,7 @@ import {
   WebhookTriggerEvents,
 } from "@prisma/client";
 import async from "async";
+import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
 import { RRule } from "rrule";
 import short from "short-uuid";
@@ -21,7 +22,7 @@ import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/l
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
-import dayjs from "@calcom/dayjs";
+import dayjs, { ConfigType } from "@calcom/dayjs";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
@@ -46,6 +47,7 @@ import { EventTypeMetaDataSchema, extendedBookingCreateBody } from "@calcom/pris
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
+import { WorkingHours } from "@calcom/types/schedule";
 
 import sendPayload, { EventTypeInfo } from "../../webhooks/lib/sendPayload";
 
@@ -83,40 +85,73 @@ async function refreshCredentials(credentials: Array<Credential>): Promise<Array
   return await async.mapLimit(credentials, 5, refreshCredential);
 }
 
-function isAvailable(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, length: number): boolean {
-  // Check for conflicts
-  let t = true;
+const isWithinAvailableHours = (
+  timeSlot: { start: ConfigType; end: ConfigType },
+  {
+    workingHours,
+  }: {
+    workingHours: WorkingHours[];
+  }
+) => {
+  const timeSlotStart = dayjs(timeSlot.start).utc();
+  const timeSlotEnd = dayjs(timeSlot.end).utc();
+  for (const workingHour of workingHours) {
+    // TODO: Double check & possibly fix timezone conversions.
+    const startTime = timeSlotStart.startOf("day").add(workingHour.startTime, "minute");
+    const endTime = timeSlotEnd.startOf("day").add(workingHour.endTime, "minute");
+
+    console.log(startTime.hour(), endTime.hour());
+
+    if (
+      workingHour.days.includes(timeSlotStart.day()) &&
+      // UTC mode, should be performant.
+      timeSlotStart.isBetween(startTime, endTime, null, "[)") &&
+      timeSlotEnd.isBetween(startTime, endTime, null, "(]")
+    ) {
+      console.log("isBetween");
+      return true;
+    }
+  }
+  return false;
+};
+
+// if true, there are conflicts.
+function checkForConflicts(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, length: number) {
+  console.log("checkForConflicts");
 
   // Early return
-  if (!Array.isArray(busyTimes) || busyTimes.length < 1) return t;
+  if (!Array.isArray(busyTimes) || busyTimes.length < 1) {
+    console.log("early return", false);
+    return false; // guaranteed no conflicts when there is no busy times.
+  }
 
-  let i = 0;
-  while (t === true && i < busyTimes.length) {
-    const busyTime = busyTimes[i];
-    i++;
+  for (const busyTime of busyTimes) {
     const startTime = dayjs(busyTime.start);
     const endTime = dayjs(busyTime.end);
 
     // Check if time is between start and end times
-    if (dayjs(time).isBetween(startTime, endTime, null, "[)")) {
-      t = false;
-      break;
-    }
+    if (dayjs(time).isBetween(startTime, endTime, "date", "[)")) {
+      console.log("busyTime start between start/end", true);
+      console.log(dayjs(time), startTime, endTime);
 
+      return true;
+    }
     // Check if slot end time is between start and end time
-    if (dayjs(time).add(length, "minutes").isBetween(startTime, endTime)) {
-      t = false;
-      break;
-    }
+    if (dayjs(time).add(length, "minutes").isBetween(startTime, endTime, "date", "[)")) {
+      console.log("busyTime end between start/end", true);
 
+      return true;
+    }
     // Check if startTime is between slot
     if (startTime.isBetween(dayjs(time), dayjs(time).add(length, "minutes"))) {
-      t = false;
-      break;
+      console.log("busyTime between", true);
+
+      return true;
     }
   }
 
-  return t;
+  console.log("end", false);
+  return false;
 }
 
 const getEventTypesFromDB = async (eventTypeId: number) => {
@@ -153,7 +188,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       hideCalendarNotes: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
-      // seatsShowAttendees: true,
+      seatsShowAttendees: true,
       bookingLimits: true,
       workflows: {
         include: {
@@ -199,7 +234,8 @@ async function ensureAvailableUsers(
   const availableUsers: typeof eventType.users = [];
   /** Let's start checking for availability */
   for (const user of eventType.users) {
-    const { busy: bufferedBusyTimes } = await getUserAvailability(
+    console.log("check available", user?.email);
+    const { busy: bufferedBusyTimes, workingHours } = await getUserAvailability(
       {
         userId: user.id,
         eventTypeId: eventType.id,
@@ -208,34 +244,47 @@ async function ensureAvailableUsers(
       { user, eventType }
     );
 
-    console.log("calendarBusyTimes==>>>", bufferedBusyTimes);
+    console.log("bufferedBusyTimes", bufferedBusyTimes);
+    console.log("workingHours", workingHours);
 
-    let isAvailableToBeBooked = true;
-    try {
-      if (eventType.recurringEvent) {
-        const recurringEvent = parseRecurringEvent(eventType.recurringEvent);
-        const allBookingDates = new RRule({ dtstart: new Date(input.dateFrom), ...recurringEvent }).all();
-        // Go through each date for the recurring event and check if each one's availability
-        // DONE: Decreased computational complexity from O(2^n) to O(n) by refactoring this loop to stop
-        // running at the first unavailable time.
-        let i = 0;
-        while (isAvailableToBeBooked === true && i < allBookingDates.length) {
-          const aDate = allBookingDates[i];
-          i++;
-          isAvailableToBeBooked = isAvailable(bufferedBusyTimes, aDate, eventType.length);
-          // We bail at the first false, we don't need to keep checking
-          if (!isAvailableToBeBooked) break;
+    // check if time slot is outside of schedule.
+    if (
+      !isWithinAvailableHours(
+        { start: input.dateFrom, end: input.dateTo },
+        {
+          workingHours,
         }
-      } else {
-        isAvailableToBeBooked = isAvailable(bufferedBusyTimes, input.dateFrom, eventType.length);
-      }
-    } catch {
+      )
+    ) {
+      console.log("!isWithinAvailableHours");
+      // user does not have availability at this time, skip user.
+      continue;
+    }
+
+    let foundConflict = true;
+    try {
+      // if (eventType.recurringEvent) {
+      //   const recurringEvent = parseRecurringEvent(eventType.recurringEvent);
+      //   const allBookingDates = new RRule({ dtstart: new Date(input.dateFrom), ...recurringEvent }).all();
+      //   // Go through each date for the recurring event and check if each one's availability
+      //   // DONE: Decreased computational complexity from O(2^n) to O(n) by refactoring this loop to stop
+      //   // running at the first unavailable time.
+      //
+      //   foundConflict = checkForConflicts(bufferedBusyTimes, bookingDate[0], eventType.length);
+      // } else {
+      //   foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, eventType.length);
+      // }
+
+      // CUSTOM_CODE Check only first booking
+      foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, eventType.length);
+      // }
+    } catch (e) {
       log.debug({
         message: "Unable set isAvailableToBeBooked. Using true. ",
       });
     }
-
-    if (isAvailableToBeBooked) {
+    // no conflicts found, add to available users.
+    if (!foundConflict) {
       availableUsers.push(user);
     }
   }
@@ -316,6 +365,9 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         ...userSelect,
       })
     : eventType.users;
+
+  console.log("user", users[0].email);
+
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
     throw new HttpError({
@@ -355,6 +407,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         dateTo: reqBody.end,
       }
     );
+
+    console.log("ensureAvailableUsers");
 
     // Add an if conditional if there are no seats on the event type
     // Assign to only one user when ROUND_ROBIN
@@ -430,8 +484,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   const additionalNotes = reqBody.notes;
 
-  console.log(`--------- ${bookingLocation} ----------`);
-
   let evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
@@ -453,13 +505,14 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     hideCalendarNotes: eventType.hideCalendarNotes,
     requiresConfirmation: eventType.requiresConfirmation ?? false,
     eventTypeId: eventType.id,
-    // seatsShowAttendees: !!eventType.seatsShowAttendees,
+    seatsShowAttendees: !!eventType.seatsShowAttendees,
   };
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (reqBody.bookingUid) {
-    if (!eventType.seatsPerTimeSlot)
+    if (!eventType.seatsPerTimeSlot) {
       throw new HttpError({ statusCode: 404, message: "Event type does not have seats" });
+    }
 
     const booking = await prisma.booking.findUnique({
       where: {
@@ -481,7 +534,9 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         },
       },
     });
-    if (!booking) throw new HttpError({ statusCode: 404, message: "Booking not found" });
+    if (!booking) {
+      throw new HttpError({ statusCode: 404, message: "Booking not found" });
+    }
 
     // Need to add translation for attendees to pass type checks. Since these values are never written to the db we can just use the new attendee language
     const bookingAttendees = booking.attendees.map((attendee) => {
@@ -490,11 +545,13 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
     evt = { ...evt, attendees: [...bookingAttendees, invitee[0]] };
 
-    if (eventType.seatsPerTimeSlot <= booking.attendees.length)
+    if (eventType.seatsPerTimeSlot <= booking.attendees.length) {
       throw new HttpError({ statusCode: 409, message: "Booking seats are full" });
+    }
 
-    if (booking.attendees.some((attendee) => attendee.email === invitee[0].email))
+    if (booking.attendees.find((attendee) => attendee.email === invitee[0].email)) {
       throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
+    }
 
     await prisma.booking.update({
       where: {
@@ -513,8 +570,13 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     });
 
     const newSeat = booking.attendees.length !== 0;
-
-    await sendScheduledSeatsEmails(evt, invitee[0], newSeat, true);
+    /**
+     * Remember objects are passed into functions as references
+     * so if you modify it in a inner function it will be modified in the outer function
+     * deep cloning evt to avoid this
+     */
+    const copyEvent = cloneDeep(evt);
+    await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
 
     const credentials = await refreshCredentials(organizerUser.credentials);
     const eventManager = new EventManager({ ...organizerUser, credentials });

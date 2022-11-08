@@ -9,6 +9,7 @@ export const zodFields = z
       type: z.string(),
       selectText: z.string().optional(),
       required: z.boolean().optional(),
+      deleted: z.boolean().optional(),
     })
   )
   .optional();

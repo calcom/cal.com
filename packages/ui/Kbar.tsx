@@ -135,7 +135,7 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       section: "Security Settings",
       shortcut: ["t", "f", "a"],
       keywords: "two factor authentication",
-      perform: () => router.push("/settings/security"),
+      perform: () => router.push("/settings/security/two-factor-auth"),
     },
     {
       id: "impersonation",
@@ -143,7 +143,7 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       section: "Security Settings",
       shortcut: ["u", "i"],
       keywords: "user impersonation",
-      perform: () => router.push("/settings/security"),
+      perform: () => router.push("/settings/security/impersonation"),
     },
     {
       id: "webhooks",
@@ -151,7 +151,7 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       section: "Developer Settings",
       shortcut: ["w", "h"],
       keywords: "webhook automation",
-      perform: () => router.push("/settings/developer"),
+      perform: () => router.push("/settings/developer/webhooks"),
     },
     {
       id: "api-keys",
@@ -159,7 +159,7 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       section: "Developer Settings",
       shortcut: ["a", "p", "i"],
       keywords: "api keys",
-      perform: () => router.push("/settings/developer"),
+      perform: () => router.push("/settings/developer/api-keys"),
     },
     // {
     //   id: "billing",

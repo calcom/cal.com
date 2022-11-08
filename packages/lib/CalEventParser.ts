@@ -128,6 +128,10 @@ export const getCancelLink = (calEvent: CalendarEvent): string => {
   return WEBAPP_URL + "/cancel/" + getUid(calEvent);
 };
 
+export const getRescheduleLink = (calEvent: CalendarEvent): string => {
+  return WEBAPP_URL + "/reschedule/" + getUid(calEvent);
+};
+
 export const getRichDescription = (calEvent: CalendarEvent /*, attendee?: Person*/) => {
   const appUrl = "https://app.mento.co";
   const cancelationPolicyURL =
