@@ -29,6 +29,7 @@ export const apiHandlers = {
   rainbow: import("./rainbow/api"),
   raycast: import("./raycast/api"),
   riverside: import("./riverside/api"),
+  sendgridothercalendar: import("./sendgridothercalendar/api"),
   sirius_video: import("./sirius_video/api"),
   slackmessaging: import("./slackmessaging/api"),
   stripepayment: import("./stripepayment/api"),
