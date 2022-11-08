@@ -175,7 +175,6 @@ async function handleTeamSubscriptionSuccess(event: Stripe.Event) {
         id: parseInt(checkoutSession.metadata.teamId),
       },
       data: {
-        subscriptionStatus: "ACTIVE",
         metadata: {
           stripeCustomerId: checkoutSession.customer as string,
           stripeSubscriptionId: checkoutSession.subscription as string,

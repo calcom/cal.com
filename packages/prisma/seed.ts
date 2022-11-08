@@ -574,7 +574,6 @@ async function main() {
           ],
         },
       },
-      subscriptionStatus: "ACTIVE",
       createdAt: new Date(),
     },
     [

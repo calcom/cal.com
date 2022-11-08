@@ -516,7 +516,6 @@ export const viewerTeamsRouter = createProtectedRouter()
               role: "OWNER",
             },
           },
-          subscriptionStatus: "PENDING",
         },
       });
 
@@ -682,7 +681,6 @@ export const viewerTeamsRouter = createProtectedRouter()
               accepted: true,
             },
           },
-          subscriptionStatus: "PENDING",
           metadata: {
             temporarySlug,
           },

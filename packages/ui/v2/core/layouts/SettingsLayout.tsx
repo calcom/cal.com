@@ -168,11 +168,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                 {teams &&
                   teamMenuState &&
                   teams.map((team, index: number) => {
-                    if (
-                      teamMenuState.some((teamState) => teamState.teamId === team.id)
-                      // &&
-                      // team.subscriptionStatus !== "PENDING"
-                    )
+                    if (teamMenuState.some((teamState) => teamState.teamId === team.id))
                       return (
                         <Collapsible
                           key={team.id}
