@@ -29,6 +29,7 @@ import Dropdown, {
 } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import TimezoneChangeDialog from "@calcom/ui/TimezoneChangeDialog";
+import { TopBanner } from "@calcom/ui/components";
 import { Button } from "@calcom/ui/components/button";
 import showToast from "@calcom/ui/v2/core/notifications";
 import Tips from "@calcom/ui/v2/modules/tips/Tips";
@@ -144,6 +145,7 @@ const Layout = (props: LayoutProps) => {
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
 
+      <TopBanner />
       <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
         {props.SidebarContainer || <SideBarContainer />}
         <div className="flex w-0 flex-1 flex-col overflow-hidden">

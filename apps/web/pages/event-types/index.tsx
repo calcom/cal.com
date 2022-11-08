@@ -578,7 +578,6 @@ const EventTypesPage = () => {
         <title>Home | Cal.com</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <TopBanner />
       <Shell
         heading={t("event_types_page_title") as string}
         subtitle={t("event_types_page_subtitle") as string}
