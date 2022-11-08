@@ -29,6 +29,7 @@ import { getQueryBuilderConfig, RoutingPages } from "../pages/route-builder/[...
 import { SerializableForm } from "../types/types";
 import { Response, Route } from "../types/types";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
+import FormInputFields from "./FormInputFields";
 import RoutingNavBar from "./RoutingNavBar";
 
 type RoutingForm = SerializableForm<App_RoutingForms_Form>;
@@ -318,96 +319,8 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
       <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
         <DialogContent type="creation" useOwnActionButtons={true} title={t("test_routing_form")}>
           <div className="">
-            <div className="mt-5 max-h-64 overflow-scroll sm:max-h-96">
-              {form?.fields?.map((field) => {
-                const widget = queryBuilderConfig.widgets[field.type];
-                if (!("factory" in widget)) {
-                  return null;
-                }
-                const Component = widget.factory;
-
-                const optionValues = field.selectText?.trim().split("\n");
-                const options = optionValues?.map((value) => {
-                  const title = value;
-                  return {
-                    value,
-                    title,
-                  };
-                });
-                return (
-                  <div key={field.id} className="mx-1 mb-4 block flex-col sm:flex">
-                    <div className="min-w-48 mb-2 flex-grow">
-                      <label
-                        id="slug-label"
-                        htmlFor="slug"
-                        className="flex text-sm font-medium text-neutral-700 dark:text-white">
-                        {field.label}
-                      </label>
-                    </div>
-                    <div className="flex rounded-sm">
-                      <Component
-                        value={response[field.id]?.value}
-                        // required property isn't accepted by query-builder types
-                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                        /* @ts-ignore */
-                        required={!!field.required}
-                        listValues={options}
-                        data-testid="field"
-                        setValue={(value) => {
-                          setResponse((response) => {
-                            response = response || {};
-                            return {
-                              ...response,
-                              [field.id]: {
-                                label: field.label,
-                                value,
-                              },
-                            };
-                          });
-                        }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <div>
-              {decidedAction && (
-                <div className="mt-5 rounded-md bg-gray-100 p-3">
-                  <div className="font-bold ">{t("route_to")}:</div>
-                  <div className="mt-2">
-                    {RoutingPages.map((page) => {
-                      if (page.value === decidedAction.type) {
-                        return <>{page.label}</>;
-                      }
-                    })}
-                    :{" "}
-                    {decidedAction.type === "customPageMessage" ? (
-                      <span className="text-gray-700">{decidedAction.value}</span>
-                    ) : decidedAction.type === "externalRedirectUrl" ? (
-                      <span className="text-gray-700 underline">
-                        <a
-                          target="_blank"
-                          href={
-                            decidedAction.value.includes("https://") ||
-                            decidedAction.value.includes("http://")
-                              ? decidedAction.value
-                              : `http://${decidedAction.value}`
-                          }
-                          rel="noreferrer">
-                          {decidedAction.value}
-                        </a>
-                      </span>
-                    ) : (
-                      <span className="text-gray-700 underline">
-                        <a target="_blank" href={`/${decidedAction.value}`} rel="noreferrer">
-                          {decidedAction.value}
-                        </a>
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
+            <div className="mt-5">
+              {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
             </div>
           </div>
           <DialogFooter>
@@ -420,7 +333,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                 {t("close")}
               </Button>
             </DialogClose>
-            <Button type="button" onClick={testRouting}>
+            <Button type="submit" onClick={testRouting}>
               {t("Test Routing")}
             </Button>
           </DialogFooter>
