@@ -1,6 +1,6 @@
 import classNames from "classnames";
-import { debounce } from "lodash";
-import { MutableRefObject, useEffect, useMemo, useState } from "react";
+import { debounce, noop } from "lodash";
+import { RefCallback, useEffect, useMemo, useState } from "react";
 
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -13,8 +13,9 @@ import { Button, Input, Label } from "@calcom/ui/components";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
+  setCurrentUsername?: (newUsername: string | undefined) => void;
   inputUsernameValue: string | undefined;
-  usernameRef: MutableRefObject<HTMLInputElement | null>;
+  usernameRef: RefCallback<HTMLInputElement>;
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
@@ -24,6 +25,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
   const { t } = useLocale();
   const {
     currentUsername,
+    setCurrentUsername = noop,
     inputUsernameValue,
     setInputUsernameValue,
     usernameRef,
@@ -61,7 +63,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
 
   const utils = trpc.useContext();
 
-  const updateUsername = trpc.useMutation("viewer.updateProfile", {
+  const updateUsernameMutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
       setOpenDialogSaveUsername(false);
@@ -99,6 +101,13 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
     ) : (
       <></>
     );
+  };
+
+  const updateUsername = async () => {
+    await updateUsernameMutation.mutate({
+      username: inputUsernameValue,
+    });
+    setCurrentUsername(inputUsernameValue);
   };
 
   return (
@@ -181,13 +190,9 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           <div className="mt-4 flex flex-row-reverse gap-x-2">
             <Button
               type="button"
-              loading={updateUsername.isLoading}
+              loading={updateUsernameMutation.isLoading}
               data-testid="save-username"
-              onClick={() => {
-                updateUsername.mutate({
-                  username: inputUsernameValue,
-                });
-              }}>
+              onClick={updateUsername}>
               {t("save")}
             </Button>
 

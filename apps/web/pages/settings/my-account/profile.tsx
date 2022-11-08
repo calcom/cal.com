@@ -234,11 +234,12 @@ const ProfileView = () => {
         </div>
         <div className="mt-8">
           <Controller
+            control={formMethods.control}
             name="username"
             render={({ field: { ref, onChange, value } }) => {
               return (
                 <UsernameAvailability
-                  currentUsername={user?.username}
+                  currentUsername={user?.username || ""}
                   inputUsernameValue={value}
                   usernameRef={ref}
                   setInputUsernameValue={onChange}

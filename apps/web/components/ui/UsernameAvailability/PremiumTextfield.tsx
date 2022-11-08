@@ -1,7 +1,7 @@
 import classNames from "classnames";
-import { debounce } from "lodash";
+import { debounce, noop } from "lodash";
 import { useRouter } from "next/router";
-import { MutableRefObject, useMemo, useEffect, useState } from "react";
+import { RefCallback, useMemo, useEffect, useState } from "react";
 
 import { getPremiumPlanMode, getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
@@ -24,8 +24,9 @@ export enum UsernameChangeStatusEnum {
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
+  setCurrentUsername?: (newUsername: string | undefined) => void;
   inputUsernameValue: string | undefined;
-  usernameRef: MutableRefObject<HTMLInputElement | null>;
+  usernameRef: RefCallback<HTMLInputElement>;
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
@@ -72,6 +73,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const { t } = useLocale();
   const {
     currentUsername,
+    setCurrentUsername = noop,
     inputUsernameValue,
     setInputUsernameValue,
     usernameRef,
@@ -192,6 +194,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       updateUsername.mutate({
         username: inputUsernameValue,
       });
+      setCurrentUsername(inputUsernameValue);
     }
   };
 
