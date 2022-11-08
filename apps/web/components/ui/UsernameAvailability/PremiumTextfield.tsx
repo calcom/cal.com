@@ -176,9 +176,6 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             onClick={() => {
               if (currentUsername) {
                 setInputUsernameValue(currentUsername);
-                if (usernameRef.current) {
-                  usernameRef.current.value = currentUsername;
-                }
               }
             }}>
             {t("cancel")}
