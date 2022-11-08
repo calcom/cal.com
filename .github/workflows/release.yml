@@ -1,0 +1,11 @@
+on:
+  push:
+    # Pattern matched against refs/tags
+    tags:
+      - "*" # Push events to every tag not containing /
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - run: curl -X POST -d {} ${{ secrets.VERCEL_VERSIONED_DEPLOY_HOOK }}
