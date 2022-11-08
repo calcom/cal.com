@@ -1,4 +1,5 @@
 import { DestinationCalendar } from "@prisma/client";
+import { cloneDeep } from "lodash";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
 import { z } from "zod";
@@ -7,7 +8,6 @@ import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApi
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import prisma from "@calcom/prisma";
-import { Attendee } from "@calcom/prisma/client";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
 import type {
   AdditionalInformation,
@@ -191,10 +191,11 @@ export default class EventManager {
     event: CalendarEvent,
     rescheduleUid: string,
     newBookingId?: number,
-    rescheduleReason?: string
+    rescheduleReason?: string,
+    currentAttendeeEmail?: string
   ): Promise<CreateUpdateResult> {
-    const evt = processLocation(event);
-
+    const originalEvt = processLocation(event);
+    const evt = cloneDeep(originalEvt);
     if (!rescheduleUid) {
       throw new Error("You called eventManager.update without an `rescheduleUid`. This should never happen.");
     }
@@ -207,6 +208,7 @@ export default class EventManager {
       select: {
         id: true,
         userId: true,
+        attendees: true,
         references: {
           // NOTE: id field removed from select as we don't require for deletingMany
           // but was giving error on recreate for reschedule, probably because promise.all() didn't finished
@@ -222,6 +224,11 @@ export default class EventManager {
         },
         destinationCalendar: true,
         payment: true,
+        eventType: {
+          select: {
+            seatsPerTimeSlot: true,
+          },
+        },
       },
     });
 
@@ -229,15 +236,26 @@ export default class EventManager {
       throw new Error("booking not found");
     }
 
-    // Add reschedule reason to new booking
-    await prisma.booking.update({
-      where: {
-        id: newBookingId,
-      },
-      data: {
-        cancellationReason: rescheduleReason,
-      },
-    });
+    // If rescheduling and it's not the last attendee of a booking with seats we shouldn't update the booking cancellation
+    let shouldUpdateBookingCancellation = true;
+    if (booking?.eventType?.seatsPerTimeSlot && booking.attendees.length > 1) {
+      shouldUpdateBookingCancellation = false;
+      // Here we also should remove current attendee from event calendar
+
+      evt.attendees = evt.attendees.filter((attendee) => attendee.email !== currentAttendeeEmail);
+      console.log("removing attendee from event", evt.attendees);
+    }
+    if (shouldUpdateBookingCancellation) {
+      // Add reschedule reason to new booking
+      await prisma.booking.update({
+        where: {
+          id: newBookingId,
+        },
+        data: {
+          cancellationReason: rescheduleReason,
+        },
+      });
+    }
 
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
     const results: Array<EventResult<Event>> = [];
@@ -271,28 +289,35 @@ export default class EventManager {
         },
       });
     }
+    if (shouldUpdateBookingCancellation) {
+      // Now we can delete the old booking and its references.
+      const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
+        where: {
+          bookingId: booking.id,
+        },
+      });
+      const attendeeDeletes = prisma.attendee.deleteMany({
+        where: {
+          bookingId: booking.id,
+        },
+      });
 
-    // Now we can delete the old booking and its references.
-    const bookingReferenceDeletes = prisma.bookingReference.deleteMany({
-      where: {
-        bookingId: booking.id,
-      },
-    });
-    const attendeeDeletes = prisma.attendee.deleteMany({
-      where: {
-        bookingId: booking.id,
-      },
-    });
+      const bookingDeletes = prisma.booking.delete({
+        where: {
+          id: booking.id,
+        },
+      });
 
-    const bookingDeletes = prisma.booking.delete({
-      where: {
-        id: booking.id,
-      },
-    });
-
-    // Wait for all deletions to be applied.
-    await Promise.all([bookingReferenceDeletes, attendeeDeletes, bookingDeletes]);
-
+      // Wait for all deletions to be applied.
+      await Promise.all([bookingReferenceDeletes, attendeeDeletes, bookingDeletes]);
+    } else {
+      await prisma.attendee.deleteMany({
+        where: {
+          bookingId: booking.id,
+          email: currentAttendeeEmail,
+        },
+      });
+    }
     return {
       results,
       referencesToCreate: [...booking.references],
@@ -532,5 +557,11 @@ export default class EventManager {
    */
   public async updateAndSetCancelledPlaceholder(event: CalendarEvent, booking: PartialBooking) {
     await this.updateAllCalendarEvents(event, booking);
+  }
+
+  public async rescheduleBookingWithSeats() {
+    // Get originalBooking
+    // If originalBooking has only one attendee we should do normal reschedule
+    // Change current event attendees in everyone calendar
   }
 }

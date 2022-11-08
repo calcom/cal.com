@@ -641,6 +641,29 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     const userReschedulingIsOwner = userId && originalRescheduledBooking?.user?.id === userId;
     const isConfirmedByDefault =
       (!eventType.requiresConfirmation && !stripeAppData.price) || userReschedulingIsOwner;
+
+    /**
+     * Reschedule with seats logic
+     * If eventType has seats and we are rescheduling, we should filter the attendees
+     * unless the one rescheduling is the organizer
+     */
+    const currentAttendee = evt.attendees.find((attendee) => attendee.email === req.body.email) || null;
+    if (eventType.seatsPerTimeSlot && currentAttendee && userReschedulingIsOwner) {
+      evt.attendees = [currentAttendee];
+    }
+
+    const attendeesData = evt.attendees.map((attendee) => {
+      //if attendee is team member, it should fetch their locale not booker's locale
+      //perhaps make email fetch request to see if his locale is stored, else
+      const retObj = {
+        name: attendee.name,
+        email: attendee.email,
+        timeZone: attendee.timeZone,
+        locale: attendee.language.locale,
+      };
+      return retObj;
+    });
+
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
       title: evt.title,
@@ -654,17 +677,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       smsReminderNumber: reqBody.smsReminderNumber,
       attendees: {
         createMany: {
-          data: evt.attendees.map((attendee) => {
-            //if attendee is team member, it should fetch their locale not booker's locale
-            //perhaps make email fetch request to see if his locale is stored, else
-            const retObj = {
-              name: attendee.name,
-              email: attendee.email,
-              timeZone: attendee.timeZone,
-              locale: attendee.language.locale,
-            };
-            return retObj;
-          }),
+          data: attendeesData,
         },
       },
       dynamicEventSlugRef,
@@ -687,7 +700,14 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       newBookingData["paid"] = originalRescheduledBooking.paid;
       newBookingData["fromReschedule"] = originalRescheduledBooking.uid;
       if (newBookingData.attendees?.createMany?.data) {
-        newBookingData.attendees.createMany.data = originalRescheduledBooking.attendees;
+        // Reschedule logic with booking with seats
+        if (eventType?.seatsPerTimeSlot && reqBody.email) {
+          newBookingData.attendees.createMany.data = attendeesData.filter(
+            (attendee) => attendee.email === reqBody.email
+          );
+        } else {
+          newBookingData.attendees.createMany.data = originalRescheduledBooking.attendees;
+        }
       }
       if (originalRescheduledBooking.recurringEventId) {
         newBookingData.recurringEventId = originalRescheduledBooking.recurringEventId;
@@ -798,7 +818,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       evt,
       originalRescheduledBooking.uid,
       booking?.id,
-      reqBody.rescheduleReason
+      reqBody.rescheduleReason,
+      reqBody.email
     );
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
@@ -830,8 +851,14 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       }
 
       if (noEmail !== true) {
+        const copyEvent = cloneDeep(evt);
+        // Reschedule login for booking with seats
+        if (eventType?.seatsPerTimeSlot && originalRescheduledBooking.attendees.length > 1) {
+          // We should only notify affected attendees (owner and attendee rescheduling)
+          copyEvent.attendees = copyEvent.attendees.filter((attendee) => attendee.email === reqBody.email);
+        }
         await sendRescheduledEmails({
-          ...evt,
+          ...copyEvent,
           additionalInformation: metadata,
           additionalNotes, // Resets back to the additionalNote input and not the override value
           cancellationReason: "$RCH$" + reqBody.rescheduleReason, // Removable code prefix to differentiate cancellation from rescheduling for email
