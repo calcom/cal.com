@@ -242,7 +242,7 @@ async function ensureAvailableUsers(
 
     console.log("calendarBusyTimes==>>>", bufferedBusyTimes);
 
-    let foundConflict = true;
+    let foundConflict = false;
     try {
       if (eventType.recurringEvent) {
         const recurringEvent = parseRecurringEvent(eventType.recurringEvent);
