@@ -1,5 +1,6 @@
 import { App_RoutingForms_Form } from "@prisma/client";
-import { useEffect } from "react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useForm, UseFormReturn, Controller } from "react-hook-form";
 
 import useApp from "@calcom/lib/hooks/useApp";
@@ -7,14 +8,26 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Button, ButtonGroup } from "@calcom/ui/components";
-import { Form, TextAreaField, TextField } from "@calcom/ui/components/form";
-import { showToast, DropdownMenuSeparator, Tooltip, VerticalDivider } from "@calcom/ui/v2";
+import { Form, Label, TextAreaField, TextField } from "@calcom/ui/components/form";
+import {
+  showToast,
+  DropdownMenuSeparator,
+  Tooltip,
+  VerticalDivider,
+  Dialog,
+  DialogContent,
+  DialogClose,
+  DialogFooter,
+} from "@calcom/ui/v2";
 import Meta from "@calcom/ui/v2/core/Meta";
 import SettingsToggle from "@calcom/ui/v2/core/SettingsToggle";
 import { ShellMain } from "@calcom/ui/v2/core/Shell";
 import Banner from "@calcom/ui/v2/core/banner";
 
+import { processRoute } from "../lib/processRoute";
+import { getQueryBuilderConfig, RoutingPages } from "../pages/route-builder/[...appPages]";
 import { SerializableForm } from "../types/types";
+import { Response, Route } from "../types/types";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import RoutingNavBar from "./RoutingNavBar";
 
@@ -190,6 +203,22 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
   const utils = trpc.useContext();
   const { t } = useLocale();
 
+  const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
+  const queryBuilderConfig = getQueryBuilderConfig(form);
+  const [response, setResponse] = useState<Response>({});
+  const [decidedAction, setDecidedAction] = useState<Route["action"] | null>(null);
+
+  function testRouting() {
+    const action = processRoute({ form, response });
+    setDecidedAction(action);
+
+    if (!action) {
+      // FIXME: Make sure that when a form is created, there is always a fallback route and then remove this.
+      alert("Define atleast 1 route");
+      return;
+    }
+  }
+
   const hookForm = useForm({
     defaultValues: form,
   });
@@ -210,76 +239,194 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
     },
   });
   return (
-    <Form
-      form={hookForm}
-      handleSubmit={(data) => {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
-        mutation.mutate({
-          ...data,
-        });
-      }}>
-      <FormActionsProvider appUrl={appUrl}>
-        <Meta title={form.name} description={form.description || ""} />
-        <ShellMain
-          heading={form.name}
-          subtitle={form.description || ""}
-          backPath={`/${appUrl}/forms`}
-          CTA={<Actions form={form} mutation={mutation} />}>
-          <div className="-mx-4 px-4 sm:px-6 md:-mx-8 md:px-8">
-            <div className="flex flex-col items-center md:flex-row md:items-start">
-              <div className="lg:min-w-72 lg:max-w-72 mb-6 md:mr-6">
-                <TextField
-                  type="text"
-                  containerClassName="mb-6"
-                  placeholder="Title"
-                  {...hookForm.register("name")}
-                />
-                <TextAreaField
-                  rows={3}
-                  id="description"
-                  data-testid="description"
-                  placeholder="Form Description"
-                  {...hookForm.register("description")}
-                  defaultValue={form.description || ""}
-                />
+    <>
+      <Form
+        form={hookForm}
+        handleSubmit={(data) => {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
+          mutation.mutate({
+            ...data,
+          });
+        }}>
+        <FormActionsProvider appUrl={appUrl}>
+          <Meta title={form.name} description={form.description || ""} />
+          <ShellMain
+            heading={form.name}
+            subtitle={form.description || ""}
+            backPath={`/${appUrl}/forms`}
+            CTA={<Actions form={form} mutation={mutation} />}>
+            <div className="-mx-4 px-4 sm:px-6 md:-mx-8 md:px-8">
+              <div className="flex flex-col items-center md:flex-row md:items-start">
+                <div className="lg:min-w-72 lg:max-w-72 mb-6 md:mr-6">
+                  <TextField
+                    type="text"
+                    containerClassName="mb-6"
+                    placeholder="Title"
+                    {...hookForm.register("name")}
+                  />
+                  <TextAreaField
+                    rows={3}
+                    id="description"
+                    data-testid="description"
+                    placeholder="Form Description"
+                    {...hookForm.register("description")}
+                    defaultValue={form.description || ""}
+                  />
 
-                <div className="mt-6">
-                  <Controller
-                    name="settings.emailOwnerOnSubmission"
-                    control={hookForm.control}
-                    render={({ field: { value, onChange } }) => {
-                      return (
-                        <SettingsToggle
-                          title={t("routing_forms_send_email_owner")}
-                          description={t("routing_forms_send_email_owner_description")}
-                          checked={value}
-                          onCheckedChange={(val) => onChange(val)}
-                        />
-                      );
-                    }}
-                  />
+                  <div className="mt-6">
+                    <Controller
+                      name="settings.emailOwnerOnSubmission"
+                      control={hookForm.control}
+                      render={({ field: { value, onChange } }) => {
+                        return (
+                          <SettingsToggle
+                            title={t("routing_forms_send_email_owner")}
+                            description={t("routing_forms_send_email_owner_description")}
+                            checked={value}
+                            onCheckedChange={(val) => onChange(val)}
+                          />
+                        );
+                      }}
+                    />
+                  </div>
+                  <div className="mt-6">
+                    <Button color="secondary" onClick={() => setIsTestPreviewOpen(true)}>
+                      Test Routing Form
+                    </Button>
+                  </div>
+                  {!form._count?.responses && (
+                    <Banner
+                      className="mt-6"
+                      variant="neutral"
+                      title="No Responses yet"
+                      description="Wait for some time for responses to be collected. You can go and submit the form yourself as well."
+                      Icon={Icon.FiInfo}
+                      onDismiss={() => console.log("dismissed")}
+                    />
+                  )}
                 </div>
-                {!form._count?.responses && (
-                  <Banner
-                    className="mt-6"
-                    variant="neutral"
-                    title="No Responses yet"
-                    description="Wait for some time for responses to be collected. You can go and submit the form yourself as well."
-                    Icon={Icon.FiInfo}
-                    onDismiss={() => console.log("dismissed")}
-                  />
-                )}
-              </div>
-              <div className="w-full rounded-md border border-gray-200 p-8">
-                <RoutingNavBar appUrl={appUrl} form={form} />
-                <Page hookForm={hookForm} form={form} appUrl={appUrl} />
+                <div className="w-full rounded-md border border-gray-200 p-8">
+                  <RoutingNavBar appUrl={appUrl} form={form} />
+                  <Page hookForm={hookForm} form={form} appUrl={appUrl} />
+                </div>
               </div>
             </div>
+          </ShellMain>
+        </FormActionsProvider>
+      </Form>
+      <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
+        <DialogContent type="creation" useOwnActionButtons={true} title={t("test_routing_form")}>
+          <div className="">
+            <div className="mt-5 max-h-96 overflow-scroll">
+              {form?.fields?.map((field) => {
+                const widget = queryBuilderConfig.widgets[field.type];
+                if (!("factory" in widget)) {
+                  return null;
+                }
+                const Component = widget.factory;
+
+                const optionValues = field.selectText?.trim().split("\n");
+                const options = optionValues?.map((value) => {
+                  const title = value;
+                  return {
+                    value,
+                    title,
+                  };
+                });
+                return (
+                  <div key={field.id} className="mx-1 mb-4 block flex-col sm:flex">
+                    <div className="min-w-48 mb-2 flex-grow">
+                      <label
+                        id="slug-label"
+                        htmlFor="slug"
+                        className="flex text-sm font-medium text-neutral-700 dark:text-white">
+                        {field.label}
+                      </label>
+                    </div>
+                    <div className="flex rounded-sm">
+                      <Component
+                        value={response[field.id]?.value}
+                        // required property isn't accepted by query-builder types
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        /* @ts-ignore */
+                        required={!!field.required}
+                        listValues={options}
+                        data-testid="field"
+                        setValue={(value) => {
+                          setResponse((response) => {
+                            response = response || {};
+                            return {
+                              ...response,
+                              [field.id]: {
+                                label: field.label,
+                                value,
+                              },
+                            };
+                          });
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div>
+              {decidedAction && (
+                <div className="mt-5 rounded-md bg-gray-100 p-3">
+                  <div className="font-bold ">Routing to:</div>
+                  <div className="mt-2">
+                    {RoutingPages.map((page) => {
+                      if (page.value === decidedAction.type) {
+                        return <>{page.label}</>;
+                      }
+                    })}
+                    :{" "}
+                    {decidedAction.type === "customPageMessage" ? (
+                      <span className="text-gray-700">{decidedAction.value}</span>
+                    ) : decidedAction.type === "externalRedirectUrl" ? (
+                      <span className="text-gray-700 underline">
+                        <a
+                          target="_blank"
+                          href={
+                            decidedAction.value.includes("https://") ||
+                            decidedAction.value.includes("http://")
+                              ? decidedAction.value
+                              : `http://${decidedAction.value}`
+                          }
+                          rel="noreferrer">
+                          {decidedAction.value}
+                        </a>
+                      </span>
+                    ) : (
+                      <span className="text-gray-700 underline">
+                        <a target="_blank" href={`/${decidedAction.value}`} rel="noreferrer">
+                          {decidedAction.value}
+                        </a>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        </ShellMain>
-      </FormActionsProvider>
-    </Form>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button
+                color="secondary"
+                onClick={() => {
+                  setIsTestPreviewOpen(false);
+                }}>
+                {t("close")}
+              </Button>
+            </DialogClose>
+            <Button type="button" onClick={testRouting}>
+              {t("Test Routing")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
