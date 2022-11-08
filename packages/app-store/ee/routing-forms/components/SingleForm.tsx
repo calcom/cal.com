@@ -8,7 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Button, ButtonGroup } from "@calcom/ui/components";
-import { Form, Label, TextAreaField, TextField } from "@calcom/ui/components/form";
+import { Form, TextAreaField, TextField } from "@calcom/ui/components/form";
 import {
   showToast,
   DropdownMenuSeparator,
@@ -25,7 +25,7 @@ import { ShellMain } from "@calcom/ui/v2/core/Shell";
 import Banner from "@calcom/ui/v2/core/banner";
 
 import { processRoute } from "../lib/processRoute";
-import { getQueryBuilderConfig, RoutingPages } from "../pages/route-builder/[...appPages]";
+import { RoutingPages } from "../pages/route-builder/[...appPages]";
 import { SerializableForm } from "../types/types";
 import { Response, Route } from "../types/types";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
@@ -205,7 +205,6 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
   const { t } = useLocale();
 
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
-  const queryBuilderConfig = getQueryBuilderConfig(form);
   const [response, setResponse] = useState<Response>({});
   const [decidedAction, setDecidedAction] = useState<Route["action"] | null>(null);
 
@@ -318,63 +317,68 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
       </Form>
       <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
         <DialogContent type="creation" useOwnActionButtons={true} title={t("test_routing_form")}>
-          <div className="">
-            <div className="mt-5">
-              {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
-            </div>
-            <div>
-              {decidedAction && (
-                <div className="mt-5 rounded-md bg-gray-100 p-3">
-                  <div className="font-bold ">{t("route_to")}:</div>
-                  <div className="mt-2">
-                    {RoutingPages.map((page) => {
-                      if (page.value === decidedAction.type) {
-                        return <>{page.label}</>;
-                      }
-                    })}
-                    :{" "}
-                    {decidedAction.type === "customPageMessage" ? (
-                      <span className="text-gray-700">{decidedAction.value}</span>
-                    ) : decidedAction.type === "externalRedirectUrl" ? (
-                      <span className="text-gray-700 underline">
-                        <a
-                          target="_blank"
-                          href={
-                            decidedAction.value.includes("https://") ||
-                            decidedAction.value.includes("http://")
-                              ? decidedAction.value
-                              : `http://${decidedAction.value}`
-                          }
-                          rel="noreferrer">
-                          {decidedAction.value}
-                        </a>
-                      </span>
-                    ) : (
-                      <span className="text-gray-700 underline">
-                        <a target="_blank" href={`/${decidedAction.value}`} rel="noreferrer">
-                          {decidedAction.value}
-                        </a>
-                      </span>
-                    )}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              testRouting();
+            }}>
+            <div className="">
+              <div className="mt-5">
+                {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
+              </div>
+              <div>
+                {decidedAction && (
+                  <div className="mt-5 rounded-md bg-gray-100 p-3">
+                    <div className="font-bold ">{t("route_to")}:</div>
+                    <div className="mt-2">
+                      {RoutingPages.map((page) => {
+                        if (page.value === decidedAction.type) {
+                          return <>{page.label}</>;
+                        }
+                      })}
+                      :{" "}
+                      {decidedAction.type === "customPageMessage" ? (
+                        <span className="text-gray-700">{decidedAction.value}</span>
+                      ) : decidedAction.type === "externalRedirectUrl" ? (
+                        <span className="text-gray-700 underline">
+                          <a
+                            target="_blank"
+                            href={
+                              decidedAction.value.includes("https://") ||
+                              decidedAction.value.includes("http://")
+                                ? decidedAction.value
+                                : `http://${decidedAction.value}`
+                            }
+                            rel="noreferrer">
+                            {decidedAction.value}
+                          </a>
+                        </span>
+                      ) : (
+                        <span className="text-gray-700 underline">
+                          <a target="_blank" href={`/${decidedAction.value}`} rel="noreferrer">
+                            {decidedAction.value}
+                          </a>
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button
-                color="secondary"
-                onClick={() => {
-                  setIsTestPreviewOpen(false);
-                }}>
-                {t("close")}
-              </Button>
-            </DialogClose>
-            <Button type="submit" onClick={testRouting}>
-              {t("Test Routing")}
-            </Button>
-          </DialogFooter>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button
+                  color="secondary"
+                  onClick={() => {
+                    setIsTestPreviewOpen(false);
+                    setDecidedAction(null);
+                  }}>
+                  {t("close")}
+                </Button>
+              </DialogClose>
+              <Button type="submit">{t("Test Routing")}</Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </>
