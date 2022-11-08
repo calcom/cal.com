@@ -8,10 +8,10 @@ import {
   constructMeetingImage,
   MeetingImageProps,
 } from "@calcom/lib/OgImages";
-import { truncate, truncateOnWord } from "@calcom/lib/text";
+import { getBrowserInfo } from "@calcom/lib/browser/browser.utils";
+import { truncateOnWord } from "@calcom/lib/text";
 
 import { getSeoImage, seoConfig } from "@lib/config/next-seo.config";
-import { getBrowserInfo } from "@lib/core/browser/browser.utils";
 
 export type HeadSeoProps = {
   title: string;

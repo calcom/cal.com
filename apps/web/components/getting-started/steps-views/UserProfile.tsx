@@ -102,8 +102,7 @@ const UserProfile = (props: IUserProfile) => {
 
   return (
     <form onSubmit={onSubmit}>
-      <p className="font-cal text-sm">{t("profile_picture")}</p>
-      <div className="mt-4 flex flex-row items-center justify-start rtl:justify-end">
+      <div className="flex flex-row items-center justify-start rtl:justify-end">
         {user && <AvatarSSR user={user} alt="Profile picture" className="h-16 w-16" />}
         <input
           ref={avatarRef}
@@ -118,7 +117,7 @@ const UserProfile = (props: IUserProfile) => {
           <ImageUploader
             target="avatar"
             id="avatar-upload"
-            buttonMsg={t("upload")}
+            buttonMsg={t("add_profile_photo")}
             handleAvatarChange={(newAvatar) => {
               avatarRef.current.value = newAvatar;
               const nativeInputValueSetter = Object.getOwnPropertyDescriptor(

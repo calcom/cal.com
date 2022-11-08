@@ -56,6 +56,7 @@ export type FormValues = {
   locations: {
     type: EventLocationType["type"];
     address?: string;
+    attendeeAddress?: string;
     link?: string;
     hostPhoneNumber?: string;
     displayLocationPublicly?: boolean;

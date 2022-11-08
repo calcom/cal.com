@@ -244,6 +244,15 @@ const app_RoutingForms = createRouter()
             },
           });
 
+          if (!form) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "Form not found",
+            });
+          }
+          // TODO: Second argument is required to return deleted operators.
+          const serializedForm = getSerializableForm(form);
+
           const res = await prisma.app_RoutingForms_FormResponse.findMany({
             where: {
               formId: input.formId,
@@ -252,13 +261,13 @@ const app_RoutingForms = createRouter()
             take,
             skip,
           });
-
-          const headers = form?.fields.map((f) => f.label);
+          const fields = serializedForm?.fields || [];
+          const headers = fields.map((f) => f.label);
           const responses = [];
           res.forEach((r) => {
             const rowResponses = [];
             responses.push(rowResponses);
-            form?.fields.forEach((field) => {
+            fields.forEach((field) => {
               rowResponses.push(r.response[field.id]?.value || "");
             });
           });

@@ -269,7 +269,7 @@ const FieldSelect = function FieldSelect(props: FieldProps) {
 
   return (
     <Select
-      className="data-testid-field-select"
+      className="data-testid-field-select  mb-2"
       menuPosition="fixed"
       onChange={(item) => {
         if (!item) {

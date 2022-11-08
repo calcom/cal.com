@@ -369,23 +369,12 @@ export default function Success(props: SuccessProps) {
                                 <p className="text-bookinglight">{bookingInfo.user.email}</p>
                               </div>
                             )}
-                            {!eventType.seatsShowAttendees
-                              ? bookingInfo?.attendees
-                                  .filter((attendee) => attendee.email === email)
-                                  .map((attendee) => (
-                                    <div key={attendee.name} className="mb-3">
-                                      <p>{attendee.name}</p>
-                                      <p className="text-bookinglight">{attendee.email}</p>
-                                    </div>
-                                  ))
-                              : bookingInfo?.attendees.map((attendee, index) => (
-                                  <div
-                                    key={attendee.name}
-                                    className={index === bookingInfo.attendees.length - 1 ? "" : "mb-3"}>
-                                    <p>{attendee.name}</p>
-                                    <p className="text-bookinglight">{attendee.email}</p>
-                                  </div>
-                                ))}
+                            {bookingInfo?.attendees.map((attendee, index) => (
+                              <div key={attendee.name} className="mb-3 last:mb-0">
+                                <p>{attendee.name}</p>
+                                <p className="text-bookinglight">{attendee.email}</p>
+                              </div>
+                            ))}
                           </>
                         </div>
                       </>
@@ -786,6 +775,28 @@ const schema = z.object({
   bookingId: strToNumber,
 });
 
+const handleSeatsEventTypeOnBooking = (
+  eventType: {
+    seatsPerTimeSlot?: boolean | null;
+    seatsShowAttendees: boolean | null;
+    [x: string | number | symbol]: unknown;
+  },
+  booking: Partial<
+    Prisma.BookingGetPayload<{ include: { attendees: { select: { name: true; email: true } } } }>
+  >,
+  email: string
+) => {
+  if (eventType?.seatsPerTimeSlot !== null) {
+    // @TODO: right now bookings with seats doesn't save every description that its entered by every user
+    delete booking.description;
+  }
+  if (!eventType.seatsShowAttendees) {
+    const attendee = booking?.attendees?.find((a) => a.email === email);
+    booking["attendees"] = attendee ? [attendee] : [];
+  }
+  return;
+};
+
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const parsedQuery = schema.safeParse(context.query);
@@ -884,6 +895,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     },
   });
+  if (bookingInfo !== null && email) {
+    handleSeatsEventTypeOnBooking(eventType, bookingInfo, email);
+  }
+
   let recurringBookings = null;
   if (recurringEventIdQuery) {
     // We need to get the dates for the bookings to be able to show them in the UI

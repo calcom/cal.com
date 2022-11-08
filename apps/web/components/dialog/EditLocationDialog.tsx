@@ -293,7 +293,10 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                         defaultValue={selection}
                         options={
                           booking
-                            ? locationOptions.filter((location) => location.value !== "phone")
+                            ? locationOptions.filter(
+                                (location) =>
+                                  location.value !== "phone" && location.value !== "attendeeInPerson"
+                              )
                             : locationOptions
                         }
                         isSearchable

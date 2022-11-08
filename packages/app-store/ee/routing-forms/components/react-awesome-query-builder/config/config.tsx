@@ -125,7 +125,7 @@ delete operators.is_null;
 delete operators.is_not_null;
 
 /**
- * Not supported with JSONLogic
+ * Not supported with JSONLogic. Implement them and add these back -> https://github.com/jwadhams/json-logic-js/issues/81
  */
 delete operators.starts_with;
 delete operators.ends_with;
