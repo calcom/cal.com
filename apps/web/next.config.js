@@ -27,7 +27,7 @@ if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_E
 if (process.env.VERCEL_URL && !process.env.NEXT_PUBLIC_WEBAPP_URL) {
   process.env.NEXT_PUBLIC_WEBAPP_URL = "https://" + process.env.VERCEL_URL;
 }
-if (process.env.NEXT_PUBLIC_WEBAPP_URL) {
+if (!process.env.NEXTAUTH_URL && process.env.NEXT_PUBLIC_WEBAPP_URL) {
   process.env.NEXTAUTH_URL = process.env.NEXT_PUBLIC_WEBAPP_URL + "/api/auth";
 }
 if (!process.env.NEXT_PUBLIC_WEBSITE_URL) {
