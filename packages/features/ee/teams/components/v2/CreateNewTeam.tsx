@@ -1,24 +1,30 @@
-import { useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useRouter } from "next/router";
+import { Controller, useForm } from "react-hook-form";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
-import { localStorage } from "@calcom/lib/webstorage";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Button, Avatar } from "@calcom/ui/components";
+import { Avatar, Button } from "@calcom/ui/components";
 import { Form, TextField } from "@calcom/ui/components/form";
 import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
 
 import { NewTeamFormValues } from "../../lib/types";
 
-const CreateANewTeamForm = (props: { nextStep: (values: NewTeamFormValues) => void }) => {
+const CreateANewTeamForm = () => {
   const { t } = useLocale();
+  const router = useRouter();
   const newTeamFormMethods = useForm<NewTeamFormValues>();
 
+  const createTeamMutation = trpc.useMutation(["viewer.teams.createTeam"], {
+    onSuccess: (data) => {
+      router.push(`/settings/teams/${data.id}/onboard-members`);
+    },
+  });
+
   const validateTeamSlugQuery = trpc.useQuery(
-    ["viewer.teams.validateTeamSlug", { slug: newTeamFormMethods.watch("temporarySlug") }],
+    ["viewer.teams.validateTeamSlug", { slug: newTeamFormMethods.watch("slug") }],
     {
       enabled: false,
       refetchOnWindowFocus: false,
@@ -36,12 +42,7 @@ const CreateANewTeamForm = (props: { nextStep: (values: NewTeamFormValues) => vo
 
   return (
     <>
-      <Form
-        form={newTeamFormMethods}
-        handleSubmit={(values) => {
-          console.log("🚀 ~ file: CreateNewTeam.tsx ~ line 47 ~ CreateANewTeamForm ~ values", values);
-          props.nextStep(values);
-        }}>
+      <Form form={newTeamFormMethods} handleSubmit={(v) => createTeamMutation.mutate(v)}>
         <div className="mb-8">
           <Controller
             name="name"
@@ -59,8 +60,8 @@ const CreateANewTeamForm = (props: { nextStep: (values: NewTeamFormValues) => vo
                   value={value}
                   onChange={(e) => {
                     newTeamFormMethods.setValue("name", e?.target.value);
-                    if (newTeamFormMethods.formState.touchedFields["temporarySlug"] === undefined) {
-                      newTeamFormMethods.setValue("temporarySlug", slugify(e?.target.value));
+                    if (newTeamFormMethods.formState.touchedFields["slug"] === undefined) {
+                      newTeamFormMethods.setValue("slug", slugify(e?.target.value));
                     }
                   }}
                   autoComplete="off"
@@ -72,18 +73,18 @@ const CreateANewTeamForm = (props: { nextStep: (values: NewTeamFormValues) => vo
 
         <div className="mb-8">
           <Controller
-            name="temporarySlug"
+            name="slug"
             control={newTeamFormMethods.control}
             rules={{ required: t("team_url_required"), validate: async () => await validateTeamSlug() }}
             render={({ field: { value } }) => (
               <TextField
                 className="mt-2"
-                name="temporarySlug"
+                name="slug"
                 label={t("team_url")}
                 addOnLeading={`${WEBAPP_URL}/team/`}
                 value={value}
                 onChange={(e) => {
-                  newTeamFormMethods.setValue("temporarySlug", slugify(e?.target.value), {
+                  newTeamFormMethods.setValue("slug", slugify(e?.target.value), {
                     shouldTouch: true,
                   });
                 }}
@@ -95,7 +96,7 @@ const CreateANewTeamForm = (props: { nextStep: (values: NewTeamFormValues) => vo
         <div className="mb-8">
           <Controller
             control={newTeamFormMethods.control}
-            name="avatar"
+            name="logo"
             render={({ field: { value } }) => (
               <div className="flex items-center">
                 <Avatar alt="" imageSrc={value || null} gravatarFallbackMd5="newTeam" size="lg" />
@@ -105,7 +106,7 @@ const CreateANewTeamForm = (props: { nextStep: (values: NewTeamFormValues) => vo
                     id="avatar-upload"
                     buttonMsg={t("update")}
                     handleAvatarChange={(newAvatar: string) => {
-                      newTeamFormMethods.setValue("avatar", newAvatar);
+                      newTeamFormMethods.setValue("logo", newAvatar);
                     }}
                     imageSrc={value}
                   />

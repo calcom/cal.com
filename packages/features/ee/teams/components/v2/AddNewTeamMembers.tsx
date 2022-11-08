@@ -17,7 +17,7 @@ import { SkeletonContainer, SkeletonText, SkeletonAvatar } from "@calcom/ui/v2/c
 import { NewTeamMembersFieldArray, PendingMember } from "../../lib/types";
 import { NewMemberForm } from "../MemberInvitationModal";
 
-const AddNewTeamMembers = (props: { nextStep: (values: PendingMember[]) => void }) => {
+const AddNewTeamMembers = () => {
   const { t } = useLocale();
   const session = useSession();
   const router = useRouter();
@@ -52,6 +52,12 @@ const AddNewTeamMembers = (props: { nextStep: (values: PendingMember[]) => void 
     onError: (error) => {
       showToast(error.message, "error");
       setSkeletonMember(false);
+    },
+  });
+
+  const purchaseTeamMutation = trpc.useMutation(["viewer.teams.purchaseTeamSubscription"], {
+    onSuccess: (data) => {
+      router.push(data.url);
     },
   });
 
@@ -97,7 +103,15 @@ const AddNewTeamMembers = (props: { nextStep: (values: PendingMember[]) => void 
 
   return (
     <>
-      <Form form={formMethods} handleSubmit={(values) => props.nextStep(values.members)}>
+      <Form
+        form={formMethods}
+        handleSubmit={(values) => {
+          purchaseTeamMutation.mutate({
+            ...newTeamData,
+            members: [...values],
+            language: i18n.language,
+          });
+        }}>
         <Controller
           name="members"
           render={({ field: { value } }) => (

@@ -662,15 +662,15 @@ export const viewerTeamsRouter = createProtectedRouter()
       };
     },
   })
-  .mutation("createTemporaryTeam", {
+  .mutation("createTeam", {
     input: z.object({
       name: z.string(),
-      temporarySlug: z.string(),
+      slug: z.string(),
       logo: z.string().optional(),
     }),
     async resolve({ ctx, input }) {
-      const { name, temporarySlug, logo } = input;
-      const createTempraryTeam = await ctx.prisma.team.create({
+      const { name, slug, logo } = input;
+      const team = await ctx.prisma.team.create({
         data: {
           name,
           logo,
@@ -682,11 +682,11 @@ export const viewerTeamsRouter = createProtectedRouter()
             },
           },
           metadata: {
-            temporarySlug,
+            requestedSlug: slug,
           },
         },
       });
-      return createTempraryTeam;
+      return team;
     },
   })
   .query("retrieveTemporaryTeam", {
