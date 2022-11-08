@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
-import { useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useFormContext, Controller, useWatch } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
@@ -16,19 +16,25 @@ import { Label, Input, InputField } from "@calcom/ui/components/form";
 import { Select, SettingsToggle } from "@calcom/ui/v2";
 import DateRangePicker from "@calcom/ui/v2/core/form/date-range-picker/DateRangePicker";
 
-export let CurrentDurationType: string | "minutes" | "hours" | "days";
+type EventLimitType = {
+  eventType: Pick<EventTypeSetupInfered, "eventType">;
+  currentDurationType: Dispatch<SetStateAction<string>>;
+};
 
-export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) => {
+export const EventLimitsTab = (props: EventLimitType) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
-  const { eventType } = props;
+  const { eventType } = props.eventType;
+  const setCurrentDurationType = props.currentDurationType;
   const minimumBookingNoticeType = useRef(findDurationType(eventType.minimumBookingNotice));
+  setCurrentDurationType(minimumBookingNoticeType.current);
   const prevBookingNoticeType = useRef(minimumBookingNoticeType.current);
   const displayValue = convertToNewDurationType(
     "minutes",
     minimumBookingNoticeType.current,
     eventType.minimumBookingNotice
   );
+
   const PERIOD_TYPES = [
     {
       type: "ROLLING" as const,
@@ -181,7 +187,7 @@ export const EventLimitsTab = (props: Pick<EventTypeSetupInfered, "eventType">) 
                     onChange={(val) => {
                       if (val) {
                         minimumBookingNoticeType.current = val.value;
-                        CurrentDurationType = val.value;
+                        setCurrentDurationType(val.value);
                         eventType.minimumBookingNotice = Math.ceil(
                           convertToNewDurationType(prevBookingNoticeType.current, val.value, minBookingValue)
                         );

@@ -3,7 +3,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -13,6 +13,7 @@ import { LocationObject, EventLocationType } from "@calcom/core/location";
 import { parseRecurringEvent, parseBookingLimit, validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
+import findDurationType from "@calcom/lib/findDurationType";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
@@ -31,7 +32,7 @@ import { AvailabilityTab } from "@components/v2/eventtype/AvailabilityTab";
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings
 import { EventAdvancedTab } from "@components/v2/eventtype/EventAdvancedTab";
 import { EventAppsTab } from "@components/v2/eventtype/EventAppsTab";
-import { CurrentDurationType, EventLimitsTab } from "@components/v2/eventtype/EventLimitsTab";
+import { EventLimitsTab } from "@components/v2/eventtype/EventLimitsTab";
 import { EventRecurringTab } from "@components/v2/eventtype/EventRecurringTab";
 import { EventSetupTab } from "@components/v2/eventtype/EventSetupTab";
 import { EventTeamTab } from "@components/v2/eventtype/EventTeamTab";
@@ -108,6 +109,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   // TODO: It isn't a good idea to maintain state using setEventType. If we want to connect the SSR'd data to tRPC, we should useQuery(["viewer.eventTypes.get"]) with initialData
   // Due to this change, when Form is saved, there is no way to propagate that info to eventType (e.g. disabling stripe app doesn't allow recurring tab to be enabled without refresh).
   const [eventType, setEventType] = useState(dbEventType);
+  const [currentDurationType, setCurrentDurationType] = useState("minutes");
 
   const router = useRouter();
   const { tabName } = querySchema.parse(router.query);
@@ -153,7 +155,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   });
 
   const minimumBookingNoticeInMinutes = convertToNewDurationType(
-    CurrentDurationType,
+    currentDurationType,
     "minutes",
     eventType.minimumBookingNotice
   );
@@ -209,7 +211,9 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         currentUserMembership={props.currentUserMembership}
       />
     ),
-    limits: <EventLimitsTab eventType={eventType} />,
+    limits: (
+      <EventLimitsTab eventType={{ eventType: eventType }} currentDurationType={setCurrentDurationType} />
+    ),
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
     apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
