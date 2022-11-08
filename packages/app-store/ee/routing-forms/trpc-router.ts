@@ -292,6 +292,7 @@ const app_RoutingForms = createRouter()
               updatedAt: true,
               routes: true,
               fields: true,
+              settings: true,
             },
           });
 
