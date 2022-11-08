@@ -68,7 +68,6 @@ const UserSettings = (props: IUserSettingsProps) => {
               readonly={true}
               currentUsername={currentUsername}
               setCurrentUsername={setCurrentUsername}
-              onSuccessMutation={async () => await utils.invalidateQueries(["viewer.me"])}
               inputUsernameValue={value}
               usernameRef={ref}
               setInputUsernameValue={onChange}

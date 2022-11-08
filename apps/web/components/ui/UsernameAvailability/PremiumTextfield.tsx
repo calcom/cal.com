@@ -24,7 +24,7 @@ export enum UsernameChangeStatusEnum {
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
-  setCurrentUsername?: (newUsername: string | undefined) => void;
+  setCurrentUsername?: (newUsername: string) => void;
   inputUsernameValue: string | undefined;
   usernameRef: RefCallback<HTMLInputElement>;
   setInputUsernameValue: (value: string) => void;
