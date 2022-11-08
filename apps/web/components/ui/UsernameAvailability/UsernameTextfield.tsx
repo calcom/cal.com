@@ -1,6 +1,6 @@
 import classNames from "classnames";
-import { debounce } from "lodash";
-import { MutableRefObject, useCallback, useEffect, useState } from "react";
+import { debounce, noop } from "lodash";
+import { RefCallback, useEffect, useMemo, useState } from "react";
 
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -13,9 +13,9 @@ import { Button, Input, Label } from "@calcom/ui/components";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
-  setCurrentUsername: (value: string | undefined) => void;
+  setCurrentUsername?: (newUsername: string) => void;
   inputUsernameValue: string | undefined;
-  usernameRef: MutableRefObject<HTMLInputElement | null>;
+  usernameRef: RefCallback<HTMLInputElement>;
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
@@ -25,7 +25,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
   const { t } = useLocale();
   const {
     currentUsername,
-    setCurrentUsername,
+    setCurrentUsername = noop,
     inputUsernameValue,
     setInputUsernameValue,
     usernameRef,
@@ -36,32 +36,36 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
   const [markAsError, setMarkAsError] = useState(false);
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
 
-  const debouncedApiCall = useCallback(
-    debounce(async (username) => {
-      const { data } = await fetchUsername(username);
-      setMarkAsError(!data.available);
-      setUsernameIsAvailable(data.available);
-    }, 150),
+  const debouncedApiCall = useMemo(
+    () =>
+      debounce(async (username) => {
+        const { data } = await fetchUsername(username);
+        setMarkAsError(!data.available);
+        setUsernameIsAvailable(data.available);
+      }, 150),
     []
   );
 
   useEffect(() => {
+    if (!inputUsernameValue) {
+      debouncedApiCall.cancel();
+      setUsernameIsAvailable(false);
+      setMarkAsError(false);
+      return;
+    }
+
     if (currentUsername !== inputUsernameValue) {
       debouncedApiCall(inputUsernameValue);
-    } else if (inputUsernameValue === "") {
-      setMarkAsError(false);
-      setUsernameIsAvailable(false);
     } else {
       setUsernameIsAvailable(false);
     }
-  }, [inputUsernameValue]);
+  }, [inputUsernameValue, debouncedApiCall, currentUsername]);
 
   const utils = trpc.useContext();
 
-  const updateUsername = trpc.useMutation("viewer.updateProfile", {
+  const updateUsernameMutation = trpc.useMutation("viewer.updateProfile", {
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
-      setCurrentUsername(inputUsernameValue);
       setOpenDialogSaveUsername(false);
     },
     onError: (error) => {
@@ -89,9 +93,6 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           onClick={() => {
             if (currentUsername) {
               setInputUsernameValue(currentUsername);
-              if (usernameRef.current) {
-                usernameRef.current.value = currentUsername;
-              }
             }
           }}>
           {t("cancel")}
@@ -100,6 +101,13 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
     ) : (
       <></>
     );
+  };
+
+  const updateUsername = async () => {
+    await updateUsernameMutation.mutate({
+      username: inputUsernameValue,
+    });
+    setCurrentUsername(inputUsernameValue);
   };
 
   return (
@@ -182,13 +190,9 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           <div className="mt-4 flex flex-row-reverse gap-x-2">
             <Button
               type="button"
-              loading={updateUsername.isLoading}
+              loading={updateUsernameMutation.isLoading}
               data-testid="save-username"
-              onClick={() => {
-                updateUsername.mutate({
-                  username: inputUsernameValue,
-                });
-              }}>
+              onClick={updateUsername}>
               {t("save")}
             </Button>
 
