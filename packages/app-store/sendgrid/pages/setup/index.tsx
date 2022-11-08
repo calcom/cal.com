@@ -43,8 +43,8 @@ export default function SendgridSetup() {
           <div>
             {/* eslint-disable @next/next/no-img-element */}
             <img
-              src="/api/app-store/sendgridothercalendar/icon.png"
-              alt="Apple Calendar"
+              src="/api/app-store/sendgrid/logo.png"
+              alt="Sendgrid"
               className="h-12 w-12 max-w-2xl"
             />
           </div>
@@ -66,7 +66,7 @@ export default function SendgridSetup() {
               <Form
                 form={form}
                 handleSubmit={async (values) => {
-                  const res = await fetch("/api/integrations/sendgridothercalendar/add", {
+                  const res = await fetch("/api/integrations/sendgrid/add", {
                     method: "POST",
                     body: JSON.stringify(values),
                     headers: {
@@ -123,7 +123,7 @@ export default function SendgridSetup() {
                       if (!check) return;
                       const api_key = form.getValues("api_key");
                       setTestLoading(true);
-                      const res = await fetch("/api/integrations/sendgridothercalendar/check", {
+                      const res = await fetch("/api/integrations/sendgrid/check", {
                         method: "POST",
                         body: JSON.stringify({ api_key }),
                         headers: {

@@ -240,8 +240,6 @@ export default async function main() {
   }
   // No need to check if environment variable is present, the API Key is set up by the user, not the system
   await createApp("closecom", "closecomothercalendar", ["other"], "closecom_other_calendar");
-  // No need to check if environment variable is present, the API Key is set up by the user, not the system
-  await createApp("sendgrid", "sendgridothercalendar", ["other"], "sendgrid_other_calendar");
   await createApp("wipe-my-cal", "wipemycalother", ["other"], "wipemycal_other");
   if (process.env.GIPHY_API_KEY) {
     await createApp("giphy", "giphy", ["other"], "giphy_other", {
