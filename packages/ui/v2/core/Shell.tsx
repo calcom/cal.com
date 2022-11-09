@@ -144,13 +144,26 @@ const Layout = (props: LayoutProps) => {
 
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
-
-      <TopBanner />
-      <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
-        {props.SidebarContainer || <SideBarContainer />}
-        <div className="flex w-0 flex-1 flex-col overflow-hidden">
-          <ImpersonatingBanner />
-          <MainContainer {...props} />
+      <div className="h-screen overflow-hidden">
+        <TopBanner
+          actions={
+            <button
+              className="border-b border-black text-sm"
+              onClick={() => {
+                console.log("test");
+              }}>
+              Action
+            </button>
+          }
+          color="warning"
+          text="An app wide warning is occuring that should be resolved."
+        />
+        <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
+          {props.SidebarContainer || <SideBarContainer />}
+          <div className="flex w-0 flex-1 flex-col overflow-hidden">
+            <ImpersonatingBanner />
+            <MainContainer {...props} />
+          </div>
         </div>
       </div>
     </>
