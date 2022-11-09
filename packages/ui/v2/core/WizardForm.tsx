@@ -52,7 +52,7 @@ function WizardForm<T extends DefaultStep>(props: { href: string; steps: T[]; co
               loading={currentStep.isLoading}
               type="submit"
               color="primary"
-              form={`setup-step-${step}`}
+              form={`wizard-step-${step}`}
               className="relative">
               {step < steps.length ? "Next" : "Finish"}
             </Button>
