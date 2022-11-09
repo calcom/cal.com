@@ -10,7 +10,10 @@ import {
 } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
-import { deleteTeamFromStripe, purchaseTeamSubscription } from "@calcom/features/ee/teams/lib/payments";
+import {
+  cancelTeamSubscriptionFromStripe,
+  purchaseTeamSubscription,
+} from "@calcom/features/ee/teams/lib/payments";
 import { HOSTED_CAL_FEATURES, IS_STRIPE_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTeamWithMembers, isTeamAdmin, isTeamMember, isTeamOwner } from "@calcom/lib/server/queries/teams";
@@ -173,7 +176,7 @@ export const viewerTeamsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       if (!(await isTeamOwner(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-      if (IS_STRIPE_ENABLED) await deleteTeamFromStripe(input.teamId);
+      if (IS_STRIPE_ENABLED) await cancelTeamSubscriptionFromStripe(input.teamId);
 
       // delete all memberships
       await ctx.prisma.membership.deleteMany({
@@ -587,7 +590,7 @@ export const viewerTeamsRouter = createProtectedRouter()
         const checkoutSession = await purchaseTeamSubscription({
           teamId: prevTeam.id,
           seats: prevTeam.members.length,
-          email: ctx.user.email,
+          userId: ctx.user.id,
         });
         if (!checkoutSession.url)
           throw new TRPCError({
@@ -597,14 +600,13 @@ export const viewerTeamsRouter = createProtectedRouter()
         return { url: checkoutSession.url };
       }
 
+      const { requestedSlug, ...newMetadata } = metadata.data;
+
       const updatedTeam = await ctx.prisma.team.update({
         where: { id },
         data: {
-          slug: metadata.data.requestedSlug,
-          metadata: {
-            ...metadata.data,
-            requestedSlug: null,
-          },
+          slug: requestedSlug,
+          metadata: { ...newMetadata },
         },
       });
 

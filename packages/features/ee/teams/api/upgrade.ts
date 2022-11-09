@@ -45,7 +45,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       data: {
         slug: metadata.requestedSlug,
         metadata: {
-          requestedSlug: null,
           paymentId: checkoutSession.id,
           subscriptionItemId: subscription.items.data[0].id || null,
         },

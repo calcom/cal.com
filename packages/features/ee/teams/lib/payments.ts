@@ -1,10 +1,14 @@
+import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-export const purchaseTeamSubscription = async (input: { teamId: number; seats: number; email: string }) => {
-  const { teamId, seats, email } = input;
+export const purchaseTeamSubscription = async (input: { teamId: number; seats: number; userId: number }) => {
+  const { teamId, seats, userId } = input;
+  const customer = await getStripeCustomerIdFromUserId(userId);
   return await stripe.checkout.sessions.create({
+    customer,
     mode: "subscription",
     // success_url: `${CAL_URL}/settings/teams/${teamId}/profile`,
     success_url: `${WEBAPP_URL}/api/teams/${teamId}/upgrade?session_id={CHECKOUT_SESSION_ID}`,
@@ -17,7 +21,6 @@ export const purchaseTeamSubscription = async (input: { teamId: number; seats: n
         quantity: seats,
       },
     ],
-    customer_email: email,
     metadata: {
       teamId,
     },
@@ -30,33 +33,21 @@ export const purchaseTeamSubscription = async (input: { teamId: number; seats: n
   });
 };
 
-export const getStripeIdsForTeam = async (teamId: number) => {
-  const teamQuery = await prisma.team.findFirst({
-    where: {
-      id: teamId,
-    },
-    select: {
-      metadata: true,
-    },
-  });
-
-  const teamStripeIds = { ...teamQuery.metadata };
-
-  return teamStripeIds;
-};
-
-export const deleteTeamFromStripe = async (teamId: number) => {
-  const stripeCustomerId = await prisma.team.findFirst({
-    where: {
-      id: teamId,
-    },
-    select: { metadata: true },
-  });
-
-  if (stripeCustomerId?.metadata?.stripeCustomerId) {
-    await stripe.customers.del(stripeCustomerId.metadata.stripeCustomerId);
-    return;
-  } else {
-    console.error(`Couldn't deleteTeamFromStripe, Team id: ${teamId} didn't have a stripeCustomerId`);
+export const cancelTeamSubscriptionFromStripe = async (teamId: number) => {
+  try {
+    const team = await prisma.team.findUniqueOrThrow({
+      where: { id: teamId },
+      select: { metadata: true },
+    });
+    const metadata = teamMetadataSchema.parse(team.metadata);
+    if (!metadata?.subscriptionItemId)
+      throw Error(
+        `Couldn't cancelTeamSubscriptionFromStripe, Team id: ${teamId} didn't have a stripeCustomerId`
+      );
+    return await stripe.subscriptions.cancel(metadata.subscriptionItemId);
+  } catch (error) {
+    let message = "Unknown error on cancelTeamSubscriptionFromStripe";
+    if (error instanceof Error) message = error.message;
+    console.error(message);
   }
 };
