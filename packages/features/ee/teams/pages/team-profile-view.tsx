@@ -10,12 +10,14 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import objectKeys from "@calcom/lib/objectKeys";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Avatar, Button, Label, TextArea, Form, TextField } from "@calcom/ui/components";
-import { Dialog, DialogTrigger, LinkIconButton, showToast } from "@calcom/ui/v2/core";
+import { Avatar, Button, Form, Label, TextArea, TextField } from "@calcom/ui/components";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
+import { Dialog, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
 import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
+import LinkIconButton from "@calcom/ui/v2/core/LinkIconButton";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 interface TeamProfileValues {
   name: string;
