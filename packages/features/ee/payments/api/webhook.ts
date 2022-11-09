@@ -6,16 +6,13 @@ import Stripe from "stripe";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
 import { sendScheduledEmails } from "@calcom/emails";
-import { sendTeamInvite } from "@calcom/features/ee/teams/lib/inviteMember";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { HttpError as HttpCode } from "@calcom/lib/http-error";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
-import { IS_PRODUCTION } from "@lib/config/constants";
-import { HttpError as HttpCode } from "@lib/core/http/error";
-
-import { getTranslation } from "@server/lib/i18n";
 
 export const config = {
   api: {
@@ -159,80 +156,10 @@ async function handlePaymentSuccess(event: Stripe.Event) {
   });
 }
 
-async function handleTeamSubscriptionSuccess(event: Stripe.Event) {
-  const checkoutSession = event.data.object as Stripe.Checkout.Session;
-
-  if (!checkoutSession?.metadata?.teamId)
-    throw new HttpCode({
-      statusCode: 200,
-      message: `No teamId passed`,
-    });
-
-  // Update team record with Stripe ids
-  if (checkoutSession.payment_status === "paid") {
-    const team = await prisma.team.update({
-      where: {
-        id: parseInt(checkoutSession.metadata.teamId),
-      },
-      data: {
-        metadata: {
-          stripeCustomerId: checkoutSession.customer as string,
-          stripeSubscriptionId: checkoutSession.subscription as string,
-        },
-      },
-    });
-
-    const members = await prisma.membership.findMany({
-      where: {
-        teamId: parseInt(checkoutSession.metadata.teamId),
-      },
-      select: {
-        role: true,
-        user: {
-          select: {
-            email: true,
-            name: true,
-            username: true,
-            locale: true,
-          },
-        },
-      },
-    });
-
-    const teamOwner = members.find((member) => member.role === "OWNER");
-
-    await Promise.all(
-      members.map(
-        (member) =>
-          new Promise((resolve, reject) => {
-            sendTeamInvite({
-              member: member.user,
-              inviter: teamOwner.user.name,
-              teamOwnerLocale: teamOwner.user.locale,
-              teamId: team.id,
-              teamName: team.name,
-            });
-          })
-      )
-    );
-  } else {
-    throw new HttpCode({
-      statusCode: 200,
-      message: `Checkout was not paid for`,
-    });
-  }
-
-  throw new HttpCode({
-    statusCode: 200,
-    message: `Team record updated with Stripe ids`,
-  });
-}
-
 type WebhookHandler = (event: Stripe.Event) => Promise<void>;
 
 const webhookHandlers: Record<string, WebhookHandler | undefined> = {
   "payment_intent.succeeded": handlePaymentSuccess,
-  "checkout.session.completed": handleTeamSubscriptionSuccess,
 };
 
 /**
