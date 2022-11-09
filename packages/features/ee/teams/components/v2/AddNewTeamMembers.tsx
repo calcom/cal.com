@@ -138,7 +138,8 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
   return (
     <li
       key={member.email}
-      className={classNames("flex items-center justify-between p-6 text-sm", index !== 0 && "border-t")}>
+      className={classNames("flex items-center justify-between p-6 text-sm", index !== 0 && "border-t")}
+      data-testid="pending-member-item">
       <div className="flex space-x-2">
         <Avatar
           gravatarFallbackMd5="teamMember"
@@ -164,6 +165,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
       </div>
       {member.role !== "OWNER" && (
         <Button
+          data-testid="remove-member-button"
           StartIcon={Icon.FiTrash2}
           size="icon"
           color="secondary"
