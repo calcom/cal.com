@@ -199,6 +199,15 @@ export const userMetadata = z
   })
   .nullable();
 
+export const teamMetadataSchema = z
+  .object({
+    requestedSlug: z.string(),
+    paymentId: z.string(),
+    subscriptionItemId: z.string(),
+  })
+  .partial()
+  .nullable();
+
 /**
  * Ensures that it is a valid HTTP URL
  * It automatically avoids

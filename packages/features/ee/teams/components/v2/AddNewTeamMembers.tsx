@@ -1,7 +1,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
@@ -11,7 +10,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Avatar, Badge, Button } from "@calcom/ui/components";
-import { Form } from "@calcom/ui/form/fields";
 import { showToast } from "@calcom/ui/v2/core";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
@@ -38,8 +36,8 @@ const AddNewTeamMembers = () => {
 const AddNewTeamMembersForm = ({ defaultValues, teamId }: { defaultValues: FormValues; teamId: number }) => {
   const { t, i18n } = useLocale();
   const [memberInviteModal, setMemberInviteModal] = useState(false);
-  const formMethods = useForm({ defaultValues });
   const utils = trpc.useContext();
+  const router = useRouter();
   const inviteMemberMutation = trpc.useMutation("viewer.teams.inviteMember", {
     async onSuccess() {
       await utils.invalidateQueries(["viewer.teams.get"]);
@@ -49,53 +47,56 @@ const AddNewTeamMembersForm = ({ defaultValues, teamId }: { defaultValues: FormV
       showToast(error.message, "error");
     },
   });
+  const publishTeamMutation = trpc.useMutation("viewer.teams.publish", {
+    onSuccess(data) {
+      router.push(data.url);
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
 
   return (
     <>
-      <Form
-        form={formMethods}
-        handleSubmit={() => {
-          // TODO: Handle form submission
-          // - Update team memberships
-          // - Conditional redirect to billing page
-          // purchaseTeamMutation.mutate({});
+      <div>
+        <ul className="rounded-md border">
+          {defaultValues.members.map((member, index) => (
+            <PendingMemberItem key={member.email} member={member} index={index} teamId={teamId} />
+          ))}
+        </ul>
+        <Button
+          color="secondary"
+          data-testid="new-member-button"
+          StartIcon={Icon.FiPlus}
+          onClick={() => setMemberInviteModal(true)}
+          className="mt-6 w-full justify-center">
+          {t("add_team_member")}
+        </Button>
+      </div>
+      <MemberInvitationModal
+        isOpen={memberInviteModal}
+        onExit={() => setMemberInviteModal(false)}
+        onSubmit={(values) => {
+          inviteMemberMutation.mutate({
+            teamId,
+            language: i18n.language,
+            role: values.role.value,
+            usernameOrEmail: values.emailOrUsername,
+            sendEmailInvitation: values.sendInviteEmail,
+          });
+        }}
+        members={defaultValues.members}
+      />
+      <hr className="my-6 border-neutral-200" />
+      <Button
+        EndIcon={Icon.FiArrowRight}
+        className="mt-6 w-full justify-center"
+        disabled={publishTeamMutation.isLoading}
+        onClick={() => {
+          publishTeamMutation.mutate({ teamId });
         }}>
-        <>
-          <div>
-            <ul className="rounded-md border">
-              {defaultValues.members.map((member, index) => (
-                <PendingMemberItem key={member.email} member={member} index={index} teamId={teamId} />
-              ))}
-            </ul>
-            <Button
-              color="secondary"
-              data-testid="new-member-button"
-              StartIcon={Icon.FiPlus}
-              onClick={() => setMemberInviteModal(true)}
-              className="mt-6 w-full justify-center">
-              {t("add_team_member")}
-            </Button>
-          </div>
-          <MemberInvitationModal
-            isOpen={memberInviteModal}
-            onExit={() => setMemberInviteModal(false)}
-            onSubmit={(values) => {
-              inviteMemberMutation.mutate({
-                teamId,
-                language: i18n.language,
-                role: values.role.value,
-                usernameOrEmail: values.emailOrUsername,
-                sendEmailInvitation: values.sendInviteEmail,
-              });
-            }}
-            members={defaultValues.members}
-          />
-          <hr className="my-6 border-neutral-200" />
-          <Button EndIcon={Icon.FiArrowRight} className="mt-6 w-full justify-center" type="submit">
-            {t("checkout")}
-          </Button>
-        </>
-      </Form>
+        {t("team_publish")}
+      </Button>
     </>
   );
 };

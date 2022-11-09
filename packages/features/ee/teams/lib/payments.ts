@@ -1,13 +1,14 @@
 import stripe from "@calcom/app-store/stripepayment/lib/server";
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 export const purchaseTeamSubscription = async (input: { teamId: number; seats: number; email: string }) => {
   const { teamId, seats, email } = input;
   return await stripe.checkout.sessions.create({
     mode: "subscription",
-    success_url: `${CAL_URL}/settings/teams/${teamId}/profile`,
-    cancel_url: `${CAL_URL}/settings/profile`,
+    // success_url: `${CAL_URL}/settings/teams/${teamId}/profile`,
+    success_url: `${WEBAPP_URL}/api/teams/${teamId}/upgrade?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${WEBAPP_URL}/settings/profile`,
     locale: "en",
     line_items: [
       {

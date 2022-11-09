@@ -22,15 +22,11 @@ import {
   closeComUpsertTeamUser,
 } from "@calcom/lib/sync/SyncServiceManager";
 import { availabilityUserSelect } from "@calcom/prisma";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter } from "../../createRouter";
-
-// TODO: Move to @calcom/prisma
-const teamMetadataSchema = z.object({
-  requestedSlug: z.string(),
-});
 
 export const viewerTeamsRouter = createProtectedRouter()
   // Retrieves team by id
@@ -583,28 +579,38 @@ export const viewerTeamsRouter = createProtectedRouter()
 
       const metadata = teamMetadataSchema.safeParse(prevTeam.metadata);
 
-      if (!metadata.success)
+      if (!metadata.success || !metadata.data)
         throw new TRPCError({ code: "BAD_REQUEST", message: "Can't publish team without `requestedSlug`" });
 
-      // TODO: if payment needed, responid with "Payment required" error
+      // if payment needed, responed with checkout url
       if (IS_STRIPE_ENABLED) {
-        await purchaseTeamSubscription({
+        const checkoutSession = await purchaseTeamSubscription({
           teamId: prevTeam.id,
           seats: prevTeam.members.length,
           email: ctx.user.email,
         });
+        if (!checkoutSession.url)
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed retrieving a checkout session URL.",
+          });
+        return { url: checkoutSession.url };
       }
 
       const updatedTeam = await ctx.prisma.team.update({
         where: { id },
         data: {
           slug: metadata.data.requestedSlug,
+          metadata: {
+            ...metadata.data,
+            requestedSlug: null,
+          },
         },
       });
 
       // Sync Services: Close.com
       closeComUpdateTeam(prevTeam, updatedTeam);
 
-      return updatedTeam;
+      return { url: `${WEBAPP_URL}/settings/teams/${updatedTeam.id}` };
     },
   });

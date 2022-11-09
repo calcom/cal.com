@@ -1353,6 +1353,7 @@
   "must_enter_team_name": "Must enter a team name",
   "team_url_required": "Must enter a team URL",
   "team_url_taken": "This URL is already taken",
+  "team_publish": "Publish team",
   "number_sms_notifications": "Phone number (SMS\u00a0notifications)",
   "attendee_email_workflow": "Attendee email",
   "attendee_email_info": "The person booking's email",

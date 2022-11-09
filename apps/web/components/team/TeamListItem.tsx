@@ -72,7 +72,7 @@ export default function TeamListItem(props: Props) {
       <div className="ml-3 inline-block">
         <span className="text-sm font-bold text-neutral-700">{team.name}</span>
         <span className="block text-xs text-gray-400">
-          {process.env.NEXT_PUBLIC_WEBSITE_URL}/team/{team.slug}
+          {team.slug ? `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}` : "Unpublished team"}
         </span>
       </div>
     </div>
@@ -138,20 +138,22 @@ export default function TeamListItem(props: Props) {
             <div className="flex space-x-2 rtl:space-x-reverse">
               <TeamRole role={team.role} />
               <ButtonGroup combined>
-                <Tooltip content={t("copy_link_team")}>
-                  <Button
-                    color="secondary"
-                    onClick={() => {
-                      navigator.clipboard.writeText(
-                        process.env.NEXT_PUBLIC_WEBSITE_URL + "/team/" + team.slug
-                      );
-                      showToast(t("link_copied"), "success");
-                    }}
-                    size="icon"
-                    StartIcon={Icon.FiLink}
-                    combined
-                  />
-                </Tooltip>
+                {team.slug && (
+                  <Tooltip content={t("copy_link_team")}>
+                    <Button
+                      color="secondary"
+                      onClick={() => {
+                        navigator.clipboard.writeText(
+                          process.env.NEXT_PUBLIC_WEBSITE_URL + "/team/" + team.slug
+                        );
+                        showToast(t("link_copied"), "success");
+                      }}
+                      size="icon"
+                      StartIcon={Icon.FiLink}
+                      combined
+                    />
+                  </Tooltip>
+                )}
                 <Dropdown>
                   <DropdownMenuTrigger asChild className="radix-state-open:rounded-r-md">
                     <Button type="button" color="secondary" size="icon" StartIcon={Icon.FiMoreHorizontal} />
@@ -167,15 +169,17 @@ export default function TeamListItem(props: Props) {
                         </DropdownItem>
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        target="_blank"
-                        href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`}
-                        StartIcon={Icon.FiExternalLink}>
-                        {t("preview_team") as string}
-                      </DropdownItem>
-                    </DropdownMenuItem>
+                    {team.slug && (
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          type="button"
+                          target="_blank"
+                          href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`}
+                          StartIcon={Icon.FiExternalLink}>
+                          {t("preview_team") as string}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator className="h-px bg-gray-200" />
                     {isOwner && (
                       <DropdownMenuItem>

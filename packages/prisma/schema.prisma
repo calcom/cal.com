@@ -209,6 +209,7 @@ model Team {
   members      Membership[]
   eventTypes   EventType[]
   createdAt    DateTime     @default(now())
+  /// @zod.custom(imports.teamMetadataSchema)
   metadata     Json?
 }
 

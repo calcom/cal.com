@@ -28,9 +28,6 @@ const CreateANewTeamForm = () => {
     {
       enabled: false,
       refetchOnWindowFocus: false,
-      onSuccess: (data) => {
-        console.log("🚀 ~ file: CreateNewTeam.tsx ~ line 26 ~ CreateANewTeamForm ~ data", data);
-      },
     }
   );
 

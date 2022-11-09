@@ -1,6 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui";
-import { Button } from "@calcom/ui/v2/core";
+import { Button, Icon } from "@calcom/ui";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 
@@ -10,7 +9,6 @@ const BillingView = () => {
   return (
     <>
       <Meta title="Team Billing" description="Manage billing for your team" />
-
       <div className="flex flex-col text-sm sm:flex-row">
         <div>
           <h2 className="font-medium">{t("billing_manage_details_title")}</h2>
