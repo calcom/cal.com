@@ -57,10 +57,13 @@ const goto = (router: NextRouter, searchParams: Record<string, string>) => {
 };
 
 const removeQueryParams = (router: NextRouter, queryParams: string[]) => {
+  const params = new URLSearchParams(window.location.search);
+
   queryParams.forEach((param) => {
-    delete router.query[param];
+    params.delete(param);
   });
-  router.push(`${router.asPath.split("?")[0]}?${router.query.toString()}`);
+
+  router.push(`${router.asPath.split("?")[0]}?${params.toString()}`);
 };
 
 /**
