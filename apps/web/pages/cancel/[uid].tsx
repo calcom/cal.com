@@ -10,7 +10,7 @@ const querySchema = z.object({
 });
 
 export default function Type() {
-  return null;
+  return <></>;
 }
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
