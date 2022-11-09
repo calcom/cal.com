@@ -70,6 +70,10 @@ export function Scheduler(props: SchedulerComponentProps) {
       GridStop: {numberOfGridStopsPerDay}
       <br />
       Hours: {hours.length}
+      <br />
+      Start Hour: {startHour}
+      <br />
+      End Hour: {endHour}
       <SchedulerHeading />
       <div ref={container} className="isolate flex flex-auto flex-col overflow-auto bg-white">
         <div
@@ -86,23 +90,43 @@ export function Scheduler(props: SchedulerComponentProps) {
               <ol
                 className="col-start-1 col-end-2 row-start-1 grid grid-cols-1 sm:grid-cols-7 sm:pr-8"
                 style={{
-                  gridTemplateRows: `1.75rem repeat(${numberOfGridStopsPerDay}, minmax(0, 1fr)) auto`,
+                  gridTemplateRows: `1.75rem repeat(${numberOfGridStopsPerDay}, minmax(0,1fr)) auto`,
                 }}>
                 {events.map((event) => {
                   const foundDay = days.findIndex((day) => day.isSame(event.start, "day"));
                   if (foundDay === -1) return null;
+
+                  // Calculate the start and the percentage of the day
+                  const eventStart = dayjs(event.start);
+                  const eventEnd = dayjs(event.end);
+                  const eventStartHour = eventStart.hour();
+                  const eventStartDiff = eventStartHour - (startHour || 0);
+
+                  // if (eventStart.isBefore(calendarDayStart) || eventEnd.isAfter(calendarDayEnd)) return null;
+
+                  const eventDuration = eventEnd.diff(eventStart, "minutes");
+                  const gridSpan = Math.round(eventDuration / (60 / GridStopsPerHour));
+                  const visible = numberOfGridStopsPerDay / GridStopsPerHour;
+                  const gridRowStart = eventStartDiff * GridStopsPerHour;
+
                   return (
                     <>
                       <li
-                        className="relative flex sm:col-start-1"
+                        className="sm:col-start-1s relative flex "
                         style={{
-                          gridRow: "2 / span 4",
-                          gridColumnStart: foundDay,
+                          gridRow: `${gridRowStart + 2} / span ${gridSpan}`,
+                          // Need to figure out how to put this in a media query
+                          gridColumnStart: foundDay + 1,
                         }}>
                         <a
                           href="#"
-                          className="group absolute inset-x-1 flex h-full flex-col overflow-y-auto rounded-lg bg-blue-50 p-2 text-xs leading-5 hover:bg-blue-100">
-                          {event.start.toISOString()}
+                          className="group absolute inset-x-1 flex h-full flex-col overflow-y-auto rounded-lg bg-blue-50 text-xs leading-5 hover:bg-blue-100">
+                          {eventDuration} mins
+                          <br />
+                          {visible}
+                          <br />
+                          {gridRowStart + 1}
+                          <br />
                         </a>
                       </li>
                     </>

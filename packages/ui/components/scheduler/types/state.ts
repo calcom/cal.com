@@ -1,3 +1,5 @@
+import { Schedule } from "@calcom/types/schedule";
+
 import { SchedulerEvent } from "./events";
 
 export type View = "month" | "week" | "day";
@@ -55,13 +57,19 @@ export type SchedulerState = {
   /** By default we just dynamically create endDate from the viewType */
   endDate: Date;
   events: SchedulerEvent[];
+  /** This will block the calendar in these date ranges. If any events overlap with this they will not show in the calendar.*/
+  availability?: Schedule[];
+  /** Loading will only expect events to be loading. */
   loading?: boolean;
   editable?: boolean;
+  /** If you don't want the date to be scrollable past a certian date */
   minDate?: Date;
+  /** If you don't want the date to be scrollable past a certian date */
   maxDate?: Date;
-  /** This expects Hour */
   startHour?: Hours;
   endHour?: Hours;
+  scrollToCurrentTime?: boolean;
+  showCurrentTimeLine?: boolean;
 };
 
 export type SchedulerComponentProps = SchedulerPublicActions & SchedulerState;
