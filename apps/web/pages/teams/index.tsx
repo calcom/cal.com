@@ -24,9 +24,6 @@ function Teams() {
 
   const teams = data?.filter((m) => m.accepted) || [];
   const invites = data?.filter((m) => !m.accepted) || [];
-  const handleNewTeam = () => {
-    // Hey
-  };
 
   return (
     <Shell
