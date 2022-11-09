@@ -3,6 +3,8 @@ import { Prisma, UserPlan } from "@prisma/client";
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
+import { WEBAPP_URL } from "../../../constants";
+
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
 export async function getTeamWithMembers(id?: number, slug?: string) {
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
@@ -22,6 +24,9 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
     hideBranding: true,
     members: {
       select: {
+        accepted: true,
+        role: true,
+        disableImpersonation: true,
         user: {
           select: userSelect,
         },
@@ -47,20 +52,14 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
   });
 
   if (!team) return null;
-  const memberships = await prisma.membership.findMany({
-    where: {
-      teamId: team.id,
-    },
-  });
-
   const members = team.members.map((obj) => {
-    const membership = memberships.find((membership) => obj.user.id === membership.userId);
     return {
       ...obj.user,
       isMissingSeat: obj.user.plan === UserPlan.FREE,
-      role: membership?.role,
-      accepted: membership?.accepted,
-      disableImpersonation: membership?.disableImpersonation,
+      role: obj.role,
+      accepted: obj.accepted,
+      disableImpersonation: obj.disableImpersonation,
+      avatar: `${WEBAPP_URL}/${obj.user.username}/avatar.png`,
     };
   });
 
