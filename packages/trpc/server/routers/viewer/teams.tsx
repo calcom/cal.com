@@ -14,7 +14,7 @@ import {
   cancelTeamSubscriptionFromStripe,
   purchaseTeamSubscription,
 } from "@calcom/features/ee/teams/lib/payments";
-import { HOSTED_CAL_FEATURES, IS_STRIPE_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTeamWithMembers, isTeamAdmin, isTeamMember, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
@@ -176,7 +176,7 @@ export const viewerTeamsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       if (!(await isTeamOwner(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-      if (IS_STRIPE_ENABLED) await cancelTeamSubscriptionFromStripe(input.teamId);
+      if (IS_TEAM_BILLING_ENABLED) await cancelTeamSubscriptionFromStripe(input.teamId);
 
       // delete all memberships
       await ctx.prisma.membership.deleteMany({
@@ -586,7 +586,7 @@ export const viewerTeamsRouter = createProtectedRouter()
         throw new TRPCError({ code: "BAD_REQUEST", message: "Can't publish team without `requestedSlug`" });
 
       // if payment needed, responed with checkout url
-      if (IS_STRIPE_ENABLED) {
+      if (IS_TEAM_BILLING_ENABLED) {
         const checkoutSession = await purchaseTeamSubscription({
           teamId: prevTeam.id,
           seats: prevTeam.members.length,

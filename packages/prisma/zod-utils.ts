@@ -203,7 +203,8 @@ export const teamMetadataSchema = z
   .object({
     requestedSlug: z.string(),
     paymentId: z.string(),
-    subscriptionItemId: z.string(),
+    subscriptionId: z.string().nullable(),
+    subscriptionItemId: z.string().nullable(),
   })
   .partial()
   .nullable();

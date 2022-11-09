@@ -40,11 +40,11 @@ export const cancelTeamSubscriptionFromStripe = async (teamId: number) => {
       select: { metadata: true },
     });
     const metadata = teamMetadataSchema.parse(team.metadata);
-    if (!metadata?.subscriptionItemId)
+    if (!metadata?.subscriptionId)
       throw Error(
-        `Couldn't cancelTeamSubscriptionFromStripe, Team id: ${teamId} didn't have a stripeCustomerId`
+        `Couldn't cancelTeamSubscriptionFromStripe, Team id: ${teamId} didn't have a subscriptionId`
       );
-    return await stripe.subscriptions.cancel(metadata.subscriptionItemId);
+    return await stripe.subscriptions.cancel(metadata.subscriptionId);
   } catch (error) {
     let message = "Unknown error on cancelTeamSubscriptionFromStripe";
     if (error instanceof Error) message = error.message;

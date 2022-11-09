@@ -46,6 +46,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         slug: metadata.requestedSlug,
         metadata: {
           paymentId: checkoutSession.id,
+          subscriptionId: subscription.id || null,
           subscriptionItemId: subscription.items.data[0].id || null,
         },
       },
