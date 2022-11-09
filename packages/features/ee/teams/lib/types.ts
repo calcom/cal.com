@@ -1,9 +1,5 @@
 import { MembershipRole } from "@prisma/client";
 
-export interface NewTeamMembersFieldArray {
-  members: PendingMember[];
-}
-
 export interface NewTeamFormValues {
   name: string;
   slug: string;
