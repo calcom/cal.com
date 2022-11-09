@@ -484,6 +484,7 @@ export default function Success(props: SuccessProps) {
                         )}
 
                         <button
+                          data-testid="cancel"
                           className={classNames(
                             "text-bookinglight text-gray-700 underline",
                             props.recurringBookings && "ltr:mr-2 rtl:ml-2"
