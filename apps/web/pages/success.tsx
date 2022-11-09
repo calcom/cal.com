@@ -178,6 +178,7 @@ export default function Success(props: SuccessProps) {
   const email = props.bookingInfo?.user?.email;
   const status = props.bookingInfo?.status;
   const reschedule = props.bookingInfo.status === BookingStatus.ACCEPTED;
+  const cancellationReason = props.bookingInfo.cancellationReason;
 
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const { data: session } = useSession();
@@ -269,7 +270,7 @@ export default function Success(props: SuccessProps) {
   function getTitle(): string {
     const titleSuffix = props.recurringBookings ? "_recurring" : "";
     if (isCancelled) {
-      return t("emailed_information_about_cancelled_event");
+      return "";
     }
     if (needsConfirmation) {
       if (props.profile.name !== null) {
@@ -363,6 +364,12 @@ export default function Success(props: SuccessProps) {
                     <p className="text-neutral-600 dark:text-gray-300">{getTitle()}</p>
                   </div>
                   <div className="border-bookinglightest text-bookingdark dark:border-darkgray-300 mt-8 grid grid-cols-3 border-t pt-8 text-left dark:text-gray-300">
+                    {isCancelled && cancellationReason && (
+                      <>
+                        <div className="font-medium">{t("reason")}</div>
+                        <div className="col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
+                      </>
+                    )}
                     <div className="font-medium">{t("what")}</div>
                     <div className="col-span-2 mb-6 last:mb-0">{eventName}</div>
                     <div className="font-medium">{t("when")}</div>
@@ -818,6 +825,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       startTime: true,
       location: true,
       status: true,
+      cancellationReason: true,
       user: {
         select: {
           id: true,
