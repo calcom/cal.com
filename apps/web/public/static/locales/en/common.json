@@ -1346,5 +1346,6 @@
   "choose_common_schedule_team_event_description": "Enable this if you want to use a common schedule between hosts. When disabled, each host will be booked based on their default schedule.",
   "test_routing_form": "Test Routing Form",
   "test_preview": "Test Preview",
-  "route_to": "Route to"
+  "route_to": "Route to",
+  "test_preview_description": "Test your routing form without submitting any data to the database"
 }
