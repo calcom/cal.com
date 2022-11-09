@@ -277,6 +277,40 @@ const app_RoutingForms = createRouter()
 
           fields = fields || [];
 
+          const form = await prisma.app_RoutingForms_Form.findUnique({
+            where: {
+              id: id,
+            },
+            select: {
+              id: true,
+              user: true,
+              name: true,
+              description: true,
+              userId: true,
+              disabled: true,
+              createdAt: true,
+              updatedAt: true,
+              routes: true,
+              fields: true,
+              settings: true,
+            },
+          });
+
+          // Add back deleted fields in the end. Fields can't be deleted, to make sure columns never decrease which hugely simplifies CSV generation
+          if (form) {
+            const serializedForm = getSerializableForm(form, true);
+            // Find all fields that are in DB(including deleted) but not in the mutation
+            const deletedFields =
+              serializedForm.fields?.filter((f) => !fields!.find((field) => field.id === f.id)) || [];
+
+            fields = fields.concat(
+              deletedFields.map((f) => {
+                f.deleted = true;
+                return f;
+              })
+            );
+          }
+
           if (addFallback) {
             const uuid = uuidv4();
             routes = routes || [];

@@ -49,7 +49,6 @@ interface DeleteAccountValues {
 const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const usernameRef = useRef<HTMLInputElement>(null);
 
   const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
   const mutation = trpc.useMutation("viewer.updateProfile", {
@@ -66,11 +65,7 @@ const ProfileView = () => {
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
-  const [currentUsername, setCurrentUsername] = useState<string | undefined>(user?.username || undefined);
-  const [inputUsernameValue, setInputUsernameValue] = useState(currentUsername);
-  useEffect(() => {
-    if (user?.username) setCurrentUsername(user?.username);
-  }, [user?.username]);
+
   const form = useForm<DeleteAccountValues>();
 
   const emailMd5 = crypto
@@ -148,28 +143,36 @@ const ProfileView = () => {
     }
   };
 
-  const formMethods = useForm<{
-    avatar?: string;
-    username?: string;
-    name?: string;
-    email?: string;
-    bio?: string;
-  }>();
+  const formMethods = useForm({
+    defaultValues: {
+      username: "",
+      avatar: "",
+      name: "",
+      email: "",
+      bio: "",
+    },
+  });
 
-  const { reset } = formMethods;
-  const formInitializedRef = useRef(false);
+  const {
+    reset,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    formState: { dirtyFields },
+  } = formMethods;
+
   useEffect(() => {
-    // The purpose of reset is to set the initial value obtained from tRPC.
-    // `user` would change for many reasons (e.g. when viewer.me automatically fetches on window re-focus(a react query feature))
-    if (user && !formInitializedRef.current) {
-      formInitializedRef.current = true;
-      reset({
-        avatar: user?.avatar || "",
-        username: user?.username || "",
-        name: user?.name || "",
-        email: user?.email || "",
-        bio: user?.bio || "",
-      });
+    if (user) {
+      reset(
+        {
+          avatar: user?.avatar || "",
+          username: user?.username || "",
+          name: user?.name || "",
+          email: user?.email || "",
+          bio: user?.bio || "",
+        },
+        {
+          keepDirtyValues: true,
+        }
+      );
     }
   }, [reset, user]);
 
@@ -230,15 +233,22 @@ const ProfileView = () => {
           />
         </div>
         <div className="mt-8">
-          <UsernameAvailability
-            currentUsername={currentUsername}
-            setCurrentUsername={setCurrentUsername}
-            inputUsernameValue={inputUsernameValue}
-            usernameRef={usernameRef}
-            setInputUsernameValue={setInputUsernameValue}
-            onSuccessMutation={onSuccessfulUsernameUpdate}
-            onErrorMutation={onErrorInUsernameUpdate}
-            user={user}
+          <Controller
+            control={formMethods.control}
+            name="username"
+            render={({ field: { ref, onChange, value } }) => {
+              return (
+                <UsernameAvailability
+                  currentUsername={user?.username || ""}
+                  inputUsernameValue={value}
+                  usernameRef={ref}
+                  setInputUsernameValue={onChange}
+                  onSuccessMutation={onSuccessfulUsernameUpdate}
+                  onErrorMutation={onErrorInUsernameUpdate}
+                  user={user}
+                />
+              );
+            }}
           />
         </div>
         <div className="mt-8">
