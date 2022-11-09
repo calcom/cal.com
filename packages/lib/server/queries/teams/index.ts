@@ -6,7 +6,7 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { WEBAPP_URL } from "../../../constants";
 
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
-export async function getTeamWithMembers(id?: number, slug?: string) {
+export async function getTeamWithMembers(id?: number, slug?: string, userId?: number) {
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     username: true,
     email: true,
@@ -46,8 +46,14 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
     },
   });
 
-  const team = await prisma.team.findUnique({
-    where: id ? { id } : { slug },
+  const where: Prisma.TeamFindFirstArgs["where"] = {};
+
+  if (userId) where.members = { some: { userId } };
+  if (id) where.id = id;
+  if (slug) where.slug = slug;
+
+  const team = await prisma.team.findFirst({
+    where,
     select: teamSelect,
   });
 
