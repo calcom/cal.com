@@ -245,10 +245,6 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   // standard working hours for all users
   const workingHours = [{ days: [1, 2, 3, 4, 5, 6], startTime: 420, endTime: 1140 }];
   const computedAvailableSlots: Record<string, Slot[]> = {};
-  const availabilityCheckProps = {
-    eventLength: eventType.length,
-    beforeBufferTime: eventType.beforeEventBuffer,
-  };
 
   const isTimeWithinBounds = (_time: Parameters<typeof isTimeOutOfBounds>[0]) =>
     !isTimeOutOfBounds(_time, {
@@ -261,9 +257,9 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
 
   let currentCheckedTime = startTime;
   let getSlotsTime = 0;
-  let checkForAvailabilityTime = 0;
+  const checkForAvailabilityTime = 0;
   let getSlotsCount = 0;
-  let checkForAvailabilityCount = 0;
+  const checkForAvailabilityCount = 0;
 
   do {
     const startGetSlots = performance.now();
@@ -279,30 +275,19 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     const endGetSlots = performance.now();
     getSlotsTime += endGetSlots - startGetSlots;
     getSlotsCount++;
-    // if ROUND_ROBIN - slots stay available on some() - if normal / COLLECTIVE - slots only stay available on every()
-    const filterStrategy =
-      !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE
-        ? ("every" as const)
-        : ("some" as const);
-
-    const availableTimeSlots = timeSlots.filter(isTimeWithinBounds).filter((time) =>
-      usersWorkingHoursAndBusySlots[filterStrategy]((schedule) => {
-        const startCheckForAvailability = performance.now();
-        const isAvailable = checkIfIsAvailable({ time, ...schedule, ...availabilityCheckProps });
-        const endCheckForAvailability = performance.now();
-        checkForAvailabilityCount++;
-        checkForAvailabilityTime += endCheckForAvailability - startCheckForAvailability;
-        return isAvailable;
-      })
-    );
 
     const userIsAvailable = (user: typeof eventType.users[number], time: Dayjs) => {
       const schedule = usersWorkingHoursAndBusySlots.find((s) => s.user.id === user.id);
       if (!schedule) return false;
-      return checkIfIsAvailable({ time, ...schedule, ...availabilityCheckProps });
+      return checkIfIsAvailable({
+        time,
+        busy: schedule.busy,
+        eventLength: eventType.length,
+        beforeBufferTime: eventType.beforeEventBuffer,
+      });
     };
 
-    computedAvailableSlots[currentCheckedTime.format("YYYY-MM-DD")] = availableTimeSlots.map((time) => ({
+    computedAvailableSlots[currentCheckedTime.format("YYYY-MM-DD")] = timeSlots.map((time) => ({
       time: time.toISOString(),
       users: eventType.users.filter((user) => userIsAvailable(user, time)).map((user) => user.username || ""),
     }));
