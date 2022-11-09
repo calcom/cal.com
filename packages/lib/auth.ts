@@ -36,14 +36,15 @@ export async function getSession(options: GetSessionParams): Promise<Session | n
 export function isPasswordValid(password: string): boolean;
 export function isPasswordValid(
   password: string,
-  breakdown: boolean
+  breakdown: boolean,
+  strict?: boolean
 ): { caplow: boolean; num: boolean; min: boolean };
-export function isPasswordValid(password: string, breakdown?: boolean) {
+export function isPasswordValid(password: string, breakdown?: boolean, strict?: boolean) {
   let cap = false, // Has uppercase characters
     low = false, // Has lowercase characters
     num = false, // At least one number
-    min = false; // Eight characters
-  if (password.length > 7) min = true;
+    min = false; // Eight characters, or fifteen in strict mode.
+  if (password.length > 7 && (!strict || password.length > 14)) min = true;
   for (let i = 0; i < password.length; i++) {
     if (!isNaN(parseInt(password[i]))) num = true;
     else {
