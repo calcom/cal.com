@@ -62,7 +62,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         description={
           <span className=" text-sm leading-tight text-gray-500">
             Note: This will <span className="font-medium text-gray-900">cost an extra seat ($15/m)</span> on
-            your subscription once this member accepts your invite.
+            your subscription.
           </span>
         }>
         <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values)}>
