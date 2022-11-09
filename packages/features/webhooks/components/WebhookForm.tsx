@@ -217,27 +217,27 @@ const WebhookForm = (props: {
           render={({ field: { value } }) => (
             <>
               <Label className="font-sm mt-8 text-gray-900">
-                <>{t("payload")}</>
+                <>{t("payload_template")}</>
               </Label>
-              <div className="flex rounded-md border">
+              <div className="mb-2 flex max-w-fit rounded-md border">
                 <div
                   className={classNames(
-                    "px-1/2 w-1/2 rounded-md  py-2.5 text-center font-medium text-gray-900",
+                    "m-1 flex items-center justify-center rounded text-center font-medium text-gray-900",
                     !useCustomTemplate && "bg-gray-200"
                   )}
                   onClick={() => {
                     setUseCustomTemplate(false);
                     formMethods.setValue("payloadTemplate", undefined);
                   }}>
-                  <p>{t("default")}</p>
+                  <p className="cursor-pointer px-2 py-1.5 text-sm">{t("default")}</p>
                 </div>
                 <div
                   className={classNames(
-                    "px-1/2 w-1/2 rounded-md  py-2.5 text-center font-medium text-gray-900",
+                    "flex items-center justify-center  rounded-md text-center font-medium text-gray-900",
                     useCustomTemplate && "bg-gray-200"
                   )}
                   onClick={() => setUseCustomTemplate(true)}>
-                  <p>{t("custom")}</p>
+                  <p className="cursor-pointer px-2 py-1.5 text-sm">{t("custom")}</p>
                 </div>
               </div>
               {useCustomTemplate && (

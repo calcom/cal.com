@@ -126,7 +126,6 @@
   "webhook_updated_successfully": "Webhook updated successfully!",
   "webhook_removed_successfully": "Webhook removed successfully!",
   "payload_template": "Payload Template",
-  "payload":"Payload",
   "dismiss": "Dismiss",
   "no_data_yet": "No data yet",
   "ping_test": "Ping test",
