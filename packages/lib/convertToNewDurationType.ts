@@ -7,36 +7,37 @@ export default function convertToNewDurationType(
   newType: string | "minutes" | "hours" | "days",
   prevValue: number
 ) {
+  const round = Math.ceil;
   if (newType === "minutes") {
     if (prevType === "hours") {
-      return prevValue * MINUTES_IN_HOUR;
+      return round(prevValue * MINUTES_IN_HOUR);
     }
     if (prevType === "days") {
-      return prevValue * MINUTES_IN_DAY;
+      return round(prevValue * MINUTES_IN_DAY);
     }
     if (prevType === "minutes") {
-      return prevValue;
+      return round(prevValue);
     }
   } else if (newType === "hours") {
     if (prevType === "minutes") {
-      return prevValue / MINUTES_IN_HOUR;
+      return round(prevValue / MINUTES_IN_HOUR);
     }
     if (prevType === "days") {
-      return prevValue * HOURS_IN_DAY;
+      return round(prevValue * HOURS_IN_DAY);
     }
     if (prevType === "hours") {
-      return prevValue;
+      return round(prevValue);
     }
   } else if (newType === "days") {
     if (prevType === "days") {
-      return prevValue;
+      return round(prevValue);
     }
     if (prevType === "minutes") {
-      return prevValue / MINUTES_IN_DAY;
+      return round(prevValue / MINUTES_IN_DAY);
     }
     if (prevType === "hours") {
-      return prevValue / HOURS_IN_DAY;
+      return round(prevValue / HOURS_IN_DAY);
     }
   }
-  return prevValue;
+  return round(prevValue);
 }

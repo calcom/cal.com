@@ -3,7 +3,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -75,6 +75,7 @@ export type FormValues = {
   seatsShowAttendees: boolean | null;
   seatsPerTimeSlotEnabled: boolean;
   minimumBookingNotice: number;
+  minimumBookingNoticeInDurationType: number;
   beforeBufferTime: number;
   afterBufferTime: number;
   slotInterval: number | null;
@@ -109,7 +110,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   // TODO: It isn't a good idea to maintain state using setEventType. If we want to connect the SSR'd data to tRPC, we should useQuery(["viewer.eventTypes.get"]) with initialData
   // Due to this change, when Form is saved, there is no way to propagate that info to eventType (e.g. disabling stripe app doesn't allow recurring tab to be enabled without refresh).
   const [eventType, setEventType] = useState(dbEventType);
-  const [currentDurationType, setCurrentDurationType] = useState("minutes");
 
   const router = useRouter();
   const { tabName } = querySchema.parse(router.query);
@@ -154,12 +154,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
 
-  const minimumBookingNoticeInMinutes = convertToNewDurationType(
-    currentDurationType,
-    "minutes",
-    eventType.minimumBookingNotice
-  );
-
   const formMethods = useForm<FormValues>({
     defaultValues: {
       title: eventType.title,
@@ -174,7 +168,12 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         endDate: periodDates.endDate,
       },
       schedulingType: eventType.schedulingType,
-      minimumBookingNotice: minimumBookingNoticeInMinutes,
+      minimumBookingNotice: eventType.minimumBookingNotice,
+      minimumBookingNoticeInDurationType: convertToNewDurationType(
+        "minutes",
+        findDurationType(eventType.minimumBookingNotice),
+        eventType.minimumBookingNotice
+      ),
       metadata: eventType.metadata,
     },
   });
@@ -211,9 +210,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         currentUserMembership={props.currentUserMembership}
       />
     ),
-    limits: (
-      <EventLimitsTab eventType={{ eventType: eventType }} currentDurationType={setCurrentDurationType} />
-    ),
+    limits: <EventLimitsTab eventType={{ eventType: eventType }} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
     apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
@@ -251,9 +248,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             recurringEvent,
             locations,
             metadata,
-            // We don't need to send it to the backend
+            // We don't need to send send these values to the backend
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             seatsPerTimeSlotEnabled,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            minimumBookingNoticeInDurationType,
             ...input
           } = values;
 
@@ -269,7 +268,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             periodStartDate: periodDates.startDate,
             periodEndDate: periodDates.endDate,
             periodCountCalendarDays: periodCountCalendarDays === "1",
-            minimumBookingNotice: minimumBookingNoticeInMinutes,
             id: eventType.id,
             beforeEventBuffer: beforeBufferTime,
             afterEventBuffer: afterBufferTime,
