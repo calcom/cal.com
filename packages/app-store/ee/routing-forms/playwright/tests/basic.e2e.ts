@@ -162,7 +162,7 @@ test.describe("Routing Forms", () => {
       return user;
     };
 
-    test.only("Routing Link should accept submission while routing works and responses can be downloaded", async ({
+    test("Routing Link should accept submission while routing works and responses can be downloaded", async ({
       page,
       users,
     }) => {
@@ -178,10 +178,12 @@ test.describe("Routing Forms", () => {
       await user.login();
 
       await page.goto(`/apps/routing-forms/reporting/${routingForm.id}`);
+      // Can't keep waiting forever. So, added a timeout of 5000ms
       await page.waitForResponse((response) => response.url().includes("viewer.app_routing_forms.report"), {
         timeout: 5000,
       });
       const headerEls = page.locator("[data-testid='reporting-header'] th");
+      // Once the response is there, React would soon render it, so 500ms is enough
       await headerEls.first().waitFor({
         timeout: 500,
       });
