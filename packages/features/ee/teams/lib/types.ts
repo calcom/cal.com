@@ -1,3 +1,5 @@
+import { MembershipRole } from "@prisma/client";
+
 export interface NewTeamMembersFieldArray {
   members: PendingMember[];
 }
@@ -14,7 +16,7 @@ export interface PendingMember {
   email: string;
   id?: number;
   username: string | null;
-  role: "OWNER" | "ADMIN" | "MEMBER";
+  role: MembershipRole;
   avatar: string | null;
   sendInviteEmail?: boolean;
 }

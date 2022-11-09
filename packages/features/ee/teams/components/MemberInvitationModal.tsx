@@ -1,6 +1,6 @@
 import { MembershipRole } from "@prisma/client";
 import { useMemo } from "react";
-import { Controller, useForm, useFormContext } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, TextField } from "@calcom/ui/components";
@@ -8,7 +8,7 @@ import CheckboxField from "@calcom/ui/components/form/checkbox/Checkbox";
 import { Form } from "@calcom/ui/form/fields";
 import { Dialog, DialogContent, DialogFooter, Select } from "@calcom/ui/v2";
 
-import { NewTeamFormValues } from "../lib/types";
+import { PendingMember } from "../lib/types";
 
 type MemberInvitationModalProps = {
   isOpen: boolean;
@@ -61,7 +61,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         title={t("invite_new_member")}
         description={
           <span className=" text-sm leading-tight text-gray-500">
-            Note: This will <span className="font-medium text-gray-900">cost an extra seat ($12/m)</span> on
+            Note: This will <span className="font-medium text-gray-900">cost an extra seat ($15/m)</span> on
             your subscription once this member accepts your invite.
           </span>
         }>

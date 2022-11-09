@@ -2,9 +2,9 @@ import Head from "next/head";
 
 import AddNewTeamMembers from "@calcom/features/ee/teams/components/v2/AddNewTeamMembers";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { getLayout } from "@calcom/ui/v2/core/layouts/WizardLayout";
+import WizardLayout from "@calcom/ui/v2/core/layouts/WizardLayout";
 
-const CreateNewTeamPage = () => {
+const OnboardTeamMembersPage = () => {
   const { t } = useLocale();
   return (
     <>
@@ -17,6 +17,10 @@ const CreateNewTeamPage = () => {
   );
 };
 
-CreateNewTeamPage.getLayout = getLayout;
+OnboardTeamMembersPage.getLayout = (page: React.ReactElement) => (
+  <WizardLayout currentStep={1} maxSteps={3}>
+    {page}
+  </WizardLayout>
+);
 
-export default CreateNewTeamPage;
+export default OnboardTeamMembersPage;

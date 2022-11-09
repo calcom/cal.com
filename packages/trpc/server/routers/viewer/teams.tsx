@@ -1,6 +1,6 @@
 import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import { randomBytes } from "crypto";
-import { undefined, z } from "zod";
+import { z } from "zod";
 
 import {
   addSeat,
@@ -10,7 +10,6 @@ import {
 } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
-import { createMember } from "@calcom/features/ee/teams/lib/inviteMember";
 import { deleteTeamFromStripe, purchaseTeamSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { HOSTED_CAL_FEATURES, IS_STRIPE_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -24,10 +23,14 @@ import {
 } from "@calcom/lib/sync/SyncServiceManager";
 import { availabilityUserSelect } from "@calcom/prisma";
 
-import { contextProps } from "@trpc/react/dist/internals/context";
 import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter } from "../../createRouter";
+
+// TODO: Move to @calcom/prisma
+const teamMetadataSchema = z.object({
+  requestedSlug: z.string(),
+});
 
 export const viewerTeamsRouter = createProtectedRouter()
   // Retrieves team by id
@@ -37,7 +40,10 @@ export const viewerTeamsRouter = createProtectedRouter()
     }),
     async resolve({ ctx, input }) {
       const team = await getTeamWithMembers(input.teamId);
-      if (!team?.members.find((m) => m.id === ctx.user.id)) {
+      if (!team) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
+      }
+      if (!team.members.find((m) => m.id === ctx.user.id)) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not a member of this team." });
       }
       const membership = team?.members.find((membership) => membership.id === ctx.user.id);
@@ -99,7 +105,6 @@ export const viewerTeamsRouter = createProtectedRouter()
       const createTeam = await ctx.prisma.team.create({
         data: {
           name,
-          slug,
           logo,
           members: {
             create: {
@@ -107,6 +112,9 @@ export const viewerTeamsRouter = createProtectedRouter()
               role: MembershipRole.OWNER,
               accepted: true,
             },
+          },
+          metadata: {
+            requestedSlug: slug,
           },
         },
       });
@@ -481,65 +489,6 @@ export const viewerTeamsRouter = createProtectedRouter()
       );
     },
   })
-  .mutation("purchaseTeamSubscription", {
-    input: z.object({
-      name: z.string(),
-      slug: z.string(),
-      logo: z.string().optional(),
-      members: z.array(
-        z.object({
-          name: z.union([z.string(), z.null()]),
-          email: z.string(),
-          userId: z.number().optional(),
-          username: z.union([z.string(), z.null()]),
-          role: z.union([z.literal("OWNER"), z.literal("ADMIN"), z.literal("MEMBER")]),
-          avatar: z.string().optional(),
-          sendInviteEmail: z.boolean().optional(),
-        })
-      ),
-      language: z.string(),
-    }),
-    async resolve({ ctx, input }) {
-      const { slug, name, logo, members } = input;
-      const { prisma } = ctx;
-
-      // Tentatively create the team in the DB
-      const createTeam = await prisma.team.create({
-        data: {
-          name,
-          slug,
-          logo,
-          members: {
-            create: {
-              userId: ctx.user.id,
-              accepted: true,
-              role: "OWNER",
-            },
-          },
-        },
-      });
-
-      // Tentatively create members on team
-      for (const member of members) {
-        if (member.userId !== ctx.user.id)
-          createMember({
-            teamId: createTeam.id,
-            teamName: name,
-            inviter: ctx.user.name,
-            pendingMember: member,
-          });
-      }
-
-      if (!IS_STRIPE_ENABLED)
-        throw new TRPCError({ code: "FORBIDDEN", message: "Team billing is not enabled" });
-      return await purchaseTeamSubscription({
-        teamId: createTeam.id,
-        seats: members.length,
-        email: ctx.user.email,
-      });
-      return true;
-    },
-  })
   .query("getTeamSeats", {
     input: z.object({
       teamId: z.number(),
@@ -620,101 +569,42 @@ export const viewerTeamsRouter = createProtectedRouter()
       return !team;
     },
   })
-  .query("findUser", {
+  .mutation("publish", {
     input: z.object({
-      emailOrUsername: z.string(),
-      role: z.object({
-        value: z.union([z.literal("OWNER"), z.literal("ADMIN"), z.literal("MEMBER")]),
-        label: z.string(),
-      }),
-      sendInviteEmail: z.boolean(),
+      teamId: z.number(),
     }),
     async resolve({ ctx, input }) {
-      const { emailOrUsername } = input;
-      const user = await ctx.prisma.user.findFirst({
-        where: {
-          OR: [{ username: emailOrUsername }, { email: emailOrUsername }],
-        },
-        select: {
-          id: true,
-          name: true,
-          username: true,
-          avatar: true,
-          email: true,
-        },
-      });
+      if (!(await isTeamAdmin(ctx.user.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+      const { teamId: id } = input;
 
-      if (!user && !/\b[a-z0-9-_.]+@[a-z0-9-_.]+(\.[a-z0-9]+)+/.test(emailOrUsername)) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Could not find user",
+      const prevTeam = await ctx.prisma.team.findFirst({ where: { id }, include: { members: true } });
+
+      if (!prevTeam) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
+
+      const metadata = teamMetadataSchema.safeParse(prevTeam.metadata);
+
+      if (!metadata.success)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Can't publish team without `requestedSlug`" });
+
+      // TODO: if payment needed, responid with "Payment required" error
+      if (IS_STRIPE_ENABLED) {
+        await purchaseTeamSubscription({
+          teamId: prevTeam.id,
+          seats: prevTeam.members.length,
+          email: ctx.user.email,
         });
       }
 
-      return {
-        userId: user?.id || undefined,
-        name: user?.name || "",
-        email: user?.email || emailOrUsername,
-        username: user?.username || "",
-        avatar: user?.avatar || "",
-        role: input.role.value,
-        sendInviteEmail: input.sendInviteEmail,
-      };
-    },
-  })
-  .mutation("createTeam", {
-    input: z.object({
-      name: z.string(),
-      slug: z.string(),
-      logo: z.string().optional(),
-    }),
-    async resolve({ ctx, input }) {
-      const { name, slug, logo } = input;
-      const team = await ctx.prisma.team.create({
+      const updatedTeam = await ctx.prisma.team.update({
+        where: { id },
         data: {
-          name,
-          logo,
-          members: {
-            create: {
-              userId: ctx.user.id,
-              role: MembershipRole.OWNER,
-              accepted: true,
-            },
-          },
-          metadata: {
-            requestedSlug: slug,
-          },
-        },
-      });
-      return team;
-    },
-  })
-  .query("retrieveTemporaryTeam", {
-    input: z.object({
-      temporarySlug: z.union([z.string(), z.null()]),
-    }),
-    async resolve({ ctx, input }) {
-      if (!input.temporarySlug) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Could not find team in DB or local storage",
-        });
-      }
-
-      const temporaryTeam = await ctx.prisma.team.findFirst({
-        where: {
-          members: {
-            userId: ctx.user.id,
-            role: "OWNER",
-          },
-          metadata: {
-            equals: {
-              temporarySlug: input.temporarySlug,
-            },
-          },
+          slug: metadata.data.requestedSlug,
         },
       });
 
-      return temporaryTeam;
+      // Sync Services: Close.com
+      closeComUpdateTeam(prevTeam, updatedTeam);
+
+      return updatedTeam;
     },
   });

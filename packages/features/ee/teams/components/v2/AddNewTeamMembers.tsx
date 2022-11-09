@@ -1,192 +1,100 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberInvitationModal";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { localStorage } from "@calcom/lib/webstorage";
-import { trpc } from "@calcom/trpc/react";
+import { inferQueryOutput, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Avatar, Badge, Button, showToast } from "@calcom/ui/v2/core";
-import { Form } from "@calcom/ui/v2/core/form";
-import { SkeletonContainer, SkeletonText, SkeletonAvatar } from "@calcom/ui/v2/core/skeleton";
+import { Avatar, Badge, Button } from "@calcom/ui/components";
+import { Form } from "@calcom/ui/form/fields";
+import { showToast } from "@calcom/ui/v2/core";
+import { SkeletonAvatar, SkeletonContainer, SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
-import { NewTeamMembersFieldArray, PendingMember } from "../../lib/types";
-import { NewMemberForm } from "../MemberInvitationModal";
+const querySchema = z.object({
+  id: z.string().transform((val) => parseInt(val)),
+});
+
+type TeamMember = inferQueryOutput<"viewer.teams.get">["members"][number];
+
+type FormValues = {
+  members: TeamMember[];
+};
 
 const AddNewTeamMembers = () => {
-  const { t } = useLocale();
   const session = useSession();
   const router = useRouter();
+  const { id: teamId } = router.isReady ? querySchema.parse(router.query) : { id: -1 };
+  const teamQuery = trpc.useQuery(["viewer.teams.get", { teamId }], { enabled: router.isReady });
+  if (session.status === "loading" || !teamQuery.data) return <AddNewTeamMemberSkeleton />;
 
+  return <AddNewTeamMembersForm defaultValues={{ members: teamQuery.data.members }} teamId={teamId} />;
+};
+
+const AddNewTeamMembersForm = ({ defaultValues, teamId }: { defaultValues: FormValues; teamId: number }) => {
+  const { t, i18n } = useLocale();
   const [memberInviteModal, setMemberInviteModal] = useState(false);
-  const [inviteMemberInput, setInviteMemberInput] = useState<NewMemberForm>({
-    emailOrUsername: "",
-    role: { value: "MEMBER", label: "Member" },
-    sendInviteEmail: false,
-  });
-  const [skeletonMember, setSkeletonMember] = useState(false);
-
-  const formMethods = useForm();
-  const membersFieldArray = useFieldArray<PendingMember[]>({
-    control: formMethods.control,
-    name: "members",
-  });
-
-  const retrieveTemporaryTeam = trpc.useQuery([
-    "viewer.teams.retrieveTemporaryTeam",
-    { temporarySlug: localStorage.getItem("temporaryTeamSlug") },
-  ]);
-
-  const { refetch } = trpc.useQuery(["viewer.teams.findUser", inviteMemberInput], {
-    refetchOnWindowFocus: false,
-    enabled: false,
-    onSuccess: (newMember) => {
-      console.log("🚀 ~ file: AddNewTeamMembers.tsx ~ line 40 ~ AddNewTeamMembers ~ newMember", newMember);
-      membersFieldArray.append(newMember);
-      setSkeletonMember(false);
+  const formMethods = useForm({ defaultValues });
+  const utils = trpc.useContext();
+  const inviteMemberMutation = trpc.useMutation("viewer.teams.inviteMember", {
+    async onSuccess() {
+      await utils.invalidateQueries(["viewer.teams.get"]);
+      setMemberInviteModal(false);
     },
     onError: (error) => {
       showToast(error.message, "error");
-      setSkeletonMember(false);
     },
   });
-
-  const purchaseTeamMutation = trpc.useMutation(["viewer.teams.purchaseTeamSubscription"], {
-    onSuccess: (data) => {
-      router.push(data.url);
-    },
-  });
-
-  // useEffect(() => {
-  //   const newTeamValues = localStorage.getItem("newTeamValues");
-  //   if (!newTeamValues) router.push("/settings");
-  // }, []);
-
-  // Set current user as team owner
-  // useEffect(() => {
-  //   if (session.status !== "loading" && !formMethods.getValues("members").length) {
-  //     membersFieldArray.append({
-  //       name: session?.data.user.name || "",
-  //       email: session?.data.user.email || "",
-  //       username: session?.data.user.username || "",
-  //       userId: session?.data.user.id || "",
-  //       role: "OWNER",
-  //     });
-  //   }
-  //   /* eslint-disable */
-  // }, [session]);
-
-  useEffect(() => {
-    if (inviteMemberInput.emailOrUsername) {
-      refetch();
-    }
-  }, [inviteMemberInput]);
-
-  const handleInviteTeamMember = (values: NewMemberForm) => {
-    setInviteMemberInput(values);
-    setMemberInviteModal(false);
-    setSkeletonMember(true);
-  };
-
-  const handleDeleteMember = (email: string) => {
-    const memberIndex = formMethods
-      .getValues("members")
-      .findIndex((member: PendingMember) => member.email === email);
-    membersFieldArray.remove(memberIndex);
-  };
-
-  if (session.status === "loading") return <AddNewTeamMemberSkeleton />;
 
   return (
     <>
       <Form
         form={formMethods}
         handleSubmit={(values) => {
-          purchaseTeamMutation.mutate({
-            ...newTeamData,
-            members: [...values],
-            language: i18n.language,
-          });
+          // TODO: Handle form submission
+          // - Update team memberships
+          // - Conditional redirect to billing page
+          // purchaseTeamMutation.mutate({});
         }}>
-        <Controller
-          name="members"
-          render={({ field: { value } }) => (
-            <>
-              <div>
-                <ul className="rounded-md border">
-                  {value &&
-                    value.map((member: PendingMember, index: number) => (
-                      <li
-                        key={member.email}
-                        className={classNames(
-                          "flex items-center justify-between p-6 text-sm",
-                          index !== 0 && "border-t"
-                        )}>
-                        <div className="flex space-x-2">
-                          <Avatar
-                            gravatarFallbackMd5="teamMember"
-                            size="mdLg"
-                            imageSrc={WEBAPP_URL + "/" + member.username + "/avatar.png"}
-                            alt="owner-avatar"
-                          />
-                          <div>
-                            <div className="flex space-x-1">
-                              <p>{member?.name || member?.email || t("team_member")}</p>
-                              {/* Assume that the first member of the team is the creator */}
-                              {index === 0 && <Badge variant="green">{t("you")}</Badge>}
-                              {member.role !== "OWNER" && <Badge variant="orange">{t("pending")}</Badge>}
-                              {member.role === "MEMBER" && <Badge variant="gray">{t("member")}</Badge>}
-                              {member.role === "ADMIN" && <Badge variant="default">{t("admin")}</Badge>}
-                              {member.sendInviteEmail && <Badge variant="blue">{t("send_email")}</Badge>}
-                            </div>
-                            {member.username ? (
-                              <p className="text-gray-600">{`${WEBAPP_URL}/${member?.username}`}</p>
-                            ) : (
-                              <p className="text-gray-600">{t("not_on_cal")}</p>
-                            )}
-                          </div>
-                        </div>
-                        {member.role !== "OWNER" && (
-                          <Button
-                            StartIcon={Icon.FiTrash2}
-                            size="icon"
-                            color="secondary"
-                            className="h-[36px] w-[36px]"
-                            onClick={() => handleDeleteMember(member.email)}
-                          />
-                        )}
-                      </li>
-                    ))}
-                  {skeletonMember && <SkeletonMember />}
-                </ul>
-
-                <Button
-                  color="secondary"
-                  data-testid="new-member-button"
-                  StartIcon={Icon.FiPlus}
-                  onClick={() => setMemberInviteModal(true)}
-                  className="mt-6 w-full justify-center">
-                  {t("add_team_member")}
-                </Button>
-              </div>
-              <MemberInvitationModal
-                isOpen={memberInviteModal}
-                onExit={() => setMemberInviteModal(false)}
-                onSubmit={handleInviteTeamMember}
-                members={formMethods.getValues("members")}
-              />
-              <hr className="my-6  border-neutral-200" />
-
-              <Button EndIcon={Icon.FiArrowRight} className="mt-6 w-full justify-center" type="submit">
-                {t("checkout")}
-              </Button>
-            </>
-          )}
-        />
+        <>
+          <div>
+            <ul className="rounded-md border">
+              {defaultValues.members.map((member, index) => (
+                <PendingMemberItem key={member.email} member={member} index={index} teamId={teamId} />
+              ))}
+            </ul>
+            <Button
+              color="secondary"
+              data-testid="new-member-button"
+              StartIcon={Icon.FiPlus}
+              onClick={() => setMemberInviteModal(true)}
+              className="mt-6 w-full justify-center">
+              {t("add_team_member")}
+            </Button>
+          </div>
+          <MemberInvitationModal
+            isOpen={memberInviteModal}
+            onExit={() => setMemberInviteModal(false)}
+            onSubmit={(values) => {
+              inviteMemberMutation.mutate({
+                teamId,
+                language: i18n.language,
+                role: values.role.value,
+                usernameOrEmail: values.emailOrUsername,
+                sendEmailInvitation: values.sendInviteEmail,
+              });
+            }}
+            members={defaultValues.members}
+          />
+          <hr className="my-6 border-neutral-200" />
+          <Button EndIcon={Icon.FiArrowRight} className="mt-6 w-full justify-center" type="submit">
+            {t("checkout")}
+          </Button>
+        </>
       </Form>
     </>
   );
@@ -229,5 +137,62 @@ const SkeletonMember = () => {
         <SkeletonText className="h-7 w-7" />
       </div>
     </SkeletonContainer>
+  );
+};
+
+const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: number }) => {
+  const { member, index, teamId } = props;
+  const { t } = useLocale();
+  const utils = trpc.useContext();
+
+  const removeMemberMutation = trpc.useMutation("viewer.teams.removeMember", {
+    async onSuccess() {
+      await utils.invalidateQueries(["viewer.teams.get"]);
+      showToast("Member removed", "success");
+    },
+    async onError(err) {
+      showToast(err.message, "error");
+    },
+  });
+
+  return (
+    <li
+      key={member.email}
+      className={classNames("flex items-center justify-between p-6 text-sm", index !== 0 && "border-t")}>
+      <div className="flex space-x-2">
+        <Avatar
+          gravatarFallbackMd5="teamMember"
+          size="mdLg"
+          imageSrc={WEBAPP_URL + "/" + member.username + "/avatar.png"}
+          alt="owner-avatar"
+        />
+        <div>
+          <div className="flex space-x-1">
+            <p>{member.name || member.email || t("team_member")}</p>
+            {/* Assume that the first member of the team is the creator */}
+            {index === 0 && <Badge variant="green">{t("you")}</Badge>}
+            {member.role !== "OWNER" && <Badge variant="orange">{t("pending")}</Badge>}
+            {member.role === "MEMBER" && <Badge variant="gray">{t("member")}</Badge>}
+            {member.role === "ADMIN" && <Badge variant="default">{t("admin")}</Badge>}
+          </div>
+          {member.username ? (
+            <p className="text-gray-600">{`${WEBAPP_URL}/${member.username}`}</p>
+          ) : (
+            <p className="text-gray-600">{t("not_on_cal")}</p>
+          )}
+        </div>
+      </div>
+      {member.role !== "OWNER" && (
+        <Button
+          StartIcon={Icon.FiTrash2}
+          size="icon"
+          color="secondary"
+          className="h-[36px] w-[36px]"
+          onClick={() => {
+            removeMemberMutation.mutate({ teamId, memberId: member.id });
+          }}
+        />
+      )}
+    </li>
   );
 };

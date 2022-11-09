@@ -17,7 +17,7 @@ const CreateANewTeamForm = () => {
   const router = useRouter();
   const newTeamFormMethods = useForm<NewTeamFormValues>();
 
-  const createTeamMutation = trpc.useMutation(["viewer.teams.createTeam"], {
+  const createTeamMutation = trpc.useMutation(["viewer.teams.create"], {
     onSuccess: (data) => {
       router.push(`/settings/teams/${data.id}/onboard-members`);
     },
