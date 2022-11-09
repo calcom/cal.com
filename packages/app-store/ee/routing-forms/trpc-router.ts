@@ -237,7 +237,9 @@ const app_RoutingForms = createRouter()
         async resolve({ ctx: { prisma }, input }) {
           // Can be any prisma `where` clause
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const prismaWhere: any = input.jsonLogicQuery ? jsonLogicToPrisma(input.jsonLogicQuery) : {};
+          const prismaWhere: Record<string, any> = input.jsonLogicQuery
+            ? jsonLogicToPrisma(input.jsonLogicQuery)
+            : {};
           const skip = input.cursor ?? 0;
           const take = 50;
           console.log(
@@ -289,11 +291,11 @@ const app_RoutingForms = createRouter()
               rowResponses.push(stringValue);
             });
           });
-
+          const areThereNoResultsOrLessThanAskedFor = !rows.length || rows.length < take;
           return {
             headers,
             responses,
-            nextCursor: !rows.length || rows.length < take ? null : skip + rows.length,
+            nextCursor: areThereNoResultsOrLessThanAskedFor ? null : skip + rows.length,
           };
         },
       })
