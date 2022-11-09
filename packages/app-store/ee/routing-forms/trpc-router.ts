@@ -242,7 +242,7 @@ const app_RoutingForms = createRouter()
             : {};
           const skip = input.cursor ?? 0;
           const take = 50;
-          console.log(
+          logger.debug(
             `Built Prisma where ${JSON.stringify(prismaWhere)} from jsonLogicQuery ${JSON.stringify(
               input.jsonLogicQuery
             )}`
