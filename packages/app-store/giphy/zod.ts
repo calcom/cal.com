@@ -7,3 +7,5 @@ export const appDataSchema = eventTypeAppCardZod.merge(
     thankYouPage: z.string().optional(),
   })
 );
+
+export const appKeysSchema = z.object({});

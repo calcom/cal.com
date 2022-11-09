@@ -3,10 +3,12 @@ import { TFunction } from "next-i18next";
 import { z } from "zod";
 
 import { defaultLocations, EventLocationType } from "@calcom/app-store/locations";
+import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { EventTypeModel } from "@calcom/prisma/zod";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { App, AppMeta } from "@calcom/types/App";
 
+import { appKeysSchemas } from "./apps.keys-schemas.generated";
 // If you import this file on any app it should produce circular dependency
 // import appStore from "./index";
 import { appStoreMetadata } from "./apps.metadata.generated";
@@ -116,6 +118,23 @@ function getApps(userCredentials: CredentialData[]) {
   });
 
   return apps;
+}
+
+/**
+const appKey = deriveAppDictKeyFromType(app.name, appKeysSchemas);
+const appKeySchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
+ */
+
+export function getLocalAppMetadata() {
+  const appsWithKeysSchema = ALL_APPS.map((app) => {
+    const appKey = deriveAppDictKeyFromType(app.type, appKeysSchemas);
+    const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas] || null;
+    //       ^?
+
+    return { ...app, keys: keysSchema ? keysSchema.keyof()._def.values : null };
+  });
+
+  return appsWithKeysSchema;
 }
 
 export function hasIntegrationInstalled(type: App["type"]): boolean {

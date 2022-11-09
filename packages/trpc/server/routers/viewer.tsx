@@ -36,6 +36,7 @@ import { TRPCError } from "@trpc/server";
 
 import { createProtectedRouter, createRouter } from "../createRouter";
 import { apiKeysRouter } from "./viewer/apiKeys";
+import { appsRouter } from "./viewer/apps";
 import { authRouter } from "./viewer/auth";
 import { availabilityRouter } from "./viewer/availability";
 import { bookingsRouter } from "./viewer/bookings";
@@ -1526,4 +1527,5 @@ export const viewerRouter = createRouter()
   // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
   // After that there would just one merge call here for all the apps.
   .merge("app_routing_forms.", app_RoutingForms)
-  .merge("eth.", ethRouter);
+  .merge("eth.", ethRouter)
+  .merge("apps.", appsRouter);

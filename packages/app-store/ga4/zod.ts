@@ -7,3 +7,5 @@ export const appDataSchema = eventTypeAppCardZod.merge(
     trackingId: z.string(),
   })
 );
+
+export const appKeysSchema = z.object({});

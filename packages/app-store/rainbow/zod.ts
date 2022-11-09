@@ -8,3 +8,5 @@ export const appDataSchema = eventTypeAppCardZod.merge(
     blockchainId: z.number().optional(),
   })
 );
+
+export const appKeysSchema = z.object({});

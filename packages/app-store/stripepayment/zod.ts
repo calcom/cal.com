@@ -8,3 +8,5 @@ export const appDataSchema = eventTypeAppCardZod.merge(
     currency: z.string(),
   })
 );
+
+export const appKeysSchema = z.object({});
