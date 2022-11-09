@@ -1,20 +1,8 @@
 import { expect } from "@playwright/test";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
-
 import { test } from "./lib/fixtures";
 
 test.describe.configure({ mode: "parallel" });
-
-const IS_STRIPE_ENABLED = !!(
-  process.env.STRIPE_CLIENT_ID &&
-  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
-  process.env.STRIPE_PRIVATE_KEY
-);
-
-const IS_SELF_HOSTED = !(
-  new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") || !!new URL(WEBAPP_URL).hostname.endsWith(".cal.com")
-);
 
 test.describe("Teams", () => {
   test.afterEach(async ({ users }) => {
