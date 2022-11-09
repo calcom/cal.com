@@ -1,12 +1,20 @@
 import dayjs from "@calcom/dayjs";
 
-export const HorizontalLines = ({ hours }: { hours: dayjs.Dayjs[] }) => {
+export const HorizontalLines = ({
+  hours,
+  numberOfGridStopsPerCell,
+}: {
+  hours: dayjs.Dayjs[];
+  numberOfGridStopsPerCell: number;
+}) => {
   const finalHour = hours[hours.length - 1].add(1, "hour").format("h A");
-  // shadow-[0_1px_0px_0px_rgb(243,244,246)]
+
   return (
     <div
       className=" col-start-1 col-end-2 row-start-1 grid divide-y divide-gray-100"
-      style={{ gridTemplateRows: `repeat(${hours.length}, minmax(3.5rem,1fr))` }}>
+      style={{
+        gridTemplateRows: `repeat(${hours.length}, minmax(${1.75 * numberOfGridStopsPerCell}rem,1fr)`,
+      }}>
       <div className="row-end-1 h-7 " />
       {hours.map((hour) => (
         <>
