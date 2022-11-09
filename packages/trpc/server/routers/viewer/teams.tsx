@@ -38,12 +38,9 @@ export const viewerTeamsRouter = createProtectedRouter()
       teamId: z.number(),
     }),
     async resolve({ ctx, input }) {
-      const team = await getTeamWithMembers(input.teamId);
+      const team = await getTeamWithMembers(input.teamId, undefined, ctx.user.id);
       if (!team) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
-      }
-      if (!team.members.find((m) => m.id === ctx.user.id)) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not a member of this team." });
       }
       const membership = team?.members.find((membership) => membership.id === ctx.user.id);
 

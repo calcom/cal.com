@@ -135,7 +135,6 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               {t("cancel")}
             </Button>
             <Button
-              // onClick={() => props.onSubmit(newMemberFormMethods.getValues())}
               type="submit"
               color="primary"
               className="ltr:ml-2 rtl:mr-2"
