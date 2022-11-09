@@ -152,17 +152,22 @@ export const viewerTeamsRouter = createProtectedRouter()
         },
       });
 
+      const data: Prisma.TeamUpdateArgs["data"] = {
+        name: input.name,
+        logo: input.logo,
+        bio: input.bio,
+        hideBranding: input.hideBranding,
+      };
+
+      if (input.slug && IS_TEAM_BILLING_ENABLED) {
+        data.metadata = { requestedSlug: input.slug };
+      } else {
+        data.slug = input.slug;
+      }
+
       const updatedTeam = await ctx.prisma.team.update({
-        where: {
-          id: input.id,
-        },
-        data: {
-          name: input.name,
-          slug: input.slug,
-          logo: input.logo,
-          bio: input.bio,
-          hideBranding: input.hideBranding,
-        },
+        where: { id: input.id },
+        data,
       });
 
       // Sync Services: Close.com
@@ -613,6 +618,6 @@ export const viewerTeamsRouter = createProtectedRouter()
       // Sync Services: Close.com
       closeComUpdateTeam(prevTeam, updatedTeam);
 
-      return { url: `${WEBAPP_URL}/settings/teams/${updatedTeam.id}` };
+      return { url: `${WEBAPP_URL}/settings/teams/${updatedTeam.id}/profile` };
     },
   });

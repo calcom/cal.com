@@ -72,8 +72,8 @@ const ProfileView = () => {
     async onSuccess() {
       await utils.invalidateQueries(["viewer.teams.get"]);
       await utils.invalidateQueries(["viewer.teams.list"]);
-      router.push(`/settings`);
       showToast(t("your_team_disbanded_successfully"), "success");
+      router.push(`${WEBAPP_URL}/teams`);
     },
   });
 
