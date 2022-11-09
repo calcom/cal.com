@@ -6,6 +6,7 @@ import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import { zodFields, zodRoutes } from "../zod";
 
 export type Response = Record<
+  // Field ID
   string,
   {
     value: string | string[];
