@@ -1,4 +1,4 @@
-import { EventType, PeriodType } from "@prisma/client";
+import { SchedulingType, EventType, PeriodType } from "@prisma/client";
 import { z } from "zod";
 
 import { getBufferedBusyTimes } from "@calcom/core/getBusyTimes";
@@ -298,6 +298,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   // standard working hours for all users
   const workingHours = [{ days: [1, 2, 3, 4, 5, 6], startTime: 420, endTime: 1140 }];
   const computedAvailableSlots: Record<string, Slot[]> = {};
+  const needAllUsers = !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE;
 
   let currentCheckedTime = startTime;
   let getSlotsTime = 0;
@@ -335,10 +336,26 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       return available;
     };
 
-    computedAvailableSlots[currentCheckedTime.format("YYYY-MM-DD")] = timeSlots.map((time) => ({
-      time: time.toISOString(),
-      users: eventType.users.filter((user) => userIsAvailable(user, time)).map((user) => user.username || ""),
-    }));
+    const timeSlotsForDay = timeSlots.reduce((acc, time) => {
+      const availableUsers = eventType.users
+        .filter((user) => userIsAvailable(user, time))
+        .map((user) => user.username || "");
+      if (availableUsers.length === 0) {
+        return acc;
+      }
+
+      if (needAllUsers && availableUsers.length !== eventType.users.length) {
+        return acc;
+      }
+
+      acc.push({
+        time: time.toISOString(),
+        users: availableUsers,
+      });
+      return acc;
+    }, [] as Slot[]);
+
+    computedAvailableSlots[currentCheckedTime.format("YYYY-MM-DD")] = timeSlotsForDay;
     currentCheckedTime = currentCheckedTime.add(1, "day");
   } while (currentCheckedTime.isBefore(endTime));
 
