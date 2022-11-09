@@ -1,5 +1,3 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { App_RoutingForms_Form } from "@prisma/client";
 import React, { useRef, useState, useCallback } from "react";
 import { Query, Config, Builder, Utils as QbUtils, JsonLogicResult } from "react-awesome-query-builder";
 // types
@@ -77,17 +75,17 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
     return <div>Error loading report {error?.message} </div>;
   }
   headers.current = (data?.pages && data?.pages[0]?.headers) || headers.current;
+
   return (
-    <>
-      <table data-testid="reporting-table" className="w-full table-auto border border-gray-300">
+    <div className="w-full max-w-[2000px] overflow-x-scroll">
+      <table data-testid="reporting-table" className="table-fixed border border-gray-300">
         <tr data-testid="reporting-header" className="bg-gray-300">
           {headers.current?.map((header, index) => (
-            <th className="py-3 text-left text-base font-medium first:pl-2" key={index}>
+            <th className="border border-gray-400 py-3 px-2 text-left text-base font-medium" key={index}>
               {header}
             </th>
           ))}
         </tr>
-        {isLoading ? <div className="p-2">Report is loading</div> : ""}
         {!isLoading &&
           data?.pages.map((page) => {
             return page.responses?.map((responses, index) => {
@@ -97,7 +95,7 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
                   data-testid="reporting-row"
                   className={classNames(" text-center text-sm", index % 2 ? "bg-gray-100" : "")}>
                   {responses.map((r, index) => (
-                    <td className="py-3 text-left first:pl-2" key={index}>
+                    <td className="overflow-x-hidden border border-gray-400 py-3 px-2 text-left" key={index}>
                       {r}
                     </td>
                   ))}
@@ -106,6 +104,7 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
             });
           })}
       </table>
+      {isLoading ? <div className="p-2">Report is loading</div> : ""}
       <Button
         type="button"
         color="minimal"
@@ -115,7 +114,7 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
         onClick={() => fetchNextPage()}>
         {hasNextPage ? t("load_more_results") : t("no_more_results")}
       </Button>
-    </>
+    </div>
   );
 };
 
