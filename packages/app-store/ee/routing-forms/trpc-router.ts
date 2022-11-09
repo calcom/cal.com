@@ -258,7 +258,7 @@ const app_RoutingForms = createRouter()
             });
           }
           // TODO: Second argument is required to return deleted operators.
-          const serializedForm = getSerializableForm(form /* true */);
+          const serializedForm = getSerializableForm(form, true);
 
           const rows = await prisma.app_RoutingForms_FormResponse.findMany({
             where: {
@@ -269,7 +269,7 @@ const app_RoutingForms = createRouter()
             skip,
           });
           const fields = serializedForm?.fields || [];
-          const headers = fields.map((f) => f.label);
+          const headers = fields.map((f) => f.label + (f.deleted ? "(Deleted)" : ""));
           const responses: string[][] = [];
           rows.forEach((r) => {
             const rowResponses: string[] = [];

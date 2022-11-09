@@ -79,8 +79,8 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
   headers.current = (data?.pages && data?.pages[0]?.headers) || headers.current;
   return (
     <>
-      <table className="w-full table-auto border border-gray-300">
-        <tr className="bg-gray-300">
+      <table data-testid="reporting-table" className="w-full table-auto border border-gray-300">
+        <tr data-testid="reporting-header" className="bg-gray-300">
           {headers.current?.map((header, index) => (
             <th className="py-3 text-left text-base font-medium first:pl-2" key={index}>
               {header}
@@ -94,6 +94,7 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
               return (
                 <tr
                   key={index}
+                  data-testid="reporting-row"
                   className={classNames(" text-center text-sm", index % 2 ? "bg-gray-100" : "")}>
                   {responses.map((r, index) => (
                     <td className="py-3 text-left first:pl-2" key={index}>
