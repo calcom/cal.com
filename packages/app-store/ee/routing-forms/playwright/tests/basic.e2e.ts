@@ -162,10 +162,7 @@ test.describe("Routing Forms", () => {
       return user;
     };
 
-    test("Routing Link should accept submission while routing works and responses can be downloaded", async ({
-      page,
-      users,
-    }) => {
+    test("Routing Link - Reporting and CSV Download ", async ({ page, users }) => {
       const user = await createUserAndLoginAndInstallApp({ users, page });
       const routingForm = user.routingForms[0];
       test.setTimeout(120000);
