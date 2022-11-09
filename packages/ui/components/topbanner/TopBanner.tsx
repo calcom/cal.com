@@ -5,7 +5,7 @@ import { ReactNode, useState } from "react";
 
 export type TopBannerProps = {
   text: string;
-  color?: keyof typeof variantClassName;
+  variant?: keyof typeof variantClassName;
   actions?: ReactNode;
 };
 
@@ -16,7 +16,7 @@ const variantClassName = {
 };
 
 export function TopBanner(props: TopBannerProps) {
-  const { color = "default", text } = props;
+  const { variant = "default", text } = props;
   const [isOpen, setOpen] = useState(true);
 
   return (
@@ -24,12 +24,12 @@ export function TopBanner(props: TopBannerProps) {
       id="banner"
       className={classNames(
         " z-50 flex  h-[40px] w-full items-start justify-between gap-8 border border-b border-gray-200 bg-gray-50 px-4 text-center sm:items-center",
-        variantClassName[color],
+        variantClassName[variant],
         isOpen ? "sticky" : "hidden"
       )}>
       <div className="flex flex-1 items-center justify-center gap-2">
         <p className="flex items-center justify-center gap-2 font-sans text-sm font-medium leading-4 text-gray-900">
-          {(color === "warning" || "error") && (
+          {(variant === "warning" || "error") && (
             <ExclamationIcon className={classNames("h-5 w-5 text-black")} aria-hidden="true" />
           )}
           {text}

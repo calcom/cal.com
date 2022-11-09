@@ -155,7 +155,7 @@ const Layout = (props: LayoutProps) => {
               Action
             </button>
           }
-          color="warning"
+          variant="warning"
           text="An app wide warning is occuring that should be resolved."
         />
         <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
