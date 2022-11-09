@@ -27,22 +27,6 @@ import { getQueryBuilderConfig } from "../route-builder/[...appPages]";
 
 type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Config["fields"] };
 
-type Route = {
-  id: string;
-  isFallback?: boolean;
-  action: {
-    type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
-    value: string;
-  };
-  // This is what's persisted
-  queryValue: JsonTree;
-  // `queryValue` is parsed to create state
-  state: {
-    tree: ImmutableTree;
-    config: QueryBuilderUpdatedConfig;
-  };
-};
-
 const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: JsonLogicQuery | null }) => {
   const { t } = useLocale();
 

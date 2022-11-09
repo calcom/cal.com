@@ -59,7 +59,6 @@ const config: Config = {
       },
       transformIgnorePatterns: ["/node_modules/", "^.+\\.module\\.(css|sass|scss)$"],
       testEnvironment: "jsdom",
-      // setupFiles: ["<rootDir>/packages/app-store/closecomothercalendar/test/globals.ts"],
     },
     {
       displayName: "@calcom/api",
