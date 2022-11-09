@@ -196,12 +196,27 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     throw new TRPCError({ code: "NOT_FOUND" });
   }
 
-  const startTime =
+  let startTime =
     input.timeZone === "Etc/GMT"
       ? dayjs.utc(input.startTime)
       : dayjs(input.startTime).utc().tz(input.timeZone);
-  const endTime =
+  let endTime =
     input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
+
+  const minimumStartTime = dayjs().utcOffset(startTime.utcOffset());
+  const maximumEndTime = dayjs()
+    .utcOffset(endTime.utcOffset())
+    .endOf("day")
+    .add(eventType.periodDays, "days");
+  if (minimumStartTime.isAfter(startTime)) {
+    startTime = minimumStartTime;
+  }
+  if (endTime.isAfter(maximumEndTime)) {
+    endTime = maximumEndTime;
+  }
+
+  logger.debug(`startTime: ${startTime.format()}`);
+  logger.debug(`endTime: ${endTime.format()}`);
 
   if (!startTime.isValid() || !endTime.isValid()) {
     throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
