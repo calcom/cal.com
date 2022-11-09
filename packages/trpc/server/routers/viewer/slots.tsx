@@ -203,11 +203,12 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   let endTime =
     input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
 
-  const minimumStartTime = dayjs().utcOffset(startTime.utcOffset());
+  const minimumStartTime = dayjs().utcOffset(startTime.utcOffset()).startOf("hour");
   const maximumEndTime = dayjs()
     .utcOffset(endTime.utcOffset())
     .endOf("day")
     .add(eventType.periodDays, "days");
+
   if (minimumStartTime.isAfter(startTime)) {
     startTime = minimumStartTime;
   }
@@ -257,9 +258,9 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
 
   let currentCheckedTime = startTime;
   let getSlotsTime = 0;
-  const checkForAvailabilityTime = 0;
+  let checkForAvailabilityTime = 0;
   let getSlotsCount = 0;
-  const checkForAvailabilityCount = 0;
+  let checkForAvailabilityCount = 0;
 
   do {
     const startGetSlots = performance.now();
@@ -279,12 +280,16 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     const userIsAvailable = (user: typeof eventType.users[number], time: Dayjs) => {
       const schedule = usersWorkingHoursAndBusySlots.find((s) => s.user.id === user.id);
       if (!schedule) return false;
-      return checkIfIsAvailable({
+      const start = performance.now();
+      const available = checkIfIsAvailable({
         time,
         busy: schedule.busy,
         eventLength: eventType.length,
         beforeBufferTime: eventType.beforeEventBuffer,
       });
+      checkForAvailabilityTime += performance.now() - start;
+      checkForAvailabilityCount++;
+      return available;
     };
 
     computedAvailableSlots[currentCheckedTime.format("YYYY-MM-DD")] = timeSlots.map((time) => ({
