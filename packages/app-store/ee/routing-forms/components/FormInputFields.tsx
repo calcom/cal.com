@@ -1,4 +1,4 @@
-import { App_RoutingForms_Form, UserPlan } from "@prisma/client";
+import { App_RoutingForms_Form } from "@prisma/client";
 import { Dispatch, SetStateAction } from "react";
 
 import { getQueryBuilderConfig } from "../pages/route-builder/[...appPages]";

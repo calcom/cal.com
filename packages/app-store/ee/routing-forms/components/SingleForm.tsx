@@ -324,7 +324,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                 e.preventDefault();
                 testRouting();
               }}>
-              <div className="max-h-64 overflow-scroll px-1 sm:max-h-96">
+              <div className="px-1">
                 {form && <FormInputFields form={form} response={response} setResponse={setResponse} />}
               </div>
               <div>
