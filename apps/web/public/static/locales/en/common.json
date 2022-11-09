@@ -1347,5 +1347,5 @@
   "test_routing_form": "Test Routing Form",
   "test_preview": "Test Preview",
   "route_to": "Route to",
-  "test_preview_description": "Test your routing form without submitting any data to the database"
+  "test_preview_description": "Test your routing form without submitting any data"
 }

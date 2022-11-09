@@ -7,18 +7,10 @@ import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
+import { Dialog, DialogContent, DialogClose, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { Button, ButtonGroup } from "@calcom/ui/components";
 import { Form, TextAreaField, TextField } from "@calcom/ui/components/form";
-import {
-  showToast,
-  DropdownMenuSeparator,
-  Tooltip,
-  VerticalDivider,
-  Dialog,
-  DialogContent,
-  DialogClose,
-  DialogFooter,
-} from "@calcom/ui/v2";
+import { showToast, DropdownMenuSeparator, Tooltip, VerticalDivider } from "@calcom/ui/v2";
 import Meta from "@calcom/ui/v2/core/Meta";
 import SettingsToggle from "@calcom/ui/v2/core/SettingsToggle";
 import { ShellMain } from "@calcom/ui/v2/core/Shell";
@@ -316,8 +308,8 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
         </FormActionsProvider>
       </Form>
       <Dialog open={isTestPreviewOpen} onOpenChange={setIsTestPreviewOpen}>
-        <DialogContent type="creation" useOwnActionButtons={true} title={t("test_routing_form")}>
-          <p className="text-sm text-gray-400">{t("test_preview_description")}</p>
+        <DialogContent>
+          <DialogHeader title={t("test_routing_form")} subtitle={t("test_preview_description")} />
           <div>
             <form
               onSubmit={(e) => {
@@ -372,6 +364,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     onClick={() => {
                       setIsTestPreviewOpen(false);
                       setDecidedAction(null);
+                      setResponse({});
                     }}>
                     {t("close")}
                   </Button>
