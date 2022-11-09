@@ -3,11 +3,11 @@ import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable,VariantRow
 import { Icon } from "@calcom/ui/Icon";
 import {Scheduler} from "./Scheduler";
 import {SchedulerEvent} from "../types/events"
-import {Events} from "../_storybookData"
+import {Events,DEFAULT_SCHEDULE} from "../_storybookData"
 
 <Meta title="UI/Scheduler/Scheduler" component={Scheduler} />
 
 <Title title="Scheduler" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022"/>
 
-<Scheduler startHour={11} endHour={16} events={Events}/>
+<Scheduler startHour={6} endHour={20} events={Events} availability={DEFAULT_SCHEDULE}/>
 

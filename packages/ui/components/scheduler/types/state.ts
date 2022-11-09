@@ -59,7 +59,7 @@ export type SchedulerState = {
   /**Please enter events already SORTED. This is required to setup tab index correctly. */
   events: SchedulerEvent[];
   /** This will block the calendar in these date ranges. If any events overlap with this they will not show in the calendar.*/
-  availability?: Schedule[];
+  availability?: Schedule;
   /** Loading will only expect events to be loading. */
   loading?: boolean;
   /** Disables all actions on Events*/

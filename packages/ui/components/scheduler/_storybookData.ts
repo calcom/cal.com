@@ -1,4 +1,5 @@
 import dayjs from "@calcom/dayjs";
+import { Schedule, TimeRange } from "@calcom/types/schedule";
 
 import { SchedulerEvent } from "./types/events";
 
@@ -41,4 +42,19 @@ export const Events: SchedulerEvent[] = [
     source: "Booking",
     status: "ACCEPTED",
   },
+];
+
+export const defaultDayRange: TimeRange = {
+  start: new Date(new Date().setUTCHours(9, 0, 0, 0)),
+  end: new Date(new Date().setUTCHours(17, 0, 0, 0)),
+};
+
+export const DEFAULT_SCHEDULE: Schedule = [
+  [],
+  [defaultDayRange],
+  [defaultDayRange],
+  [defaultDayRange],
+  [defaultDayRange],
+  [defaultDayRange],
+  [],
 ];
