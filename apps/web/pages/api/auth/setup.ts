@@ -15,13 +15,13 @@ const querySchema = z.object({
     .refine((val) => val.trim().length >= 1, { message: "Please enter at least one character" }),
   full_name: z.string().min(3, "Please enter at least 3 characters"),
   email_address: z.string().email({ message: "Please enter a valid email" }),
-  password: z.string().refine((val) => isPasswordValid(val.trim()), {
+  password: z.string().refine((val) => isPasswordValid(val.trim(), false, true), {
     message:
-      "The password must be a minimum of 7 characters long containing at least one number and have a mixture of uppercase and lowercase letters",
+      "The password must be a minimum of 15 characters long containing at least one number and have a mixture of uppercase and lowercase letters",
   }),
 });
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest) {
   const userCount = await prisma.user.count();
   if (userCount !== 0) {
     throw new HttpError({ statusCode: 400, message: "No setup needed." });
