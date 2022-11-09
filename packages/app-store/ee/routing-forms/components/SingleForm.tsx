@@ -203,12 +203,6 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
   function testRouting() {
     const action = processRoute({ form, response });
     setDecidedAction(action);
-
-    if (!action) {
-      // FIXME: Make sure that when a form is created, there is always a fallback route and then remove this.
-      alert("Define atleast 1 route");
-      return;
-    }
   }
 
   const hookForm = useForm({
