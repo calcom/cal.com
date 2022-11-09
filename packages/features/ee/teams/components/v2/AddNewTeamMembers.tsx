@@ -13,7 +13,7 @@ import { Icon } from "@calcom/ui";
 import { Avatar, Badge, Button } from "@calcom/ui/components";
 import { Form } from "@calcom/ui/form/fields";
 import { showToast } from "@calcom/ui/v2/core";
-import { SkeletonAvatar, SkeletonContainer, SkeletonText } from "@calcom/ui/v2/core/skeleton";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
 const querySchema = z.object({
   id: z.string().transform((val) => parseInt(val)),
@@ -54,7 +54,7 @@ const AddNewTeamMembersForm = ({ defaultValues, teamId }: { defaultValues: FormV
     <>
       <Form
         form={formMethods}
-        handleSubmit={(values) => {
+        handleSubmit={() => {
           // TODO: Handle form submission
           // - Update team memberships
           // - Conditional redirect to billing page
@@ -114,27 +114,6 @@ const AddNewTeamMemberSkeleton = () => {
             <SkeletonText className="h-5 w-28" />
           </div>
         </div>
-      </div>
-    </SkeletonContainer>
-  );
-};
-
-const SkeletonMember = () => {
-  return (
-    <SkeletonContainer className="rounded-md border-t text-sm">
-      <div className="flex items-center justify-between p-5">
-        <div className="flex">
-          <SkeletonAvatar className="h-10 w-10" />
-          <div>
-            <p>
-              <SkeletonText className="h-4 w-56" />
-            </p>
-            <p>
-              <SkeletonText className="h-4 w-56" />
-            </p>
-          </div>
-        </div>
-        <SkeletonText className="h-7 w-7" />
       </div>
     </SkeletonContainer>
   );
