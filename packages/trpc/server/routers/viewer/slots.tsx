@@ -340,11 +340,14 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       const availableUsers = eventType.users
         .filter((user) => userIsAvailable(user, time))
         .map((user) => user.username || "");
+
       if (availableUsers.length === 0) {
+        // don't add the slot if no users are available
         return acc;
       }
 
       if (needAllUsers && availableUsers.length !== eventType.users.length) {
+        // don't add the slot if not all users are available and we need all users (collective)
         return acc;
       }
 
