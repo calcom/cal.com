@@ -1,10 +1,9 @@
-import { SchedulingType } from "@prisma/client";
+import { EventType, PeriodType } from "@prisma/client";
 import { z } from "zod";
 
 import { getBufferedBusyTimes } from "@calcom/core/getBusyTimes";
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
 import getTimeSlots from "@calcom/lib/slots";
@@ -95,7 +94,9 @@ const checkIfIsAvailable = ({
 export const slotsRouter = createRouter().query("getSchedule", {
   input: getScheduleSchema,
   async resolve({ input, ctx }) {
-    return await getSchedule(input, ctx);
+    return {
+      slots: await getSchedule(input, ctx),
+    };
   },
 });
 
@@ -176,6 +177,50 @@ function getRegularOrDynamicEventType(
   return isDynamicBooking ? getDynamicEventType(ctx, input) : getEventType(ctx, input);
 }
 
+const getMinimumStartTime = (
+  desiredStartTime: Dayjs,
+  {
+    periodType,
+    minimumBookingNotice,
+    periodStartDate,
+  }: Pick<EventType, "periodType" | "periodStartDate" | "minimumBookingNotice">
+) => {
+  const absoluteMinimum = dayjs()
+    .utcOffset(desiredStartTime.utcOffset())
+    .startOf("hour")
+    .add(minimumBookingNotice, "minutes");
+  if (periodType === PeriodType.RANGE) {
+    const minimum = dayjs(periodStartDate).utcOffset(desiredStartTime.utcOffset()).startOf("day");
+    if (minimum.isAfter(absoluteMinimum)) {
+      return minimum;
+    }
+  }
+  return absoluteMinimum;
+};
+
+const getMaximumEndTime = (
+  desiredEndTime: Dayjs,
+  {
+    periodType,
+    periodDays,
+    periodCountCalendarDays,
+    periodEndDate,
+  }: Pick<EventType, "periodType" | "periodDays" | "periodCountCalendarDays" | "periodEndDate">
+) => {
+  if (periodType === PeriodType.ROLLING) {
+    const daysToAdd = periodDays || 0;
+    return periodCountCalendarDays
+      ? dayjs().utcOffset(desiredEndTime.utcOffset()).add(daysToAdd, "days").endOf("day")
+      : dayjs().utcOffset(desiredEndTime.utcOffset()).businessDaysAdd(daysToAdd).endOf("day");
+  }
+
+  if (periodType === PeriodType.RANGE) {
+    return dayjs(periodEndDate).utcOffset(desiredEndTime.utcOffset()).endOf("day");
+  }
+
+  return null;
+};
+
 /** This should be called getAvailableSlots */
 export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx: { prisma: typeof prisma }) {
   if (input.debug === true) {
@@ -203,21 +248,28 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   let endTime =
     input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
 
-  const minimumStartTime = dayjs().utcOffset(startTime.utcOffset()).startOf("hour");
-  const maximumEndTime = dayjs()
-    .utcOffset(endTime.utcOffset())
-    .endOf("day")
-    .add(eventType.periodDays, "days");
+  const minimumStartTime = getMinimumStartTime(startTime, {
+    periodType: eventType.periodType,
+    minimumBookingNotice: eventType.minimumBookingNotice,
+    periodStartDate: eventType.periodStartDate,
+  });
+  const maximumEndTime = getMaximumEndTime(endTime, {
+    periodType: eventType.periodType,
+    periodDays: eventType.periodDays,
+    periodCountCalendarDays: eventType.periodCountCalendarDays,
+    periodEndDate: eventType.periodEndDate,
+  });
 
-  if (minimumStartTime.isAfter(startTime)) {
+  if (maximumEndTime && startTime.isAfter(maximumEndTime)) {
+    return {};
+  }
+
+  if (startTime.isBefore(minimumStartTime)) {
     startTime = minimumStartTime;
   }
-  if (endTime.isAfter(maximumEndTime)) {
+  if (maximumEndTime && endTime.isAfter(maximumEndTime)) {
     endTime = maximumEndTime;
   }
-
-  logger.debug(`startTime: ${startTime.format()}`);
-  logger.debug(`endTime: ${endTime.format()}`);
 
   if (!startTime.isValid() || !endTime.isValid()) {
     throw new TRPCError({ message: "Invalid time range given.", code: "BAD_REQUEST" });
@@ -246,15 +298,6 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   // standard working hours for all users
   const workingHours = [{ days: [1, 2, 3, 4, 5, 6], startTime: 420, endTime: 1140 }];
   const computedAvailableSlots: Record<string, Slot[]> = {};
-
-  const isTimeWithinBounds = (_time: Parameters<typeof isTimeOutOfBounds>[0]) =>
-    !isTimeOutOfBounds(_time, {
-      periodType: eventType.periodType,
-      periodStartDate: eventType.periodStartDate,
-      periodEndDate: eventType.periodEndDate,
-      periodCountCalendarDays: eventType.periodCountCalendarDays,
-      periodDays: eventType.periodDays,
-    });
 
   let currentCheckedTime = startTime;
   let getSlotsTime = 0;
@@ -305,7 +348,5 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     `checkForAvailability took ${checkForAvailabilityTime}ms and executed ${checkForAvailabilityCount} times`
   );
 
-  return {
-    slots: computedAvailableSlots,
-  };
+  return computedAvailableSlots;
 }
