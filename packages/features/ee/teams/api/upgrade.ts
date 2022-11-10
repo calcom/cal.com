@@ -1,3 +1,4 @@
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 import { z } from "zod";
@@ -40,17 +41,32 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const metadata = teamMetadataSchema.parse(prevTeam.metadata);
     if (!metadata?.requestedSlug) throw new HttpError({ statusCode: 400, message: "Missing requestedSlug" });
 
-    team = await prisma.team.update({
-      where: { id },
-      data: {
-        slug: metadata.requestedSlug,
-        metadata: {
-          paymentId: checkoutSession.id,
-          subscriptionId: subscription.id || null,
-          subscriptionItemId: subscription.items.data[0].id || null,
+    try {
+      team = await prisma.team.update({
+        where: { id },
+        data: {
+          slug: metadata.requestedSlug,
+          metadata: {
+            paymentId: checkoutSession.id,
+            subscriptionId: subscription.id || null,
+            subscriptionItemId: subscription.items.data[0].id || null,
+          },
         },
-      },
-    });
+      });
+    } catch (error) {
+      let message = `Unknown error`;
+      let statusCode = 500;
+      // This covers the edge case if an unpublished team takes too long to publish
+      // and another team gets the requestedSlug first.
+      // https://www.prisma.io/docs/reference/api-reference/error-reference#p2002
+      if (error instanceof PrismaClientKnownRequestError && error.code === "P2002") {
+        statusCode = 400;
+        message = `It seems like the requestedSlug: '${metadata.requestedSlug}' is already taken. Please contact support so we can resolve this issue.`;
+      } else if (error instanceof Error) {
+        message = error.message;
+      }
+      return res.status(statusCode).json({ message });
+    }
 
     // Sync Services: Close.com
     closeComUpdateTeam(prevTeam, team);
