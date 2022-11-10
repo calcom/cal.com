@@ -35,7 +35,7 @@ const MembersView = () => {
 
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
+      await utils.viewer.teams.get.invalidate();
       setShowMemberInvitationModal(false);
     },
     onError: (error) => {
