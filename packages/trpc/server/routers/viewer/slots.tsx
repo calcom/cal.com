@@ -293,10 +293,12 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   const workingHours = getWorkingHours({}, [
     {
       days: [1, 2, 3, 4, 5, 6],
-      startTime: dayjs().tz("Europe/Berlin", true).hour(8).minute(0).second(0),
-      endTime: dayjs().tz("Europe/Berlin", true).hour(20).minute(0).second(0),
+      startTime: dayjs.tz("2000-01-01 08:00:00", "Europe/Berlin"),
+      endTime: dayjs.tz("2000-01-01 20:00:00", "Europe/Berlin"),
     },
   ]);
+
+  logger.debug("WORKING HOURS: ", workingHours);
   const computedAvailableSlots: Record<string, Slot[]> = {};
   const needAllUsers = !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE;
 
