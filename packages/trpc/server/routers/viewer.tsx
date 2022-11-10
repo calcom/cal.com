@@ -1503,7 +1503,7 @@ const loggedInViewerRouter = createProtectedRouter()
       });
       return recurringGrouping.reduce((prev, current) => {
         // recurringEventId is the total number of recurring instances for a booking
-        // we need to substract all but one, to represent a single recurring booking
+        // we need to subtract all but one, to represent a single recurring booking
         return prev - (current._count?.recurringEventId - 1);
       }, count);
     },
