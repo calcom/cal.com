@@ -115,9 +115,9 @@ function EventTypeSingleLayout({
 
   const hasPermsToDelete = currentUserMembership?.role !== "MEMBER" || !currentUserMembership;
 
-  const deleteMutation = trpc.useMutation("viewer.eventTypes.delete", {
+  const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
     onSuccess: async () => {
-      await utils.invalidateQueries(["viewer.eventTypes"]);
+      await utils.viewer.eventTypes.invalidate();
       showToast(t("event_type_deleted_successfully"), "success");
       await router.push("/event-types");
       setDeleteDialogOpen(false);

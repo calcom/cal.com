@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Form, Label } from "@calcom/ui/components/form";
 import Meta from "@calcom/ui/v2/core/Meta";
@@ -33,15 +33,15 @@ const SkeletonLoader = () => {
 
 interface GeneralViewProps {
   localeProp: string;
-  user: inferQueryOutput<"viewer.me">;
+  user: RouterOutputs["viewer"]["me"];
 }
 
-const WithQuery = withQuery(["viewer.public.i18n"], { trpc: { context: { skipBatch: true } } });
+const WithQuery = withQuery(trpc.viewer.public.i18n, undefined, { trpc: { context: { skipBatch: true } } });
 
 const GeneralQueryView = () => {
   const { t } = useLocale();
 
-  const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
+  const { data: user, isLoading } = trpc.viewer.me.useQuery();
   if (isLoading) return <SkeletonLoader />;
   if (!user) {
     throw new Error(t("something_went_wrong"));
@@ -59,7 +59,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
   const utils = trpc.useContext();
   const { t } = useLocale();
 
-  const mutation = trpc.useMutation("viewer.updateProfile", {
+  const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: () => {
       showToast(t("settings_updated_successfully"), "success");
     },
@@ -67,7 +67,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
       showToast(t("error_updating_settings"), "error");
     },
     onSettled: async () => {
-      await utils.invalidateQueries(["viewer.public.i18n"]);
+      await utils.viewer.public.i18n.invalidate();
     },
   });
 

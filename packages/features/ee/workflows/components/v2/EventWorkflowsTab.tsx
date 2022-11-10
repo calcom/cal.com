@@ -38,7 +38,7 @@ const WorkflowListItem = (props: ItemProps) => {
 
   const isActive = activeEventTypeIds.includes(eventType.id);
 
-  const activateEventTypeMutation = trpc.useMutation("viewer.workflows.activateEventType", {
+  const activateEventTypeMutation = trpc.viewer.workflows.activateEventType.useMutation({
     onSuccess: async () => {
       let offOn = "";
       if (activeEventTypeIds.includes(eventType.id)) {
@@ -158,7 +158,7 @@ type Props = {
 function EventWorkflowsTab(props: Props) {
   const { workflows } = props;
   const { t } = useLocale();
-  const { data, isLoading } = trpc.useQuery(["viewer.workflows.list"]);
+  const { data, isLoading } = trpc.viewer.workflows.list.useQuery();
   const router = useRouter();
   const [sortedWorkflows, setSortedWorkflows] = useState<Array<WorkflowType>>([]);
 
@@ -179,7 +179,7 @@ function EventWorkflowsTab(props: Props) {
     }
   }, [isLoading]);
 
-  const createMutation = trpc.useMutation("viewer.workflows.createV2", {
+  const createMutation = trpc.viewer.workflows.createV2.useMutation({
     onSuccess: async ({ workflow }) => {
       await router.replace("/workflows/" + workflow.id);
     },

@@ -22,7 +22,9 @@ export default function RoutingForms({
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   const { t } = useLocale();
-  const { data: forms } = trpc.useQuery(["viewer.app_routing_forms.forms"], { initialData: forms_ });
+  const { data: forms } = trpc.viewer.appRoutingForms.forms.useQuery(undefined, {
+    initialData: forms_,
+  });
 
   const { data: typeformApp } = useApp("typeform");
 

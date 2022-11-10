@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Icon } from "@calcom/ui/Icon";
 import { Button, ButtonGroup, Avatar } from "@calcom/ui/components";
@@ -28,8 +28,8 @@ import TeamPill, { TeamRole } from "./TeamPill";
 import TeamAvailabilityModal from "./v2/TeamAvailabilityModal";
 
 interface Props {
-  team: inferQueryOutput<"viewer.teams.get">;
-  member: inferQueryOutput<"viewer.teams.get">["members"][number];
+  team: RouterOutputs["viewer"]["teams"]["get"];
+  member: RouterOutputs["viewer"]["teams"]["get"]["members"][number];
 }
 
 /** TODO: Migrate the one in apps/web to tRPC package */
@@ -45,11 +45,10 @@ export default function MemberListItem(props: Props) {
   const utils = trpc.useContext();
   const [showChangeMemberRoleModal, setShowChangeMemberRoleModal] = useState(false);
   const [showTeamAvailabilityModal, setShowTeamAvailabilityModal] = useState(false);
-  const [showImpersonateModal, setShowImpersonateModal] = useState(false);
 
-  const removeMemberMutation = trpc.useMutation("viewer.teams.removeMember", {
+  const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
+      await utils.viewer.teams.get.invalidate();
       showToast(t("success"), "success");
     },
     async onError(err) {

@@ -32,50 +32,53 @@ const ProfileView = () => {
   const utils = trpc.useContext();
   const session = useSession();
 
-  const mutation = trpc.useMutation("viewer.teams.update", {
+  const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
       showToast(err.message, "error");
     },
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
+      await utils.viewer.teams.get.invalidate();
       showToast(t("your_team_updated_successfully"), "success");
     },
   });
 
   const form = useForm<TeamProfileValues>();
 
-  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
-    onError: () => {
-      router.push("/settings");
-    },
-    onSuccess: (team) => {
-      if (team) {
-        form.setValue("name", team.name || "");
-        form.setValue("url", team.slug || "");
-        form.setValue("logo", team.logo || "");
-        form.setValue("bio", team.bio || "");
-      }
-    },
-  });
+  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
+    { teamId: Number(router.query.id) },
+    {
+      onError: () => {
+        router.push("/settings");
+      },
+      onSuccess: (team) => {
+        if (team) {
+          form.setValue("name", team.name || "");
+          form.setValue("url", team.slug || "");
+          form.setValue("logo", team.logo || "");
+          form.setValue("bio", team.bio || "");
+        }
+      },
+    }
+  );
 
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
   const permalink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team?.slug}`;
 
-  const deleteTeamMutation = trpc.useMutation("viewer.teams.delete", {
+  const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
-      await utils.invalidateQueries(["viewer.teams.list"]);
+      await utils.viewer.teams.get.invalidate();
+      await utils.viewer.teams.list.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");
       router.push(`${WEBAPP_URL}/teams`);
     },
   });
 
-  const removeMemberMutation = trpc.useMutation("viewer.teams.removeMember", {
+  const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
-      await utils.invalidateQueries(["viewer.teams.list"]);
+      await utils.viewer.teams.get.invalidate();
+      await utils.viewer.teams.list.invalidate();
       showToast(t("success"), "success");
     },
     async onError(err) {

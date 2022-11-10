@@ -18,9 +18,9 @@ type ChangePasswordFormValues = {
 
 const PasswordView = () => {
   const { t } = useLocale();
-  const { data: user } = trpc.useQuery(["viewer.me"]);
+  const { data: user } = trpc.viewer.me.useQuery();
 
-  const mutation = trpc.useMutation("viewer.auth.changePassword", {
+  const mutation = trpc.viewer.auth.changePassword.useMutation({
     onSuccess: () => {
       showToast(t("password_has_been_changed"), "success");
     },
