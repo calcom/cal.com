@@ -11,7 +11,6 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { WorkflowCumulativeStatisticsInstance } from "twilio/lib/rest/taskrouter/v1/workspace/workflow/workflowCumulativeStatistics";
 import { z } from "zod";
 
 import { classNames } from "@calcom/lib";
