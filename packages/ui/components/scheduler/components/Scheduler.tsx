@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 
@@ -6,6 +6,7 @@ import { useSchedulerStore } from "../state/store";
 import { SchedulerComponentProps } from "../types/state";
 import { DateValues } from "./DateValues/DateValues";
 import { BlockedList } from "./blocking/BlockedList";
+import { CurrentTime } from "./currentTime";
 import { EventList } from "./event/EventList";
 import { SchedulerHeading } from "./heading/SchedulerHeading";
 import { HorizontalLines } from "./horizontalLines";
@@ -13,9 +14,9 @@ import { VeritcalLines } from "./verticalLines";
 
 function getDaysBetweenDates(dateFrom: Date, dateTo: Date) {
   const dates = []; // this is as dayjs date
-  let startDate = dayjs(dateFrom);
+  let startDate = dayjs(dateFrom).utc();
   dates.push(startDate);
-  const endDate = dayjs(dateTo);
+  const endDate = dayjs(dateTo).utc();
   while (startDate.isBefore(endDate)) {
     dates.push(startDate.add(1, "day"));
     startDate = startDate.add(1, "day");
@@ -25,9 +26,9 @@ function getDaysBetweenDates(dateFrom: Date, dateTo: Date) {
 
 function getHoursToDisplay(startHour: number, endHour: number) {
   const dates = []; // this is as dayjs date
-  let startDate = dayjs("1970-01-01").hour(startHour);
+  let startDate = dayjs("1970-01-01").utc().hour(startHour);
   dates.push(startDate);
-  const endDate = dayjs("1970-01-01").hour(endHour);
+  const endDate = dayjs("1970-01-01").utc().hour(endHour);
   while (startDate.isBefore(endDate)) {
     dates.push(startDate.add(1, "hour"));
     startDate = startDate.add(1, "hour");
@@ -38,13 +39,16 @@ function getHoursToDisplay(startHour: number, endHour: number) {
 const GridStopsPerHour = 4;
 
 export function Scheduler(props: SchedulerComponentProps) {
+  const container = useRef<HTMLDivElement | null>(null);
+  const containerNav = useRef<HTMLDivElement | null>(null);
+  const containerOffset = useRef<HTMLDivElement | null>(null);
   const initalState = useSchedulerStore((state) => state.initState);
 
   const { startDate, endDate, startHour, endHour, events } = useSchedulerStore((state) => ({
     startDate: state.startDate,
     endDate: state.endDate,
-    startHour: state.startHour,
-    endHour: state.endHour,
+    startHour: state.startHour || 0,
+    endHour: state.endHour || 23,
     events: state.events,
   }));
 
@@ -56,27 +60,35 @@ export function Scheduler(props: SchedulerComponentProps) {
   // TOOD: make this dynamic to eventTypeStep
   const numberOfGridStopsPerDay = hours.length * GridStopsPerHour;
 
+  // Initalise State
   useEffect(() => {
     initalState(props);
   }, [props, initalState]);
 
   // return <div>{JSON.stringify(state)}</div>;
-  const container = useRef<HTMLDivElement | null>(null);
-  const containerNav = useRef<HTMLDivElement | null>(null);
-  const containerOffset = useRef<HTMLDivElement | null>(null);
 
   return (
     <div className="flex h-full w-full flex-col">
       <SchedulerHeading />
-      <div ref={container} className="isolate flex flex-auto flex-col overflow-auto bg-white">
+      <div ref={container} className="isolate flex flex-auto flex-col  bg-white">
         <div
           style={{ width: "165%" }}
           className="flex max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
+          <CurrentTime
+            containerNavRef={containerNav}
+            containerOffsetRef={containerOffset}
+            containerRef={container}
+          />
           <DateValues containerNavRef={containerNav} days={days} />
+
           <div className="flex flex-auto">
             <div className="sticky left-0 z-10 w-14 flex-none bg-white ring-1 ring-gray-100" />
-            <div className="grid flex-auto grid-cols-1 grid-rows-1">
-              <HorizontalLines hours={hours} numberOfGridStopsPerCell={GridStopsPerHour} />
+            <div className="grid flex-auto grid-cols-1 grid-rows-1 ">
+              <HorizontalLines
+                hours={hours}
+                numberOfGridStopsPerCell={GridStopsPerHour}
+                containerOffsetRef={containerOffset}
+              />
               <VeritcalLines days={days} />
 
               {/* Events / Blocking*/}

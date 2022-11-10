@@ -52,13 +52,14 @@ export type SchedulerPrivateActions = {
 };
 
 export type SchedulerState = {
+  /** @NotImplemented This in future will change the view to be daily/weekly/monthly  DAY/WEEK are supported currently however WEEK is the most adv.*/
   view?: View;
   startDate: Date;
   /** By default we just dynamically create endDate from the viewType */
   endDate: Date;
   /**Please enter events already SORTED. This is required to setup tab index correctly. */
   events: SchedulerEvent[];
-  /** Any time ranges passed in here will display as blocked on the users calendar. */
+  /** Any time ranges passed in here will display as blocked on the users calendar. Note: Anything < than the current date automatically gets blocked. */
   blockingDates?: TimeRange[];
   /** Loading will only expect events to be loading. */
   loading?: boolean;
@@ -69,9 +70,13 @@ export type SchedulerState = {
   minDate?: Date;
   /** If you don't want the date to be scrollable past a certian date */
   maxDate?: Date;
+  /** Defined the time your calendar will start at */
   startHour?: Hours;
+  /** Defined the time your calendar will end at */
   endHour?: Hours;
+  /** Toggle the ablity to scroll to currentTime */
   scrollToCurrentTime?: boolean;
+  /** Toggle the ablity show the current time on the calendar*/
   showCurrentTimeLine?: boolean;
 };
 

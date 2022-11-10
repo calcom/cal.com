@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 
 import dayjs from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
