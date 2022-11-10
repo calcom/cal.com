@@ -16,7 +16,6 @@ import * as larkcalendar from "./larkcalendar";
 import * as office365calendar from "./office365calendar";
 import * as office365video from "./office365video";
 import * as sendgridothercalendar from "./sendgridothercalendar";
-import * as slackmessaging from "./slackmessaging";
 import * as stripepayment from "./stripepayment";
 import * as tandemvideo from "./tandemvideo";
 import * as vital from "./vital";
@@ -39,7 +38,6 @@ const appStore = {
   office365calendar,
   office365video,
   sendgridothercalendar,
-  slackmessaging,
   stripepayment,
   tandemvideo,
   vital,

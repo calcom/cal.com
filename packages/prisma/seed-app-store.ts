@@ -266,14 +266,7 @@ export default async function main() {
 
   // Web3 apps
   await createApp("huddle01", "huddle01video", ["web3", "video"], "huddle01_video");
-  // Messaging apps
-  if (process.env.SLACK_CLIENT_ID && process.env.SLACK_CLIENT_SECRET && process.env.SLACK_SIGNING_SECRET) {
-    await createApp("slack", "slackmessaging", ["messaging"], "slack_messaging", {
-      client_id: process.env.SLACK_CLIENT_ID,
-      client_secret: process.env.SLACK_CLIENT_SECRET,
-      signing_secret: process.env.SLACK_SIGNING_SECRET,
-    });
-  }
+
   // Payment apps
   if (
     process.env.STRIPE_CLIENT_ID &&
