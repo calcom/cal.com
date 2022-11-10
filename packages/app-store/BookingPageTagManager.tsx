@@ -37,13 +37,12 @@ export default function BookingPageTagManager({
           return (
             <Script
               src={parseValue(script.src)}
+              id={`${appId}-${index}`}
               key={`${appId}-${index}`}
-              {...{
-                dangerouslySetInnerHTML: {
-                  __html: parseValue(script.content) || "",
-                },
-                ...parsedAttributes,
+              dangerouslySetInnerHTML={{
+                __html: parseValue(script.content) || "",
               }}
+              {...parsedAttributes}
               defer
             />
           );
