@@ -27,6 +27,7 @@ test.describe("Teams", () => {
       // Click text=Continue
       await page.locator("text=Continue").click();
       await page.waitForURL(/\/settings\/teams\/(\d+)\/onboard-members$/i);
+      await page.waitForSelector('[data-testid="pending-member-list"]');
       expect(await page.locator('[data-testid="pending-member-item"]').count()).toBe(1);
     });
 
@@ -37,12 +38,14 @@ test.describe("Teams", () => {
       await page.locator('[placeholder="email\\@example\\.com"]').fill(inviteeEmail);
       // Click [data-testid="invite-new-member-button"]
       await page.locator('[data-testid="invite-new-member-button"]').click();
-      expect(await page.locator('[data-testid="pending-member-item"]').count()).toBe(2);
       await expect(page.locator(`li:has-text("${inviteeEmail}PendingMemberNot on Cal.com")`)).toBeVisible();
+      expect(await page.locator('[data-testid="pending-member-item"]').count()).toBe(2);
     });
 
     await test.step("Can remove members", async () => {
-      await page.locator('[data-testid="remove-member-button"]').click();
+      const removeMemberButton = page.locator('[data-testid="remove-member-button"]');
+      await removeMemberButton.click();
+      await removeMemberButton.waitFor({ state: "hidden" });
       expect(await page.locator('[data-testid="pending-member-item"]').count()).toBe(1);
     });
 

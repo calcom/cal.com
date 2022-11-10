@@ -59,7 +59,7 @@ const AddNewTeamMembersForm = ({ defaultValues, teamId }: { defaultValues: FormV
   return (
     <>
       <div>
-        <ul className="rounded-md border">
+        <ul className="rounded-md border" data-testid="pending-member-list">
           {defaultValues.members.map((member, index) => (
             <PendingMemberItem key={member.email} member={member} index={index} teamId={teamId} />
           ))}
