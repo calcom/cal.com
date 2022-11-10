@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { getBufferedBusyTimes } from "@calcom/core/getBusyTimes";
 import dayjs, { Dayjs } from "@calcom/dayjs";
+import { getWorkingHours } from "@calcom/lib/availability";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import logger from "@calcom/lib/logger";
 import { performance } from "@calcom/lib/server/perfObserver";
@@ -295,8 +296,15 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       };
     })
   );
-  // standard working hours for all users
-  const workingHours = [{ days: [1, 2, 3, 4, 5, 6], startTime: 420, endTime: 1140 }];
+
+  // standard working hours for all users. Mo-Sa 8-20 Berlin time.
+  const workingHours = getWorkingHours({}, [
+    {
+      days: [1, 2, 3, 4, 5, 6],
+      startTime: dayjs().tz("Europe/Berlin", true).hour(8).minute(0).second(0),
+      endTime: dayjs().tz("Europe/Berlin", true).hour(20).minute(0).second(0),
+    },
+  ]);
   const computedAvailableSlots: Record<string, Slot[]> = {};
   const needAllUsers = !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE;
 
