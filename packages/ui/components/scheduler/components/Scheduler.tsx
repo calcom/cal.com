@@ -5,8 +5,7 @@ import dayjs from "@calcom/dayjs";
 import { useSchedulerStore } from "../state/store";
 import { SchedulerComponentProps } from "../types/state";
 import { DateValues } from "./DateValues/DateValues";
-import { AvailabilityList } from "./availability/AvailabilityList";
-import { Event } from "./event";
+import { BlockedList } from "./blocking/BlockedList";
 import { EventList } from "./event/EventList";
 import { SchedulerHeading } from "./heading/SchedulerHeading";
 import { HorizontalLines } from "./horizontalLines";
@@ -86,9 +85,9 @@ export function Scheduler(props: SchedulerComponentProps) {
                 style={{
                   gridTemplateRows: `1.75rem repeat(${numberOfGridStopsPerDay}, 1.75rem) auto`,
                 }}>
-                <EventList events={events} days={days} numberOfGridStopsPerCell={GridStopsPerHour} />
                 {/* We can place whatever we want in here - block avialbity etc should slot in nicely here.  */}
-                <AvailabilityList days={days} numberOfGridStopsPerCell={GridStopsPerHour} />
+                <BlockedList days={days} numberOfGridStopsPerCell={GridStopsPerHour} />
+                <EventList events={events} days={days} numberOfGridStopsPerCell={GridStopsPerHour} />
               </ol>
             </div>
           </div>

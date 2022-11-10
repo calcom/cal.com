@@ -9,7 +9,6 @@ export const defaultState: SchedulerComponentProps = {
   startDate: new Date(),
   endDate: dayjs().add(6, "days").toDate(),
   events: [],
-
   startHour: 0,
   endHour: 23,
 };
