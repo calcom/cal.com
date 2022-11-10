@@ -26,7 +26,7 @@ const CreateEmptyWorkflowView = () => {
   const { t } = useLocale();
   const router = useRouter();
 
-  const createMutation = trpc.useMutation("viewer.workflows.createV2", {
+  const createMutation = trpc.viewer.workflows.createV2.useMutation({
     onSuccess: async ({ workflow }) => {
       await router.replace("/workflows/" + workflow.id);
     },
@@ -208,7 +208,7 @@ export default function WorkflowListPage({ workflows }: Props) {
             setIsOpenDialog={setDeleteDialogOpen}
             workflowId={workflowToDeleteId}
             additionalFunction={async () => {
-              await utils.invalidateQueries(["viewer.workflows.list"]);
+              await utils.viewer.workflows.list.invalidate();
             }}
           />
         </div>
