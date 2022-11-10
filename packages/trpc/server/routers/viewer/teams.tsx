@@ -2,19 +2,16 @@ import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 
-import {
-  addSeat,
-  downgradeTeamMembers,
-  ensureSubscriptionQuantityCorrectness,
-  getTeamSeatStats,
-  removeSeat,
-  upgradeTeam,
-} from "@calcom/app-store/stripepayment/lib/team-billing";
+import { addSeat, getRequestedSlugError, removeSeat } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
-import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  cancelTeamSubscriptionFromStripe,
+  purchaseTeamSubscription,
+} from "@calcom/features/ee/teams/lib/payments";
+import { HOSTED_CAL_FEATURES, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { getTeamWithMembers, isTeamAdmin, isTeamOwner, isTeamMember } from "@calcom/lib/server/queries/teams";
+import { getTeamWithMembers, isTeamAdmin, isTeamMember, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
 import {
   closeComDeleteTeam,
@@ -23,6 +20,7 @@ import {
   closeComUpsertTeamUser,
 } from "@calcom/lib/sync/SyncServiceManager";
 import { availabilityUserSelect } from "@calcom/prisma";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -35,9 +33,9 @@ export const viewerTeamsRouter = createProtectedRouter()
       teamId: z.number(),
     }),
     async resolve({ ctx, input }) {
-      const team = await getTeamWithMembers(input.teamId);
-      if (!team?.members.find((m) => m.id === ctx.user.id)) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not a member of this team." });
+      const team = await getTeamWithMembers(input.teamId, undefined, ctx.user.id);
+      if (!team) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
       }
       const membership = team?.members.find((membership) => membership.id === ctx.user.id);
 
@@ -59,59 +57,52 @@ export const viewerTeamsRouter = createProtectedRouter()
         where: {
           userId: ctx.user.id,
         },
+        include: {
+          team: true,
+        },
         orderBy: { role: "desc" },
       });
-      const teams = await ctx.prisma.team.findMany({
-        where: {
-          id: {
-            in: memberships.map((membership) => membership.teamId),
-          },
-        },
-      });
 
-      return memberships.map((membership) => ({
+      return memberships.map(({ team, ...membership }) => ({
         role: membership.role,
         accepted: membership.accepted,
-        ...teams.find((team) => team.id === membership.teamId),
+        ...team,
       }));
     },
   })
   .mutation("create", {
     input: z.object({
       name: z.string(),
-      slug: z.string().optional().nullable(),
-      logo: z.string().optional().nullable(),
+      slug: z.string().transform((val) => slugify(val.trim())),
+      logo: z
+        .string()
+        .optional()
+        .nullable()
+        .transform((v) => v || null),
     }),
     async resolve({ ctx, input }) {
-      if (ctx.user.plan === "FREE") {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "You need a team plan." });
-      }
+      const { slug, name, logo } = input;
 
-      const slug = input.slug || slugify(input.name);
-
-      const nameCollisions = await ctx.prisma.team.count({
-        where: {
-          OR: [{ name: input.name }, { slug: slug }],
-        },
+      const nameCollisions = await ctx.prisma.team.findFirst({
+        where: { OR: [{ name }, { slug }] },
       });
 
-      if (nameCollisions > 0)
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Team name already taken." });
+      if (nameCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "Team name already taken." });
 
       const createTeam = await ctx.prisma.team.create({
         data: {
-          name: input.name,
-          slug: slug,
-          logo: input.logo || null,
-        },
-      });
-
-      await ctx.prisma.membership.create({
-        data: {
-          teamId: createTeam.id,
-          userId: ctx.user.id,
-          role: MembershipRole.OWNER,
-          accepted: true,
+          name,
+          logo,
+          members: {
+            create: {
+              userId: ctx.user.id,
+              role: MembershipRole.OWNER,
+              accepted: true,
+            },
+          },
+          metadata: {
+            requestedSlug: slug,
+          },
         },
       });
 
@@ -149,17 +140,31 @@ export const viewerTeamsRouter = createProtectedRouter()
         },
       });
 
+      if (!prevTeam) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
+
+      const data: Prisma.TeamUpdateArgs["data"] = {
+        name: input.name,
+        logo: input.logo,
+        bio: input.bio,
+        hideBranding: input.hideBranding,
+      };
+
+      if (
+        input.slug &&
+        IS_TEAM_BILLING_ENABLED &&
+        /** If the team doesn't have a slug we can assume that it hasn't been published yet. */ !prevTeam.slug
+      ) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You cannot change the slug until you publish your team",
+        });
+      } else {
+        data.slug = input.slug;
+      }
+
       const updatedTeam = await ctx.prisma.team.update({
-        where: {
-          id: input.id,
-        },
-        data: {
-          name: input.name,
-          slug: input.slug,
-          logo: input.logo,
-          bio: input.bio,
-          hideBranding: input.hideBranding,
-        },
+        where: { id: input.id },
+        data,
       });
 
       // Sync Services: Close.com
@@ -173,9 +178,7 @@ export const viewerTeamsRouter = createProtectedRouter()
     async resolve({ ctx, input }) {
       if (!(await isTeamOwner(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-      if (process.env.STRIPE_PRIVATE_KEY) {
-        await downgradeTeamMembers(input.teamId);
-      }
+      if (IS_TEAM_BILLING_ENABLED) await cancelTeamSubscriptionFromStripe(input.teamId);
 
       // delete all memberships
       await ctx.prisma.membership.deleteMany({
@@ -487,32 +490,6 @@ export const viewerTeamsRouter = createProtectedRouter()
       );
     },
   })
-  .mutation("upgradeTeam", {
-    input: z.object({
-      teamId: z.number(),
-    }),
-    async resolve({ ctx, input }) {
-      if (!HOSTED_CAL_FEATURES)
-        throw new TRPCError({ code: "FORBIDDEN", message: "Team billing is not enabled" });
-      return await upgradeTeam(ctx.user.id, input.teamId);
-    },
-  })
-  .query("getTeamSeats", {
-    input: z.object({
-      teamId: z.number(),
-    }),
-    async resolve({ input }) {
-      return await getTeamSeatStats(input.teamId);
-    },
-  })
-  .mutation("ensureSubscriptionQuantityCorrectness", {
-    input: z.object({
-      teamId: z.number(),
-    }),
-    async resolve({ ctx, input }) {
-      return await ensureSubscriptionQuantityCorrectness(ctx.user.id, input.teamId);
-    },
-  })
   .query("getMembershipbyUser", {
     input: z.object({
       teamId: z.number(),
@@ -561,5 +538,73 @@ export const viewerTeamsRouter = createProtectedRouter()
           disableImpersonation: input.disableImpersonation,
         },
       });
+    },
+  })
+  .query("validateTeamSlug", {
+    input: z.object({
+      slug: z.string(),
+    }),
+    async resolve({ ctx, input }) {
+      const team = await ctx.prisma.team.findFirst({
+        where: {
+          slug: input.slug,
+        },
+      });
+
+      return !team;
+    },
+  })
+  .mutation("publish", {
+    input: z.object({
+      teamId: z.number(),
+    }),
+    async resolve({ ctx, input }) {
+      if (!(await isTeamAdmin(ctx.user.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+      const { teamId: id } = input;
+
+      const prevTeam = await ctx.prisma.team.findFirst({ where: { id }, include: { members: true } });
+
+      if (!prevTeam) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
+
+      const metadata = teamMetadataSchema.safeParse(prevTeam.metadata);
+
+      if (!metadata.success || !metadata.data?.requestedSlug)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Can't publish team without `requestedSlug`" });
+
+      // if payment needed, responed with checkout url
+      if (IS_TEAM_BILLING_ENABLED) {
+        const checkoutSession = await purchaseTeamSubscription({
+          teamId: prevTeam.id,
+          seats: prevTeam.members.length,
+          userId: ctx.user.id,
+        });
+        if (!checkoutSession.url)
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed retrieving a checkout session URL.",
+          });
+        return { url: checkoutSession.url };
+      }
+
+      const { requestedSlug, ...newMetadata } = metadata.data;
+      let updatedTeam: Awaited<ReturnType<typeof ctx.prisma.team.update>>;
+
+      try {
+        updatedTeam = await ctx.prisma.team.update({
+          where: { id },
+          data: {
+            slug: requestedSlug,
+            metadata: { ...newMetadata },
+          },
+        });
+      } catch (error) {
+        const { message } = getRequestedSlugError(error, requestedSlug);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message });
+      }
+
+      // Sync Services: Close.com
+      closeComUpdateTeam(prevTeam, updatedTeam);
+
+      return { url: `${WEBAPP_URL}/settings/teams/${updatedTeam.id}/profile` };
     },
   });
