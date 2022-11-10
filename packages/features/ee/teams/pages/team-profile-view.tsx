@@ -207,12 +207,7 @@ const ProfileView = () => {
                 )}
               />
               <p className="mt-2 text-sm text-gray-600">{t("team_description")}</p>
-              <Button
-                color="primary"
-                className="mt-8"
-                type="submit"
-                loading={mutation.isLoading}
-                disabled={form.formState.isDirty}>
+              <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
                 {t("update")}
               </Button>
               {IS_TEAM_BILLING_ENABLED &&
