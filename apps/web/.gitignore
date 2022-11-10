@@ -68,5 +68,3 @@ public/embed
 
 # Copied app-store images
 public/app-store
-# Sentry
-.sentryclirc
