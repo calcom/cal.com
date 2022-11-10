@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // If accessing a user's portal
   const customerId = await getStripeCustomerIdFromUserId(req.session.user.id);
-  if (!customerId) return res.status(400).json({ message: "Missing customer id" });
+  if (!customerId) return res.status(400).json({ message: "CustomerId not found in stripe" });
 
   let return_url = `${WEBAPP_URL}/settings/billing`;
 
