@@ -149,6 +149,8 @@ export const viewerTeamsRouter = createProtectedRouter()
         },
       });
 
+      if (!prevTeam) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
+
       const data: Prisma.TeamUpdateArgs["data"] = {
         name: input.name,
         logo: input.logo,
@@ -156,7 +158,11 @@ export const viewerTeamsRouter = createProtectedRouter()
         hideBranding: input.hideBranding,
       };
 
-      if (input.slug && IS_TEAM_BILLING_ENABLED) {
+      if (
+        input.slug &&
+        IS_TEAM_BILLING_ENABLED &&
+        /** If the team doesn't have a slug we can assume that it hasn't been published yet. */ !prevTeam.slug
+      ) {
         data.metadata = { requestedSlug: input.slug };
       } else {
         data.slug = input.slug;
