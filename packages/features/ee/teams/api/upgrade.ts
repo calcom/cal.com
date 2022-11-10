@@ -1,8 +1,8 @@
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 import { z } from "zod";
 
+import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { ensureSession } from "@calcom/lib/auth";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -54,17 +54,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
       });
     } catch (error) {
-      let message = `Unknown error`;
-      let statusCode = 500;
-      // This covers the edge case if an unpublished team takes too long to publish
-      // and another team gets the requestedSlug first.
-      // https://www.prisma.io/docs/reference/api-reference/error-reference#p2002
-      if (error instanceof PrismaClientKnownRequestError && error.code === "P2002") {
-        statusCode = 400;
-        message = `It seems like the requestedSlug: '${metadata.requestedSlug}' is already taken. Please contact support so we can resolve this issue.`;
-      } else if (error instanceof Error) {
-        message = error.message;
-      }
+      const { message, statusCode } = getRequestedSlugError(error, metadata.requestedSlug);
       return res.status(statusCode).json({ message });
     }
 

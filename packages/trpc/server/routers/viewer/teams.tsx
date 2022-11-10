@@ -2,7 +2,7 @@ import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 
-import { addSeat, removeSeat } from "@calcom/app-store/stripepayment/lib/team-billing";
+import { addSeat, getRequestedSlugError, removeSeat } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
 import {
@@ -568,7 +568,7 @@ export const viewerTeamsRouter = createProtectedRouter()
 
       const metadata = teamMetadataSchema.safeParse(prevTeam.metadata);
 
-      if (!metadata.success || !metadata.data)
+      if (!metadata.success || !metadata.data?.requestedSlug)
         throw new TRPCError({ code: "BAD_REQUEST", message: "Can't publish team without `requestedSlug`" });
 
       // if payment needed, responed with checkout url
@@ -587,14 +587,20 @@ export const viewerTeamsRouter = createProtectedRouter()
       }
 
       const { requestedSlug, ...newMetadata } = metadata.data;
+      let updatedTeam: Awaited<ReturnType<typeof ctx.prisma.team.update>>;
 
-      const updatedTeam = await ctx.prisma.team.update({
-        where: { id },
-        data: {
-          slug: requestedSlug,
-          metadata: { ...newMetadata },
-        },
-      });
+      try {
+        updatedTeam = await ctx.prisma.team.update({
+          where: { id },
+          data: {
+            slug: requestedSlug,
+            metadata: { ...newMetadata },
+          },
+        });
+      } catch (error) {
+        const { message } = getRequestedSlugError(error, requestedSlug);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message });
+      }
 
       // Sync Services: Close.com
       closeComUpdateTeam(prevTeam, updatedTeam);
