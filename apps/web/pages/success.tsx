@@ -434,32 +434,34 @@ export default function Success(props: SuccessProps) {
                 {!needsConfirmation &&
                   !isCancelled &&
                   (!isCancellationMode ? (
-                    <>
-                      <hr className="border-bookinglightest dark:border-darkgray-300" />
-                      <div className="py-8 text-center last:pb-0">
-                        <span className="text-gray-900 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
-                          {t("need_to_make_a_change")}
-                        </span>
-
-                        {!props.recurringBookings && (
-                          <span className="text-bookinglight inline text-gray-700">
-                            <span className="underline">
-                              <Link href={`/reschedule/${bookingInfo?.uid}`}>{t("reschedule")}</Link>
-                            </span>
-                            <span className="mx-2">{t("or_lowercase")}</span>
+                    listingStatus === "past" ? null : (
+                      <>
+                        <hr className="border-bookinglightest dark:border-darkgray-300" />
+                        <div className="py-8 text-center last:pb-0">
+                          <span className="text-gray-900 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
+                            {t("need_to_make_a_change")}
                           </span>
-                        )}
 
-                        <button
-                          className={classNames(
-                            "text-bookinglight text-gray-700 underline",
-                            props.recurringBookings && "ltr:mr-2 rtl:ml-2"
+                          {!props.recurringBookings && (
+                            <span className="text-bookinglight inline text-gray-700">
+                              <span className="underline">
+                                <Link href={`/reschedule/${bookingInfo?.uid}`}>{t("reschedule")}</Link>
+                              </span>
+                              <span className="mx-2">{t("or_lowercase")}</span>
+                            </span>
                           )}
-                          onClick={() => setIsCancellationMode(true)}>
-                          {t("cancel")}
-                        </button>
-                      </div>
-                    </>
+
+                          <button
+                            className={classNames(
+                              "text-bookinglight text-gray-700 underline",
+                              props.recurringBookings && "ltr:mr-2 rtl:ml-2"
+                            )}
+                            onClick={() => setIsCancellationMode(true)}>
+                            {t("cancel")}
+                          </button>
+                        </div>
+                      </>
+                    )
                   ) : (
                     <CancelBooking
                       booking={{ uid: bookingInfo?.uid, title: bookingInfo?.title, id: bookingInfo?.id }}
