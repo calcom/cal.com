@@ -179,9 +179,7 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
                 })}
                 description={t(`no_category_apps_description_${variant || "other"}`)}
                 buttonRaw={
-                  <Button
-                    color="secondary"
-                    href={variant ? `/apps/categories/${variant}` : "/apps/categories/other"}>
+                  <Button color="secondary" href={variant ? `/apps/categories/${variant}` : "/apps"}>
                     {t(`connect_${variant || "other"}_apps`)}
                   </Button>
                 }
