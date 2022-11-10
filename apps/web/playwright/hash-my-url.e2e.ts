@@ -15,6 +15,7 @@ test.describe("hash my url", () => {
   });
   test("generate url hash", async ({ page }) => {
     // await page.pause();
+    test.setTimeout(90000);
     await page.goto("/event-types");
     // We wait until loading is finished
     await page.waitForSelector('[data-testid="event-types"]');
@@ -35,7 +36,9 @@ test.describe("hash my url", () => {
     await page.waitForLoadState("networkidle");
 
     // book using generated url hash
-    await page.goto($url);
+    await page.goto($url, {
+      timeout: 30000,
+    });
     await selectFirstAvailableTimeSlotNextMonth(page);
     await bookTimeSlot(page);
     // Make sure we're navigated to the success page
