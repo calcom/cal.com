@@ -280,6 +280,7 @@ export const viewerTeamsRouter = createProtectedRouter()
               create: {
                 teamId: input.teamId,
                 role: input.role as MembershipRole,
+                accepted: true,
               },
             },
           },
