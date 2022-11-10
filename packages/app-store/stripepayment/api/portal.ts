@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 
 import { getStripeCustomerIdFromUserId } from "../lib/customer";
 import stripe from "../lib/server";
@@ -20,12 +21,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   let return_url = `${WEBAPP_URL}/settings/billing`;
 
-  // If accessing a team's portal if referrer has /settings/team/[:teamId]/billing
-  if (/settings\/teams\/\d+\/billing/g.test(referer)) {
-    // Grab the teamId by just matching /settings/teams/[:teamId]/billing and getting third item in array after split
-    const teamId = referer.match(/\/(settings.+)/g) || "";
-    return_url = `${WEBAPP_URL}/settings/teams/${teamId}/billing`;
-    // TODO: Maybe create a customerId for each team. For now the owner is the customer.
+  if (typeof req.query.returnTo === "string") {
+    const safeRedirectUrl = getSafeRedirectUrl(req.query.returnTo);
+    if (safeRedirectUrl) return_url = safeRedirectUrl;
   }
 
   const stripeSession = await stripe.billingPortal.sessions.create({

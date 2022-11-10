@@ -62,20 +62,16 @@ export const viewerTeamsRouter = createProtectedRouter()
         where: {
           userId: ctx.user.id,
         },
+        include: {
+          team: true,
+        },
         orderBy: { role: "desc" },
       });
-      const teams = await ctx.prisma.team.findMany({
-        where: {
-          id: {
-            in: memberships.map((membership) => membership.teamId),
-          },
-        },
-      });
 
-      return memberships.map((membership) => ({
+      return memberships.map(({ team, ...membership }) => ({
         role: membership.role,
         accepted: membership.accepted,
-        ...teams.find((team) => team.id === membership.teamId),
+        ...team,
       }));
     },
   })

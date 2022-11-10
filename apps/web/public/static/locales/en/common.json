@@ -502,6 +502,7 @@
   "add_team_members_description": "Invite others to join your team",
   "add_team_member": "Add team member",
   "invite_new_member": "Invite a new team member",
+  "invite_new_member_description": "Note: This will <1>cost an extra seat ($15/m)</1> on your subscription.",
   "invite_new_team_member": "Invite someone to your team.",
   "change_member_role": "Change team member role",
   "disable_cal_branding": "Disable Cal branding",

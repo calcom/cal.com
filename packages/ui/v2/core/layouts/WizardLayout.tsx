@@ -8,7 +8,7 @@ import { Steps } from "@calcom/ui/v2/core/Steps";
 
 export default function WizardLayout({
   children,
-  maxSteps = 3,
+  maxSteps = 2,
   currentStep = 0,
 }: {
   children: React.ReactNode;

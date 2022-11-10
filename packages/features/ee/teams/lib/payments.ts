@@ -10,7 +10,6 @@ export const purchaseTeamSubscription = async (input: { teamId: number; seats: n
   return await stripe.checkout.sessions.create({
     customer,
     mode: "subscription",
-    // success_url: `${CAL_URL}/settings/teams/${teamId}/profile`,
     success_url: `${WEBAPP_URL}/api/teams/${teamId}/upgrade?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${WEBAPP_URL}/settings/profile`,
     locale: "en",

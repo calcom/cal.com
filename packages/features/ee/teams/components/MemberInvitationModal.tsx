@@ -1,7 +1,9 @@
 import { MembershipRole } from "@prisma/client";
+import { Trans } from "next-i18next";
 import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, TextField } from "@calcom/ui/components";
 import CheckboxField from "@calcom/ui/components/form/checkbox/Checkbox";
@@ -60,10 +62,16 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         useOwnActionButtons
         title={t("invite_new_member")}
         description={
-          <span className=" text-sm leading-tight text-gray-500">
-            Note: This will <span className="font-medium text-gray-900">cost an extra seat ($15/m)</span> on
-            your subscription.
-          </span>
+          IS_TEAM_BILLING_ENABLED ? (
+            <span className=" text-sm leading-tight text-gray-500">
+              <Trans i18nKey="invite_new_member_description">
+                Note: This will <span className="font-medium text-gray-900">cost an extra seat ($15/m)</span>{" "}
+                on your subscription.
+              </Trans>
+            </span>
+          ) : (
+            ""
+          )
         }>
         <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values)}>
           <div className="space-y-4">

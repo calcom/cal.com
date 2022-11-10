@@ -1,5 +1,6 @@
 import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
@@ -11,11 +12,11 @@ import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
 import Dropdown, {
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownItem,
 } from "@calcom/ui/v2/core/Dropdown";
 import { Tooltip } from "@calcom/ui/v2/core/Tooltip";
 import showToast from "@calcom/ui/v2/core/notifications";
@@ -95,7 +96,7 @@ export default function TeamListItem(props: Props) {
           teamInfo
         )}
         <div className="px-5 py-5">
-          {isInvitee && (
+          {isInvitee ? (
             <>
               <div className="hidden sm:block">
                 <Button type="button" color="secondary" onClick={declineInvite}>
@@ -133,8 +134,7 @@ export default function TeamListItem(props: Props) {
                 </Dropdown>
               </div>
             </>
-          )}
-          {!isInvitee && (
+          ) : (
             <div className="flex space-x-2 rtl:space-x-reverse">
               <TeamRole role={team.role} />
               <ButtonGroup combined>
@@ -169,6 +169,7 @@ export default function TeamListItem(props: Props) {
                         </DropdownItem>
                       </DropdownMenuItem>
                     )}
+                    {!team.slug && <TeamPublishButton teamId={team.id} />}
                     {team.slug && (
                       <DropdownMenuItem>
                         <DropdownItem
@@ -245,3 +246,29 @@ export default function TeamListItem(props: Props) {
     </li>
   );
 }
+
+const TeamPublishButton = ({ teamId }: { teamId: number }) => {
+  const { t } = useLocale();
+  const router = useRouter();
+  const publishTeamMutation = trpc.useMutation("viewer.teams.publish", {
+    onSuccess(data) {
+      router.push(data.url);
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
+  return (
+    <DropdownMenuItem>
+      <DropdownItem
+        type="button"
+        onClick={() => {
+          publishTeamMutation.mutate({ teamId });
+        }}
+        StartIcon={Icon.FiGlobe}>
+        {t("team_publish")}
+      </DropdownItem>
+    </DropdownMenuItem>
+  );
+};

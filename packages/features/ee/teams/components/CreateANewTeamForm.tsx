@@ -10,9 +10,9 @@ import { Avatar, Button } from "@calcom/ui/components";
 import { Form, TextField } from "@calcom/ui/components/form";
 import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
 
-import { NewTeamFormValues } from "../../lib/types";
+import { NewTeamFormValues } from "../lib/types";
 
-const CreateANewTeamForm = () => {
+export const CreateANewTeamForm = () => {
   const { t } = useLocale();
   const router = useRouter();
   const newTeamFormMethods = useForm<NewTeamFormValues>();
@@ -32,7 +32,6 @@ const CreateANewTeamForm = () => {
   );
 
   const validateTeamSlug = async () => {
-    console.log("This triggers");
     await validateTeamSlugQuery.refetch();
     if (validateTeamSlugQuery.isFetched) return validateTeamSlugQuery.data || t("team_url_taken");
   };
@@ -121,9 +120,10 @@ const CreateANewTeamForm = () => {
             {t("continue")}
           </Button>
         </div>
+        {createTeamMutation.isError && (
+          <p className="mt-4 text-red-700">{createTeamMutation.error.message}</p>
+        )}
       </Form>
     </>
   );
 };
-
-export default CreateANewTeamForm;
