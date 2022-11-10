@@ -161,6 +161,7 @@ export const workflowsRouter = createProtectedRouter()
             action: WorkflowActions.EMAIL_HOST,
             template: WorkflowTemplates.REMINDER,
             workflowId: workflow.id,
+            sender: "Cal",
           },
         });
         return { workflow };
