@@ -16,7 +16,7 @@ import { Select, Skeleton } from "@calcom/ui/v2";
 
 import { slugify } from "@lib/slugify";
 
-import { EditLocationDialog } from "@components/v2/eventtype/EditLocationDialog";
+import { EditLocationDialog } from "@components/eventtype/EditLocationDialog";
 
 type OptionTypeBase = {
   label: string;
