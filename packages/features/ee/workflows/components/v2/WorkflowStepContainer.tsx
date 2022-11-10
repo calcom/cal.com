@@ -357,6 +357,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           label={t("sender_id")}
                           type="text"
                           placeholder="Cal"
+                          maxLength={11}
                           {...form.register(`steps.${step.stepNumber - 1}.sender`)}
                         />
                       </div>
@@ -530,6 +531,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         emailSubject,
                         reminderBody,
                         template: step.template,
+                        sender: step.sender,
                       });
                     } else {
                       const isNumberValid =

@@ -472,7 +472,8 @@ export const workflowsRouter = createProtectedRouter()
                     },
                     step.reminderBody || "",
                     step.id,
-                    step.template
+                    step.template,
+                    step.sender || "Cal"
                   );
                 }
               });
@@ -652,7 +653,8 @@ export const workflowsRouter = createProtectedRouter()
                   },
                   newStep.reminderBody || "",
                   newStep.id || 0,
-                  newStep.template
+                  newStep.template,
+                  newStep.sender || "Cal"
                 );
               }
             });
@@ -767,7 +769,8 @@ export const workflowsRouter = createProtectedRouter()
                     },
                     step.reminderBody || "",
                     createdStep.id,
-                    step.template
+                    step.template,
+                    step.sender || "Cal"
                   );
                 }
               });
@@ -815,9 +818,10 @@ export const workflowsRouter = createProtectedRouter()
       reminderBody: z.string(),
       template: z.enum(WORKFLOW_TEMPLATES),
       sendTo: z.string().optional(),
+      sender: z.string().optional(),
     }),
     async resolve({ ctx, input }) {
-      const { action, emailSubject, reminderBody, template, sendTo } = input;
+      const { action, emailSubject, reminderBody, template, sendTo, sender } = input;
       try {
         const booking = await ctx.prisma.booking.findFirst({
           orderBy: {
@@ -901,7 +905,8 @@ export const workflowsRouter = createProtectedRouter()
             { time: null, timeUnit: null },
             reminderBody,
             0,
-            template
+            template,
+            sender || "Cal"
           );
           return { message: "Notification sent" };
         }

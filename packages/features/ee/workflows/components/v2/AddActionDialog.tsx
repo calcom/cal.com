@@ -179,6 +179,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                     label={t("sender_id")}
                     type="text"
                     placeholder="Cal"
+                    maxLength={11}
                     {...form.register(`sender`)}
                   />
                 </div>
