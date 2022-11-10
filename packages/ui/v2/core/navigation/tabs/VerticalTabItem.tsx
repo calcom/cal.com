@@ -56,9 +56,9 @@ const VerticalTabItem = function ({
               data-testid={`vertical-tab-${name}`}
               aria-current={isCurrent ? "page" : undefined}>
               {props.icon && <props.icon className="mr-[10px] h-[16px] w-[16px] stroke-[2px] md:mt-0" />}
-              <div>
+              <div className="h-fit">
                 <span className="flex items-center space-x-2">
-                  <Skeleton title={t(name)} as="p" className="max-w-36 truncate">
+                  <Skeleton title={t(name)} as="p" className="max-w-36 min-h-4 truncate">
                     {t(name)}
                   </Skeleton>
                   {props.isExternalLink ? <Icon.FiExternalLink /> : null}
