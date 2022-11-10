@@ -14,7 +14,7 @@ import { Icon } from "@calcom/ui";
 import { Checkbox, Button, TextField, Label } from "@calcom/ui/components";
 import { CustomInputItem, Dialog, DialogContent, SettingsToggle, showToast, Tooltip } from "@calcom/ui/v2";
 
-import CustomInputTypeForm from "@components/v2/eventtype/CustomInputTypeForm";
+import CustomInputTypeForm from "@components/eventtype/CustomInputTypeForm";
 
 const generateHashedLink = (id: number) => {
   const translator = short();

@@ -28,9 +28,9 @@ import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
+import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
-import SkeletonLoader from "@components/v2/eventtype/SkeletonLoader";
 
 type EventTypeGroups = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
