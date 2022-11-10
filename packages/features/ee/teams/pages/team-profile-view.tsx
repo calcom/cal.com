@@ -89,7 +89,7 @@ const ProfileView = () => {
     },
   });
 
-  const publishMutation = trpc.useMutation("viewer.teams.publish", {
+  const publishMutation = trpc.viewer.teams.publish.useMutation({
     async onSuccess(data: { url?: string }) {
       if (data.url) {
         router.push(data.url);
