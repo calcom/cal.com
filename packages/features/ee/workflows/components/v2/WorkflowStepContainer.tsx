@@ -531,7 +531,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         emailSubject,
                         reminderBody,
                         template: step.template,
-                        sender: step.sender,
+                        sender: step.sender || "Cal",
                       });
                     } else {
                       const isNumberValid =
