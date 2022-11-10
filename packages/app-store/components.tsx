@@ -28,7 +28,7 @@ export const InstallAppButton = (
     wrapperClassName?: string;
   } & InstallAppButtonProps
 ) => {
-  const { isLoading, data: user } = trpc.useQuery(["viewer.me"]);
+  const { isLoading, data: user } = trpc.viewer.me.useQuery();
   const router = useRouter();
   const proProtectionElementRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {

@@ -35,7 +35,7 @@ const CtaRow = ({ title, description, className, children }: CtaRowProps) => {
 
 const BillingView = () => {
   const { t } = useLocale();
-  const { data: user } = trpc.useQuery(["viewer.me"]);
+  const { data: user } = trpc.viewer.me.useQuery();
   const isPro = user?.plan === "PRO";
   const [, loadChat] = useChat();
   const [showChat, setShowChat] = useState(false);

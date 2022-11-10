@@ -17,7 +17,7 @@ import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 const ApiKeysView = () => {
   const { t } = useLocale();
 
-  const { data, isLoading } = trpc.useQuery(["viewer.apiKeys.list"]);
+  const { data, isLoading } = trpc.viewer.apiKeys.list.useQuery();
 
   const [apiKeyModal, setApiKeyModal] = useState(false);
   const [apiKeyToEdit, setApiKeyToEdit] = useState<(TApiKeys & { neverExpires?: boolean }) | undefined>(

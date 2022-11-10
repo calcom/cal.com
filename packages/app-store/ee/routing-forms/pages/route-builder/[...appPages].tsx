@@ -162,7 +162,7 @@ const Route = ({
 }) => {
   const index = routes.indexOf(route);
 
-  const { data: eventTypesByGroup } = trpc.useQuery(["viewer.eventTypes"]);
+  const { data: eventTypesByGroup } = trpc.viewer.eventTypes.getByViewer.useQuery();
 
   const eventOptions: { label: string; value: string }[] = [];
   eventTypesByGroup?.eventTypeGroups.forEach((group) => {
