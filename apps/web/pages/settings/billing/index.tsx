@@ -1,7 +1,9 @@
+import { useRouter } from "next/router";
 import { useState } from "react";
 import { HelpScout, useChat } from "react-live-chat-loader";
 
 import { classNames } from "@calcom/lib";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
@@ -37,6 +39,9 @@ const BillingView = () => {
   const isPro = user?.plan === "PRO";
   const [, loadChat] = useChat();
   const [showChat, setShowChat] = useState(false);
+  const router = useRouter();
+  const returnTo = router.asPath;
+  const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
 
   const onContactSupportClick = () => {
     setShowChat(true);
@@ -63,7 +68,7 @@ const BillingView = () => {
           description={t("billing_manage_details_description")}>
           <Button
             color={isPro ? "primary" : "secondary"}
-            href="/api/integrations/stripepayment/portal"
+            href={billingHref}
             target="_blank"
             EndIcon={Icon.FiExternalLink}>
             {t("billing_portal")}
