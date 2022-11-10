@@ -1,6 +1,5 @@
 import React, { useRef, useState, useCallback } from "react";
 import { Query, Config, Builder, Utils as QbUtils, JsonLogicResult } from "react-awesome-query-builder";
-// types
 import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
 
 import { classNames } from "@calcom/lib";
@@ -32,6 +31,7 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
         "viewer.app_routing_forms.report",
         {
           formId: formId,
+          // Send jsonLogicQuery only if it's a valid logic, otherwise send a logic with no query.
           jsonLogicQuery: jsonLogicQuery?.logic
             ? jsonLogicQuery
             : {

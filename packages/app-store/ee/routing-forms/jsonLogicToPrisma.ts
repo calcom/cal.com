@@ -1,3 +1,10 @@
+// It can have many shapes, so just use any and we rely on unit tests to test all those scenarios.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type LogicData = Partial<Record<keyof typeof OPERATOR_MAP, any>>;
+type NegatedLogicData = {
+  "!": LogicData;
+};
+
 export type JsonLogicQuery = {
   logic: {
     and?: LogicData[];
@@ -7,6 +14,12 @@ export type JsonLogicQuery = {
       or?: LogicData[];
     };
   } | null;
+};
+
+type PrismaWhere = {
+  AND?: ReturnType<typeof convertQueriesToPrismaWhereClause>[];
+  OR?: ReturnType<typeof convertQueriesToPrismaWhereClause>[];
+  NOT?: PrismaWhere;
 };
 
 const OPERATOR_MAP = {
@@ -36,18 +49,16 @@ const OPERATOR_MAP = {
   },
 };
 
-const LOGICAL_OPERATOR_MAP = {
+/**
+ *  Operators supported on array of basic queries
+ */
+const GROUP_OPERATOR_MAP = {
   and: "AND",
   or: "OR",
   "!": "NOT",
-};
+} as const;
 
-type LogicData = Partial<Record<keyof typeof OPERATOR_MAP, any>>;
-type NegatedLogicData = {
-  "!": LogicData;
-};
-
-const processOperator = (
+const convertSingleQueryToPrismaWhereClause = (
   operatorName: keyof typeof OPERATOR_MAP,
   logicData: LogicData,
   isNegation: boolean
@@ -77,6 +88,7 @@ const processOperator = (
   }
   return prismaWhere;
 };
+
 const isNegation = (logicData: LogicData | NegatedLogicData) => {
   if ("!" in logicData) {
     const negatedLogicData = logicData["!"];
@@ -90,7 +102,7 @@ const isNegation = (logicData: LogicData | NegatedLogicData) => {
   return false;
 };
 
-const processOperators = (logicData: LogicData) => {
+const convertQueriesToPrismaWhereClause = (logicData: LogicData) => {
   const _isNegation = isNegation(logicData);
   if (_isNegation) {
     logicData = logicData["!"];
@@ -98,13 +110,11 @@ const processOperators = (logicData: LogicData) => {
   for (const [key] of Object.entries(OPERATOR_MAP)) {
     const operatorName = key as keyof typeof OPERATOR_MAP;
     if (logicData[operatorName]) {
-      return processOperator(operatorName, logicData, _isNegation);
+      return convertSingleQueryToPrismaWhereClause(operatorName, logicData, _isNegation);
     }
   }
 };
 
-// There are many possible combinations of jsonLogic, so making it typesafe is an unnecessary effort. Unit tests should be enough.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const jsonLogicToPrisma = (query: JsonLogicQuery) => {
   try {
     let logic = query.logic;
@@ -112,9 +122,7 @@ export const jsonLogicToPrisma = (query: JsonLogicQuery) => {
       return {};
     }
 
-    // Any of the possible prisma `where` clause values
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let prismaWhere: any = {};
+    let prismaWhere: PrismaWhere = {};
     let negateLogic = false;
 
     // Case: Negation of "Any of these"
@@ -126,9 +134,9 @@ export const jsonLogicToPrisma = (query: JsonLogicQuery) => {
 
     // Case: All of these
     if (logic.and) {
-      const where = (prismaWhere[LOGICAL_OPERATOR_MAP["and"]] = [] as Record<any, any>[]);
+      const where: PrismaWhere["AND"] = (prismaWhere[GROUP_OPERATOR_MAP["and"]] = []);
       logic.and.forEach((and) => {
-        const res = processOperators(and);
+        const res = convertQueriesToPrismaWhereClause(and);
         if (!res) {
           return;
         }
@@ -137,10 +145,10 @@ export const jsonLogicToPrisma = (query: JsonLogicQuery) => {
     }
     // Case: Any of these
     else if (logic.or) {
-      const where = (prismaWhere[LOGICAL_OPERATOR_MAP["or"]] = [] as Record<any, any>[]);
+      const where: PrismaWhere["OR"] = (prismaWhere[GROUP_OPERATOR_MAP["or"]] = []);
 
       logic.or.forEach((or) => {
-        const res = processOperators(or);
+        const res = convertQueriesToPrismaWhereClause(or);
         if (!res) {
           return;
         }
@@ -155,5 +163,6 @@ export const jsonLogicToPrisma = (query: JsonLogicQuery) => {
     return prismaWhere;
   } catch (e) {
     console.log("Error converting to prisma `where`", JSON.stringify(query), "Error is ", e);
+    return {};
   }
 };

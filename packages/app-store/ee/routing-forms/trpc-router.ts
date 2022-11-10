@@ -226,12 +226,9 @@ const app_RoutingForms = createRouter()
       .query("report", {
         input: z.object({
           formId: z.string(),
-          jsonLogicQuery: z.union([
-            z.object({
-              logic: z.union([z.record(z.any()), z.null()]),
-            }),
-            z.null(),
-          ]),
+          jsonLogicQuery: z.object({
+            logic: z.union([z.record(z.any()), z.null()]),
+          }),
           cursor: z.number().nullish(), // <-- "cursor" needs to exist when using useInfiniteQuery, but can be any type
         }),
         async resolve({ ctx: { prisma }, input }) {
