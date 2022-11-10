@@ -801,245 +801,247 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             {embed.title}
           </h3>
           <hr className={classNames("mt-4", embedType === "element-click" ? "hidden" : "")} />
-          <div className={classNames("mt-4 font-medium", embedType === "element-click" ? "hidden" : "")}>
-            <Collapsible
-              open={isEmbedCustomizationOpen}
-              onOpenChange={() => setIsEmbedCustomizationOpen((val) => !val)}>
-              <CollapsibleTrigger
-                type="button"
-                className="flex w-full items-center text-base font-medium text-neutral-900">
-                <div>
-                  {embedType === "inline"
-                    ? "Inline Embed Customization"
-                    : embedType === "floating-popup"
-                    ? "Floating Popup Customization"
-                    : "Element Click Customization"}
-                </div>
-                <Icon.FiChevronRight
-                  className={`${
-                    isEmbedCustomizationOpen ? "rotate-90 transform" : ""
-                  } ml-auto h-5 w-5 text-neutral-500`}
-                />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="text-sm">
-                <div className={classNames("mt-6", embedType === "inline" ? "block" : "hidden")}>
-                  {/*TODO: Add Auto/Fixed toggle from Figma */}
-                  <div className="text-sm">Embed Window Sizing</div>
-                  <div className="justify-left flex items-center">
-                    <TextField
-                      name="width"
-                      labelProps={{ className: "hidden" }}
-                      required
-                      value={previewState.inline.width}
-                      onChange={(e) => {
-                        setPreviewState((previewState) => {
-                          const width = e.target.value || "100%";
-
-                          return {
-                            ...previewState,
-                            inline: {
-                              ...previewState.inline,
-                              width,
-                            },
-                          };
-                        });
-                      }}
-                      addOnLeading={<InputLeading>W</InputLeading>}
-                    />
-                    <span className="p-2">×</span>
-                    <TextField
-                      labelProps={{ className: "hidden" }}
-                      name="height"
-                      value={previewState.inline.height}
-                      required
-                      onChange={(e) => {
-                        const height = e.target.value || "100%";
-
-                        setPreviewState((previewState) => {
-                          return {
-                            ...previewState,
-                            inline: {
-                              ...previewState.inline,
-                              height,
-                            },
-                          };
-                        });
-                      }}
-                      addOnLeading={<InputLeading>H</InputLeading>}
-                    />
+          <div className="max-h-97 flex flex-col overflow-y-auto">
+            <div className={classNames("mt-4 font-medium", embedType === "element-click" ? "hidden" : "")}>
+              <Collapsible
+                open={isEmbedCustomizationOpen}
+                onOpenChange={() => setIsEmbedCustomizationOpen((val) => !val)}>
+                <CollapsibleTrigger
+                  type="button"
+                  className="flex w-full items-center text-base font-medium text-neutral-900">
+                  <div>
+                    {embedType === "inline"
+                      ? "Inline Embed Customization"
+                      : embedType === "floating-popup"
+                      ? "Floating Popup Customization"
+                      : "Element Click Customization"}
                   </div>
-                </div>
-                <div
-                  className={classNames(
-                    "mt-4 items-center justify-between",
-                    embedType === "floating-popup" ? "" : "hidden"
-                  )}>
-                  <div className="mb-2 text-sm">Button Text</div>
-                  {/* Default Values should come from preview iframe */}
-                  <TextField
-                    name="buttonText"
-                    labelProps={{ className: "hidden" }}
-                    onChange={(e) => {
-                      setPreviewState((previewState) => {
-                        return {
-                          ...previewState,
-                          floatingPopup: {
-                            ...previewState.floatingPopup,
-                            buttonText: e.target.value,
-                          },
-                        };
-                      });
-                    }}
-                    defaultValue="Book my Cal"
-                    required
+                  <Icon.FiChevronRight
+                    className={`${
+                      isEmbedCustomizationOpen ? "rotate-90 transform" : ""
+                    } ml-auto h-5 w-5 text-neutral-500`}
                   />
-                </div>
-                <div
-                  className={classNames(
-                    "mt-4 flex items-center justify-start",
-                    embedType === "floating-popup" ? "space-x-2" : "hidden"
-                  )}>
-                  <Switch
-                    defaultChecked={true}
-                    onCheckedChange={(checked) => {
-                      setPreviewState((previewState) => {
-                        return {
-                          ...previewState,
-                          floatingPopup: {
-                            ...previewState.floatingPopup,
-                            hideButtonIcon: !checked,
-                          },
-                        };
-                      });
-                    }}
-                  />
-                  <div className="text-sm">Display Calendar Icon Button</div>
-                </div>
-                <div
-                  className={classNames(
-                    "mt-4 items-center justify-between",
-                    embedType === "floating-popup" ? "" : "hidden"
-                  )}>
-                  <div className="mb-2">Position of Button</div>
-                  <Select
-                    onChange={(position) => {
-                      setPreviewState((previewState) => {
-                        return {
-                          ...previewState,
-                          floatingPopup: {
-                            ...previewState.floatingPopup,
-                            buttonPosition: position?.value,
-                          },
-                        };
-                      });
-                    }}
-                    defaultValue={FloatingPopupPositionOptions[0]}
-                    options={FloatingPopupPositionOptions}
-                  />
-                </div>
-                <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
-                  <div>Button Color</div>
-                  <div className="w-full">
-                    <ColorPicker
-                      defaultValue="#000000"
-                      onChange={(color) => {
+                </CollapsibleTrigger>
+                <CollapsibleContent className="text-sm">
+                  <div className={classNames("mt-6", embedType === "inline" ? "block" : "hidden")}>
+                    {/*TODO: Add Auto/Fixed toggle from Figma */}
+                    <div className="text-sm">Embed Window Sizing</div>
+                    <div className="justify-left flex items-center">
+                      <TextField
+                        name="width"
+                        labelProps={{ className: "hidden" }}
+                        required
+                        value={previewState.inline.width}
+                        onChange={(e) => {
+                          setPreviewState((previewState) => {
+                            const width = e.target.value || "100%";
+
+                            return {
+                              ...previewState,
+                              inline: {
+                                ...previewState.inline,
+                                width,
+                              },
+                            };
+                          });
+                        }}
+                        addOnLeading={<InputLeading>W</InputLeading>}
+                      />
+                      <span className="p-2">×</span>
+                      <TextField
+                        labelProps={{ className: "hidden" }}
+                        name="height"
+                        value={previewState.inline.height}
+                        required
+                        onChange={(e) => {
+                          const height = e.target.value || "100%";
+
+                          setPreviewState((previewState) => {
+                            return {
+                              ...previewState,
+                              inline: {
+                                ...previewState.inline,
+                                height,
+                              },
+                            };
+                          });
+                        }}
+                        addOnLeading={<InputLeading>H</InputLeading>}
+                      />
+                    </div>
+                  </div>
+                  <div
+                    className={classNames(
+                      "mt-4 items-center justify-between",
+                      embedType === "floating-popup" ? "" : "hidden"
+                    )}>
+                    <div className="mb-2 text-sm">Button Text</div>
+                    {/* Default Values should come from preview iframe */}
+                    <TextField
+                      name="buttonText"
+                      labelProps={{ className: "hidden" }}
+                      onChange={(e) => {
                         setPreviewState((previewState) => {
                           return {
                             ...previewState,
                             floatingPopup: {
                               ...previewState.floatingPopup,
-                              buttonColor: color,
+                              buttonText: e.target.value,
                             },
                           };
                         });
                       }}
+                      defaultValue="Book my Cal"
+                      required
                     />
                   </div>
-                </div>
-                <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
-                  <div>Text Color</div>
-                  <div className="w-full">
-                    <ColorPicker
-                      defaultValue="#000000"
-                      onChange={(color) => {
+                  <div
+                    className={classNames(
+                      "mt-4 flex items-center justify-start",
+                      embedType === "floating-popup" ? "space-x-2" : "hidden"
+                    )}>
+                    <Switch
+                      defaultChecked={true}
+                      onCheckedChange={(checked) => {
                         setPreviewState((previewState) => {
                           return {
                             ...previewState,
                             floatingPopup: {
                               ...previewState.floatingPopup,
-                              buttonTextColor: color,
+                              hideButtonIcon: !checked,
                             },
                           };
                         });
                       }}
                     />
+                    <div className="text-sm">Display Calendar Icon Button</div>
                   </div>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-          </div>
-          <hr className="mt-4" />
-          <div className="mt-4 font-medium">
-            <Collapsible
-              open={isBookingCustomizationOpen}
-              onOpenChange={() => setIsBookingCustomizationOpen((val) => !val)}>
-              <CollapsibleTrigger className="flex w-full" type="button">
-                <div className="text-base  font-medium text-neutral-900">Cal Booking Customization</div>
-                <Icon.FiChevronRight
-                  className={`${
-                    isBookingCustomizationOpen ? "rotate-90 transform" : ""
-                  } ml-auto h-5 w-5 text-neutral-500`}
-                />
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="mt-6 text-sm">
-                  <Label className="">
-                    <div className="mb-2">Theme</div>
+                  <div
+                    className={classNames(
+                      "mt-4 items-center justify-between",
+                      embedType === "floating-popup" ? "" : "hidden"
+                    )}>
+                    <div className="mb-2">Position of Button</div>
                     <Select
-                      className="w-full"
-                      defaultValue={ThemeOptions[0]}
-                      components={{
-                        Control: ThemeSelectControl,
-                      }}
-                      onChange={(option) => {
-                        if (!option) {
-                          return;
-                        }
+                      onChange={(position) => {
                         setPreviewState((previewState) => {
                           return {
                             ...previewState,
-                            theme: option.value,
+                            floatingPopup: {
+                              ...previewState.floatingPopup,
+                              buttonPosition: position?.value,
+                            },
                           };
                         });
                       }}
-                      options={ThemeOptions}
+                      defaultValue={FloatingPopupPositionOptions[0]}
+                      options={FloatingPopupPositionOptions}
                     />
-                  </Label>
-                  {[
-                    { name: "brandColor", title: "Brand Color" },
-                    // { name: "lightColor", title: "Light Color" },
-                    // { name: "lighterColor", title: "Lighter Color" },
-                    // { name: "lightestColor", title: "Lightest Color" },
-                    // { name: "highlightColor", title: "Highlight Color" },
-                    // { name: "medianColor", title: "Median Color" },
-                  ].map((palette) => (
-                    <Label key={palette.name} className="pb-4">
-                      <div className="mb-2 pt-2">{palette.title}</div>
-                      <div className="w-full">
-                        <ColorPicker
-                          defaultValue="#000000"
-                          onChange={(color) => {
-                            addToPalette({
-                              [palette.name as keyof typeof previewState["palette"]]: color,
-                            });
-                          }}
-                        />
-                      </div>
+                  </div>
+                  <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
+                    <div>Button Color</div>
+                    <div className="w-full">
+                      <ColorPicker
+                        defaultValue="#000000"
+                        onChange={(color) => {
+                          setPreviewState((previewState) => {
+                            return {
+                              ...previewState,
+                              floatingPopup: {
+                                ...previewState.floatingPopup,
+                                buttonColor: color,
+                              },
+                            };
+                          });
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className={classNames("mt-4", embedType === "floating-popup" ? "" : "hidden")}>
+                    <div>Text Color</div>
+                    <div className="w-full">
+                      <ColorPicker
+                        defaultValue="#000000"
+                        onChange={(color) => {
+                          setPreviewState((previewState) => {
+                            return {
+                              ...previewState,
+                              floatingPopup: {
+                                ...previewState.floatingPopup,
+                                buttonTextColor: color,
+                              },
+                            };
+                          });
+                        }}
+                      />
+                    </div>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+            <hr className="mt-4" />
+            <div className="mt-4 font-medium">
+              <Collapsible
+                open={isBookingCustomizationOpen}
+                onOpenChange={() => setIsBookingCustomizationOpen((val) => !val)}>
+                <CollapsibleTrigger className="flex w-full" type="button">
+                  <div className="text-base  font-medium text-neutral-900">Cal Booking Customization</div>
+                  <Icon.FiChevronRight
+                    className={`${
+                      isBookingCustomizationOpen ? "rotate-90 transform" : ""
+                    } ml-auto h-5 w-5 text-neutral-500`}
+                  />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="mt-6 text-sm">
+                    <Label className="">
+                      <div className="mb-2">Theme</div>
+                      <Select
+                        className="w-full"
+                        defaultValue={ThemeOptions[0]}
+                        components={{
+                          Control: ThemeSelectControl,
+                        }}
+                        onChange={(option) => {
+                          if (!option) {
+                            return;
+                          }
+                          setPreviewState((previewState) => {
+                            return {
+                              ...previewState,
+                              theme: option.value,
+                            };
+                          });
+                        }}
+                        options={ThemeOptions}
+                      />
                     </Label>
-                  ))}
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
+                    {[
+                      { name: "brandColor", title: "Brand Color" },
+                      // { name: "lightColor", title: "Light Color" },
+                      // { name: "lighterColor", title: "Lighter Color" },
+                      // { name: "lightestColor", title: "Lightest Color" },
+                      // { name: "highlightColor", title: "Highlight Color" },
+                      // { name: "medianColor", title: "Median Color" },
+                    ].map((palette) => (
+                      <Label key={palette.name} className="pb-4">
+                        <div className="mb-2 pt-2">{palette.title}</div>
+                        <div className="w-full">
+                          <ColorPicker
+                            defaultValue="#000000"
+                            onChange={(color) => {
+                              addToPalette({
+                                [palette.name as keyof typeof previewState["palette"]]: color,
+                              });
+                            }}
+                          />
+                        </div>
+                      </Label>
+                    ))}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
           </div>
         </div>
         <div className="flex w-2/3 flex-col p-8">
