@@ -1,5 +1,6 @@
 import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
@@ -11,11 +12,11 @@ import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
 import Dropdown, {
+  DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownItem,
 } from "@calcom/ui/v2/core/Dropdown";
 import { Tooltip } from "@calcom/ui/v2/core/Tooltip";
 import showToast from "@calcom/ui/v2/core/notifications";
@@ -72,7 +73,7 @@ export default function TeamListItem(props: Props) {
       <div className="ml-3 inline-block">
         <span className="text-sm font-bold text-neutral-700">{team.name}</span>
         <span className="block text-xs text-gray-400">
-          {process.env.NEXT_PUBLIC_WEBSITE_URL}/team/{team.slug}
+          {team.slug ? `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}` : "Unpublished team"}
         </span>
       </div>
     </div>
@@ -95,7 +96,7 @@ export default function TeamListItem(props: Props) {
           teamInfo
         )}
         <div className="px-5 py-5">
-          {isInvitee && (
+          {isInvitee ? (
             <>
               <div className="hidden sm:block">
                 <Button type="button" color="secondary" onClick={declineInvite}>
@@ -133,25 +134,26 @@ export default function TeamListItem(props: Props) {
                 </Dropdown>
               </div>
             </>
-          )}
-          {!isInvitee && (
+          ) : (
             <div className="flex space-x-2 rtl:space-x-reverse">
               <TeamRole role={team.role} />
               <ButtonGroup combined>
-                <Tooltip content={t("copy_link_team")}>
-                  <Button
-                    color="secondary"
-                    onClick={() => {
-                      navigator.clipboard.writeText(
-                        process.env.NEXT_PUBLIC_WEBSITE_URL + "/team/" + team.slug
-                      );
-                      showToast(t("link_copied"), "success");
-                    }}
-                    size="icon"
-                    StartIcon={Icon.FiLink}
-                    combined
-                  />
-                </Tooltip>
+                {team.slug && (
+                  <Tooltip content={t("copy_link_team")}>
+                    <Button
+                      color="secondary"
+                      onClick={() => {
+                        navigator.clipboard.writeText(
+                          process.env.NEXT_PUBLIC_WEBSITE_URL + "/team/" + team.slug
+                        );
+                        showToast(t("link_copied"), "success");
+                      }}
+                      size="icon"
+                      StartIcon={Icon.FiLink}
+                      combined
+                    />
+                  </Tooltip>
+                )}
                 <Dropdown>
                   <DropdownMenuTrigger asChild className="radix-state-open:rounded-r-md">
                     <Button type="button" color="secondary" size="icon" StartIcon={Icon.FiMoreHorizontal} />
@@ -167,15 +169,18 @@ export default function TeamListItem(props: Props) {
                         </DropdownItem>
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        target="_blank"
-                        href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`}
-                        StartIcon={Icon.FiExternalLink}>
-                        {t("preview_team") as string}
-                      </DropdownItem>
-                    </DropdownMenuItem>
+                    {!team.slug && <TeamPublishButton teamId={team.id} />}
+                    {team.slug && (
+                      <DropdownMenuItem>
+                        <DropdownItem
+                          type="button"
+                          target="_blank"
+                          href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}`}
+                          StartIcon={Icon.FiExternalLink}>
+                          {t("preview_team") as string}
+                        </DropdownItem>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator className="h-px bg-gray-200" />
                     {isOwner && (
                       <DropdownMenuItem>
@@ -241,3 +246,29 @@ export default function TeamListItem(props: Props) {
     </li>
   );
 }
+
+const TeamPublishButton = ({ teamId }: { teamId: number }) => {
+  const { t } = useLocale();
+  const router = useRouter();
+  const publishTeamMutation = trpc.useMutation("viewer.teams.publish", {
+    onSuccess(data) {
+      router.push(data.url);
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
+  return (
+    <DropdownMenuItem>
+      <DropdownItem
+        type="button"
+        onClick={() => {
+          publishTeamMutation.mutate({ teamId });
+        }}
+        StartIcon={Icon.FiGlobe}>
+        {t("team_publish")}
+      </DropdownItem>
+    </DropdownMenuItem>
+  );
+};
