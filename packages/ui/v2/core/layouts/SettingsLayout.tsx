@@ -113,7 +113,6 @@ const SettingsSidebarContainer = ({ className = "" }) => {
 
   useEffect(() => {
     if (teams) {
-      console.log("🚀 ~ file: SettingsLayout.tsx ~ line 116 ~ useEffect ~ teams", teams);
       const teamStates = teams?.map((team) => ({ teamId: team.id, teamMenuOpen: false }));
       setTeamMenuState(teamStates);
     }
