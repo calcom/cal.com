@@ -152,7 +152,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
             <p>{member.name || member.email || t("team_member")}</p>
             {/* Assume that the first member of the team is the creator */}
             {index === 0 && <Badge variant="green">{t("you")}</Badge>}
-            {member.role !== "OWNER" && <Badge variant="orange">{t("pending")}</Badge>}
+            {!member.accepted && <Badge variant="orange">{t("pending")}</Badge>}
             {member.role === "MEMBER" && <Badge variant="gray">{t("member")}</Badge>}
             {member.role === "ADMIN" && <Badge variant="default">{t("admin")}</Badge>}
           </div>
