@@ -180,16 +180,9 @@ function getRegularOrDynamicEventType(
 
 const getMinimumStartTime = (
   desiredStartTime: Dayjs,
-  {
-    periodType,
-    minimumBookingNotice,
-    periodStartDate,
-  }: Pick<EventType, "periodType" | "periodStartDate" | "minimumBookingNotice">
+  { periodType, periodStartDate }: Pick<EventType, "periodType" | "periodStartDate">
 ) => {
-  const absoluteMinimum = dayjs()
-    .utcOffset(desiredStartTime.utcOffset())
-    .startOf("hour")
-    .add(minimumBookingNotice, "minutes");
+  const absoluteMinimum = dayjs().utcOffset(desiredStartTime.utcOffset()).startOf("day");
   if (periodType === PeriodType.RANGE) {
     const minimum = dayjs(periodStartDate).utcOffset(desiredStartTime.utcOffset()).startOf("day");
     if (minimum.isAfter(absoluteMinimum)) {
@@ -251,7 +244,6 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
 
   const minimumStartTime = getMinimumStartTime(startTime, {
     periodType: eventType.periodType,
-    minimumBookingNotice: eventType.minimumBookingNotice,
     periodStartDate: eventType.periodStartDate,
   });
   const maximumEndTime = getMaximumEndTime(endTime, {
