@@ -26,16 +26,16 @@ import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { AvailabilityTab } from "@components/v2/eventtype/AvailabilityTab";
+import { AvailabilityTab } from "@components/eventtype/AvailabilityTab";
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings
-import { EventAdvancedTab } from "@components/v2/eventtype/EventAdvancedTab";
-import { EventAppsTab } from "@components/v2/eventtype/EventAppsTab";
-import { EventLimitsTab } from "@components/v2/eventtype/EventLimitsTab";
-import { EventRecurringTab } from "@components/v2/eventtype/EventRecurringTab";
-import { EventSetupTab } from "@components/v2/eventtype/EventSetupTab";
-import { EventTeamTab } from "@components/v2/eventtype/EventTeamTab";
-import { EventTypeSingleLayout } from "@components/v2/eventtype/EventTypeSingleLayout";
-import EventWorkflowsTab from "@components/v2/eventtype/EventWorkfowsTab";
+import { EventAdvancedTab } from "@components/eventtype/EventAdvancedTab";
+import { EventAppsTab } from "@components/eventtype/EventAppsTab";
+import { EventLimitsTab } from "@components/eventtype/EventLimitsTab";
+import { EventRecurringTab } from "@components/eventtype/EventRecurringTab";
+import { EventSetupTab } from "@components/eventtype/EventSetupTab";
+import { EventTeamTab } from "@components/eventtype/EventTeamTab";
+import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
+import EventWorkflowsTab from "@components/eventtype/EventWorkfowsTab";
 
 import { getTranslation } from "@server/lib/i18n";
 

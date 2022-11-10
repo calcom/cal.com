@@ -781,7 +781,7 @@
   "analytics": "Analytics",
   "empty_installed_apps_headline": "No apps installed",
   "empty_installed_apps_description": "Apps enable you to enhance your workflow and improve your scheduling life significantly.",
-  "empty_installed_apps_button": "Explore the App Store or Install from below apps",
+  "empty_installed_apps_button": "Browse App Store",
   "manage_your_connected_apps": "Manage your installed apps or change settings",
   "browse_apps": "Browse Apps",
   "features": "Features",
@@ -1346,5 +1346,9 @@
   "choose_common_schedule_team_event": "Choose a common schedule",
   "choose_common_schedule_team_event_description": "Enable this if you want to use a common schedule between hosts. When disabled, each host will be booked based on their default schedule.",
   "sender_id": "Sender ID",
-  "sender_id_error_message":"Only letters, numbers and spaces allowed (max. 11 characters)"
+  "sender_id_error_message":"Only letters, numbers and spaces allowed (max. 11 characters)",
+  "test_routing_form": "Test Routing Form",
+  "test_preview": "Test Preview",
+  "route_to": "Route to",
+  "test_preview_description": "Test your routing form without submitting any data"
 }
