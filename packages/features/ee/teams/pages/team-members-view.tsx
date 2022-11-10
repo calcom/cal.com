@@ -7,6 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import { Button } from "@calcom/ui/components";
+import { showToast } from "@calcom/ui/v2/core";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 
@@ -16,17 +17,28 @@ import MemberListItem from "../components/MemberListItem";
 import TeamInviteList from "../components/TeamInviteList";
 
 const MembersView = () => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const router = useRouter();
   const session = useSession();
+  const utils = trpc.useContext();
+  const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
+  const teamId = Number(router.query.id);
 
-  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
+  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId }], {
     onError: () => {
       router.push("/settings");
     },
   });
 
-  const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
+  const inviteMemberMutation = trpc.useMutation("viewer.teams.inviteMember", {
+    async onSuccess() {
+      await utils.invalidateQueries(["viewer.teams.get"]);
+      setShowMemberInvitationModal(false);
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
 
   const isInviteOpen = !team?.membership.accepted;
 
@@ -93,7 +105,15 @@ const MembersView = () => {
               isOpen={showMemberInvitationModal}
               members={team.members}
               onExit={() => setShowMemberInvitationModal(false)}
-              onSubmit={() => setShowMemberInvitationModal(false)}
+              onSubmit={(values) => {
+                inviteMemberMutation.mutate({
+                  teamId,
+                  language: i18n.language,
+                  role: values.role.value,
+                  usernameOrEmail: values.emailOrUsername,
+                  sendEmailInvitation: values.sendInviteEmail,
+                });
+              }}
             />
           )}
         </>
