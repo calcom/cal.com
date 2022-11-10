@@ -118,7 +118,7 @@ export default function Availability({ schedule }: { schedule: number }) {
             </Skeleton>
             <Switch
               id="hiddenSwitch"
-              disabled={isLoading}
+              disabled={isLoading || data?.isDefault}
               checked={form.watch("isDefault")}
               onCheckedChange={(e) => {
                 form.setValue("isDefault", e);

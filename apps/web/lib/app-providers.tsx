@@ -1,7 +1,7 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { SessionProvider } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
-import { appWithTranslation } from "next-i18next";
+import { appWithTranslation, SSRConfig } from "next-i18next";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import { NextRouter } from "next/router";
@@ -14,9 +14,9 @@ import { MetaProvider } from "@calcom/ui/v2/core/Meta";
 
 import usePublicPage from "@lib/hooks/usePublicPage";
 
-const I18nextAdapter = appWithTranslation<NextJsAppProps & { children: React.ReactNode }>(({ children }) => (
-  <>{children}</>
-));
+const I18nextAdapter = appWithTranslation<NextJsAppProps<SSRConfig> & { children: React.ReactNode }>(
+  ({ children }) => <>{children}</>
+);
 
 // Workaround for https://github.com/vercel/next.js/issues/8592
 export type AppProps = Omit<NextAppProps, "Component"> & {

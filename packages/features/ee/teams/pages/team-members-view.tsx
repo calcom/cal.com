@@ -7,7 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import { Button } from "@calcom/ui/components";
-import { Alert } from "@calcom/ui/v2/core";
+import { showToast } from "@calcom/ui/v2/core";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 
@@ -15,15 +15,17 @@ import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import MemberInvitationModal from "../components/MemberInvitationModal";
 import MemberListItem from "../components/MemberListItem";
 import TeamInviteList from "../components/TeamInviteList";
-import { UpgradeToFlexibleProModal } from "../components/UpgradeToFlexibleProModal";
 
 const MembersView = () => {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const router = useRouter();
   const session = useSession();
+  const utils = trpc.useContext();
+  const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
+  const teamId = Number(router.query.id);
 
   const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
-    { teamId: Number(router.query.id) },
+    { teamId },
     {
       onError: () => {
         router.push("/settings");
@@ -31,7 +33,15 @@ const MembersView = () => {
     }
   );
 
-  const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(false);
+  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
+    async onSuccess() {
+      await utils.invalidateQueries(["viewer.teams.get"]);
+      setShowMemberInvitationModal(false);
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
 
   const isInviteOpen = !team?.membership.accepted;
 
@@ -59,44 +69,6 @@ const MembersView = () => {
                       },
                     ]}
                   />
-                )}
-                {team.membership.role === MembershipRole.OWNER &&
-                team.membership.isMissingSeat &&
-                team.requiresUpgrade ? (
-                  <Alert
-                    severity="warning"
-                    title={t("hidden_team_member_title")}
-                    message={
-                      <>
-                        {t("hidden_team_owner_message")} <UpgradeToFlexibleProModal teamId={team.id} />
-                      </>
-                    }
-                    className="mb-4 "
-                  />
-                ) : (
-                  <>
-                    {team.membership.isMissingSeat && (
-                      <Alert
-                        severity="warning"
-                        title={t("hidden_team_member_title")}
-                        message={t("hidden_team_member_message")}
-                        className="mb-4 "
-                      />
-                    )}
-                    {team.membership.role === MembershipRole.OWNER && team.requiresUpgrade && (
-                      <Alert
-                        severity="warning"
-                        title={t("upgrade_to_flexible_pro_title")}
-                        message={
-                          <span>
-                            {t("upgrade_to_flexible_pro_message")} <br />
-                            <UpgradeToFlexibleProModal teamId={team.id} />
-                          </span>
-                        }
-                        className="mb-4"
-                      />
-                    )}
-                  </>
                 )}
               </>
             )}
@@ -134,9 +106,17 @@ const MembersView = () => {
           {showMemberInvitationModal && team && (
             <MemberInvitationModal
               isOpen={showMemberInvitationModal}
-              team={team}
-              currentMember={team.membership.role}
+              members={team.members}
               onExit={() => setShowMemberInvitationModal(false)}
+              onSubmit={(values) => {
+                inviteMemberMutation.mutate({
+                  teamId,
+                  language: i18n.language,
+                  role: values.role.value,
+                  usernameOrEmail: values.emailOrUsername,
+                  sendEmailInvitation: values.sendInviteEmail,
+                });
+              }}
             />
           )}
         </>

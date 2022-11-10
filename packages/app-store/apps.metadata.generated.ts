@@ -30,8 +30,8 @@ import { metadata as qr_code_meta } from "./qr_code/_metadata";
 import { metadata as rainbow_meta } from "./rainbow/_metadata";
 import { metadata as raycast_meta } from "./raycast/_metadata";
 import { metadata as riverside_meta } from "./riverside/_metadata";
+import { metadata as sendgridothercalendar_meta } from "./sendgridothercalendar/_metadata";
 import { metadata as sirius_video_meta } from "./sirius_video/_metadata";
-import { metadata as slackmessaging_meta } from "./slackmessaging/_metadata";
 import { metadata as stripepayment_meta } from "./stripepayment/_metadata";
 import { metadata as tandemvideo_meta } from "./tandemvideo/_metadata";
 import { metadata as typeform_meta } from "./typeform/_metadata";
@@ -71,8 +71,8 @@ export const appStoreMetadata = {
   rainbow: rainbow_meta,
   raycast: raycast_meta,
   riverside: riverside_meta,
+  sendgridothercalendar: sendgridothercalendar_meta,
   sirius_video: sirius_video_meta,
-  slackmessaging: slackmessaging_meta,
   stripepayment: stripepayment_meta,
   tandemvideo: tandemvideo_meta,
   typeform: typeform_meta,

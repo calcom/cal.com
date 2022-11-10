@@ -157,7 +157,7 @@ const loggedInViewerRouter = router({
       locale: user.locale,
       timeFormat: user.timeFormat,
       timeZone: user.timeZone,
-      avatar: user.avatar,
+      avatar: `${CAL_URL}/${user.username}/avatar.png`,
       createdDate: user.createdDate,
       trialEndsAt: user.trialEndsAt,
       completedOnboarding: user.completedOnboarding,
