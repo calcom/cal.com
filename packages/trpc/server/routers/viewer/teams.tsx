@@ -2,12 +2,7 @@ import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 
-import {
-  addSeat,
-  ensureSubscriptionQuantityCorrectness,
-  getTeamSeatStats,
-  removeSeat,
-} from "@calcom/app-store/stripepayment/lib/team-billing";
+import { addSeat, removeSeat } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
 import {
@@ -490,22 +485,6 @@ export const viewerTeamsRouter = createProtectedRouter()
         },
         { user: member.user }
       );
-    },
-  })
-  .query("getTeamSeats", {
-    input: z.object({
-      teamId: z.number(),
-    }),
-    async resolve({ input }) {
-      return await getTeamSeatStats(input.teamId);
-    },
-  })
-  .mutation("ensureSubscriptionQuantityCorrectness", {
-    input: z.object({
-      teamId: z.number(),
-    }),
-    async resolve({ ctx, input }) {
-      return await ensureSubscriptionQuantityCorrectness(ctx.user.id, input.teamId);
     },
   })
   .query("getMembershipbyUser", {

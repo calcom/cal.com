@@ -42,21 +42,6 @@ async function getMembersMissingSeats(teamId: number) {
   };
 }
 
-// a helper for the upgrade dialog
-export async function getTeamSeatStats(teamId: number) {
-  const { membersMissingSeats, members, ownerIsMissingSeat } = await getMembersMissingSeats(teamId);
-  return {
-    totalMembers: members.length,
-    // members we need not pay for
-    freeSeats: members.length - membersMissingSeats.length,
-    // members we need to pay for (if not hosted cal, team billing is disabled)
-    missingSeats: HOSTED_CAL_FEATURES ? membersMissingSeats.length : 0,
-    // members who have been hidden from view
-    hiddenMembers: members.filter((m) => m.user.plan === UserPlan.FREE).length,
-    ownerIsMissingSeat: HOSTED_CAL_FEATURES ? ownerIsMissingSeat : false,
-  };
-}
-
 async function updatePerSeatQuantity(subscription: Stripe.Subscription, quantity: number) {
   const perSeatProPlan = subscription.items.data.find((item) => item.plan.id === getPerSeatProPlanPrice());
   // if their subscription does not contain Per Seat Pro, add it—otherwise, update the existing one
@@ -247,18 +232,4 @@ async function createCheckoutSession(
   };
 
   return await stripe.checkout.sessions.create(params);
-}
-
-// verifies that the subscription's quantity is correct for the number of members the team has
-// this is a function is a dev util, but could be utilized as a sync technique in the future
-export async function ensureSubscriptionQuantityCorrectness(userId: number, teamId: number) {
-  const subscription = await getProPlanSubscription(userId);
-  const stripeQuantity =
-    subscription?.items.data.find((item) => item.plan.id === getPerSeatProPlanPrice())?.quantity ?? 0;
-
-  const { membersMissingSeats } = await getMembersMissingSeats(teamId);
-  // correct the quantity if missing seats is out of sync with subscription quantity
-  if (subscription && membersMissingSeats.length !== stripeQuantity) {
-    await updatePerSeatQuantity(subscription, membersMissingSeats.length);
-  }
 }
