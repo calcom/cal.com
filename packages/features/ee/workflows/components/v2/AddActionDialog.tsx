@@ -135,21 +135,6 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                   <p className="mt-1 text-sm text-red-500">{form.formState.errors.action.message}</p>
                 )}
               </div>
-              {form.getValues("action") === WorkflowActions.SMS_ATTENDEE && (
-                <div className="mt-5">
-                  <Controller
-                    name="numberRequired"
-                    control={form.control}
-                    render={() => (
-                      <Checkbox
-                        defaultChecked={form.getValues("numberRequired") || false}
-                        description={t("make_phone_number_required")}
-                        onChange={(e) => form.setValue("numberRequired", e.target.checked)}
-                      />
-                    )}
-                  />
-                </div>
-              )}
               {isPhoneNumberNeeded && (
                 <div className="mt-5 space-y-1">
                   <Label htmlFor="sendTo">{t("phone_number")}</Label>
@@ -181,6 +166,21 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                     placeholder="Cal"
                     maxLength={11}
                     {...form.register(`sender`)}
+                  />
+                </div>
+              )}
+              {form.getValues("action") === WorkflowActions.SMS_ATTENDEE && (
+                <div className="mt-5">
+                  <Controller
+                    name="numberRequired"
+                    control={form.control}
+                    render={() => (
+                      <Checkbox
+                        defaultChecked={form.getValues("numberRequired") || false}
+                        description={t("make_phone_number_required")}
+                        onChange={(e) => form.setValue("numberRequired", e.target.checked)}
+                      />
+                    )}
                   />
                 </div>
               )}
