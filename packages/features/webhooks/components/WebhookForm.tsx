@@ -2,13 +2,13 @@ import { WebhookTriggerEvents } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
-import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui/components/button";
 import { Form, Label, TextArea, TextField } from "@calcom/ui/components/form";
 import Switch from "@calcom/ui/v2/core/Switch";
+import { ToggleGroup } from "@calcom/ui/v2/core/form/ToggleGroup";
 import Select from "@calcom/ui/v2/core/form/select";
 
 import customTemplate, { hasTemplateIntegration } from "../lib/integrationTemplate";
@@ -217,28 +217,24 @@ const WebhookForm = (props: {
           render={({ field: { value } }) => (
             <>
               <Label className="font-sm mt-8 text-gray-900">
-                <>{t("payload")}</>
+                <>{t("payload_template")}</>
               </Label>
-              <div className="flex rounded-md border">
-                <div
-                  className={classNames(
-                    "px-1/2 w-1/2 rounded-md  py-2.5 text-center font-medium text-gray-900",
-                    !useCustomTemplate && "bg-gray-200"
-                  )}
-                  onClick={() => {
-                    setUseCustomTemplate(false);
-                    formMethods.setValue("payloadTemplate", undefined);
-                  }}>
-                  <p>{t("default")}</p>
-                </div>
-                <div
-                  className={classNames(
-                    "px-1/2 w-1/2 rounded-md  py-2.5 text-center font-medium text-gray-900",
-                    useCustomTemplate && "bg-gray-200"
-                  )}
-                  onClick={() => setUseCustomTemplate(true)}>
-                  <p>{t("custom")}</p>
-                </div>
+              <div className="mb-2">
+                <ToggleGroup
+                  onValueChange={(val) => {
+                    if (val === "default") {
+                      setUseCustomTemplate(false);
+                      formMethods.setValue("payloadTemplate", undefined);
+                    } else {
+                      setUseCustomTemplate(true);
+                    }
+                  }}
+                  defaultValue={value ? "custom" : "default"}
+                  options={[
+                    { value: "default", label: t("default") },
+                    { value: "custom", label: t("custom") },
+                  ]}
+                />
               </div>
               {useCustomTemplate && (
                 <TextArea
