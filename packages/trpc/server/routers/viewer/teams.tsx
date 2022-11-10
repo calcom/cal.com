@@ -154,7 +154,10 @@ export const viewerTeamsRouter = createProtectedRouter()
         IS_TEAM_BILLING_ENABLED &&
         /** If the team doesn't have a slug we can assume that it hasn't been published yet. */ !prevTeam.slug
       ) {
-        data.metadata = { requestedSlug: input.slug };
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You cannot change the slug until you publish your team",
+        });
       } else {
         data.slug = input.slug;
       }
