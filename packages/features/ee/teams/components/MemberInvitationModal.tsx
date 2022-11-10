@@ -109,7 +109,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   </label>
                   <Select
                     defaultValue={options[0]}
-                    options={options.slice(0, 2)}
+                    options={options.filter((option) => option.value !== "OWNER")}
                     id="role"
                     name="role"
                     className="mt-1 block w-full rounded-sm border-gray-300 text-sm"
