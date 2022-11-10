@@ -235,6 +235,7 @@ export const workflowsRouter = createProtectedRouter()
           emailSubject: z.string().optional().nullable(),
           template: z.enum(WORKFLOW_TEMPLATES),
           numberRequired: z.boolean().nullable(),
+          sender: z.string().optional().nullable(),
         })
         .array(),
       trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
@@ -540,6 +541,7 @@ export const workflowsRouter = createProtectedRouter()
               emailSubject: newStep.template === WorkflowTemplates.CUSTOM ? newStep.emailSubject : null,
               template: newStep.template,
               numberRequired: newStep.numberRequired,
+              sender: newStep.sender || "Cal",
             },
           });
           //cancel all reminders of step and create new ones (not for newEventTypes)
@@ -676,6 +678,8 @@ export const workflowsRouter = createProtectedRouter()
         });
         addedSteps.forEach(async (step) => {
           if (step) {
+            const newStep = step;
+            newStep.sender = step.sender || "Cal";
             const createdStep = await ctx.prisma.workflowStep.create({
               data: step,
             });

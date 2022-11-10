@@ -38,6 +38,13 @@ export type FormValues = {
   timeUnit?: TimeUnit;
 };
 
+export function onlyLettersNumbersSpaces(str: string) {
+  if (str.length <= 11 && /^[A-Za-z0-9\s]*$/.test(str)) {
+    return true;
+  }
+  return false;
+}
+
 const formSchema = z.object({
   name: z.string(),
   activeOn: z.object({ value: z.string(), label: z.string() }).array(),
@@ -57,6 +64,11 @@ const formSchema = z.object({
       sendTo: z
         .string()
         .refine((val) => isValidPhoneNumber(val) || val.includes("@"))
+        .nullable(),
+      sender: z
+        .string()
+        .refine((val) => onlyLettersNumbersSpaces(val))
+        .optional()
         .nullable(),
     })
     .array(),
