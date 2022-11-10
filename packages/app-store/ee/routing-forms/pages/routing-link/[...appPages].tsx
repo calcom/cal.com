@@ -18,10 +18,10 @@ import showToast from "@calcom/ui/v2/core/notifications";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 
+import FormInputFields from "../../components/FormInputFields";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 import { processRoute } from "../../lib/processRoute";
 import { Response, Route } from "../../types/types";
-import { getQueryBuilderConfig } from "../route-builder/[...appPages]";
 
 function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getServerSideProps>) {
   const [customPageMessage, setCustomPageMessage] = useState<Route["action"]["value"]>("");
@@ -89,8 +89,6 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
 
   const [response, setResponse] = useState<Response>({});
 
-  const queryBuilderConfig = getQueryBuilderConfig(form);
-
   const handleOnSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSubmit(response);
@@ -124,57 +122,7 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
                         </p>
                       ) : null}
                     </div>
-                    {form.fields?.map((field) => {
-                      const widget = queryBuilderConfig.widgets[field.type];
-                      if (!("factory" in widget)) {
-                        return null;
-                      }
-                      const Component = widget.factory;
-
-                      const optionValues = field.selectText?.trim().split("\n");
-                      const options = optionValues?.map((value) => {
-                        const title = value;
-                        return {
-                          value,
-                          title,
-                        };
-                      });
-                      return (
-                        <div key={field.id} className="mb-4 block flex-col sm:flex ">
-                          <div className="min-w-48 mb-2 flex-grow">
-                            <label
-                              id="slug-label"
-                              htmlFor="slug"
-                              className="flex text-sm font-medium text-neutral-700 dark:text-white">
-                              {field.label}
-                            </label>
-                          </div>
-                          <div className="flex rounded-sm">
-                            <Component
-                              value={response[field.id]?.value}
-                              // required property isn't accepted by query-builder types
-                              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                              /* @ts-ignore */
-                              required={!!field.required}
-                              listValues={options}
-                              data-testid="field"
-                              setValue={(value) => {
-                                setResponse((response) => {
-                                  response = response || {};
-                                  return {
-                                    ...response,
-                                    [field.id]: {
-                                      label: field.label,
-                                      value,
-                                    },
-                                  };
-                                });
-                              }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
+                    <FormInputFields form={form} response={response} setResponse={setResponse} />
                     <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
                       <Button
                         className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast dark:hover:border-darkmodebrandcontrast dark:border-transparent"

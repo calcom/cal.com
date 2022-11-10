@@ -4,6 +4,7 @@ import dayjs, { Dayjs } from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { SkeletonText } from "@calcom/ui/v2";
 
@@ -130,6 +131,7 @@ const DatePicker = ({
   ...passThroughProps
 }: DatePickerProps & Partial<React.ComponentProps<typeof Days>>) => {
   const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
+  const { i18n } = useLocale();
 
   const changeMonth = (newMonth: number) => {
     if (onMonthChange) {
@@ -137,15 +139,17 @@ const DatePicker = ({
     }
   };
 
+  const month = browsingDate
+    ? new Intl.DateTimeFormat(i18n.language, { month: "long" }).format(new Date(browsingDate.toISOString()))
+    : null;
+
   return (
     <div className={className}>
       <div className="mb-4 flex justify-between text-xl font-light">
         <span className="w-1/2 dark:text-white">
           {browsingDate ? (
             <>
-              <strong className="text-bookingdarker text-base font-semibold dark:text-white">
-                {browsingDate.format("MMMM")}
-              </strong>{" "}
+              <strong className="text-bookingdarker text-base font-semibold dark:text-white">{month}</strong>{" "}
               <span className="text-bookinglight text-sm font-medium">{browsingDate.format("YYYY")}</span>
             </>
           ) : (
