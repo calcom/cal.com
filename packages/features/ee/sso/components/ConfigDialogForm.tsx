@@ -27,10 +27,10 @@ export default function ConfigDialogForm({
 
   const form = useForm<TeamSSOValues>();
 
-  const mutation = trpc.useMutation("viewer.saml.update", {
+  const mutation = trpc.viewer.saml.update.useMutation({
     async onSuccess() {
       telemetry.event(telemetryEventTypes.samlConfig, collectPageParameters());
-      await utils.invalidateQueries(["viewer.saml.get"]);
+      await utils.viewer.saml.get.invalidate();
       showToast(t("saml_config_updated_successfully"), "success");
       handleClose();
     },

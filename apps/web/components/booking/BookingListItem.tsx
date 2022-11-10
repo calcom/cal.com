@@ -8,7 +8,7 @@ import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterInputs, RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { Badge } from "@calcom/ui/components/badge";
@@ -24,13 +24,13 @@ import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 import TableActions, { ActionType } from "@components/ui/TableActions";
 
-type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
+type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["status"];
 
-type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
+type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
 type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
-  recurringInfo: inferQueryOutput<"viewer.bookings">["recurringInfo"][number] | undefined;
+  recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
 };
 
 function BookingListItem(booking: BookingItemProps) {
@@ -42,15 +42,15 @@ function BookingListItem(booking: BookingItemProps) {
   const router = useRouter();
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
-  const mutation = trpc.useMutation(["viewer.bookings.confirm"], {
+  const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: () => {
       setRejectionDialogIsOpen(false);
       showToast(t("booking_confirmation_success"), "success");
-      utils.invalidateQueries("viewer.bookings");
+      utils.viewer.bookings.invalidate();
     },
     onError: () => {
       showToast(t("booking_confirmation_failed"), "error");
-      utils.invalidateQueries("viewer.bookings");
+      utils.viewer.bookings.invalidate();
     },
   });
 
@@ -158,11 +158,11 @@ function BookingListItem(booking: BookingItemProps) {
   const startTime = dayjs(booking.startTime).format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
-  const setLocationMutation = trpc.useMutation("viewer.bookings.editLocation", {
+  const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
       showToast(t("location_updated"), "success");
       setIsOpenLocationDialog(false);
-      utils.invalidateQueries("viewer.bookings");
+      utils.viewer.bookings.invalidate();
     },
   });
 
