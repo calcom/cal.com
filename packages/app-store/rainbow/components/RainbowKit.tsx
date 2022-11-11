@@ -71,12 +71,12 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
   } = useSignMessage({
     message: ETH_MESSAGE,
   });
-  const { data: contractData, isLoading: isContractLoading } = trpc.useQuery([
-    "viewer.eth.contract",
-    { address: tokenAddress, chainId },
-  ]);
-  const { data: balanceData, isLoading: isBalanceLoading } = trpc.useQuery(
-    ["viewer.eth.balance", { address: address || "", tokenAddress, chainId }],
+  const { data: contractData, isLoading: isContractLoading } = trpc.viewer.eth.contract.useQuery({
+    address: tokenAddress,
+    chainId,
+  });
+  const { data: balanceData, isLoading: isBalanceLoading } = trpc.viewer.eth.balance.useQuery(
+    { address: address || "", tokenAddress, chainId },
     {
       enabled: !!address,
     }

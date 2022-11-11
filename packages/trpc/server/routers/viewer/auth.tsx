@@ -6,15 +6,17 @@ import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
-import { createProtectedRouter } from "../../createRouter";
+import { router, authedProcedure } from "../../trpc";
 
-export const authRouter = createProtectedRouter()
-  .mutation("changePassword", {
-    input: z.object({
-      oldPassword: z.string(),
-      newPassword: z.string(),
-    }),
-    async resolve({ input, ctx }) {
+export const authRouter = router({
+  changePassword: authedProcedure
+    .input(
+      z.object({
+        oldPassword: z.string(),
+        newPassword: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
       const { oldPassword, newPassword } = input;
 
       const { user } = ctx;
@@ -60,13 +62,14 @@ export const authRouter = createProtectedRouter()
           password: hashedPassword,
         },
       });
-    },
-  })
-  .mutation("verifyPassword", {
-    input: z.object({
-      passwordInput: z.string(),
     }),
-    async resolve({ input, ctx }) {
+  verifyPassword: authedProcedure
+    .input(
+      z.object({
+        passwordInput: z.string(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
       const user = await prisma.user.findUnique({
         where: {
           id: ctx.user.id,
@@ -84,5 +87,5 @@ export const authRouter = createProtectedRouter()
       }
 
       return;
-    },
-  });
+    }),
+});

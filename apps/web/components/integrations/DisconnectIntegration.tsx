@@ -18,7 +18,7 @@ export default function DisconnectIntegration(props: {
   const { t } = useLocale();
   const [modalOpen, setModalOpen] = useState(false);
 
-  const mutation = trpc.useMutation("viewer.deleteCredential", {
+  const mutation = trpc.viewer.deleteCredential.useMutation({
     onSettled: async () => {
       await props.onOpenChange(modalOpen);
     },

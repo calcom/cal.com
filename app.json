@@ -50,10 +50,6 @@
       "description": "Sendgrid api key. Used for email reminders in workflows",
       "value": ""
     },
-    "SENDGRID_SYNC_API_KEY": {
-      "description": "Sendgrid internal sync service",
-      "value": ""
-    },
     "SENDGRID_EMAIL": {
       "description": "Sendgrid email. Used for email reminders in workflows",
       "value": ""

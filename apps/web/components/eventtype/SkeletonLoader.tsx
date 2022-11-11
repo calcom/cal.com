@@ -1,7 +1,6 @@
 import { Icon } from "@calcom/ui/Icon";
 import { SkeletonAvatar, SkeletonContainer, SkeletonText } from "@calcom/ui/v2";
 
-/** @deprecated Use `apps/web/components/v2/eventtype/SkeletonLoader.tsx` */
 function SkeletonLoader() {
   return (
     <SkeletonContainer>
