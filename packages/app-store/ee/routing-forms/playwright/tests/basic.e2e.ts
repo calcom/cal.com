@@ -162,42 +162,54 @@ test.describe("Routing Forms", () => {
       return user;
     };
 
-    test("Routing Link should accept submission while routing works and responses can be downloaded", async ({
-      page,
-      users,
-    }) => {
+    test("Routing Link - Reporting and CSV Download ", async ({ page, users }) => {
       const user = await createUserAndLoginAndInstallApp({ users, page });
       const routingForm = user.routingForms[0];
-
+      test.setTimeout(120000);
       // Fill form when you are logged out
       await users.logout();
-      await gotoRoutingLink(page, routingForm.id);
-      await page.fill('[data-testid="field"]', "event-routing");
-      page.click('button[type="submit"]');
-      await page.waitForNavigation({
-        url(url) {
-          return url.pathname.endsWith("/pro/30min");
-        },
-      });
 
-      await gotoRoutingLink(page, routingForm.id);
-      await page.fill('[data-testid="field"]', "external-redirect");
-      page.click('button[type="submit"]');
-      await page.waitForNavigation({
-        url(url) {
-          return url.hostname.includes("google.com");
-        },
-      });
-
-      await gotoRoutingLink(page, routingForm.id);
-      await page.fill('[data-testid="field"]', "custom-page");
-      await page.click('button[type="submit"]');
-      await page.isVisible("text=Custom Page Result");
+      await fillSeededForm(page, routingForm.id);
 
       // Log back in to view form responses.
       await user.login();
 
-      await page.goto(`/apps/routing-forms/route-builder/${routingForm.id}`);
+      await page.goto(`/apps/routing-forms/reporting/${routingForm.id}`);
+      // Can't keep waiting forever. So, added a timeout of 5000ms
+      await page.waitForResponse((response) => response.url().includes("viewer.appRoutingForms.report"), {
+        timeout: 5000,
+      });
+      const headerEls = page.locator("[data-testid='reporting-header'] th");
+      // Once the response is there, React would soon render it, so 500ms is enough
+      await headerEls.first().waitFor({
+        timeout: 500,
+      });
+      const numHeaderEls = await headerEls.count();
+      const headers = [];
+      for (let i = 0; i < numHeaderEls; i++) {
+        headers.push(await headerEls.nth(i).innerText());
+      }
+
+      const responses = [];
+      const responseRows = page.locator("[data-testid='reporting-row']");
+      const numResponseRows = await responseRows.count();
+      for (let i = 0; i < numResponseRows; i++) {
+        const rowLocator = responseRows.nth(i).locator("td");
+        const numRowEls = await rowLocator.count();
+        const rowResponses = [];
+        for (let j = 0; j < numRowEls; j++) {
+          rowResponses.push(await rowLocator.nth(j).innerText());
+        }
+        responses.push(rowResponses);
+      }
+
+      expect(headers).toEqual(["Test field", "Multi Select"]);
+      expect(responses).toEqual([
+        ["event-routing", ""],
+        ["external-redirect", ""],
+        ["custom-page", ""],
+      ]);
+
       const [download] = await Promise.all([
         // Start waiting for the download
         page.waitForEvent("download"),
@@ -273,3 +285,27 @@ test.describe("Routing Forms", () => {
     });
   });
 });
+async function fillSeededForm(page: Page, routingFormId: string) {
+  await gotoRoutingLink(page, routingFormId);
+  await page.fill('[data-testid="field"]', "event-routing");
+  page.click('button[type="submit"]');
+  await page.waitForNavigation({
+    url(url) {
+      return url.pathname.endsWith("/pro/30min");
+    },
+  });
+
+  await gotoRoutingLink(page, routingFormId);
+  await page.fill('[data-testid="field"]', "external-redirect");
+  page.click('button[type="submit"]');
+  await page.waitForNavigation({
+    url(url) {
+      return url.hostname.includes("google.com");
+    },
+  });
+
+  await gotoRoutingLink(page, routingFormId);
+  await page.fill('[data-testid="field"]', "custom-page");
+  await page.click('button[type="submit"]');
+  await page.isVisible("text=Custom Page Result");
+}
