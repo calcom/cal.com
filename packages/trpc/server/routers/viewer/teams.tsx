@@ -592,7 +592,7 @@ export const viewerTeamsRouter = router({
       if (!metadata.success || !metadata.data?.requestedSlug)
         throw new TRPCError({ code: "BAD_REQUEST", message: "Can't publish team without `requestedSlug`" });
 
-      // if payment needed, responded with checkout url
+      // if payment needed, respond with checkout url
       if (IS_TEAM_BILLING_ENABLED) {
         const checkoutSession = await purchaseTeamSubscription({
           teamId: prevTeam.id,
