@@ -73,6 +73,7 @@ const useSlots = ({
   endTime,
   usernameList,
   timeZone,
+  useSlotsProxy,
 }: {
   eventTypeId: number;
   eventTypeSlug: string;
@@ -81,6 +82,7 @@ const useSlots = ({
   endTime?: Dayjs;
   usernameList: string[];
   timeZone?: string;
+  useSlotsProxy: boolean;
 }) => {
   const { data, isLoading, isPaused } = trpc.useQuery(
     [
@@ -95,7 +97,7 @@ const useSlots = ({
         timeZone,
       },
     ],
-    { enabled: !!startTime && !!endTime, trpc: { context: { slotsProxyUrl: true } } }
+    { enabled: !!startTime && !!endTime, trpc: { context: { slotsProxyUrl: useSlotsProxy } } }
   );
   const [cachedSlots, setCachedSlots] = useState<NonNullable<typeof data>["slots"]>({});
 
@@ -132,6 +134,7 @@ const SlotPicker = ({
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
   const { date, setQuery: setDate } = useRouterQuery("date");
   const { month, setQuery: setMonth } = useRouterQuery("month");
+  const { useSlotsProxy } = useRouterQuery("useSlotsProxy");
   const router = useRouter();
   const slotPickerRef = useRef<HTMLDivElement>(null);
 
@@ -169,6 +172,7 @@ const SlotPicker = ({
     startTime: selectedDate?.startOf("day"),
     endTime: selectedDate?.endOf("day"),
     timeZone,
+    useSlotsProxy: useSlotsProxy !== "false",
   });
   const { slots: _2, isLoading } = useSlots({
     eventTypeId: eventType.id,
@@ -178,6 +182,7 @@ const SlotPicker = ({
     startTime: browsingDate?.startOf("month"),
     endTime: browsingDate?.endOf("month"),
     timeZone,
+    useSlotsProxy: useSlotsProxy !== "false",
   });
 
   const slots = useMemo(() => ({ ..._2, ..._1 }), [_1, _2]);
