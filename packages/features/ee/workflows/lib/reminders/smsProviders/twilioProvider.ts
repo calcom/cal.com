@@ -19,18 +19,19 @@ function assertTwilio(twilio: TwilioClient.Twilio | undefined): asserts twilio i
   if (!twilio) throw new Error("Twilio credentials are missing from the .env file");
 }
 
-export const sendSMS = async (phoneNumber: string, body: string) => {
+export const sendSMS = async (phoneNumber: string, body: string, sender: string) => {
   assertTwilio(twilio);
   const response = await twilio.messages.create({
     body: body,
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
     to: phoneNumber,
+    from: sender,
   });
 
   return response;
 };
 
-export const scheduleSMS = async (phoneNumber: string, body: string, scheduledDate: Date) => {
+export const scheduleSMS = async (phoneNumber: string, body: string, scheduledDate: Date, sender: string) => {
   assertTwilio(twilio);
   const response = await twilio.messages.create({
     body: body,
@@ -38,6 +39,7 @@ export const scheduleSMS = async (phoneNumber: string, body: string, scheduledDa
     to: phoneNumber,
     scheduleType: "fixed",
     sendAt: scheduledDate,
+    from: sender,
   });
 
   return response;

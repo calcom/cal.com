@@ -105,7 +105,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             break;
         }
         if (message?.length && message?.length > 0 && sendTo) {
-          const scheduledSMS = await twilio.scheduleSMS(sendTo, message, reminder.scheduledDate);
+          const scheduledSMS = await twilio.scheduleSMS(
+            sendTo,
+            message,
+            reminder.scheduledDate,
+            reminder.workflowStep.sender || "Cal"
+          );
 
           await prisma.workflowReminder.update({
             where: {
