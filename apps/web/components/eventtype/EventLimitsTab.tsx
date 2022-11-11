@@ -2,7 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
 import { useMemo, useRef, useState } from "react";
-import { useFormContext, Controller, useWatch } from "react-hook-form";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
 import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
@@ -12,18 +12,13 @@ import { PeriodType } from "@calcom/prisma/client";
 import type { BookingLimit } from "@calcom/types/Calendar";
 import { Icon } from "@calcom/ui";
 import { Button } from "@calcom/ui/components";
-import { Label, Input, InputField } from "@calcom/ui/components/form";
+import { Input, InputField, Label } from "@calcom/ui/components/form";
 import { Select, SettingsToggle } from "@calcom/ui/v2";
 import DateRangePicker from "@calcom/ui/v2/core/form/date-range-picker/DateRangePicker";
 
-type EventLimitType = {
-  eventType: Pick<EventTypeSetupInfered, "eventType">;
-};
-
-export const EventLimitsTab = (props: EventLimitType) => {
+export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupInfered, "eventType">) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
-  const { eventType } = props;
   const minimumBookingNoticeType = useRef(findDurationType(eventType.minimumBookingNotice));
   const prevBookingNoticeType = useRef(minimumBookingNoticeType.current);
 
