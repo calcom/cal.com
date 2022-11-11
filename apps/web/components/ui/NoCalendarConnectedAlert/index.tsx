@@ -10,7 +10,7 @@ import { LinkText } from "../LinkText";
 const NoCalendarConnectedAlert = () => {
   const { t } = useTranslation();
 
-  const query = trpc.useQuery(["viewer.connectedCalendars"]);
+  const query = trpc.viewer.connectedCalendars.useQuery();
   // We are not gonna show this alert till we fetch data from DB
   let defaultCalendarConnected = true;
   if (query.isSuccess && query.isFetched && query.data) {

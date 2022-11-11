@@ -27,16 +27,16 @@ const ConferencingLayout = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const { data: apps, isLoading } = trpc.useQuery(
-    ["viewer.integrations", { variant: "conferencing", onlyInstalled: true }],
+  const { data: apps, isLoading } = trpc.viewer.integrations.useQuery(
+    { variant: "conferencing", onlyInstalled: true },
     {
       suspense: true,
     }
   );
-  const deleteAppMutation = trpc.useMutation("viewer.deleteCredential", {
+  const deleteAppMutation = trpc.viewer.deleteCredential.useMutation({
     onSuccess: () => {
       showToast("Integration deleted successfully", "success");
-      utils.invalidateQueries(["viewer.integrations", { variant: "conferencing", onlyInstalled: true }]);
+      utils.viewer.integrations.invalidate({ variant: "conferencing", onlyInstalled: true });
       setDeleteAppModal(false);
     },
     onError: () => {

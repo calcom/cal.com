@@ -54,10 +54,10 @@ const CalendarsView = () => {
 
   const utils = trpc.useContext();
 
-  const query = trpc.useQuery(["viewer.connectedCalendars"]);
-  const mutation = trpc.useMutation("viewer.setDestinationCalendar", {
+  const query = trpc.viewer.connectedCalendars.useQuery();
+  const mutation = trpc.viewer.setDestinationCalendar.useMutation({
     async onSettled() {
-      await utils.invalidateQueries(["viewer.connectedCalendars"]);
+      await utils.viewer.connectedCalendars.invalidate();
     },
   });
 

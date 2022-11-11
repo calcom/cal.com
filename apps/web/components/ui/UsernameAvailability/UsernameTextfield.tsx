@@ -63,16 +63,17 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
 
   const utils = trpc.useContext();
 
-  const updateUsernameMutation = trpc.useMutation("viewer.updateProfile", {
+  const updateUsernameMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
       setOpenDialogSaveUsername(false);
+      setCurrentUsername(inputUsernameValue);
     },
     onError: (error) => {
       onErrorMutation && onErrorMutation(error);
     },
     async onSettled() {
-      await utils.invalidateQueries(["viewer.public.i18n"]);
+      await utils.viewer.public.i18n.invalidate();
     },
   });
 
@@ -104,10 +105,9 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
   };
 
   const updateUsername = async () => {
-    await updateUsernameMutation.mutate({
+    updateUsernameMutation.mutate({
       username: inputUsernameValue,
     });
-    setCurrentUsername(inputUsernameValue);
   };
 
   return (

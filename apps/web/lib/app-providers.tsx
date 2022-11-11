@@ -9,7 +9,7 @@ import { ComponentProps, ReactNode } from "react";
 
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
-import { trpc, proxy } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { MetaProvider } from "@calcom/ui/v2/core/Meta";
 
 import usePublicPage from "@lib/hooks/usePublicPage";
@@ -38,8 +38,9 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
    * We intend to not cache i18n query
    **/
-  const { i18n, locale } = trpc.useQuery(["viewer.public.i18n"], { trpc: { context: { skipBatch: true } } })
-    .data ?? {
+  const { i18n, locale } = trpc.viewer.public.i18n.useQuery(undefined, {
+    trpc: { context: { skipBatch: true } },
+  }).data ?? {
     locale: "en",
   };
 
@@ -55,7 +56,7 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
 };
 
 const AppProviders = (props: AppPropsWithChildren) => {
-  const session = proxy.public.session.useQuery().data;
+  const session = trpc.viewer.public.session.useQuery().data;
   // No need to have intercom on public pages - Good for Page Performance
   const isPublicPage = usePublicPage();
   const isThemeSupported =

@@ -37,8 +37,8 @@ const SkeletonLoader = () => {
 const AppearanceView = () => {
   const { t } = useLocale();
 
-  const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
-  const mutation = trpc.useMutation("viewer.updateProfile", {
+  const { data: user, isLoading } = trpc.viewer.me.useQuery();
+  const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: () => {
       showToast(t("settings_updated_successfully"), "success");
     },

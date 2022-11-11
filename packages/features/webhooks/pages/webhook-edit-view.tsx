@@ -18,24 +18,27 @@ const EditWebhook = () => {
   const router = useRouter();
 
   function Component({ webhookId }: { webhookId: string }) {
-    const { data: installedApps, isLoading } = trpc.useQuery(
-      ["viewer.integrations", { variant: "other", onlyInstalled: true }],
+    const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery(
+      { variant: "other", onlyInstalled: true },
       {
         suspense: true,
         enabled: router.isReady,
       }
     );
-    const { data: webhook } = trpc.useQuery(["viewer.webhook.get", { webhookId }], {
+    const { data: webhook } = trpc.viewer.webhook.get.useQuery(
+      { webhookId },
+      {
+        suspense: true,
+        enabled: router.isReady,
+      }
+    );
+    const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
       suspense: true,
       enabled: router.isReady,
     });
-    const { data: webhooks } = trpc.useQuery(["viewer.webhook.list"], {
-      suspense: true,
-      enabled: router.isReady,
-    });
-    const editWebhookMutation = trpc.useMutation("viewer.webhook.edit", {
+    const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
       async onSuccess() {
-        await utils.invalidateQueries(["viewer.webhook.list"]);
+        await utils.viewer.webhook.list.invalidate();
         showToast(t("webhook_updated_successfully"), "success");
         router.back();
       },
