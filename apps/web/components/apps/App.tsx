@@ -60,11 +60,14 @@ const Component = ({
   }).format(price);
 
   const [existingCredentials, setExistingCredentials] = useState<number[]>([]);
-  const appCredentials = trpc.useQuery(["viewer.appCredentialsByType", { appType: type }], {
-    onSuccess(data) {
-      setExistingCredentials(data);
-    },
-  });
+  const appCredentials = trpc.viewer.appCredentialsByType.useQuery(
+    { appType: type },
+    {
+      onSuccess(data) {
+        setExistingCredentials(data);
+      },
+    }
+  );
 
   const allowedMultipleInstalls = categories.indexOf("calendar") > -1;
 

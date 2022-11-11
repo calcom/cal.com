@@ -80,7 +80,7 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
 };
 
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
-  ({ children, title, Icon, actionProps, ...props }, forwardedRef) => {
+  ({ children, title, Icon, actionProps, useOwnActionButtons, ...props }, forwardedRef) => {
     const { t } = useLocale();
 
     return (
@@ -122,7 +122,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               </div>
             </div>
           )}
-          {!props.useOwnActionButtons && (
+          {!useOwnActionButtons && (
             <DialogFooter>
               <div className="mt-2 flex space-x-2">
                 <DialogClose asChild>

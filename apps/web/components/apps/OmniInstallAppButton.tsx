@@ -22,7 +22,7 @@ export default function OmniInstallAppButton({ appId, className }: { appId: stri
       //TODO: viewer.appById might be replaced with viewer.apps so that a single query needs to be invalidated.
       utils.invalidateQueries(["viewer.appById", { appId }]);
       utils.invalidateQueries(["viewer.apps", { extendsFeature: "EventType" }]);
-      if (data.showToast !== undefined && data.showToast) {
+      if (data.noRedirection !== undefined && data.noRedirection) {
         showToast(t("app_successfully_installed"), "success");
       }
     },
