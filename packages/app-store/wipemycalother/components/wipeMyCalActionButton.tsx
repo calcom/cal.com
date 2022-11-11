@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { trpc } from "@calcom/trpc/react";
-import Button from "@calcom/ui/v2/core/Button";
+import { Button } from "@calcom/ui/components/button";
 
 import { ConfirmDialog } from "./confirmDialog";
 
@@ -13,10 +13,10 @@ interface IWipeMyCalActionButtonProps {
 const WipeMyCalActionButton = (props: IWipeMyCalActionButtonProps) => {
   const { bookingsEmpty, bookingStatus } = props;
   const [openDialog, setOpenDialog] = useState(false);
-  const { isSuccess, isLoading, data } = trpc.useQuery([
-    "viewer.integrations",
-    { variant: "other", onlyInstalled: undefined },
-  ]);
+  const { isSuccess, isLoading, data } = trpc.viewer.integrations.useQuery({
+    variant: "other",
+    onlyInstalled: undefined,
+  });
 
   if (bookingStatus !== "upcoming" || bookingsEmpty) {
     return <></>;

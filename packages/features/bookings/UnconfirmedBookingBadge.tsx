@@ -2,11 +2,11 @@ import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import Badge from "@calcom/ui/v2/core/Badge";
+import { Badge } from "@calcom/ui/components/badge/Badge";
 
 export default function UnconfirmedBookingBadge() {
   const { t } = useLocale();
-  const { data: unconfirmedBookingCount } = trpc.useQuery(["viewer.bookingUnconfirmedCount"]);
+  const { data: unconfirmedBookingCount } = trpc.viewer.bookingUnconfirmedCount.useQuery();
   if (!unconfirmedBookingCount) return null;
   else
     return (

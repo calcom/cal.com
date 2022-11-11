@@ -10,21 +10,14 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import objectKeys from "@calcom/lib/objectKeys";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import {
-  Button,
-  Dialog,
-  DialogTrigger,
-  Form,
-  LinkIconButton,
-  showToast,
-  TextField,
-} from "@calcom/ui/v2/core";
-import Avatar from "@calcom/ui/v2/core/Avatar";
+import { Avatar, Button, Form, Label, TextArea, TextField } from "@calcom/ui/components";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
+import { Dialog, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
 import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
+import LinkIconButton from "@calcom/ui/v2/core/LinkIconButton";
 import Meta from "@calcom/ui/v2/core/Meta";
-import { Label, TextArea } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
+import showToast from "@calcom/ui/v2/core/notifications";
 
 interface TeamProfileValues {
   name: string;
@@ -39,50 +32,53 @@ const ProfileView = () => {
   const utils = trpc.useContext();
   const session = useSession();
 
-  const mutation = trpc.useMutation("viewer.teams.update", {
+  const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
       showToast(err.message, "error");
     },
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
+      await utils.viewer.teams.get.invalidate();
       showToast(t("your_team_updated_successfully"), "success");
     },
   });
 
   const form = useForm<TeamProfileValues>();
 
-  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
-    onError: () => {
-      router.push("/settings");
-    },
-    onSuccess: (team) => {
-      if (team) {
-        form.setValue("name", team.name || "");
-        form.setValue("url", team.slug || "");
-        form.setValue("logo", team.logo || "");
-        form.setValue("bio", team.bio || "");
-      }
-    },
-  });
+  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
+    { teamId: Number(router.query.id) },
+    {
+      onError: () => {
+        router.push("/settings");
+      },
+      onSuccess: (team) => {
+        if (team) {
+          form.setValue("name", team.name || "");
+          form.setValue("url", team.slug || "");
+          form.setValue("logo", team.logo || "");
+          form.setValue("bio", team.bio || "");
+        }
+      },
+    }
+  );
 
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
   const permalink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team?.slug}`;
 
-  const deleteTeamMutation = trpc.useMutation("viewer.teams.delete", {
+  const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
-      await utils.invalidateQueries(["viewer.teams.list"]);
-      router.push(`/settings`);
-      showToast(t("your_team_updated_successfully"), "success");
+      await utils.viewer.teams.get.invalidate();
+      await utils.viewer.teams.list.invalidate();
+      showToast(t("your_team_disbanded_successfully"), "success");
+      router.push(`${WEBAPP_URL}/teams`);
     },
   });
 
-  const removeMemberMutation = trpc.useMutation("viewer.teams.removeMember", {
+  const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
-      await utils.invalidateQueries(["viewer.teams.list"]);
+      await utils.viewer.teams.get.invalidate();
+      await utils.viewer.teams.list.invalidate();
       showToast(t("success"), "success");
     },
     async onError(err) {

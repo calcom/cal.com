@@ -4,8 +4,8 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import Badge from "@calcom/ui/v2/core/Badge";
-import Button from "@calcom/ui/v2/core/Button";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
 import Dropdown, {
   DropdownItem,
   DropdownMenuContent,
@@ -28,9 +28,9 @@ const ApiKeyListItem = ({
   const isExpired = apiKey?.expiresAt ? apiKey.expiresAt < new Date() : null;
   const neverExpires = apiKey?.expiresAt === null;
 
-  const deleteApiKey = trpc.useMutation("viewer.apiKeys.delete", {
+  const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.apiKeys.list"]);
+      await utils.viewer.apiKeys.list.invalidate();
     },
   });
 

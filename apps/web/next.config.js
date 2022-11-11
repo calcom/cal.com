@@ -1,5 +1,6 @@
 require("dotenv").config({ path: "../../.env" });
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const { withSentryConfig } = require("@sentry/nextjs");
 
 const withTM = require("next-transpile-modules")([
   "@calcom/app-store",
@@ -26,7 +27,8 @@ if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_E
 if (process.env.VERCEL_URL && !process.env.NEXT_PUBLIC_WEBAPP_URL) {
   process.env.NEXT_PUBLIC_WEBAPP_URL = "https://" + process.env.VERCEL_URL;
 }
-if (process.env.NEXT_PUBLIC_WEBAPP_URL) {
+// Check for configuration of NEXTAUTH_URL before overriding
+if (!process.env.NEXTAUTH_URL && process.env.NEXT_PUBLIC_WEBAPP_URL) {
   process.env.NEXTAUTH_URL = process.env.NEXT_PUBLIC_WEBAPP_URL + "/api/auth";
 }
 if (!process.env.NEXT_PUBLIC_WEBSITE_URL) {
@@ -228,6 +230,18 @@ const nextConfig = {
 
     return redirects;
   },
+  sentry: {
+    hideSourceMaps: true,
+  },
 };
 
-module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
+const sentryWebpackPluginOptions = {
+  silent: true, // Suppresses all logs
+};
+
+const moduleExports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
+
+// Sentry should be the last thing to export to catch everything right
+module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
+  ? withSentryConfig(moduleExports, sentryWebpackPluginOptions)
+  : moduleExports;

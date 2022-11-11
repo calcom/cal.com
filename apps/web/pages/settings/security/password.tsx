@@ -5,9 +5,9 @@ import { useForm } from "react-hook-form";
 import { identityProviderNameMap } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import Button from "@calcom/ui/v2/core/Button";
+import { Button } from "@calcom/ui/components/button";
+import { Form, PasswordField } from "@calcom/ui/components/form";
 import Meta from "@calcom/ui/v2/core/Meta";
-import { Form, PasswordField } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
 
@@ -18,9 +18,9 @@ type ChangePasswordFormValues = {
 
 const PasswordView = () => {
   const { t } = useLocale();
-  const { data: user } = trpc.useQuery(["viewer.me"]);
+  const { data: user } = trpc.viewer.me.useQuery();
 
-  const mutation = trpc.useMutation("viewer.auth.changePassword", {
+  const mutation = trpc.viewer.auth.changePassword.useMutation({
     onSuccess: () => {
       showToast(t("password_has_been_changed"), "success");
     },

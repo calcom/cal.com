@@ -9,6 +9,8 @@ import { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 import { AppProps } from "@lib/app-providers";
 import { getSession } from "@lib/auth";
 
+import { ssrInit } from "@server/lib/ssr";
+
 type AppPageType = {
   getServerSideProps: AppGetServerSideProps;
   // A component than can accept any properties
@@ -128,7 +130,8 @@ export async function getServerSideProps(
         appPages: string[];
       }>,
       prisma,
-      user
+      user,
+      ssrInit
     );
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore

@@ -6,9 +6,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
 import { Icon } from "@calcom/ui/Icon";
-import { ButtonGroup, DropdownMenuSeparator, Tooltip } from "@calcom/ui/v2";
+import { Badge, ButtonGroup } from "@calcom/ui/components";
+import { DropdownMenuSeparator, Tooltip } from "@calcom/ui/v2";
 import { EmptyScreen } from "@calcom/ui/v2";
-import { Badge } from "@calcom/ui/v2";
 import { List, ListLinkItem } from "@calcom/ui/v2/core/List";
 import Shell, { ShellMain } from "@calcom/ui/v2/core/Shell";
 
@@ -22,7 +22,9 @@ export default function RoutingForms({
   appUrl,
 }: inferSSRProps<typeof getServerSideProps> & { appUrl: string }) {
   const { t } = useLocale();
-  const { data: forms } = trpc.useQuery(["viewer.app_routing_forms.forms"], { initialData: forms_ });
+  const { data: forms } = trpc.viewer.appRoutingForms.forms.useQuery(undefined, {
+    initialData: forms_,
+  });
 
   const { data: typeformApp } = useApp("typeform");
 
@@ -96,6 +98,7 @@ export default function RoutingForms({
                                   action="edit"
                                   routingForm={form}
                                   color="minimal"
+                                  className="!flex"
                                   StartIcon={Icon.FiEdit}>
                                   {t("edit")}
                                 </FormAction>

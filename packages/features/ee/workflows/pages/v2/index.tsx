@@ -4,9 +4,9 @@ import { useRouter } from "next/router";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Icon } from "@calcom/ui";
-import { Alert, Button, showToast } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/components";
+import { showToast } from "@calcom/ui/v2";
 import Shell from "@calcom/ui/v2/core/Shell";
 
 import LicenseRequired from "../../../common/components/v2/LicenseRequired";
@@ -19,9 +19,9 @@ function WorkflowsPage() {
   const session = useSession();
   const router = useRouter();
 
-  const { data, isLoading } = trpc.useQuery(["viewer.workflows.list"]);
+  const { data, isLoading } = trpc.viewer.workflows.list.useQuery();
 
-  const createMutation = trpc.useMutation("viewer.workflows.createV2", {
+  const createMutation = trpc.viewer.workflows.createV2.useMutation({
     onSuccess: async ({ workflow }) => {
       await router.replace("/workflows/" + workflow.id);
     },

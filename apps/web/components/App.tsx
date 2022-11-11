@@ -11,7 +11,7 @@ import { App as AppType } from "@calcom/types/App";
 import { Button, SkeletonButton } from "@calcom/ui";
 import { Icon } from "@calcom/ui/Icon";
 import Shell from "@calcom/ui/Shell";
-import Badge from "@calcom/ui/v2/core/Badge";
+import { Badge } from "@calcom/ui/components/badge";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 import DisconnectIntegration from "@components/integrations/DisconnectIntegration";
@@ -36,11 +36,11 @@ const Component = ({
 }: Parameters<typeof App>[0]) => {
   const { t } = useLocale();
   const router = useRouter();
-  const { data: user } = trpc.useQuery(["viewer.me"]);
+  const { data: user } = trpc.viewer.me.useQuery();
 
   const utils = trpc.useContext();
   const handleOpenChange = () => {
-    utils.invalidateQueries(["viewer.integrations"]);
+    utils.viewer.integrations.invalidate();
     router.replace("/apps/installed");
   };
 
@@ -60,11 +60,14 @@ const Component = ({
   }).format(price);
 
   const [existingCredentials, setExistingCredentials] = useState<number[]>([]);
-  const appCredentials = trpc.useQuery(["viewer.appCredentialsByType", { appType: type }], {
-    onSuccess(data) {
-      setExistingCredentials(data);
-    },
-  });
+  const appCredentials = trpc.viewer.appCredentialsByType.useQuery(
+    { appType: type },
+    {
+      onSuccess(data) {
+        setExistingCredentials(data);
+      },
+    }
+  );
 
   const allowedMultipleInstalls = categories.indexOf("calendar") > -1;
 

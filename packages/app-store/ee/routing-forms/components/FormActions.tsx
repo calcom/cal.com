@@ -12,18 +12,15 @@ import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
+import { Button, ButtonProps } from "@calcom/ui/components/button";
+import { Form, TextField, TextAreaField } from "@calcom/ui/components/form";
 import {
-  Button,
-  ButtonProps,
   Dropdown,
   DropdownMenuItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-  Form,
   showToast,
   Switch,
-  TextField,
-  TextAreaField,
 } from "@calcom/ui/v2";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
@@ -60,7 +57,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
   const router = useRouter();
   const utils = trpc.useContext();
 
-  const mutation = trpc.useMutation("viewer.app_routing_forms.formMutation", {
+  const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess: (_data, variables) => {
       router.push(`${appUrl}/form-edit/${variables.id}`);
     },
@@ -68,7 +65,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
       showToast(`Something went wrong`, "error");
     },
     onSettled: () => {
-      utils.invalidateQueries("viewer.app_routing_forms.forms");
+      utils.viewer.appRoutingForms.forms.invalidate();
     },
   });
 
@@ -164,13 +161,13 @@ function Dialogs({
 }) {
   const utils = trpc.useContext();
   const router = useRouter();
-  const deleteMutation = trpc.useMutation("viewer.app_routing_forms.deleteForm", {
+  const deleteMutation = trpc.viewer.appRoutingForms.deleteForm.useMutation({
     onMutate: async ({ id: formId }) => {
-      await utils.cancelQuery(["viewer.app_routing_forms.forms"]);
-      const previousValue = utils.getQueryData(["viewer.app_routing_forms.forms"]);
+      await utils.viewer.appRoutingForms.forms.cancel();
+      const previousValue = utils.viewer.appRoutingForms.forms.getData();
       if (previousValue) {
         const filtered = previousValue.filter(({ id }) => id !== formId);
-        utils.setQueryData(["viewer.app_routing_forms.forms"], filtered);
+        utils.viewer.appRoutingForms.forms.setData(undefined, filtered);
       }
       return { previousValue };
     },
@@ -180,12 +177,12 @@ function Dialogs({
       router.replace(`${appUrl}/forms`);
     },
     onSettled: () => {
-      utils.invalidateQueries(["viewer.app_routing_forms.forms"]);
+      utils.viewer.appRoutingForms.forms.invalidate();
       setDeleteDialogOpen(false);
     },
     onError: (err, newTodo, context) => {
       if (context?.previousValue) {
-        utils.setQueryData(["viewer.app_routing_forms.forms"], context.previousValue);
+        utils.viewer.appRoutingForms.forms.setData(undefined, context.previousValue);
       }
       showToast("Something went wrong", "error");
     },
@@ -237,7 +234,7 @@ export function FormActionsProvider({ appUrl, children }: { appUrl: string; chil
   const [deleteDialogFormId, setDeleteDialogFormId] = useState<string | null>(null);
   const router = useRouter();
 
-  const toggleMutation = trpc.useMutation("viewer.app_routing_forms.formMutation", {
+  const toggleMutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onError: () => {
       showToast(`Something went wrong`, "error");
     },

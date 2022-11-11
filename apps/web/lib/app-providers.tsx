@@ -1,7 +1,7 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { SessionProvider } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
-import { appWithTranslation } from "next-i18next";
+import { appWithTranslation, SSRConfig } from "next-i18next";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import { NextRouter } from "next/router";
@@ -9,14 +9,14 @@ import { ComponentProps, ReactNode } from "react";
 
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
-import { trpc, proxy } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { MetaProvider } from "@calcom/ui/v2/core/Meta";
 
 import usePublicPage from "@lib/hooks/usePublicPage";
 
-const I18nextAdapter = appWithTranslation<NextJsAppProps & { children: React.ReactNode }>(({ children }) => (
-  <>{children}</>
-));
+const I18nextAdapter = appWithTranslation<NextJsAppProps<SSRConfig> & { children: React.ReactNode }>(
+  ({ children }) => <>{children}</>
+);
 
 // Workaround for https://github.com/vercel/next.js/issues/8592
 export type AppProps = Omit<NextAppProps, "Component"> & {
@@ -38,8 +38,9 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
    * We intend to not cache i18n query
    **/
-  const { i18n, locale } = trpc.useQuery(["viewer.public.i18n"], { trpc: { context: { skipBatch: true } } })
-    .data ?? {
+  const { i18n, locale } = trpc.viewer.public.i18n.useQuery(undefined, {
+    trpc: { context: { skipBatch: true } },
+  }).data ?? {
     locale: "en",
   };
 
@@ -55,7 +56,7 @@ const CustomI18nextProvider = (props: AppPropsWithChildren) => {
 };
 
 const AppProviders = (props: AppPropsWithChildren) => {
-  const session = proxy.public.session.useQuery().data;
+  const session = trpc.viewer.public.session.useQuery().data;
   // No need to have intercom on public pages - Good for Page Performance
   const isPublicPage = usePublicPage();
   const isThemeSupported =

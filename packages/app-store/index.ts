@@ -15,7 +15,6 @@ import * as jitsivideo from "./jitsivideo";
 import * as larkcalendar from "./larkcalendar";
 import * as office365calendar from "./office365calendar";
 import * as office365video from "./office365video";
-import * as slackmessaging from "./slackmessaging";
 import * as stripepayment from "./stripepayment";
 import * as tandemvideo from "./tandemvideo";
 import * as vital from "./vital";
@@ -37,7 +36,6 @@ const appStore = {
   larkcalendar,
   office365calendar,
   office365video,
-  slackmessaging,
   stripepayment,
   tandemvideo,
   vital,
