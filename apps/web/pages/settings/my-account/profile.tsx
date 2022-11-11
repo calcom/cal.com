@@ -51,8 +51,8 @@ const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
-  const mutation = trpc.useMutation("viewer.updateProfile", {
+  const { data: user, isLoading } = trpc.viewer.me.useQuery();
+  const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: () => {
       showToast(t("settings_updated_successfully"), "success");
     },
@@ -75,7 +75,7 @@ const ProfileView = () => {
     .digest("hex");
 
   const onDeleteMeSuccessMutation = async () => {
-    await utils.invalidateQueries(["viewer.me"]);
+    await utils.viewer.me.invalidate();
     showToast(t("Your account was deleted"), "success");
 
     setHasDeleteErrors(false); // dismiss any open errors
@@ -86,7 +86,7 @@ const ProfileView = () => {
     }
   };
 
-  const confirmPasswordMutation = trpc.useMutation("viewer.auth.verifyPassword", {
+  const confirmPasswordMutation = trpc.viewer.auth.verifyPassword.useMutation({
     onSuccess() {
       mutation.mutate(formMethods.getValues());
       setConfirmPasswordOpen(false);
@@ -100,18 +100,18 @@ const ProfileView = () => {
     setHasDeleteErrors(true);
     setDeleteErrorMessage(errorMessages[error.message]);
   };
-  const deleteMeMutation = trpc.useMutation("viewer.deleteMe", {
+  const deleteMeMutation = trpc.viewer.deleteMe.useMutation({
     onSuccess: onDeleteMeSuccessMutation,
     onError: onDeleteMeErrorMutation,
     async onSettled() {
-      await utils.invalidateQueries(["viewer.me"]);
+      await utils.viewer.me.invalidate();
     },
   });
-  const deleteMeWithoutPasswordMutation = trpc.useMutation("viewer.deleteMeWithoutPassword", {
+  const deleteMeWithoutPasswordMutation = trpc.viewer.deleteMeWithoutPassword.useMutation({
     onSuccess: onDeleteMeSuccessMutation,
     onError: onDeleteMeErrorMutation,
     async onSettled() {
-      await utils.invalidateQueries(["viewer.me"]);
+      await utils.viewer.me.invalidate();
     },
   });
 
@@ -190,7 +190,7 @@ const ProfileView = () => {
   };
   const onSuccessfulUsernameUpdate = async () => {
     showToast(t("settings_updated_successfully"), "success");
-    await utils.invalidateQueries(["viewer.me"]);
+    await utils.viewer.me.invalidate();
   };
 
   const onErrorInUsernameUpdate = () => {

@@ -16,11 +16,14 @@ const SAMLSSO = () => {
 
   const teamId = Number(router.query.id);
 
-  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId }], {
-    onError: () => {
-      router.push("/settings");
-    },
-  });
+  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
+    { teamId },
+    {
+      onError: () => {
+        router.push("/settings");
+      },
+    }
+  );
 
   if (isLoading) {
     return <SkeletonLoader />;
