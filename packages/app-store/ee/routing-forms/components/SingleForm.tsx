@@ -5,6 +5,12 @@ import { useForm, UseFormReturn, Controller } from "react-hook-form";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import {
+  AppGetServerSidePropsContext,
+  AppPrisma,
+  AppUser,
+  AppSsrInit,
+} from "@calcom/types/AppGetServerSideProps";
 import { Icon } from "@calcom/ui";
 import { Dialog, DialogContent, DialogClose, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { Button, ButtonGroup } from "@calcom/ui/components";
@@ -15,6 +21,7 @@ import SettingsToggle from "@calcom/ui/v2/core/SettingsToggle";
 import { ShellMain } from "@calcom/ui/v2/core/Shell";
 import Banner from "@calcom/ui/v2/core/banner";
 
+import { getSerializableForm } from "../lib/getSerializableForm";
 import { processRoute } from "../lib/processRoute";
 import { RoutingPages } from "../pages/route-builder/[...appPages]";
 import { SerializableForm } from "../types/types";
@@ -392,3 +399,65 @@ export default function SingleFormWrapper({ form: _form, ...props }: SingleFormC
   }
   return <SingleForm form={form} {...props} />;
 }
+
+export const getServerSidePropsForSingleFormView = async function getServerSidePropsForSingleFormView(
+  context: AppGetServerSidePropsContext,
+  prisma: AppPrisma,
+  user: AppUser,
+  ssrInit: AppSsrInit
+) {
+  const ssr = await ssrInit(context);
+
+  if (!user) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/auth/login",
+      },
+    };
+  }
+  const { params } = context;
+  if (!params) {
+    return {
+      notFound: true,
+    };
+  }
+  const formId = params.appPages[0];
+  if (!formId || params.appPages.length > 1) {
+    return {
+      notFound: true,
+    };
+  }
+
+  const isAllowed = (await import("../lib/isAllowed")).isAllowed;
+  if (!(await isAllowed({ userId: user.id, formId }))) {
+    return {
+      notFound: true,
+    };
+  }
+
+  const form = await prisma.app_RoutingForms_Form.findUnique({
+    where: {
+      id: formId,
+    },
+    include: {
+      _count: {
+        select: {
+          responses: true,
+        },
+      },
+    },
+  });
+  if (!form) {
+    return {
+      notFound: true,
+    };
+  }
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+      form: getSerializableForm(form),
+    },
+  };
+};
