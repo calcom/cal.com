@@ -207,7 +207,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         currentUserMembership={props.currentUserMembership}
       />
     ),
-    limits: <EventLimitsTab eventType={{ eventType: eventType }} />,
+    limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
     apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
