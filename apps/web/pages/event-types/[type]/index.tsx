@@ -96,12 +96,9 @@ export type EventTypeSetupInfered = inferSSRProps<typeof getServerSideProps>;
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
-  const { data: eventTypeApps } = trpc.useQuery([
-    "viewer.apps",
-    {
-      extendsFeature: "EventType",
-    },
-  ]);
+  const { data: eventTypeApps } = trpc.viewer.apps.useQuery({
+    extendsFeature: "EventType",
+  });
 
   const { eventType: dbEventType, locationOptions, team, teamMembers } = props;
   // TODO: It isn't a good idea to maintain state using setEventType. If we want to connect the SSR'd data to tRPC, we should useQuery(["viewer.eventTypes.get"]) with initialData
@@ -113,7 +110,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
-  const updateMutation = trpc.useMutation("viewer.eventTypes.update", {
+  const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async ({ eventType: newEventType }) => {
       setEventType({ ...eventType, slug: newEventType.slug });
       showToast(

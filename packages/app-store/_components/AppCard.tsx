@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 
-import { inferQueryOutput } from "@calcom/trpc/react";
+import { RouterOutputs } from "@calcom/trpc/react";
 import { Switch } from "@calcom/ui/v2";
 import OmniInstallAppButton from "@calcom/web/components/apps/OmniInstallAppButton";
 
@@ -16,7 +16,7 @@ export default function AppCard({
   children,
   setAppData,
 }: {
-  app: inferQueryOutput<"viewer.apps">[number];
+  app: RouterOutputs["viewer"]["apps"][number];
   description?: React.ReactNode;
   switchChecked?: boolean;
   switchOnClick?: (e: boolean) => void;

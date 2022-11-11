@@ -34,7 +34,7 @@ export default function WorkflowDetailsPage(props: Props) {
   const [reload, setReload] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const { data, isLoading } = trpc.useQuery(["viewer.eventTypes"]);
+  const { data, isLoading } = trpc.viewer.eventTypes.getByViewer.useQuery();
 
   const eventTypeOptions = useMemo(
     () =>
