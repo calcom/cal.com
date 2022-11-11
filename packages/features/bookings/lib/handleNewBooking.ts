@@ -34,6 +34,7 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import getGlobalSubscribers from "@calcom/lib/getGlobalSubscribers";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
@@ -306,16 +307,17 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     throw new HttpError({ statusCode: 400, message: error.message });
   }
 
-  let users = dynamicUserList.length > 0
-    ? await prisma.user.findMany({
-        where: {
-          username: {
-            in: dynamicUserList,
+  let users =
+    dynamicUserList.length > 0
+      ? await prisma.user.findMany({
+          where: {
+            username: {
+              in: dynamicUserList,
+            },
           },
-        },
-        ...userSelect,
-      })
-    : eventType.users;
+          ...userSelect,
+        })
+      : eventType.users;
   const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
   if (!isDynamicAllowed && !eventTypeId) {
     throw new HttpError({
@@ -902,16 +904,15 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
     const subscribers = await getWebhooks(subscriberOptions);
 
-    // If a global webhook is defined, send it to that one too.
-    if (process.env.GLOBAL_WEBHOOK_URL) {
+    getGlobalSubscribers(eventTrigger).forEach((subscriberUrl) => {
       subscribers.push({
         id: "global",
-        subscriberUrl: process.env.GLOBAL_WEBHOOK_URL,
+        subscriberUrl,
         secret: null,
         payloadTemplate: null,
         appId: null,
       });
-    }
+    });
 
     console.log("evt:", {
       ...evt,
