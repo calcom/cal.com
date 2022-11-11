@@ -1,3 +1,4 @@
+import { AppCategories } from "@prisma/client";
 import z from "zod";
 
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
@@ -12,75 +13,98 @@ export const appsRouter = createProtectedRouter()
       variant: z.string(),
     }),
     async resolve({ ctx, input }) {
-      const allApps = getLocalAppMetadata();
+      const localApps = getLocalAppMetadata();
+      const dbApps = await ctx.prisma.app.findMany({
+        where: {
+          categories: {
+            has: input.variant === "conferencing" ? "video" : (input.variant as AppCategories),
+          },
+        },
+        select: {
+          slug: true,
+          keys: true,
+          enabled: true,
+        },
+      });
 
       const filteredApps = [];
 
-      for (const app of allApps) {
-        // Skip to next iteration if app does not fit the variant
+      for (const app of localApps) {
         if (app.variant === input.variant) {
-          // Check if the app already contains keys
-          const appKeys = await ctx.prisma.app.findFirst({
-            where: { slug: app.slug },
-            select: { keys: true },
-          });
-          console.log("🚀 ~ file: apps.tsx ~ line 25 ~ filteredApps ~ appKeys", appKeys);
-          if (appKeys) {
+          // Find app metadata
+          const dbData = dbApps.find((dbApp) => dbApp.slug === app.slug);
+
+          // If the app already contains keys then return
+          if (dbData?.keys) {
             filteredApps.push({
               name: app.name,
+              slug: app.slug,
               logo: app.logo,
               title: app.title,
+              type: app.type,
               description: app.description,
-              keys: appKeys.keys,
+              keys: dbData.keys,
+              enabled: dbData?.enabled || false,
             });
           } else {
             const appKey = deriveAppDictKeyFromType(app.type, appKeysSchemas);
             const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas] || null;
-            filteredApps.push({ ...app, keys: keysSchema ? keysSchema.keyof()._def.values : null });
+            filteredApps.push({
+              name: app.name,
+              slug: app.slug,
+              logo: app.logo,
+              type: app.type,
+              title: app.title,
+              description: app.description,
+              enabled: dbData?.enabled || false,
+              keys: keysSchema ? keysSchema.keyof()._def.values : null,
+            });
           }
         }
       }
-
-      // const filteredApps = await allApps.reduce(async (filteredApps, app) => {
-      //   // Skip to next iteration if app does not fit the variant
-      //   if (app.variant === input.variant) {
-      //     // Check if the app already contains keys
-      //     const appKeys = await ctx.prisma.app.findFirst({
-      //       where: { slug: app.slug },
-      //       select: { keys: true },
-      //     });
-      //     console.log("🚀 ~ file: apps.tsx ~ line 25 ~ filteredApps ~ appKeys", appKeys);
-
-      //     if (appKeys) {
-      //       filteredApps.push({
-      //         name: app.name,
-      //         logo: app.logo,
-      //         title: app.title,
-      //         description: app.description,
-      //         keys: appKeys,
-      //       });
-      //     } else {
-      //       const appKey = deriveAppDictKeyFromType(app.type, appKeysSchemas);
-      //       const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas] || null;
-
-      //       filteredApps.push({ ...app, keys: keysSchema ? keysSchema.keyof()._def.values : null });
-      //     }
-      //   }
-
-      //   return filteredApps;
-      // }, []);
-      console.log("🚀 ~ file: apps.tsx ~ line 43 ~ filteredApps ~ filteredApps", filteredApps);
-
       return filteredApps;
     },
   })
-  .mutation("enable", {
+  .mutation("toggle", {
     input: z.object({
-      appName: z.string(),
-      keys: z.any(),
+      slug: z.string(),
+      enabled: z.boolean(),
     }),
     async resolve({ ctx, input }) {
-      console.log("🚀 ~ file: apps.tsx ~ line 25 ~ resolve ~ input", input);
+      const app = await ctx.prisma.app.update({
+        where: {
+          slug: input.slug,
+        },
+        data: {
+          enabled: !input.enabled,
+        },
+      });
+      return app.enabled;
+    },
+  })
+  .mutation("saveKeys", {
+    input: z.object({
+      slug: z.string(),
+      type: z.string(),
+      // Validate w/ app specific schema
+      keys: z.unknown(),
+    }),
+    async resolve({ ctx, input }) {
+      console.log("🚀 ~ file: apps.tsx ~ line 90 ~ resolve ~ input", input);
+      const appKey = deriveAppDictKeyFromType(input.type, appKeysSchemas);
+      const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
+
+      const parse = keysSchema.parse(input.keys);
+
+      await ctx.prisma.app.update({
+        where: {
+          slug: input.slug,
+        },
+        data: {
+          keys: input.keys,
+        },
+      });
+
       return;
     },
   });

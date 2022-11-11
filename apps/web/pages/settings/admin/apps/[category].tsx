@@ -7,20 +7,35 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { TextField, Button, Form } from "@calcom/ui/components";
-import { Switch } from "@calcom/ui/v2";
+import { Switch, showToast } from "@calcom/ui/v2";
 // import { List, ListItem, ListItemTitle, ListItemText } from "@calcom/ui/v2/core/List";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import { SkeletonContainer, SkeletonText, SkeletonButton } from "@calcom/ui/v2/core/skeleton";
 
 const IntegrationContainer = ({ app, lastEntry }) => {
+  const utils = trpc.useContext();
+
   const formMethods = useForm();
 
-  const enableAppMutation = trpc.useMutation(["viewer.apps.enable"]);
+  const enableAppMutation = trpc.useMutation(["viewer.apps.toggle"], {
+    onSuccess: (enabled) => {
+      utils.invalidateQueries(["viewer.apps.listLocal"]);
+      // TODO add translations, two strings
+      showToast(`${app.name} is ${enabled ? "enabled" : "disabled"}`, "success");
+    },
+  });
+
+  const saveKeysMutation = trpc.useMutation(["viewer.apps.saveKeys"], {
+    onSuccess: () => {
+      // TODO add translations
+      showToast(`Keys have been saved`, "success");
+    },
+  });
 
   return (
-    <Collapsible key={app.name}>
-      <div className={`${lastEntry && "border-b"}`}>
+    <Collapsible key={app.name} open={app.enabled}>
+      <div className={`${!lastEntry && "border-b"}`}>
         <div className="flex w-full flex-1 items-center justify-between space-x-3 p-4 rtl:space-x-reverse md:max-w-3xl">
           {
             // eslint-disable-next-line @next/next/no-img-element
@@ -34,7 +49,10 @@ const IntegrationContainer = ({ app, lastEntry }) => {
           </div>
           <div className="justify-self-end">
             <CollapsibleTrigger>
-              <Switch />
+              <Switch
+                checked={app.enabled}
+                onClick={() => enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled })}
+              />
             </CollapsibleTrigger>
           </div>
         </div>
@@ -42,7 +60,9 @@ const IntegrationContainer = ({ app, lastEntry }) => {
           {app.keys && (
             <Form
               form={formMethods}
-              handleSubmit={(values) => enableAppMutation.mutate({ appName: app.name, keys: values })}
+              handleSubmit={(values) =>
+                saveKeysMutation.mutate({ slug: app.slug, type: app.type, keys: values })
+              }
               className="px-4 pb-4">
               {Object.keys(app.keys)?.map((key) => (
                 <Controller
