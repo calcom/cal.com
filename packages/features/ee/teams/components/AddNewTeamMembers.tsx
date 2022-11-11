@@ -7,7 +7,7 @@ import MemberInvitationModal from "@calcom/features/ee/teams/components/MemberIn
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Avatar, Badge, Button } from "@calcom/ui/components";
 import { showToast } from "@calcom/ui/v2/core";
@@ -17,7 +17,7 @@ const querySchema = z.object({
   id: z.string().transform((val) => parseInt(val)),
 });
 
-type TeamMember = inferQueryOutput<"viewer.teams.get">["members"][number];
+type TeamMember = RouterOutputs["viewer"]["teams"]["get"]["members"][number];
 
 type FormValues = {
   members: TeamMember[];
@@ -27,7 +27,7 @@ const AddNewTeamMembers = () => {
   const session = useSession();
   const router = useRouter();
   const { id: teamId } = router.isReady ? querySchema.parse(router.query) : { id: -1 };
-  const teamQuery = trpc.useQuery(["viewer.teams.get", { teamId }], { enabled: router.isReady });
+  const teamQuery = trpc.viewer.teams.get.useQuery({ teamId }, { enabled: router.isReady });
   if (session.status === "loading" || !teamQuery.data) return <AddNewTeamMemberSkeleton />;
 
   return <AddNewTeamMembersForm defaultValues={{ members: teamQuery.data.members }} teamId={teamId} />;
@@ -38,16 +38,16 @@ const AddNewTeamMembersForm = ({ defaultValues, teamId }: { defaultValues: FormV
   const [memberInviteModal, setMemberInviteModal] = useState(false);
   const utils = trpc.useContext();
   const router = useRouter();
-  const inviteMemberMutation = trpc.useMutation("viewer.teams.inviteMember", {
+  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
+      await utils.viewer.teams.get.invalidate();
       setMemberInviteModal(false);
     },
     onError: (error) => {
       showToast(error.message, "error");
     },
   });
-  const publishTeamMutation = trpc.useMutation("viewer.teams.publish", {
+  const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
     onSuccess(data) {
       router.push(data.url);
     },
@@ -125,9 +125,9 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const removeMemberMutation = trpc.useMutation("viewer.teams.removeMember", {
+  const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
+      await utils.viewer.teams.get.invalidate();
       showToast("Member removed", "success");
     },
     async onError(err) {

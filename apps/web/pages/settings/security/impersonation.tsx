@@ -11,8 +11,8 @@ import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 const ProfileImpersonationView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const { data: user } = trpc.useQuery(["viewer.me"]);
-  const mutation = trpc.useMutation("viewer.updateProfile", {
+  const { data: user } = trpc.viewer.me.useQuery();
+  const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: () => {
       showToast(t("profile_updated_successfully"), "success");
     },
@@ -39,7 +39,7 @@ const ProfileImpersonationView = () => {
         form={formMethods}
         handleSubmit={({ disableImpersonation }) => {
           mutation.mutate({ disableImpersonation });
-          utils.invalidateQueries(["viewer.me"]);
+          utils.viewer.me.invalidate();
         }}>
         <div className="flex space-x-3">
           <Switch

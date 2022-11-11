@@ -6,7 +6,7 @@ import React, { Fragment, useEffect, useState } from "react";
 
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { TRPCClientError } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Button, ButtonGroup, Badge } from "@calcom/ui/components";
@@ -32,7 +32,7 @@ import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 
-type EventTypeGroups = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"];
+type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
 
 interface EventTypeListHeadingProps {
@@ -41,7 +41,7 @@ interface EventTypeListHeadingProps {
   teamId?: number | null;
 }
 
-type EventTypeGroup = inferQueryOutput<"viewer.eventTypes">["eventTypeGroups"][number];
+type EventTypeGroup = EventTypeGroups[number];
 type EventType = EventTypeGroup["eventTypes"][number];
 interface EventTypeListProps {
   group: EventTypeGroup;
@@ -88,28 +88,30 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
   const utils = trpc.useContext();
-  const mutation = trpc.useMutation("viewer.eventTypeOrder", {
+  const mutation = trpc.viewer.eventTypeOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
-      await utils.cancelQuery(["viewer.eventTypes"]);
-      await utils.invalidateQueries(["viewer.eventTypes"]);
+      await utils.viewer.eventTypes.getByViewer.cancel();
+      // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
+      await utils.viewer.eventTypes.invalidate();
     },
     onSettled: () => {
-      utils.invalidateQueries(["viewer.eventTypes"]);
+      // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
+      utils.viewer.eventTypes.invalidate();
     },
   });
 
-  const setHiddenMutation = trpc.useMutation("viewer.eventTypes.update", {
+  const setHiddenMutation = trpc.viewer.eventTypes.update.useMutation({
     onMutate: async ({ id }) => {
-      await utils.cancelQuery(["viewer.eventTypes"]);
-      const previousValue = utils.getQueryData(["viewer.eventTypes"]);
+      await utils.viewer.eventTypes.getByViewer.cancel();
+      const previousValue = utils.viewer.eventTypes.getByViewer.getData();
       if (previousValue) {
         const newList = [...types];
         const itemIndex = newList.findIndex((item) => item.id === id);
         if (itemIndex !== -1 && newList[itemIndex]) {
           newList[itemIndex].hidden = !newList[itemIndex].hidden;
         }
-        utils.setQueryData(["viewer.eventTypes"], {
+        utils.viewer.eventTypes.getByViewer.setData(undefined, {
           ...previousValue,
           eventTypeGroups: [
             ...previousValue.eventTypeGroups.slice(0, groupIndex),
@@ -122,12 +124,13 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     },
     onError: async (err, _, context) => {
       if (context?.previousValue) {
-        utils.setQueryData(["viewer.eventTypes"], context.previousValue);
+        utils.viewer.eventTypes.getByViewer.setData(undefined, context.previousValue);
       }
       console.error(err.message);
     },
     onSettled: () => {
-      utils.invalidateQueries(["viewer.eventTypes"]);
+      // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
+      utils.viewer.eventTypes.invalidate();
     },
   });
 
@@ -141,11 +144,11 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       newList[index + increment] = type;
     }
 
-    await utils.cancelQuery(["viewer.eventTypes"]);
+    await utils.viewer.eventTypes.getByViewer.cancel();
 
-    const previousValue = utils.getQueryData(["viewer.eventTypes"]);
+    const previousValue = utils.viewer.eventTypes.getByViewer.getData();
     if (previousValue) {
-      utils.setQueryData(["viewer.eventTypes"], {
+      utils.viewer.eventTypes.getByViewer.setData(undefined, {
         ...previousValue,
         eventTypeGroups: [
           ...previousValue.eventTypeGroups.slice(0, groupIndex),
@@ -191,18 +194,18 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     );
   };
 
-  const deleteMutation = trpc.useMutation("viewer.eventTypes.delete", {
+  const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
     onSuccess: () => {
       showToast(t("event_type_deleted_successfully"), "success");
       setDeleteDialogOpen(false);
     },
     onMutate: async ({ id }) => {
-      await utils.cancelQuery(["viewer.eventTypes"]);
-      const previousValue = utils.getQueryData(["viewer.eventTypes"]);
+      await utils.viewer.eventTypes.getByViewer.cancel();
+      const previousValue = utils.viewer.eventTypes.getByViewer.getData();
       if (previousValue) {
         const newList = types.filter((item) => item.id !== id);
 
-        utils.setQueryData(["viewer.eventTypes"], {
+        utils.viewer.eventTypes.getByViewer.setData(undefined, {
           ...previousValue,
           eventTypeGroups: [
             ...previousValue.eventTypeGroups.slice(0, groupIndex),
@@ -215,7 +218,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
     },
     onError: (err, _, context) => {
       if (context?.previousValue) {
-        utils.setQueryData(["viewer.eventTypes"], context.previousValue);
+        utils.viewer.eventTypes.getByViewer.setData(undefined, context.previousValue);
       }
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
@@ -226,7 +229,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       }
     },
     onSettled: () => {
-      utils.invalidateQueries(["viewer.eventTypes"]);
+      // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
+      utils.viewer.eventTypes.invalidate();
     },
   });
 
@@ -560,14 +564,14 @@ const CreateFirstEventTypeView = () => {
 };
 
 const CTA = () => {
-  const query = trpc.useQuery(["viewer.eventTypes"]);
+  const query = trpc.viewer.eventTypes.getByViewer.useQuery();
 
   if (!query.data) return null;
 
   return <CreateEventTypeButton canAddEvents={true} options={query.data.profiles} />;
 };
 
-const WithQuery = withQuery(["viewer.eventTypes"]);
+const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer);
 
 const EventTypesPage = () => {
   const { t } = useLocale();

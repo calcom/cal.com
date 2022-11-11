@@ -22,16 +22,16 @@ export default function TeamSettingsRightSidebar(props: { team: TeamWithMembers;
 
   const permalink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${props.team?.slug}`;
 
-  const deleteTeamMutation = trpc.useMutation("viewer.teams.delete", {
+  const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
+      await utils.viewer.teams.get.invalidate();
       router.push(`/settings/teams`);
       showToast(t("your_team_updated_successfully"), "success");
     },
   });
-  const acceptOrLeaveMutation = trpc.useMutation("viewer.teams.acceptOrLeave", {
+  const acceptOrLeaveMutation = trpc.viewer.teams.acceptOrLeave.useMutation({
     onSuccess: () => {
-      utils.invalidateQueries(["viewer.teams.list"]);
+      utils.viewer.teams.list.invalidate();
       router.push(`/settings/teams`);
     },
   });
