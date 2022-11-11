@@ -22,6 +22,7 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
     logo: true,
     bio: true,
     hideBranding: true,
+    metadata: true,
     members: {
       select: {
         accepted: true,
