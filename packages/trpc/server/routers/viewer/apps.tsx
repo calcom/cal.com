@@ -5,6 +5,8 @@ import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { getLocalAppMetadata } from "@calcom/app-store/utils";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 
+import { TRPCError } from "@trpc/server";
+
 import { createProtectedRouter } from "../../createRouter";
 
 export const appsRouter = createProtectedRouter()
@@ -13,6 +15,13 @@ export const appsRouter = createProtectedRouter()
       variant: z.string(),
     }),
     async resolve({ ctx, input }) {
+      console.log("🚀 ~ file: apps.tsx ~ line 19 ~ resolve ~ ctx.user.role", ctx);
+
+      if (ctx.session.user.role !== "ADMIN")
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+        });
+
       const localApps = getLocalAppMetadata();
       const dbApps = await ctx.prisma.app.findMany({
         where: {
@@ -71,6 +80,10 @@ export const appsRouter = createProtectedRouter()
       enabled: z.boolean(),
     }),
     async resolve({ ctx, input }) {
+      if (ctx.session.user.role !== "ADMIN")
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+        });
       const app = await ctx.prisma.app.update({
         where: {
           slug: input.slug,
@@ -90,7 +103,10 @@ export const appsRouter = createProtectedRouter()
       keys: z.unknown(),
     }),
     async resolve({ ctx, input }) {
-      console.log("🚀 ~ file: apps.tsx ~ line 90 ~ resolve ~ input", input);
+      if (ctx.session.user.role !== "ADMIN")
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+        });
       const appKey = deriveAppDictKeyFromType(input.type, appKeysSchemas);
       const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
 
