@@ -7,37 +7,19 @@ export default function convertToNewDurationType(
   newType: string | "minutes" | "hours" | "days",
   prevValue: number
 ) {
-  const round = Math.ceil;
-  if (newType === "minutes") {
-    if (prevType === "hours") {
-      return round(prevValue * MINUTES_IN_HOUR);
-    }
-    if (prevType === "days") {
-      return round(prevValue * MINUTES_IN_DAY);
-    }
-    if (prevType === "minutes") {
-      return round(prevValue);
-    }
-  } else if (newType === "hours") {
-    if (prevType === "minutes") {
-      return round(prevValue / MINUTES_IN_HOUR);
-    }
-    if (prevType === "days") {
-      return round(prevValue * HOURS_IN_DAY);
-    }
-    if (prevType === "hours") {
-      return round(prevValue);
-    }
-  } else if (newType === "days") {
-    if (prevType === "days") {
-      return round(prevValue);
-    }
-    if (prevType === "minutes") {
-      return round(prevValue / MINUTES_IN_DAY);
-    }
-    if (prevType === "hours") {
-      return round(prevValue / HOURS_IN_DAY);
-    }
-  }
-  return round(prevValue);
+  /** Convert `prevValue` from `prevType` to `newType` */
+  const newDurationTypeMap = {
+    minutes_minutes: () => prevValue,
+    minutes_hours: () => prevValue * MINUTES_IN_HOUR,
+    minutes_days: () => prevValue * MINUTES_IN_DAY,
+    hours_minutes: () => prevValue / MINUTES_IN_HOUR,
+    hours_hours: () => prevValue,
+    hours_days: () => prevValue * HOURS_IN_DAY,
+    days_minutes: () => prevValue / MINUTES_IN_DAY,
+    days_hours: () => prevValue / HOURS_IN_DAY,
+    days_days: () => prevValue,
+  };
+  const getNewValue = newDurationTypeMap[`${prevType}_${newType}`];
+  const newValue = getNewValue();
+  return Math.ceil(newValue);
 }
