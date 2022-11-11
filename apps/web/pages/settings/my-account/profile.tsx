@@ -155,8 +155,7 @@ const ProfileView = () => {
 
   const {
     reset,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    formState: { dirtyFields, isSubmitting },
+    formState: { isSubmitting, isDirty },
   } = formMethods;
 
   useEffect(() => {
@@ -197,14 +196,7 @@ const ProfileView = () => {
   };
 
   if (isLoading || !user) return <SkeletonLoader />;
-  const formValues = formMethods.watch();
-
-  const isDisabled =
-    isSubmitting ||
-    (user.email.trim() === formValues.email.trim() &&
-      user?.bio?.trim() === formValues.bio.trim() &&
-      user?.name?.trim() === formValues.name.trim() &&
-      user.avatar.trim() === formValues.avatar.trim());
+  const isDisabled = isSubmitting || !isDirty;
 
   return (
     <>
