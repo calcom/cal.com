@@ -36,13 +36,13 @@ const UserSettings = (props: IUserSettingsProps) => {
 
   const utils = trpc.useContext();
   const onSuccess = async () => {
-    await utils.invalidateQueries(["viewer.me"]);
+    await utils.viewer.me.invalidate();
     nextStep();
   };
-  const mutation = trpc.useMutation("viewer.updateProfile", {
+  const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: onSuccess,
   });
-  const { data: stripeCustomer } = trpc.useQuery(["viewer.stripeCustomer"]);
+  const { data: stripeCustomer } = trpc.viewer.stripeCustomer.useQuery();
   const paymentRequired = stripeCustomer?.isPremium ? !stripeCustomer?.paidForPremium : false;
   const onSubmit = handleSubmit((data) => {
     if (paymentRequired) {

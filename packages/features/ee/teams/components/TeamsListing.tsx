@@ -15,7 +15,7 @@ export function TeamsListing() {
   const { t } = useLocale();
   const [errorMessage, setErrorMessage] = useState("");
 
-  const { data, isLoading } = trpc.useQuery(["viewer.teams.list"], {
+  const { data, isLoading } = trpc.viewer.teams.list.useQuery(undefined, {
     onError: (e) => {
       setErrorMessage(e.message);
     },

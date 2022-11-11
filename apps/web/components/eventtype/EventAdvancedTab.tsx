@@ -24,7 +24,7 @@ const generateHashedLink = (id: number) => {
 };
 
 export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered, "eventType" | "team">) => {
-  const connectedCalendarsQuery = trpc.useQuery(["viewer.connectedCalendars"]);
+  const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
   const [showEventNameTip, setShowEventNameTip] = useState(false);

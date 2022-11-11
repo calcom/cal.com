@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterInputs, RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import { Icon } from "@calcom/ui/Icon";
 import { Button } from "@calcom/ui/components";
@@ -18,8 +18,8 @@ import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
-type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
-type BookingOutput = inferQueryOutput<"viewer.bookings">["bookings"][0];
+type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["status"];
+type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
 
 const validStatuses = ["upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
 
@@ -40,11 +40,14 @@ export default function Bookings() {
   const { status } = router.isReady ? querySchema.parse(router.query) : { status: "upcoming" as const };
   const { t } = useLocale();
 
-  const query = trpc.useInfiniteQuery(["viewer.bookings", { status, limit: 10 }], {
-    // first render has status `undefined`
-    enabled: router.isReady,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-  });
+  const query = trpc.viewer.bookings.get.useInfiniteQuery(
+    { status, limit: 10 },
+    {
+      // first render has status `undefined`
+      enabled: router.isReady,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  );
 
   // Animate page (tab) tranistions to look smoothing
 

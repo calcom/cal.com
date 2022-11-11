@@ -15,7 +15,7 @@ import {
   LocationObject,
 } from "@calcom/app-store/locations";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import { Button } from "@calcom/ui/components";
 import { Label, Form } from "@calcom/ui/components/form";
@@ -28,7 +28,7 @@ import { QueryCell } from "@lib/QueryCell";
 import { LinkText } from "@components/ui/LinkText";
 import CheckboxField from "@components/ui/form/CheckboxField";
 
-type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
+type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
 type OptionTypeBase = {
   label: string;
@@ -83,7 +83,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     setSelectedLocation,
   } = props;
   const { t } = useLocale();
-  const locationsQuery = trpc.useQuery(["viewer.locationOptions"]);
+  const locationsQuery = trpc.viewer.locationOptions.useQuery();
 
   useEffect(() => {
     if (selection) {

@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
@@ -26,7 +26,7 @@ import Avatar from "@components/ui/Avatar";
 import { TeamRole } from "./TeamPill";
 
 interface Props {
-  team: inferQueryOutput<"viewer.teams.list">[number];
+  team: RouterOutputs["viewer"]["teams"]["list"][number];
   key: number;
   onActionSelect: (text: string) => void;
   isLoading?: boolean;
@@ -39,9 +39,9 @@ export default function TeamListItem(props: Props) {
   const utils = trpc.useContext();
   const team = props.team;
 
-  const acceptOrLeaveMutation = trpc.useMutation("viewer.teams.acceptOrLeave", {
+  const acceptOrLeaveMutation = trpc.viewer.teams.acceptOrLeave.useMutation({
     onSuccess: () => {
-      utils.invalidateQueries(["viewer.teams.list"]);
+      utils.viewer.teams.list.invalidate();
     },
   });
 
@@ -250,7 +250,7 @@ export default function TeamListItem(props: Props) {
 const TeamPublishButton = ({ teamId }: { teamId: number }) => {
   const { t } = useLocale();
   const router = useRouter();
-  const publishTeamMutation = trpc.useMutation("viewer.teams.publish", {
+  const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
     onSuccess(data) {
       router.push(data.url);
     },

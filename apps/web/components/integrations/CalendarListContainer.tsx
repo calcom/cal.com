@@ -3,7 +3,7 @@ import { Fragment } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
 import Button from "@calcom/ui/Button";
 import { List } from "@calcom/ui/List";
@@ -73,7 +73,7 @@ function CalendarSwitch(props: {
     },
     {
       async onSettled() {
-        await utils.invalidateQueries(["viewer.integrations"]);
+        await utils.viewer.integrations.invalidate();
       },
       onError() {
         showToast(`Something went wrong when toggling "${props.title}""`, "error");
@@ -97,7 +97,7 @@ function CalendarSwitch(props: {
 
 function CalendarList(props: Props) {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.integrations", { variant: "calendar", onlyInstalled: false }]);
+  const query = trpc.viewer.integrations.useQuery({ variant: "calendar", onlyInstalled: false });
 
   return (
     <QueryCell
@@ -133,7 +133,10 @@ function CalendarList(props: Props) {
 
 function ConnectedCalendarsList(props: Props) {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.connectedCalendars"], { suspense: true });
+  const query = trpc.viewer.connectedCalendars.useQuery(undefined, {
+    suspense: true,
+    trpc: {},
+  });
   const { fromOnboarding } = props;
   return (
     <QueryCell
@@ -211,7 +214,7 @@ function ConnectedCalendarsList(props: Props) {
 
 export function CalendarListContainer(props: {
   heading?: boolean;
-  items?: inferQueryOutput<"viewer.integrations">["items"];
+  items?: RouterOutputs["viewer"]["integrations"]["items"];
   fromOnboarding?: boolean;
 }) {
   const { t } = useLocale();
@@ -219,17 +222,17 @@ export function CalendarListContainer(props: {
   const utils = trpc.useContext();
   const onChanged = () =>
     Promise.allSettled([
-      utils.invalidateQueries(["viewer.integrations", { variant: "calendar", onlyInstalled: true }], {
-        exact: true,
-      }),
-      utils.invalidateQueries(["viewer.connectedCalendars"]),
+      utils.viewer.integrations.invalidate(
+        { variant: "calendar", onlyInstalled: true },
+        {
+          exact: true,
+        }
+      ),
+      utils.viewer.connectedCalendars.invalidate(),
     ]);
-  const query = trpc.useQuery(["viewer.connectedCalendars"]);
-  const installedCalendars = trpc.useQuery([
-    "viewer.integrations",
-    { variant: "calendar", onlyInstalled: true },
-  ]);
-  const mutation = trpc.useMutation("viewer.setDestinationCalendar");
+  const query = trpc.viewer.connectedCalendars.useQuery();
+  const installedCalendars = trpc.viewer.integrations.useQuery({ variant: "calendar", onlyInstalled: true });
+  const mutation = trpc.viewer.setDestinationCalendar.useMutation();
   return (
     <QueryCell
       query={query}
