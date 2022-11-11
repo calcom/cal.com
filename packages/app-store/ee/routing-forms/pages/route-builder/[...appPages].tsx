@@ -6,24 +6,20 @@ import { Query, Config, Builder, Utils as QbUtils } from "react-awesome-query-bu
 import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
 
 import { trpc } from "@calcom/trpc/react";
-import {
-  AppGetServerSidePropsContext,
-  AppPrisma,
-  AppUser,
-  AppSsrInit,
-} from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Icon } from "@calcom/ui";
 import { Button, TextField, TextArea } from "@calcom/ui/components";
 import { SelectWithValidation as Select, Shell } from "@calcom/ui/v2";
 import FormCard from "@calcom/ui/v2/core/form/FormCard";
 
+import { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/SingleForm";
 import SingleForm from "../../components/SingleForm";
 import QueryBuilderInitialConfig from "../../components/react-awesome-query-builder/config/config";
 import "../../components/react-awesome-query-builder/styles.css";
-import { getSerializableForm } from "../../lib/getSerializableForm";
 import { SerializableForm } from "../../types/types";
 import { FieldTypes } from "../form-edit/[...appPages]";
+
+export { getServerSideProps };
 
 type RoutingForm = SerializableForm<App_RoutingForms_Form>;
 
@@ -31,7 +27,7 @@ const InitialConfig = QueryBuilderInitialConfig;
 const hasRules = (route: Route) =>
   route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
 type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Config["fields"] };
-export function getQueryBuilderConfig(form: RoutingForm) {
+export function getQueryBuilderConfig(form: RoutingForm, forReporting = false) {
   const fields: Record<
     string,
     {
@@ -74,9 +70,15 @@ export function getQueryBuilderConfig(form: RoutingForm) {
     }
   });
 
+  const initialConfigCopy = { ...InitialConfig };
+  if (forReporting) {
+    delete initialConfigCopy.operators.is_empty;
+    delete initialConfigCopy.operators.is_not_empty;
+    initialConfigCopy.operators.__calReporting = true;
+  }
   // You need to provide your own config. See below 'Config format'
   const config: QueryBuilderUpdatedConfig = {
-    ...InitialConfig,
+    ...initialConfigCopy,
     fields: fields,
   };
   return config;
@@ -466,66 +468,4 @@ RouteBuilder.getLayout = (page: React.ReactElement) => {
       {page}
     </Shell>
   );
-};
-
-export const getServerSideProps = async function getServerSideProps(
-  context: AppGetServerSidePropsContext,
-  prisma: AppPrisma,
-  user: AppUser,
-  ssrInit: AppSsrInit
-) {
-  const ssr = await ssrInit(context);
-
-  if (!user) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: "/auth/login",
-      },
-    };
-  }
-  const { params } = context;
-  if (!params) {
-    return {
-      notFound: true,
-    };
-  }
-  const formId = params.appPages[0];
-  if (!formId || params.appPages.length > 1) {
-    return {
-      notFound: true,
-    };
-  }
-
-  const isAllowed = (await import("../../lib/isAllowed")).isAllowed;
-  if (!(await isAllowed({ userId: user.id, formId }))) {
-    return {
-      notFound: true,
-    };
-  }
-
-  const form = await prisma.app_RoutingForms_Form.findUnique({
-    where: {
-      id: formId,
-    },
-    include: {
-      _count: {
-        select: {
-          responses: true,
-        },
-      },
-    },
-  });
-  if (!form) {
-    return {
-      notFound: true,
-    };
-  }
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-      form: getSerializableForm(form),
-    },
-  };
 };
