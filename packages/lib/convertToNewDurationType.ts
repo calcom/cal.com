@@ -3,8 +3,8 @@ export const MINUTES_IN_DAY = 1440;
 export const HOURS_IN_DAY = 24;
 
 export default function convertToNewDurationType(
-  prevType: string | "minutes" | "hours" | "days",
-  newType: string | "minutes" | "hours" | "days",
+  prevType: "minutes" | "hours" | "days",
+  newType: "minutes" | "hours" | "days",
   prevValue: number
 ) {
   /** Convert `prevValue` from `prevType` to `newType` */
