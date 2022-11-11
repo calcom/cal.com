@@ -15,8 +15,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!consumer_key) return res.status(400).json({ message: "Salesforce client id missing." });
 
   const salesforceClient = new jsforce.Connection({
-    loginUrl: process.env.SALESFORCE_LOGIN_URL || undefined,
-    instanceUrl: process.env.SALESFORCE_INSTANCE_URL || undefined,
     clientId: consumer_key,
     redirectUri: `${WEBAPP_URL}/api/integrations/salesforceothercalendar/callback`,
   });

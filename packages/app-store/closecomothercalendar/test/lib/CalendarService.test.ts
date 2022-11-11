@@ -12,7 +12,6 @@ test("check generic lead generator: already exists", async () => {
       data: [{ name: "From Cal.com", id: "abc" }],
     }),
   } as any;
-  debugger;
   const id = await CloseCom.prototype.getCloseComLeadId();
   expect(id).toEqual("abc");
 });

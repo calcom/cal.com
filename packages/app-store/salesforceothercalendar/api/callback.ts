@@ -1,4 +1,4 @@
-import jsforce, { TokenResponse } from "jsforce";
+import jsforce from "jsforce";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -11,6 +11,7 @@ import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 
 let consumer_key = "";
 let consumer_secret = "";
+const instance_url = "";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
@@ -31,11 +32,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!consumer_secret) return res.status(400).json({ message: "Salesforce consumer secret missing." });
 
   const salesforceClient = new jsforce.Connection({
-    loginUrl: process.env.SALESFORCE_LOGIN_URL || undefined,
-    instanceUrl: process.env.SALESFORCE_INSTANCE_URL || undefined,
     clientId: consumer_key,
     clientSecret: consumer_secret,
-    redirectUri: `${WEBAPP_URL}/api/integrations/salesforceothercalendar/callback`,
+    redirectUri: WEBAPP_URL + "/api/integrations/salesforceothercalendar/callback",
   });
 
   const salesforceTokenInfo = await salesforceClient.oauth2.requestToken(code as string);
