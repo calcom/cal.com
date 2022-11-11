@@ -51,7 +51,7 @@ export default function WorkflowDetailsPage(props: Props) {
     [data]
   );
 
-  const addAction = (action: WorkflowActions, sendTo?: string, numberRequired?: boolean) => {
+  const addAction = (action: WorkflowActions, sendTo?: string, numberRequired?: boolean, sender?: string) => {
     const steps = form.getValues("steps");
     const id =
       steps?.length > 0
@@ -75,6 +75,7 @@ export default function WorkflowDetailsPage(props: Props) {
       emailSubject: null,
       template: WorkflowTemplates.CUSTOM,
       numberRequired: numberRequired || false,
+      sender: sender || "Cal",
     };
     steps?.push(step);
     form.setValue("steps", steps);
