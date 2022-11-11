@@ -504,6 +504,7 @@ model App {
   credentials Credential[]
   Webhook     Webhook[]
   ApiKey      ApiKey[]
+  enabled     Boolean         @default(false)
 }
 
 model App_RoutingForms_Form {
