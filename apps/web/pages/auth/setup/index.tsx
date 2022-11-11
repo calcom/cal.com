@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import * as z from "zod";
 
+import AdminAppsList from "@calcom/features/apps/AdminAppsList";
 import { isPasswordValid } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
@@ -24,24 +25,22 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
     {
       title: t("administrator_user"),
       description: t("lets_create_first_administrator_user"),
-      content: props.userCount !== 0 ? <StepDone /> : <SetupFormStep1 setIsLoading={setIsLoadingStep1} />,
-      enabled: props.userCount === 0, // to check if the wizard should show buttons to navigate through more steps
+      content: props.userCount === 0 ? <StepDone /> : <SetupFormStep1 setIsLoading={setIsLoadingStep1} />,
       isLoading: isLoadingStep1,
     },
     {
       // TODO: add translations
       title: "Enable apps",
       description: "Apps",
-      content: <></>,
-      enabled: true,
+      content: <AdminAppsList />,
       isLoading: false,
     },
   ];
 
   return (
     <>
-      <main className="flex h-screen items-center bg-gray-100 print:h-full">
-        <WizardForm href="/auth/setup" steps={steps} containerClassname="max-w-sm" />
+      <main className="flex items-center bg-gray-100 print:h-full">
+        <WizardForm href="/auth/setup" steps={steps} disableSteps />
       </main>
     </>
   );

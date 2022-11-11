@@ -1,6 +1,7 @@
 import { CheckIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import classNames from "classnames";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
@@ -65,7 +66,13 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
       },
     });
     if (response.status === 200) {
-      router.replace(`/auth/login?email=${data.email_address.toLowerCase()}`);
+      signIn("credentials", {
+        redirect: false,
+        callbackUrl: "/",
+        email: data.email_address.toLowerCase(),
+        password: data.password,
+      });
+      router.replace(`/auth/setup?step=2&category=calendar`);
     } else {
       router.replace("/auth/setup");
     }

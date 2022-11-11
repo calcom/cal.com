@@ -15,8 +15,6 @@ export const appsRouter = createProtectedRouter()
       variant: z.string(),
     }),
     async resolve({ ctx, input }) {
-      console.log("🚀 ~ file: apps.tsx ~ line 19 ~ resolve ~ ctx.user.role", ctx);
-
       if (ctx.session.user.role !== "ADMIN")
         throw new TRPCError({
           code: "UNAUTHORIZED",

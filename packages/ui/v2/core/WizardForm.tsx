@@ -12,7 +12,12 @@ type DefaultStep = {
   isLoading: boolean;
 };
 
-function WizardForm<T extends DefaultStep>(props: { href: string; steps: T[]; containerClassname?: string }) {
+function WizardForm<T extends DefaultStep>(props: {
+  href: string;
+  steps: T[];
+  disableSteps?: boolean;
+  containerClassname?: string;
+}) {
   const { href, steps } = props;
   const router = useRouter();
   const step = parseInt((router.query.step as string) || "1");
@@ -22,7 +27,7 @@ function WizardForm<T extends DefaultStep>(props: { href: string; steps: T[]; co
   };
 
   return (
-    <div className="mx-auto print:w-full">
+    <div className="mx-auto mt-4 print:w-full">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img className="mx-auto mb-8 h-8" src="https://cal.com/logo.svg" alt="Cal.com Logo" />
       <div
@@ -60,7 +65,7 @@ function WizardForm<T extends DefaultStep>(props: { href: string; steps: T[]; co
         )}
       </div>
       <div className="print:hidden">
-        <Stepper href={href} step={step} steps={steps} />
+        <Stepper href={href} step={step} steps={steps} disableSteps />
       </div>
     </div>
   );
