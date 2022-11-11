@@ -156,7 +156,7 @@ const ProfileView = () => {
   const {
     reset,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    formState: { dirtyFields },
+    formState: { dirtyFields, isSubmitting },
   } = formMethods;
 
   useEffect(() => {
@@ -197,6 +197,14 @@ const ProfileView = () => {
   };
 
   if (isLoading || !user) return <SkeletonLoader />;
+  const formValues = formMethods.watch();
+
+  const isDisabled =
+    isSubmitting ||
+    (user.email.trim() === formValues.email.trim() &&
+      user?.bio?.trim() === formValues.bio.trim() &&
+      user?.name?.trim() === formValues.name.trim() &&
+      user.avatar.trim() === formValues.avatar.trim());
 
   return (
     <>
@@ -261,7 +269,12 @@ const ProfileView = () => {
           <TextField label={t("about")} hint={t("bio_hint")} {...formMethods.register("bio")} />
         </div>
 
-        <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
+        <Button
+          disabled={isDisabled}
+          color="primary"
+          className="mt-8"
+          type="submit"
+          loading={mutation.isLoading}>
           {t("update")}
         </Button>
 
