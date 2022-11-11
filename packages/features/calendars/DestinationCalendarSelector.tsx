@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import React, { useEffect, useState } from "react";
 import { components } from "react-select";
-import { SingleValueProps, OptionProps, SingleValue, ActionMeta } from "react-select";
+import { SingleValueProps, OptionProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { DestinationCalendar } from "@calcom/prisma/client";
@@ -51,7 +51,7 @@ const DestinationCalendarSelector = ({
   destinationCalendar,
 }: Props): JSX.Element | null => {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.connectedCalendars"]);
+  const query = trpc.viewer.connectedCalendars.useQuery();
   const [selectedOption, setSelectedOption] = useState<{
     value: string;
     label: string;

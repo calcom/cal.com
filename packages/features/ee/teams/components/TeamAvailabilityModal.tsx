@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Avatar } from "@calcom/ui/components/avatar";
 import Select from "@calcom/ui/form/Select";
 import TimezoneSelect, { ITimezone } from "@calcom/ui/form/TimezoneSelect";
@@ -12,8 +12,8 @@ import LicenseRequired from "../../common/components/LicenseRequired";
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 
 interface Props {
-  team?: inferQueryOutput<"viewer.teams.get">;
-  member?: inferQueryOutput<"viewer.teams.get">["members"][number];
+  team?: RouterOutputs["viewer"]["teams"]["get"];
+  member?: RouterOutputs["viewer"]["teams"]["get"]["members"][number];
 }
 
 export default function TeamAvailabilityModal(props: Props) {
@@ -25,7 +25,7 @@ export default function TeamAvailabilityModal(props: Props) {
   const [frequency, setFrequency] = useState<15 | 30 | 60>(30);
 
   useEffect(() => {
-    utils.invalidateQueries(["viewer.teams.getMemberAvailability"]);
+    utils.viewer.teams.getMemberAvailability.invalidate();
   }, [utils, selectedTimeZone, selectedDate]);
 
   return (

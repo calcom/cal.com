@@ -119,7 +119,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     }
   };
 
-  const testActionMutation = trpc.useMutation("viewer.workflows.testAction", {
+  const testActionMutation = trpc.viewer.workflows.testAction.useMutation({
     onSuccess: async () => {
       showToast(t("notification_sent"), "success");
     },

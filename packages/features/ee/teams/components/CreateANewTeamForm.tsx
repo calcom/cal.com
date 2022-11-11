@@ -17,14 +17,14 @@ export const CreateANewTeamForm = () => {
   const router = useRouter();
   const newTeamFormMethods = useForm<NewTeamFormValues>();
 
-  const createTeamMutation = trpc.useMutation(["viewer.teams.create"], {
+  const createTeamMutation = trpc.viewer.teams.create.useMutation({
     onSuccess: (data) => {
       router.push(`/settings/teams/${data.id}/onboard-members`);
     },
   });
 
-  const validateTeamSlugQuery = trpc.useQuery(
-    ["viewer.teams.validateTeamSlug", { slug: newTeamFormMethods.watch("slug") }],
+  const validateTeamSlugQuery = trpc.viewer.teams.validateTeamSlug.useQuery(
+    { slug: newTeamFormMethods.watch("slug") },
     {
       enabled: false,
       refetchOnWindowFocus: false,

@@ -58,7 +58,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
     },
     {
       async onSettled() {
-        await utils.invalidateQueries(["viewer.integrations"]);
+        await utils.viewer.integrations.invalidate();
       },
       onError() {
         showToast(`Something went wrong when toggling "${title}""`, "error");
