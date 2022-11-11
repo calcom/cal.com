@@ -573,6 +573,7 @@ model WorkflowStep {
   template          WorkflowTemplates  @default(REMINDER)
   workflowReminders WorkflowReminder[]
   numberRequired    Boolean?
+  sender            String?
 }
 
 model Workflow {
