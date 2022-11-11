@@ -32,17 +32,17 @@ const UserProfile = (props: IUserProfile) => {
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({ defaultValues: { bio: user?.bio || "" } });
-  const { data: eventTypes } = trpc.useQuery(["viewer.eventTypes.list"]);
+  const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
   const utils = trpc.useContext();
   const router = useRouter();
-  const createEventType = trpc.useMutation("viewer.eventTypes.create");
+  const createEventType = trpc.viewer.eventTypes.create.useMutation();
 
-  const mutation = trpc.useMutation("viewer.updateProfile", {
+  const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (_data, context) => {
       if (context.avatar) {
         showToast(t("your_user_profile_updated_successfully"), "success");
-        await utils.refetchQueries(["viewer.me"]);
+        await utils.viewer.me.refetch();
       } else {
         try {
           if (eventTypes?.length === 0) {
@@ -56,7 +56,7 @@ const UserProfile = (props: IUserProfile) => {
           console.error(error);
         }
 
-        await utils.refetchQueries(["viewer.me"]);
+        await utils.viewer.me.refetch();
         router.push("/");
       }
     },
@@ -102,8 +102,7 @@ const UserProfile = (props: IUserProfile) => {
 
   return (
     <form onSubmit={onSubmit}>
-      <p className="font-cal text-sm">{t("profile_picture")}</p>
-      <div className="mt-4 flex flex-row items-center justify-start rtl:justify-end">
+      <div className="flex flex-row items-center justify-start rtl:justify-end">
         {user && <AvatarSSR user={user} alt="Profile picture" className="h-16 w-16" />}
         <input
           ref={avatarRef}
@@ -118,7 +117,7 @@ const UserProfile = (props: IUserProfile) => {
           <ImageUploader
             target="avatar"
             id="avatar-upload"
-            buttonMsg={t("upload")}
+            buttonMsg={t("add_profile_photo")}
             handleAvatarChange={(newAvatar) => {
               avatarRef.current.value = newAvatar;
               const nativeInputValueSetter = Object.getOwnPropertyDescriptor(

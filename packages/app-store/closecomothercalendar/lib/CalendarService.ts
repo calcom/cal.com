@@ -1,6 +1,7 @@
 import z from "zod";
 
 import CloseCom, { CloseComFieldOptions } from "@calcom/lib/CloseCom";
+import { getCustomActivityTypeInstanceData } from "@calcom/lib/CloseComeUtils";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import type {
@@ -73,9 +74,10 @@ export default class CloseComCalendarService implements Calendar {
   }
 
   closeComUpdateCustomActivity = async (uid: string, event: CalendarEvent) => {
-    const customActivityTypeInstanceData = await this.closeCom.getCustomActivityTypeInstanceData(
+    const customActivityTypeInstanceData = await getCustomActivityTypeInstanceData(
       event,
-      calComCustomActivityFields
+      calComCustomActivityFields,
+      this.closeCom
     );
     // Create Custom Activity type instance
     const customActivityTypeInstance = await this.closeCom.activity.custom.create(
@@ -89,9 +91,10 @@ export default class CloseComCalendarService implements Calendar {
   };
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
-    const customActivityTypeInstanceData = await this.closeCom.getCustomActivityTypeInstanceData(
+    const customActivityTypeInstanceData = await getCustomActivityTypeInstanceData(
       event,
-      calComCustomActivityFields
+      calComCustomActivityFields,
+      this.closeCom
     );
     // Create Custom Activity type instance
     const customActivityTypeInstance = await this.closeCom.activity.custom.create(

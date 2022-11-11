@@ -62,7 +62,7 @@ export function NewWorkflowButton() {
     resolver: zodResolver(formSchema),
   });
 
-  const createMutation = trpc.useMutation("viewer.workflows.create", {
+  const createMutation = trpc.viewer.workflows.create.useMutation({
     onSuccess: async ({ workflow }) => {
       await router.replace("/workflows/" + workflow.id);
       setIsPhoneNumberNeeded(false);
