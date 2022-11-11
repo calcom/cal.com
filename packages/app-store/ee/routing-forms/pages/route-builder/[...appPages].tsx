@@ -130,6 +130,21 @@ type SerializableRoute = Pick<Route, "id" | "action"> & {
   isFallback?: Route["isFallback"];
 };
 
+export const RoutingPages: { label: string; value: Route["action"]["type"] }[] = [
+  {
+    label: "Custom Page",
+    value: "customPageMessage",
+  },
+  {
+    label: "External Redirect",
+    value: "externalRedirectUrl",
+  },
+  {
+    label: "Event Redirect",
+    value: "eventTypeRedirectUrl",
+  },
+];
+
 const Route = ({
   route,
   routes,
@@ -148,21 +163,8 @@ const Route = ({
   moveDown?: { fn: () => void; check: () => boolean } | null;
 }) => {
   const index = routes.indexOf(route);
-  const RoutingPages: { label: string; value: Route["action"]["type"] }[] = [
-    {
-      label: "Custom Page",
-      value: "customPageMessage",
-    },
-    {
-      label: "External Redirect",
-      value: "externalRedirectUrl",
-    },
-    {
-      label: "Event Redirect",
-      value: "eventTypeRedirectUrl",
-    },
-  ];
-  const { data: eventTypesByGroup } = trpc.useQuery(["viewer.eventTypes"]);
+
+  const { data: eventTypesByGroup } = trpc.viewer.eventTypes.getByViewer.useQuery();
 
   const eventOptions: { label: string; value: string }[] = [];
   eventTypesByGroup?.eventTypeGroups.forEach((group) => {

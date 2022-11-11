@@ -86,9 +86,12 @@ function WorkflowPage() {
     data: workflow,
     isError,
     error,
-  } = trpc.useQuery(["viewer.workflows.get", { id: +workflowId }], {
-    enabled: router.isReady && !!workflowId,
-  });
+  } = trpc.viewer.workflows.get.useQuery(
+    { id: +workflowId },
+    {
+      enabled: router.isReady && !!workflowId,
+    }
+  );
 
   useEffect(() => {
     if (workflow) {
@@ -133,10 +136,10 @@ function WorkflowPage() {
     }
   }, [workflow]);
 
-  const updateMutation = trpc.useMutation("viewer.workflows.update", {
+  const updateMutation = trpc.viewer.workflows.update.useMutation({
     onSuccess: async ({ workflow }) => {
       if (workflow) {
-        utils.setQueryData(["viewer.workflows.get", { id: +workflow.id }], workflow);
+        utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
 
         showToast(
           t("workflow_updated_successfully", {

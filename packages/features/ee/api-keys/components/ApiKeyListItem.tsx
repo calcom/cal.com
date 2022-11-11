@@ -1,7 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import Button from "@calcom/ui/Button";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
@@ -10,16 +10,16 @@ import { ListItem } from "@calcom/ui/List";
 import { Tooltip } from "@calcom/ui/Tooltip";
 import { Badge } from "@calcom/ui/components/badge";
 
-export type TApiKeys = inferQueryOutput<"viewer.apiKeys.list">[number];
+export type TApiKeys = RouterOutputs["viewer"]["apiKeys"]["list"][number];
 
 export default function ApiKeyListItem(props: { apiKey: TApiKeys; onEditApiKey: () => void }) {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const isExpired = props?.apiKey?.expiresAt ? props.apiKey.expiresAt < new Date() : null;
   const neverExpires = props?.apiKey?.expiresAt === null;
-  const deleteApiKey = trpc.useMutation("viewer.apiKeys.delete", {
+  const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.apiKeys.list"]);
+      await utils.viewer.apiKeys.list.invalidate();
     },
   });
   return (
