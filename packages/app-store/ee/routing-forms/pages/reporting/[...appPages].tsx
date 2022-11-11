@@ -26,19 +26,16 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
   const { t } = useLocale();
 
   const { isLoading, status, data, isFetching, error, isFetchingNextPage, hasNextPage, fetchNextPage } =
-    trpc.useInfiniteQuery(
-      [
-        "viewer.app_routing_forms.report",
-        {
-          formId: formId,
-          // Send jsonLogicQuery only if it's a valid logic, otherwise send a logic with no query.
-          jsonLogicQuery: jsonLogicQuery?.logic
-            ? jsonLogicQuery
-            : {
-                logic: {},
-              },
-        },
-      ],
+    trpc.viewer.appRoutingForms.report.useInfiniteQuery(
+      {
+        formId: formId,
+        // Send jsonLogicQuery only if it's a valid logic, otherwise send a logic with no query.
+        jsonLogicQuery: jsonLogicQuery?.logic
+          ? jsonLogicQuery
+          : {
+              logic: {},
+            },
+      },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
       }
@@ -58,27 +55,48 @@ const Result = ({ formId, jsonLogicQuery }: { formId: string; jsonLogicQuery: Js
 
   return (
     <div className="w-full max-w-[2000px] overflow-x-scroll">
-      <table data-testid="reporting-table" className="table-fixed border border-gray-300">
-        <tr data-testid="reporting-header" className="bg-gray-300">
+      <table
+        data-testid="reporting-table"
+        className="table-fixed border-separate border-spacing-0 rounded-md border border-gray-300 bg-gray-100">
+        <tr data-testid="reporting-header" className="border-b border-gray-300 bg-gray-200">
           {headers.current?.map((header, index) => (
-            <th className="border border-gray-400 py-3 px-2 text-left text-base font-medium" key={index}>
+            <th
+              className={classNames(
+                "border-b border-gray-300 py-3 px-2  text-left text-base font-medium",
+                index !== (headers.current?.length || 0) - 1 ? "border-r" : ""
+              )}
+              key={index}>
               {header}
             </th>
           ))}
         </tr>
         {!isLoading &&
           data?.pages.map((page) => {
-            return page.responses?.map((responses, index) => {
+            return page.responses?.map((responses, rowIndex) => {
+              const isLastRow = page.responses.length - 1 === rowIndex;
               return (
                 <tr
-                  key={index}
+                  key={rowIndex}
                   data-testid="reporting-row"
-                  className={classNames(" text-center text-sm", index % 2 ? "bg-gray-100" : "")}>
-                  {responses.map((r, index) => (
-                    <td className="overflow-x-hidden border border-gray-400 py-3 px-2 text-left" key={index}>
-                      {r}
-                    </td>
-                  ))}
+                  className={classNames(
+                    "text-center text-sm",
+                    rowIndex % 2 ? "" : "bg-white",
+                    isLastRow ? "" : "border-b"
+                  )}>
+                  {responses.map((r, columnIndex) => {
+                    const isLastColumn = columnIndex === responses.length - 1;
+                    return (
+                      <td
+                        className={classNames(
+                          "overflow-x-hidden border-gray-300 py-3 px-2 text-left",
+                          isLastRow ? "" : "border-b",
+                          isLastColumn ? "" : "border-r"
+                        )}
+                        key={columnIndex}>
+                        {r}
+                      </td>
+                    );
+                  })}
                 </tr>
               );
             });
@@ -145,7 +163,6 @@ const Reporter = ({ form }: { form: inferSSRProps<typeof getServerSideProps>["fo
           }}
           renderBuilder={renderBuilder}
         />
-        <hr className="mt-6" />
         <Result formId={form.id} jsonLogicQuery={jsonLogicQuery as JsonLogicQuery} />
       </div>
     </div>

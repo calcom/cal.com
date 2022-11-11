@@ -160,7 +160,7 @@ function Button({ config, type, label, onClick, readonly }: ButtonProps) {
   }
   let dataTestId = "";
   if (type === "addRule") {
-    label = config?.operators.__calReporting ? "Add Query" : "Add rule";
+    label = config?.operators.__calReporting ? "Add Filter" : "Add rule";
     dataTestId = "add-rule";
   } else if (type == "addGroup") {
     label = "Add rule group";
