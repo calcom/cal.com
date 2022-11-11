@@ -477,7 +477,6 @@ describe.skip("getSchedule", () => {
         eventType: {
           id: 1,
           minimumBookingNotice: 0,
-
           length: 30,
           slotInterval: 45,
           periodType: "UNLIMITED" as PeriodType,
