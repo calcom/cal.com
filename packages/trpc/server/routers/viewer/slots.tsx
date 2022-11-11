@@ -179,12 +179,12 @@ function getRegularOrDynamicEventType(
 }
 
 const getMinimumStartTime = (
-  desiredStartTime: Dayjs,
+  timeZone: string,
   { periodType, periodStartDate }: Pick<EventType, "periodType" | "periodStartDate">
 ) => {
-  const absoluteMinimum = dayjs().utcOffset(desiredStartTime.utcOffset()).startOf("day");
+  const absoluteMinimum = dayjs().tz(timeZone).startOf("day");
   if (periodType === PeriodType.RANGE) {
-    const minimum = dayjs(periodStartDate).utcOffset(desiredStartTime.utcOffset()).startOf("day");
+    const minimum = dayjs(periodStartDate).tz(timeZone).startOf("day");
     if (minimum.isAfter(absoluteMinimum)) {
       return minimum;
     }
@@ -193,7 +193,7 @@ const getMinimumStartTime = (
 };
 
 const getMaximumEndTime = (
-  desiredEndTime: Dayjs,
+  timeZone: string,
   {
     periodType,
     periodDays,
@@ -204,12 +204,12 @@ const getMaximumEndTime = (
   if (periodType === PeriodType.ROLLING) {
     const daysToAdd = periodDays || 0;
     return periodCountCalendarDays
-      ? dayjs().utcOffset(desiredEndTime.utcOffset()).add(daysToAdd, "days").endOf("day")
-      : dayjs().utcOffset(desiredEndTime.utcOffset()).businessDaysAdd(daysToAdd).endOf("day");
+      ? dayjs().tz(timeZone).add(daysToAdd, "days").endOf("day")
+      : dayjs().tz(timeZone).businessDaysAdd(daysToAdd).endOf("day");
   }
 
   if (periodType === PeriodType.RANGE) {
-    return dayjs(periodEndDate).utcOffset(desiredEndTime.utcOffset()).endOf("day");
+    return dayjs(periodEndDate).tz(timeZone).endOf("day");
   }
 
   return null;
@@ -235,18 +235,17 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     throw new TRPCError({ code: "NOT_FOUND" });
   }
 
-  let startTime =
-    input.timeZone === "Etc/GMT"
-      ? dayjs.utc(input.startTime)
-      : dayjs(input.startTime).utc().tz(input.timeZone);
-  let endTime =
-    input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
+  const timeZone = input.timeZone || "Etc/GMT";
 
-  const minimumStartTime = getMinimumStartTime(startTime, {
+  let startTime =
+    timeZone === "Etc/GMT" ? dayjs.utc(input.startTime) : dayjs(input.startTime).utc().tz(timeZone);
+  let endTime = timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(timeZone);
+
+  const minimumStartTime = getMinimumStartTime(timeZone, {
     periodType: eventType.periodType,
     periodStartDate: eventType.periodStartDate,
   });
-  const maximumEndTime = getMaximumEndTime(endTime, {
+  const maximumEndTime = getMaximumEndTime(timeZone, {
     periodType: eventType.periodType,
     periodDays: eventType.periodDays,
     periodCountCalendarDays: eventType.periodCountCalendarDays,
@@ -298,7 +297,6 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     },
   ]);
 
-  logger.debug("WORKING HOURS: ", workingHours);
   const computedAvailableSlots: Record<string, Slot[]> = {};
   const needAllUsers = !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE;
 
