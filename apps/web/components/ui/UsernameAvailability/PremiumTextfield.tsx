@@ -9,7 +9,7 @@ import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon, StarIconSolid } from "@calcom/ui/Icon";
@@ -57,7 +57,7 @@ const obtainNewUsernameChangeCondition = ({
 }: {
   userIsPremium: boolean;
   isNewUsernamePremium: boolean;
-  stripeCustomer: inferQueryOutput<"viewer.stripeCustomer"> | undefined;
+  stripeCustomer: RouterOutputs["viewer"]["stripeCustomer"] | undefined;
 }) => {
   if (!userIsPremium && isNewUsernamePremium && !stripeCustomer?.paidForPremium) {
     return UsernameChangeStatusEnum.UPGRADE;
@@ -87,7 +87,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const router = useRouter();
   const { paymentStatus: recentAttemptPaymentStatus } = router.query;
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
-  const { data: stripeCustomer } = trpc.useQuery(["viewer.stripeCustomer"]);
+  const { data: stripeCustomer } = trpc.viewer.stripeCustomer.useQuery();
   const isCurrentUsernamePremium =
     user && user.metadata && hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
   const [isInputUsernamePremium, setIsInputUsernamePremium] = useState(false);
@@ -116,7 +116,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   }, [debouncedApiCall, inputUsernameValue]);
 
   const utils = trpc.useContext();
-  const updateUsername = trpc.useMutation("viewer.updateProfile", {
+  const updateUsername = trpc.viewer.updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
       setOpenDialogSaveUsername(false);
@@ -125,7 +125,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       onErrorMutation && onErrorMutation(error);
     },
     async onSettled() {
-      await utils.invalidateQueries(["viewer.public.i18n"]);
+      await utils.viewer.public.i18n.invalidate();
     },
   });
 

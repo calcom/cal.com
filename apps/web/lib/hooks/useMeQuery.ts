@@ -1,7 +1,7 @@
 import { trpc } from "@calcom/trpc/react";
 
 export function useMeQuery() {
-  const meQuery = trpc.useQuery(["viewer.me"], {
+  const meQuery = trpc.viewer.me.useQuery(undefined, {
     retry(failureCount) {
       return failureCount > 3;
     },

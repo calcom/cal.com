@@ -11,7 +11,7 @@ export default function WebhookTestDisclosure() {
   const subscriberUrl: string = useWatch({ name: "subscriberUrl" });
   const payloadTemplate = useWatch({ name: "payloadTemplate" }) || null;
   const { t } = useLocale();
-  const mutation = trpc.useMutation("viewer.webhook.testTrigger", {
+  const mutation = trpc.viewer.webhook.testTrigger.useMutation({
     onError(err) {
       showToast(err.message, "error");
     },

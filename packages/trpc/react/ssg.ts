@@ -1,1 +1,1 @@
-export * from "@trpc/react/ssg";
+export * from "@trpc/react-query/ssg";
