@@ -20,7 +20,7 @@ type EventLimitType = {
   eventType: Pick<EventTypeSetupInfered, "eventType">;
 };
 
-export const EventLimitsTab = (props: {eventType: Pick<EventTypeSetupInfered, "eventType">}) => {
+export const EventLimitsTab = (props: EventLimitType) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const { eventType } = props.eventType;
