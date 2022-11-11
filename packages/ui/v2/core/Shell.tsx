@@ -240,10 +240,10 @@ function UserDropdown({ small }: { small?: boolean }) {
   return (
     <Dropdown open={menuOpen}>
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
-        <button className="group flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-100 sm:pl-3 md:rounded-none lg:pl-2">
+        <button className="group flex w-full cursor-pointer appearance-none items-center  rounded-full p-2 text-left outline-none hover:bg-gray-200 sm:pl-3 md:rounded lg:pl-2">
           <span
             className={classNames(
-              small ? "h-8 w-8" : "h-9 w-9 ltr:mr-2 rtl:ml-3",
+              small ? "h-6 w-6" : "h-8 w-8 ltr:mr-2 rtl:ml-3",
               "relative flex-shrink-0 rounded-full bg-gray-300 "
             )}>
             {
@@ -267,7 +267,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 <span className="block truncate font-medium text-gray-900">
                   {user.name || "Nameless User"}
                 </span>
-                <span className="block truncate font-normal text-neutral-500">
+                <span className="block truncate font-normal text-gray-900">
                   {user.username
                     ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
                       ? `cal.com/${user.username}`
