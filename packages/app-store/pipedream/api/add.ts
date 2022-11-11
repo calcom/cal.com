@@ -10,7 +10,10 @@ const handler: AppDeclarativeHandler = {
   slug: appConfig.slug,
   supportsMultipleInstalls: false,
   handlerType: "add",
-  redirectUrl: "https://pipedream.com/apps/cal-com",
+  redirect: {
+    newTab: true,
+    url: "https://pipedream.com/apps/cal-com",
+  },
   createCredential: ({ appType, user, slug }) =>
     createDefaultInstallation({ appType, userId: user.id, slug, key: {} }),
 };
