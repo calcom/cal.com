@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 export const appKeysSchema = z.object({
-  clientId: z.string(),
-  clientSecret: z.string(),
+  client_id: z.string(),
+  client_secret: z.string(),
 });
 
 export const appDataSchema = z.object({

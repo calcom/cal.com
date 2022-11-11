@@ -8,7 +8,6 @@ import { EventTypeModel } from "@calcom/prisma/zod";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { App, AppMeta } from "@calcom/types/App";
 
-import { appKeysSchemas } from "./apps.keys-schemas.generated";
 // If you import this file on any app it should produce circular dependency
 // import appStore from "./index";
 import { appStoreMetadata } from "./apps.metadata.generated";
@@ -126,15 +125,15 @@ const appKeySchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
  */
 
 export function getLocalAppMetadata() {
-  const appsWithKeysSchema = ALL_APPS.map((app) => {
-    const appKey = deriveAppDictKeyFromType(app.type, appKeysSchemas);
-    const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas] || null;
-    //       ^?
+  // const appsWithKeysSchema = ALL_APPS.map((app) => {
+  //   const appKey = deriveAppDictKeyFromType(app.type, appKeysSchemas);
+  //   const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas] || null;
 
-    return { ...app, keys: keysSchema ? keysSchema.keyof()._def.values : null };
-  });
+  //   return { ...app, keys: keysSchema ? keysSchema.keyof()._def.values : null };
+  // });
 
-  return appsWithKeysSchema;
+  // return appsWithKeysSchema;
+  return ALL_APPS;
 }
 
 export function hasIntegrationInstalled(type: App["type"]): boolean {

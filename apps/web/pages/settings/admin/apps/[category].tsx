@@ -1,29 +1,83 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useRouter } from "next/router";
+import { Controller, useForm } from "react-hook-form";
 
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { TextField } from "@calcom/ui/components";
+import { TextField, Button, Form } from "@calcom/ui/components";
 import { Switch } from "@calcom/ui/v2";
 // import { List, ListItem, ListItemTitle, ListItemText } from "@calcom/ui/v2/core/List";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import { SkeletonContainer, SkeletonText, SkeletonButton } from "@calcom/ui/v2/core/skeleton";
 
+const IntegrationContainer = ({ app, lastEntry }) => {
+  const formMethods = useForm();
+
+  const enableAppMutation = trpc.useMutation(["viewer.apps.enable"]);
+
+  return (
+    <Collapsible key={app.name}>
+      <div className={`${lastEntry && "border-b"}`}>
+        <div className="flex w-full flex-1 items-center justify-between space-x-3 p-4 rtl:space-x-reverse md:max-w-3xl">
+          {
+            // eslint-disable-next-line @next/next/no-img-element
+            app.logo && <img className="h-10 w-10" src={app.logo} alt={app.title} />
+          }
+          <div className="flex-grow truncate pl-2">
+            <h3 className="truncate text-sm font-medium text-neutral-900">
+              <p>{app.name || app.title}</p>
+            </h3>
+            <p className="truncate text-sm text-gray-500">{app.description}</p>
+          </div>
+          <div className="justify-self-end">
+            <CollapsibleTrigger>
+              <Switch />
+            </CollapsibleTrigger>
+          </div>
+        </div>
+        <CollapsibleContent>
+          {app.keys && (
+            <Form
+              form={formMethods}
+              handleSubmit={(values) => enableAppMutation.mutate({ appName: app.name, keys: values })}
+              className="px-4 pb-4">
+              {Object.keys(app.keys)?.map((key) => (
+                <Controller
+                  name={key}
+                  key={key}
+                  control={formMethods.control}
+                  defaultValue={app.keys[key]}
+                  render={({ field: { value } }) => (
+                    <TextField
+                      label={key}
+                      key={key}
+                      name={key}
+                      value={value}
+                      onChange={(e) => {
+                        formMethods.setValue(key, e?.target.value);
+                      }}
+                    />
+                  )}
+                />
+              ))}
+              <Button type="submit">Save</Button>
+            </Form>
+          )}
+        </CollapsibleContent>
+      </div>
+    </Collapsible>
+  );
+};
+
 function AdminAppsView() {
   const { t } = useLocale();
   const router = useRouter();
   const category = router.query.category;
 
-  // const { data: integrations, isLoading } = trpc.useQuery(["viewer.integrations", { variant: category }], {
-  //   onSuccess: (data) => {
-  //     console.log("🚀 ~ file: [category].tsx ~ line 24 ~ AdminAppsView ~ data", data);
-  //   },
-  // });
-
-  const { data: integrations, isLoading } = trpc.useQuery(["viewer.apps.listLocal", { variant: category }], {
+  const { data: apps, isLoading } = trpc.useQuery(["viewer.apps.listLocal", { variant: category }], {
     onSuccess: (data) => {
       console.log("🚀 ~ file: [category].tsx ~ line 28 ~ AdminAppsView ~ data", data);
     },
@@ -38,37 +92,8 @@ function AdminAppsView() {
           <SkeletonLoader />
         ) : (
           <div className="rounded-md border border-gray-200">
-            {integrations.map((integration, index) => (
-              <Collapsible key={integration.name}>
-                <div className={`${index !== integrations.length - 1 && "border-b"}`}>
-                  <div className="flex w-full flex-1 items-center justify-between space-x-3 p-4 rtl:space-x-reverse md:max-w-3xl">
-                    {
-                      // eslint-disable-next-line @next/next/no-img-element
-                      integration.logo && (
-                        <img className="h-10 w-10" src={integration.logo} alt={integration.title} />
-                      )
-                    }
-                    <div className="flex-grow truncate pl-2">
-                      <h3 className="truncate text-sm font-medium text-neutral-900">
-                        <p>{integration.name || integration.title}</p>
-                      </h3>
-                      <p className="truncate text-sm text-gray-500">{integration.description}</p>
-                    </div>
-                    <div className="justify-self-end">
-                      <CollapsibleTrigger>
-                        <Switch />
-                      </CollapsibleTrigger>
-                    </div>
-                  </div>
-                  <CollapsibleContent>
-                    <div className="px-4 pb-4">
-                      {integration.keys?.map((key) => (
-                        <TextField label={key} key={key} />
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </div>
-              </Collapsible>
+            {apps.map((app, index) => (
+              <IntegrationContainer app={app} lastEntry={index === apps.length - 1} key={app.name} />
             ))}
           </div>
         )}
