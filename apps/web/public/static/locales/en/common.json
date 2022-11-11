@@ -1361,6 +1361,8 @@
   "invalid_credential": "Oh no! Looks like permission expired or was revoked. Please reinstall again.",
   "choose_common_schedule_team_event": "Choose a common schedule",
   "choose_common_schedule_team_event_description": "Enable this if you want to use a common schedule between hosts. When disabled, each host will be booked based on their default schedule.",
+  "sender_id": "Sender ID",
+  "sender_id_error_message":"Only letters, numbers and spaces allowed (max. 11 characters)",
   "test_routing_form": "Test Routing Form",
   "test_preview": "Test Preview",
   "route_to": "Route to",
