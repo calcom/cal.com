@@ -47,7 +47,8 @@ export const scheduleWorkflowReminders = async (
               },
               step.reminderBody || "",
               step.id,
-              step.template
+              step.template,
+              step.sender || "Cal"
             );
           } else if (
             step.action === WorkflowActions.EMAIL_ATTENDEE ||
@@ -115,7 +116,8 @@ export const sendCancelledReminders = async (
               },
               step.reminderBody || "",
               step.id,
-              step.template
+              step.template,
+              step.sender || "Cal"
             );
           } else if (
             step.action === WorkflowActions.EMAIL_ATTENDEE ||

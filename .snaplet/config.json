@@ -1,4 +1,4 @@
 {
   "projectId": "cl4u26bwz7962859ply7ibuo43t",
-  "databaseUrl": "postgresql://postgres@localhost:5450/calendso"
+  "targetDatabaseUrl": "postgresql://postgres@localhost:5450/calendso"
 }
