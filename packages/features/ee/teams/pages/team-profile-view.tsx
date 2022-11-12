@@ -1,8 +1,10 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { MembershipRole, Prisma } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
@@ -19,12 +21,19 @@ import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
 
-interface TeamProfileValues {
-  name: string;
-  url: string;
-  logo: string;
-  bio: string;
-}
+const regex = new RegExp("^[a-zA-Z0-9-]*$");
+
+const teamProfileFormSchema = z.object({
+  name: z.string(),
+  url: z
+    .string()
+    .regex(regex, {
+      message: "Url can only have alphanumeric characters(a-z, 0-9) and hyphen(-) symbol.",
+    })
+    .min(1, { message: "Url cannot be left empty" }),
+  logo: z.string(),
+  bio: z.string(),
+});
 
 const ProfileView = () => {
   const { t } = useLocale();
@@ -42,7 +51,9 @@ const ProfileView = () => {
     },
   });
 
-  const form = useForm<TeamProfileValues>();
+  const form = useForm({
+    resolver: zodResolver(teamProfileFormSchema),
+  });
 
   const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
     { teamId: Number(router.query.id) },
@@ -186,6 +197,7 @@ const ProfileView = () => {
                       value={value}
                       addOnLeading={`${WEBAPP_URL}/team/`}
                       onChange={(e) => {
+                        form.clearErrors("url");
                         form.setValue("url", e?.target.value);
                       }}
                     />
