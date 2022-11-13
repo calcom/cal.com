@@ -98,6 +98,7 @@ export default function RoutingForms({
                                   action="edit"
                                   routingForm={form}
                                   color="minimal"
+                                  className="!flex"
                                   StartIcon={Icon.FiEdit}>
                                   {t("edit")}
                                 </FormAction>
