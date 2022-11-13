@@ -65,8 +65,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       await handler(req, res);
     } else {
       await defaultIntegrationAddHandler({ user: req.session?.user, ...handler });
-      redirectUrl = handler.redirectUrl || getInstalledAppPath(handler);
-      res.json({ url: redirectUrl });
+      redirectUrl = handler.redirect?.url || getInstalledAppPath(handler);
+      res.json({ url: redirectUrl, newTab: handler.redirect?.newTab });
     }
     return res.status(200);
   } catch (error) {
