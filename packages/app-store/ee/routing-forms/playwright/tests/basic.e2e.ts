@@ -283,11 +283,50 @@ test.describe("Routing Forms", () => {
       expect(firstInputMissingValue).toBe(true);
       expect(await page.locator('button[type="submit"][disabled]').count()).toBe(0);
     });
+
+    test("Test preview should return correct route", async ({ page, users }) => {
+      const user = await createUserAndLoginAndInstallApp({ users, page });
+      const routingForm = user.routingForms[0];
+      page.goto(`apps/routing-forms/form-edit/${routingForm.id}`);
+      await page.click('[data-testid="test-preview"]');
+
+      // //event redirect
+      await page.fill('[data-testid="form-field"]', "event-routing");
+      await page.click('[data-testid="test-routing"]');
+      let routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      let route = await page.locator('[data-testid="test-routing-result"]').innerText();
+      await expect(routingType).toBe("Event Redirect");
+      await expect(route).toBe("pro/30min");
+
+      //custom page
+      await page.fill('[data-testid="form-field"]', "custom-page");
+      await page.click('[data-testid="test-routing"]');
+      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      route = await page.locator('[data-testid="test-routing-result"]').innerText();
+      await expect(routingType).toBe("Custom Page");
+      await expect(route).toBe("Custom Page Result");
+
+      //external redirect
+      await page.fill('[data-testid="form-field"]', "external-redirect");
+      await page.click('[data-testid="test-routing"]');
+      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      route = await page.locator('[data-testid="test-routing-result"]').innerText();
+      await expect(routingType).toBe("External Redirect");
+      await expect(route).toBe("https://google.com");
+
+      //fallback route
+      await page.fill('[data-testid="form-field"]', "fallback");
+      await page.click('[data-testid="test-routing"]');
+      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      route = await page.locator('[data-testid="test-routing-result"]').innerText();
+      await expect(routingType).toBe("Custom Page");
+      await expect(route).toBe("Fallback Message");
+    });
   });
 });
 async function fillSeededForm(page: Page, routingFormId: string) {
   await gotoRoutingLink(page, routingFormId);
-  await page.fill('[data-testid="field"]', "event-routing");
+  await page.fill('[data-testid="form-field"]', "event-routing");
   page.click('button[type="submit"]');
   await page.waitForNavigation({
     url(url) {
@@ -296,7 +335,7 @@ async function fillSeededForm(page: Page, routingFormId: string) {
   });
 
   await gotoRoutingLink(page, routingFormId);
-  await page.fill('[data-testid="field"]', "external-redirect");
+  await page.fill('[data-testid="form-field"]', "external-redirect");
   page.click('button[type="submit"]');
   await page.waitForNavigation({
     url(url) {
@@ -305,7 +344,7 @@ async function fillSeededForm(page: Page, routingFormId: string) {
   });
 
   await gotoRoutingLink(page, routingFormId);
-  await page.fill('[data-testid="field"]', "custom-page");
+  await page.fill('[data-testid="form-field"]', "custom-page");
   await page.click('button[type="submit"]');
   await page.isVisible("text=Custom Page Result");
 }
