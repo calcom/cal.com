@@ -15,8 +15,8 @@ import { useAccount, useSignMessage } from "wagmi";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { SkeletonText } from "@calcom/ui";
 import { Icon } from "@calcom/ui/Icon";
+import { SkeletonText } from "@calcom/ui/v2";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 import { getProviders, ETH_MESSAGE, SUPPORTED_CHAINS } from "../utils/ethereum";
@@ -118,8 +118,8 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
             <h2 className="mb-2 grow font-semibold text-neutral-900 dark:text-white">Token Gate</h2>
             {isLoading && (
               <>
-                <SkeletonText width="[100%]" height="5" className="mb-3" />
-                <SkeletonText width="[100%]" height="5" />
+                <SkeletonText className="mb-3 h-1 w-full" />
+                <SkeletonText className="h-1 w-full" />
               </>
             )}
             {!isLoading && contractData && contractData.data && (
