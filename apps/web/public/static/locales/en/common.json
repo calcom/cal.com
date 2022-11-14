@@ -711,6 +711,8 @@
   "delete_account_confirmation_message": "Are you sure you want to delete your Cal.com account? Anyone who you've shared your account link with will no longer be able to book using it and any preferences you have saved will be lost.",
   "integrations": "Integrations",
   "apps": "Apps",
+  "apps_description": "Here you can find a list of your apps",
+  "apps_listing": "App listing",
   "category_apps": "{{category}} apps",
   "app_store": "App Store",
   "app_store_description": "Connecting people, technology and the workplace.",

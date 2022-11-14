@@ -709,6 +709,8 @@
   "delete_account_confirmation_message": "Sind Sie sicher, dass Sie ihren Cal.com Account löschen wollen? Sie können dann nicht mehr über Ihre geteilten Links gebucht werden und und alle Einstellungen gehen verloren.",
   "integrations": "Integrationen",
   "apps": "Apps",
+  "apps_description": "Hier findest du eine Auflistung deiner Apps",
+  "apps_listing": "App-Liste",
   "category_apps": "{{category}} Apps",
   "app_store": "App Store",
   "app_store_description": "Verbindet Menschen, Technologie und den Arbeitsplatz.",
