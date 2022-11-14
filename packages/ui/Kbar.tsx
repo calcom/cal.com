@@ -104,7 +104,7 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       section: "profile",
       shortcut: ["p", "s"],
       keywords: "setting profile",
-      perform: () => router.push("/settings/profile"),
+      perform: () => router.push("/settings/my-account/profile"),
     },
     {
       id: "avatar",
@@ -112,7 +112,7 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       section: "profile",
       shortcut: ["c", "a"],
       keywords: "remove change modify avatar",
-      perform: () => router.push("/settings/profile"),
+      perform: () => router.push("/settings/my-account/profile"),
     },
     {
       id: "timezone",
