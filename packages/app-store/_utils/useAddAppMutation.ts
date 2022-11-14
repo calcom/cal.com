@@ -6,6 +6,14 @@ import { App } from "@calcom/types/App";
 
 import getInstalledAppPath from "./getInstalledAppPath";
 
+function gotoUrl(url: string, newTab?: boolean) {
+  if (newTab) {
+    window.open(url, "_blank");
+    return;
+  }
+  window.location.href = url;
+}
+
 function useAddAppMutation(_type: App["type"] | null, options?: Parameters<typeof useMutation>[2]) {
   const mutation = useMutation<
     unknown,
@@ -41,7 +49,7 @@ function useAddAppMutation(_type: App["type"] | null, options?: Parameters<typeo
     const json = await res.json();
 
     if (!isOmniInstall) {
-      window.location.href = json.url;
+      gotoUrl(json.url, json.newTab);
       return;
     }
 
@@ -51,7 +59,7 @@ function useAddAppMutation(_type: App["type"] | null, options?: Parameters<typeo
     // Check first that the URL is absolute, then check that it is of different origin from the current.
     if (/https?:\/\//.test(json.url) && !json.url.startsWith(window.location.origin)) {
       // TODO: For Omni installation to authenticate and come back to the page where installation was initiated, some changes need to be done in all apps' add callbacks
-      window.location.href = json.url;
+      gotoUrl(json.url, json.newTab);
     }
   }, options);
 
