@@ -29,7 +29,7 @@ export function TopBanner(props: TopBannerProps) {
       )}>
       <div className="flex flex-1 items-center justify-center gap-2">
         <p className="flex items-center justify-center gap-2 font-sans text-sm font-medium leading-4 text-gray-900">
-          {variant === ("warning" || "error") && (
+          {["warning", "error"].includes(variant) && (
             <ExclamationIcon className={classNames("h-5 w-5 text-black")} aria-hidden="true" />
           )}
           {text}
