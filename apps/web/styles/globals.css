@@ -498,3 +498,11 @@ hr {
   }
 }
 
+
+.google-button img {
+    content:url("../public/google.png");
+}
+
+.hover\:google-button:hover img {
+    content: url("../public/google_focused.png");
+}

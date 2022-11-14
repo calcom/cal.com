@@ -71,21 +71,19 @@ export default function Login({ isGoogleLoginEnabled }: inferSSRProps<typeof get
         showLogo
         heading={t("welcome_back")}
         footerText={null}>
-        <div className="mt-0">
+        <div className="mt-0 text-center">
           {isGoogleLoginEnabled && (
-            <Button
-              color="secondary"
-              className="w-full justify-center"
+            <button
+              className="google-button hover:google-button drop-shadow-md"
               data-testid="google"
-              StartIcon={FaGoogle}
               onClick={async (e) => {
                 e.preventDefault();
                 // track Google logins. Without personal data/payload
                 telemetry.event(telemetryEventTypes.googleLogin, collectPageParameters());
                 await signIn("google");
               }}>
-              {t("signin_with_google")}
-            </Button>
+              <img alt="google" />
+            </button>
           )}
         </div>
       </AuthContainer>
