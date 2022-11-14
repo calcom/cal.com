@@ -205,7 +205,10 @@ export const getServerSideProps = async function getServerSideProps(
     },
   });
 
-  const serializableForms = forms.map((form) => getSerializableForm(form));
+  const serializableForms = [];
+  for (let i = 0; i < forms.length; i++) {
+    serializableForms.push(await getSerializableForm(prisma, forms[i]));
+  }
 
   return {
     props: {

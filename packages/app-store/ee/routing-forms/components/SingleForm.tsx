@@ -429,7 +429,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
     };
   }
 
-  const isAllowed = (await import("../lib/isAllowed")).isAllowed;
+  const isAllowed = (await import("../lib/isAllowed")).isFormEditAllowed;
   if (!(await isAllowed({ userId: user.id, formId }))) {
     return {
       notFound: true,
@@ -457,7 +457,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
   return {
     props: {
       trpcState: ssr.dehydrate(),
-      form: getSerializableForm(form),
+      form: await getSerializableForm(prisma, form),
     },
   };
 };

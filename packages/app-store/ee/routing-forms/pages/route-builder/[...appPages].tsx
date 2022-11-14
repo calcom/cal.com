@@ -153,6 +153,7 @@ const Route = ({
   setRoutes,
   moveUp,
   moveDown,
+  disabled = false,
 }: {
   route: Route;
   routes: Route[];
@@ -196,6 +197,31 @@ const Route = ({
     []
   );
 
+  if (route.routerType === "global") {
+    // return route.routes
+    //   ?.map((r) => deserializeRoute(r, config))
+    //   ?.map((route) => {
+    //     return (
+    //       <Route
+    //         disabled={true}
+    //         key={route.id}
+    //         config={config}
+    //         route={route}
+    //         routes={routes}
+    //         setRoute={setRoute}
+    //         setRoutes={setRoutes}
+    //       />
+    //     );
+    //   });
+    return (
+      <div>
+        <FormCard moveUp={moveUp} moveDown={moveDown} label={route.name} className="mb-6">
+          <div>{route.description || "A Global Router"}</div>
+        </FormCard>
+      </div>
+    );
+  }
+
   return (
     <FormCard
       className="mb-6"
@@ -217,9 +243,10 @@ const Route = ({
                 <span>Send Booker to</span>
               </div>
               <Select
+                isDisabled={disabled}
                 className="block w-full flex-grow px-2"
                 required
-                value={RoutingPages.find((page) => page.value === route.action.type)}
+                value={RoutingPages.find((page) => page.value === route.action?.type)}
                 onChange={(item) => {
                   if (!item) {
                     return;
@@ -239,10 +266,11 @@ const Route = ({
                 }}
                 options={RoutingPages}
               />
-              {route.action.type ? (
-                route.action.type === "customPageMessage" ? (
+              {route.action?.type ? (
+                route.action?.type === "customPageMessage" ? (
                   <TextArea
                     required
+                    disabled={disabled}
                     name="customPageMessage"
                     className="flex w-full flex-grow border-gray-300"
                     value={route.action.value}
@@ -250,8 +278,9 @@ const Route = ({
                       setRoute(route.id, { action: { ...route.action, value: e.target.value } });
                     }}
                   />
-                ) : route.action.type === "externalRedirectUrl" ? (
+                ) : route.action?.type === "externalRedirectUrl" ? (
                   <TextField
+                    disabled={disabled}
                     name="externalRedirectUrl"
                     className="flex w-full flex-grow border-gray-300 text-sm"
                     containerClassName="w-full mt-2"
@@ -268,6 +297,7 @@ const Route = ({
                   <div className="block w-full">
                     <Select
                       required
+                      isDisabled={disabled}
                       options={eventOptions}
                       onChange={(option) => {
                         if (!option) {
@@ -374,12 +404,17 @@ const Routes = ({
     });
   };
 
-  const routesToSave: SerializableRoute[] = routes.map((route) => ({
-    id: route.id,
-    action: route.action,
-    isFallback: route.isFallback,
-    queryValue: route.queryValue,
-  }));
+  const routesToSave: SerializableRoute[] = routes.map((route) => {
+    if (route.routerType === "global") {
+      return route;
+    }
+    return {
+      id: route.id,
+      action: route.action,
+      isFallback: route.isFallback,
+      queryValue: route.queryValue,
+    };
+  });
   hookForm.setValue("routes", routesToSave);
   return (
     <div className="flex flex-col-reverse md:flex-row">

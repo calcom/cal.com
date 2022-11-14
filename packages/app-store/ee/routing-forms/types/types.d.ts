@@ -1,4 +1,4 @@
-import { App_RoutingForms_Form } from "@prisma/client";
+import { App_RoutingForms_Form, App_RoutingForms_Router } from "@prisma/client";
 import z from "zod";
 
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
@@ -25,6 +25,16 @@ export type SerializableForm<T extends App_RoutingForms_Form> = Omit<
   routes: Routes;
   fields: Fields;
   settings: z.infer<typeof RoutingFormSettings>;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SerializableRouter<T extends App_RoutingForms_Router> = Omit<
+  T,
+  "fields" | "routes" | "createdAt" | "updatedAt" | "settings"
+> & {
+  routes: Routes;
+  fields: Fields;
   createdAt: string;
   updatedAt: string;
 };
