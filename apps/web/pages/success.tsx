@@ -33,6 +33,7 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma, { baseUserSelect } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
