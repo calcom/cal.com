@@ -759,6 +759,7 @@ const getEventTypesFromDB = async (id: number) => {
 const schema = z.object({
   uid: z.string(),
   email: z.string().optional(),
+  eventTypeSlug: z.string().optional(),
 });
 
 const handleSeatsEventTypeOnBooking = (
@@ -787,7 +788,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const parsedQuery = schema.safeParse(context.query);
   if (!parsedQuery.success) return { notFound: true };
-  const { uid, email } = parsedQuery.data;
+  const { uid, email, eventTypeSlug } = parsedQuery.data;
 
   const bookingInfo = await prisma.booking.findFirst({
     where: {
@@ -828,17 +829,18 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  if (!bookingInfo || !bookingInfo.eventType?.slug)
+  if (!bookingInfo) {
     return {
       notFound: true,
     };
+  }
 
   // @NOTE: had to do this because Server side cant return [Object objects]
   // probably fixable with json.stringify -> json.parse
   bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
 
   const eventTypeRaw = !bookingInfo.eventTypeId
-    ? getDefaultEvent(bookingInfo.eventType?.slug)
+    ? getDefaultEvent(eventTypeSlug || "")
     : await getEventTypesFromDB(bookingInfo.eventTypeId);
   if (!eventTypeRaw) {
     return {
@@ -906,7 +908,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       eventType,
       recurringBookings: recurringBookings ? recurringBookings.map((obj) => obj.startTime.toString()) : null,
       trpcState: ssr.dehydrate(),
-      dynamicEventName: bookingInfo.eventType.eventName || "",
+      dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
     },
   };

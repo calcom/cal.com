@@ -141,6 +141,7 @@ const BookingPage = ({
           uid,
           isSuccessBookingPage: true,
           email: bookingForm.getValues("email"),
+          eventTypeSlug: eventType.slug,
         },
       });
     },
@@ -155,6 +156,7 @@ const BookingPage = ({
         query: {
           uid,
           email: bookingForm.getValues("email"),
+          eventTypeSlug: eventType.slug,
         },
       });
     },
