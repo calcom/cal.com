@@ -34,6 +34,7 @@ export type SchedulerPublicActions = {
   onViewChange?: (view: View) => void;
   onEventClick?: (event: SchedulerEvent) => void;
   onEventContextMenu?: (event: SchedulerEvent) => void;
+  /** Passing in a emptyCellClick will also show the on hover for creating new events. */
   onEmptyCellClick?: (date: Date) => void;
   onDateChange?: (startDate: Date, endDate?: Date) => void;
 };
@@ -65,7 +66,6 @@ export type SchedulerState = {
   loading?: boolean;
   /** Disables all actions on Events*/
   eventsDisabled?: boolean;
-  editable?: boolean;
   /** If you don't want the date to be scrollable past a certian date */
   minDate?: Date;
   /** If you don't want the date to be scrollable past a certian date */

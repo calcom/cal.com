@@ -6,14 +6,24 @@ type EventProps = {
   event: SchedulerEvent;
   currentlySelectedEventId?: number;
   eventDuration: number;
+  onEventClick?: (event: SchedulerEvent) => void;
   disabled?: boolean;
 };
 
-export function Event({ event, currentlySelectedEventId, eventDuration, disabled }: EventProps) {
+export function Event({
+  event,
+  currentlySelectedEventId,
+  eventDuration,
+  disabled,
+  onEventClick,
+}: EventProps) {
   const selected = currentlySelectedEventId === event.id;
 
+  const Component = onEventClick ? "button" : "div";
+
   return (
-    <a
+    <Component
+      onClick={() => onEventClick?.(event)} // Note this is not the button event. It is the calendar event.
       className={classNames(
         "group absolute inset-1 flex h-full flex-col overflow-y-auto rounded-[4px]  py-1 px-[6px] text-xs font-semibold  leading-5 ",
         event.status === "ACCEPTED" &&
@@ -28,7 +38,7 @@ export function Event({ event, currentlySelectedEventId, eventDuration, disabled
       {event.title}
       <br />
       {eventDuration} minutes
-    </a>
+    </Component>
   );
 }
 

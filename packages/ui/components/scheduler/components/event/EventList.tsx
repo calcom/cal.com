@@ -13,10 +13,11 @@ type Props = {
 };
 
 export function EventList({ events, days, numberOfGridStopsPerCell }: Props) {
-  const { startHour, currentlySelectedEvent, eventsDisabled } = useSchedulerStore((state) => ({
+  const { startHour, currentlySelectedEvent, eventsDisabled, onEventClick } = useSchedulerStore((state) => ({
     startHour: state.startHour,
     currentlySelectedEvent: state.selectedEvent,
     eventsDisabled: state.eventsDisabled,
+    onEventClick: state.onEventClick,
   }));
   return (
     <>
@@ -46,6 +47,7 @@ export function EventList({ events, days, numberOfGridStopsPerCell }: Props) {
                 gridColumnStart: foundDay + 1,
               }}>
               <Event
+                onEventClick={onEventClick}
                 event={event}
                 eventDuration={eventDuration}
                 currentlySelectedEventId={currentlySelectedEvent?.id}

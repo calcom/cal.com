@@ -28,7 +28,9 @@ export function BlockedList({ days, numberOfGridStopsPerCell }: Props) {
             key={day.format("YYYY-MM-DD")}
             className="sm:col-start-1s relative flex "
             style={{
-              gridRow: `2 / span ${(startHour + endHour) * numberOfGridStopsPerCell}`,
+              gridRow: `2 / span ${
+                (startHour + endHour) * numberOfGridStopsPerCell + numberOfGridStopsPerCell
+              }`,
               // Need to figure out how to put this in a media query
               gridColumnStart: dayIdx + 1,
             }}>

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
 
@@ -6,7 +6,6 @@ import { useSchedulerStore } from "../state/store";
 import { SchedulerComponentProps } from "../types/state";
 import { DateValues } from "./DateValues/DateValues";
 import { BlockedList } from "./blocking/BlockedList";
-import { CurrentTime } from "./currentTime";
 import { EventList } from "./event/EventList";
 import { SchedulerHeading } from "./heading/SchedulerHeading";
 import { HorizontalLines } from "./horizontalLines";
@@ -36,7 +35,7 @@ function getHoursToDisplay(startHour: number, endHour: number) {
   return dates;
 }
 
-const GridStopsPerHour = 4;
+const GRID_STOPS_PER_HOUR = 4;
 
 export function Scheduler(props: SchedulerComponentProps) {
   const container = useRef<HTMLDivElement | null>(null);
@@ -58,14 +57,14 @@ export function Scheduler(props: SchedulerComponentProps) {
 
   // We have to add two due to the size of the grid spacing this would ideally be based on eventTypeStep
   // TOOD: make this dynamic to eventTypeStep
-  const numberOfGridStopsPerDay = hours.length * GridStopsPerHour;
+  const numberOfGridStopsPerDay = hours.length * GRID_STOPS_PER_HOUR;
 
   // Initalise State
   useEffect(() => {
     initalState(props);
   }, [props, initalState]);
 
-  // return <div>{JSON.stringify(state)}</div>;
+  //return <div>{JSON.stringify(state)}</div>;
 
   return (
     <div className="flex h-full w-full flex-col">
@@ -74,11 +73,11 @@ export function Scheduler(props: SchedulerComponentProps) {
         <div
           style={{ width: "165%" }}
           className="flex max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
-          <CurrentTime
+          {/* <CurrentTime
             containerNavRef={containerNav}
             containerOffsetRef={containerOffset}
             containerRef={container}
-          />
+          /> */}
           <DateValues containerNavRef={containerNav} days={days} />
 
           <div className="flex flex-auto">
@@ -86,20 +85,31 @@ export function Scheduler(props: SchedulerComponentProps) {
             <div className="grid flex-auto grid-cols-1 grid-rows-1 ">
               <HorizontalLines
                 hours={hours}
-                numberOfGridStopsPerCell={GridStopsPerHour}
+                numberOfGridStopsPerCell={GRID_STOPS_PER_HOUR}
                 containerOffsetRef={containerOffset}
               />
               <VeritcalLines days={days} />
 
               {/* Events / Blocking*/}
               <ol
-                className="col-start-1 col-end-2 row-start-1 grid grid-cols-1 sm:grid-cols-7 sm:pr-8"
+                className="group col-start-1 col-end-2 row-start-1 grid grid-cols-1 sm:grid-cols-7 sm:pr-8"
+                onMouseOver={(e) => {
+                  const style = window.getComputedStyle(e.currentTarget);
+                  const currentCellPosition = {
+                    "grid-row-start": style.gridRowStart,
+                    "grid-row-end": style.gridRowEnd,
+                    "grid-column-start": style.gridColumnStart,
+                    "grid-column-end": style.gridColumnEnd,
+                  };
+                  console.log(currentCellPosition);
+                }}
                 style={{
                   gridTemplateRows: `1.75rem repeat(${numberOfGridStopsPerDay}, 1.75rem) auto`,
                 }}>
                 {/* We can place whatever we want in here - block avialbity etc should slot in nicely here.  */}
-                <BlockedList days={days} numberOfGridStopsPerCell={GridStopsPerHour} />
-                <EventList events={events} days={days} numberOfGridStopsPerCell={GridStopsPerHour} />
+                <div className="hidden bg-red-500 group-hover:block" />
+                <BlockedList days={days} numberOfGridStopsPerCell={GRID_STOPS_PER_HOUR} />
+                <EventList events={events} days={days} numberOfGridStopsPerCell={GRID_STOPS_PER_HOUR} />
               </ol>
             </div>
           </div>
