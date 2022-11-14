@@ -7,14 +7,17 @@ import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 
 import { TRPCError } from "@trpc/server";
 
-import { createProtectedRouter } from "../../createRouter";
+import { router, authedProcedure } from "../../trpc";
 
-export const appsRouter = createProtectedRouter()
-  .query("listLocal", {
-    input: z.object({
-      variant: z.string(),
-    }),
-    async resolve({ ctx, input }) {
+export const appsRouter = router({
+  listLocal: authedProcedure
+    .input(
+      z.object({
+        variant: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      console.log("🚀 ~ file: apps.tsx ~ line 20 ~ .query ~ input", input);
       if (ctx.session.user.role !== "ADMIN")
         throw new TRPCError({
           code: "UNAUTHORIZED",
@@ -70,14 +73,15 @@ export const appsRouter = createProtectedRouter()
         }
       }
       return filteredApps;
-    },
-  })
-  .mutation("toggle", {
-    input: z.object({
-      slug: z.string(),
-      enabled: z.boolean(),
     }),
-    async resolve({ ctx, input }) {
+  toggle: authedProcedure
+    .input(
+      z.object({
+        slug: z.string(),
+        enabled: z.boolean(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       if (ctx.session.user.role !== "ADMIN")
         throw new TRPCError({
           code: "UNAUTHORIZED",
@@ -91,16 +95,17 @@ export const appsRouter = createProtectedRouter()
         },
       });
       return app.enabled;
-    },
-  })
-  .mutation("saveKeys", {
-    input: z.object({
-      slug: z.string(),
-      type: z.string(),
-      // Validate w/ app specific schema
-      keys: z.unknown(),
     }),
-    async resolve({ ctx, input }) {
+  saveKeys: authedProcedure
+    .input(
+      z.object({
+        slug: z.string(),
+        type: z.string(),
+        // Validate w/ app specific schema
+        keys: z.unknown(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       if (ctx.session.user.role !== "ADMIN")
         throw new TRPCError({
           code: "UNAUTHORIZED",
@@ -120,5 +125,5 @@ export const appsRouter = createProtectedRouter()
       });
 
       return;
-    },
-  });
+    }),
+});

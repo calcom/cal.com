@@ -1131,5 +1131,6 @@ export const viewerRouter = mergeRouters(
     // After that there would just one merge call here for all the apps.
     appRoutingForms: app_RoutingForms,
     eth: ethRouter,
+    appsRouter,
   })
 );
