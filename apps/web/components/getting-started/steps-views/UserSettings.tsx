@@ -1,6 +1,6 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -16,21 +16,22 @@ interface IUserSettingsProps {
   nextStep: () => void;
 }
 
-type FormData = {
-  name: string;
-};
-
 const UserSettings = (props: IUserSettingsProps) => {
   const { user, nextStep } = props;
   const { t } = useLocale();
   const [selectedTimeZone, setSelectedTimeZone] = useState(user.timeZone ?? dayjs.tz.guess());
-  const { register, handleSubmit, formState } = useForm<FormData>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    control,
+  } = useForm({
     defaultValues: {
-      name: user?.name || undefined,
+      name: user?.name || "",
+      username: user?.username || "",
     },
     reValidateMode: "onChange",
   });
-  const { errors } = formState;
   const defaultOptions = { required: true, maxLength: 255 };
 
   const utils = trpc.useContext();
@@ -52,22 +53,27 @@ const UserSettings = (props: IUserSettingsProps) => {
       timeZone: selectedTimeZone,
     });
   });
-  const [currentUsername, setCurrentUsername] = useState(user.username || undefined);
-  const [inputUsernameValue, setInputUsernameValue] = useState(currentUsername);
-  const usernameRef = useRef<HTMLInputElement>(null!);
+
+  const [currentUsername, setCurrentUsername] = useState(user.username || "");
 
   return (
     <form onSubmit={onSubmit}>
       <div className="space-y-6">
         {/* Username textfield */}
-        <UsernameAvailability
-          readonly={true}
-          currentUsername={currentUsername}
-          setCurrentUsername={setCurrentUsername}
-          inputUsernameValue={inputUsernameValue}
-          usernameRef={usernameRef}
-          setInputUsernameValue={setInputUsernameValue}
-          user={user}
+        <Controller
+          control={control}
+          name="username"
+          render={({ field: { value, ref, onChange } }) => (
+            <UsernameAvailability
+              readonly={true}
+              currentUsername={currentUsername}
+              setCurrentUsername={setCurrentUsername}
+              inputUsernameValue={value}
+              usernameRef={ref}
+              setInputUsernameValue={onChange}
+              user={user}
+            />
+          )}
         />
 
         {/* Full name textfield */}

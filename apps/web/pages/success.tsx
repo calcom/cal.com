@@ -367,23 +367,12 @@ export default function Success(props: SuccessProps) {
                                 <p className="text-bookinglight">{bookingInfo.user.email}</p>
                               </div>
                             )}
-                            {!eventType.seatsShowAttendees
-                              ? bookingInfo?.attendees
-                                  .filter((attendee) => attendee.email === email)
-                                  .map((attendee) => (
-                                    <div key={attendee.name} className="mb-3">
-                                      <p>{attendee.name}</p>
-                                      <p className="text-bookinglight">{attendee.email}</p>
-                                    </div>
-                                  ))
-                              : bookingInfo?.attendees.map((attendee, index) => (
-                                  <div
-                                    key={attendee.name}
-                                    className={index === bookingInfo.attendees.length - 1 ? "" : "mb-3"}>
-                                    <p>{attendee.name}</p>
-                                    <p className="text-bookinglight">{attendee.email}</p>
-                                  </div>
-                                ))}
+                            {bookingInfo?.attendees.map((attendee, index) => (
+                              <div key={attendee.name} className="mb-3 last:mb-0">
+                                <p>{attendee.name}</p>
+                                <p className="text-bookinglight">{attendee.email}</p>
+                              </div>
+                            ))}
                           </>
                         </div>
                       </>
@@ -768,13 +757,36 @@ const getEventTypesFromDB = async (id: number) => {
 
 const schema = z.object({
   uid: z.string(),
+  email: z.string().optional(),
 });
+
+const handleSeatsEventTypeOnBooking = (
+  eventType: {
+    seatsPerTimeSlot?: boolean | null;
+    seatsShowAttendees: boolean | null;
+    [x: string | number | symbol]: unknown;
+  },
+  booking: Partial<
+    Prisma.BookingGetPayload<{ include: { attendees: { select: { name: true; email: true } } } }>
+  >,
+  email: string
+) => {
+  if (eventType?.seatsPerTimeSlot !== null) {
+    // @TODO: right now bookings with seats doesn't save every description that its entered by every user
+    delete booking.description;
+  }
+  if (!eventType.seatsShowAttendees) {
+    const attendee = booking?.attendees?.find((a) => a.email === email);
+    booking["attendees"] = attendee ? [attendee] : [];
+  }
+  return;
+};
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const parsedQuery = schema.safeParse(context.query);
   if (!parsedQuery.success) return { notFound: true };
-  const { uid } = parsedQuery.data;
+  const { uid, email } = parsedQuery.data;
 
   const bookingInfo = await prisma.booking.findFirst({
     where: {
@@ -868,6 +880,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     darkBrandColor: eventType.team ? null : eventType.users[0].darkBrandColor || null,
     slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
+
+  if (bookingInfo !== null && email) {
+    handleSeatsEventTypeOnBooking(eventType, bookingInfo, email);
+  }
 
   let recurringBookings = null;
   if (bookingInfo.recurringEventId) {
