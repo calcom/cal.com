@@ -1,4 +1,4 @@
-import { Schedule, TimeRange } from "@calcom/types/schedule";
+import { TimeRange } from "@calcom/types/schedule";
 
 import { SchedulerEvent } from "./events";
 
@@ -58,7 +58,10 @@ export type SchedulerState = {
   startDate: Date;
   /** By default we just dynamically create endDate from the viewType */
   endDate: Date;
-  /**Please enter events already SORTED. This is required to setup tab index correctly. */
+  /**Please enter events already SORTED. This is required to setup tab index correctly.
+   *
+   * @Note Ideally you should pass in a sorted array from the DB however, pass the prop `sortEvents` if this is not possible and we will sort this for you..
+   */
   events: SchedulerEvent[];
   /** Any time ranges passed in here will display as blocked on the users calendar. Note: Anything < than the current date automatically gets blocked. */
   blockingDates?: TimeRange[];
@@ -70,14 +73,27 @@ export type SchedulerState = {
   minDate?: Date;
   /** If you don't want the date to be scrollable past a certian date */
   maxDate?: Date;
-  /** Defined the time your calendar will start at */
+  /** Defined the time your calendar will start at
+   *
+   * @default 0
+   */
   startHour?: Hours;
-  /** Defined the time your calendar will end at */
+  /** Defined the time your calendar will end at
+   *
+   * @default 23
+   */
   endHour?: Hours;
   /** Toggle the ablity to scroll to currentTime */
   scrollToCurrentTime?: boolean;
   /** Toggle the ablity show the current time on the calendar*/
   showCurrentTimeLine?: boolean;
+  /** This indicates the number of gridstops that are avalabile per hour. 4 -> Grid set to 15 minutes.
+   *
+   * @default 4
+   */
+  gridCellsPerHour?: number;
+  /**If passed in we will sort the events internally. */
+  sortEvents?: boolean;
 };
 
 export type SchedulerComponentProps = SchedulerPublicActions & SchedulerState;

@@ -2,15 +2,21 @@ import create from "zustand";
 
 import dayjs from "@calcom/dayjs";
 
-import { SchedulerComponentProps, SchedulerStoreProps } from "../types/state";
+import {
+  SchedulerComponentProps,
+  SchedulerPublicActions,
+  SchedulerState,
+  SchedulerStoreProps,
+} from "../types/state";
 
-export const defaultState: SchedulerComponentProps = {
+const defaultState: SchedulerComponentProps = {
   view: "week",
   startDate: new Date(),
   endDate: dayjs().add(6, "days").toDate(),
   events: [],
   startHour: 0,
   endHour: 23,
+  gridCellsPerHour: 4,
 };
 
 export const useSchedulerStore = create<SchedulerStoreProps>((set) => ({
@@ -20,7 +26,12 @@ export const useSchedulerStore = create<SchedulerStoreProps>((set) => ({
   setEndDate: (endDate: SchedulerComponentProps["endDate"]) => set({ endDate }),
   setEvents: (events: SchedulerComponentProps["events"]) => set({ events }),
   // This looks a bit odd but init state only overrides the public props + actions as we don't want to override our internal state
-  initState: (state) => {
+  initState: (state: SchedulerState & SchedulerPublicActions) => {
+    // Handle sorting of events if required
+    if (state.sortEvents) {
+      state.events = state.events.sort((a, b) => a.start.getTime() - b.start.getTime());
+    }
+
     set({
       ...state,
     });
