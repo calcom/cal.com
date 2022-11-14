@@ -160,6 +160,7 @@ export const workflowsRouter = router({
           action: WorkflowActions.EMAIL_HOST,
           template: WorkflowTemplates.REMINDER,
           workflowId: workflow.id,
+          sender: "Cal",
         },
       });
       return { workflow };
@@ -235,6 +236,7 @@ export const workflowsRouter = router({
             emailSubject: z.string().optional().nullable(),
             template: z.enum(WORKFLOW_TEMPLATES),
             numberRequired: z.boolean().nullable(),
+            sender: z.string().optional().nullable(),
           })
           .array(),
         trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
@@ -472,7 +474,8 @@ export const workflowsRouter = router({
                     },
                     step.reminderBody || "",
                     step.id,
-                    step.template
+                    step.template,
+                    step.sender || "Cal"
                   );
                 }
               });
@@ -541,6 +544,7 @@ export const workflowsRouter = router({
               emailSubject: newStep.template === WorkflowTemplates.CUSTOM ? newStep.emailSubject : null,
               template: newStep.template,
               numberRequired: newStep.numberRequired,
+              sender: newStep.sender || "Cal",
             },
           });
           //cancel all reminders of step and create new ones (not for newEventTypes)
@@ -651,7 +655,8 @@ export const workflowsRouter = router({
                   },
                   newStep.reminderBody || "",
                   newStep.id || 0,
-                  newStep.template
+                  newStep.template,
+                  newStep.sender || "Cal"
                 );
               }
             });
@@ -677,6 +682,8 @@ export const workflowsRouter = router({
         });
         addedSteps.forEach(async (step) => {
           if (step) {
+            const newStep = step;
+            newStep.sender = step.sender || "Cal";
             const createdStep = await ctx.prisma.workflowStep.create({
               data: step,
             });
@@ -764,7 +771,8 @@ export const workflowsRouter = router({
                     },
                     step.reminderBody || "",
                     createdStep.id,
-                    step.template
+                    step.template,
+                    step.sender || "Cal"
                   );
                 }
               });
@@ -812,10 +820,11 @@ export const workflowsRouter = router({
         reminderBody: z.string(),
         template: z.enum(WORKFLOW_TEMPLATES),
         sendTo: z.string().optional(),
+        sender: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { action, emailSubject, reminderBody, template, sendTo } = input;
+      const { action, emailSubject, reminderBody, template, sendTo, sender } = input;
       try {
         const booking = await ctx.prisma.booking.findFirst({
           orderBy: {
@@ -899,7 +908,8 @@ export const workflowsRouter = router({
             { time: null, timeUnit: null },
             reminderBody,
             0,
-            template
+            template,
+            sender || "Cal"
           );
           return { message: "Notification sent" };
         }

@@ -52,16 +52,6 @@ const BillingView = () => {
     <>
       <Meta title={t("billing")} description={t("manage_billing_description")} />
       <div className="space-y-6 text-sm sm:space-y-8">
-        {!isPro && (
-          <CtaRow title={t("billing_freeplan_title")} description={t("billing_freeplan_description")}>
-            <form target="_blank" method="POST" action="/api/upgrade">
-              <Button type="submit" EndIcon={Icon.FiExternalLink}>
-                {t("billing_freeplan_cta")}
-              </Button>
-            </form>
-          </CtaRow>
-        )}
-
         <CtaRow
           className={classNames(!isPro && "pointer-events-none opacity-30")}
           title={t("billing_manage_details_title")}

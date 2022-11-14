@@ -1,10 +1,10 @@
-import { MembershipRole } from "@prisma/client";
+import { MembershipRole, Prisma } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import objectKeys from "@calcom/lib/objectKeys";
@@ -56,6 +56,9 @@ const ProfileView = () => {
           form.setValue("url", team.slug || "");
           form.setValue("logo", team.logo || "");
           form.setValue("bio", team.bio || "");
+          if (team.slug === null && (team?.metadata as Prisma.JsonObject)?.requestedSlug) {
+            form.setValue("url", ((team?.metadata as Prisma.JsonObject)?.requestedSlug as string) || "");
+          }
         }
       },
     }
@@ -80,6 +83,17 @@ const ProfileView = () => {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.teams.list.invalidate();
       showToast(t("success"), "success");
+    },
+    async onError(err) {
+      showToast(err.message, "error");
+    },
+  });
+
+  const publishMutation = trpc.viewer.teams.publish.useMutation({
+    async onSuccess(data: { url?: string }) {
+      if (data.url) {
+        router.push(data.url);
+      }
     },
     async onError(err) {
       showToast(err.message, "error");
@@ -199,6 +213,19 @@ const ProfileView = () => {
               <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
                 {t("update")}
               </Button>
+              {IS_TEAM_BILLING_ENABLED &&
+                team.slug === null &&
+                (team.metadata as Prisma.JsonObject)?.requestedSlug && (
+                  <Button
+                    color="secondary"
+                    className="ml-2 mt-8"
+                    type="button"
+                    onClick={() => {
+                      publishMutation.mutate({ teamId: team.id });
+                    }}>
+                    Publish
+                  </Button>
+                )}
             </Form>
           ) : (
             <div className="flex">
