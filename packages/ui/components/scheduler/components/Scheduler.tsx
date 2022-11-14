@@ -1,21 +1,20 @@
-import { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
 
+import { Event } from "../components/event";
 import { useSchedulerStore } from "../state/store";
 import { SchedulerComponentProps } from "../types/state";
 import { DateValues } from "./DateValues/DateValues";
-import { BlockedList } from "./blocking/BlockedList";
-import { EventList } from "./event/EventList";
 import { SchedulerHeading } from "./heading/SchedulerHeading";
 import { HorizontalLines } from "./horizontalLines";
 import { VeritcalLines } from "./verticalLines";
 
 function getDaysBetweenDates(dateFrom: Date, dateTo: Date) {
   const dates = []; // this is as dayjs date
-  let startDate = dayjs(dateFrom).utc();
+  let startDate = dayjs(dateFrom).utc().hour(0).minute(0).second(0).millisecond(0);
   dates.push(startDate);
-  const endDate = dayjs(dateTo).utc();
+  const endDate = dayjs(dateTo).utc().hour(0).minute(0).second(0).millisecond(0);
   while (startDate.isBefore(endDate)) {
     dates.push(startDate.add(1, "day"));
     startDate = startDate.add(1, "day");
@@ -33,6 +32,29 @@ function getHoursToDisplay(startHour: number, endHour: number) {
     startDate = startDate.add(1, "hour");
   }
   return dates;
+}
+function gridCellToDateTime({
+  day,
+  gridCellIdx,
+  totalGridCells,
+  selectionLength,
+  startHour,
+}: {
+  day: dayjs.Dayjs;
+  gridCellIdx: number;
+  totalGridCells: number;
+  selectionLength: number;
+  startHour: number;
+}) {
+  // endHour - startHour = selectionLength
+  const minutesInSelection = (selectionLength + 1) * 60;
+  const minutesPerCell = minutesInSelection / totalGridCells;
+  const minutesIntoSelection = minutesPerCell * gridCellIdx;
+
+  // Add startHour since we use StartOfDay for day props. This could be improved by changing the getDaysBetweenDates function
+  // To handle the startHour+endHour
+  const cellDateTime = dayjs(day).add(minutesIntoSelection, "minutes").add(startHour, "hours");
+  return cellDateTime;
 }
 
 export function Scheduler(props: SchedulerComponentProps) {
@@ -68,7 +90,11 @@ export function Scheduler(props: SchedulerComponentProps) {
   //return <div>{JSON.stringify(state)}</div>;
 
   return (
-    <div className="flex h-full w-full flex-col">
+    <div
+      className="flex h-full w-full flex-col"
+      style={
+        { "--one-minute-height": `calc(1.75rem/(60/${usersCellsStopsPerHour}))` } as React.CSSProperties
+      }>
       <SchedulerHeading />
       <div ref={container} className="isolate flex flex-auto flex-col  bg-white">
         <div
@@ -91,26 +117,82 @@ export function Scheduler(props: SchedulerComponentProps) {
               />
               <VeritcalLines days={days} />
 
-              {/* Events / Blocking*/}
+              {/* Empty Cells */}
               <ol
-                className="group col-start-1 col-end-2 row-start-1 grid grid-cols-1 sm:grid-cols-7 sm:pr-8"
-                onMouseOver={(e) => {
-                  const style = window.getComputedStyle(e.currentTarget);
-                  const currentCellPosition = {
-                    "grid-row-start": style.gridRowStart,
-                    "grid-row-end": style.gridRowEnd,
-                    "grid-column-start": style.gridColumnStart,
-                    "grid-column-end": style.gridColumnEnd,
-                  };
-                  console.log(currentCellPosition);
-                }}
+                className="col-start-1 col-end-2 row-start-1 grid grid-cols-1 sm:grid-cols-7 sm:pr-8"
                 style={{
                   gridTemplateRows: `1.75rem repeat(${numberOfGridStopsPerDay}, 1.75rem) auto`,
                 }}>
-                {/* We can place whatever we want in here - block avialbity etc should slot in nicely here.  */}
-                <div className="hidden bg-red-500 group-hover:block" />
-                <BlockedList days={days} numberOfGridStopsPerCell={usersCellsStopsPerHour} />
-                <EventList events={events} days={days} numberOfGridStopsPerCell={usersCellsStopsPerHour} />
+                <>
+                  {[...Array(days.length)].map((_, i) => (
+                    <li
+                      key={i}
+                      className="relative flex sm:grid"
+                      style={{
+                        gridRow: `2 / span ${numberOfGridStopsPerDay}`,
+                      }}>
+                      {/* While startDate < endDate:  */}
+                      {[...Array(numberOfGridStopsPerDay)].map((_, j) => {
+                        const key = `${i}-${j}`;
+                        return (
+                          <div key={key} className="group h-full w-full">
+                            {/* <div className="">
+                              {gridCellToDateTime({
+                                day: days[i],
+                                gridCellIdx: j,
+                                totalGridCells: numberOfGridStopsPerDay,
+                                selectionLength: endHour - startHour,
+                                startHour: startHour,
+                              }).format("YYYY-MM-DD HH:mm")}
+                            </div> */}
+                          </div>
+                        );
+                      })}
+                    </li>
+                  ))}
+                  {/* <BlockedList days={days} numberOfGridStopsPerCell={usersCellsStopsPerHour} /> */}
+                </>
+              </ol>
+              <ol
+                className="relative z-50 col-start-1 col-end-2 row-start-1 grid grid-cols-1 sm:grid-cols-7 sm:pr-8"
+                style={{
+                  gridTemplateRows: `1.75rem repeat(${numberOfGridStopsPerDay}, 1.75rem) auto`,
+                }}>
+                {/*Loop over events per day  */}
+                {days.map((day, i) => {
+                  return (
+                    <div
+                      key={day.toISOString()}
+                      className="relative"
+                      style={{ gridColumnStart: i + 1, marginTop: containerOffset.current?.offsetHeight }}>
+                      {events
+                        .filter((event) => {
+                          return dayjs(event.start).isSame(day, "day");
+                        })
+                        .map((event) => {
+                          const eventStart = dayjs(event.start);
+                          const eventEnd = dayjs(event.end);
+
+                          const eventDuration = eventEnd.diff(eventStart, "minutes");
+
+                          const eventStartHour = eventStart.hour();
+                          const eventStartDiff = (eventStartHour - (startHour || 0)) * 60;
+
+                          return (
+                            <div
+                              key={event.id}
+                              className="absolute inset-1 w-full"
+                              style={{
+                                top: `calc(${eventStartDiff}*var(--one-minute-height))`,
+                                height: `calc(${eventDuration}*var(--one-minute-height))`,
+                              }}>
+                              <Event event={event} eventDuration={eventDuration} />
+                            </div>
+                          );
+                        })}
+                    </div>
+                  );
+                })}
               </ol>
             </div>
           </div>

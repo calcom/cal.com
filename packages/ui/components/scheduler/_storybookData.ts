@@ -16,6 +16,15 @@ export const Events: SchedulerEvent[] = [
     status: "ACCEPTED",
   },
   {
+    id: 1,
+    title: "Event 4 Overlap",
+    start: startDate.toDate(),
+    end: startDate.add(30, "minutes").toDate(),
+    allDay: false,
+    source: "Booking",
+    status: "ACCEPTED",
+  },
+  {
     id: 2,
     title: "Event 2",
     start: startDate.add(1, "day").toDate(),
