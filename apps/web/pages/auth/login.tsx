@@ -82,7 +82,7 @@ export default function Login({ isGoogleLoginEnabled }: inferSSRProps<typeof get
                 telemetry.event(telemetryEventTypes.googleLogin, collectPageParameters());
                 await signIn("google");
               }}>
-              <img alt="google" />
+              <img alt="google" className="h-12" />
             </button>
           )}
         </div>

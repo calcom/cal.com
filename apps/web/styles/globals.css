@@ -500,9 +500,9 @@ hr {
 
 
 .google-button img {
-    content:url("../public/google.png");
+  content:url("https://mento-space.nyc3.digitaloceanspaces.com/google.png");
 }
 
 .hover\:google-button:hover img {
-    content: url("../public/google_focused.png");
+  content: url("https://mento-space.nyc3.digitaloceanspaces.com/google_focused.png");
 }
