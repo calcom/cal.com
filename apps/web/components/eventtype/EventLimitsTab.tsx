@@ -5,7 +5,7 @@ import { useMemo, useRef, useState } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
-import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
+import convertToNewDurationType, { DurationType } from "@calcom/lib/convertToNewDurationType";
 import findDurationType from "@calcom/lib/findDurationType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PeriodType } from "@calcom/prisma/client";
@@ -19,8 +19,8 @@ import DateRangePicker from "@calcom/ui/v2/core/form/date-range-picker/DateRange
 export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupInfered, "eventType">) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
-  const minimumBookingNoticeType = useRef(findDurationType(eventType.minimumBookingNotice));
-  const prevBookingNoticeType = useRef(minimumBookingNoticeType.current);
+  const minimumBookingNoticeType = useRef<DurationType>(findDurationType(eventType.minimumBookingNotice));
+  const prevBookingNoticeType = useRef<DurationType>(minimumBookingNoticeType.current);
 
   const minimumBookingNoticeInDurationTypeFormValue = formMethods.watch("minimumBookingNoticeInDurationType");
 
@@ -54,7 +54,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupInfered, "event
   });
 
   const onMinimumNoticeDurationTypeChange = useMemo(
-    () => (durationType?: string) => {
+    () => (durationType?: DurationType) => {
       if (typeof durationType === "undefined") return;
 
       // Store current selected type in ref to use in previous run for comparrison.
@@ -215,7 +215,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupInfered, "event
                     defaultValue={durationTypeOptions.find(
                       (option) => option.value === minimumBookingNoticeType.current
                     )}
-                    onChange={(input) => onMinimumNoticeDurationTypeChange(input?.value)}
+                    onChange={(input) => onMinimumNoticeDurationTypeChange(input?.value as DurationType)}
                     options={durationTypeOptions}
                   />
                 </>

@@ -2,9 +2,11 @@ export const MINUTES_IN_HOUR = 60;
 export const MINUTES_IN_DAY = 1440;
 export const HOURS_IN_DAY = 24;
 
+export type DurationType = "minutes" | "hours" | "days";
+
 export default function convertToNewDurationType(
-  prevType: "minutes" | "hours" | "days",
-  newType: "minutes" | "hours" | "days",
+  prevType: DurationType,
+  newType: DurationType,
   prevValue: number
 ) {
   /** Convert `prevValue` from `prevType` to `newType` */
