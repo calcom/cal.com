@@ -12,6 +12,8 @@ import getApps, { getEventTypeAppData, getLocationOptions } from "@calcom/app-st
 import { LocationObject, EventLocationType } from "@calcom/core/location";
 import { parseRecurringEvent, parseBookingLimit, validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
+import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
+import findDurationType from "@calcom/lib/findDurationType";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
@@ -73,6 +75,7 @@ export type FormValues = {
   seatsShowAttendees: boolean | null;
   seatsPerTimeSlotEnabled: boolean;
   minimumBookingNotice: number;
+  minimumBookingNoticeInDurationType: number;
   beforeBufferTime: number;
   afterBufferTime: number;
   slotInterval: number | null;
@@ -163,6 +166,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       },
       schedulingType: eventType.schedulingType,
       minimumBookingNotice: eventType.minimumBookingNotice,
+      minimumBookingNoticeInDurationType: convertToNewDurationType(
+        "minutes",
+        findDurationType(eventType.minimumBookingNotice),
+        eventType.minimumBookingNotice
+      ),
       metadata: eventType.metadata,
     },
   });
@@ -237,9 +245,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             recurringEvent,
             locations,
             metadata,
-            // We don't need to send it to the backend
+            // We don't need to send send these values to the backend
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             seatsPerTimeSlotEnabled,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            minimumBookingNoticeInDurationType,
             ...input
           } = values;
 
