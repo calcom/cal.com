@@ -9,14 +9,11 @@ test.describe("Teams", () => {
     await users.deleteAll();
   });
 
-  test("Can create teams via Wizard", async ({ page, users, prisma }) => {
+  test("Can create teams via Wizard", async ({ page, users }) => {
     const user = await users.create();
     const inviteeEmail = `${user.username}+invitee@example.com`;
     await user.login();
     await page.goto("/teams");
-
-    // Expect teams to be empty
-    await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();
 
     await test.step("Can create team", async () => {
       // Click text=Create Team
@@ -58,7 +55,9 @@ test.describe("Teams", () => {
       await page.locator("text=Delete Team").click();
       await page.locator("text=Yes, disband team").click();
       await page.waitForURL("/teams");
-      await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();
+      await expect(await page.locator(`text=${user.username}'s Team`).count()).toEqual(0);
+      // FLAKY: If other tests are running async this may mean there are >0 teams, empty screen will not be shown.
+      // await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();
     });
   });
 });
