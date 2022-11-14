@@ -31,18 +31,18 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
           Icon={Icon.FiAlertTriangle}
           headline={t("enterprise_license")}
           description={
-            <>
-              To enable this feature, get a deployment key at{" "}
-              <a href={CONSOLE_URL} target="_blank" rel="noopener noreferrer" className="underline">
+            <div
+              dangerouslySetInnerHTML={{
+                __html: t("enterprise_license_description", {
+                  consoleUrl: `<a href="${CONSOLE_URL}" target="_blank" rel="noopener noreferrer" class="underline">
                 Cal.com console
-              </a>{" "}
-              and add it to your .env as <code>CALCOM_LICENSE_KEY</code>. If your team already has a license,
-              please contact{" "}
-              <a href="mailto:peer@cal.com" className="underline">
+              </a>`,
+                  supportMail: `<a href="mailto:peer@cal.com" class="underline">
                 peer@cal.com
-              </a>{" "}
-              for help.
-            </>
+              </a>`,
+                }),
+              }}
+            />
           }
         />
       )}

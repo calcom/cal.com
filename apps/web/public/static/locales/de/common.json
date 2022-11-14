@@ -1336,5 +1336,6 @@
   "saml_btn_configure": "Konfigurieren",
   "kbar_search_placeholder": "Geben Sie einen Befehl ein oder suchen Sie...",
   "free_to_use_apps": "Kostenlos",
-  "enterprise_license": "Das ist eine Enterprise-Funktion"
+  "enterprise_license": "Das ist eine Enterprise-Funktion",
+  "enterprise_license_description": "Um diese Funktion zu aktivieren, holen Sie sich einen Deployment-Schlüssel von der {{consoleUrl}}-Konsole und fügen Sie ihn als CALCOM_LICENSE_KEY zu Ihrer .env hinzu. Wenn Ihr Team bereits eine Lizenz hat, wenden Sie sich bitte an {{supportMail}} für Hilfe."
 }

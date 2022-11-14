@@ -1368,6 +1368,7 @@
   "kbar_search_placeholder": "Type a command or search...",
   "free_to_use_apps": "Free",
   "enterprise_license": "This is an enterprise feature",
+  "enterprise_license_description": "To enable this feature, get a deployment key at {{consoleUrl}} console and add it to your .env as CALCOM_LICENSE_KEY. If your team already has a license, please contact {{supportMail}} for help.",
   "invalid_credential": "Oh no! Looks like permission expired or was revoked. Please reinstall again.",
   "choose_common_schedule_team_event": "Choose a common schedule",
   "choose_common_schedule_team_event_description": "Enable this if you want to use a common schedule between hosts. When disabled, each host will be booked based on their default schedule.",
