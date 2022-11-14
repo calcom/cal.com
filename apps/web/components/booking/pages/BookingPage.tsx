@@ -149,7 +149,6 @@ const BookingPage = ({
   const recurringMutation = useMutation(createRecurringBooking, {
     onSuccess: async (responseData = []) => {
       const { uid } = responseData[0] || {};
-      console.log("on success uid: " + uid);
 
       return router.push({
         pathname: "/success",
