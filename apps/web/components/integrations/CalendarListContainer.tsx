@@ -5,11 +5,11 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Alert } from "@calcom/ui/Alert";
-import Button from "@calcom/ui/Button";
 import { List } from "@calcom/ui/List";
 import { ShellSubHeading } from "@calcom/ui/Shell";
 import Switch from "@calcom/ui/Switch";
 import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
+import { Button } from "@calcom/ui/components/button";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -161,7 +161,7 @@ function ConnectedCalendarsList(props: Props) {
                         id={item.credentialId}
                         externalId={item.primary?.externalId}
                         render={(btnProps) => (
-                          <Button {...btnProps} color="warn" data-testid="integration-connection-button">
+                          <Button {...btnProps} color="secondary" data-testid="integration-connection-button">
                             {t("disconnect")}
                           </Button>
                         )}
@@ -194,7 +194,7 @@ function ConnectedCalendarsList(props: Props) {
                       <DisconnectIntegration
                         id={item.credentialId}
                         render={(btnProps) => (
-                          <Button {...btnProps} color="warn" data-testid="integration-connection-button">
+                          <Button {...btnProps} color="secondary" data-testid="integration-connection-button">
                             Disconnect
                           </Button>
                         )}
