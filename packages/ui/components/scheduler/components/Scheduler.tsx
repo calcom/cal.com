@@ -35,21 +35,22 @@ function getHoursToDisplay(startHour: number, endHour: number) {
   return dates;
 }
 
-const GRID_STOPS_PER_HOUR = 4;
-
 export function Scheduler(props: SchedulerComponentProps) {
   const container = useRef<HTMLDivElement | null>(null);
   const containerNav = useRef<HTMLDivElement | null>(null);
   const containerOffset = useRef<HTMLDivElement | null>(null);
   const initalState = useSchedulerStore((state) => state.initState);
 
-  const { startDate, endDate, startHour, endHour, events } = useSchedulerStore((state) => ({
-    startDate: state.startDate,
-    endDate: state.endDate,
-    startHour: state.startHour || 0,
-    endHour: state.endHour || 23,
-    events: state.events,
-  }));
+  const { startDate, endDate, startHour, endHour, events, usersCellsStopsPerHour } = useSchedulerStore(
+    (state) => ({
+      startDate: state.startDate,
+      endDate: state.endDate,
+      startHour: state.startHour || 0,
+      endHour: state.endHour || 23,
+      events: state.events,
+      usersCellsStopsPerHour: state.gridCellsPerHour || 4,
+    })
+  );
 
   const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
 
@@ -57,7 +58,7 @@ export function Scheduler(props: SchedulerComponentProps) {
 
   // We have to add two due to the size of the grid spacing this would ideally be based on eventTypeStep
   // TOOD: make this dynamic to eventTypeStep
-  const numberOfGridStopsPerDay = hours.length * GRID_STOPS_PER_HOUR;
+  const numberOfGridStopsPerDay = hours.length * usersCellsStopsPerHour;
 
   // Initalise State
   useEffect(() => {
@@ -85,7 +86,7 @@ export function Scheduler(props: SchedulerComponentProps) {
             <div className="grid flex-auto grid-cols-1 grid-rows-1 ">
               <HorizontalLines
                 hours={hours}
-                numberOfGridStopsPerCell={GRID_STOPS_PER_HOUR}
+                numberOfGridStopsPerCell={usersCellsStopsPerHour}
                 containerOffsetRef={containerOffset}
               />
               <VeritcalLines days={days} />
@@ -108,8 +109,8 @@ export function Scheduler(props: SchedulerComponentProps) {
                 }}>
                 {/* We can place whatever we want in here - block avialbity etc should slot in nicely here.  */}
                 <div className="hidden bg-red-500 group-hover:block" />
-                <BlockedList days={days} numberOfGridStopsPerCell={GRID_STOPS_PER_HOUR} />
-                <EventList events={events} days={days} numberOfGridStopsPerCell={GRID_STOPS_PER_HOUR} />
+                <BlockedList days={days} numberOfGridStopsPerCell={usersCellsStopsPerHour} />
+                <EventList events={events} days={days} numberOfGridStopsPerCell={usersCellsStopsPerHour} />
               </ol>
             </div>
           </div>

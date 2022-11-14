@@ -92,7 +92,10 @@ export type SchedulerState = {
    * @default 4
    */
   gridCellsPerHour?: number;
-  /**If passed in we will sort the events internally. */
+  /**If passed in we will sort the events internally.
+   *
+   * @Note It is recommended to sort the events before passing them into the schedler - e.g. On DB level.
+   */
   sortEvents?: boolean;
 };
 
