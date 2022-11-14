@@ -7,7 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { nameOfDay } from "@calcom/lib/weekday";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots";
-import { SkeletonContainer, SkeletonText } from "@calcom/ui";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui/v2";
 import { ToggleGroup } from "@calcom/ui/v2/core/form/ToggleGroup";
 
 import classNames from "@lib/classNames";
@@ -152,13 +152,13 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
         {isLoading && !slots.length && (
           <>
             <SkeletonContainer className="mb-2">
-              <SkeletonText width="full" height="20" />
+              <SkeletonText className="h-5 w-full" />
             </SkeletonContainer>
             <SkeletonContainer className="mb-2">
-              <SkeletonText width="full" height="20" />
+              <SkeletonText className="h-5 w-full" />
             </SkeletonContainer>
             <SkeletonContainer className="mb-2">
-              <SkeletonText width="full" height="20" />
+              <SkeletonText className="h-5 w-full" />
             </SkeletonContainer>
           </>
         )}
