@@ -697,7 +697,7 @@
   "add_new_event_type": "新しいイベントタイプを追加する",
   "new_event_type_to_book_description": "ユーザーが時間を予約する際に使う新しいイベントタイプを作成する。",
   "length": "長さ",
-  "minimum_booking_notice": "最低頻度の通知",
+  "minimum_booking_notice": "予約通知の最小時間",
   "slot_interval": "時間帯の間隔",
   "slot_interval_default": "イベントの長さを使用する (デフォルト)",
   "delete_event_type_description": "このイベントタイプを削除してもよろしいですか？ あなたがこのリンクを共有した人は、それを使って予約することができなくなります。",
