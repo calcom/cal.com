@@ -1150,6 +1150,8 @@
   "embeds": "Embeds",
   "impersonation": "Benutzeridentitätswechsel",
   "users": "Benutzer",
+  "users_description": "Hier findest du eine Auflistung aller Benutzer",
+  "users_listing": "Benutzerliste",
   "profile_description": "Einstellungen für Ihr Cal.com Profil verwalten",
   "general_description": "Einstellungen für Ihre Sprache und Zeitzone verwalten",
   "calendars_description": "Konfigurieren Sie, wie Ihre Event-Typen mit Ihren Kalendern interagieren sollen",
