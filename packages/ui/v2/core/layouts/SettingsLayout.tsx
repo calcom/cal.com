@@ -110,7 +110,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
 
-  const { data: teams } = trpc.useQuery(["viewer.teams.list"]);
+  const { data: teams } = trpc.viewer.teams.list.useQuery();
 
   useEffect(() => {
     if (teams) {

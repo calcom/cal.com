@@ -5,15 +5,17 @@ import { samlProductID, samlTenantID, tenantPrefix, canAccess } from "@calcom/fe
 
 import { TRPCError } from "@trpc/server";
 
-import { createProtectedRouter } from "../../createRouter";
+import { router, authedProcedure } from "../../trpc";
 
-export const samlRouter = createProtectedRouter()
+export const samlRouter = router({
   // Retrieve SAML Connection
-  .query("get", {
-    input: z.object({
-      teamId: z.union([z.number(), z.null()]),
-    }),
-    async resolve({ ctx, input }) {
+  get: authedProcedure
+    .input(
+      z.object({
+        teamId: z.union([z.number(), z.null()]),
+      })
+    )
+    .query(async ({ ctx, input }) => {
       const { connectionController, samlSPConfig } = await jackson();
 
       const { teamId } = input;
@@ -51,16 +53,16 @@ export const samlRouter = createProtectedRouter()
       }
 
       return response;
-    },
-  })
-
-  // Update the SAML Connection
-  .mutation("update", {
-    input: z.object({
-      encodedRawMetadata: z.string(),
-      teamId: z.union([z.number(), z.null()]),
     }),
-    async resolve({ ctx, input }) {
+  // Update the SAML Connection
+  update: authedProcedure
+    .input(
+      z.object({
+        encodedRawMetadata: z.string(),
+        teamId: z.union([z.number(), z.null()]),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       const { connectionController } = await jackson();
 
       const { encodedRawMetadata, teamId } = input;
@@ -86,15 +88,15 @@ export const samlRouter = createProtectedRouter()
         console.error("Error updating SAML connection", err);
         throw new TRPCError({ code: "BAD_REQUEST", message: "Updating SAML Connection failed." });
       }
-    },
-  })
-
-  // Delete the SAML Connection
-  .mutation("delete", {
-    input: z.object({
-      teamId: z.union([z.number(), z.null()]),
     }),
-    async resolve({ ctx, input }) {
+  // Delete the SAML Connection
+  delete: authedProcedure
+    .input(
+      z.object({
+        teamId: z.union([z.number(), z.null()]),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       const { connectionController } = await jackson();
 
       const { teamId } = input;
@@ -117,5 +119,5 @@ export const samlRouter = createProtectedRouter()
         console.error("Error deleting SAML connection", err);
         throw new TRPCError({ code: "BAD_REQUEST", message: "Deleting SAML Connection failed." });
       }
-    },
-  });
+    }),
+});

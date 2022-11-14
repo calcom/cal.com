@@ -1,10 +1,10 @@
-import { MembershipRole } from "@prisma/client";
+import { MembershipRole, Prisma } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import objectKeys from "@calcom/lib/objectKeys";
@@ -32,51 +32,68 @@ const ProfileView = () => {
   const utils = trpc.useContext();
   const session = useSession();
 
-  const mutation = trpc.useMutation("viewer.teams.update", {
+  const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
       showToast(err.message, "error");
     },
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
+      await utils.viewer.teams.get.invalidate();
       showToast(t("your_team_updated_successfully"), "success");
     },
   });
 
   const form = useForm<TeamProfileValues>();
 
-  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
-    onError: () => {
-      router.push("/settings");
-    },
-    onSuccess: (team) => {
-      if (team) {
-        form.setValue("name", team.name || "");
-        form.setValue("url", team.slug || "");
-        form.setValue("logo", team.logo || "");
-        form.setValue("bio", team.bio || "");
-      }
-    },
-  });
+  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
+    { teamId: Number(router.query.id) },
+    {
+      onError: () => {
+        router.push("/settings");
+      },
+      onSuccess: (team) => {
+        if (team) {
+          form.setValue("name", team.name || "");
+          form.setValue("url", team.slug || "");
+          form.setValue("logo", team.logo || "");
+          form.setValue("bio", team.bio || "");
+          if (team.slug === null && (team?.metadata as Prisma.JsonObject)?.requestedSlug) {
+            form.setValue("url", ((team?.metadata as Prisma.JsonObject)?.requestedSlug as string) || "");
+          }
+        }
+      },
+    }
+  );
 
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
   const permalink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team?.slug}`;
 
-  const deleteTeamMutation = trpc.useMutation("viewer.teams.delete", {
+  const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
-      await utils.invalidateQueries(["viewer.teams.list"]);
+      await utils.viewer.teams.get.invalidate();
+      await utils.viewer.teams.list.invalidate();
       showToast(t("your_team_disbanded_successfully"), "success");
       router.push(`${WEBAPP_URL}/teams`);
     },
   });
 
-  const removeMemberMutation = trpc.useMutation("viewer.teams.removeMember", {
+  const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
-      await utils.invalidateQueries(["viewer.teams.list"]);
+      await utils.viewer.teams.get.invalidate();
+      await utils.viewer.teams.list.invalidate();
       showToast(t("success"), "success");
+    },
+    async onError(err) {
+      showToast(err.message, "error");
+    },
+  });
+
+  const publishMutation = trpc.viewer.teams.publish.useMutation({
+    async onSuccess(data: { url?: string }) {
+      if (data.url) {
+        router.push(data.url);
+      }
     },
     async onError(err) {
       showToast(err.message, "error");
@@ -196,6 +213,19 @@ const ProfileView = () => {
               <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
                 {t("update")}
               </Button>
+              {IS_TEAM_BILLING_ENABLED &&
+                team.slug === null &&
+                (team.metadata as Prisma.JsonObject)?.requestedSlug && (
+                  <Button
+                    color="secondary"
+                    className="ml-2 mt-8"
+                    type="button"
+                    onClick={() => {
+                      publishMutation.mutate({ teamId: team.id });
+                    }}>
+                    Publish
+                  </Button>
+                )}
             </Form>
           ) : (
             <div className="flex">

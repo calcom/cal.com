@@ -10,7 +10,9 @@ const handler: AppDeclarativeHandler = {
   variant: appConfig.variant,
   supportsMultipleInstalls: false,
   handlerType: "add",
-  redirectUrl: "/apps/typeform/how-to-use",
+  redirect: {
+    url: "/apps/typeform/how-to-use",
+  },
   createCredential: ({ appType, user, slug }) =>
     createDefaultInstallation({ appType, userId: user.id, slug, key: {} }),
 };
