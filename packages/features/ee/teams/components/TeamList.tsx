@@ -1,12 +1,12 @@
 import { useState } from "react";
 
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 import TeamListItem from "./TeamListItem";
 
 interface Props {
-  teams: inferQueryOutput<"viewer.teams.list">;
+  teams: RouterOutputs["viewer"]["teams"]["list"];
 }
 
 export default function TeamList(props: Props) {
@@ -22,9 +22,9 @@ export default function TeamList(props: Props) {
     }
   }
 
-  const deleteTeamMutation = trpc.useMutation("viewer.teams.delete", {
+  const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.list"]);
+      await utils.viewer.teams.list.invalidate();
     },
     async onError(err) {
       showToast(err.message, "error");

@@ -5,6 +5,12 @@ import { useForm, UseFormReturn, Controller } from "react-hook-form";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import {
+  AppGetServerSidePropsContext,
+  AppPrisma,
+  AppUser,
+  AppSsrInit,
+} from "@calcom/types/AppGetServerSideProps";
 import { Icon } from "@calcom/ui";
 import { Dialog, DialogContent, DialogClose, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { Button, ButtonGroup } from "@calcom/ui/components";
@@ -15,6 +21,7 @@ import SettingsToggle from "@calcom/ui/v2/core/SettingsToggle";
 import { ShellMain } from "@calcom/ui/v2/core/Shell";
 import Banner from "@calcom/ui/v2/core/banner";
 
+import { getSerializableForm } from "../lib/getSerializableForm";
 import { processRoute } from "../lib/processRoute";
 import { RoutingPages } from "../pages/route-builder/[...appPages]";
 import { SerializableForm } from "../types/types";
@@ -212,7 +219,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
     hookForm.reset(form);
   }, [form, hookForm]);
 
-  const mutation = trpc.useMutation("viewer.app_routing_forms.formMutation", {
+  const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess() {
       showToast("Form updated successfully.", "success");
     },
@@ -220,7 +227,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
       showToast(`Something went wrong`, "error");
     },
     onSettled() {
-      utils.invalidateQueries(["viewer.app_routing_forms.formQuery", { id: form.id }]);
+      utils.viewer.appRoutingForms.formQuery.invalidate({ id: form.id });
     },
   });
   return (
@@ -276,7 +283,10 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     />
                   </div>
                   <div className="mt-6">
-                    <Button color="secondary" onClick={() => setIsTestPreviewOpen(true)}>
+                    <Button
+                      color="secondary"
+                      data-testid="test-preview"
+                      onClick={() => setIsTestPreviewOpen(true)}>
                       {t("test_preview")}
                     </Button>
                   </div>
@@ -319,16 +329,19 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     <div className="mt-2">
                       {RoutingPages.map((page) => {
                         if (page.value === decidedAction.type) {
-                          return <>{page.label}</>;
+                          return <div data-testid="test-routing-result-type">{page.label}</div>;
                         }
                       })}
                       :{" "}
                       {decidedAction.type === "customPageMessage" ? (
-                        <span className="text-gray-700">{decidedAction.value}</span>
+                        <span className="text-gray-700" data-testid="test-routing-result">
+                          {decidedAction.value}
+                        </span>
                       ) : decidedAction.type === "externalRedirectUrl" ? (
                         <span className="text-gray-700 underline">
                           <a
                             target="_blank"
+                            data-testid="test-routing-result"
                             href={
                               decidedAction.value.includes("https://") ||
                               decidedAction.value.includes("http://")
@@ -341,7 +354,11 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                         </span>
                       ) : (
                         <span className="text-gray-700 underline">
-                          <a target="_blank" href={`/${decidedAction.value}`} rel="noreferrer">
+                          <a
+                            target="_blank"
+                            href={`/${decidedAction.value}`}
+                            rel="noreferrer"
+                            data-testid="test-routing-result">
                             {decidedAction.value}
                           </a>
                         </span>
@@ -362,7 +379,9 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     {t("close")}
                   </Button>
                 </DialogClose>
-                <Button type="submit">{t("Test Routing")}</Button>
+                <Button type="submit" data-testid="test-routing">
+                  {t("test_routing")}
+                </Button>
               </DialogFooter>
             </form>
           </div>
@@ -373,9 +392,13 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
 }
 
 export default function SingleFormWrapper({ form: _form, ...props }: SingleFormComponentProps) {
-  const { data: form, isLoading } = trpc.useQuery(["viewer.app_routing_forms.formQuery", { id: _form.id }], {
-    initialData: _form,
-  });
+  const { data: form, isLoading } = trpc.viewer.appRoutingForms.formQuery.useQuery(
+    { id: _form.id },
+    {
+      initialData: _form,
+      trpc: {},
+    }
+  );
   const { t } = useLocale();
 
   if (isLoading) {
@@ -388,3 +411,65 @@ export default function SingleFormWrapper({ form: _form, ...props }: SingleFormC
   }
   return <SingleForm form={form} {...props} />;
 }
+
+export const getServerSidePropsForSingleFormView = async function getServerSidePropsForSingleFormView(
+  context: AppGetServerSidePropsContext,
+  prisma: AppPrisma,
+  user: AppUser,
+  ssrInit: AppSsrInit
+) {
+  const ssr = await ssrInit(context);
+
+  if (!user) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/auth/login",
+      },
+    };
+  }
+  const { params } = context;
+  if (!params) {
+    return {
+      notFound: true,
+    };
+  }
+  const formId = params.appPages[0];
+  if (!formId || params.appPages.length > 1) {
+    return {
+      notFound: true,
+    };
+  }
+
+  const isAllowed = (await import("../lib/isAllowed")).isAllowed;
+  if (!(await isAllowed({ userId: user.id, formId }))) {
+    return {
+      notFound: true,
+    };
+  }
+
+  const form = await prisma.app_RoutingForms_Form.findUnique({
+    where: {
+      id: formId,
+    },
+    include: {
+      _count: {
+        select: {
+          responses: true,
+        },
+      },
+    },
+  });
+  if (!form) {
+    return {
+      notFound: true,
+    };
+  }
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+      form: getSerializableForm(form),
+    },
+  };
+};

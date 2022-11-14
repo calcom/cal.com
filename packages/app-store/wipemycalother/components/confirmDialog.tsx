@@ -73,7 +73,7 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
     },
     {
       async onSettled() {
-        await utils.invalidateQueries(["viewer.bookings"]);
+        await utils.viewer.bookings.invalidate();
       },
     }
   );

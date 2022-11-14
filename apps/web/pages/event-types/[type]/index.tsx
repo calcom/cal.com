@@ -12,6 +12,8 @@ import getApps, { getEventTypeAppData, getLocationOptions } from "@calcom/app-st
 import { LocationObject, EventLocationType } from "@calcom/core/location";
 import { parseRecurringEvent, parseBookingLimit, validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
+import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
+import findDurationType from "@calcom/lib/findDurationType";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
@@ -73,6 +75,7 @@ export type FormValues = {
   seatsShowAttendees: boolean | null;
   seatsPerTimeSlotEnabled: boolean;
   minimumBookingNotice: number;
+  minimumBookingNoticeInDurationType: number;
   beforeBufferTime: number;
   afterBufferTime: number;
   slotInterval: number | null;
@@ -96,12 +99,9 @@ export type EventTypeSetupInfered = inferSSRProps<typeof getServerSideProps>;
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
-  const { data: eventTypeApps } = trpc.useQuery([
-    "viewer.apps",
-    {
-      extendsFeature: "EventType",
-    },
-  ]);
+  const { data: eventTypeApps } = trpc.viewer.apps.useQuery({
+    extendsFeature: "EventType",
+  });
 
   const { eventType: dbEventType, locationOptions, team, teamMembers } = props;
   // TODO: It isn't a good idea to maintain state using setEventType. If we want to connect the SSR'd data to tRPC, we should useQuery(["viewer.eventTypes.get"]) with initialData
@@ -113,7 +113,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
-  const updateMutation = trpc.useMutation("viewer.eventTypes.update", {
+  const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async ({ eventType: newEventType }) => {
       setEventType({ ...eventType, slug: newEventType.slug });
       showToast(
@@ -166,6 +166,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       },
       schedulingType: eventType.schedulingType,
       minimumBookingNotice: eventType.minimumBookingNotice,
+      minimumBookingNoticeInDurationType: convertToNewDurationType(
+        "minutes",
+        findDurationType(eventType.minimumBookingNotice),
+        eventType.minimumBookingNotice
+      ),
       metadata: eventType.metadata,
     },
   });
@@ -240,9 +245,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             recurringEvent,
             locations,
             metadata,
-            // We don't need to send it to the backend
+            // We don't need to send send these values to the backend
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             seatsPerTimeSlotEnabled,
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            minimumBookingNoticeInDurationType,
             ...input
           } = values;
 

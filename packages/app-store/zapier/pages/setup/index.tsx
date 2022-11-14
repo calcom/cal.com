@@ -19,10 +19,10 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   const [newApiKey, setNewApiKey] = useState("");
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const integrations = trpc.useQuery(["viewer.integrations", { variant: "automation" }]);
-  const oldApiKey = trpc.useQuery(["viewer.apiKeys.findKeyOfType", { appId: ZAPIER }]);
+  const integrations = trpc.viewer.integrations.useQuery({ variant: "automation" });
+  const oldApiKey = trpc.viewer.apiKeys.findKeyOfType.useQuery({ appId: ZAPIER });
 
-  const deleteApiKey = trpc.useMutation("viewer.apiKeys.delete");
+  const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation();
   const zapierCredentials: { credentialIds: number[] } | undefined = integrations.data?.items.find(
     (item: { type: string }) => item.type === "zapier_automation"
   );
@@ -32,7 +32,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
 
   async function createApiKey() {
     const event = { note: "Zapier", expiresAt: null, appId: ZAPIER };
-    const apiKey = await utils.client.mutation("viewer.apiKeys.create", event);
+    const apiKey = await utils.client.viewer.apiKeys.create.mutate(event);
     if (oldApiKey.data) {
       deleteApiKey.mutate({
         id: oldApiKey.data.id,
