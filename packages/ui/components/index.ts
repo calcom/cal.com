@@ -4,4 +4,4 @@ export * from "./buttonGroup";
 export * from "./badge";
 export * from "./breadcrumb";
 export * from "./form";
-export * from "./topbanner";
+export { TopBanner, TopBannerProps } from "./topbanner";

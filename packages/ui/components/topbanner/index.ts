@@ -1,1 +1,1 @@
-export * from "./TopBanner";
+export { TopBanner, TopBannerProps } from "./TopBanner";

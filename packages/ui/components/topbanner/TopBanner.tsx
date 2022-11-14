@@ -21,7 +21,7 @@ export function TopBanner(props: TopBannerProps) {
 
   return (
     <div
-      id="banner"
+      data-testid="banner"
       className={classNames(
         " z-50 flex  h-[40px] w-full items-start justify-between gap-8 border border-b border-gray-200 bg-gray-50 px-4 text-center sm:items-center",
         variantClassName[variant],
@@ -30,7 +30,7 @@ export function TopBanner(props: TopBannerProps) {
       <div className="flex flex-1 items-center justify-center gap-2">
         <p className="flex items-center justify-center gap-2 font-sans text-sm font-medium leading-4 text-gray-900">
           {["warning", "error"].includes(variant) && (
-            <ExclamationIcon className={classNames("h-5 w-5 text-black")} aria-hidden="true" />
+            <ExclamationIcon className="h-5 w-5 text-black" aria-hidden="true" />
           )}
           {text}
         </p>
@@ -41,7 +41,7 @@ export function TopBanner(props: TopBannerProps) {
         type="button"
         onClick={() => setOpen((open) => !open)}
         className="hover:bg-gray-20 flex items-center rounded-lg p-1.5 text-sm text-gray-400">
-        <XIcon className={classNames("h-4 w-4 text-black")} />
+        <XIcon className="h-4 w-4 text-black" />
       </button>
     </div>
   );
