@@ -1154,6 +1154,7 @@
   "invoices": "Invoices",
   "embeds": "Embeds",
   "impersonation": "Impersonation",
+  "impersonation_description": "Settings to manage user impersonation",
   "users": "Users",
   "users_description": "Here you can find a list of all users",
   "users_listing": "User listing",
