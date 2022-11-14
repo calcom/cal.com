@@ -19,6 +19,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     redirectUri: `${WEBAPP_URL}/api/integrations/salesforceothercalendar/callback`,
   });
 
-  const url = salesforceClient.oauth2.getAuthorizationUrl({});
+  const url = salesforceClient.oauth2.getAuthorizationUrl({ scope: "refresh_token full" });
   res.status(200).json({ url });
 }

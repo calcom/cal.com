@@ -78,12 +78,14 @@ export const getAppsStatus = (calEvent: CalendarEvent) => {
     return "";
   }
   return `\n${calEvent.attendees[0].language.translate("apps_status")}
-      \n${calEvent.appsStatus.map((app) => {
-        return `- ${app.appName} ${
+      ${calEvent.appsStatus.map((app) => {
+        return `\n- ${app.appName} ${
           app.success >= 1 ? `✅ ${app.success > 1 ? `(x${app.success})` : ""}` : ""
-        } ${app.warnings.length >= 1 ? app.warnings.map((warning) => `   - ${warning}\n`) : ""} ${
-          app.failures >= 1 ? `❌ ${app.failures > 1 ? `(x${app.failures})` : ""}` : ""
-        } ${app.errors.length >= 1 ? app.errors.map((error) => `   - ${error}\n`) : ""}`;
+        }${
+          app.warnings && app.warnings.length >= 1 ? app.warnings.map((warning) => `\n   - ${warning}`) : ""
+        } ${app.failures && app.failures >= 1 ? `❌ ${app.failures > 1 ? `(x${app.failures})` : ""}` : ""} ${
+          app.errors && app.errors.length >= 1 ? app.errors.map((error) => `\n   - ${error}`) : ""
+        }`;
       })}
     `;
 };

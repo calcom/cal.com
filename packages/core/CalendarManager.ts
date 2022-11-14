@@ -218,7 +218,7 @@ export const createEvent = async (
         return undefined;
       })
     : undefined;
-  console.log("creationResult", JSON.stringify(creationResult, null, 2));
+
   return {
     appName: credential.appName,
     type: credential.type,

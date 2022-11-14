@@ -31,13 +31,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!consumer_key) return res.status(400).json({ message: "Salesforce consumer key missing." });
   if (!consumer_secret) return res.status(400).json({ message: "Salesforce consumer secret missing." });
 
-  const salesforceClient = new jsforce.Connection({
+  const conn = new jsforce.Connection({
     clientId: consumer_key,
     clientSecret: consumer_secret,
     redirectUri: WEBAPP_URL + "/api/integrations/salesforceothercalendar/callback",
   });
 
-  const salesforceTokenInfo = await salesforceClient.oauth2.requestToken(code as string);
+  const salesforceTokenInfo = await conn.oauth2.requestToken(code as string);
 
   await prisma.credential.create({
     data: {

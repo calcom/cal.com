@@ -60,7 +60,7 @@ export default class SalesforceOtherCalendarService implements Calendar {
 
     const credentialKey = credential.key as unknown as ExtendedTokenResponse;
 
-    const conn = new jsforce.Connection({
+    return new jsforce.Connection({
       clientId: consumer_key,
       clientSecret: consumer_secret,
       redirectUri: WEBAPP_URL + "/api/integrations/salesforceothercalendar/callback",
@@ -68,21 +68,6 @@ export default class SalesforceOtherCalendarService implements Calendar {
       accessToken: credentialKey.access_token,
       refreshToken: credentialKey.refresh_token,
     });
-
-    conn.on("refresh", async (accessToken, res) => {
-      this.log.debug("refresh:token:succeded");
-      credentialKey.access_token = accessToken;
-      await prisma.credential.update({
-        where: {
-          id: credential.id,
-        },
-        data: {
-          key: credentialKey as any,
-        },
-      });
-    });
-
-    return conn;
   };
 
   private salesforceContactCreate = async (attendees: Person[]) => {
@@ -211,6 +196,7 @@ export default class SalesforceOtherCalendarService implements Calendar {
   }
 
   async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
+    debugger;
     const contacts = await this.salesforceContactSearch(event);
     if (contacts.length) {
       if (contacts.length == event.attendees.length) {
