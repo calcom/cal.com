@@ -1,7 +1,7 @@
 import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import Stripe from "stripe";
 
-import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 
@@ -39,21 +39,6 @@ async function getMembersMissingSeats(teamId: number) {
     members,
     membersMissingSeats,
     ownerIsMissingSeat,
-  };
-}
-
-// a helper for the upgrade dialog
-export async function getTeamSeatStats(teamId: number) {
-  const { membersMissingSeats, members, ownerIsMissingSeat } = await getMembersMissingSeats(teamId);
-  return {
-    totalMembers: members.length,
-    // members we need not pay for
-    freeSeats: members.length - membersMissingSeats.length,
-    // members we need to pay for (if not hosted cal, team billing is disabled)
-    missingSeats: HOSTED_CAL_FEATURES ? membersMissingSeats.length : 0,
-    // members who have been hidden from view
-    hiddenMembers: members.filter((m) => m.user.plan === UserPlan.FREE).length,
-    ownerIsMissingSeat: HOSTED_CAL_FEATURES ? ownerIsMissingSeat : false,
   };
 }
 
@@ -249,16 +234,17 @@ async function createCheckoutSession(
   return await stripe.checkout.sessions.create(params);
 }
 
-// verifies that the subscription's quantity is correct for the number of members the team has
-// this is a function is a dev util, but could be utilized as a sync technique in the future
-export async function ensureSubscriptionQuantityCorrectness(userId: number, teamId: number) {
-  const subscription = await getProPlanSubscription(userId);
-  const stripeQuantity =
-    subscription?.items.data.find((item) => item.plan.id === getPerSeatProPlanPrice())?.quantity ?? 0;
-
-  const { membersMissingSeats } = await getMembersMissingSeats(teamId);
-  // correct the quantity if missing seats is out of sync with subscription quantity
-  if (subscription && membersMissingSeats.length !== stripeQuantity) {
-    await updatePerSeatQuantity(subscription, membersMissingSeats.length);
+export function getRequestedSlugError(error: unknown, requestedSlug: string) {
+  let message = `Unknown error`;
+  let statusCode = 500;
+  // This covers the edge case if an unpublished team takes too long to publish
+  // and another team gets the requestedSlug first.
+  // https://www.prisma.io/docs/reference/api-reference/error-reference#p2002
+  if (error instanceof PrismaClientKnownRequestError && error.code === "P2002") {
+    statusCode = 400;
+    message = `It seems like the requestedSlug: '${requestedSlug}' is already taken. Please contact support at help@cal.com so we can resolve this issue.`;
+  } else if (error instanceof Error) {
+    message = error.message;
   }
+  return { message, statusCode };
 }

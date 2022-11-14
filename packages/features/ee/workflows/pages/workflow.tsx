@@ -83,9 +83,12 @@ function WorkflowPage() {
     isError,
     error,
     dataUpdatedAt,
-  } = trpc.useQuery(["viewer.workflows.get", { id: +workflowId }], {
-    enabled: router.isReady && !!workflowId,
-  });
+  } = trpc.viewer.workflows.get.useQuery(
+    { id: +workflowId },
+    {
+      enabled: router.isReady && !!workflowId,
+    }
+  );
 
   useEffect(() => {
     if (workflow && !form.getValues("name")) {

@@ -51,6 +51,16 @@ const config: Config = {
       setupFiles: ["<rootDir>/packages/app-store/closecomothercalendar/test/globals.ts"],
     },
     {
+      displayName: "@calcom/routing-forms",
+      roots: ["<rootDir>/packages/app-store/ee/routing-forms"],
+      testMatch: ["**/test/lib/**/*.(spec|test).(ts|tsx|js)"],
+      transform: {
+        "^.+\\.ts?$": "ts-jest",
+      },
+      transformIgnorePatterns: ["/node_modules/", "^.+\\.module\\.(css|sass|scss)$"],
+      testEnvironment: "jsdom",
+    },
+    {
       displayName: "@calcom/api",
       roots: ["<rootDir>/apps/api"],
       testMatch: ["**/test/lib/**/*.(spec|test).(ts|tsx|js)"],
