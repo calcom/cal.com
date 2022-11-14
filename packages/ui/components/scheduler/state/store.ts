@@ -8,11 +8,12 @@ import {
   SchedulerState,
   SchedulerStoreProps,
 } from "../types/state";
+import { weekdayDates } from "../utils";
 
 const defaultState: SchedulerComponentProps = {
   view: "week",
-  startDate: new Date(),
-  endDate: dayjs().add(6, "days").toDate(),
+  startDate: weekdayDates(0, new Date()).startDate,
+  endDate: weekdayDates(0, new Date()).endDate,
   events: [],
   startHour: 0,
   endHour: 23,

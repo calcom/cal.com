@@ -3,7 +3,7 @@ import { Schedule, TimeRange } from "@calcom/types/schedule";
 
 import { SchedulerEvent } from "./types/events";
 
-const startDate = dayjs().add(2, "days").set("hour", 11).set("minute", 0);
+const startDate = dayjs().add(1, "days").set("hour", 11).set("minute", 0);
 
 export const Events: SchedulerEvent[] = [
   {
