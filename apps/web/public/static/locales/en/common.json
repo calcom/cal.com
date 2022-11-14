@@ -617,6 +617,7 @@
   "teams": "Teams",
   "team": "Team",
   "team_billing": "Team Billing",
+  "team_billing_description": "Manage billing for your team",
   "upgrade_to_flexible_pro_title": "We've changed billing for teams",
   "upgrade_to_flexible_pro_message": "There are members in your team without a seat. Upgrade your pro plan to cover missing seats.",
   "changed_team_billing_info": "As of January 2022 we charge on a per-seat basis for team members. Members of your team who had PRO for free are now on a 14 day trial. Once their trial expires these members will be hidden from your team unless you upgrade now.",

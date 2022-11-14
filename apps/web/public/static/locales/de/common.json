@@ -615,6 +615,7 @@
   "teams": "Teams",
   "team": "Team",
   "team_billing": "Abrechnung der Teams",
+  "team_billing_description": "Verwalte die Abrechungen deines Teams",
   "upgrade_to_flexible_pro_title": "Wir haben die Abrechnung für Teams geändert",
   "upgrade_to_flexible_pro_message": "Es gibt Mitglieder in Ihrem Team ohne Lizenz. Upgraden Sie Ihren Pro-Plan um fehlende Lizenzen abzudecken.",
   "changed_team_billing_info": "Ab Januar 2022 berechnen wir pro Sitzplatz für Teammitglieder. Mitglieder deines Teams, die Pro kostenlos hatten, sind jetzt in einer 14 Tage Testphase. Sobald die Testversion abläuft, werden diese Mitglieder vor Ihrem Team verborgen, es sei denn, Sie upgraden jetzt.",
