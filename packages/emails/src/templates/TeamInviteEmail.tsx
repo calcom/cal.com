@@ -18,13 +18,7 @@ export const TeamInviteEmail = (props: TeamInvite & Partial<React.ComponentProps
         team: props.teamName,
       })}>
       <p>
-        <>
-          {props.language("user_invited_you", {
-            user: props.from,
-            team: props.teamName,
-          })}
-          !
-        </>
+        <>{props.language("user_invited_you", { user: props.from, team: props.teamName })}!</>
       </p>
       <p style={{ fontWeight: 400, lineHeight: "24px" }}>
         <>{props.language("calcom_explained")}</>
