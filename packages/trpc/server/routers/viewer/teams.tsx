@@ -154,14 +154,24 @@ export const viewerTeamsRouter = router({
       if (
         input.slug &&
         IS_TEAM_BILLING_ENABLED &&
-        /** If the team doesn't have a slug we can assume that it hasn't been published yet. */ !prevTeam.slug
+        /** If the team doesn't have a slug we can assume that it hasn't been published yet. */
+        !prevTeam.slug
       ) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You cannot change the slug until you publish your team",
-        });
+        // Save it on the metadata so we can use it later
+        data.metadata = {
+          requestedSlug: input.slug,
+        };
       } else {
         data.slug = input.slug;
+
+        // If we save slug, we don't need the requestedSlug anymore
+        const metadataParse = teamMetadataSchema.safeParse(prevTeam.metadata);
+        if (metadataParse.success) {
+          const { requestedSlug, ...cleanMetadata } = metadataParse.data || {};
+          data.metadata = {
+            ...cleanMetadata,
+          };
+        }
       }
 
       const updatedTeam = await ctx.prisma.team.update({
@@ -582,7 +592,7 @@ export const viewerTeamsRouter = router({
       if (!metadata.success || !metadata.data?.requestedSlug)
         throw new TRPCError({ code: "BAD_REQUEST", message: "Can't publish team without `requestedSlug`" });
 
-      // if payment needed, responed with checkout url
+      // if payment needed, respond with checkout url
       if (IS_TEAM_BILLING_ENABLED) {
         const checkoutSession = await purchaseTeamSubscription({
           teamId: prevTeam.id,

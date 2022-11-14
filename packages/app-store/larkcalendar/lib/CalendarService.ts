@@ -56,17 +56,8 @@ export default class LarkCalendarService implements Calendar {
     const refreshExpireDate = larkAuthCredentials.refresh_expires_date;
     const refreshToken = larkAuthCredentials.refresh_token;
     if (isExpired(refreshExpireDate) || !refreshToken) {
-      const res = await fetch("/api/integrations", {
-        method: "DELETE",
-        body: JSON.stringify({ id: credential.id }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (!res.ok) {
-        throw new Error("disconnection wrong");
-      }
-      throw new Error("refresh token expires");
+      await prisma.credential.delete({ where: { id: credential.id } });
+      throw new Error("Lark Calendar refresh token expired");
     }
     try {
       const appAccessToken = await getAppAccessToken();

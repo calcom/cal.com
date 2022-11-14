@@ -731,7 +731,7 @@ export const bookingsRouter = router({
         },
       });
 
-      return { message: "Booking confirmed" };
+      return { message: "Booking confirmed", status: BookingStatus.ACCEPTED };
     }
     const attendeesListPromises = booking.attendees.map(async (attendee) => {
       return {
@@ -985,6 +985,10 @@ export const bookingsRouter = router({
 
       await sendDeclinedEmails(evt);
     }
-    return { message: "Booking " + confirmed ? "confirmed" : "rejected" };
+
+    const message = "Booking " + confirmed ? "confirmed" : "rejected";
+    const status = confirmed ? BookingStatus.ACCEPTED : BookingStatus.REJECTED;
+
+    return { message, status };
   }),
 });
