@@ -71,6 +71,7 @@
     "googleapis": "^84.0.0",
     "gray-matter": "^4.0.3",
     "handlebars": "^4.7.7",
+    "headers-polyfill": "3.0.10",
     "ical.js": "^1.4.0",
     "ics": "^2.37.0",
     "jimp": "^0.16.1",
@@ -122,6 +123,9 @@
     "uuid": "^8.3.2",
     "web3": "^1.7.5",
     "zod": "^3.19.1"
+  },
+  "resolutions": {
+    "headers-polyfill": "3.0.10"
   },
   "devDependencies": {
     "@babel/core": "^7.19.6",
