@@ -128,7 +128,8 @@ ${getCancelLink(calEvent)}
 };
 
 export const getUid = (calEvent: CalendarEvent): string => {
-  return calEvent.uid ?? translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
+  const uid = calEvent.attendeeUniqueId || calEvent.uid;
+  return uid ?? translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
 };
 
 export const getCancelLink = (calEvent: CalendarEvent): string => {

@@ -18,7 +18,18 @@ export const createBookingsFixture = (page: Page) => {
       userId: number,
       username: string | null,
       eventTypeId = -1,
-      { rescheduled = false, paid = false, status = "ACCEPTED" }: Partial<Prisma.BookingCreateInput> = {},
+      {
+        rescheduled = false,
+        paid = false,
+        status = "ACCEPTED",
+        attendees = {
+          create: {
+            email: "attendee@example.com",
+            name: "Attendee Example",
+            timeZone: "Europe/London",
+          },
+        },
+      }: Partial<Prisma.BookingCreateInput> = {},
       startDateParam?: Date,
       endDateParam?: Date
     ) => {
@@ -36,13 +47,7 @@ export const createBookingsFixture = (page: Page) => {
               id: userId,
             },
           },
-          attendees: {
-            create: {
-              email: "attendee@example.com",
-              name: "Attendee Example",
-              timeZone: "Europe/London",
-            },
-          },
+          attendees,
           eventType: {
             connect: {
               id: eventTypeId,

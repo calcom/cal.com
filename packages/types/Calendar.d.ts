@@ -152,6 +152,7 @@ export interface CalendarEvent {
   eventTypeId?: number | null;
   appsStatus?: AppsStatus[];
   seatsShowAttendees?: boolean | null;
+  attendeeUniqueId?: string;
 }
 
 export interface EntryPoint {

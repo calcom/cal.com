@@ -270,8 +270,11 @@ export default class EventManager {
       results.push(result);
     }
 
-    // Update all calendar events.
-    results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+    // There was a case that booking didn't had any reference and we don't want to throw error on function
+    if (booking.references.find((reference) => reference.type.includes("_calendar"))) {
+      // Update all calendar events.
+      results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+    }
 
     const bookingPayment = booking?.payment;
 
@@ -325,7 +328,10 @@ export default class EventManager {
   }
 
   public async updateCalendarAttendees(event: CalendarEvent, booking: PartialBooking) {
-    // @NOTE: This function is only used for updating attendees on a calendar event. Can we remove this?
+    if (booking.references.length === 0) {
+      console.error("Tried to update references but there wasn't any.");
+      return;
+    }
     await this.updateAllCalendarEvents(event, booking);
   }
 

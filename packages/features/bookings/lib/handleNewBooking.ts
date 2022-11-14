@@ -10,6 +10,7 @@ import async from "async";
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
 import short from "short-uuid";
+import { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
@@ -544,9 +545,12 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
     }
 
-    await prisma.booking.update({
+    const bookingUpdated = await prisma.booking.update({
       where: {
         uid: reqBody.bookingUid,
+      },
+      include: {
+        attendees: true,
       },
       data: {
         attendees: {
@@ -559,6 +563,28 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         },
       },
     });
+
+    // Add entry to bookingSeatsReference table
+    const attendeeUniqueId = uuid();
+    await prisma.bookingSeatsReferences.create({
+      data: {
+        data: {
+          description: additionalNotes,
+        },
+        booking: {
+          connect: {
+            id: booking.id,
+          },
+        },
+        referenceUId: attendeeUniqueId,
+        attendee: {
+          connect: {
+            id: bookingUpdated.attendees[bookingUpdated.attendees.length - 1].id,
+          },
+        },
+      },
+    });
+    evt.attendeeUniqueId = attendeeUniqueId;
 
     const newSeat = booking.attendees.length !== 0;
     /**
@@ -776,6 +802,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   let booking: (Booking & { appsStatus?: AppsStatus[] }) | null = null;
   try {
     booking = await createBooking();
+
+    // @NOTE: Add specific try catch for all subsequent async calls to avoid error
     // Sync Services
     await syncServicesUpdateWebUser(
       await prisma.user.findFirst({
@@ -784,6 +812,33 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       })
     );
     evt.uid = booking?.uid ?? null;
+    console.log({ booking, eventType });
+    if (booking && booking.id && eventType.seatsPerTimeSlot) {
+      console.log({ booking });
+      const currentAttendee = booking.attendees.find((attendee) => attendee.email === req.body.email)!;
+      // Save description to bookingSeatsReferences
+
+      const uniqueAttendeeId = uuid();
+      await prisma.bookingSeatsReferences.create({
+        data: {
+          referenceUId: uniqueAttendeeId,
+          data: {
+            description: evt.additionalNotes,
+          },
+          booking: {
+            connect: {
+              id: booking.id,
+            },
+          },
+          attendee: {
+            connect: {
+              id: currentAttendee?.id,
+            },
+          },
+        },
+      });
+      evt.attendeeUniqueId = uniqueAttendeeId;
+    }
   } catch (_err) {
     const err = getErrorFromUnknown(_err);
     log.error(`Booking ${eventTypeId} failed`, "Error when saving booking to db", err.message);
@@ -867,7 +922,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           handleAppsStatus(results, booking);
         }
       }
-
+      console.log("==========0");
       if (noEmail !== true) {
         const copyEvent = cloneDeep(evt);
         // Reschedule login for booking with seats
@@ -875,6 +930,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           // We should only notify affected attendees (owner and attendee rescheduling)
           copyEvent.attendees = copyEvent.attendees.filter((attendee) => attendee.email === reqBody.email);
         }
+        console.log("==========1");
+        console.log(copyEvent.attendees);
         await sendRescheduledEmails({
           ...copyEvent,
           additionalInformation: metadata,

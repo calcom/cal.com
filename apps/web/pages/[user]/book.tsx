@@ -138,14 +138,45 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   })[0];
 
+  // If rescheduleUid and event has seats lets convert Uid to bookingUid
+  let rescheduleUid = context.query.rescheduleUid as string;
+  const rescheduleEventTypeHasSeats = context.query.rescheduleUid && eventTypeRaw.seatsPerTimeSlot;
+  let attendeeEmail: string;
+  if (rescheduleEventTypeHasSeats) {
+    const bookingSeatReference = await prisma.bookingSeatsReferences.findFirst({
+      where: {
+        referenceUId: context.query.rescheduleUid as string,
+      },
+      select: {
+        id: true,
+        attendee: true,
+        booking: {
+          select: {
+            uid: true,
+          },
+        },
+      },
+    });
+    if (bookingSeatReference) {
+      rescheduleUid = bookingSeatReference.booking.uid;
+      attendeeEmail = bookingSeatReference.attendee.email;
+    }
+  }
+
   let booking: GetBookingType | null = null;
-  if (context.query.rescheduleUid || context.query.bookingUid) {
+  if (rescheduleUid || context.query.bookingUid) {
     booking = await getBooking(
       prisma,
-      context.query.rescheduleUid
-        ? (context.query.rescheduleUid as string)
-        : (context.query.bookingUid as string)
+      rescheduleUid ? (rescheduleUid as string) : (context.query.bookingUid as string)
     );
+  }
+  if (rescheduleEventTypeHasSeats && booking?.attendees) {
+    const currentAttendee = booking?.attendees.find((attendee) => {
+      return attendee.email === attendeeEmail;
+    });
+    if (currentAttendee) {
+      booking.attendees = [currentAttendee] || [];
+    }
   }
 
   const dynamicNames = isDynamicGroupBooking

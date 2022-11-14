@@ -73,6 +73,20 @@ export const createUsersFixture = (page: Page, workerInfo: WorkerInfo) => {
           length: 30,
         },
       });
+      await prisma.eventType.create({
+        data: {
+          users: {
+            connect: {
+              id: _user.id,
+            },
+          },
+          title: "Seats",
+          slug: "seats",
+          seatsPerTimeSlot: 10,
+          requiresConfirmation: true,
+          length: 30,
+        },
+      });
       if (scenario.seedRoutingForms) {
         await prisma.app_RoutingForms_Form.create({
           data: {
