@@ -38,7 +38,11 @@ export const CreateANewTeamForm = () => {
 
   return (
     <>
-      <Form form={newTeamFormMethods} handleSubmit={(v) => createTeamMutation.mutate(v)}>
+      <Form
+        form={newTeamFormMethods}
+        handleSubmit={(v) => {
+          if (!createTeamMutation.isLoading) createTeamMutation.mutate(v);
+        }}>
         <div className="mb-8">
           <Controller
             name="name"
@@ -113,10 +117,19 @@ export const CreateANewTeamForm = () => {
         </div>
 
         <div className="flex space-x-2">
-          <Button color="secondary" href="/settings" className="w-full justify-center">
+          <Button
+            disabled={createTeamMutation.isLoading}
+            color="secondary"
+            href="/settings"
+            className="w-full justify-center">
             {t("cancel")}
           </Button>
-          <Button color="primary" type="submit" EndIcon={Icon.FiArrowRight} className="w-full justify-center">
+          <Button
+            disabled={createTeamMutation.isLoading}
+            color="primary"
+            type="submit"
+            EndIcon={Icon.FiArrowRight}
+            className="w-full justify-center">
             {t("continue")}
           </Button>
         </div>
