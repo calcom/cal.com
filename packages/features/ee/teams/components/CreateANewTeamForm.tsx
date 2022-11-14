@@ -120,7 +120,7 @@ export const CreateANewTeamForm = () => {
           <Button
             disabled={createTeamMutation.isLoading}
             color="secondary"
-            href="/settings"
+            href="/settings/my-account/profile"
             className="w-full justify-center">
             {t("cancel")}
           </Button>
