@@ -344,7 +344,7 @@ export default function SettingsLayout({
       SettingsSidebarContainer={
         <div
           className={classNames(
-            "fixed inset-y-0 z-50 m-0 h-screen transform overflow-y-scroll border-gray-100 bg-gray-50 transition duration-200 ease-in-out",
+            "fixed inset-y-0 z-50 m-0 h-screen w-56 transform overflow-x-hidden overflow-y-scroll border-gray-100 bg-gray-50 transition duration-200 ease-in-out",
             sideContainerOpen ? "translate-x-0" : "-translate-x-full"
           )}>
           <SettingsSidebarContainer />
