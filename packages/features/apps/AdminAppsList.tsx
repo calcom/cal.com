@@ -1,28 +1,40 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useRouter } from "next/router";
+import { useState, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { TextField, Button, Form } from "@calcom/ui/components";
+import { TextField, Button, Form, KeyField } from "@calcom/ui/components";
 import { Switch, showToast } from "@calcom/ui/v2";
 import { SkeletonContainer, SkeletonText, SkeletonButton } from "@calcom/ui/v2/core/skeleton";
 
 const IntegrationContainer = ({ app, lastEntry }) => {
   const utils = trpc.useContext();
+  const router = useRouter();
+  const category = router.query.category;
+  const [hideKey, setHideKey] = useState(
+    app.keys &&
+      Object.assign(
+        ...Object.keys(app.keys).map((key) => {
+          return { [key]: true };
+        })
+      )
+  );
+  console.log("🚀 ~ file: AdminAppsList.tsx ~ line 25 ~ IntegrationContainer ~ hideKey", hideKey);
 
   const formMethods = useForm();
 
-  const enableAppMutation = trpc.useMutation(["viewer.apps.toggle"], {
+  const enableAppMutation = trpc.viewer.appsRouter.toggle.useMutation({
     onSuccess: (enabled) => {
-      utils.invalidateQueries(["viewer.apps.listLocal"]);
+      utils.viewer.appsRouter.listLocal.invalidate({ variant: category });
       // TODO add translations, two strings
       showToast(`${app.name} is ${enabled ? "enabled" : "disabled"}`, "success");
     },
   });
 
-  const saveKeysMutation = trpc.useMutation(["viewer.apps.saveKeys"], {
+  const saveKeysMutation = trpc.viewer.appsRouter.saveKeys.useMutation({
     onSuccess: () => {
       // TODO add translations
       showToast(`Keys have been saved`, "success");
@@ -67,7 +79,7 @@ const IntegrationContainer = ({ app, lastEntry }) => {
                   control={formMethods.control}
                   defaultValue={app.keys[key]}
                   render={({ field: { value } }) => (
-                    <TextField
+                    <KeyField
                       label={key}
                       key={key}
                       name={key}
@@ -93,11 +105,7 @@ const AdminAppsList = () => {
   const router = useRouter();
   const category = router.query.category;
 
-  const { data: apps, isLoading } = trpc.useQuery(["viewer.apps.listLocal", { variant: category }], {
-    onSuccess: (data) => {
-      console.log("🚀 ~ file: [category].tsx ~ line 28 ~ AdminAppsView ~ data", data);
-    },
-  });
+  const { data: apps, isLoading } = trpc.viewer.appsRouter.listLocal.useQuery({ variant: category });
 
   return (
     <AppCategoryNavigation baseURL="/settings/admin/apps">

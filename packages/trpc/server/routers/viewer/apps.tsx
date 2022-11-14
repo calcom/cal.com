@@ -17,7 +17,6 @@ export const appsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      console.log("🚀 ~ file: apps.tsx ~ line 20 ~ .query ~ input", input);
       if (ctx.session.user.role !== "ADMIN")
         throw new TRPCError({
           code: "UNAUTHORIZED",
@@ -106,6 +105,7 @@ export const appsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      console.log("🚀 ~ file: apps.tsx ~ line 109 ~ .mutation ~ input", input);
       if (ctx.session.user.role !== "ADMIN")
         throw new TRPCError({
           code: "UNAUTHORIZED",
