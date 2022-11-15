@@ -1,19 +1,8 @@
-import { CalWindow } from "@calcom/embed-core";
-import EmbedSnippet from "@calcom/embed-snippet";
+export { Cal as default } from "./Cal";
 
-import Cal from "./Cal";
+export { Cal } from "./Cal";
+export { CalProvider, CalConsumer, useCalApi } from "./cal-context";
+export { getCalApi } from "./use-load-cal-api";
 
-export const getCalApi = (): Promise<CalWindow["Cal"]> =>
-  new Promise(function tryReadingFromWindow(resolve) {
-    EmbedSnippet();
-    const api = (window as CalWindow).Cal;
-    if (!api) {
-      setTimeout(() => {
-        tryReadingFromWindow(resolve);
-      }, 50);
-      return;
-    }
-    resolve(api);
-  });
-
-export default Cal;
+export type { CalProps } from "./Cal";
+export type { CalProviderProps } from "./cal-context";

@@ -1,9 +1,8 @@
-/* eslint-disable prefer-const */
 import { useEffect, useRef } from "react";
 
-import useEmbed from "./useEmbed";
+import { useCalApi } from "./cal-context";
 
-type CalProps = {
+export type CalProps = {
   calOrigin?: string;
   calLink: string;
   initConfig?: {
@@ -11,38 +10,36 @@ type CalProps = {
     uiDebug?: boolean;
   };
   config?: any;
-  embedJsUrl?: string;
 } & React.HTMLAttributes<HTMLDivElement>;
 
-const Cal = function Cal(props: CalProps) {
-  const { calLink, calOrigin, config, initConfig = {}, embedJsUrl, ...restProps } = props;
+export const Cal = function Cal(props: CalProps) {
+  const { calLink, calOrigin, config, initConfig = {}, ...restProps } = props;
   if (!calLink) {
     throw new Error("calLink is required");
   }
   const initializedRef = useRef(false);
-  const Cal = useEmbed(embedJsUrl);
+  const [calApi, calApiLoaded] = useCalApi();
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!Cal || initializedRef.current) {
+    if (!calApiLoaded || initializedRef.current) {
       return;
     }
     initializedRef.current = true;
     const element = ref.current;
-    Cal("init", {
+    calApi("init", {
       ...initConfig,
       origin: calOrigin,
     });
-    Cal("inline", {
+    calApi("inline", {
       elementOrSelector: element,
       calLink,
       config,
     });
-  }, [Cal, calLink, config, calOrigin, initConfig]);
+  }, [calApi, calLink, config, calOrigin, initConfig]);
 
-  if (!Cal) {
+  if (!calApiLoaded) {
     return null;
   }
 
   return <div ref={ref} {...restProps} />;
 };
-export default Cal;
