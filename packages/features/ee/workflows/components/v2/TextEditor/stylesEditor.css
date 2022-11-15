@@ -1,12 +1,4 @@
-.editor {
-    margin: 0;
-    background: #eee;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, ".SFNSText-Regular",
-      sans-serif;
-    font-weight: 500;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
+
 .editor a {
   color: #0000FF;
   text-decoration: underline;
@@ -44,9 +36,7 @@
 }
 
 .editor-container {
-  margin: 20px auto 20px auto;
   border-radius: 2px;
-  max-width: 600px;
   color: #000;
   position: relative;
   line-height: 20px;
@@ -71,6 +61,7 @@
   outline: 0;
   padding: 15px 10px;
   caret-color: #444;
+  width: 100%
 }
 
 .editor-placeholder {
