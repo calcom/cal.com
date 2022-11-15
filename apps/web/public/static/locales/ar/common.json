@@ -597,7 +597,7 @@
   "monthly_other": "أشهر",
   "yearly_one": "سنة",
   "yearly_other": "سنوات",
-  "plus_more": "+ {{count}} أكثر",
+  "plus_more": "{{count}} أكثر",
   "max": "الحد الأقصى",
   "single_theme": "سمة واحدة",
   "brand_color": "لون العلامة التجارية",

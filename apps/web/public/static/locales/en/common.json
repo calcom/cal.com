@@ -599,7 +599,7 @@
   "monthly_other": "months",
   "yearly_one": "year",
   "yearly_other": "years",
-  "plus_more": "+ {{count}} more",
+  "plus_more": "{{count}} more",
   "max": "Max",
   "single_theme": "Single Theme",
   "brand_color": "Brand Color",
