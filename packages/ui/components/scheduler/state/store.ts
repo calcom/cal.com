@@ -29,12 +29,14 @@ export const useSchedulerStore = create<SchedulerStoreProps>((set) => ({
   // This looks a bit odd but init state only overrides the public props + actions as we don't want to override our internal state
   initState: (state: SchedulerState & SchedulerPublicActions) => {
     // Handle sorting of events if required
+    let events = state.events;
     if (state.sortEvents) {
-      state.events = state.events.sort((a, b) => a.start.getTime() - b.start.getTime());
+      events = state.events.sort((a, b) => a.start.getTime() - b.start.getTime());
     }
 
     set({
       ...state,
+      events,
     });
   },
   setSelectedEvent: (event) => set({ selectedEvent: event }),

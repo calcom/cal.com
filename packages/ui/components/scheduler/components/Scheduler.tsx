@@ -116,7 +116,9 @@ export function Scheduler(props: SchedulerComponentProps) {
                         .filter((event) => {
                           return dayjs(event.start).isSame(day, "day");
                         })
-                        .map((event) => {
+                        .map((event, idx, eventsArray) => {
+                          let width = 90;
+                          let marginLeft: string | number = 0;
                           const eventStart = dayjs(event.start);
                           const eventEnd = dayjs(event.end);
 
@@ -125,11 +127,31 @@ export function Scheduler(props: SchedulerComponentProps) {
                           const eventStartHour = eventStart.hour();
                           const eventStartDiff = (eventStartHour - (startHour || 0)) * 60;
 
+                          const nextEvent = eventsArray[idx + 1];
+                          const prevEvent = eventsArray[idx - 1];
+
+                          // Check for overlapping events
+                          if (nextEvent) {
+                            const nextEventStart = dayjs(nextEvent.start);
+                            // check if next event starts before this event ends
+                            if (nextEventStart.isBefore(eventEnd)) {
+                              width = width / 2;
+                            }
+                          } else if (prevEvent) {
+                            const prevEventEnd = dayjs(prevEvent.end);
+                            if (prevEventEnd.isAfter(eventStart)) {
+                              width = width / 2;
+                              marginLeft = "auto";
+                            }
+                          }
+
                           return (
                             <div
                               key={`${event.id}-${eventStart.toISOString()}`}
                               className="absolute inset-x-1 z-50 w-[90%]"
                               style={{
+                                marginLeft,
+                                width: `${width}%`,
                                 top: `calc(${eventStartDiff}*var(--one-minute-height))`,
                                 height: `calc(${eventDuration}*var(--one-minute-height))`,
                               }}>

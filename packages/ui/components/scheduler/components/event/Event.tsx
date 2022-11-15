@@ -1,3 +1,4 @@
+import dayjs from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
 
 import { SchedulerEvent } from "../../types/events";
@@ -35,9 +36,10 @@ export function Event({
         selected && "border-[1px] border-transparent bg-gray-900 text-white",
         disabled ? "hover:cursor-default" : "hover:cursor-pointer"
       )}>
-      {event.title}
-      <br />
-      {eventDuration} minutes
+      <span className="overflow-ellipsis whitespace-pre">{event.title}</span>
+      <p className="text-[10px] leading-none text-gray-500">
+        {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
+      </p>
     </Component>
   );
 }
