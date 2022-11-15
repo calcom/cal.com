@@ -70,7 +70,7 @@ export function getQueryBuilderConfig(form: RoutingForm, forReporting = false) {
     }
   });
 
-  const initialConfigCopy = { ...InitialConfig };
+  const initialConfigCopy = { ...InitialConfig, operators: { ...InitialConfig.operators } };
   if (forReporting) {
     delete initialConfigCopy.operators.is_empty;
     delete initialConfigCopy.operators.is_not_empty;

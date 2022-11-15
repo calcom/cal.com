@@ -283,7 +283,10 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     />
                   </div>
                   <div className="mt-6">
-                    <Button color="secondary" onClick={() => setIsTestPreviewOpen(true)}>
+                    <Button
+                      color="secondary"
+                      data-testid="test-preview"
+                      onClick={() => setIsTestPreviewOpen(true)}>
                       {t("test_preview")}
                     </Button>
                   </div>
@@ -326,16 +329,19 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     <div className="mt-2">
                       {RoutingPages.map((page) => {
                         if (page.value === decidedAction.type) {
-                          return <>{page.label}</>;
+                          return <div data-testid="test-routing-result-type">{page.label}</div>;
                         }
                       })}
                       :{" "}
                       {decidedAction.type === "customPageMessage" ? (
-                        <span className="text-gray-700">{decidedAction.value}</span>
+                        <span className="text-gray-700" data-testid="test-routing-result">
+                          {decidedAction.value}
+                        </span>
                       ) : decidedAction.type === "externalRedirectUrl" ? (
                         <span className="text-gray-700 underline">
                           <a
                             target="_blank"
+                            data-testid="test-routing-result"
                             href={
                               decidedAction.value.includes("https://") ||
                               decidedAction.value.includes("http://")
@@ -348,7 +354,11 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                         </span>
                       ) : (
                         <span className="text-gray-700 underline">
-                          <a target="_blank" href={`/${decidedAction.value}`} rel="noreferrer">
+                          <a
+                            target="_blank"
+                            href={`/${decidedAction.value}`}
+                            rel="noreferrer"
+                            data-testid="test-routing-result">
                             {decidedAction.value}
                           </a>
                         </span>
@@ -369,7 +379,9 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     {t("close")}
                   </Button>
                 </DialogClose>
-                <Button type="submit">{t("Test Routing")}</Button>
+                <Button type="submit" data-testid="test-routing">
+                  {t("test_routing")}
+                </Button>
               </DialogFooter>
             </form>
           </div>
