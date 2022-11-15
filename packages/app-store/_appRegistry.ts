@@ -28,7 +28,7 @@ export async function getAppWithMetadata(app: { dirName: string }) {
 export async function getAppRegistry() {
   const dbApps = await prisma.app.findMany({
     where: { enabled: true },
-    select: { dirName: true, slug: true, categories: true },
+    select: { dirName: true, slug: true, categories: true, enabled: true },
   });
   const apps = [] as Omit<App, "key">[];
   for await (const dbapp of dbApps) {
@@ -54,7 +54,10 @@ export async function getAppRegistry() {
 }
 
 export async function getAppRegistryWithCredentials(userId: number) {
-  const dbApps = await prisma.app.findMany({ include: { credentials: { where: { userId } } } });
+  const dbApps = await prisma.app.findMany({
+    where: { enabled: true },
+    include: { credentials: { where: { userId } } },
+  });
   const apps = [] as (Omit<App, "key"> & {
     credentials: Credential[];
   })[];
