@@ -1,7 +1,22 @@
+.editor {
+    margin: 0;
+    background: #eee;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, ".SFNSText-Regular",
+      sans-serif;
+    font-weight: 500;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
 .editor a {
   color: #0000FF;
   text-decoration: underline;
   font-size: 14px;
+}
+
+.other ul {
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
 }
 
 
@@ -104,6 +119,7 @@
   padding: 0;
 }
 
+
 .editor-heading-h2 {
   font-size: 15px;
   color: rgb(101, 103, 107);
@@ -114,14 +130,8 @@
   text-transform: uppercase;
 }
 
-.editor-list-ol {
-  padding: 0;
-  margin: 0;
-  margin-left: 16px;
-}
-
 .editor-list-ul ul {
-  padding: 0;
+  padding: 0px;
   margin: 0;
   margin-left: 0px;
 }
@@ -397,7 +407,7 @@ i.chevron-down {
 }
 
 .link-editor div.link-edit {
-  background-image: url(images/icons/pencile-fill.svg);
+  background-image: url(images/icons/pencil-fill.svg);
   background-size: 16px;
   background-position: center;
   background-repeat: no-repeat;
