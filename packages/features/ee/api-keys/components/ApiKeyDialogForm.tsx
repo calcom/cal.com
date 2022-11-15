@@ -94,10 +94,10 @@ export default function ApiKeyDialogForm(props: {
         <Form<Omit<TApiKeys, "userId" | "createdAt" | "lastUsedAt"> & { neverExpires?: boolean }>
           form={form}
           handleSubmit={async (event) => {
-            const apiKey = await utils.client.mutation("viewer.apiKeys.create", event);
+            const apiKey = await utils.client.viewer.apiKeys.create.mutate(event);
             setApiKey(apiKey);
             setApiKeyDetails({ ...event, neverExpires: !!event.neverExpires });
-            await utils.invalidateQueries(["viewer.apiKeys.list"]);
+            await utils.viewer.apiKeys.list.invalidate();
             setSuccessfulNewApiKeyModal(true);
           }}
           className="space-y-4">

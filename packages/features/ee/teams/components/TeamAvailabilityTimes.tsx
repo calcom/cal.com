@@ -18,17 +18,14 @@ interface Props {
 }
 
 export default function TeamAvailabilityTimes(props: Props) {
-  const { data, isLoading } = trpc.useQuery(
-    [
-      "viewer.teams.getMemberAvailability",
-      {
-        teamId: props.teamId,
-        memberId: props.memberId,
-        dateFrom: props.selectedDate.toString(),
-        dateTo: props.selectedDate.add(1, "day").toString(),
-        timezone: `${props.selectedTimeZone.toString()}`,
-      },
-    ],
+  const { data, isLoading } = trpc.viewer.teams.getMemberAvailability.useQuery(
+    {
+      teamId: props.teamId,
+      memberId: props.memberId,
+      dateFrom: props.selectedDate.toString(),
+      dateTo: props.selectedDate.add(1, "day").toString(),
+      timezone: `${props.selectedTimeZone.toString()}`,
+    },
     {
       refetchOnWindowFocus: false,
     }
