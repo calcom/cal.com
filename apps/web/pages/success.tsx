@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { BookingStatus } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
@@ -33,6 +33,7 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma, { baseUserSelect } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
@@ -144,28 +145,26 @@ type SuccessProps = inferSSRProps<typeof getServerSideProps>;
 export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
-  const {
-    location: _location,
-    name,
-    email,
-    reschedule,
-    listingStatus,
-    status,
-    isSuccessBookingPage,
-  } = router.query;
-  const location: ReturnType<typeof getEventLocationValue> = Array.isArray(_location)
-    ? _location[0] || ""
-    : _location || "";
+  const { listingStatus, isSuccessBookingPage } = router.query;
+
+  const location: ReturnType<typeof getEventLocationValue> = Array.isArray(props.bookingInfo.location)
+    ? props.bookingInfo.location[0] || ""
+    : props.bookingInfo.location || "";
 
   if (!location) {
     // Can't use logger.error because it throws error on client. stdout isn't available to it.
     console.error(`No location found `);
   }
 
+  const name = props.bookingInfo?.user?.name;
+  const email = props.bookingInfo?.user?.email;
+  const status = props.bookingInfo?.status;
+  const reschedule = props.bookingInfo.status === BookingStatus.ACCEPTED;
+
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const { data: session } = useSession();
 
-  const [date, setDate] = useState(dayjs.utc(asStringOrThrow(router.query.date)));
+  const [date, setDate] = useState(dayjs.utc(props.bookingInfo.startTime));
   const { eventType, bookingInfo } = props;
 
   const isBackgroundTransparent = useIsBackgroundTransparent();
@@ -189,7 +188,7 @@ export default function Success(props: SuccessProps) {
   const giphyImage = giphyAppData?.thankYouPage;
 
   const eventName = getEventName(eventNameObject, true);
-  const needsConfirmation = eventType.requiresConfirmation && reschedule != "true";
+  const needsConfirmation = eventType.requiresConfirmation && reschedule != true;
   const isCancelled = status === "CANCELLED" || status === "REJECTED";
   const telemetry = useTelemetry();
   useEffect(() => {
@@ -596,7 +595,7 @@ export default function Success(props: SuccessProps) {
                         <EmailInput
                           name="email"
                           id="email"
-                          defaultValue={router.query.email}
+                          defaultValue={email || ""}
                           className="focus:border-brand border-bookinglightest dark:border-darkgray-300 mt-0 block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:bg-black dark:text-white sm:text-sm"
                           placeholder="rick.astley@cal.com"
                         />
@@ -740,6 +739,8 @@ const getEventTypesFromDB = async (id: number) => {
       metadata: true,
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
+      periodStartDate: true,
+      periodEndDate: true,
     },
   });
 
@@ -756,24 +757,10 @@ const getEventTypesFromDB = async (id: number) => {
   };
 };
 
-const strToNumber = z.string().transform((val, ctx) => {
-  const parsed = parseInt(val);
-  if (isNaN(parsed)) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Not a number" });
-  return parsed;
-});
-
 const schema = z.object({
-  type: strToNumber,
-  date: z.string().optional(),
-  username: z.string().optional(),
-  reschedule: z.string().optional(),
-  name: z.string().optional(),
+  uid: z.string(),
   email: z.string().optional(),
-  recur: z.string().optional(),
-  location: z.string().optional(),
-  eventSlug: z.string().default("15min"),
-  eventName: z.string().default(""),
-  bookingId: strToNumber,
+  eventTypeSlug: z.string().optional(),
 });
 
 const handleSeatsEventTypeOnBooking = (
@@ -804,18 +791,60 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const parsedQuery = schema.safeParse(context.query);
   if (!parsedQuery.success) return { notFound: true };
-  const {
-    type: eventTypeId,
-    recur: recurringEventIdQuery,
-    eventSlug: eventTypeSlug,
-    eventName: dynamicEventName,
-    bookingId,
-    username,
-    name,
-    email,
-  } = parsedQuery.data;
+  const { uid, email, eventTypeSlug } = parsedQuery.data;
 
-  const eventTypeRaw = !eventTypeId ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
+  const bookingInfo = await prisma.booking.findFirst({
+    where: {
+      uid,
+    },
+    select: {
+      title: true,
+      id: true,
+      uid: true,
+      description: true,
+      customInputs: true,
+      smsReminderNumber: true,
+      recurringEventId: true,
+      startTime: true,
+      location: true,
+      status: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          username: true,
+        },
+      },
+      attendees: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+      eventTypeId: true,
+      eventType: {
+        select: {
+          eventName: true,
+          slug: true,
+        },
+      },
+    },
+  });
+
+  if (!bookingInfo) {
+    return {
+      notFound: true,
+    };
+  }
+
+  // @NOTE: had to do this because Server side cant return [Object objects]
+  // probably fixable with json.stringify -> json.parse
+  bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
+
+  const eventTypeRaw = !bookingInfo.eventTypeId
+    ? getDefaultEvent(eventTypeSlug || "")
+    : await getEventTypesFromDB(bookingInfo.eventTypeId);
   if (!eventTypeRaw) {
     return {
       notFound: true,
@@ -843,6 +872,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventType = {
     ...eventTypeRaw,
+    periodStartDate: eventTypeRaw.periodStartDate?.toString() ?? null,
+    periodEndDate: eventTypeRaw.periodEndDate?.toString() ?? null,
     metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
   };
@@ -856,59 +887,16 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
 
-  const where: Prisma.BookingWhereInput = {
-    id: bookingId,
-    attendees: { some: { email, name } },
-  };
-  // Dynamic Event uses EventType from @calcom/lib/defaultEvents(a fake EventType) which doesn't have a real user/team/eventTypeId
-  // So, you can't look them up in DB.
-  if (!eventType.isDynamic) {
-    // A Team Event doesn't have a correct user query param as of now. It is equal to team/{eventSlug} which is not a user, so you can't look it up in DB.
-    if (!eventType.team) {
-      // username being equal to profile.slug isn't applicable for Team or Dynamic Events.
-      where.user = { username };
-    }
-    where.eventTypeId = eventType.id;
-  } else {
-    // username being equal to eventSlug for Dynamic Event Booking, it can't be used for user lookup. So, just use eventTypeId which would always be null for Dynamic Event Bookings
-    where.eventTypeId = null;
-  }
-
-  const bookingInfo = await prisma.booking.findFirst({
-    where,
-    select: {
-      title: true,
-      id: true,
-      uid: true,
-      description: true,
-      customInputs: true,
-      smsReminderNumber: true,
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      },
-      attendees: {
-        select: {
-          name: true,
-          email: true,
-        },
-      },
-    },
-  });
-
   if (bookingInfo !== null && email) {
     handleSeatsEventTypeOnBooking(eventType, bookingInfo, email);
   }
 
   let recurringBookings = null;
-  if (recurringEventIdQuery) {
+  if (bookingInfo.recurringEventId) {
     // We need to get the dates for the bookings to be able to show them in the UI
     recurringBookings = await prisma.booking.findMany({
       where: {
-        recurringEventId: recurringEventIdQuery,
+        recurringEventId: bookingInfo.recurringEventId,
       },
       select: {
         startTime: true,
@@ -923,7 +911,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       eventType,
       recurringBookings: recurringBookings ? recurringBookings.map((obj) => obj.startTime.toString()) : null,
       trpcState: ssr.dehydrate(),
-      dynamicEventName,
+      dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
     },
   };
