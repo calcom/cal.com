@@ -1,6 +1,6 @@
 === Cal.com ===
 Contributors: calcom, turn2honey
-Tags: calendar, booking, appointment, calcom
+Tags: appointment, appointment booking, appointment scheduling, booking calendar, calcom
 Requires at least: 4.0
 Tested up to: 6.0.1
 Stable tag: 1.0.0
@@ -27,14 +27,14 @@ Cal.com is the open source Calendly alternative that lets you easily book appoin
 
 == Shortcode ==
 
-[cal url=/username/meetingid]
+`[cal url=/username/meetingid]`
 
 == Shortcode Customization == 
 
-[cal url=/username/meetingid type=2 text="Schedule a call with me"]
+`[cal url=/username/meetingid type=2 text="Schedule a call with me"]`
 
 **url:** URL of the booking calendar
-**type**: Add inline or popup embed. Inline embed: 1, Popup embed: 2
+**type**: Add inline or popup embed. Inline embed: **1**, Popup embed: **2**
 **text:** For popup embed, customize the text/button that triggers the popup.
  
 == CSS Customization == 
