@@ -7,8 +7,7 @@
   "description": "SendGrid delivers your transactional and marketing emails through the world's largest cloud-based email delivery platform.",
   "dependencies": {
     "@calcom/lib": "*",
-    "@calcom/prisma": "*",
-    "@sendgrid/client": "^7.7.0"
+    "@calcom/prisma": "*"
   },
   "devDependencies": {
     "@calcom/types": "*"

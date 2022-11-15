@@ -869,7 +869,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
     results = createManager.results;
     referencesToCreate = createManager.referencesToCreate;
-    if (results.length > 0 && results.every((res) => !res.success)) {
+    const nonAppResults = results.filter((res) => !res.appName);
+    if (nonAppResults.length > 0 && nonAppResults.every((res) => !res.success)) {
       const error = {
         errorCode: "BookingCreatingMeetingFailed",
         message: "Booking failed",
