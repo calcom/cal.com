@@ -6,7 +6,8 @@ import { Toaster } from "react-hot-toast";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { ClipboardCopyIcon } from "@calcom/ui/Icon";
-import { Button, Loader, showToast, Tooltip } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/components";
+import { showToast, Tooltip } from "@calcom/ui/v2";
 
 export interface IZapierSetupProps {
   inviteLink: string;
@@ -18,10 +19,10 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   const [newApiKey, setNewApiKey] = useState("");
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const integrations = trpc.useQuery(["viewer.integrations", { variant: "automation" }]);
-  const oldApiKey = trpc.useQuery(["viewer.apiKeys.findKeyOfType", { appId: ZAPIER }]);
+  const integrations = trpc.viewer.integrations.useQuery({ variant: "automation" });
+  const oldApiKey = trpc.viewer.apiKeys.findKeyOfType.useQuery({ appId: ZAPIER });
 
-  const deleteApiKey = trpc.useMutation("viewer.apiKeys.delete");
+  const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation();
   const zapierCredentials: { credentialIds: number[] } | undefined = integrations.data?.items.find(
     (item: { type: string }) => item.type === "zapier_automation"
   );
@@ -31,7 +32,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
 
   async function createApiKey() {
     const event = { note: "Zapier", expiresAt: null, appId: ZAPIER };
-    const apiKey = await utils.client.mutation("viewer.apiKeys.create", event);
+    const apiKey = await utils.client.viewer.apiKeys.create.mutate(event);
     if (oldApiKey.data) {
       deleteApiKey.mutate({
         id: oldApiKey.data.id,

@@ -4,7 +4,8 @@ import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Form, showToast, Switch } from "@calcom/ui/v2/core";
+import { Button, Form } from "@calcom/ui/components";
+import { showToast, Switch } from "@calcom/ui/v2/core";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 
@@ -17,28 +18,31 @@ const ProfileView = () => {
   const router = useRouter();
   const utils = trpc.useContext();
 
-  const mutation = trpc.useMutation("viewer.teams.update", {
+  const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
       showToast(err.message, "error");
     },
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
+      await utils.viewer.teams.get.invalidate();
       showToast(t("your_team_updated_successfully"), "success");
     },
   });
 
   const form = useForm<TeamAppearanceValues>();
 
-  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
-    onError: () => {
-      router.push("/settings");
-    },
-    onSuccess: (team) => {
-      if (team) {
-        form.setValue("hideBranding", team.hideBranding);
-      }
-    },
-  });
+  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
+    { teamId: Number(router.query.id) },
+    {
+      onError: () => {
+        router.push("/settings");
+      },
+      onSuccess: (team) => {
+        if (team) {
+          form.setValue("hideBranding", team.hideBranding);
+        }
+      },
+    }
+  );
 
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);

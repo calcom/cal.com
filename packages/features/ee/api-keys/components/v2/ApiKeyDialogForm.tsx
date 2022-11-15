@@ -9,10 +9,10 @@ import { trpc } from "@calcom/trpc/react";
 import { DialogFooter } from "@calcom/ui/Dialog";
 import { ClipboardCopyIcon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
+import { Button } from "@calcom/ui/components/button";
+import { Form, TextField } from "@calcom/ui/components/form";
 import { DatePicker } from "@calcom/ui/v2";
-import Button from "@calcom/ui/v2/core/Button";
 import Switch from "@calcom/ui/v2/core/Switch";
-import { Form, TextField } from "@calcom/ui/v2/core/form/fields";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 export default function ApiKeyDialogForm({
@@ -25,9 +25,9 @@ export default function ApiKeyDialogForm({
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const updateApiKeyMutation = trpc.useMutation("viewer.apiKeys.edit", {
+  const updateApiKeyMutation = trpc.viewer.apiKeys.edit.useMutation({
     onSuccess() {
-      utils.invalidateQueries("viewer.apiKeys.list");
+      utils.viewer.apiKeys.list.invalidate();
       showToast(t("api_key_updated"), "success");
       handleClose();
     },
@@ -104,10 +104,10 @@ export default function ApiKeyDialogForm({
               console.log("Name changed");
               await updateApiKeyMutation.mutate({ id: defaultValues.id, note: event.note });
             } else {
-              const apiKey = await utils.client.mutation("viewer.apiKeys.create", event);
+              const apiKey = await utils.client.viewer.apiKeys.create.mutate(event);
               setApiKey(apiKey);
               setApiKeyDetails({ ...event });
-              await utils.invalidateQueries(["viewer.apiKeys.list"]);
+              await utils.viewer.apiKeys.list.invalidate();
               setSuccessfulNewApiKeyModal(true);
             }
           }}

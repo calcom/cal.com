@@ -1,7 +1,7 @@
 import { GetServerSidePropsContext } from "next";
 import { getProviders, signIn, getSession, getCsrfToken } from "next-auth/react";
 
-import { Button } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/components/button";
 
 type Provider = {
   name: string;

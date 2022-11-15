@@ -1,10 +1,4 @@
 export * from "./Alert";
-export { default as Avatar } from "./Avatar";
-export { default as AvatarGroup } from "./AvatarGroup";
-export { default as Badge } from "./Badge";
-export * from "./Breadcrumb";
-export * from "./Button";
-export { default as ButtonGroup } from "./ButtonGroup";
 export * from "./Card";
 export * from "./Dialog";
 export { default as Dropdown } from "./Dropdown";
@@ -33,4 +27,3 @@ export type { HorizontalTabItemProps } from "./navigation/tabs/HorizontalTabItem
 export * from "./Portal";
 export * from "./Segment";
 export { default as SettingsToggle } from "./SettingsToggle";
-

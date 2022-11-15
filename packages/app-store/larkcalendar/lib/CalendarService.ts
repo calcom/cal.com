@@ -1,5 +1,3 @@
-import { Credential } from "@prisma/client";
-
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -11,6 +9,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 
 import { handleLarkError, isExpired, LARK_HOST } from "../common";
 import type {
@@ -36,13 +35,13 @@ export default class LarkCalendarService implements Calendar {
   private log: typeof logger;
   auth: { getToken: () => Promise<string> };
 
-  constructor(credential: Credential) {
+  constructor(credential: CredentialPayload) {
     this.integrationName = "lark_calendar";
     this.auth = this.larkAuth(credential);
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
 
-  private larkAuth = (credential: Credential) => {
+  private larkAuth = (credential: CredentialPayload) => {
     const larkAuthCredentials = credential.key as LarkAuthCredentials;
     return {
       getToken: () =>
@@ -52,22 +51,13 @@ export default class LarkCalendarService implements Calendar {
     };
   };
 
-  private refreshAccessToken = async (credential: Credential) => {
+  private refreshAccessToken = async (credential: CredentialPayload) => {
     const larkAuthCredentials = credential.key as LarkAuthCredentials;
     const refreshExpireDate = larkAuthCredentials.refresh_expires_date;
     const refreshToken = larkAuthCredentials.refresh_token;
     if (isExpired(refreshExpireDate) || !refreshToken) {
-      const res = await fetch("/api/integrations", {
-        method: "DELETE",
-        body: JSON.stringify({ id: credential.id }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (!res.ok) {
-        throw new Error("disconnection wrong");
-      }
-      throw new Error("refresh token expires");
+      await prisma.credential.delete({ where: { id: credential.id } });
+      throw new Error("Lark Calendar refresh token expired");
     }
     try {
       const appAccessToken = await getAppAccessToken();

@@ -1,4 +1,3 @@
-import { ArrowDownIcon } from "@heroicons/react/outline";
 import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
 import { useRouter } from "next/router";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
@@ -6,9 +5,9 @@ import { Controller, UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/v2";
-import { Label, TextField } from "@calcom/ui/v2";
+import { Button, Label, TextField } from "@calcom/ui/components";
 import MultiSelectCheckboxes, { Option } from "@calcom/ui/v2/core/form/MultiSelectCheckboxes";
 
 import type { FormValues } from "../../pages/v2/workflow";
@@ -28,11 +27,14 @@ export default function WorkflowDetailsPage(props: Props) {
   const { t } = useLocale();
   const router = useRouter();
 
+  const me = useMeQuery();
+  const isFreeUser = me.data?.plan === "FREE";
+
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
   const [reload, setReload] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const { data, isLoading } = trpc.useQuery(["viewer.eventTypes"]);
+  const { data, isLoading } = trpc.viewer.eventTypes.getByViewer.useQuery();
 
   const eventTypeOptions = useMemo(
     () =>
@@ -49,7 +51,7 @@ export default function WorkflowDetailsPage(props: Props) {
     [data]
   );
 
-  const addAction = (action: WorkflowActions, sendTo?: string, numberRequired?: boolean) => {
+  const addAction = (action: WorkflowActions, sendTo?: string, numberRequired?: boolean, sender?: string) => {
     const steps = form.getValues("steps");
     const id =
       steps?.length > 0
@@ -73,6 +75,7 @@ export default function WorkflowDetailsPage(props: Props) {
       emailSubject: null,
       template: WorkflowTemplates.CUSTOM,
       numberRequired: numberRequired || false,
+      sender: sender || "Cal",
     };
     steps?.push(step);
     form.setValue("steps", steps);
@@ -120,7 +123,7 @@ export default function WorkflowDetailsPage(props: Props) {
         <div className="w-full rounded-md border border-gray-200 bg-gray-50 p-3 py-5 md:ml-3 md:p-8">
           {form.getValues("trigger") && (
             <div>
-              <WorkflowStepContainer form={form} />
+              <WorkflowStepContainer form={form} isFreeUser={isFreeUser} />
             </div>
           )}
           {form.getValues("steps") && (
@@ -133,6 +136,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     step={step}
                     reload={reload}
                     setReload={setReload}
+                    isFreeUser={isFreeUser}
                   />
                 );
               })}
@@ -152,6 +156,7 @@ export default function WorkflowDetailsPage(props: Props) {
         isOpenDialog={isAddActionDialogOpen}
         setIsOpenDialog={setIsAddActionDialogOpen}
         addAction={addAction}
+        isFreeUser={isFreeUser}
       />
       <DeleteDialog
         isOpenDialog={deleteDialogOpen}

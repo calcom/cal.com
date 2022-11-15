@@ -1,4 +1,3 @@
-import { Credential } from "@prisma/client";
 import {
   Appointment,
   Attendee,
@@ -32,6 +31,7 @@ import {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 
 export default class ExchangeCalendarService implements Calendar {
   private url = "";
@@ -40,7 +40,7 @@ export default class ExchangeCalendarService implements Calendar {
   private readonly exchangeVersion: ExchangeVersion;
   private credentials: Record<string, string>;
 
-  constructor(credential: Credential) {
+  constructor(credential: CredentialPayload) {
     this.integrationName = "exchange2013_calendar";
 
     this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });

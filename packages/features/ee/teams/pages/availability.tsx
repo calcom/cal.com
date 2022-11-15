@@ -8,7 +8,7 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Alert } from "@calcom/ui/Alert";
 import Loader from "@calcom/ui/Loader";
 import Shell from "@calcom/ui/Shell";
-import { Avatar } from "@calcom/ui/v2";
+import { Avatar } from "@calcom/ui/components/avatar";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import TeamAvailabilityScreen from "../components/TeamAvailabilityScreen";
@@ -22,12 +22,15 @@ export function TeamAvailabilityPage() {
   const me = useMeQuery();
   const isFreeUser = me.data?.plan === "FREE";
 
-  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
-    refetchOnWindowFocus: false,
-    onError: (e) => {
-      setErrorMessage(e.message);
-    },
-  });
+  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
+    { teamId: Number(router.query.id) },
+    {
+      refetchOnWindowFocus: false,
+      onError: (e) => {
+        setErrorMessage(e.message);
+      },
+    }
+  );
 
   // prevent unnecessary re-renders due to shell queries
   const TeamAvailability = useMemo(() => {

@@ -1,6 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui";
-import { Label } from "@calcom/ui/v2";
 import {
   Dropdown,
   DropdownMenuContent,
@@ -20,6 +19,7 @@ const variables = [
   "location",
   "organizer_name",
   "attendee_name",
+  "attendee_email",
   "additional_notes",
 ];
 

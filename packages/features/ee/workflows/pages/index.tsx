@@ -19,7 +19,7 @@ function WorkflowsPage() {
   const me = useMeQuery();
   const isFreeUser = me.data?.plan === "FREE";
 
-  const { data, isLoading } = trpc.useQuery(["viewer.workflows.list"]);
+  const { data, isLoading } = trpc.viewer.workflows.list.useQuery();
 
   return (
     <Shell

@@ -32,6 +32,11 @@ export const EventTypeMetaDataSchema = z
     giphyThankYouPage: z.string().optional(),
     apps: z.object(appDataSchemas).partial().optional(),
     additionalNotesRequired: z.boolean().optional(),
+    config: z
+      .object({
+        useHostSchedulesForTeamEvent: z.boolean().optional(),
+      })
+      .optional(),
   })
   .nullable();
 
@@ -145,6 +150,8 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
   z.object({
     noEmail: z.boolean().optional(),
     recurringCount: z.number().optional(),
+    allRecurringDates: z.string().array().optional(),
+    currentRecurringIndex: z.number().optional(),
     rescheduleReason: z.string().optional(),
     smsReminderNumber: z.string().optional(),
     appsStatus: z
@@ -192,6 +199,16 @@ export const userMetadata = z
   })
   .nullable();
 
+export const teamMetadataSchema = z
+  .object({
+    requestedSlug: z.string(),
+    paymentId: z.string(),
+    subscriptionId: z.string().nullable(),
+    subscriptionItemId: z.string().nullable(),
+  })
+  .partial()
+  .nullable();
+
 /**
  * Ensures that it is a valid HTTP URL
  * It automatically avoids
@@ -207,6 +224,12 @@ export const successRedirectUrl = z
       .regex(/^http(s)?:\/\/.*/),
   ])
   .optional();
+
+export const RoutingFormSettings = z
+  .object({
+    emailOwnerOnSubmission: z.boolean(),
+  })
+  .nullable();
 
 export type ZodDenullish<T extends ZodTypeAny> = T extends ZodNullable<infer U> | ZodOptional<infer U>
   ? ZodDenullish<U>
