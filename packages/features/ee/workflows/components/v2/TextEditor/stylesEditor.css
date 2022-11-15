@@ -36,7 +36,7 @@
 }
 
 .editor-container {
-  border-radius: 2px;
+  border-radius: 6px;
   color: #000;
   position: relative;
   line-height: 20px;
@@ -44,17 +44,24 @@
   text-align: left;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
+  border-color: #D1D5DB;
+  border-width: 1px;
+  padding: 1px
 }
 
 .editor-inner {
   background: #fff;
   position: relative;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  height: 300px;
+  overflow: scroll;
 }
 
 .editor-input {
   min-height: 150px;
   resize: none;
-  font-size: 15px;
+  font-size: 14px;
   caret-color: rgb(5, 5, 5);
   position: relative;
   tab-size: 1;
@@ -106,8 +113,7 @@
 }
 
 .editor-heading-h1 {
-  font-size: 24px;
-  color: rgb(5, 5, 5);
+  font-size: 19px;
   font-weight: 400;
   margin: 0;
   margin-bottom: 12px;
@@ -116,13 +122,11 @@
 
 
 .editor-heading-h2 {
-  font-size: 15px;
-  color: rgb(101, 103, 107);
-  font-weight: 700;
+  font-size: 17px;
+  font-weight: 400;
   margin: 0;
   margin-top: 10px;
   padding: 0;
-  text-transform: uppercase;
 }
 
 .editor-list-ul ul {
@@ -153,9 +157,9 @@ pre::-webkit-scrollbar-thumb {
   display: flex;
   margin-bottom: 1px;
   background: #fff;
-  padding: 4px;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
+  padding: 2px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
   vertical-align: middle;
 }
 
