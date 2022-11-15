@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import { useSession } from "next-auth/react";
 import React, { AriaRole, ComponentType, Fragment } from "react";
 
@@ -33,14 +34,16 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
           description={
             <div
               dangerouslySetInnerHTML={{
-                __html: t("enterprise_license_description", {
-                  consoleUrl: `<a href="${CONSOLE_URL}" target="_blank" rel="noopener noreferrer" class="underline">
+                __html: DOMPurify.sanitize(
+                  t("enterprise_license_description", {
+                    consoleUrl: `<a href="${CONSOLE_URL}" target="_blank" rel="noopener noreferrer" class="underline">
                 Cal.com console
               </a>`,
-                  supportMail: `<a href="mailto:peer@cal.com" class="underline">
+                    supportMail: `<a href="mailto:peer@cal.com" class="underline">
                 peer@cal.com
               </a>`,
-                }),
+                  })
+                ),
               }}
             />
           }

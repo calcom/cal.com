@@ -3,6 +3,7 @@
  * All new changes should be made to the V2 file in
  * `/packages/features/ee/common/components/v2/LicenseRequired.tsx`
  */
+import DOMPurify from "dompurify";
 import { useSession } from "next-auth/react";
 import React, { AriaRole, ComponentType, Fragment } from "react";
 
@@ -38,18 +39,20 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
           Icon={Icon.FiAlertTriangle}
           headline={t("enterprise_license")}
           description={
-            <>
-              To enable this feature, get a deployment key at{" "}
-              <a href={CONSOLE_URL} target="_blank" rel="noopener noreferrer" className="underline">
+            <div
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(
+                  t("enterprise_license_description", {
+                    consoleUrl: `<a href="${CONSOLE_URL}" target="_blank" rel="noopener noreferrer" class="underline">
                 Cal.com console
-              </a>{" "}
-              and add it to your .env as <code>CALCOM_LICENSE_KEY</code>. If your team already has a license,
-              please contact{" "}
-              <a href="mailto:peer@cal.com" className="underline">
+              </a>`,
+                    supportMail: `<a href="mailto:peer@cal.com" class="underline">
                 peer@cal.com
-              </a>{" "}
-              for help.
-            </>
+              </a>`,
+                  })
+                ),
+              }}
+            />
           }
         />
       )}
