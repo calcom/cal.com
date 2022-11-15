@@ -385,7 +385,7 @@ export const eventTypesRouter = router({
       };
       data.schedulingType = schedulingType;
     }
-    console.log("DATA_AJF", data);
+
     try {
       const eventType = await ctx.prisma.eventType.create({ data });
       return { eventType };
