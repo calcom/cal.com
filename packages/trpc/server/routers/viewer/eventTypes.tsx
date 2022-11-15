@@ -156,6 +156,7 @@ export const eventTypesRouter = router({
       // Position is required by lodash to sort on it. Don't remove it, TS won't complain but it would silently break reordering
       position: true,
       hashedLink: true,
+      locations: true,
       destinationCalendar: true,
       team: {
         select: {
@@ -384,7 +385,7 @@ export const eventTypesRouter = router({
       };
       data.schedulingType = schedulingType;
     }
-
+    console.log("DATA_AJF", data);
     try {
       const eventType = await ctx.prisma.eventType.create({ data });
       return { eventType };
