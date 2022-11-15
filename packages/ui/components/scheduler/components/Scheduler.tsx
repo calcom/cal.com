@@ -151,7 +151,6 @@ export function Scheduler(props: SchedulerComponentProps) {
                                 right = 7;
                                 width = width / 2;
                               }
-                              console.log({ nextEventDuration, eventDuration, title: event.title });
                             }
                           } else if (prevEvent) {
                             const prevEventStart = dayjs(prevEvent.start);
@@ -166,12 +165,6 @@ export function Scheduler(props: SchedulerComponentProps) {
                                 right = 7;
                                 width = width / 2;
                               }
-                              console.log({
-                                prevEventDuration,
-                                eventDuration,
-                                title: event.title,
-                                event: event,
-                              });
                             }
                           }
 
@@ -189,7 +182,6 @@ export function Scheduler(props: SchedulerComponentProps) {
                                 height: `calc(${eventDuration}*var(--one-minute-height))`,
                               }}>
                               <Event event={event} eventDuration={eventDuration} />
-                              {eventStartDiff}
                             </div>
                           );
                         })}
