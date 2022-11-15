@@ -5,26 +5,24 @@ import {
   $isElementNode,
   $isRangeSelection,
   INDENT_CONTENT_COMMAND,
-  COMMAND_PRIORITY_HIGH
+  COMMAND_PRIORITY_HIGH,
 } from "lexical";
 import { useEffect } from "react";
 
-function getElementNodesInSelection(selection) {
+function getElementNodesInSelection(selection: any) {
   const nodesInSelection = selection.getNodes();
 
   if (nodesInSelection.length === 0) {
     return new Set([
       selection.anchor.getNode().getParentOrThrow(),
-      selection.focus.getNode().getParentOrThrow()
+      selection.focus.getNode().getParentOrThrow(),
     ]);
   }
 
-  return new Set(
-    nodesInSelection.map((n) => ($isElementNode(n) ? n : n.getParentOrThrow()))
-  );
+  return new Set(nodesInSelection.map((n: any) => ($isElementNode(n) ? n : n.getParentOrThrow())));
 }
 
-function isIndentPermitted(maxDepth) {
+function isIndentPermitted(maxDepth: any) {
   const selection = $getSelection();
 
   if (!$isRangeSelection(selection)) {
@@ -41,9 +39,7 @@ function isIndentPermitted(maxDepth) {
     } else if ($isListItemNode(elementNode)) {
       const parent = elementNode.getParent();
       if (!$isListNode(parent)) {
-        throw new Error(
-          "ListMaxIndentLevelPlugin: A ListItemNode must have a ListNode for a parent."
-        );
+        throw new Error("ListMaxIndentLevelPlugin: A ListItemNode must have a ListNode for a parent.");
       }
 
       totalDepth = Math.max($getListDepth(parent) + 1, totalDepth);
@@ -53,7 +49,7 @@ function isIndentPermitted(maxDepth) {
   return totalDepth <= maxDepth;
 }
 
-export default function ListMaxIndentLevelPlugin({ maxDepth }) {
+export default function ListMaxIndentLevelPlugin({ maxDepth }: any) {
   const [editor] = useLexicalComposerContext();
 
   useEffect(() => {

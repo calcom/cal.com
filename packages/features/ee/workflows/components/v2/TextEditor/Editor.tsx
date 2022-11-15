@@ -1,38 +1,43 @@
-import ExampleTheme from "./ExampleTheme";
-import { LexicalComposer } from "@lexical/react/LexicalComposer";
-import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
-import { ContentEditable } from "@lexical/react/LexicalContentEditable";
-import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
-import { AutoFocusPlugin } from "@lexical/react/LexicalAutoFocusPlugin";
-import TreeViewPlugin from "./plugins/TreeViewPlugin";
-import ToolbarPlugin from "./plugins/ToolbarPlugin";
-import { HeadingNode, QuoteNode } from "@lexical/rich-text";
-import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
-import { ListItemNode, ListNode } from "@lexical/list";
 import { CodeHighlightNode, CodeNode } from "@lexical/code";
 import { AutoLinkNode, LinkNode } from "@lexical/link";
+import { ListItemNode, ListNode } from "@lexical/list";
+import { TRANSFORMERS } from "@lexical/markdown";
+import { AutoFocusPlugin } from "@lexical/react/LexicalAutoFocusPlugin";
+import { LexicalComposer } from "@lexical/react/LexicalComposer";
+import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
 import { ListPlugin } from "@lexical/react/LexicalListPlugin";
 import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPlugin";
-import { TRANSFORMERS } from "@lexical/markdown";
+import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
+import { HeadingNode, QuoteNode } from "@lexical/rich-text";
+import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
+import { FormValues } from "ee/workflows/pages/workflow";
+import { UseFormReturn } from "react-hook-form";
 
-import ListMaxIndentLevelPlugin from "./plugins/ListMaxIndentLevelPlugin";
-import CodeHighlightPlugin from "./plugins/CodeHighlightPlugin";
+import ExampleTheme from "./ExampleTheme";
 import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
-
-import "./stylesEditor.css"
+import ListMaxIndentLevelPlugin from "./plugins/ListMaxIndentLevelPlugin";
+import ToolbarPlugin from "./plugins/ToolbarPlugin";
+import TreeViewPlugin from "./plugins/TreeViewPlugin";
+import "./stylesEditor.css";
 
 function Placeholder() {
   return <div className="editor-placeholder">Enter some rich text...</div>;
 }
 
+export type TextEditorProps = {
+  form: UseFormReturn<FormValues>;
+  stepNumber: number;
+};
+
 const editorConfig = {
   // The editor theme
   theme: ExampleTheme,
   // Handling of errors during update
-  onError(error) {
+  onError(error: any) {
     throw error;
   },
+  namespace: "",
   // Any custom nodes go here
   nodes: [
     HeadingNode,
@@ -45,24 +50,22 @@ const editorConfig = {
     TableCellNode,
     TableRowNode,
     AutoLinkNode,
-    LinkNode
-  ]
+    LinkNode,
+  ],
 };
 
-export default function Editor() {
+export default function Editor(props: TextEditorProps) {
   return (
     <LexicalComposer initialConfig={editorConfig}>
       <div className="editor-container">
-        <ToolbarPlugin />
+        <ToolbarPlugin form={props.form} stepNumber={props.stepNumber} />
         <div className="editor-inner">
           <RichTextPlugin
             contentEditable={<ContentEditable className="editor-input" />}
             placeholder={<Placeholder />}
           />
-          <HistoryPlugin />
           <TreeViewPlugin />
           <AutoFocusPlugin />
-          <CodeHighlightPlugin />
           <ListPlugin />
           <LinkPlugin />
           <AutoLinkPlugin />
