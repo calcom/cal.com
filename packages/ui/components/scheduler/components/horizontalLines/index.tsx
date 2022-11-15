@@ -22,14 +22,14 @@ export const HorizontalLines = ({
       <div className="row-end-1 h-7 " ref={containerOffsetRef} />
       {hours.map((hour) => (
         <>
-          <div key={id}>
+          <div key={`${id}-${hour.get("hour")}`}>
             <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
               {hour.format("h A")}
             </div>
           </div>
         </>
       ))}
-      <div key={id}>
+      <div key={`${id}-${finalHour}`}>
         <div className="sticky left-0 z-20 -mt-2.5 -ml-14 w-14 pr-2 text-right text-xs leading-5 text-gray-400">
           {finalHour}
         </div>

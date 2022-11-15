@@ -41,20 +41,3 @@ export function Event({
     </Component>
   );
 }
-
-export function EventCell({}) {
-  return <div className="h-7 w-28  bg-white" />;
-}
-
-export function CalendarRow({}) {
-  return (
-    <div className="flex flex-row ">
-      {Array.from({ length: 7 }).map((key, i) => (
-        <div className="border-y-[1px] border-r-[1px] border-gray-300" key={i}>
-          <EventCell />
-          <EventCell />
-        </div>
-      ))}
-    </div>
-  );
-}

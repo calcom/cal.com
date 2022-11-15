@@ -5,57 +5,12 @@ import dayjs from "@calcom/dayjs";
 import { Event } from "../components/event";
 import { useSchedulerStore } from "../state/store";
 import { SchedulerComponentProps } from "../types/state";
+import { getDaysBetweenDates, getHoursToDisplay } from "../utils";
 import { DateValues } from "./DateValues/DateValues";
+import { EmptyCell } from "./event/Empty";
 import { SchedulerHeading } from "./heading/SchedulerHeading";
 import { HorizontalLines } from "./horizontalLines";
 import { VeritcalLines } from "./verticalLines";
-
-function getDaysBetweenDates(dateFrom: Date, dateTo: Date) {
-  const dates = []; // this is as dayjs date
-  let startDate = dayjs(dateFrom).utc().hour(0).minute(0).second(0).millisecond(0);
-  dates.push(startDate);
-  const endDate = dayjs(dateTo).utc().hour(0).minute(0).second(0).millisecond(0);
-  while (startDate.isBefore(endDate)) {
-    dates.push(startDate.add(1, "day"));
-    startDate = startDate.add(1, "day");
-  }
-  return dates;
-}
-
-function getHoursToDisplay(startHour: number, endHour: number) {
-  const dates = []; // this is as dayjs date
-  let startDate = dayjs("1970-01-01").utc().hour(startHour);
-  dates.push(startDate);
-  const endDate = dayjs("1970-01-01").utc().hour(endHour);
-  while (startDate.isBefore(endDate)) {
-    dates.push(startDate.add(1, "hour"));
-    startDate = startDate.add(1, "hour");
-  }
-  return dates;
-}
-function gridCellToDateTime({
-  day,
-  gridCellIdx,
-  totalGridCells,
-  selectionLength,
-  startHour,
-}: {
-  day: dayjs.Dayjs;
-  gridCellIdx: number;
-  totalGridCells: number;
-  selectionLength: number;
-  startHour: number;
-}) {
-  // endHour - startHour = selectionLength
-  const minutesInSelection = (selectionLength + 1) * 60;
-  const minutesPerCell = minutesInSelection / totalGridCells;
-  const minutesIntoSelection = minutesPerCell * gridCellIdx;
-
-  // Add startHour since we use StartOfDay for day props. This could be improved by changing the getDaysBetweenDates function
-  // To handle the startHour+endHour
-  const cellDateTime = dayjs(day).add(minutesIntoSelection, "minutes").add(startHour, "hours");
-  return cellDateTime;
-}
 
 export function Scheduler(props: SchedulerComponentProps) {
   const container = useRef<HTMLDivElement | null>(null);
@@ -78,16 +33,12 @@ export function Scheduler(props: SchedulerComponentProps) {
 
   const hours = useMemo(() => getHoursToDisplay(startHour || 0, endHour || 23), [startHour, endHour]);
 
-  // We have to add two due to the size of the grid spacing this would ideally be based on eventTypeStep
-  // TOOD: make this dynamic to eventTypeStep
   const numberOfGridStopsPerDay = hours.length * usersCellsStopsPerHour;
 
-  // Initalise State
+  // Initalise State on inital mount
   useEffect(() => {
     initalState(props);
   }, [props, initalState]);
-
-  //return <div>{JSON.stringify(state)}</div>;
 
   return (
     <div
@@ -106,7 +57,6 @@ export function Scheduler(props: SchedulerComponentProps) {
             containerRef={container}
           /> */}
           <DateValues containerNavRef={containerNav} days={days} />
-
           <div className="flex flex-auto">
             <div className="sticky left-0 z-10 w-14 flex-none bg-white ring-1 ring-gray-100" />
             <div className="grid flex-auto grid-cols-1 grid-rows-1 ">
@@ -119,7 +69,7 @@ export function Scheduler(props: SchedulerComponentProps) {
 
               {/* Empty Cells */}
               <ol
-                className="col-start-1 col-end-2 row-start-1 grid grid-cols-1 sm:grid-cols-7 sm:pr-8"
+                className="z-50 col-start-1 col-end-2 row-start-1 grid grid-cols-1 sm:grid-cols-7 sm:pr-8"
                 style={{
                   gridTemplateRows: `1.75rem repeat(${numberOfGridStopsPerDay}, 1.75rem) auto`,
                 }}>
@@ -135,17 +85,14 @@ export function Scheduler(props: SchedulerComponentProps) {
                       {[...Array(numberOfGridStopsPerDay)].map((_, j) => {
                         const key = `${i}-${j}`;
                         return (
-                          <div key={key} className="group h-full w-full">
-                            {/* <div className="">
-                              {gridCellToDateTime({
-                                day: days[i],
-                                gridCellIdx: j,
-                                totalGridCells: numberOfGridStopsPerDay,
-                                selectionLength: endHour - startHour,
-                                startHour: startHour,
-                              }).format("YYYY-MM-DD HH:mm")}
-                            </div> */}
-                          </div>
+                          <EmptyCell
+                            key={key}
+                            day={days[i].toDate()}
+                            gridCellIdx={j}
+                            totalGridCells={numberOfGridStopsPerDay}
+                            selectionLength={endHour - startHour}
+                            startHour={startHour}
+                          />
                         );
                       })}
                     </li>
@@ -154,7 +101,7 @@ export function Scheduler(props: SchedulerComponentProps) {
                 </>
               </ol>
               <ol
-                className="relative z-50 col-start-1 col-end-2 row-start-1 grid grid-cols-1 sm:grid-cols-7 sm:pr-8"
+                className="relative col-start-1 col-end-2 row-start-1 grid grid-cols-1 sm:grid-cols-7 sm:pr-8"
                 style={{
                   gridTemplateRows: `1.75rem repeat(${numberOfGridStopsPerDay}, 1.75rem) auto`,
                 }}>
@@ -180,8 +127,8 @@ export function Scheduler(props: SchedulerComponentProps) {
 
                           return (
                             <div
-                              key={event.id}
-                              className="absolute inset-1 w-full"
+                              key={`${event.id}-${eventStart.toISOString()}`}
+                              className="absolute inset-x-1 z-50 w-[90%]"
                               style={{
                                 top: `calc(${eventStartDiff}*var(--one-minute-height))`,
                                 height: `calc(${eventDuration}*var(--one-minute-height))`,
