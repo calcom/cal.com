@@ -12,8 +12,7 @@ Embed Cal.com booking calendar in WordPress.
 
 == Description ==
 
-Cal.com is the open source Calendly alternative that lets you easily book appointments and schedule meetings, 
-without the email tennis.
+Cal.com is the open source Calendly alternative that lets you easily book appointments and schedule meetings, without the email tennis.
 
 == Features ==
 

@@ -9,7 +9,7 @@
  * License: GPLv3 or later
  */
 
-defined('ABSPATH') || die();
+defined('ABSPATH') || exit;
 
 defined('CALCOM_DIR_PATH')          || define('CALCOM_DIR_PATH', plugin_dir_path(__FILE__));
 defined('CALCOM_DIR_URL')           || define('CALCOM_DIR_URL', plugin_dir_url(__FILE__));
