@@ -19,6 +19,10 @@
   list-style-type: none;
 }
 
+.editor li {
+  padding-left: 1.28571429em;
+  text-indent: -1.28571429em;
+}
 
 .editor ul {
   list-style: disc inside
