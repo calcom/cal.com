@@ -589,8 +589,7 @@ export const viewerTeamsRouter = router({
 
       const metadata = teamMetadataSchema.safeParse(prevTeam.metadata);
 
-      if (!metadata.success || !metadata.data?.requestedSlug)
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Can't publish team without `requestedSlug`" });
+      if (!metadata.success) throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid team metadata" });
 
       // if payment needed, respond with checkout url
       if (IS_TEAM_BILLING_ENABLED) {
@@ -606,6 +605,9 @@ export const viewerTeamsRouter = router({
           });
         return { url: checkoutSession.url };
       }
+
+      if (!metadata.data?.requestedSlug)
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Can't publish team without `requestedSlug`" });
 
       const { requestedSlug, ...newMetadata } = metadata.data;
       let updatedTeam: Awaited<ReturnType<typeof ctx.prisma.team.update>>;
@@ -628,4 +630,19 @@ export const viewerTeamsRouter = router({
 
       return { url: `${WEBAPP_URL}/settings/teams/${updatedTeam.id}/profile` };
     }),
+  /** This is a temporal endpoint so we can progressively upgrade teams to the new billing system. */
+  getUpgradeable: authedProcedure.query(async ({ ctx }) => {
+    if (!IS_TEAM_BILLING_ENABLED) return [];
+    let { teams } = await ctx.prisma.user.findUniqueOrThrow({
+      where: { id: ctx.user.id },
+      include: { teams: { where: { role: MembershipRole.OWNER }, include: { team: true } } },
+    });
+    /** We only need to return teams that don't have a `subscriptionId` on their metadata */
+    teams = teams.filter((m) => {
+      const metadata = teamMetadataSchema.safeParse(m.team.metadata);
+      if (metadata.success && metadata.data?.subscriptionId) return false;
+      return true;
+    });
+    return teams;
+  }),
 });
