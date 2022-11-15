@@ -92,7 +92,7 @@ test.describe("pro user", () => {
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
     await page.waitForNavigation({
       url(url) {
-        return url.pathname === "/success" && url.searchParams.get("reschedule") === "true";
+        return url.pathname === "/success";
       },
     });
   });

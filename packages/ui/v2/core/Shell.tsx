@@ -143,12 +143,13 @@ const Layout = (props: LayoutProps) => {
 
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
-
-      <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
-        {props.SidebarContainer || <SideBarContainer />}
-        <div className="flex w-0 flex-1 flex-col overflow-hidden">
-          <ImpersonatingBanner />
-          <MainContainer {...props} />
+      <div className="h-screen overflow-hidden">
+        <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
+          {props.SidebarContainer || <SideBarContainer />}
+          <div className="flex w-0 flex-1 flex-col overflow-hidden">
+            <ImpersonatingBanner />
+            <MainContainer {...props} />
+          </div>
         </div>
       </div>
     </>
