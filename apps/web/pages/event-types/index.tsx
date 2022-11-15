@@ -56,11 +56,11 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
   return (
     <Link href={`/event-types/${type.id}?tabName=setup`}>
       <a
-        className="flex-grow truncate text-sm"
+        className="overflow-hidden pr-4 text-sm"
         title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
         <div>
           <span
-            className="truncate font-semibold text-gray-700 ltr:mr-1 rtl:ml-1"
+            className="font-semibold text-gray-700 ltr:mr-1 rtl:ml-1"
             data-testid={"event-type-title-" + type.id}>
             {type.title}
           </span>
@@ -252,8 +252,8 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
           const calLink = `${CAL_URL}/${embedLink}`;
           return (
             <li key={type.id}>
-              <div className="flex items-center justify-between hover:bg-neutral-50">
-                <div className="group flex w-full items-center justify-between px-4 py-4 pr-0 sm:px-6">
+              <div className="flex w-full items-center justify-between hover:bg-neutral-50">
+                <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                   {!(firstItem && firstItem.id === type.id) && (
                     <button
                       className="invisible absolute left-[5px] -mt-4 mb-4 -ml-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border bg-white p-1 text-gray-400 transition-all hover:border-transparent hover:text-black hover:shadow disabled:hover:border-inherit disabled:hover:text-gray-400 disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex lg:left-[36px]"
@@ -270,7 +270,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     </button>
                   )}
                   <MemoizedItem type={type} group={group} readOnly={readOnly} />
-                  <div className="mt-4 hidden flex-shrink-0 sm:mt-0 sm:ml-5 sm:flex">
+                  <div className="mt-4 hidden sm:mt-0 sm:flex">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                       {type.users?.length > 1 && (
                         <AvatarGroup
@@ -391,7 +391,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     </div>
                   </div>
                 </div>
-                <div className="mr-5 flex flex-shrink-0 sm:hidden">
+                <div className="min-w-9 mr-5 flex sm:hidden">
                   <Dropdown>
                     <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
                       <Button type="button" size="icon" color="secondary" StartIcon={Icon.FiMoreHorizontal} />
