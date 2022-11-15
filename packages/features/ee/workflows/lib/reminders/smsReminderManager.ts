@@ -48,7 +48,8 @@ export const scheduleSMSReminder = async (
   },
   message: string,
   workflowStepId: number,
-  template: WorkflowTemplates
+  template: WorkflowTemplates,
+  sender: string
 ) => {
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
@@ -97,7 +98,7 @@ export const scheduleSMSReminder = async (
       triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
     ) {
       try {
-        await twilio.sendSMS(reminderPhone, message);
+        await twilio.sendSMS(reminderPhone, message, sender);
       } catch (error) {
         console.log(`Error sending SMS with error ${error}`);
       }
@@ -112,7 +113,12 @@ export const scheduleSMSReminder = async (
         !scheduledDate.isAfter(currentDate.add(7, "day"))
       ) {
         try {
-          const scheduledSMS = await twilio.scheduleSMS(reminderPhone, message, scheduledDate.toDate());
+          const scheduledSMS = await twilio.scheduleSMS(
+            reminderPhone,
+            message,
+            scheduledDate.toDate(),
+            sender
+          );
 
           await prisma.workflowReminder.create({
             data: {

@@ -95,7 +95,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
     return () => subscription.unsubscribe();
   }, [watch, setValue]);
 
-  const createMutation = trpc.useMutation("viewer.eventTypes.create", {
+  const createMutation = trpc.viewer.eventTypes.create.useMutation({
     onSuccess: async ({ eventType }) => {
       await router.replace("/event-types/" + eventType.id);
       showToast(t("event_type_created_successfully", { eventTypeTitle: eventType.title }), "success");
@@ -318,13 +318,10 @@ function CreateEventTeamsItem(props: {
   option: EventTypeParent;
 }) {
   const session = useSession();
-  const membershipQuery = trpc.useQuery([
-    "viewer.teams.getMembershipbyUser",
-    {
-      memberId: session.data?.user.id as number,
-      teamId: props.option.teamId as number,
-    },
-  ]);
+  const membershipQuery = trpc.viewer.teams.getMembershipbyUser.useQuery({
+    memberId: session.data?.user.id as number,
+    teamId: props.option.teamId as number,
+  });
 
   const isDisabled = membershipQuery.data?.role === "MEMBER";
 
