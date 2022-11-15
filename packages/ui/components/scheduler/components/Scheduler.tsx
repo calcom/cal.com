@@ -119,6 +119,10 @@ export function Scheduler(props: SchedulerComponentProps) {
                         .map((event, idx, eventsArray) => {
                           let width = 90;
                           let marginLeft: string | number = 0;
+                          let right = 0;
+                          const marginRight: string | number = 0;
+                          let zIndex = 50;
+
                           const eventStart = dayjs(event.start);
                           const eventEnd = dayjs(event.end);
 
@@ -130,27 +134,51 @@ export function Scheduler(props: SchedulerComponentProps) {
                           const nextEvent = eventsArray[idx + 1];
                           const prevEvent = eventsArray[idx - 1];
 
-                          // Check for overlapping events
+                          // Check for overlapping events since this is sorted it should just work.
                           if (nextEvent) {
                             const nextEventStart = dayjs(nextEvent.start);
+                            const nextEventEnd = dayjs(nextEvent.end);
                             // check if next event starts before this event ends
                             if (nextEventStart.isBefore(eventEnd)) {
-                              width = width / 2;
+                              // figure out which event has the longest duration
+                              const nextEventDuration = nextEventEnd.diff(nextEventStart, "minutes");
+                              if (nextEventDuration > eventDuration) {
+                                zIndex = 55;
+
+                                marginLeft = "auto";
+                                // 7 looks like a really random number but we need to take into account the bordersize on the event.
+                                // Logically it should be 5% but this causes a bit of a overhang which we don't want.
+                                right = 7;
+                                width = width / 2;
+                              }
+                              console.log({ nextEventDuration, eventDuration, title: event.title });
                             }
                           } else if (prevEvent) {
+                            const prevEventStart = dayjs(prevEvent.start);
                             const prevEventEnd = dayjs(prevEvent.end);
+                            // check if next event starts before this event ends
                             if (prevEventEnd.isAfter(eventStart)) {
-                              width = width / 2;
-                              marginLeft = "auto";
+                              // figure out which event has the longest duration
+                              const prevEventDuration = prevEventEnd.diff(prevEventStart, "minutes");
+                              if (prevEventDuration > eventDuration) {
+                                zIndex = 55;
+                                marginLeft = "auto";
+                                right = 7;
+                                width = width / 2;
+                              }
+                              console.log({ prevEventDuration, eventDuration, title: event.title });
                             }
                           }
 
                           return (
                             <div
                               key={`${event.id}-${eventStart.toISOString()}`}
-                              className="absolute inset-x-1 z-50 w-[90%]"
+                              className="absolute inset-x-1 w-[90%]"
                               style={{
                                 marginLeft,
+                                marginRight,
+                                zIndex,
+                                right: `${right}%`,
                                 width: `${width}%`,
                                 top: `calc(${eventStartDiff}*var(--one-minute-height))`,
                                 height: `calc(${eventDuration}*var(--one-minute-height))`,
