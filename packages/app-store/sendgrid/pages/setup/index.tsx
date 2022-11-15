@@ -41,12 +41,7 @@ export default function SendgridSetup() {
       <div className="m-auto rounded bg-white p-5 md:w-[520px] md:p-10">
         <div className="flex flex-col space-y-5 md:flex-row md:space-y-0 md:space-x-5">
           <div>
-            {/* eslint-disable @next/next/no-img-element */}
-            <img
-              src="/api/app-store/sendgridothercalendar/icon.png"
-              alt="Apple Calendar"
-              className="h-12 w-12 max-w-2xl"
-            />
+            <img src="/api/app-store/sendgrid/logo.png" alt="Sendgrid" className="h-12 w-12 max-w-2xl" />
           </div>
           <div>
             <h1 className="text-gray-600">{t("provide_api_key")}</h1>
@@ -66,7 +61,7 @@ export default function SendgridSetup() {
               <Form
                 form={form}
                 handleSubmit={async (values) => {
-                  const res = await fetch("/api/integrations/sendgridothercalendar/add", {
+                  const res = await fetch("/api/integrations/sendgrid/add", {
                     method: "POST",
                     body: JSON.stringify(values),
                     headers: {
@@ -123,7 +118,7 @@ export default function SendgridSetup() {
                       if (!check) return;
                       const api_key = form.getValues("api_key");
                       setTestLoading(true);
-                      const res = await fetch("/api/integrations/sendgridothercalendar/check", {
+                      const res = await fetch("/api/integrations/sendgrid/check", {
                         method: "POST",
                         body: JSON.stringify({ api_key }),
                         headers: {
