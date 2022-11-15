@@ -125,14 +125,6 @@ const appKeySchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
  */
 
 export function getLocalAppMetadata() {
-  // const appsWithKeysSchema = ALL_APPS.map((app) => {
-  //   const appKey = deriveAppDictKeyFromType(app.type, appKeysSchemas);
-  //   const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas] || null;
-
-  //   return { ...app, keys: keysSchema ? keysSchema.keyof()._def.values : null };
-  // });
-
-  // return appsWithKeysSchema;
   return ALL_APPS;
 }
 
