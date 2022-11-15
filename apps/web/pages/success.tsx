@@ -369,9 +369,9 @@ export default function Success(props: SuccessProps) {
                                 <p className="text-bookinglight">{bookingInfo.user.email}</p>
                               </div>
                             )}
-                            {bookingInfo?.attendees.map((attendee, index) => (
+                            {bookingInfo?.attendees.map((attendee) => (
                               <div key={attendee.name} className="mb-3 last:mb-0">
-                                <p>{attendee.name}</p>
+                                {attendee.name && <p>{attendee.name}</p>}
                                 <p className="text-bookinglight">{attendee.email}</p>
                               </div>
                             ))}
@@ -667,7 +667,7 @@ export function RecurringBookings({
             <CollapsibleTrigger
               type="button"
               className={classNames("flex w-full", moreEventsVisible ? "hidden" : "")}>
-              {t("plus_more", { count: recurringBookingsSorted.length - 4 })}
+              + {t("plus_more", { count: recurringBookingsSorted.length - 4 })}
             </CollapsibleTrigger>
             <CollapsibleContent>
               {eventType.recurringEvent?.count &&
@@ -738,6 +738,7 @@ const getEventTypesFromDB = async (id: number) => {
         },
       },
       metadata: true,
+      seatsPerTimeSlot: true,
       seatsShowAttendees: true,
     },
   });
@@ -777,7 +778,7 @@ const schema = z.object({
 
 const handleSeatsEventTypeOnBooking = (
   eventType: {
-    seatsPerTimeSlot?: boolean | null;
+    seatsPerTimeSlot?: number | null;
     seatsShowAttendees: boolean | null;
     [x: string | number | symbol]: unknown;
   },
@@ -789,6 +790,8 @@ const handleSeatsEventTypeOnBooking = (
   if (eventType?.seatsPerTimeSlot !== null) {
     // @TODO: right now bookings with seats doesn't save every description that its entered by every user
     delete booking.description;
+  } else {
+    return;
   }
   if (!eventType.seatsShowAttendees) {
     const attendee = booking?.attendees?.find((a) => a.email === email);
@@ -895,6 +898,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     },
   });
+
   if (bookingInfo !== null && email) {
     handleSeatsEventTypeOnBooking(eventType, bookingInfo, email);
   }

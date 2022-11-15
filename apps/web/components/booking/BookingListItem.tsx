@@ -471,8 +471,9 @@ const FirstAttendee = ({
   user: UserProps;
   currentEmail: string | null | undefined;
 }) => {
+  const { t } = useLocale();
   return user.email === currentEmail ? (
-    <div className="inline-block">You</div>
+    <div className="inline-block">{t("you")}</div>
   ) : (
     <a
       key={user.email}
@@ -484,18 +485,18 @@ const FirstAttendee = ({
   );
 };
 
-const Attendee: React.FC<{ email: string; children: React.ReactNode }> = ({ email, children }) => {
+type AttendeeProps = {
+  name?: string;
+  email: string;
+};
+
+const Attendee = ({ email, name }: AttendeeProps) => {
   return (
-    <a className=" hover:text-blue-500" href={"mailto:" + email} onClick={(e) => e.stopPropagation()}>
-      {children}
+    <a className="hover:text-blue-500" href={"mailto:" + email} onClick={(e) => e.stopPropagation()}>
+      {name || email}
     </a>
   );
 };
-
-interface AttendeeProps {
-  name: string;
-  email: string;
-}
 
 const DisplayAttendees = ({
   attendees,
@@ -504,42 +505,33 @@ const DisplayAttendees = ({
 }: {
   attendees: AttendeeProps[];
   user: UserProps | null;
-  currentEmail: string | null | undefined;
+  currentEmail?: string | null;
 }) => {
-  if (attendees.length === 1) {
-    return (
-      <div className="text-sm text-gray-900">
-        {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
-        <span>&nbsp;and&nbsp;</span>
-        <Attendee email={attendees[0].email}>{attendees[0].name}</Attendee>
-      </div>
-    );
-  } else if (attendees.length === 2) {
-    return (
-      <div className="text-sm text-gray-900">
-        {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
-        <span>,&nbsp;</span>
-        <Attendee email={attendees[0].email}>{attendees[0].name}</Attendee>
-        <div className="inline-block text-sm text-gray-900">&nbsp;and&nbsp;</div>
-        <Attendee email={attendees[1].email}>{attendees[1].name}</Attendee>
-      </div>
-    );
-  } else {
-    return (
-      <div className="text-sm text-gray-900">
-        {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
-        <span>,&nbsp;</span>
-        <Attendee email={attendees[0].email}>{attendees[0].name}</Attendee>
-        <span>&nbsp;&&nbsp;</span>
-        <Tooltip
-          content={attendees.slice(1).map((attendee, key) => (
-            <p key={key}>{attendee.name}</p>
-          ))}>
-          <div className="inline-block">{attendees.length - 1} more</div>
-        </Tooltip>
-      </div>
-    );
-  }
+  const { t } = useLocale();
+  return (
+    <div className="text-sm text-gray-900">
+      {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
+      {attendees.length > 1 ? <span>,&nbsp;</span> : <span>&nbsp;{t("and")}&nbsp;</span>}
+      <Attendee {...attendees[0]} />
+      {attendees.length > 1 && (
+        <>
+          <div className="inline-block text-sm text-gray-900">&nbsp;{t("and")}&nbsp;</div>
+          {attendees.length > 2 ? (
+            <Tooltip
+              content={attendees.slice(1).map((attendee) => (
+                <p key={attendee.email}>
+                  <Attendee {...attendee} />
+                </p>
+              ))}>
+              <div className="inline-block">{t("plus_more", { count: attendees.length - 1 })}</div>
+            </Tooltip>
+          ) : (
+            <Attendee {...attendees[1]} />
+          )}
+        </>
+      )}
+    </div>
+  );
 };
 
 const Tag = ({ children, className = "" }: React.PropsWithChildren<{ className?: string }>) => {
