@@ -515,7 +515,7 @@ const BookingPage = ({
                             <p key={key}>{timeFormatted}</p>
                           ))}>
                           <p className="dark:text-darkgray-600 text-sm">
-                            {t("plus_more", { count: recurringStrings.length - 5 })}
+                            + {t("plus_more", { count: recurringStrings.length - 5 })}
                           </p>
                         </Tooltip>
                       </div>
