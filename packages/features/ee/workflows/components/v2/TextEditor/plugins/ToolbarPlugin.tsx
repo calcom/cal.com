@@ -361,7 +361,6 @@ export default function ToolbarPlugin(props: TextEditorProps) {
   const [isLink, setIsLink] = useState(false);
   const [isBold, setIsBold] = useState(false);
   const [isItalic, setIsItalic] = useState(false);
-  const [isUnderline, setIsUnderline] = useState(false);
 
   const updateToolbar = useCallback(() => {
     const selection = $getSelection();
@@ -383,7 +382,6 @@ export default function ToolbarPlugin(props: TextEditorProps) {
       // Update text format
       setIsBold(selection.hasFormat("bold"));
       setIsItalic(selection.hasFormat("italic"));
-      setIsUnderline(selection.hasFormat("underline"));
 
       // Update links
       const node = getSelectedNode(selection);
@@ -493,16 +491,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
           }}
           className={"toolbar-item spaced " + (isItalic ? "active" : "")}
           aria-label="Format Italics">
-          <i className="format italic" />
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            editor.dispatchCommand(FORMAT_TEXT_COMMAND, "underline");
-          }}
-          className={"toolbar-item spaced " + (isUnderline ? "active" : "")}
-          aria-label="Format Underline">
-          <i className="format underline" />
+          <i className="italic format" />
         </button>
         <button
           type="button"
