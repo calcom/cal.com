@@ -1,6 +1,4 @@
 import client from "@sendgrid/client";
-import { ClientRequest } from "@sendgrid/client/src/request";
-import { ClientResponse } from "@sendgrid/client/src/response";
 
 import logger from "@calcom/lib/logger";
 
@@ -65,7 +63,7 @@ export default class Sendgrid {
     return username;
   };
 
-  public async sendgridRequest<R = ClientResponse>(data: ClientRequest): Promise<R> {
+  public async sendgridRequest<R>(data: any): Promise<R> {
     this.log.debug("sendgridRequest:request", data);
     const results = await client.request(data);
     this.log.debug("sendgridRequest:results", results);
