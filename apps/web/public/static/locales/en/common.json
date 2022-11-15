@@ -599,7 +599,7 @@
   "monthly_other": "months",
   "yearly_one": "year",
   "yearly_other": "years",
-  "plus_more": "+ {{count}} more",
+  "plus_more": "{{count}} more",
   "max": "Max",
   "single_theme": "Single Theme",
   "brand_color": "Brand Color",
@@ -1295,6 +1295,7 @@
   "fetching_calendars_error": "There was a problem fetching your calendars. Please <1>try again</1> or reach out to customer support.",
   "calendar_connection_fail": "Calendar connection failed",
   "booking_confirmation_success": "Booking confirmation succeeded",
+  "booking_rejection_success": "Booking rejection succeeded",
   "booking_confirmation_fail": "Booking confirmation failed",
   "we_wont_show_again": "We won't show this again",
   "couldnt_update_timezone": "We couldn't update the timezone",
@@ -1366,5 +1367,6 @@
   "test_routing_form": "Test Routing Form",
   "test_preview": "Test Preview",
   "route_to": "Route to",
-  "test_preview_description": "Test your routing form without submitting any data"
+  "test_preview_description": "Test your routing form without submitting any data",
+  "test_routing": "Test Routing"
 }
