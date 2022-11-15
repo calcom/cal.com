@@ -4,6 +4,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
+/** Used to prevent double charges for the same team */
 export const checkIfTeamPaymentRequired = async ({ teamId = -1 }) => {
   const team = await prisma.team.findUniqueOrThrow({
     where: { id: teamId },
@@ -22,7 +23,6 @@ export const checkIfTeamPaymentRequired = async ({ teamId = -1 }) => {
 export const purchaseTeamSubscription = async (input: { teamId: number; seats: number; userId: number }) => {
   const { teamId, seats, userId } = input;
   const { url } = await checkIfTeamPaymentRequired({ teamId });
-  console.log("url", url);
   if (url) return { url };
   const customer = await getStripeCustomerIdFromUserId(userId);
   const session = await stripe.checkout.sessions.create({
