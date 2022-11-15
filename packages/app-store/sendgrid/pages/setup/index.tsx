@@ -6,8 +6,8 @@ import { Toaster } from "react-hot-toast";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui";
 import { Icon } from "@calcom/ui/Icon";
+import { Button } from "@calcom/ui/components/button";
 import { Form, TextField } from "@calcom/ui/components/form";
 import { showToast } from "@calcom/ui/v2";
 
