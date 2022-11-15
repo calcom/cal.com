@@ -61,7 +61,7 @@ const AvailabilitySelect = ({
   onBlur: () => void;
   onChange: (value: AvailabilityOption | null) => void;
 }) => {
-  const { data, isLoading } = trpc.useQuery(["viewer.availability.list"]);
+  const { data, isLoading } = trpc.viewer.availability.list.useQuery();
   if (isLoading) {
     return <SelectSkeletonLoader />;
   }
@@ -183,7 +183,7 @@ export const AvailabilityTab = ({ isTeamEvent }: { isTeamEvent: boolean }) => {
   };
 
   const scheduleId = watch("schedule");
-  const { isLoading, data: schedule } = trpc.useQuery(["viewer.availability.schedule", { scheduleId }]);
+  const { isLoading, data: schedule } = trpc.viewer.availability.schedule.get.useQuery({ scheduleId });
 
   const filterDays = (dayNum: number) =>
     schedule?.schedule.availability.filter((item) => item.days.includes((dayNum + 1) % 7)) || [];

@@ -57,7 +57,7 @@ export function CalendarSwitch(props: {
     },
     {
       async onSettled() {
-        await utils.invalidateQueries(["viewer.integrations"]);
+        await utils.viewer.integrations.invalidate();
       },
       onError() {
         showToast(`Something went wrong when toggling "${props.title}""`, "error");

@@ -27,13 +27,13 @@ export default function TeamSettings(props: Props) {
   const hasLogo = !!team?.logo;
 
   const utils = trpc.useContext();
-  const mutation = trpc.useMutation("viewer.teams.update", {
+  const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
       setHasErrors(true);
       setErrorMessage(err.message);
     },
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
+      await utils.viewer.teams.get.invalidate();
       showToast(t("your_team_updated_successfully"), "success");
       setHasErrors(false);
     },

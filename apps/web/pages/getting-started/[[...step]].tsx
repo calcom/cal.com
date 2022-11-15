@@ -8,11 +8,11 @@ import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
 import { Button } from "@calcom/ui/components/button";
+import { StepCard } from "@calcom/ui/v2/core/StepCard";
+import { Steps } from "@calcom/ui/v2/core/Steps";
 
 import prisma from "@lib/prisma";
 
-import { StepCard } from "@components/getting-started/components/StepCard";
-import { Steps } from "@components/getting-started/components/Steps";
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
 import { SetupAvailability } from "@components/getting-started/steps-views/SetupAvailability";
 import UserProfile from "@components/getting-started/steps-views/UserProfile";
