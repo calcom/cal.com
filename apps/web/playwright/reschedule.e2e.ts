@@ -1,5 +1,7 @@
 import { expect } from "@playwright/test";
 import { BookingStatus } from "@prisma/client";
+import { includes } from "lodash";
+import { v4 as uuidv4 } from "uuid";
 
 import prisma from "@calcom/prisma";
 
@@ -194,5 +196,134 @@ test.describe("Reschedule Tests", async () => {
     const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } });
     expect(newBooking).not.toBeNull();
     expect(newBooking?.status).toBe(BookingStatus.ACCEPTED);
+  });
+
+  test.describe("Reschedule for booking with seats", () => {
+    test("Should reschedule booking with seats", async ({ page, users, bookings }) => {
+      const user = await users.create();
+      const eventType = user.eventTypes.find((e) => e.slug === "seats")!;
+      const booking = await bookings.create(user.id, user.username, eventType.id, {
+        status: BookingStatus.ACCEPTED,
+        // startTime with 1 day from now and endTime half hour after
+        startTime: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        endTime: new Date(Date.now() + 24 * 60 * 60 * 1000 + 30 * 60 * 1000),
+        attendees: {
+          createMany: {
+            data: [
+              { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
+              { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
+              { name: "John Third", email: "third+seats@cal.com", timeZone: "Europe/Berlin" },
+            ],
+          },
+        },
+      });
+      console.log({ booking });
+      const bookingAttendees = await prisma.attendee.findMany({
+        where: { bookingId: booking.id },
+        select: {
+          id: true,
+        },
+      });
+      console.log({ bookingAttendees });
+      const bookingSeatsReferences = [
+        { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUId: uuidv4() },
+        { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUId: uuidv4() },
+        { bookingId: booking.id, attendeeId: bookingAttendees[2].id, referenceUId: uuidv4() },
+      ];
+
+      await prisma.bookingSeatsReferences.createMany({
+        data: bookingSeatsReferences,
+      });
+
+      const references = await prisma.bookingSeatsReferences.findMany({
+        where: { bookingId: booking.id },
+      });
+
+      await page.goto(`/reschedule/${references[0].referenceUId}`);
+
+      await selectFirstAvailableTimeSlotNextMonth(page);
+
+      await page.locator('[data-testid="confirm-reschedule-button"]').click();
+
+      await expect(page).toHaveURL(/.*success/);
+
+      // Should expect old booking to be accepted with two attendees
+      const oldBooking = await prisma.booking.findFirst({
+        where: { uid: booking.uid },
+        include: { seatsReferences: true, attendees: true },
+      });
+      console.log(oldBooking?.attendees);
+      expect(oldBooking?.status).toBe(BookingStatus.ACCEPTED);
+      expect(oldBooking?.seatsReferences.length).toBe(2);
+      expect(oldBooking?.attendees.length).toBe(2);
+    });
+  });
+
+  test("Should reschedule booking with seats and if everyone rescheduled it should be cancelled", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes.find((e) => e.slug === "seats")!;
+    const booking = await bookings.create(user.id, user.username, eventType.id, {
+      status: BookingStatus.ACCEPTED,
+      // startTime with 1 day from now and endTime half hour after
+      startTime: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      endTime: new Date(Date.now() + 24 * 60 * 60 * 1000 + 30 * 60 * 1000),
+      attendees: {
+        createMany: {
+          data: [
+            { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
+            { name: "Jane Second", email: "second+seats@cal.com", timeZone: "Europe/Berlin" },
+          ],
+        },
+      },
+    });
+
+    const bookingAttendees = await prisma.attendee.findMany({
+      where: { bookingId: booking.id },
+      select: {
+        id: true,
+      },
+    });
+
+    const bookingSeatsReferences = [
+      { bookingId: booking.id, attendeeId: bookingAttendees[0].id, referenceUId: uuidv4() },
+      { bookingId: booking.id, attendeeId: bookingAttendees[1].id, referenceUId: uuidv4() },
+    ];
+
+    await prisma.bookingSeatsReferences.createMany({
+      data: bookingSeatsReferences,
+    });
+
+    const references = await prisma.bookingSeatsReferences.findMany({
+      where: { bookingId: booking.id },
+    });
+
+    await page.goto(`/reschedule/${references[0].referenceUId}`);
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+
+    await expect(page).toHaveURL(/.*success/);
+
+    await page.goto(`/reschedule/${references[1].referenceUId}`);
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+
+    await expect(page).toHaveURL(/.*success/);
+
+    // Should expect old booking to be cancelled
+
+    const oldBooking = await prisma.booking.findFirst({
+      where: { uid: booking.uid },
+      include: { seatsReferences: true, attendees: true },
+    });
+
+    expect(oldBooking?.attendees.length).toBe(0);
   });
 });

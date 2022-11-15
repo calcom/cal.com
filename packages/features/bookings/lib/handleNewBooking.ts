@@ -657,6 +657,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   }
   type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
   let originalRescheduledBooking: BookingType = null;
+
   if (rescheduleUid) {
     originalRescheduledBooking = await getOriginalRescheduledBooking(rescheduleUid);
   }
@@ -812,9 +813,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       })
     );
     evt.uid = booking?.uid ?? null;
-    console.log({ booking, eventType });
+
     if (booking && booking.id && eventType.seatsPerTimeSlot) {
-      console.log({ booking });
       const currentAttendee = booking.attendees.find((attendee) => attendee.email === req.body.email)!;
       // Save description to bookingSeatsReferences
 
@@ -887,6 +887,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   if (originalRescheduledBooking?.uid) {
     // Use EventManager to conditionally use all needed integrations.
+
     const updateManager = await eventManager.reschedule(
       evt,
       originalRescheduledBooking.uid,
@@ -922,7 +923,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           handleAppsStatus(results, booking);
         }
       }
-      console.log("==========0");
+
       if (noEmail !== true) {
         const copyEvent = cloneDeep(evt);
         // Reschedule login for booking with seats
@@ -930,8 +931,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           // We should only notify affected attendees (owner and attendee rescheduling)
           copyEvent.attendees = copyEvent.attendees.filter((attendee) => attendee.email === reqBody.email);
         }
-        console.log("==========1");
-        console.log(copyEvent.attendees);
+
         await sendRescheduledEmails({
           ...copyEvent,
           additionalInformation: metadata,
