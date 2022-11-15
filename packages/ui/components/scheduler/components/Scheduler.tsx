@@ -7,6 +7,7 @@ import { useSchedulerStore } from "../state/store";
 import { SchedulerComponentProps } from "../types/state";
 import { getDaysBetweenDates, getHoursToDisplay } from "../utils";
 import { DateValues } from "./DateValues/DateValues";
+import { BlockedList } from "./blocking/BlockedList";
 import { EmptyCell } from "./event/Empty";
 import { SchedulerHeading } from "./heading/SchedulerHeading";
 import { HorizontalLines } from "./horizontalLines";
@@ -97,7 +98,6 @@ export function Scheduler(props: SchedulerComponentProps) {
                       })}
                     </li>
                   ))}
-                  {/* <BlockedList days={days} numberOfGridStopsPerCell={usersCellsStopsPerHour} /> */}
                 </>
               </ol>
               <ol
@@ -137,6 +137,8 @@ export function Scheduler(props: SchedulerComponentProps) {
                             </div>
                           );
                         })}
+                      {/* We mayaswell add blocked in here too  */}
+                      <BlockedList day={day} containerRef={container} />
                     </div>
                   );
                 })}

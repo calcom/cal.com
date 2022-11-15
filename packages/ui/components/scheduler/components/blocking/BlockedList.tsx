@@ -6,61 +6,48 @@ import { useSchedulerStore } from "../../state/store";
 import { BlockedTimeCell } from "./BlockedTimeCell";
 
 type Props = {
-  days: dayjs.Dayjs[];
-  numberOfGridStopsPerCell: number;
+  day: dayjs.Dayjs;
+  containerRef: React.RefObject<HTMLDivElement>;
 };
 
-export function BlockedList({ days, numberOfGridStopsPerCell }: Props) {
-  const { startHour, endHour, blockingDates } = useSchedulerStore((state) => ({
+export function BlockedList({ day, containerRef }: Props) {
+  const { startHour, blockingDates, endHour } = useSchedulerStore((state) => ({
     startHour: state.startHour || 0,
     endHour: state.endHour || 23,
     blockingDates: state.blockingDates,
   }));
-  const id = useId();
-
-  const daysLessThanCurrent = useMemo(() => days.filter((day) => day.isBefore(dayjs(), "day")), [days]);
 
   return (
     <>
-      {daysLessThanCurrent.map((day, dayIdx) => {
-        return (
-          <div
-            key={day.format("YYYY-MM-DD")}
-            className="sm:col-start-1s relative flex "
-            style={{
-              gridRow: `2 / span ${
-                (startHour + endHour) * numberOfGridStopsPerCell + numberOfGridStopsPerCell
-              }`,
-              // Need to figure out how to put this in a media query
-              gridColumnStart: dayIdx + 1,
-            }}>
-            <BlockedTimeCell />
-          </div>
-        );
-      })}
+      {day.isBefore(dayjs(), "day") && (
+        <div
+          key={day.format("YYYY-MM-DD")}
+          className="absolute z-50 w-full"
+          style={{
+            top: `var(--one-minute-height)`,
+            height: `calc(${(endHour + 1 - startHour) * 60} * var(--one-minute-height))`, // Add 1 to endHour to include the last hour that we add to display the last vertical line
+          }}>
+          <BlockedTimeCell />
+        </div>
+      )}
 
       {blockingDates &&
         blockingDates.map((event, i) => {
-          const foundDay = days.findIndex((day) => day.get("d") === i);
-          if (foundDay === -1) return null;
-
           const eventStart = dayjs(event.start);
           const eventEnd = dayjs(event.end);
-          const eventStartHour = eventStart.hour();
-          const eventStartDiff = eventStartHour - (startHour || 0);
 
           const eventDuration = eventEnd.diff(eventStart, "minutes");
-          const gridSpan = Math.round(eventDuration / (60 / numberOfGridStopsPerCell));
-          const gridRowStart = eventStartDiff * numberOfGridStopsPerCell;
+
+          const eventStartHour = eventStart.hour();
+          const eventStartDiff = (eventStartHour - (startHour || 0)) * 60;
 
           return (
             <div
-              key={id}
-              className="sm:col-start-1s relative flex "
+              key={`${eventStart.toISOString()}-${i}`}
+              className="absolute z-50 w-[90%]"
               style={{
-                gridRow: `${gridRowStart + 2} / span ${gridSpan}`,
-                // Need to figure out how to put this in a media query
-                gridColumnStart: foundDay + 1,
+                top: `calc(${eventStartDiff}*var(--one-minute-height))`,
+                height: `calc(${eventDuration}*var(--one-minute-height))`,
               }}>
               <BlockedTimeCell />
             </div>
