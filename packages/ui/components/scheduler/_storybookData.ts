@@ -9,8 +9,8 @@ export const Events: SchedulerEvent[] = [
   {
     id: 1,
     title: "Event 1",
-    start: startDate.toDate(),
-    end: startDate.add(15, "minutes").toDate(),
+    start: startDate.add(10, "minutes").toDate(),
+    end: startDate.add(45, "minutes").toDate(),
     allDay: false,
     source: "Booking",
     status: "ACCEPTED",

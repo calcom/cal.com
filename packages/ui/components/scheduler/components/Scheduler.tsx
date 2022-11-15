@@ -129,8 +129,8 @@ export function Scheduler(props: SchedulerComponentProps) {
                           const eventDuration = eventEnd.diff(eventStart, "minutes");
 
                           const eventStartHour = eventStart.hour();
-                          const eventStartDiff = (eventStartHour - (startHour || 0)) * 60;
-
+                          const eventStartDiff =
+                            (eventStartHour - (startHour || 0)) * 60 + eventStart.minute();
                           const nextEvent = eventsArray[idx + 1];
                           const prevEvent = eventsArray[idx - 1];
 
@@ -166,7 +166,12 @@ export function Scheduler(props: SchedulerComponentProps) {
                                 right = 7;
                                 width = width / 2;
                               }
-                              console.log({ prevEventDuration, eventDuration, title: event.title });
+                              console.log({
+                                prevEventDuration,
+                                eventDuration,
+                                title: event.title,
+                                event: event,
+                              });
                             }
                           }
 
@@ -184,6 +189,7 @@ export function Scheduler(props: SchedulerComponentProps) {
                                 height: `calc(${eventDuration}*var(--one-minute-height))`,
                               }}>
                               <Event event={event} eventDuration={eventDuration} />
+                              {eventStartDiff}
                             </div>
                           );
                         })}
