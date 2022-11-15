@@ -79,6 +79,9 @@ plugins.push(withAxiom);
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
+  experimental: {
+    esmExternals: false,
+  },
   i18n,
   /* We already do type check on GH actions */
   typescript: {
