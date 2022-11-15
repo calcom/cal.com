@@ -62,7 +62,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
   const form = useForm<z.infer<typeof createEventTypeInput>>({
     resolver: zodResolver(createEventTypeInput),
   });
-  const { setValue, watch, register } = form;
+  const { setValue, register } = form;
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -84,7 +84,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
     // If query params change, update the form
   }, [router.isReady, router.query, setValue]);
 
-  const createMutation = trpc.useMutation("viewer.eventTypes.create", {
+  const createMutation = trpc.viewer.eventTypes.create.useMutation({
     onSuccess: async ({ eventType }) => {
       await router.replace("/event-types/" + eventType.id);
       showToast(t("event_type_created_successfully", { eventTypeTitle: eventType.title }), "success");
@@ -345,13 +345,10 @@ function CreateEventTeamsItem(props: {
   option: EventTypeParent;
 }) {
   const session = useSession();
-  const membershipQuery = trpc.useQuery([
-    "viewer.teams.getMembershipbyUser",
-    {
-      memberId: session.data?.user?.id as number,
-      teamId: props.option.teamId as number,
-    },
-  ]);
+  const membershipQuery = trpc.viewer.teams.getMembershipbyUser.useQuery({
+    memberId: session.data?.user?.id as number,
+    teamId: props.option.teamId as number,
+  });
 
   const isDisabled = membershipQuery.data?.role === "MEMBER";
 
