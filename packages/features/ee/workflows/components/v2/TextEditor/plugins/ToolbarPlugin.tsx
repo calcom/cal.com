@@ -470,7 +470,6 @@ export default function ToolbarPlugin(props: TextEditorProps) {
               />,
               document.body
             )}
-          <Divider />
         </>
       )}
 
@@ -491,7 +490,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
           }}
           className={"toolbar-item spaced " + (isItalic ? "active" : "")}
           aria-label="Format Italics">
-          <i className="italic format" />
+          <i className="format italic" />
         </button>
         <button
           type="button"

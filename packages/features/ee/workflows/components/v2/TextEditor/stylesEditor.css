@@ -1,56 +1,27 @@
-body {
-  margin: 0;
-  background: #eee;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, ".SFNSText-Regular",
-    sans-serif;
-  font-weight: 500;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-.other h2 {
-  font-size: 18px;
-  color: #444;
-  margin-bottom: 7px;
-}
-
-.other a {
-  color: #777;
+.editor a {
+  color: #0000FF;
   text-decoration: underline;
   font-size: 14px;
 }
 
 
-
-.other ul {
-  padding: 0;
-  margin: 0;
-}
-
-ul {
+.editor ul {
   list-style: disc inside
 }
 
-ol {
+.editor ol {
   list-style: decimal inside
 }
 
-.App {
-  font-family: sans-serif;
-  text-align: center;
-}
-
-h1 {
+.editor h1 {
   font-size: 24px;
   color: #333;
 }
 
-.ltr {
-  text-align: left;
-}
-
-.rtl {
-  text-align: right;
+.editor h2 {
+  font-size: 18px;
+  color: #444;
+  margin-bottom: 7px;
 }
 
 .editor-container {
@@ -104,113 +75,11 @@ h1 {
   font-style: italic;
 }
 
-.editor-text-underline {
-  text-decoration: underline;
-}
-
-.editor-text-strikethrough {
-  text-decoration: line-through;
-}
-
-.editor-text-underlineStrikethrough {
-  text-decoration: underline line-through;
-}
-
-.editor-text-code {
-  background-color: rgb(240, 242, 245);
-  padding: 1px 0.25rem;
-  font-family: Menlo, Consolas, Monaco, monospace;
-  font-size: 94%;
-}
-
 .editor-link {
   color: rgb(33, 111, 219);
   text-decoration: none;
 }
 
-.tree-view-output {
-  display: block;
-  background: #222;
-  color: #fff;
-  padding: 5px;
-  font-size: 12px;
-  white-space: pre-wrap;
-  margin: 1px auto 10px auto;
-  max-height: 250px;
-  position: relative;
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
-  overflow: auto;
-  line-height: 14px;
-}
-
-.editor-code {
-  background-color: rgb(240, 242, 245);
-  font-family: Menlo, Consolas, Monaco, monospace;
-  display: block;
-  padding: 8px 8px 8px 52px;
-  line-height: 1.53;
-  font-size: 13px;
-  margin: 0;
-  margin-top: 8px;
-  margin-bottom: 8px;
-  tab-size: 2;
-  /* white-space: pre; */
-  overflow-x: auto;
-  position: relative;
-}
-
-.editor-code:before {
-  content: attr(data-gutter);
-  position: absolute;
-  background-color: #eee;
-  left: 0;
-  top: 0;
-  border-right: 1px solid #ccc;
-  padding: 8px;
-  color: #777;
-  white-space: pre-wrap;
-  text-align: right;
-  min-width: 25px;
-}
-.editor-code:after {
-  content: attr(data-highlight-language);
-  top: 0;
-  right: 3px;
-  padding: 3px;
-  font-size: 10px;
-  text-transform: uppercase;
-  position: absolute;
-  color: rgba(0, 0, 0, 0.5);
-}
-
-.editor-tokenComment {
-  color: slategray;
-}
-
-.editor-tokenPunctuation {
-  color: #999;
-}
-
-.editor-tokenProperty {
-  color: #905;
-}
-
-.editor-tokenSelector {
-  color: #690;
-}
-
-.editor-tokenOperator {
-  color: #9a6e3a;
-}
-
-.editor-tokenAttr {
-  color: #07a;
-}
-
-.editor-tokenVariable {
-  color: #e90;
-}
 
 .editor-tokenFunction {
   color: #dd4a68;
@@ -245,17 +114,6 @@ h1 {
   text-transform: uppercase;
 }
 
-.editor-quote {
-  margin: 0;
-  margin-left: 20px;
-  font-size: 15px;
-  color: rgb(101, 103, 107);
-  border-left-color: rgb(206, 208, 212);
-  border-left-width: 4px;
-  border-left-style: solid;
-  padding-left: 16px;
-}
-
 .editor-list-ol {
   padding: 0;
   margin: 0;
@@ -274,7 +132,6 @@ h1 {
 
 .editor-nested-listitem {
  list-style-type: none;
-
 }
 
 pre::-webkit-scrollbar {
@@ -285,69 +142,6 @@ pre::-webkit-scrollbar {
 
 pre::-webkit-scrollbar-thumb {
   background: #999;
-}
-
-.debug-timetravel-panel {
-  overflow: hidden;
-  padding: 0 0 10px 0;
-  margin: auto;
-  display: flex;
-}
-
-.debug-timetravel-panel-slider {
-  padding: 0;
-  flex: 8;
-}
-
-.debug-timetravel-panel-button {
-  padding: 0;
-  border: 0;
-  background: none;
-  flex: 1;
-  color: #fff;
-  font-size: 12px;
-}
-
-.debug-timetravel-panel-button:hover {
-  text-decoration: underline;
-}
-
-.debug-timetravel-button {
-  border: 0;
-  padding: 0;
-  font-size: 12px;
-  top: 10px;
-  right: 15px;
-  position: absolute;
-  background: none;
-  color: #fff;
-}
-
-.debug-timetravel-button:hover {
-  text-decoration: underline;
-}
-
-.emoji {
-  color: transparent;
-  background-size: 16px 16px;
-  background-position: center;
-  background-repeat: no-repeat;
-  vertical-align: middle;
-  margin: 0 -1px;
-}
-
-.emoji-inner {
-  padding: 0 0.15em;
-}
-
-.emoji-inner::selection {
-  color: transparent;
-  background-color: rgba(150, 150, 150, 0.4);
-}
-
-.emoji-inner::moz-selection {
-  color: transparent;
-  background-color: rgba(150, 150, 150, 0.4);
 }
 
 .toolbar {
@@ -393,10 +187,6 @@ pre::-webkit-scrollbar-thumb {
   background-image: url(images/icons/text-paragraph.svg);
 }
 
-.toolbar button.toolbar-item:disabled i.format {
-  opacity: 0.2;
-}
-
 .toolbar button.toolbar-item.active {
   background-color: rgba(223, 232, 250, 0.3);
 }
@@ -409,11 +199,6 @@ pre::-webkit-scrollbar-thumb {
   background-color: #eee;
 }
 
-.toolbar .divider {
-  width: 1px;
-  background-color: #eee;
-  margin: 0 4px;
-}
 
 .toolbar select.toolbar-item {
   border: 0;
@@ -428,11 +213,6 @@ pre::-webkit-scrollbar-thumb {
   font-size: 14px;
   color: #777;
   text-overflow: ellipsis;
-}
-
-.toolbar select.code-language {
-  text-transform: capitalize;
-  width: 130px;
 }
 
 .toolbar .toolbar-item .text {
@@ -498,14 +278,6 @@ i.chevron-down {
   background-image: url(images/icons/text-paragraph.svg);
 }
 
-#block-controls span.block-type {
-  background-size: contain;
-  display: block;
-  width: 18px;
-  height: 18px;
-  margin: 2px;
-}
-
 #block-controls span.block-type.paragraph {
   background-image: url(images/icons/link.svg);
 }
@@ -518,10 +290,6 @@ i.chevron-down {
   background-image: url(images/icons/link.svg);
 }
 
-#block-controls span.block-type.quote {
-  background-image: url(images/icons/chat-square-quote.svg);
-}
-
 #block-controls span.block-type.ul {
   background-image: url(images/icons/list-ul.svg);
 }
@@ -530,9 +298,6 @@ i.chevron-down {
   background-image: url(images/icons/list-ol.svg);
 }
 
-#block-controls span.block-type.code {
-  background-image: url(images/icons/code.svg);
-}
 
 .dropdown {
   z-index: 5;
