@@ -8,8 +8,7 @@ export const createEventTypeInput = _EventTypeModel
     length: true,
     teamId: true,
     schedulingType: true,
-    hidden: true,
-    locations:true
+    hidden: true
   })
   .partial({ hidden: true })
   .refine((data) => (data.teamId ? data.teamId && data.schedulingType : true), {

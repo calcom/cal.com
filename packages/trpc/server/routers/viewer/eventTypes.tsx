@@ -156,7 +156,6 @@ export const eventTypesRouter = router({
       // Position is required by lodash to sort on it. Don't remove it, TS won't complain but it would silently break reordering
       position: true,
       hashedLink: true,
-      locations: true,
       destinationCalendar: true,
       team: {
         select: {
