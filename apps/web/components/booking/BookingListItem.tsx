@@ -185,26 +185,13 @@ function BookingListItem(booking: BookingItemProps) {
     .concat(booking.recurringInfo?.bookings[BookingStatus.PENDING])
     .sort((date1: Date, date2: Date) => date1.getTime() - date2.getTime());
 
-  const location = booking.location || "";
-
   const onClickTableData = () => {
     router.push({
       pathname: "/success",
       query: {
-        date: booking.startTime,
-        // TODO: Booking when fetched should have id 0 already(for Dynamic Events).
-        type: booking.eventType.id || 0,
-        eventSlug: booking.eventType.slug,
-        username: user?.username || "",
-        name: booking.attendees[0] ? booking.attendees[0].name : undefined,
-        email: booking.attendees[0] ? booking.attendees[0].email : undefined,
-        location: location,
-        eventName: booking.eventType.eventName || "",
-        bookingId: booking.id,
-        recur: booking.recurringEventId,
-        reschedule: isConfirmed,
+        uid: booking.uid,
         listingStatus: booking.listingStatus,
-        status: booking.status,
+        email: booking.attendees[0] ? booking.attendees[0].email : undefined,
       },
     });
   };

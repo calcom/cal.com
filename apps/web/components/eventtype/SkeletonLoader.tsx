@@ -5,8 +5,8 @@ function SkeletonLoader() {
   return (
     <SkeletonContainer>
       <div className="mb-4 flex items-center">
-        <SkeletonAvatar className="h-2 w-2" />
-        <div className="space-y-1">
+        <SkeletonAvatar className="h-8 w-8" />
+        <div className="flex flex-col space-y-1">
           <SkeletonText className="h-4 w-16" />
           <SkeletonText className="h-4 w-24" />
         </div>
@@ -27,17 +27,17 @@ function SkeletonItem() {
     <li className="group flex w-full items-center justify-between px-4 py-4 sm:px-6">
       <div className="flex-grow truncate text-sm">
         <div>
-          <SkeletonText className="h-[5px] w-8" />
+          <SkeletonText className="h-5 w-32" />
         </div>
         <div className="">
           <ul className="mt-2 flex space-x-4 rtl:space-x-reverse ">
             <li className="flex items-center whitespace-nowrap">
               <Icon.FiClock className="mt-0.5 mr-1.5 inline h-4 w-4 text-gray-200" />
-              <SkeletonText className="h-1 w-3" />
+              <SkeletonText className="h-4 w-12" />
             </li>
             <li className="flex items-center whitespace-nowrap">
               <Icon.FiUser className="mt-0.5 mr-1.5 inline h-4 w-4 text-gray-200" />
-              <SkeletonText className="h-1 w-4" />
+              <SkeletonText className="h-4 w-12" />
             </li>
           </ul>
         </div>
