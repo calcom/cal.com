@@ -17,12 +17,12 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const usernameInfo = await sendgrid.username();
     if (usernameInfo.username) {
-      return res.status(200).end();
+      return {};
     } else {
-      return res.status(404).end();
+      return { statusCode: 404 };
     }
   } catch (e) {
-    return res.status(500).json({ message: e });
+    return { message: e, statusCode: 500 };
   }
 }
 
