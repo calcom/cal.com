@@ -8,4 +8,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - run: curl -X POST -d {} ${{ secrets.VERCEL_VERSIONED_DEPLOY_HOOK }}
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+      - run: git push origin +main:production
