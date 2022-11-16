@@ -164,8 +164,6 @@ export default function Success(props: SuccessProps) {
 
   const { allRemainingBookings, isSuccessBookingPage, cancel } = querySchema.parse(router.query);
 
-  const {} = router.query;
-
   if (cancel && typeof window !== "undefined") {
     window.scrollTo(0, document.body.scrollHeight);
   }
