@@ -19,10 +19,10 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     if (usernameInfo.username) {
       return {};
     } else {
-      return { statusCode: 404 };
+      throw new HttpError({ statusCode: 404 });
     }
   } catch (e) {
-    return { message: e, statusCode: 500 };
+    throw new HttpError({ statusCode: 500, message: e as string });
   }
 }
 
