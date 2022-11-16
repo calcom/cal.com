@@ -125,14 +125,7 @@ const Component = ({
                         loading: mutation.isLoading,
                       };
                     }
-                    return name === "Google Calendar" ? (
-                      <button
-                        {...props}
-                        data-testid="install-app-button"
-                        className="google-button hover:google-button drop-shadow-md">
-                        <img alt="google" className="h-9" />
-                      </button>
-                    ) : (
+                    return (
                       <Button
                         StartIcon={Icon.FiPlus}
                         {...props}

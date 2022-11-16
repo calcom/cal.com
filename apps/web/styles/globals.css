@@ -497,12 +497,3 @@ hr {
     height: -webkit-fill-available;
   }
 }
-
-
-.google-button img {
-  content:url("https://mento-space.nyc3.digitaloceanspaces.com/google.png");
-}
-
-.hover\:google-button:hover img {
-  content: url("https://mento-space.nyc3.digitaloceanspaces.com/google_focused.png");
-}
