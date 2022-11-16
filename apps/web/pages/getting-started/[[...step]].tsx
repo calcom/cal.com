@@ -6,21 +6,19 @@ import { z } from "zod";
 
 import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { User } from "@calcom/prisma/client";
 import { Button } from "@calcom/ui/components/button";
 import { StepCard } from "@calcom/ui/v2/core/StepCard";
 import { Steps } from "@calcom/ui/v2/core/Steps";
 
 import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
 import { SetupAvailability } from "@components/getting-started/steps-views/SetupAvailability";
 import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
 
-interface IOnboardingPageProps {
-  user: User;
-}
+export type IOnboardingPageProps = inferSSRProps<typeof getServerSideProps>;
 
 const INITIAL_STEP = "user-settings";
 const steps = ["user-settings", "connected-calendar", "setup-availability", "user-profile"] as const;
