@@ -30,7 +30,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     });
   } catch (reason) {
     logger.error("Could not add Sendgrid app", reason);
-    throw new HttpError({ message: "Could not add Sendgrid app", statusCode: 500 });
+    return { message: "Could not add Sendgrid app", statusCode: 500 };
   }
 
   return { url: getInstalledAppPath({ variant: "other", slug: "sendgrid" }) };
