@@ -20,10 +20,10 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     if (usernameInfo.username) {
       return {};
     } else {
-      logger.error("Could not check Sendgrid app API key");
+      return { error: true };
     }
   } catch (e) {
-    logger.error("Could not check Sendgrid app API key", e);
+    return { error: true };
   }
 }
 

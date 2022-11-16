@@ -28,7 +28,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       data,
     });
   } catch (reason) {
-    logger.error("Could not add Sendgrid app", reason);
+    return { error: true };
   }
 
   return { url: "/apps/installed/other?hl=sendgrid" };
