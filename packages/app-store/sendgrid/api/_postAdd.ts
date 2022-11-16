@@ -1,4 +1,3 @@
-import getInstalledAppPath from "_utils/getInstalledAppPath";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { symmetricEncrypt } from "@calcom/lib/crypto";
@@ -8,6 +7,7 @@ import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
 import checkSession from "../../_utils/auth";
+import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 
 export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const session = checkSession(req);
