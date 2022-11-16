@@ -7,14 +7,6 @@ import {
 } from "@calcom/lib/CloseComeUtils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-jest.mock("@calcom/lib/CloseCom", () => ({
-  default: class {
-    constructor() {
-      /* Mock */
-    }
-  },
-}));
-
 afterEach(() => {
   jest.resetAllMocks();
 });
@@ -168,7 +160,7 @@ test("prepare data to create custom activity type instance: two attendees, no ad
   const event = {
     attendees,
     startTime: now.toISOString(),
-  } as CalendarEvent;
+  } as unknown as CalendarEvent;
 
   CloseCom.prototype.activity = {
     type: {

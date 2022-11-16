@@ -1,3 +1,5 @@
+import client from "@sendgrid/client";
+
 import logger from "@calcom/lib/logger";
 
 export type SendgridFieldOptions = [string, string][];
@@ -46,14 +48,11 @@ const environmentApiKey = process.env.SENDGRID_SYNC_API_KEY || "";
  */
 export default class Sendgrid {
   private log: typeof logger;
-  private apiKey: string;
-  private apiUrl: string;
 
   constructor(providedApiKey = "") {
-    this.log = logger.getChildLogger({ prefix: [`[lib] sendgrid`] });
+    this.log = logger.getChildLogger({ prefix: [`[[lib] sendgrid`] });
     if (!providedApiKey && !environmentApiKey) throw Error("Sendgrid Api Key not present");
-    this.apiKey = providedApiKey || environmentApiKey;
-    this.apiUrl = "https://api.sendgrid.com";
+    client.setApiKey(providedApiKey || environmentApiKey);
   }
 
   public username = async () => {
@@ -64,28 +63,12 @@ export default class Sendgrid {
     return username;
   };
 
-  public async sendgridRequest<R>(requestData: { url: string; method: string; body?: unknown }): Promise<R> {
-    this.log.debug("sendgridRequest:request", requestData);
-    const results = await fetch(`${this.apiUrl}${requestData.url}`, {
-      method: requestData.method,
-      headers: new Headers({
-        Authorization: `Bearer ${this.apiKey}`,
-        "Content-Type": "application/json",
-      }),
-      ...(requestData.body ? { body: JSON.stringify(requestData.body) } : {}),
-    })
-      .then(async (res) => {
-        const jsonRes = await res.json();
-        if (jsonRes.errors) {
-          throw Error(`Sendgrid request error: ${jsonRes.errors[0]}`);
-        }
-        return jsonRes;
-      })
-      .catch((error) => {
-        throw Error(`Sendgrid request error: ${error}`);
-      });
+  public async sendgridRequest<R>(data: any): Promise<R> {
+    this.log.debug("sendgridRequest:request", data);
+    const results = await client.request(data);
     this.log.debug("sendgridRequest:results", results);
-    return results;
+    if (results[1].errors) throw Error(`Sendgrid request error: ${results[1].errors}`);
+    return results[1];
   }
 
   public async getSendgridContactId(email: string) {
