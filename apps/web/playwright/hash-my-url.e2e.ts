@@ -18,7 +18,7 @@ test.describe("hash my url", () => {
     await page.goto("/event-types");
     // We wait until loading is finished
     await page.waitForSelector('[data-testid="event-types"]');
-    await page.locator('//ul[@data-testid="event-types"]/li[1]').click();
+    await page.locator("ul[data-testid=event-types] > li a").first().click();
     // We wait for the page to load
     await page.locator(".primary-navigation >> text=Advanced").click();
     // ignore if it is already checked, and click if unchecked
@@ -45,7 +45,7 @@ test.describe("hash my url", () => {
     await page.goto("/event-types");
     // We wait until loading is finished
     await page.waitForSelector('[data-testid="event-types"]');
-    await page.click('//ul[@data-testid="event-types"]/li[1]');
+    await page.locator("ul[data-testid=event-types] > li a").first().click();
     // We wait for the page to load
     await page.locator(".primary-navigation >> text=Advanced").click();
     // we wait for the hashedLink setting to load
