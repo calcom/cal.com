@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import Head from "next/head";
+import { NextPageContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
@@ -31,6 +31,8 @@ import { EmbedButton, EmbedDialog } from "@components/Embed";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
+
+import { ssgInit } from "@server/lib/ssg";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
@@ -575,12 +577,9 @@ const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer);
 
 const EventTypesPage = () => {
   const { t } = useLocale();
+
   return (
     <div>
-      <Head>
-        <title>Home | Cal.com</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <Shell
         heading={t("event_types_page_title") as string}
         subtitle={t("event_types_page_subtitle") as string}
@@ -616,6 +615,16 @@ const EventTypesPage = () => {
       </Shell>
     </div>
   );
+};
+
+export const getServerSideProps = async (context: NextPageContext) => {
+  const ssr = await ssgInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
 };
 
 export default EventTypesPage;
