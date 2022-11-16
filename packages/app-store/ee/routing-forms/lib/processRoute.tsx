@@ -1,8 +1,10 @@
 import jsonLogic from "json-logic-js";
 import { Utils as QbUtils } from "react-awesome-query-builder";
+import { z } from "zod";
 
 import { getQueryBuilderConfig } from "../pages/route-builder/[...appPages]";
 import { Response, Route, SerializableForm } from "../types/types";
+import { localRoute } from "../zod";
 import { App_RoutingForms_Form } from ".prisma/client";
 
 export function processRoute({
@@ -18,13 +20,41 @@ export function processRoute({
 
   let decidedAction: Route["action"] | null = null;
 
-  const fallbackRoute = routes.find((route) => route.isFallback);
+  const fallbackRoute = routes.find((route) => {
+    if ("routerType" in route) return false;
+    return route.isFallback;
+  });
 
   if (!fallbackRoute) {
     throw new Error("Fallback route is missing");
   }
 
-  const reorderedRoutes = routes.filter((route) => !route.isFallback).concat([fallbackRoute]);
+  const reorderedRoutes = routes
+    .filter((route) => {
+      if ("routerType" in route) {
+        return true;
+      }
+      return !route.isFallback;
+    })
+    // Retrieve from Global Router
+    .flatMap((r) => {
+      if ("routerType" in r) {
+        return r.routes;
+      }
+      return r;
+    })
+    // Ignore Global Router provided fallback just in case.
+    .filter((r) => {
+      if (!r) {
+        return false;
+      }
+      if ("routerType" in r) {
+        return true;
+      }
+      return !r.isFallback;
+    })
+    // After above flat map, all routes are local routes.
+    .concat([fallbackRoute]) as z.infer<typeof localRoute>[];
 
   reorderedRoutes.some((route) => {
     if (!route) {

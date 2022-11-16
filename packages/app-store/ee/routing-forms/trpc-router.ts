@@ -12,8 +12,8 @@ import { Ensure } from "@calcom/types/utils";
 
 import ResponseEmail from "./emails/templates/response-email";
 import { jsonLogicToPrisma } from "./jsonLogicToPrisma";
-import { getSerializableForm, getSerializableRouter } from "./lib/getSerializableForm";
-import { isFormEditAllowed, isGlobalRouterEditAllowed } from "./lib/isAllowed";
+import { getSerializableForm } from "./lib/getSerializableForm";
+import { isFormEditAllowed } from "./lib/isAllowed";
 import { Response, SerializableForm } from "./types/types";
 import { zodFields, zodRoutes } from "./zod";
 
@@ -321,7 +321,14 @@ const appRoutingForms = router({
         const uuid = uuidv4();
         routes = routes || [];
         // Add a fallback route if there is none
-        if (!routes.find((route) => route.isFallback)) {
+        if (
+          !routes.find((route) => {
+            if ("routerType" in route) {
+              return false;
+            }
+            return route.isFallback;
+          })
+        ) {
           routes.push({
             id: uuid,
             isFallback: true,
@@ -378,144 +385,6 @@ const appRoutingForms = router({
         where: {
           id: input.id,
           userId: user.id,
-        },
-      });
-    }),
-  routerMutation: authedProcedure
-    .input(
-      z.object({
-        id: z.string(),
-        name: z.string(),
-        description: z.string().nullable().optional(),
-        fields: zodFields,
-        routes: zodRoutes,
-        addFallback: z.boolean().optional(),
-        duplicateFrom: z.string().nullable().optional(),
-        settings: RoutingFormSettings.optional(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const { user, prisma } = ctx;
-      const { name, id, description, settings, addFallback, duplicateFrom } = input;
-      if (!(await isGlobalRouterEditAllowed({ userId: user.id, routerId: id }))) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-        });
-      }
-      let { routes } = input;
-      let { fields } = input;
-
-      if (duplicateFrom) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Duplication isnt supported yet",
-        });
-        // const sourceForm = await prisma.app_RoutingForms_Form.findFirst({
-        //   where: {
-        //     userId: user.id,
-        //     id: duplicateFrom,
-        //   },
-        //   select: {
-        //     fields: true,
-        //     routes: true,
-        //   },
-        // });
-        // if (!sourceForm) {
-        //   throw new TRPCError({
-        //     code: "BAD_REQUEST",
-        //     message: `Form to duplicate: ${duplicateFrom} not found`,
-        //   });
-        // }
-        // const fieldParsed = zodFields.safeParse(sourceForm.fields);
-        // const routesParsed = zodRoutes.safeParse(sourceForm.routes);
-        // if (!fieldParsed.success || !routesParsed.success) {
-        //   throw new TRPCError({
-        //     code: "INTERNAL_SERVER_ERROR",
-        //     message: "Could not parse source form's fields or routes",
-        //   });
-        // }
-        // // Duplicate just routes and fields
-        // // We don't want name, description and responses to be copied
-        // routes = routesParsed.data;
-        // fields = fieldParsed.data;
-      }
-
-      fields = fields || [];
-
-      const router = await prisma.app_RoutingForms_Router.findUnique({
-        where: {
-          id: id,
-        },
-        select: {
-          id: true,
-          user: true,
-          name: true,
-          description: true,
-          userId: true,
-          disabled: true,
-          createdAt: true,
-          updatedAt: true,
-          routes: true,
-          fields: true,
-          settings: true,
-        },
-      });
-
-      // Add back deleted fields in the end. Fields can't be deleted, to make sure columns never decrease which hugely simplifies CSV generation
-      if (router) {
-        const serializedRouter = getSerializableRouter(router, true);
-        // Find all fields that are in DB(including deleted) but not in the mutation
-        const deletedFields =
-          serializedRouter.fields?.filter((f) => !fields!.find((field) => field.id === f.id)) || [];
-
-        fields = fields.concat(
-          deletedFields.map((f) => {
-            f.deleted = true;
-            return f;
-          })
-        );
-      }
-
-      if (addFallback) {
-        const uuid = uuidv4();
-        routes = routes || [];
-        // Add a fallback route if there is none
-        if (!routes.find((route) => route.isFallback)) {
-          routes.push({
-            id: uuid,
-            isFallback: true,
-            action: {
-              type: "customPageMessage",
-              value: "Thank you for your interest! We will be in touch soon.",
-            },
-            queryValue: { id: uuid, type: "group" },
-          });
-        }
-      }
-
-      return await prisma.app_RoutingForms_Router.upsert({
-        where: {
-          id: id,
-        },
-        create: {
-          user: {
-            connect: {
-              id: user.id,
-            },
-          },
-          fields: fields,
-          name: name,
-          description,
-          // Prisma doesn't allow setting null value directly for JSON. It recommends using JsonNull for that case.
-          routes: routes === null ? Prisma.JsonNull : routes,
-          id: id,
-        },
-        update: {
-          fields: fields,
-          name: name,
-          description,
-          // settings: settings === null ? Prisma.JsonNull : settings,
-          routes: routes === null ? Prisma.JsonNull : routes,
         },
       });
     }),

@@ -1,5 +1,4 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { App_RoutingForms_Form } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { Controller, useFieldArray } from "react-hook-form";
 import { UseFormReturn } from "react-hook-form";
@@ -14,18 +13,15 @@ import FormCard from "@calcom/ui/v2/core/form/FormCard";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/SingleForm";
+import {
+  getServerSidePropsForSingleFormView as getServerSideProps,
+  RoutingFormWithResponseCount,
+} from "../../components/SingleForm";
 import SingleForm from "../../components/SingleForm";
-import { SerializableForm } from "../../types/types";
 
 export { getServerSideProps };
-type RoutingForm = SerializableForm<App_RoutingForms_Form>;
-type RoutingFormWithResponseCount = RoutingForm & {
-  _count: {
-    responses: number;
-  };
-};
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
+
 export const FieldTypes = [
   {
     label: "Short Text",
@@ -96,7 +92,7 @@ function Field({
       _setIdentifier(label);
     }
   }, [label, hookFieldNamespace, hookForm]);
-
+  const globalRouter = hookForm.getValues(`${hookFieldNamespace}.globalRouter`);
   return (
     <div
       data-testid="field"
@@ -105,10 +101,12 @@ function Field({
         label={label || `Field ${fieldIndex + 1}`}
         moveUp={moveUp}
         moveDown={moveDown}
-        deleteField={deleteField}>
+        badge={globalRouter ? { text: globalRouter.name, variant: "default" } : null}
+        deleteField={globalRouter ? null : deleteField}>
         <div className="w-full">
           <div className="mb-6 w-full">
             <TextField
+              disabled={!!globalRouter}
               label="Label"
               type="text"
               placeholder="This is what your users would see"
@@ -119,6 +117,7 @@ function Field({
           </div>
           <div className="mb-6 w-full">
             <TextField
+              disabled={!!globalRouter}
               label="Identifier"
               name="identifier"
               required
@@ -137,6 +136,7 @@ function Field({
                 return (
                   <SelectField
                     label="Type"
+                    isDisabled={!!globalRouter}
                     containerClassName="data-testid-field-type"
                     options={FieldTypes}
                     onChange={(option) => {
@@ -155,6 +155,7 @@ function Field({
             <div className="mt-2 block items-center sm:flex">
               <div className="w-full">
                 <TextAreaField
+                  disabled={!!globalRouter}
                   rows={3}
                   label="Options"
                   placeholder="Add 1 option per line"
@@ -178,6 +179,7 @@ function Field({
     </div>
   );
 }
+
 const FormEdit = ({
   hookForm,
   form,

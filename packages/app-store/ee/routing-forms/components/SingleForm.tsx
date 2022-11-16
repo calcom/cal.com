@@ -1,4 +1,5 @@
 import { App_RoutingForms_Form } from "@prisma/client";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useForm, UseFormReturn, Controller } from "react-hook-form";
 
@@ -13,7 +14,7 @@ import {
 } from "@calcom/types/AppGetServerSideProps";
 import { Icon } from "@calcom/ui";
 import { Dialog, DialogContent, DialogClose, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
-import { Button, ButtonGroup } from "@calcom/ui/components";
+import { Badge, Button, ButtonGroup } from "@calcom/ui/components";
 import { Form, TextAreaField, TextField } from "@calcom/ui/components/form";
 import { showToast, DropdownMenuSeparator, Tooltip, VerticalDivider } from "@calcom/ui/v2";
 import Meta from "@calcom/ui/v2/core/Meta";
@@ -31,11 +32,17 @@ import FormInputFields from "./FormInputFields";
 import RoutingNavBar from "./RoutingNavBar";
 
 type RoutingForm = SerializableForm<App_RoutingForms_Form>;
-type RoutingFormWithResponseCount = RoutingForm & {
+// type ViewOnlyFieldsRoutingForm = {
+//   fields: (NonNullable<RoutingForm["fields"]>[number] & {
+//     globalRouter?: Pick<RoutingForm, "name" | "description" | "id">;
+//   })[];
+// };
+
+export type RoutingFormWithResponseCount = RoutingForm & {
   _count: {
     responses: number;
   };
-};
+} /*& ViewOnlyFieldsRoutingForm*/;
 
 const Actions = ({
   form,
@@ -282,6 +289,25 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                       }}
                     />
                   </div>
+                  {form.linkedToGlobalRouters ? (
+                    <div className="mt-6">
+                      <div className="mb-2 block text-sm font-medium leading-none text-gray-700">
+                        Linked Routers
+                      </div>
+                      {form.linkedToGlobalRouters.map((router) => {
+                        return (
+                          <div key={router.id}>
+                            <Link href={`/${appUrl}/route-builder/${router.id}`}>
+                              <a>
+                                <Badge variant="default">{router.name}</Badge>
+                              </a>
+                            </Link>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+
                   <div className="mt-6">
                     <Button
                       color="secondary"

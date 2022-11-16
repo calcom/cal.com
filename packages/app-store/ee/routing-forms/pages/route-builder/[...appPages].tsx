@@ -4,6 +4,7 @@ import React, { useState, useCallback } from "react";
 import { Query, Config, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
 import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
+import { z } from "zod";
 
 import { trpc } from "@calcom/trpc/react";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -12,6 +13,7 @@ import { Button, TextField, TextArea } from "@calcom/ui/components";
 import { SelectWithValidation as Select, Shell } from "@calcom/ui/v2";
 import FormCard from "@calcom/ui/v2/core/form/FormCard";
 
+import { globalRoute, globalRouteView, localRoute, zodRoute, zodRouteView } from "../..//zod";
 import { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/SingleForm";
 import SingleForm from "../../components/SingleForm";
 import QueryBuilderInitialConfig from "../../components/react-awesome-query-builder/config/config";
@@ -24,8 +26,10 @@ export { getServerSideProps };
 type RoutingForm = SerializableForm<App_RoutingForms_Form>;
 
 const InitialConfig = QueryBuilderInitialConfig;
-const hasRules = (route: Route) =>
+const hasRules = (route: Route) => {
+  if ("routerType" in route) return false;
   route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
+};
 type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Config["fields"] };
 export function getQueryBuilderConfig(form: RoutingForm, forReporting = false) {
   const fields: Record<
@@ -84,7 +88,7 @@ export function getQueryBuilderConfig(form: RoutingForm, forReporting = false) {
   return config;
 }
 
-const getEmptyRoute = (): SerializableRoute => {
+const getEmptyRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
   const uuid = QbUtils.uuid();
   return {
     id: uuid,
@@ -96,7 +100,7 @@ const getEmptyRoute = (): SerializableRoute => {
   };
 };
 
-const createFallbackRoute = (): SerializableRoute => {
+const createFallbackRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
   const uuid = QbUtils.uuid();
   return {
     id: uuid,
@@ -109,28 +113,29 @@ const createFallbackRoute = (): SerializableRoute => {
   };
 };
 
-type Route = {
-  id: string;
-  isFallback?: boolean;
-  action: {
-    type: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
-    value: string;
-  };
-  // This is what's persisted
-  queryValue: JsonTree;
-  // `queryValue` is parsed to create state
-  state: {
-    tree: ImmutableTree;
-    config: QueryBuilderUpdatedConfig;
-  };
-};
+type LocalRoute = z.infer<typeof localRoute>;
+type GlobalRoute = z.infer<typeof globalRouteView>;
 
-type SerializableRoute = Pick<Route, "id" | "action"> & {
-  queryValue: Route["queryValue"];
-  isFallback?: Route["isFallback"];
-};
+type Route =
+  | (LocalRoute & {
+      // This is what's persisted
+      queryValue: JsonTree;
+      // `queryValue` is parsed to create state
+      state: {
+        tree: ImmutableTree;
+        config: QueryBuilderUpdatedConfig;
+      };
+    })
+  | GlobalRoute;
 
-export const RoutingPages: { label: string; value: Route["action"]["type"] }[] = [
+type SerializableRoute =
+  | (LocalRoute & {
+      queryValue: LocalRoute["queryValue"];
+      isFallback?: LocalRoute["isFallback"];
+    })
+  | GlobalRoute;
+
+export const RoutingPages: { label: string; value: NonNullable<LocalRoute["action"]>["type"] }[] = [
   {
     label: "Custom Page",
     value: "customPageMessage",
@@ -153,6 +158,7 @@ const Route = ({
   setRoutes,
   moveUp,
   moveDown,
+  appUrl,
   disabled = false,
 }: {
   route: Route;
@@ -162,6 +168,8 @@ const Route = ({
   setRoutes: React.Dispatch<React.SetStateAction<Route[]>>;
   moveUp?: { fn: () => void; check: () => boolean } | null;
   moveDown?: { fn: () => void; check: () => boolean } | null;
+  appUrl: string;
+  disabled?: boolean;
 }) => {
   const index = routes.indexOf(route);
 
@@ -197,25 +205,16 @@ const Route = ({
     []
   );
 
-  if (route.routerType === "global") {
-    // return route.routes
-    //   ?.map((r) => deserializeRoute(r, config))
-    //   ?.map((route) => {
-    //     return (
-    //       <Route
-    //         disabled={true}
-    //         key={route.id}
-    //         config={config}
-    //         route={route}
-    //         routes={routes}
-    //         setRoute={setRoute}
-    //         setRoutes={setRoutes}
-    //       />
-    //     );
-    //   });
+  if ("routerType" in route) {
+    // Render GlobalRoute
     return (
       <div>
-        <FormCard moveUp={moveUp} moveDown={moveDown} label={route.name} className="mb-6">
+        <FormCard
+          moveUp={moveUp}
+          moveDown={moveDown}
+          badge={{ variant: "default", text: route.name, href: `/${appUrl}/route-builder/${route.id}` }}
+          label={route.name}
+          className="mb-6">
           <div>{route.description || "A Global Router"}</div>
         </FormCard>
       </div>
@@ -251,7 +250,7 @@ const Route = ({
                   if (!item) {
                     return;
                   }
-                  const action: Route["action"] = {
+                  const action: LocalRoute["action"] = {
                     type: item.value,
                     value: "",
                   };
@@ -332,7 +331,10 @@ const Route = ({
   );
 };
 
-const deserializeRoute = (route: SerializableRoute, config: QueryBuilderUpdatedConfig): Route => {
+const deserializeRoute = (
+  route: Exclude<SerializableRoute, GlobalRoute>,
+  config: QueryBuilderUpdatedConfig
+): Route => {
   return {
     ...route,
     state: {
@@ -345,11 +347,13 @@ const deserializeRoute = (route: SerializableRoute, config: QueryBuilderUpdatedC
 const Routes = ({
   form,
   hookForm,
+  appUrl,
 }: {
   form: inferSSRProps<typeof getServerSideProps>["form"];
   // Figure out the type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   hookForm: any;
+  appUrl: string;
 }) => {
   const { routes: serializedRoutes } = form;
   const config = getQueryBuilderConfig(form);
@@ -357,6 +361,9 @@ const Routes = ({
     const transformRoutes = () => {
       const _routes = serializedRoutes || [getEmptyRoute()];
       _routes.forEach((r) => {
+        if ("routerType" in r) {
+          return;
+        }
         if (!r.queryValue?.id) {
           r.queryValue = { id: QbUtils.uuid(), type: "group" };
         }
@@ -364,13 +371,30 @@ const Routes = ({
       return _routes;
     };
 
-    return transformRoutes().map((route) => deserializeRoute(route, config));
+    return transformRoutes().map((route) => {
+      if ("routerType" in route) {
+        return route;
+      }
+      return deserializeRoute(route, config);
+    });
   });
 
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
-  const mainRoutes = routes.filter((route) => !route.isFallback);
-  let fallbackRoute = routes.find((route) => route.isFallback);
+  const mainRoutes = routes.filter((route) => {
+    if ("routerType" in route) {
+      return true;
+    }
+    return !route.isFallback;
+  });
+
+  let fallbackRoute = routes.find((route) => {
+    if ("routerType" in route) {
+      return false;
+    }
+    return route.isFallback;
+  });
+
   if (!fallbackRoute) {
     fallbackRoute = deserializeRoute(createFallbackRoute(), config);
     setRoutes((routes) => {
@@ -387,6 +411,7 @@ const Routes = ({
       return [...routes.filter((route) => route.id !== fallbackRoute!.id), fallbackRoute!];
     });
   }
+
   const setRoute = (id: string, route: Partial<Route>) => {
     const index = routes.findIndex((route) => route.id === id);
     const newRoutes = [...routes];
@@ -404,8 +429,8 @@ const Routes = ({
     });
   };
 
-  const routesToSave: SerializableRoute[] = routes.map((route) => {
-    if (route.routerType === "global") {
+  const routesToSave = routes.map((route) => {
+    if ("routerType" in route) {
       return route;
     }
     return {
@@ -422,6 +447,7 @@ const Routes = ({
         {mainRoutes.map((route, key) => {
           return (
             <Route
+              appUrl={appUrl}
               key={route.id}
               config={config}
               route={route}
@@ -466,6 +492,22 @@ const Routes = ({
           }}>
           Add Route
         </Button>
+        <Button
+          onClick={() => {
+            const routerId = prompt("Form ID of Router");
+            if (!routerId) {
+              return;
+            }
+            setRoutes([
+              ...routes,
+              {
+                routerType: "global",
+                id: routerId,
+              } as Route,
+            ]);
+          }}>
+          Pick Global Router
+        </Button>
         <div>
           <Route
             config={config}
@@ -473,6 +515,7 @@ const Routes = ({
             routes={routes}
             setRoute={setRoute}
             setRoutes={setRoutes}
+            appUrl={appUrl}
           />
         </div>
       </div>
@@ -490,7 +533,7 @@ export default function RouteBuilder({
       appUrl={appUrl}
       Page={({ hookForm, form }) => (
         <div className="route-config">
-          <Routes hookForm={hookForm} form={form} />
+          <Routes hookForm={hookForm} appUrl={appUrl} form={form} />
         </div>
       )}
     />
