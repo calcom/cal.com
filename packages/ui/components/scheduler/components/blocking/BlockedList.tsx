@@ -17,6 +17,9 @@ export function BlockedList({ day, containerRef }: Props) {
     blockingDates: state.blockingDates,
   }));
 
+  const dayStart = useMemo(() => day.startOf("day").hour(startHour), [day, startHour]);
+  const nowComparedToDayStart = useMemo(() => dayjs().diff(dayStart, "minute"), [dayStart]);
+
   return (
     <>
       {day.isBefore(dayjs(), "day") && (
@@ -30,6 +33,16 @@ export function BlockedList({ day, containerRef }: Props) {
           <BlockedTimeCell />
         </div>
       )}
+
+      <div
+        key={day.format("YYYY-MM-DD")}
+        className="absolute z-50 w-full"
+        style={{
+          top: `var(--one-minute-height)`,
+          height: `calc(${nowComparedToDayStart} * var(--one-minute-height))`,
+        }}>
+        <BlockedTimeCell />
+      </div>
 
       {blockingDates &&
         blockingDates.map((event, i) => {
