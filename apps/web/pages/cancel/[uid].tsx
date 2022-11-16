@@ -110,7 +110,7 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                                           "-ml-4 block w-full text-center",
                                           moreEventsVisible ? "hidden" : ""
                                         )}>
-                                        {t("plus_more", { count: props.recurringInstances.length - 1 })}
+                                        + {t("plus_more", { count: props.recurringInstances.length - 1 })}
                                       </CollapsibleTrigger>
                                       <CollapsibleContent>
                                         {props.booking?.eventType.recurringEvent?.count &&

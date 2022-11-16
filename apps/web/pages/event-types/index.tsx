@@ -56,7 +56,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
   return (
     <Link href={`/event-types/${type.id}?tabName=setup`}>
       <a
-        className="overflow-hidden pr-4 text-sm"
+        className="w-full overflow-hidden pr-4 text-sm"
         title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
         <div>
           <span
