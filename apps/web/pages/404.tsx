@@ -3,7 +3,14 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 
-import { DEVELOPER_DOCS, DOCS_URL, JOIN_SLACK, WEBSITE_DOMAIN, WEBSITE_URL } from "@calcom/lib/constants";
+import {
+  COMPANY_NAME,
+  DEVELOPER_DOCS,
+  DOCS_URL,
+  JOIN_SLACK,
+  WEBSITE_DOMAIN,
+  WEBSITE_URL,
+} from "@calcom/lib/constants";
 import { Icon } from "@calcom/ui/Icon";
 
 import { useLocale } from "@lib/hooks/useLocale";
@@ -64,7 +71,7 @@ export default function Custom404() {
                 <h1 className="font-cal mt-2 text-3xl font-extrabold text-gray-900">
                   {t("signup_requires")}
                 </h1>
-                <p className="mt-4">{t("signup_requires_description", { domainName: WEBSITE_DOMAIN })}</p>
+                <p className="mt-4">{t("signup_requires_description", { companyName: COMPANY_NAME })}</p>
               </div>
               <div className="mt-12">
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
