@@ -7,6 +7,14 @@ import {
 } from "@calcom/lib/CloseComeUtils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+jest.mock("@calcom/lib/CloseCom", () => ({
+  default: class {
+    constructor() {
+      /* Mock */
+    }
+  },
+}));
+
 afterEach(() => {
   jest.resetAllMocks();
 });
