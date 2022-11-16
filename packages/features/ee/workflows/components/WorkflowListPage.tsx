@@ -35,11 +35,11 @@ export default function WorkflowListPage({ workflows }: Props) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
 
-  const query = trpc.useQuery(["viewer.workflows.list"]);
+  const query = trpc.viewer.workflows.list.useQuery();
 
-  const deleteMutation = trpc.useMutation("viewer.workflows.delete", {
+  const deleteMutation = trpc.viewer.workflows.delete.useMutation({
     onSuccess: async () => {
-      await utils.invalidateQueries(["viewer.workflows.list"]);
+      await utils.viewer.workflows.list.invalidate();
       showToast(t("workflow_deleted_successfully"), "success");
       setDeleteDialogOpen(false);
     },

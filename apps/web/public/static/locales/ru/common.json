@@ -596,7 +596,7 @@
   "monthly_other": "мес.",
   "yearly_one": "год",
   "yearly_other": "г.",
-  "plus_more": "+ еще {{count}}",
+  "plus_more": "еще {{count}}",
   "max": "Макс.",
   "single_theme": "Тема оформления",
   "brand_color": "Цвет бренда",
