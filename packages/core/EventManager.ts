@@ -238,23 +238,22 @@ export default class EventManager {
 
     // If rescheduling and it's not the last attendee of a booking with seats we shouldn't update the booking cancellation
     let shouldUpdateBookingCancellation = true;
-    if (booking?.eventType?.seatsPerTimeSlot && booking.attendees.length > 1) {
-      shouldUpdateBookingCancellation = false;
-      // Here we also should remove current attendee from event calendar
 
+    if (booking?.eventType?.seatsPerTimeSlot) {
+      // Here we also should remove current attendee from event calendar
       evt.attendees = evt.attendees.filter((attendee) => attendee.email !== currentAttendeeEmail);
-      console.log("removing attendee from event", evt.attendees);
-    }
-    if (shouldUpdateBookingCancellation) {
-      // Add reschedule reason to new booking
-      await prisma.booking.update({
-        where: {
-          id: newBookingId,
-        },
-        data: {
-          cancellationReason: rescheduleReason,
-        },
-      });
+      if (evt.attendees.length === 0) {
+        shouldUpdateBookingCancellation = false;
+        // Add reschedule reason to new booking
+        await prisma.booking.update({
+          where: {
+            id: newBookingId,
+          },
+          data: {
+            cancellationReason: rescheduleReason,
+          },
+        });
+      }
     }
 
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;

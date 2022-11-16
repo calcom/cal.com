@@ -626,9 +626,23 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   // Initialize EventManager with credentials
   const rescheduleUid = reqBody.rescheduleUid;
   async function getOriginalRescheduledBooking(uid: string) {
+    let bookingUid = uid;
+    // Now rescheduleUid can be bookingSeatsReferences
+    const bookingSeatsReferences = await prisma.bookingSeatsReferences.findUnique({
+      where: {
+        referenceUId: uid,
+      },
+      include: {
+        booking: true,
+      },
+    });
+    if (bookingSeatsReferences) {
+      bookingUid = bookingSeatsReferences.booking.uid;
+    }
+
     return prisma.booking.findFirst({
       where: {
-        uid,
+        uid: bookingUid,
         status: {
           in: [BookingStatus.ACCEPTED, BookingStatus.CANCELLED, BookingStatus.PENDING],
         },

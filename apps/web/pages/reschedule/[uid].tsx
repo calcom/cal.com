@@ -89,7 +89,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   return {
     redirect: {
-      destination: "/" + eventPage + "?rescheduleUid=" + bookingUid,
+      destination: "/" + eventPage + "?rescheduleUid=" + z.string().parse(context.query.uid),
       permanent: false,
     },
   };
