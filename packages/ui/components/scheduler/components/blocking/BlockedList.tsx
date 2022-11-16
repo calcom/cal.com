@@ -10,15 +10,20 @@ type Props = {
   containerRef: React.RefObject<HTMLDivElement>;
 };
 
+function roundX(x: number, roundBy: number) {
+  return Math.round(x / roundBy) * roundBy;
+}
+
 export function BlockedList({ day, containerRef }: Props) {
-  const { startHour, blockingDates, endHour } = useSchedulerStore((state) => ({
+  const { startHour, blockingDates, endHour, gridCellsPerHour } = useSchedulerStore((state) => ({
     startHour: state.startHour || 0,
     endHour: state.endHour || 23,
     blockingDates: state.blockingDates,
+    gridCellsPerHour: state.gridCellsPerHour || 4,
   }));
 
   const dayStart = useMemo(() => day.startOf("day").hour(startHour), [day, startHour]);
-  const nowComparedToDayStart = useMemo(() => dayjs().diff(dayStart, "minute"), [dayStart]);
+  const nowComparedToDayStart = useMemo(() => dayjs().diff(dayStart, "minutes"), [dayStart]);
 
   return (
     <>
@@ -39,7 +44,11 @@ export function BlockedList({ day, containerRef }: Props) {
         className="absolute z-50 w-full"
         style={{
           top: `var(--one-minute-height)`,
-          height: `calc(${nowComparedToDayStart} * var(--one-minute-height))`,
+
+          height: `calc(${roundX(
+            nowComparedToDayStart,
+            60 / gridCellsPerHour
+          )} * var(--one-minute-height) - 2px)`, // We minus the border width to make it 🧹
         }}>
         <BlockedTimeCell />
       </div>
