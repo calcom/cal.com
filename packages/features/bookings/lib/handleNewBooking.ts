@@ -511,6 +511,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         uid: reqBody.bookingUid,
       },
       select: {
+        uid: true,
         id: true,
         attendees: true,
         userId: true,

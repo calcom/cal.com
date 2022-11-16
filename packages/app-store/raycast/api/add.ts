@@ -10,7 +10,9 @@ const handler: AppDeclarativeHandler = {
   variant: appConfig.variant,
   supportsMultipleInstalls: false,
   handlerType: "add",
-  redirectUrl: "raycast://extensions/eluce2/cal-com-share-meeting-links?source=webstore",
+  redirect: {
+    url: "raycast://extensions/eluce2/cal-com-share-meeting-links?source=webstore",
+  },
   createCredential: ({ appType, user, slug }) =>
     createDefaultInstallation({ appType, userId: user.id, slug, key: {} }),
 };

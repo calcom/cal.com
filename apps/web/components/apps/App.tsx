@@ -146,6 +146,7 @@ const Component = ({
             </div>
           ) : existingCredentials.length > 0 ? (
             <DisconnectIntegration
+              buttonProps={{ color: "secondary" }}
               label={t("disconnect")}
               credentialId={existingCredentials[0]}
               onSuccess={() => {
