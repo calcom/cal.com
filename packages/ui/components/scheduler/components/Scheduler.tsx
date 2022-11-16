@@ -19,16 +19,16 @@ export function Scheduler(props: SchedulerComponentProps) {
   const containerOffset = useRef<HTMLDivElement | null>(null);
   const initalState = useSchedulerStore((state) => state.initState);
 
-  const { startDate, endDate, startHour, endHour, events, usersCellsStopsPerHour } = useSchedulerStore(
-    (state) => ({
+  const { startDate, endDate, startHour, endHour, events, usersCellsStopsPerHour, eventHoverDuration } =
+    useSchedulerStore((state) => ({
       startDate: state.startDate,
       endDate: state.endDate,
       startHour: state.startHour || 0,
       endHour: state.endHour || 23,
       events: state.events,
       usersCellsStopsPerHour: state.gridCellsPerHour || 4,
-    })
-  );
+      eventHoverDuration: state.hoverEventDuration,
+    }));
 
   const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
 
@@ -93,6 +93,7 @@ export function Scheduler(props: SchedulerComponentProps) {
                             totalGridCells={numberOfGridStopsPerDay}
                             selectionLength={endHour - startHour}
                             startHour={startHour}
+                            eventDuration={eventHoverDuration || 15}
                           />
                         );
                       })}

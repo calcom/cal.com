@@ -92,6 +92,11 @@ export type SchedulerState = {
    * @default 4
    */
   gridCellsPerHour?: number;
+  /** Sets the duration on the hover event. In minutes.
+   *
+   * @Note set to 0 to disable any hover actions.
+   */
+  hoverEventDuration?: number;
   /**If passed in we will sort the events internally.
    *
    * @Note It is recommended to sort the events before passing them into the schedler - e.g. On DB level.

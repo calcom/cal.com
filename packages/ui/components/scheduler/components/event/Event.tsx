@@ -26,7 +26,7 @@ export function Event({
     <Component
       onClick={() => onEventClick?.(event)} // Note this is not the button event. It is the calendar event.
       className={classNames(
-        "group  flex h-full flex-col overflow-y-auto rounded-[4px]  py-1 px-[6px] text-xs font-semibold  leading-5 ",
+        "group  flex h-full w-full flex-col overflow-y-auto rounded-[4px]  py-1 px-[6px] text-xs font-semibold  leading-5 ",
         event.status === "ACCEPTED" &&
           !selected &&
           "border-[1px] border-gray-900 bg-gray-100 text-gray-900 hover:bg-gray-200",
@@ -36,10 +36,14 @@ export function Event({
         selected && "border-[1px] border-transparent bg-gray-900 text-white",
         disabled ? "hover:cursor-default" : "hover:cursor-pointer"
       )}>
-      <span className="overflow-ellipsis whitespace-pre">{event.title}</span>
-      <p className="text-[10px] leading-none text-gray-500">
-        {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
-      </p>
+      <div className="overflow-ellipsis leading-4">
+        <p className="w-full">{event.title}</p>
+      </div>
+      {eventDuration >= 30 && (
+        <p className="text-[10px] leading-none text-gray-500">
+          {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
+        </p>
+      )}
     </Component>
   );
 }
