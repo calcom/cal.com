@@ -23,10 +23,10 @@ export function TopBanner(props: TopBannerProps) {
     <div
       data-testid="banner"
       className={classNames(
-        " z-50 flex  h-[40px] w-full items-start justify-between gap-8 bg-gray-50 px-4 text-center sm:items-center",
+        " z-50 flex min-h-[40px] w-full items-start justify-between gap-8 bg-gray-50 px-4 text-center sm:items-center",
         variantClassName[variant]
       )}>
-      <div className="flex flex-1 items-center justify-center gap-2">
+      <div className="flex flex-1 items-center justify-center gap-2 p-1">
         <p className="flex items-center justify-center gap-2 font-sans text-sm font-medium leading-4 text-gray-900">
           {["warning", "error"].includes(variant) && (
             <ExclamationIcon className="h-5 w-5 text-black" aria-hidden="true" />

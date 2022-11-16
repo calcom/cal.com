@@ -142,14 +142,13 @@ const Layout = (props: LayoutProps) => {
         <Toaster position="bottom-right" />
       </div>
 
-      <TeamsUpgradeBanner />
-
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
       <div className="h-screen overflow-hidden">
         <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
           {props.SidebarContainer || <SideBarContainer />}
           <div className="flex w-0 flex-1 flex-col overflow-hidden">
+            <TeamsUpgradeBanner />
             <ImpersonatingBanner />
             <MainContainer {...props} />
           </div>

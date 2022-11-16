@@ -18,19 +18,19 @@ export function TeamsUpgradeBanner() {
     },
   });
   if (!data) return null;
-  const [team] = data;
-  if (!team) return null;
+  const [membership] = data;
+  if (!membership) return null;
   return (
     <TopBanner
-      text={`Hey! your team "${team.team.name}" needs to be upgraded.`}
+      text={t("team_upgrade_banner_description", { teamName: membership.team.name })}
       variant="warning"
       actions={
         <button
           className="border-b border-b-black"
           onClick={() => {
-            publishTeamMutation.mutate({ teamId: team.team.id });
+            publishTeamMutation.mutate({ teamId: membership.team.id });
           }}>
-          Upgrade you team here
+          {t("team_upgrade_banner_action")}
         </button>
       }
     />
