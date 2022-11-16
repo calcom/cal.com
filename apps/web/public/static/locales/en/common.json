@@ -16,8 +16,8 @@
   "event_request_cancelled": "Your scheduled event was cancelled",
   "organizer": "Organizer",
   "need_to_reschedule_or_cancel": "Need to reschedule or cancel?",
-  "cancellation_reason": "Reason for cancellation",
-  "cancellation_reason_placeholder": "Why are you cancelling? (optional)",
+  "cancellation_reason": "Reason for cancellation (optional)",
+  "cancellation_reason_placeholder": "Why are you cancelling?",
   "rejection_reason": "Reason for rejecting",
   "rejection_reason_title": "Reject the booking request?",
   "rejection_reason_description": "Are you sure you want to reject the booking? We'll let the person who tried to book know. You can provide a reason below.",
@@ -1362,6 +1362,7 @@
   "invalid_credential": "Oh no! Looks like permission expired or was revoked. Please reinstall again.",
   "choose_common_schedule_team_event": "Choose a common schedule",
   "choose_common_schedule_team_event_description": "Enable this if you want to use a common schedule between hosts. When disabled, each host will be booked based on their default schedule.",
+  "reason": "Reason",
   "sender_id": "Sender ID",
   "sender_id_error_message":"Only letters, numbers and spaces allowed (max. 11 characters)",
   "test_routing_form": "Test Routing Form",
@@ -1370,3 +1371,4 @@
   "test_preview_description": "Test your routing form without submitting any data",
   "test_routing": "Test Routing"
 }
+
