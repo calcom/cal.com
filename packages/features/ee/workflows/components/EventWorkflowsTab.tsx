@@ -11,8 +11,8 @@ import { Icon } from "@calcom/ui";
 import { Button } from "@calcom/ui/components";
 import { showToast, Switch, Tooltip, EmptyScreen } from "@calcom/ui/v2";
 
-import LicenseRequired from "../../../common/components/v2/LicenseRequired";
-import { getActionIcon } from "../../lib/getActionIcon";
+import LicenseRequired from "../../common/components/v2/LicenseRequired";
+import { getActionIcon } from "../lib/getActionIcon";
 import SkeletonLoader from "./SkeletonLoaderEventWorkflowsTab";
 import { WorkflowType } from "./WorkflowListPage";
 
