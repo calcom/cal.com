@@ -606,8 +606,9 @@ export const viewerTeamsRouter = router({
         return { url: checkoutSession.url };
       }
 
-      if (!metadata.data?.requestedSlug)
+      if (!metadata.data?.requestedSlug) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Can't publish team without `requestedSlug`" });
+      }
 
       const { requestedSlug, ...newMetadata } = metadata.data;
       let updatedTeam: Awaited<ReturnType<typeof ctx.prisma.team.update>>;
