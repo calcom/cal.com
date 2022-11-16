@@ -1,5 +1,4 @@
 import logger from "@calcom/lib/logger";
-import { CalendarEvent } from "@calcom/types/Calendar";
 
 export type CloseComLead = {
   companyName?: string | null | undefined;
@@ -300,7 +299,6 @@ export default class CloseCom {
   private _delete = async ({ urlPath }: { urlPath: string }) => {
     return this._request({ urlPath, method: "delete" });
   };
-
   private _request = async ({
     urlPath,
     data,
