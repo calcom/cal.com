@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
-import Button from "@calcom/ui/Button";
-import { List, ListItem } from "@calcom/ui/List";
+import { Button } from "@calcom/ui/components/Button";
+import { List, ListItem } from "@calcom/ui/v2/core/List";
 
 import { sandboxPage } from ".";
 
@@ -10,7 +10,7 @@ const page = sandboxPage(() => {
   return (
     <div className="p-4">
       Unstyled -{" "}
-      <Button size="sm" color="minimal" onClick={() => setExpanded((state) => !state)}>
+      <Button size="base" color="minimal" onClick={() => setExpanded((state) => !state)}>
         Toggle expanded
       </Button>
       <List>
