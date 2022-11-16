@@ -28,8 +28,8 @@ function useAddAppMutation(_type: App["type"] | null, options?: Parameters<typeo
       isOmniInstall = variables.isOmniInstall;
       type = variables.type;
     }
-    if (type?.endsWith("_other_calendar")) {
-      type = type.split("_other_calendar")[0];
+    if (type === "sendgrid_other_calendar") {
+      type = "sendgrid";
     }
     const state: IntegrationOAuthCallbackState = {
       returnTo:
