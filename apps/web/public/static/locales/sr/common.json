@@ -597,7 +597,7 @@
   "monthly_other": "meseci",
   "yearly_one": "godinu",
   "yearly_other": "godina",
-  "plus_more": "+ još {{count}}",
+  "plus_more": "još {{count}}",
   "max": "Maks.",
   "single_theme": "Tema",
   "brand_color": "Boja brenda",

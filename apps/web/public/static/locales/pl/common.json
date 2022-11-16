@@ -596,7 +596,7 @@
   "monthly_other": "miesiące",
   "yearly_one": "rok",
   "yearly_other": "lata",
-  "plus_more": "+ {{count}} więcej",
+  "plus_more": "{{count}} więcej",
   "max": "Maks.",
   "single_theme": "Pojedynczy motyw",
   "brand_color": "Kolor Marki",

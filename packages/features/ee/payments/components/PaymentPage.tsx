@@ -136,6 +136,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         user={props.user}
                         location={props.booking.location}
                         bookingId={props.booking.id}
+                        bookingUid={props.booking.uid}
                       />
                     </Elements>
                   )}

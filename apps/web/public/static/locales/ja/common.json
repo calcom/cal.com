@@ -596,7 +596,7 @@
   "monthly_other": "月",
   "yearly_one": "年",
   "yearly_other": "年",
-  "plus_more": "+ {{count}} 回以上",
+  "plus_more": "{{count}} 回以上",
   "max": "最大",
   "single_theme": "シングルテーマ",
   "brand_color": "ブランドカラー",

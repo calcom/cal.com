@@ -596,7 +596,7 @@
   "monthly_other": "luni",
   "yearly_one": "an",
   "yearly_other": "ani",
-  "plus_more": "+ încă {{count}}",
+  "plus_more": "încă {{count}}",
   "max": "Max.",
   "single_theme": "Temă unică",
   "brand_color": "Culoare marcă",

@@ -596,7 +596,7 @@
   "monthly_other": "개월",
   "yearly_one": "년",
   "yearly_other": "년",
-  "plus_more": "+ {{count}} 이상",
+  "plus_more": "{{count}} 이상",
   "max": "최대",
   "single_theme": "단일 테마",
   "brand_color": "브랜드 색상",
