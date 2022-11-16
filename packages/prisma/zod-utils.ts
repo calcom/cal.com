@@ -150,6 +150,8 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
   z.object({
     noEmail: z.boolean().optional(),
     recurringCount: z.number().optional(),
+    allRecurringDates: z.string().array().optional(),
+    currentRecurringIndex: z.number().optional(),
     rescheduleReason: z.string().optional(),
     smsReminderNumber: z.string().optional(),
     appsStatus: z
@@ -195,6 +197,16 @@ export const userMetadata = z
     intentUsername: z.string().optional(),
     checkoutSessionId: z.string().nullable().optional(),
   })
+  .nullable();
+
+export const teamMetadataSchema = z
+  .object({
+    requestedSlug: z.string(),
+    paymentId: z.string(),
+    subscriptionId: z.string().nullable(),
+    subscriptionItemId: z.string().nullable(),
+  })
+  .partial()
   .nullable();
 
 /**

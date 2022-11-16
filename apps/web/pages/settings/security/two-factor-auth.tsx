@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import Badge from "@calcom/ui/v2/core/Badge";
+import { Badge } from "@calcom/ui/components/badge";
 import Loader from "@calcom/ui/v2/core/Loader";
 import Meta from "@calcom/ui/v2/core/Meta";
 import Switch from "@calcom/ui/v2/core/Switch";
@@ -15,7 +15,7 @@ const TwoFactorAuthView = () => {
   const utils = trpc.useContext();
 
   const { t } = useLocale();
-  const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
+  const { data: user, isLoading } = trpc.viewer.me.useQuery();
 
   const [enableModalOpen, setEnableModalOpen] = useState(false);
   const [disableModalOpen, setDisableModalOpen] = useState(false);
@@ -48,7 +48,7 @@ const TwoFactorAuthView = () => {
         onOpenChange={() => setEnableModalOpen(!enableModalOpen)}
         onEnable={() => {
           setEnableModalOpen(false);
-          utils.invalidateQueries("viewer.me");
+          utils.viewer.me.invalidate();
         }}
         onCancel={() => {
           setEnableModalOpen(false);
@@ -60,7 +60,7 @@ const TwoFactorAuthView = () => {
         onOpenChange={() => setDisableModalOpen(!disableModalOpen)}
         onDisable={() => {
           setDisableModalOpen(false);
-          utils.invalidateQueries("viewer.me");
+          utils.viewer.me.invalidate();
         }}
         onCancel={() => {
           setDisableModalOpen(false);

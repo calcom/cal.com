@@ -1,12 +1,13 @@
 import type { Credential } from "@prisma/client";
+import { useRouter } from "next/router";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { App } from "@calcom/types/App";
 import { Icon } from "@calcom/ui/Icon";
+import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/v2";
-import Button from "@calcom/ui/v2/core/Button";
 
 interface AppCardProps {
   app: App;
@@ -15,8 +16,11 @@ interface AppCardProps {
 
 export default function AppCard({ app, credentials }: AppCardProps) {
   const { t } = useLocale();
+  const router = useRouter();
   const mutation = useAddAppMutation(null, {
     onSuccess: () => {
+      // Refresh SSR page content without actual reload
+      router.replace(router.asPath);
       showToast(t("app_successfully_installed"), "success");
     },
     onError: (error) => {

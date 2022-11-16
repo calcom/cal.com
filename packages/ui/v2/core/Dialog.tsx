@@ -6,7 +6,7 @@ import { Icon } from "react-feather";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import Button from "./Button";
+import { Button } from "../../components/button";
 
 export type DialogProps = React.ComponentProps<typeof DialogPrimitive["Root"]> & {
   name?: string;
@@ -80,7 +80,7 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
 };
 
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
-  ({ children, title, Icon, actionProps, ...props }, forwardedRef) => {
+  ({ children, title, Icon, actionProps, useOwnActionButtons, ...props }, forwardedRef) => {
     const { t } = useLocale();
 
     return (
@@ -122,7 +122,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               </div>
             </div>
           )}
-          {!props.useOwnActionButtons && (
+          {!useOwnActionButtons && (
             <DialogFooter>
               <div className="mt-2 flex space-x-2">
                 <DialogClose asChild>

@@ -4,12 +4,12 @@ import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/components/button";
 
 import { HeadSeo } from "@components/seo/head-seo";
 
 const querySchema = z.object({
-  title: z.string(),
+  title: z.string().optional(),
   name: z.string().optional(),
   eventPage: z.string().optional(),
   allRemainingBookings: z

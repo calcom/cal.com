@@ -15,6 +15,7 @@ import { getEventLocationValue, getSuccessPageLocationMessage } from "@calcom/ap
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
+import { ConfigType } from "@calcom/dayjs";
 import {
   sdkActionManager,
   useEmbedNonStylesConfig,
@@ -23,6 +24,7 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import { parseRecurringEvent } from "@calcom/lib";
 import CustomBranding from "@calcom/lib/CustomBranding";
+import { formatTime } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -31,11 +33,13 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma, { baseUserSelect } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Icon } from "@calcom/ui/Icon";
-import Button from "@calcom/ui/v2/core/Button";
-import { EmailInput } from "@calcom/ui/v2/core/form/fields";
+import { Button, EmailInput } from "@calcom/ui/components";
 
+import { asStringOrThrow } from "@lib/asStringOrNull";
+import { timeZone } from "@lib/clock";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
@@ -386,29 +390,20 @@ export default function Success(props: SuccessProps) {
                       <>
                         <div className="font-medium">{t("who")}</div>
                         <div className="col-span-2 mb-6 last:mb-0">
-                          {bookingInfo?.user && (
-                            <div className="mb-3">
-                              <p>{bookingInfo.user.name}</p>
-                              <p className="text-bookinglight">{bookingInfo.user.email}</p>
-                            </div>
-                          )}
-                          {!!eventType.seatsShowAttendees
-                            ? bookingInfo?.attendees
-                                .filter((attendee) => attendee.email === email)
-                                .map((attendee) => (
-                                  <div key={attendee.name} className="mb-3">
-                                    <p>{attendee.name}</p>
-                                    <p className="text-bookinglight">{attendee.email}</p>
-                                  </div>
-                                ))
-                            : bookingInfo?.attendees.map((attendee, index) => (
-                                <div
-                                  key={attendee.name}
-                                  className={index === bookingInfo.attendees.length - 1 ? "" : "mb-3"}>
-                                  <p>{attendee.name}</p>
-                                  <p className="text-bookinglight">{attendee.email}</p>
-                                </div>
-                              ))}
+                          <>
+                            {bookingInfo?.user && (
+                              <div className="mb-3">
+                                <p>{bookingInfo.user.name}</p>
+                                <p className="text-bookinglight">{bookingInfo.user.email}</p>
+                              </div>
+                            )}
+                            {bookingInfo?.attendees.map((attendee) => (
+                              <div key={attendee.name} className="mb-3 last:mb-0">
+                                {attendee.name && <p>{attendee.name}</p>}
+                                <p className="text-bookinglight">{attendee.email}</p>
+                              </div>
+                            ))}
+                          </>
                         </div>
                       </>
                     )}
@@ -673,12 +668,13 @@ export function RecurringBookings({
   recurringBookings,
   date,
   allRemainingBookings,
+  is24h,
 }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const { t } = useLocale();
 
   const recurringBookingsSorted = recurringBookings
-    ? recurringBookings.sort((a, b) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
+    ? recurringBookings.sort((a: ConfigType, b: ConfigType) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
     : null;
 
   if (recurringBookingsSorted && allRemainingBookings) {
@@ -694,14 +690,13 @@ export function RecurringBookings({
           </span>
         )}
         {eventType.recurringEvent?.count &&
-          recurringBookingsSorted.slice(0, 4).map((dateStr, idx) => (
+          recurringBookingsSorted.slice(0, 4).map((dateStr: string, idx: number) => (
             <div key={idx} className="mb-2">
-              {dayjs(dateStr).format("MMMM DD, YYYY")}
+              {dayjs.tz(dateStr, timeZone()).format("MMMM DD, YYYY")}
               <br />
-              {dayjs(dateStr).format("LT")} - {dayjs(dateStr).add(eventType.length, "m").format("LT")}{" "}
-              <span className="text-bookinglight">
-                ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-              </span>
+              {formatTime(dateStr, is24h ? 24 : 12, timeZone())} -{" "}
+              {formatTime(dayjs(dateStr).add(eventType.length, "m"), is24h ? 24 : 12, timeZone())}{" "}
+              <span className="text-bookinglight">({timeZone()})</span>
             </div>
           ))}
         {recurringBookingsSorted.length > 4 && (
@@ -709,18 +704,17 @@ export function RecurringBookings({
             <CollapsibleTrigger
               type="button"
               className={classNames("flex w-full", moreEventsVisible ? "hidden" : "")}>
-              {t("plus_more", { count: recurringBookingsSorted.length - 4 })}
+              + {t("plus_more", { count: recurringBookingsSorted.length - 4 })}
             </CollapsibleTrigger>
             <CollapsibleContent>
               {eventType.recurringEvent?.count &&
-                recurringBookingsSorted.slice(4).map((dateStr, idx) => (
+                recurringBookingsSorted.slice(4).map((dateStr: string, idx: number) => (
                   <div key={idx} className="mb-2">
-                    {dayjs(dateStr).format("MMMM DD, YYYY")}
+                    {dayjs.tz(dateStr, timeZone()).format("MMMM DD, YYYY")}
                     <br />
-                    {dayjs(dateStr).format("LT")} - {dayjs(dateStr).add(eventType.length, "m").format("LT")}{" "}
-                    <span className="text-bookinglight">
-                      ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-                    </span>
+                    {formatTime(dateStr, is24h ? 24 : 12, timeZone())} -{" "}
+                    {formatTime(dayjs(dateStr).add(eventType.length, "m"), is24h ? 24 : 12, timeZone())}{" "}
+                    <span className="text-bookinglight">({timeZone()})</span>
                   </div>
                 ))}
             </CollapsibleContent>
@@ -732,12 +726,11 @@ export function RecurringBookings({
 
   return (
     <>
-      {date.format("MMMM DD, YYYY")}
+      {dayjs.tz(date, timeZone()).format("MMMM DD, YYYY")}
       <br />
-      {date.format("LT")} - {date.add(eventType.length, "m").format("LT")}{" "}
-      <span className="text-bookinglight">
-        ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-      </span>
+      {formatTime(date, is24h ? 24 : 12, timeZone())} -{" "}
+      {formatTime(dayjs(date).add(eventType.length, "m"), is24h ? 24 : 12, timeZone())}{" "}
+      <span className="text-bookinglight">({timeZone()})</span>
     </>
   );
 }
@@ -782,6 +775,7 @@ const getEventTypesFromDB = async (id: number) => {
         },
       },
       metadata: true,
+      seatsPerTimeSlot: true,
       seatsShowAttendees: true,
       periodStartDate: true,
       periodEndDate: true,
@@ -803,13 +797,39 @@ const getEventTypesFromDB = async (id: number) => {
 
 const schema = z.object({
   uid: z.string(),
+  email: z.string().optional(),
+  eventTypeSlug: z.string().optional(),
 });
+
+const handleSeatsEventTypeOnBooking = (
+  eventType: {
+    seatsPerTimeSlot?: number | null;
+    seatsShowAttendees: boolean | null;
+    [x: string | number | symbol]: unknown;
+  },
+  booking: Partial<
+    Prisma.BookingGetPayload<{ include: { attendees: { select: { name: true; email: true } } } }>
+  >,
+  email: string
+) => {
+  if (eventType?.seatsPerTimeSlot !== null) {
+    // @TODO: right now bookings with seats doesn't save every description that its entered by every user
+    delete booking.description;
+  } else {
+    return;
+  }
+  if (!eventType.seatsShowAttendees) {
+    const attendee = booking?.attendees?.find((a) => a.email === email);
+    booking["attendees"] = attendee ? [attendee] : [];
+  }
+  return;
+};
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const parsedQuery = schema.safeParse(context.query);
   if (!parsedQuery.success) return { notFound: true };
-  const { uid } = parsedQuery.data;
+  const { uid, email, eventTypeSlug } = parsedQuery.data;
 
   const bookingInfo = await prisma.booking.findFirst({
     where: {
@@ -851,17 +871,18 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     },
   });
 
-  if (!bookingInfo || !bookingInfo.eventType?.slug)
+  if (!bookingInfo) {
     return {
       notFound: true,
     };
+  }
 
   // @NOTE: had to do this because Server side cant return [Object objects]
   // probably fixable with json.stringify -> json.parse
   bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
 
   const eventTypeRaw = !bookingInfo.eventTypeId
-    ? getDefaultEvent(bookingInfo.eventType?.slug)
+    ? getDefaultEvent(eventTypeSlug || "")
     : await getEventTypesFromDB(bookingInfo.eventTypeId);
   if (!eventTypeRaw) {
     return {
@@ -905,6 +926,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
 
+  if (bookingInfo !== null && email) {
+    handleSeatsEventTypeOnBooking(eventType, bookingInfo, email);
+  }
+
   let recurringBookings = null;
   if (bookingInfo.recurringEventId) {
     // We need to get the dates for the bookings to be able to show them in the UI
@@ -925,7 +950,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       eventType,
       recurringBookings: recurringBookings ? recurringBookings.map((obj) => obj.startTime.toString()) : null,
       trpcState: ssr.dehydrate(),
-      dynamicEventName: bookingInfo.eventType.eventName || "",
+      dynamicEventName: bookingInfo?.eventType?.eventName || "",
       bookingInfo,
     },
   };

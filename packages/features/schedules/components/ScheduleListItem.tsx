@@ -4,18 +4,18 @@ import { Fragment } from "react";
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Availability } from "@calcom/prisma/client";
-import { inferQueryOutput } from "@calcom/trpc/react";
+import { RouterOutputs } from "@calcom/trpc/react";
 import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
-import Badge from "@calcom/ui/v2/core/Badge";
-import Button from "@calcom/ui/v2/core/Button";
+import { Badge } from "@calcom/ui/components/badge";
+import { Button } from "@calcom/ui/components/button";
 
 export function ScheduleListItem({
   schedule,
   deleteFunction,
   displayOptions,
 }: {
-  schedule: inferQueryOutput<"viewer.availability.list">["schedules"][number];
+  schedule: RouterOutputs["viewer"]["availability"]["list"]["schedules"][number];
   deleteFunction: ({ scheduleId }: { scheduleId: number }) => void;
   displayOptions?: {
     timeZone?: string;

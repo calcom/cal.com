@@ -13,22 +13,22 @@ const NewWebhookView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
-  const { data: installedApps, isLoading } = trpc.useQuery(
-    ["viewer.integrations", { variant: "other", onlyInstalled: true }],
+  const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery(
+    { variant: "other", onlyInstalled: true },
     {
       suspense: true,
       enabled: router.isReady,
     }
   );
-  const { data: webhooks } = trpc.useQuery(["viewer.webhook.list"], {
+  const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
     suspense: true,
     enabled: router.isReady,
   });
 
-  const createWebhookMutation = trpc.useMutation("viewer.webhook.create", {
+  const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
     async onSuccess() {
       showToast(t("webhook_created_successfully"), "success");
-      await utils.invalidateQueries(["viewer.webhook.list"]);
+      await utils.viewer.webhook.list.invalidate();
       router.back();
     },
     onError(error) {

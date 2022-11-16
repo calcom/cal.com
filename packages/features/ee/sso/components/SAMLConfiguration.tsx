@@ -7,8 +7,8 @@ import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
 import { ClipboardCopyIcon } from "@calcom/ui/Icon";
-import { Button, showToast, Label } from "@calcom/ui/v2";
-import Badge from "@calcom/ui/v2/core/Badge";
+import { Button, Label, Badge } from "@calcom/ui/components";
+import { showToast } from "@calcom/ui/v2";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
 import { Dialog, DialogTrigger, DialogContent } from "@calcom/ui/v2/core/Dialog";
 import Meta from "@calcom/ui/v2/core/Meta";
@@ -22,20 +22,23 @@ export default function SAMLConfiguration({ teamId }: { teamId: number | null })
   const [errorMessage, setErrorMessage] = useState("");
   const [configModal, setConfigModal] = useState(false);
 
-  const { data: connection, isLoading } = trpc.useQuery(["viewer.saml.get", { teamId }], {
-    onError: (err) => {
-      setHasError(true);
-      setErrorMessage(err.message);
-    },
-    onSuccess: () => {
-      setHasError(false);
-      setErrorMessage("");
-    },
-  });
+  const { data: connection, isLoading } = trpc.viewer.saml.get.useQuery(
+    { teamId },
+    {
+      onError: (err) => {
+        setHasError(true);
+        setErrorMessage(err.message);
+      },
+      onSuccess: () => {
+        setHasError(false);
+        setErrorMessage("");
+      },
+    }
+  );
 
-  const mutation = trpc.useMutation("viewer.saml.delete", {
+  const mutation = trpc.viewer.saml.delete.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.saml.get"]);
+      await utils.viewer.saml.get.invalidate();
       showToast(t("saml_config_deleted_successfully"), "success");
     },
     onError: (err) => {

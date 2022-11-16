@@ -1,7 +1,7 @@
 import classNames from "classnames";
-import { debounce } from "lodash";
+import { debounce, noop } from "lodash";
 import { useRouter } from "next/router";
-import { MutableRefObject, useCallback, useEffect, useState } from "react";
+import { RefCallback, useMemo, useEffect, useState } from "react";
 
 import { getPremiumPlanMode, getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
@@ -9,12 +9,12 @@ import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon, StarIconSolid } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/v2";
-import { Input, Label } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/components/button";
+import { Input, Label } from "@calcom/ui/components/form";
 
 export enum UsernameChangeStatusEnum {
   NORMAL = "NORMAL",
@@ -24,9 +24,9 @@ export enum UsernameChangeStatusEnum {
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
-  setCurrentUsername: (value: string | undefined) => void;
+  setCurrentUsername?: (newUsername: string) => void;
   inputUsernameValue: string | undefined;
-  usernameRef: MutableRefObject<HTMLInputElement | null>;
+  usernameRef: RefCallback<HTMLInputElement>;
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
@@ -57,7 +57,7 @@ const obtainNewUsernameChangeCondition = ({
 }: {
   userIsPremium: boolean;
   isNewUsernamePremium: boolean;
-  stripeCustomer: inferQueryOutput<"viewer.stripeCustomer"> | undefined;
+  stripeCustomer: RouterOutputs["viewer"]["stripeCustomer"] | undefined;
 }) => {
   if (!userIsPremium && isNewUsernamePremium && !stripeCustomer?.paidForPremium) {
     return UsernameChangeStatusEnum.UPGRADE;
@@ -73,7 +73,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const { t } = useLocale();
   const {
     currentUsername,
-    setCurrentUsername,
+    setCurrentUsername = noop,
     inputUsernameValue,
     setInputUsernameValue,
     usernameRef,
@@ -87,17 +87,18 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const router = useRouter();
   const { paymentStatus: recentAttemptPaymentStatus } = router.query;
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
-  const { data: stripeCustomer } = trpc.useQuery(["viewer.stripeCustomer"]);
+  const { data: stripeCustomer } = trpc.viewer.stripeCustomer.useQuery();
   const isCurrentUsernamePremium =
     user && user.metadata && hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
   const [isInputUsernamePremium, setIsInputUsernamePremium] = useState(false);
-  const debouncedApiCall = useCallback(
-    debounce(async (username: string) => {
-      const { data } = await fetchUsername(username);
-      setMarkAsError(!data.available && !!currentUsername && username !== currentUsername);
-      setIsInputUsernamePremium(data.premium);
-      setUsernameIsAvailable(data.available);
-    }, 150),
+  const debouncedApiCall = useMemo(
+    () =>
+      debounce(async (username: string) => {
+        const { data } = await fetchUsername(username);
+        setMarkAsError(!data.available && !!currentUsername && username !== currentUsername);
+        setIsInputUsernamePremium(data.premium);
+        setUsernameIsAvailable(data.available);
+      }, 150),
     []
   );
 
@@ -107,22 +108,24 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   }, [setInputUsernameValue, currentUsername, stripeCustomer?.username]);
 
   useEffect(() => {
-    if (!inputUsernameValue) return;
+    if (!inputUsernameValue) {
+      debouncedApiCall.cancel();
+      return;
+    }
     debouncedApiCall(inputUsernameValue);
   }, [debouncedApiCall, inputUsernameValue]);
 
   const utils = trpc.useContext();
-  const updateUsername = trpc.useMutation("viewer.updateProfile", {
+  const updateUsername = trpc.viewer.updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
-      setCurrentUsername(inputUsernameValue);
       setOpenDialogSaveUsername(false);
     },
     onError: (error) => {
       onErrorMutation && onErrorMutation(error);
     },
     async onSettled() {
-      await utils.invalidateQueries(["viewer.public.i18n"]);
+      await utils.viewer.public.i18n.invalidate();
     },
   });
 
@@ -173,9 +176,6 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
             onClick={() => {
               if (currentUsername) {
                 setInputUsernameValue(currentUsername);
-                if (usernameRef.current) {
-                  usernameRef.current.value = currentUsername;
-                }
               }
             }}>
             {t("cancel")}
@@ -191,6 +191,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       updateUsername.mutate({
         username: inputUsernameValue,
       });
+      setCurrentUsername(inputUsernameValue);
     }
   };
 
