@@ -1,4 +1,3 @@
-import getInstalledAppPath from "_utils/getInstalledAppPath";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { symmetricEncrypt } from "@calcom/lib/crypto";
@@ -8,6 +7,7 @@ import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
 import checkSession from "../../_utils/auth";
+import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 
 export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const session = checkSession(req);
@@ -30,10 +30,10 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     });
   } catch (reason) {
     logger.error("Could not add Sendgrid app", reason);
-    return { message: "Could not add Sendgrid app", statusCode: 500 };
+    return res.status(500).json({ message: "Could not add Sendgrid app" });
   }
 
-  return { url: getInstalledAppPath({ variant: "other", slug: "sendgrid" }) };
+  return res.status(200).json({ url: `/apps/installed/$other?hl=sendgrid` });
 }
 
 export default defaultResponder(getHandler);
