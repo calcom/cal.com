@@ -56,7 +56,7 @@ function translateLocations(locations: OptionTypeBase[], t: TFunction) {
   }));
 }
 
-export function getLocationOptions(integrations: ReturnType<typeof getApps>, t: TFunction) {
+export async function getLocationOptions(integrations: ReturnType<typeof getApps>, t: TFunction) {
   const locations: OptionTypeBase[] = [];
   defaultLocations.forEach((l) => {
     locations.push({
@@ -69,6 +69,8 @@ export function getLocationOptions(integrations: ReturnType<typeof getApps>, t: 
       locations.push(app.locationOption);
     }
   });
+
+  console.log("🚀 ~ file: utils.ts ~ line 61 ~ getLocationOptions ~ locations", locations);
 
   return translateLocations(locations, t);
 }

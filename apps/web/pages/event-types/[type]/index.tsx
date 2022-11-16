@@ -432,9 +432,18 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
+  const enabledApps = await prisma.app.findMany({
+    where: {
+      enabled: true,
+    },
+  });
+
   const credentials = await prisma.credential.findMany({
     where: {
       userId: session.user.id,
+      app: {
+        enabled: true,
+      },
     },
     select: {
       id: true,
@@ -444,6 +453,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       appId: true,
     },
   });
+  console.log("🚀 ~ file: index.tsx ~ line 450 ~ getServerSideProps ~ credentials", credentials);
 
   const { locations, metadata, ...restEventType } = rawEventType;
 
@@ -492,7 +502,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const currentUser = eventType.users.find((u) => u.id === session.user.id);
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
   const integrations = getApps(credentials);
-  const locationOptions = getLocationOptions(integrations, t);
+  const locationOptions = await getLocationOptions(
+    integrations.filter((integration) => enabledApps.some((app) => app.slug === integration.slug)),
+    t
+  );
 
   const eventTypeObject = Object.assign({}, eventType, {
     periodStartDate: eventType.periodStartDate?.toString() ?? null,

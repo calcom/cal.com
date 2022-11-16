@@ -15,6 +15,7 @@ let client_secret = "";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
+  console.log("🚀 ~ file: callback.ts ~ line 18 ~ handler ~ code", req.query);
 
   if (typeof code !== "string") {
     res.status(400).json({ message: "No code returned" });
