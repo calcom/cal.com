@@ -14,8 +14,7 @@ import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { getEventLocationValue, getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { getEventName } from "@calcom/core/event";
-import dayjs from "@calcom/dayjs";
-import { ConfigType } from "@calcom/dayjs";
+import dayjs, { ConfigType } from "@calcom/dayjs";
 import {
   sdkActionManager,
   useEmbedNonStylesConfig,
@@ -38,7 +37,6 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Icon } from "@calcom/ui/Icon";
 import { Button, EmailInput } from "@calcom/ui/components";
 
-import { asStringOrThrow } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -141,20 +139,16 @@ function RedirectionToast({ url }: { url: string }) {
 
 type SuccessProps = inferSSRProps<typeof getServerSideProps>;
 
+const stringToBoolean = z
+  .string()
+  .optional()
+  .transform((val) => val === "true");
+
 const querySchema = z.object({
   uid: z.string(),
-  allRemainingBookings: z
-    .string()
-    .optional()
-    .transform((val) => (val ? JSON.parse(val) : false)),
-  cancel: z
-    .string()
-    .optional()
-    .transform((val) => (val ? JSON.parse(val) : false)),
-  reschedule: z
-    .string()
-    .optional()
-    .transform((val) => (val ? JSON.parse(val) : false)),
+  allRemainingBookings: stringToBoolean,
+  cancel: stringToBoolean,
+  reschedule: stringToBoolean,
   isSuccessBookingPage: z.string().optional(),
 });
 
@@ -162,9 +156,13 @@ export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
 
-  const { allRemainingBookings, isSuccessBookingPage, cancel } = querySchema.parse(router.query);
+  const {
+    allRemainingBookings,
+    isSuccessBookingPage,
+    cancel: isCancellationMode,
+  } = querySchema.parse(router.query);
 
-  if (cancel && typeof window !== "undefined") {
+  if (isCancellationMode && typeof window !== "undefined") {
     window.scrollTo(0, document.body.scrollHeight);
   }
   const location: ReturnType<typeof getEventLocationValue> = Array.isArray(props.bookingInfo.location)
@@ -192,7 +190,15 @@ export default function Success(props: SuccessProps) {
   const isEmbed = useIsEmbed();
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
-  const [isCancellationMode, setIsCancellationMode] = useState(cancel);
+
+  function setIsCancellationMode(value: boolean) {
+    if (value) router.query.cancel = "true";
+    else delete router.query.cancel;
+    router.replace({
+      pathname: router.pathname,
+      query: { ...router.query },
+    });
+  }
 
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
