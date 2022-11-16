@@ -108,6 +108,8 @@
   "link_expires": "p.s. It expires in {{expiresIn}} hours.",
   "upgrade_to_per_seat": "Upgrade to Per-Seat",
   "team_upgrade_seats_details": "Of the {{memberCount}} members in your team, {{unpaidCount}} seat(s) are unpaid. At ${{seatPrice}}/month per seat the estimated total cost of your membership is ${{totalCost}}/month.",
+  "team_upgrade_banner_description": "Thank you for trialing our new team plan. We noticed your team \"{{teamName}}\" needs to be upgraded.",
+  "team_upgrade_banner_action": "Upgrade here",
   "team_upgraded_successfully": "Your team was upgraded successfully!",
   "use_link_to_reset_password": "Use the link below to reset your password",
   "hey_there": "Hey there,",
@@ -1371,4 +1373,3 @@
   "test_preview_description": "Test your routing form without submitting any data",
   "test_routing": "Test Routing"
 }
-
