@@ -1,8 +1,10 @@
 import { App_RoutingForms_Form } from "@prisma/client";
 import { z } from "zod";
 
+import logger from "@calcom/lib/logger";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
+import isRouter from "../isRouter";
 import { SerializableForm } from "../types/types";
 import { zodFields, zodRoutes, zodRoutesView, zodFieldsView } from "../zod";
 
@@ -30,15 +32,16 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
       emailOwnerOnSubmission: true,
     }
   );
+
   const parsedFields =
     (withDeletedFields ? fieldsParsed.data : fieldsParsed.data?.filter((f) => !f.deleted)) || [];
-  const routes = routesParsed.data;
+  const parsedRoutes = routesParsed.data;
 
-  const updatedFields = parsedFields as NonNullable<z.infer<typeof zodFieldsView>>;
+  const fields = parsedFields as NonNullable<z.infer<typeof zodFieldsView>>;
 
-  console.log("Form Fields", parsedFields);
+  logger.silly("Parsed Form Fields", parsedFields);
 
-  const updatedRoutes: z.infer<typeof zodRoutesView> = [];
+  const routes: z.infer<typeof zodRoutesView> = [];
 
   const existingFields: Record<string, true> = {};
   parsedFields?.forEach((f) => {
@@ -48,11 +51,10 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
   //TODO: Reuse type here
   const linkedToGlobalRouters: { name: string; description: string | null; id: string }[] = [];
 
-  // const globalRouterFieldsMap = {};
-  if (routes) {
-    for (let i = 0; i < routes.length; i++) {
-      const route = routes[i];
-      if ("routerType" in route) {
+  if (parsedRoutes) {
+    for (let i = 0; i < parsedRoutes.length; i++) {
+      const route = parsedRoutes[i];
+      if (isRouter(route)) {
         const router = await prisma.app_RoutingForms_Form.findUnique({
           where: {
             //TODO: May be rename it to route.routerId
@@ -72,11 +74,12 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
           id: parsedRouter.id,
         });
 
-        updatedRoutes.push({
+        routes.push({
           ...route,
           routerType: "global",
           name: parsedRouter.name,
           description: parsedRouter.description,
+          //TODO: Remove non-null assertion
           routes: parsedRouter.routes!,
         });
 
@@ -93,7 +96,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
               ...field,
               globalRouterId: parsedRouter.id,
             };
-            updatedFields.push({
+            fields.push({
               // Cache
               globalRouter: {
                 id: parsedRouter.id,
@@ -103,10 +106,13 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
               ...newField,
             });
 
-            // globalRouterFieldsMap[field.id] = newField;
-            console.log("Added field", newField);
+            logger.silly("Added  field from other Form:", newField);
           } else {
-            updatedFields.find((f) => f.id === field.id)!.globalRouter = {
+            const fieldView = fields.find((f) => f.id === field.id);
+            if (!fieldView || !("globalRouterId" in fieldView)) {
+              return;
+            }
+            fieldView.globalRouter = {
               id: parsedRouter.id,
               name: router.name,
               description: router.description || "",
@@ -114,7 +120,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
           }
         });
       } else {
-        updatedRoutes.push(route);
+        routes.push(route);
       }
     }
   }
@@ -122,9 +128,9 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
   // Ideally we should't have needed to explicitly type it but due to some reason it's not working reliably with VSCode TypeCheck
   const serializableForm: SerializableForm<TForm> = {
     ...form,
-    settings: settings,
-    fields: updatedFields,
-    routes: updatedRoutes,
+    settings,
+    fields,
+    routes,
     linkedToGlobalRouters,
     createdAt: form.createdAt.toString(),
     updatedAt: form.updatedAt.toString(),

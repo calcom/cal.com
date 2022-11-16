@@ -13,11 +13,12 @@ import { Button, TextField, TextArea } from "@calcom/ui/components";
 import { SelectWithValidation as Select, Shell } from "@calcom/ui/v2";
 import FormCard from "@calcom/ui/v2/core/form/FormCard";
 
-import { globalRoute, globalRouteView, localRoute, zodRoute, zodRouteView } from "../..//zod";
+import { zodGlobalRouteView, zodLocalRoute } from "../..//zod";
 import { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/SingleForm";
 import SingleForm from "../../components/SingleForm";
 import QueryBuilderInitialConfig from "../../components/react-awesome-query-builder/config/config";
 import "../../components/react-awesome-query-builder/styles.css";
+import isRouter from "../../isRouter";
 import { SerializableForm } from "../../types/types";
 import { FieldTypes } from "../form-edit/[...appPages]";
 
@@ -27,7 +28,7 @@ type RoutingForm = SerializableForm<App_RoutingForms_Form>;
 
 const InitialConfig = QueryBuilderInitialConfig;
 const hasRules = (route: Route) => {
-  if ("routerType" in route) return false;
+  if (isRouter(route)) return false;
   route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
 };
 type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Config["fields"] };
@@ -113,8 +114,8 @@ const createFallbackRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
   };
 };
 
-type LocalRoute = z.infer<typeof localRoute>;
-type GlobalRoute = z.infer<typeof globalRouteView>;
+type LocalRoute = z.infer<typeof zodLocalRoute>;
+type GlobalRoute = z.infer<typeof zodGlobalRouteView>;
 
 type Route =
   | (LocalRoute & {
@@ -205,7 +206,7 @@ const Route = ({
     []
   );
 
-  if ("routerType" in route) {
+  if (isRouter(route)) {
     // Render GlobalRoute
     return (
       <div>
@@ -361,9 +362,7 @@ const Routes = ({
     const transformRoutes = () => {
       const _routes = serializedRoutes || [getEmptyRoute()];
       _routes.forEach((r) => {
-        if ("routerType" in r) {
-          return;
-        }
+        if (isRouter(r)) return;
         if (!r.queryValue?.id) {
           r.queryValue = { id: QbUtils.uuid(), type: "group" };
         }
@@ -372,9 +371,7 @@ const Routes = ({
     };
 
     return transformRoutes().map((route) => {
-      if ("routerType" in route) {
-        return route;
-      }
+      if (isRouter(route)) return route;
       return deserializeRoute(route, config);
     });
   });
@@ -382,16 +379,12 @@ const Routes = ({
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
   const mainRoutes = routes.filter((route) => {
-    if ("routerType" in route) {
-      return true;
-    }
+    if (isRouter(route)) return true;
     return !route.isFallback;
   });
 
   let fallbackRoute = routes.find((route) => {
-    if ("routerType" in route) {
-      return false;
-    }
+    if (isRouter(route)) return false;
     return route.isFallback;
   });
 
@@ -430,7 +423,7 @@ const Routes = ({
   };
 
   const routesToSave = routes.map((route) => {
-    if ("routerType" in route) {
+    if (isRouter(route)) {
       return route;
     }
     return {

@@ -11,6 +11,7 @@ import { authedProcedure, publicProcedure, router } from "@calcom/trpc/server/tr
 import { Ensure } from "@calcom/types/utils";
 
 import ResponseEmail from "./emails/templates/response-email";
+import isRouter from "./isRouter";
 import { jsonLogicToPrisma } from "./jsonLogicToPrisma";
 import { getSerializableForm } from "./lib/getSerializableForm";
 import { isFormEditAllowed } from "./lib/isAllowed";
@@ -323,7 +324,7 @@ const appRoutingForms = router({
         // Add a fallback route if there is none
         if (
           !routes.find((route) => {
-            if ("routerType" in route) {
+            if (isRouter(route)) {
               return false;
             }
             return route.isFallback;

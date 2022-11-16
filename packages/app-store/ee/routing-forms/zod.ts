@@ -8,29 +8,34 @@ const zodField = z.object({
   selectText: z.string().optional(),
   required: z.boolean().optional(),
   deleted: z.boolean().optional(),
-  globalRouterId: z.string().optional(),
 });
 
-export const zodFieldView = zodField.extend({
-  globalRouterId: z.string().optional(),
-  globalRouter: z
-    .object({
-      name: z.string(),
-      description: z.string(),
-      id: z.string(),
-    })
-    .optional(),
+export const zodLocalField = zodField;
+export const zodLocalFieldView = zodLocalField;
+
+export const zodGlobalField = z.object({
+  id: z.string(),
+  globalRouterId: z.string(),
+});
+
+export const zodGlobalFieldView = zodLocalField.extend(zodGlobalField.shape).extend({
+  globalRouter: z.object({
+    name: z.string(),
+    description: z.string(),
+    id: z.string(),
+  }),
 });
 
 export const zodFields = z.array(zodField).optional();
-export const zodFieldsView = z
-  .array(
-    // TODO: Extract from Form
-    zodFieldView
-  )
-  .optional();
 
-export const localRoute = z.object({
+/**
+ * Has some additional fields that are not supposed to be saved to DB but are required for the UI
+ */
+export const zodFieldView = z.union([zodLocalFieldView, zodGlobalFieldView]);
+
+export const zodFieldsView = z.array(zodFieldView).optional();
+
+export const zodLocalRoute = z.object({
   id: z.string(),
   queryValue: z.object({
     id: z.string().optional(),
@@ -50,32 +55,25 @@ export const localRoute = z.object({
   }),
 });
 
-export const globalRoute = z.object({
+export const zodLocalRouteView = zodLocalRoute;
+
+export const zodGlobalRoute = z.object({
   id: z.string(),
   routerType: z.literal("global"),
 });
 
-export const zodRoute = z.union([localRoute, globalRoute]);
+export const zodRoute = z.union([zodLocalRoute, zodGlobalRoute]);
 
-export const globalRouteView = globalRoute.extend({
+export const zodGlobalRouteView = zodGlobalRoute.extend({
   //TODO: Extend it from form
   name: z.string(),
   description: z.string().nullable(),
-  routes: z.array(
-    z.union([
-      zodRoute,
-      z.object({
-        id: z.string(),
-        routerType: z.literal("global"),
-      }),
-      z.null(),
-    ])
-  ),
+  routes: z.array(z.union([zodRoute, z.null()])),
 });
 
 export const zodRoutes = z.union([z.array(zodRoute), z.null()]).optional();
 
-export const zodRouteView = z.union([localRoute, globalRouteView]);
+export const zodRouteView = z.union([zodLocalRouteView, zodGlobalRouteView]);
 
 export const zodRoutesView = z.union([z.array(zodRouteView), z.null()]).optional();
 
