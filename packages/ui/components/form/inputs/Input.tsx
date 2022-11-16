@@ -305,9 +305,7 @@ const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLForm
               child &&
               "props" in child &&
               child.props.name
-              ? // @TODO: Review this before merging. Having createElement made react lose
-                // some sort of context, causing the form to not be able to access the field's data.
-                React.cloneElement(child, {
+              ? React.cloneElement(child, {
                   ...child.props,
                   register: form.register,
                   key: child.props.name,
