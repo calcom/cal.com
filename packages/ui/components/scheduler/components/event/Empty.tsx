@@ -18,8 +18,8 @@ export function EmptyCell(props: EmptyCellProps) {
   });
   return (
     <div
-      className="group w-full border"
-      style={{ maxHeight: "1.75rem", overflow: "visible" }}
+      className="group w-full"
+      style={{ height: "1.75rem", overflow: "visible" }}
       onClick={() => onEmptyCellClick && onEmptyCellClick(cellToDate.toDate())}>
       {props.eventDuration !== 0 && (
         <div
