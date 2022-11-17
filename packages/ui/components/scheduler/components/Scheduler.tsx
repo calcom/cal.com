@@ -41,10 +41,8 @@ export function Scheduler(props: SchedulerComponentProps) {
 
   return (
     <div
-      className="flex h-full w-full flex-col overflow-y-scroll"
-      style={
-        { "--one-minute-height": `calc(1.75rem/(60/${usersCellsStopsPerHour}))` } as React.CSSProperties
-      }>
+      className="scheduler-wrapper flex h-full w-full flex-col overflow-y-scroll"
+      data-gridstopsperhour={usersCellsStopsPerHour}>
       <SchedulerHeading />
       <div ref={container} className="isolate flex flex-auto flex-col  bg-white">
         <div
@@ -69,7 +67,7 @@ export function Scheduler(props: SchedulerComponentProps) {
               {/* Empty Cells */}
               <ol
                 className="scheduler-grid-row-template scheduler-grid-column-template z-50 col-start-1 col-end-2 row-start-1 grid sm:pr-8"
-                data-gridStopsPerDay={numberOfGridStopsPerDay}>
+                data-gridstopsperday={numberOfGridStopsPerDay}>
                 <>
                   {[...Array(days.length)].map((_, i) => (
                     <li
@@ -98,7 +96,7 @@ export function Scheduler(props: SchedulerComponentProps) {
               </ol>
               <ol
                 className="scheduler-grid-row-template scheduler-grid-column-template relative col-start-1 col-end-2 row-start-1 grid  sm:pr-8"
-                data-gridStopsPerDay={numberOfGridStopsPerDay}>
+                data-gridstopsperday={numberOfGridStopsPerDay}>
                 {/*Loop over events per day  */}
                 {days.map((day, i) => {
                   return (

@@ -50,6 +50,21 @@ module.exports = {
       vm: false,
       zlib: false,
     };
+
+    config.module.rules.push({
+      test: /\.css$/,
+      use: [
+        "style-loader",
+        {
+          loader: "css-loader",
+          options: {
+            modules: true, // Enable modules to help you using className
+          },
+        },
+      ],
+      include: path.resolve(__dirname, "../src"),
+    });
+
     return config;
   },
 };

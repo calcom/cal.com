@@ -1,12 +1,13 @@
-:root {
+.scheduler-wrapper {
   --gridDefaultSize: 1.75rem;
   --hoursInDay: 24;
   --minuteInHour:24;
   --gridMobileSize: 100vw;
+  --one-minute-height: calc(var(--gridDefaultSize) /(var(--minuteInHour)/attr(data-gridstopsperhour number)));
 }
 
 .scheduler-grid-row-template{
-  grid-template-rows: var(--gridMobileSize) repeat(attr(data-gridStopsPerDay number), var(--gridMobileSize)) auto;
+  grid-template-rows: var(--gridMobileSize) repeat(attr(data-gridstoperperday number), var(--gridMobileSize)) auto;
 }
 .scheduler-grid-column-template{
   grid-template-columns: repeat(1, minmax(0,1fr));
@@ -14,7 +15,7 @@
 
 @media (min-width: 640px) {
   .scheduler-grid-row-template {
-    grid-template-rows: var(--gridDefaultSize) repeat(attr(data-gridStopsPerDay number), var(--gridDefaultSize)) auto;
+    grid-template-rows: var(--gridDefaultSize) repeat(attr(data-gridstoperperday number), var(--gridDefaultSize)) auto;
   }
 }
 
