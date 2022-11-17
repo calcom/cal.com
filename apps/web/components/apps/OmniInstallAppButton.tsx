@@ -18,7 +18,7 @@ export default function OmniInstallAppButton({ appId, className }: { appId: stri
   const utils = trpc.useContext();
 
   const mutation = useAddAppMutation(null, {
-    onSuccess: (data: any) => {
+    onSuccess: (data) => {
       //TODO: viewer.appById might be replaced with viewer.apps so that a single query needs to be invalidated.
       utils.viewer.appById.invalidate({ appId });
       utils.viewer.apps.invalidate({ extendsFeature: "EventType" });
