@@ -173,7 +173,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupInfered, "event
         </div>
       </div>
       <div className="flex flex-col space-y-4 pt-4 lg:flex-row lg:space-y-0 lg:space-x-4">
-        <div className="flex w-full items-end">
+        <div className="flex w-full items-end justify-end">
           <Controller
             name="minimumBookingNotice"
             control={formMethods.control}
@@ -201,7 +201,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupInfered, "event
                       label={t("minimum_booking_notice")}
                       type="number"
                       placeholder="120"
-                      className="mr-2 rounded-[4px]"
+                      className="mr-2 mb-0 h-[38px] rounded-[4px]"
                       {...formMethods.register("minimumBookingNoticeInDurationType", {
                         onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
                           onMinimumNoticeChange(event.target.value),
@@ -211,7 +211,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupInfered, "event
                   </div>
                   <Select
                     isSearchable={false}
-                    className="mb-2 ml-2 w-full capitalize md:min-w-[150px] md:max-w-[200px]"
+                    className="mb-0 ml-2 h-[38px] w-full capitalize md:min-w-[150px] md:max-w-[200px]"
                     defaultValue={durationTypeOptions.find(
                       (option) => option.value === minimumBookingNoticeType.current
                     )}
