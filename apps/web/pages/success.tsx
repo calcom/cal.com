@@ -14,8 +14,7 @@ import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import { getEventLocationValue, getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { getEventName } from "@calcom/core/event";
-import dayjs from "@calcom/dayjs";
-import { ConfigType } from "@calcom/dayjs";
+import dayjs, { ConfigType } from "@calcom/dayjs";
 import {
   sdkActionManager,
   useEmbedNonStylesConfig,
@@ -35,11 +34,9 @@ import { localStorage } from "@calcom/lib/webstorage";
 import prisma, { baseUserSelect } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
-import { EmailInput } from "@calcom/ui/form/fields";
+import { Button, EmailInput } from "@calcom/ui/components";
 
-import { asStringOrThrow } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -142,11 +139,32 @@ function RedirectionToast({ url }: { url: string }) {
 
 type SuccessProps = inferSSRProps<typeof getServerSideProps>;
 
+const stringToBoolean = z
+  .string()
+  .optional()
+  .transform((val) => val === "true");
+
+const querySchema = z.object({
+  uid: z.string(),
+  allRemainingBookings: stringToBoolean,
+  cancel: stringToBoolean,
+  reschedule: stringToBoolean,
+  isSuccessBookingPage: z.string().optional(),
+});
+
 export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
-  const { listingStatus, isSuccessBookingPage } = router.query;
 
+  const {
+    allRemainingBookings,
+    isSuccessBookingPage,
+    cancel: isCancellationMode,
+  } = querySchema.parse(router.query);
+
+  if (isCancellationMode && typeof window !== "undefined") {
+    window.scrollTo(0, document.body.scrollHeight);
+  }
   const location: ReturnType<typeof getEventLocationValue> = Array.isArray(props.bookingInfo.location)
     ? props.bookingInfo.location[0] || ""
     : props.bookingInfo.location || "";
@@ -160,6 +178,7 @@ export default function Success(props: SuccessProps) {
   const email = props.bookingInfo?.user?.email;
   const status = props.bookingInfo?.status;
   const reschedule = props.bookingInfo.status === BookingStatus.ACCEPTED;
+  const cancellationReason = props.bookingInfo.cancellationReason;
 
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const { data: session } = useSession();
@@ -171,7 +190,15 @@ export default function Success(props: SuccessProps) {
   const isEmbed = useIsEmbed();
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
-  const [isCancellationMode, setIsCancellationMode] = useState(false);
+
+  function setIsCancellationMode(value: boolean) {
+    if (value) router.query.cancel = "true";
+    else delete router.query.cancel;
+    router.replace({
+      pathname: router.pathname,
+      query: { ...router.query },
+    });
+  }
 
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
@@ -251,7 +278,7 @@ export default function Success(props: SuccessProps) {
   function getTitle(): string {
     const titleSuffix = props.recurringBookings ? "_recurring" : "";
     if (isCancelled) {
-      return t("emailed_information_about_cancelled_event");
+      return "";
     }
     if (needsConfirmation) {
       if (props.profile.name !== null) {
@@ -276,7 +303,7 @@ export default function Success(props: SuccessProps) {
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
       {userIsOwner && !isEmbed && (
         <div className="mt-2 ml-4 -mb-4">
-          <Link href={eventType.recurringEvent?.count ? "/bookings/recurring" : "/bookings/upcoming"}>
+          <Link href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}>
             <a className="mt-2 inline-flex px-1 py-2 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:hover:bg-transparent dark:hover:text-white">
               <Icon.FiChevronLeft className="h-5 w-5" /> {t("back_to_bookings")}
             </a>
@@ -345,6 +372,12 @@ export default function Success(props: SuccessProps) {
                     <p className="text-neutral-600 dark:text-gray-300">{getTitle()}</p>
                   </div>
                   <div className="border-bookinglightest text-bookingdark dark:border-darkgray-300 mt-8 grid grid-cols-3 border-t pt-8 text-left dark:text-gray-300">
+                    {isCancelled && cancellationReason && (
+                      <>
+                        <div className="font-medium">{t("reason")}</div>
+                        <div className="col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
+                      </>
+                    )}
                     <div className="font-medium">{t("what")}</div>
                     <div className="col-span-2 mb-6 last:mb-0">{eventName}</div>
                     <div className="font-medium">{t("when")}</div>
@@ -352,7 +385,7 @@ export default function Success(props: SuccessProps) {
                       <RecurringBookings
                         eventType={props.eventType}
                         recurringBookings={props.recurringBookings}
-                        listingStatus={(listingStatus as string) || "recurring"}
+                        allRemainingBookings={allRemainingBookings}
                         date={date}
                         is24h={is24h}
                       />
@@ -434,8 +467,8 @@ export default function Success(props: SuccessProps) {
                   !isCancelled &&
                   (!isCancellationMode ? (
                     <>
-                      <hr className="border-bookinglightest dark:border-darkgray-300" />
-                      <div className="py-8 text-center last:pb-0">
+                      <hr className="border-bookinglightest dark:border-darkgray-300 mb-8" />
+                      <div className="text-center last:pb-0">
                         <span className="text-gray-900 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                           {t("need_to_make_a_change")}
                         </span>
@@ -450,6 +483,7 @@ export default function Success(props: SuccessProps) {
                         )}
 
                         <button
+                          data-testid="cancel"
                           className={classNames(
                             "text-bookinglight text-gray-700 underline",
                             props.recurringBookings && "ltr:mr-2 rtl:ml-2"
@@ -460,19 +494,23 @@ export default function Success(props: SuccessProps) {
                       </div>
                     </>
                   ) : (
-                    <CancelBooking
-                      booking={{ uid: bookingInfo?.uid, title: bookingInfo?.title, id: bookingInfo?.id }}
-                      profile={{ name: props.profile.name, slug: props.profile.slug }}
-                      recurringEvent={eventType.recurringEvent}
-                      team={eventType?.team?.name}
-                      setIsCancellationMode={setIsCancellationMode}
-                      theme={isSuccessBookingPage ? props.profile.theme : "light"}
-                    />
+                    <>
+                      <hr className="border-bookinglightest dark:border-darkgray-300" />
+                      <CancelBooking
+                        booking={{ uid: bookingInfo?.uid, title: bookingInfo?.title, id: bookingInfo?.id }}
+                        profile={{ name: props.profile.name, slug: props.profile.slug }}
+                        recurringEvent={eventType.recurringEvent}
+                        team={eventType?.team?.name}
+                        setIsCancellationMode={setIsCancellationMode}
+                        theme={isSuccessBookingPage ? props.profile.theme : "light"}
+                        allRemainingBookings={allRemainingBookings}
+                      />
+                    </>
                   ))}
                 {userIsOwner && !needsConfirmation && !isCancellationMode && !isCancelled && (
                   <>
-                    <hr className="border-bookinglightest dark:border-darkgray-300" />
-                    <div className="text-bookingdark align-center flex flex-row justify-center py-8">
+                    <hr className="border-bookinglightest dark:border-darkgray-300 mt-8" />
+                    <div className="text-bookingdark align-center flex flex-row justify-center pt-8">
                       <span className="flex self-center font-medium text-gray-700 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
                         {t("add_to_calendar")}
                       </span>
@@ -579,7 +617,7 @@ export default function Success(props: SuccessProps) {
                 )}
                 {session === null && !(userIsOwner || props.hideBranding) && (
                   <>
-                    <hr className="border-bookinglightest dark:border-darkgray-300" />
+                    <hr className="border-bookinglightest dark:border-darkgray-300 mt-8" />
                     <div className="border-bookinglightest text-booking-lighter dark:border-darkgray-300 pt-8 text-center text-xs dark:text-white">
                       <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
 
@@ -596,10 +634,14 @@ export default function Success(props: SuccessProps) {
                           name="email"
                           id="email"
                           defaultValue={email || ""}
-                          className="focus:border-brand border-bookinglightest dark:border-darkgray-300 mt-0 block w-full rounded-sm border-gray-300 shadow-sm focus:ring-black dark:bg-black dark:text-white sm:text-sm"
+                          className="mr- focus:border-brand border-bookinglightest dark:border-darkgray-300 mt-0 block w-full rounded-none rounded-l-md border-gray-300 shadow-sm focus:ring-black dark:bg-black dark:text-white sm:text-sm"
                           placeholder="rick.astley@cal.com"
                         />
-                        <Button size="lg" type="submit" className="min-w-max" color="primary">
+                        <Button
+                          size="lg"
+                          type="submit"
+                          className="min-w-max rounded-none rounded-r-md"
+                          color="primary">
                           {t("try_for_free")}
                         </Button>
                       </form>
@@ -622,15 +664,15 @@ type RecurringBookingsProps = {
   recurringBookings: SuccessProps["recurringBookings"];
   date: dayjs.Dayjs;
   is24h: boolean;
-  listingStatus: string;
+  allRemainingBookings: boolean;
 };
 
 export function RecurringBookings({
   eventType,
   recurringBookings,
   date,
+  allRemainingBookings,
   is24h,
-  listingStatus,
 }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const { t } = useLocale();
@@ -639,7 +681,7 @@ export function RecurringBookings({
     ? recurringBookings.sort((a: ConfigType, b: ConfigType) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
     : null;
 
-  if (recurringBookingsSorted && listingStatus === "recurring") {
+  if (recurringBookingsSorted && allRemainingBookings) {
     return (
       <>
         {eventType.recurringEvent?.count && (
@@ -808,6 +850,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       startTime: true,
       location: true,
       status: true,
+      cancellationReason: true,
       user: {
         select: {
           id: true,
