@@ -1,3 +1,4 @@
+import { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import { useRef } from "react";
 
@@ -5,6 +6,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, TextField } from "@calcom/ui/components";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/AdminLayout";
+
+import { ssrInit } from "@server/lib/ssr";
 
 function AdminView() {
   const { t } = useLocale();
@@ -39,5 +42,15 @@ function AdminView() {
 }
 
 AdminView.getLayout = getLayout;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
+};
 
 export default AdminView;

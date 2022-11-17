@@ -1,3 +1,4 @@
+import { GetServerSidePropsContext } from "next";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -7,6 +8,8 @@ import { Label, Form } from "@calcom/ui/components/form";
 import { Switch, Skeleton, showToast } from "@calcom/ui/v2/core";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
+
+import { ssrInit } from "@server/lib/ssr";
 
 const ProfileImpersonationView = () => {
   const { t } = useLocale();
@@ -68,5 +71,15 @@ const ProfileImpersonationView = () => {
 };
 
 ProfileImpersonationView.getLayout = getLayout;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
+};
 
 export default ProfileImpersonationView;

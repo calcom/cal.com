@@ -1,3 +1,4 @@
+import { GetServerSidePropsContext } from "next";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -20,6 +21,8 @@ import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/Disconnect
 import { QueryCell } from "@lib/QueryCell";
 
 import { CalendarSwitch } from "@components/settings/CalendarSwitch";
+
+import { ssrInit } from "@server/lib/ssr";
 
 const SkeletonLoader = () => {
   return (
@@ -212,5 +215,15 @@ const CalendarsView = () => {
 };
 
 CalendarsView.getLayout = getLayout;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
+};
 
 export default CalendarsView;

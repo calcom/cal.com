@@ -1,3 +1,4 @@
+import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { HelpScout, useChat } from "react-live-chat-loader";
@@ -10,6 +11,8 @@ import { Icon } from "@calcom/ui";
 import { Button } from "@calcom/ui/components/button";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
+
+import { ssrInit } from "@server/lib/ssr";
 
 interface CtaRowProps {
   title: string;
@@ -77,5 +80,15 @@ const BillingView = () => {
 };
 
 BillingView.getLayout = getLayout;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
+};
 
 export default BillingView;

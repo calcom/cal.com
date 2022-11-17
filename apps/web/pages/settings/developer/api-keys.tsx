@@ -1,3 +1,4 @@
+import { GetServerSidePropsContext } from "next";
 import { useState } from "react";
 
 import { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
@@ -13,6 +14,8 @@ import { Dialog, DialogContent } from "@calcom/ui/v2/core/Dialog";
 import Meta from "@calcom/ui/v2/core/Meta";
 import SkeletonLoader from "@calcom/ui/v2/core/apps/SkeletonLoader";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
+
+import { ssrInit } from "@server/lib/ssr";
 
 const ApiKeysView = () => {
   const { t } = useLocale();
@@ -85,5 +88,15 @@ const ApiKeysView = () => {
 };
 
 ApiKeysView.getLayout = getLayout;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
+};
 
 export default ApiKeysView;
