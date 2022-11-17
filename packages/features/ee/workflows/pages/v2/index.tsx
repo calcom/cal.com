@@ -38,11 +38,10 @@ function WorkflowsPage() {
     },
   });
 
-  return session.data ? (
+  return (
     <Shell
-      heading={data?.workflows.length ? t("workflows") : undefined}
-      title={t("workflows")}
-      subtitle={data?.workflows.length ? t("workflows_to_automate_notifications") : ""}
+      heading={t("workflows")}
+      subtitle={t("workflows_to_automate_notifications")}
       CTA={
         session.data?.hasValidLicense && data?.workflows && data?.workflows.length > 0 ? (
           <Button
@@ -65,8 +64,6 @@ function WorkflowsPage() {
         )}
       </LicenseRequired>
     </Shell>
-  ) : (
-    <></>
   );
 }
 
