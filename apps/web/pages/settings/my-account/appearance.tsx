@@ -1,3 +1,4 @@
+import { GetServerSidePropsContext } from "next";
 import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -12,9 +13,12 @@ import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
 import { SkeletonContainer, SkeletonText, SkeletonButton } from "@calcom/ui/v2/core/skeleton";
 
-const SkeletonLoader = () => {
+import { ssrInit } from "@server/lib/ssr";
+
+const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
+      <Meta title={title} description={description} />
       <div className="mt-6 mb-8 space-y-6 divide-y">
         <div className="flex items-center">
           <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
@@ -49,7 +53,7 @@ const AppearanceView = () => {
 
   const formMethods = useForm();
 
-  if (isLoading) return <SkeletonLoader />;
+  if (isLoading) return <SkeletonLoader title={t("appearance")} description={t("appearance_description")} />;
 
   if (user)
     return (
@@ -173,6 +177,16 @@ const AppearanceView = () => {
 };
 
 AppearanceView.getLayout = getLayout;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
+};
 
 export default AppearanceView;
 interface ThemeLabelProps {

@@ -1,3 +1,4 @@
+import { GetServerSidePropsContext } from "next";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -12,9 +13,12 @@ import showToast from "@calcom/ui/v2/core/notifications";
 import { SkeletonContainer, SkeletonText } from "@calcom/ui/v2/core/skeleton";
 import { List, ListItem, ListItemText, ListItemTitle } from "@calcom/ui/v2/modules/List";
 
-const SkeletonLoader = () => {
+import { ssrInit } from "@server/lib/ssr";
+
+const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
+      <Meta title={title} description={description} />
       <div className="mt-6 mb-8 space-y-6 divide-y">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -48,7 +52,8 @@ const ConferencingLayout = () => {
   const [deleteAppModal, setDeleteAppModal] = useState(false);
   const [deleteCredentialId, setDeleteCredentialId] = useState<number>(0);
 
-  if (isLoading) return <SkeletonLoader />;
+  if (isLoading)
+    return <SkeletonLoader title={t("conferencing")} description={t("conferencing_description")} />;
 
   return (
     <div className="w-full bg-white sm:mx-0 xl:mt-0">
@@ -111,5 +116,15 @@ const ConferencingLayout = () => {
 };
 
 ConferencingLayout.getLayout = getLayout;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
+};
 
 export default ConferencingLayout;
