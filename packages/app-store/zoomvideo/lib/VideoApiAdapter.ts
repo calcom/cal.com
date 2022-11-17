@@ -227,26 +227,18 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
   };
 
   const fetchZoomApi = async (endpoint: string, options?: RequestInit) => {
-    try {
-      const auth = zoomAuth(credential);
-      const accessToken = await auth.getToken();
-      const response = await fetch(`https://api.zoom.us/v2/${endpoint}`, {
-        method: "GET",
-        ...options,
-        headers: {
-          Authorization: "Bearer " + accessToken,
-          ...options?.headers,
-        },
-      });
-
-      if (response.status === 204) {
-        return;
-      }
-      const responseBody = await handleZoomResponse(response, credential.id);
-      return responseBody;
-    } catch (err) {
-      return Promise.reject(err);
-    }
+    const auth = zoomAuth(credential);
+    const accessToken = await auth.getToken();
+    const response = await fetch(`https://api.zoom.us/v2/${endpoint}`, {
+      method: "GET",
+      ...options,
+      headers: {
+        Authorization: "Bearer " + accessToken,
+        ...options?.headers,
+      },
+    });
+    const responseBody = await handleZoomResponse(response, credential.id);
+    return responseBody;
   };
 
   return {
@@ -339,6 +331,7 @@ const handleZoomResponse = async (response: Response, credentialId: Credential["
     const responseString = await response.text();
     _response = JSON.parse(responseString);
   }
+  if (response.status === 204) return;
   if (!response.ok || (response.status < 200 && response.status >= 300)) {
     const responseBody = await _response.json();
 
