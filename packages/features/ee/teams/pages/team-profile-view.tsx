@@ -25,7 +25,7 @@ const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
 const teamProfileFormSchema = z.object({
   name: z.string(),
-  url: z
+  slug: z
     .string()
     .regex(regex, {
       message: "Url can only have alphanumeric characters(a-z, 0-9) and hyphen(-) symbol.",
@@ -64,11 +64,11 @@ const ProfileView = () => {
       onSuccess: (team) => {
         if (team) {
           form.setValue("name", team.name || "");
-          form.setValue("url", team.slug || "");
+          form.setValue("slug", team.slug || "");
           form.setValue("logo", team.logo || "");
           form.setValue("bio", team.bio || "");
           if (team.slug === null && (team?.metadata as Prisma.JsonObject)?.requestedSlug) {
-            form.setValue("url", ((team?.metadata as Prisma.JsonObject)?.requestedSlug as string) || "");
+            form.setValue("slug", ((team?.metadata as Prisma.JsonObject)?.requestedSlug as string) || "");
           }
         }
       },
@@ -136,7 +136,7 @@ const ProfileView = () => {
                   const variables = {
                     logo: values.logo,
                     name: values.name,
-                    slug: values.url,
+                    slug: values.slug,
                     bio: values.bio,
                   };
                   objectKeys(variables).forEach((key) => {
@@ -188,17 +188,17 @@ const ProfileView = () => {
               />
               <Controller
                 control={form.control}
-                name="url"
+                name="slug"
                 render={({ field: { value } }) => (
                   <div className="mt-8">
                     <TextField
-                      name="url"
+                      name="slug"
                       label={t("team_url")}
                       value={value}
                       addOnLeading={`${WEBAPP_URL}/team/`}
                       onChange={(e) => {
-                        form.clearErrors("url");
-                        form.setValue("url", e?.target.value);
+                        form.clearErrors("slug");
+                        form.setValue("slug", e?.target.value);
                       }}
                     />
                   </div>
