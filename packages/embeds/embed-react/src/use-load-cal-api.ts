@@ -9,7 +9,7 @@ export const _useLoadCalApi = (embedJsUrl?: string) => {
   useEffect(() => {
     (async function () {
       const _calApi = await getCalApi(embedJsUrl);
-      setCalApi(_calApi);
+      setCalApi(() => _calApi);
     })();
 
     // }, [embedJsUrl, setCalApi])
