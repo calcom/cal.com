@@ -20,8 +20,8 @@ export default function OmniInstallAppButton({ appId, className }: { appId: stri
   const mutation = useAddAppMutation(null, {
     onSuccess: () => {
       //TODO: viewer.appById might be replaced with viewer.apps so that a single query needs to be invalidated.
-      utils.invalidateQueries(["viewer.appById", { appId }]);
-      utils.invalidateQueries(["viewer.apps", { extendsFeature: "EventType" }]);
+      utils.viewer.appById.invalidate({ appId });
+      utils.viewer.apps.invalidate({ extendsFeature: "EventType" });
       showToast(t("app_successfully_installed"), "success");
     },
     onError: (error) => {

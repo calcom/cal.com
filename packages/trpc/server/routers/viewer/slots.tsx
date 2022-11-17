@@ -17,7 +17,7 @@ import { TimeRange } from "@calcom/types/schedule";
 
 import { TRPCError } from "@trpc/server";
 
-import { createRouter } from "../../createRouter";
+import { router, publicProcedure } from "../../trpc";
 
 const getScheduleSchema = z
   .object({
@@ -97,11 +97,10 @@ const checkIfIsAvailable = ({
 };
 
 /** This should be called getAvailableSlots */
-export const slotsRouter = createRouter().query("getSchedule", {
-  input: getScheduleSchema,
-  async resolve({ input, ctx }) {
+export const slotsRouter = router({
+  getSchedule: publicProcedure.input(getScheduleSchema).query(async ({ input, ctx }) => {
     return await getSchedule(input, ctx);
-  },
+  }),
 });
 
 async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeof getScheduleSchema>) {

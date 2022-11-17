@@ -36,6 +36,7 @@ type Props = {
   user: { username: string | null };
   location?: string | null;
   bookingId: number;
+  bookingUid: string;
 };
 
 type States =
@@ -47,7 +48,6 @@ type States =
 export default function PaymentComponent(props: Props) {
   const { t, i18n } = useLocale();
   const router = useRouter();
-  const { email, name, date } = router.query;
   const [state, setState] = useState<States>({ status: "idle" });
   const stripe = useStripe();
   const elements = useElements();
@@ -83,12 +83,7 @@ export default function PaymentComponent(props: Props) {
       });
     } else {
       const params: { [k: string]: any } = {
-        date,
-        type: props.eventType.id,
-        username: props.user.username,
-        email,
-        name,
-        bookingId: props.bookingId,
+        uid: props.bookingUid,
       };
 
       if (props.location) {
