@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import { CalWindow, GlobalCal } from "@calcom/embed-core";
+import { GlobalCal } from "@calcom/embed-core";
 import EmbedSnippet from "@calcom/embed-snippet";
 
 export const _useLoadCalApi = (embedJsUrl?: string) => {
@@ -16,6 +16,7 @@ export const _useLoadCalApi = (embedJsUrl?: string) => {
     // Since we don't support "reloading" embed on a different URL
     // just don't pass it to array dependency for now
     // TODO: unmount window.cal and replace it ?
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setCalApi]);
 
   return calApi;
