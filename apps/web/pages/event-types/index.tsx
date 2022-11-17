@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { NextPageContext } from "next";
+import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
@@ -32,7 +32,7 @@ import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 
-import { ssgInit } from "@server/lib/ssg";
+import { ssrInit } from "@server/lib/ssr";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
@@ -617,8 +617,8 @@ const EventTypesPage = () => {
   );
 };
 
-export const getServerSideProps = async (context: NextPageContext) => {
-  const ssr = await ssgInit(context);
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
 
   return {
     props: {
