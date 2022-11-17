@@ -18,13 +18,11 @@ export default function OmniInstallAppButton({ appId, className }: { appId: stri
   const utils = trpc.useContext();
 
   const mutation = useAddAppMutation(null, {
-    onSuccess: (data: any) => {
+    onSuccess: () => {
       //TODO: viewer.appById might be replaced with viewer.apps so that a single query needs to be invalidated.
       utils.invalidateQueries(["viewer.appById", { appId }]);
       utils.invalidateQueries(["viewer.apps", { extendsFeature: "EventType" }]);
-      if (data.noRedirection !== undefined && data.noRedirection) {
-        showToast(t("app_successfully_installed"), "success");
-      }
+      showToast(t("app_successfully_installed"), "success");
     },
     onError: (error) => {
       if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");

@@ -18,12 +18,10 @@ export default function AppCard({ app, credentials }: AppCardProps) {
   const { t } = useLocale();
   const router = useRouter();
   const mutation = useAddAppMutation(null, {
-    onSuccess: (data: any) => {
+    onSuccess: () => {
       // Refresh SSR page content without actual reload
       router.replace(router.asPath);
-      if (data.showToast !== undefined && data.showToast) {
-        showToast(t("app_successfully_installed"), "success");
-      }
+      showToast(t("app_successfully_installed"), "success");
     },
     onError: (error) => {
       if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
