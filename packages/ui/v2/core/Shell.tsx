@@ -128,7 +128,7 @@ const Layout = (props: LayoutProps) => {
 
   return (
     <>
-      {!props.withoutSeo && !pageTitle && (
+      {!props.withoutSeo && pageTitle && (
         <HeadSeo
           title={pageTitle ?? "Cal.com"}
           description={props.subtitle ? props.subtitle?.toString() : ""}
