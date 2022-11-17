@@ -14,7 +14,7 @@ function roundX(x: number, roundBy: number) {
   return Math.round(x / roundBy) * roundBy;
 }
 
-export function BlockedList({ day, containerRef }: Props) {
+export function BlockedList({ day }: Props) {
   const { startHour, blockingDates, endHour, gridCellsPerHour } = useSchedulerStore((state) => ({
     startHour: state.startHour || 0,
     endHour: state.endHour || 23,
@@ -39,19 +39,21 @@ export function BlockedList({ day, containerRef }: Props) {
         </div>
       )}
 
-      <div
-        key={day.format("YYYY-MM-DD")}
-        className="absolute z-50 w-full"
-        style={{
-          top: `var(--one-minute-height)`,
+      {day.isToday() && (
+        <div
+          key={day.format("YYYY-MM-DD")}
+          className="absolute z-50 w-full"
+          style={{
+            top: `var(--one-minute-height)`, // Still need this as this var takes into consideration the offset of the "AllDayEvenets" bar
 
-          height: `calc(${roundX(
-            nowComparedToDayStart,
-            60 / gridCellsPerHour
-          )} * var(--one-minute-height) - 2px)`, // We minus the border width to make it 🧹
-        }}>
-        <BlockedTimeCell />
-      </div>
+            height: `calc(${roundX(
+              nowComparedToDayStart,
+              60 / gridCellsPerHour
+            )} * var(--one-minute-height) - 2px)`, // We minus the border width to make it 🧹
+          }}>
+          <BlockedTimeCell />
+        </div>
+      )}
 
       {blockingDates &&
         blockingDates.map((event, i) => {

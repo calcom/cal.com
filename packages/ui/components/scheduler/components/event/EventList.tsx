@@ -19,13 +19,12 @@ export function EventList({ day }: Props) {
     <>
       {events
         .filter((event) => {
-          return dayjs(event.start).isSame(day, "day");
+          return dayjs(event.start).isSame(day, "day") && !event.allDay; // Filter all events that are not allDay and that are on the current day
         })
         .map((event, idx, eventsArray) => {
           let width = 90;
           let marginLeft: string | number = 0;
           let right = 0;
-          const marginRight: string | number = 0;
           let zIndex = 50;
 
           const eventStart = dayjs(event.start);
@@ -78,7 +77,6 @@ export function EventList({ day }: Props) {
               className="absolute inset-x-1 w-[90%]"
               style={{
                 marginLeft,
-                marginRight,
                 zIndex,
                 right: `${right}%`,
                 width: `${width}%`,
