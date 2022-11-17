@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { Button } from "@calcom/ui/components/Button";
+import { Button } from "@calcom/ui/components/button";
 import { List, ListItem } from "@calcom/ui/v2/core/List";
 
 import { sandboxPage } from ".";
