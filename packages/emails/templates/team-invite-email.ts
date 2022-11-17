@@ -1,6 +1,6 @@
 import { TFunction } from "next-i18next";
 
-import { WEBSITE_DOMAIN } from "@calcom/lib/constants";
+import { APP_NAME, WEBSITE_DOMAIN } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
 import BaseEmail from "./_base-email";
@@ -25,7 +25,7 @@ export default class TeamInviteEmail extends BaseEmail {
   protected getNodeMailerPayload(): Record<string, unknown> {
     return {
       to: this.teamInviteEvent.to,
-      from: `${WEBSITE_DOMAIN} <${this.getMailerOptions().from}>`,
+      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       subject: this.teamInviteEvent.language("user_invited_you", {
         user: this.teamInviteEvent.from,
         team: this.teamInviteEvent.teamName,

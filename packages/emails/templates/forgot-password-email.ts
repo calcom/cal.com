@@ -1,6 +1,6 @@
 import { TFunction } from "next-i18next";
 
-import { WEBSITE_DOMAIN } from "@calcom/lib/constants";
+import { APP_NAME, WEBSITE_DOMAIN } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
 import BaseEmail from "./_base-email";
@@ -28,7 +28,7 @@ export default class ForgotPasswordEmail extends BaseEmail {
   protected getNodeMailerPayload(): Record<string, unknown> {
     return {
       to: `${this.passwordEvent.user.name} <${this.passwordEvent.user.email}>`,
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       subject: this.passwordEvent.language("reset_password_subject", {
         domainName: WEBSITE_DOMAIN,
       }),
