@@ -155,6 +155,7 @@ const BookingPage = ({
         pathname: "/success",
         query: {
           uid,
+          allRemainingBookings: true,
           email: bookingForm.getValues("email"),
           eventTypeSlug: eventType.slug,
         },

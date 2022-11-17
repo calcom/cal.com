@@ -1,20 +1,30 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
+import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import Button from "@calcom/ui/Button";
 import { Icon } from "@calcom/ui/Icon";
+import { Button } from "@calcom/ui/components/button";
 
 import { HeadSeo } from "@components/seo/head-seo";
+
+const querySchema = z.object({
+  title: z.string().optional(),
+  name: z.string().optional(),
+  eventPage: z.string().optional(),
+  allRemainingBookings: z
+    .string()
+    .optional()
+    .transform((val) => (val ? JSON.parse(val) : false)),
+});
 
 export default function CancelSuccess() {
   const { t } = useLocale();
   // Get router variables
   const router = useRouter();
-  const { title, name, eventPage, recurring } = router.query;
+  const { title, name, eventPage, allRemainingBookings } = querySchema.parse(router.query);
   let team: string | string[] | number | undefined = router.query.team;
   const { data: session, status } = useSession();
-  const isRecurringEvent = recurring === "true" ? true : false;
   const loading = status === "loading";
   // If team param passed wrongly just assume it be a non team case.
   if (team instanceof Array || typeof team === "undefined") {
@@ -63,7 +73,7 @@ export default function CancelSuccess() {
                     {!loading && session?.user && (
                       <Button
                         data-testid="back-to-bookings"
-                        href={isRecurringEvent ? "/bookings/recurring" : "/bookings/upcoming"}
+                        href={!!allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}
                         StartIcon={Icon.FiArrowLeft}>
                         {t("back_to_bookings")}
                       </Button>

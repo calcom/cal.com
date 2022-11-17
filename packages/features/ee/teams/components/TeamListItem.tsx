@@ -7,6 +7,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
+import { Avatar } from "@calcom/ui/components";
 import { Button } from "@calcom/ui/components/button";
 import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
@@ -20,8 +21,6 @@ import Dropdown, {
 } from "@calcom/ui/v2/core/Dropdown";
 import { Tooltip } from "@calcom/ui/v2/core/Tooltip";
 import showToast from "@calcom/ui/v2/core/notifications";
-
-import Avatar from "@components/ui/Avatar";
 
 import { TeamRole } from "./TeamPill";
 
@@ -65,7 +64,7 @@ export default function TeamListItem(props: Props) {
   const teamInfo = (
     <div className="flex px-5 py-5">
       <Avatar
-        size={9}
+        size="sm"
         imageSrc={getPlaceholderAvatar(team?.logo, team?.name as string)}
         alt="Team Logo"
         className="min-h-9 min-w-9 h-9 w-9 rounded-full"
