@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef } from "react";
 
 import { useSchedulerStore } from "../state/store";
+import "../styles/styles.css";
 import { SchedulerComponentProps } from "../types/state";
 import { getDaysBetweenDates, getHoursToDisplay } from "../utils";
 import { DateValues } from "./DateValues/DateValues";
@@ -17,13 +18,12 @@ export function Scheduler(props: SchedulerComponentProps) {
   const containerOffset = useRef<HTMLDivElement | null>(null);
   const initalState = useSchedulerStore((state) => state.initState);
 
-  const { startDate, endDate, startHour, endHour, events, usersCellsStopsPerHour, eventHoverDuration } =
+  const { startDate, endDate, startHour, endHour, usersCellsStopsPerHour, eventHoverDuration } =
     useSchedulerStore((state) => ({
       startDate: state.startDate,
       endDate: state.endDate,
       startHour: state.startHour || 0,
       endHour: state.endHour || 23,
-      events: state.events,
       usersCellsStopsPerHour: state.gridCellsPerHour || 4,
       eventHoverDuration: state.hoverEventDuration,
     }));
@@ -68,15 +68,12 @@ export function Scheduler(props: SchedulerComponentProps) {
 
               {/* Empty Cells */}
               <ol
-                className="z-50 col-start-1 col-end-2 row-start-1 grid grid-cols-1 sm:grid-cols-7 sm:pr-8"
-                style={{
-                  gridTemplateRows: `1.75rem repeat(${numberOfGridStopsPerDay}, 1.75rem) auto`,
-                }}>
+                className="scheduler-grid-row-template scheduler-grid-column-template z-50 col-start-1 col-end-2 row-start-1 grid sm:pr-8"
+                data-gridStopsPerDay={numberOfGridStopsPerDay}>
                 <>
                   {[...Array(days.length)].map((_, i) => (
                     <li
                       key={i}
-                      className="relative flex sm:grid"
                       style={{
                         gridRow: `2 / span ${numberOfGridStopsPerDay}`,
                       }}>
@@ -100,21 +97,19 @@ export function Scheduler(props: SchedulerComponentProps) {
                 </>
               </ol>
               <ol
-                className="relative col-start-1 col-end-2 row-start-1 grid grid-cols-1 sm:grid-cols-7 sm:pr-8"
-                style={{
-                  gridTemplateRows: `1.75rem repeat(${numberOfGridStopsPerDay}, 1.75rem) auto`,
-                }}>
+                className="scheduler-grid-row-template scheduler-grid-column-template relative col-start-1 col-end-2 row-start-1 grid  sm:pr-8"
+                data-gridStopsPerDay={numberOfGridStopsPerDay}>
                 {/*Loop over events per day  */}
                 {days.map((day, i) => {
                   return (
-                    <div
+                    <li
                       key={day.toISOString()}
                       className="relative"
                       style={{ gridColumnStart: i + 1, marginTop: containerOffset.current?.offsetHeight }}>
                       <EventList day={day} />
                       {/* We mayaswell add blocked in here too  */}
                       <BlockedList day={day} containerRef={container} />
-                    </div>
+                    </li>
                   );
                 })}
               </ol>

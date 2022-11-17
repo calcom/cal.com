@@ -44,7 +44,7 @@ export function BlockedList({ day }: Props) {
           key={day.format("YYYY-MM-DD")}
           className="absolute z-50 w-full"
           style={{
-            top: `var(--one-minute-height)`, // Still need this as this var takes into consideration the offset of the "AllDayEvenets" bar
+            top: `var(--one-minute-height)`, // Still need this as this var takes into consideration the offset of the "AllDayEvents" bar
 
             height: `calc(${roundX(
               nowComparedToDayStart,
