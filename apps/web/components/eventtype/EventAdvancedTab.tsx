@@ -74,6 +74,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               defaultValue={eventType.destinationCalendar || undefined}
               render={({ field: { onChange, value } }) => (
                 <DestinationCalendarSelector
+                  destinationCalendar={eventType.destinationCalendar}
                   value={value ? value.externalId : undefined}
                   onChange={onChange}
                   hidePlaceholder

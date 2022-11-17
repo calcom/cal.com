@@ -112,7 +112,9 @@ function BookingListItem(booking: BookingItemProps) {
       label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel"),
       /* When cancelling we need to let the UI and the API know if the intention is to
          cancel all remaining bookings or just that booking instance. */
-      href: `/cancel/${booking.uid}${isTabRecurring && isRecurring ? "?allRemainingBookings=true" : ""}`,
+      href: `/success?uid=${booking.uid}&cancel=true${
+        isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
+      }`,
       icon: Icon.FiX,
     },
     {
@@ -185,26 +187,14 @@ function BookingListItem(booking: BookingItemProps) {
     .concat(booking.recurringInfo?.bookings[BookingStatus.PENDING])
     .sort((date1: Date, date2: Date) => date1.getTime() - date2.getTime());
 
-  const location = booking.location || "";
-
   const onClickTableData = () => {
     router.push({
       pathname: "/success",
       query: {
-        date: booking.startTime,
-        // TODO: Booking when fetched should have id 0 already(for Dynamic Events).
-        type: booking.eventType.id || 0,
-        eventSlug: booking.eventType.slug,
-        username: user?.username || "",
-        name: booking.attendees[0] ? booking.attendees[0].name : undefined,
-        email: booking.attendees[0] ? booking.attendees[0].email : undefined,
-        location: location,
-        eventName: booking.eventType.eventName || "",
-        bookingId: booking.id,
-        recur: booking.recurringEventId,
-        reschedule: isConfirmed,
+        uid: booking.uid,
+        allRemainingBookings: isTabRecurring,
         listingStatus: booking.listingStatus,
-        status: booking.status,
+        email: booking.attendees[0] ? booking.attendees[0].email : undefined,
       },
     });
   };

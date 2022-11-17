@@ -203,6 +203,9 @@ module.exports = {
         full: "100%",
         screen: "100vw",
       }),
+      backgroundImage: {
+        "gradient-primary": "radial-gradient(162.05% 170% at 109.58% 35%, #667593 0%, #E3E3E3 100%)",
+      },
     },
   },
   plugins: [
