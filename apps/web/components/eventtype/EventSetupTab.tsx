@@ -142,7 +142,7 @@ export const EventSetupTab = (
                         alt={`${eventLocationType.label} logo`}
                       />
                       <span className="truncate text-sm ltr:ml-2 rtl:mr-2">
-                        {location[eventLocationType.defaultValueVariable] || eventLocationType.label}
+                        {t(location[eventLocationType.defaultValueVariable] || eventLocationType.label)}
                       </span>
                     </div>
                     <div className="flex">
@@ -240,7 +240,7 @@ export const EventSetupTab = (
         saveLocation={addLocation}
         defaultValues={formMethods.getValues("locations")}
         selection={
-          selectedLocation ? { value: selectedLocation.value, label: selectedLocation.label } : undefined
+          selectedLocation ? { value: selectedLocation.value, label: t(selectedLocation.label) } : undefined
         }
         setSelectedLocation={setSelectedLocation}
       />

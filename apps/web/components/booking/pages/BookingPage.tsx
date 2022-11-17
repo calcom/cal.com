@@ -617,7 +617,7 @@ const BookingPage = ({
                                 defaultChecked={i === 0}
                               />
                               <span className="text-sm ltr:ml-2 rtl:mr-2 dark:text-white">
-                                {locationKeyToString(location)}
+                                {t(locationKeyToString(location) ?? "")}
                               </span>
                             </label>
                           );
@@ -641,7 +641,7 @@ const BookingPage = ({
                       {selectedLocationType === LocationType.Phone
                         ? t("phone_number")
                         : selectedLocationType === LocationType.AttendeeInPerson
-                        ? t("Address")
+                        ? t("address")
                         : ""}
                     </label>
                     <div className="mt-1">
