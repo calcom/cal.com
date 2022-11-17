@@ -2,7 +2,7 @@ import { App_RoutingForms_Form } from "@prisma/client";
 import { z } from "zod";
 
 import logger from "@calcom/lib/logger";
-import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
+import { RoutingFormSettings, RoutingFormUsedByForms } from "@calcom/prisma/zod-utils";
 
 import isRouter from "../isRouter";
 import { SerializableForm } from "../types/types";
@@ -43,32 +43,32 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
 
   const routes: z.infer<typeof zodRoutesView> = [];
 
-  const existingFields: Record<string, true> = {};
+  const fieldsExistInForm: Record<string, true> = {};
   parsedFields?.forEach((f) => {
-    existingFields[f.id] = true;
+    fieldsExistInForm[f.id] = true;
   });
 
   //TODO: Reuse type here
-  const linkedToGlobalRouters: { name: string; description: string | null; id: string }[] = [];
-
+  const usingForms: { name: string; description: string | null; id: string }[] = [];
   if (parsedRoutes) {
     for (let i = 0; i < parsedRoutes.length; i++) {
       const route = parsedRoutes[i];
       if (isRouter(route)) {
-        const router = await prisma.app_RoutingForms_Form.findUnique({
+        // A form(as router) can only be used once in a form.
+        // TODO: Prevent this from happening in the select box itself and mutation
+        const router = await prisma.app_RoutingForms_Form.findFirst({
           where: {
-            //TODO: May be rename it to route.routerId
             id: route.id,
-            //FIXME: Check user
+            userId: form.userId,
           },
         });
         if (!router) {
-          throw new Error("Global Router -" + route.id + " not found");
+          throw new Error("Form -" + route.id + ", being used as router, not found");
         }
 
         const parsedRouter = await getSerializableForm(prisma, router);
 
-        linkedToGlobalRouters.push({
+        usingForms.push({
           name: parsedRouter.name,
           description: parsedRouter.description,
           id: parsedRouter.id,
@@ -91,7 +91,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
 
           // Happens when the form is created and not saved.
           // Once the form is saved the link b/w Global Router field and Form is saved in the form, so that it can now be reordered
-          if (!existingFields[field.id]) {
+          if (!fieldsExistInForm[field.id]) {
             const newField = {
               ...field,
               globalRouterId: parsedRouter.id,
@@ -125,13 +125,28 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
     }
   }
 
+  const usedByFormsIds = form.usedByForms || [];
+  let usedByForms: { name: string; description: string | null; id: string }[] = [];
+  if (usedByFormsIds) {
+    usedByForms = (
+      await prisma.app_RoutingForms_Form.findMany({
+        where: {
+          id: {
+            in: usedByFormsIds,
+          },
+        },
+      })
+    ).map((f) => ({ id: f.id, name: f.name, description: f.description }));
+  }
+
   // Ideally we should't have needed to explicitly type it but due to some reason it's not working reliably with VSCode TypeCheck
   const serializableForm: SerializableForm<TForm> = {
     ...form,
     settings,
     fields,
     routes,
-    linkedToGlobalRouters,
+    usingForms,
+    usedByForms,
     createdAt: form.createdAt.toString(),
     updatedAt: form.updatedAt.toString(),
   };

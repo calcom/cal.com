@@ -58,7 +58,9 @@ export const zodLocalRoute = z.object({
 export const zodLocalRouteView = zodLocalRoute;
 
 export const zodGlobalRoute = z.object({
+  // This is the id of the Form being used as router
   id: z.string(),
+  // TODO: Rename it to isGlobalRouter or isLinkedRouter
   routerType: z.literal("global"),
 });
 

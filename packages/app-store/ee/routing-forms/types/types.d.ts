@@ -1,9 +1,9 @@
 import { App_RoutingForms_Form, App_RoutingForms_Router } from "@prisma/client";
 import z from "zod";
 
-import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
+import { RoutingFormSettings, RoutingFormUsedByForms } from "@calcom/prisma/zod-utils";
 
-import { zodFields, zodFieldsView, zodRoutes, zodRoutesView } from "../zod";
+import { zodFieldsView, zodRoutesView } from "../zod";
 
 export type Response = Record<
   // Field ID
@@ -27,7 +27,8 @@ export type SerializableForm<T extends App_RoutingForms_Form> = Omit<
   settings: z.infer<typeof RoutingFormSettings>;
   createdAt: string;
   updatedAt: string;
-  linkedToGlobalRouters: { name: string; description: string | null; id: string }[];
+  usedByForms: { name: string; description: string | null; id: string }[];
+  usingForms: { name: string; description: string | null; id: string }[];
 };
 
 export type SerializableRouter<T extends App_RoutingForms_Router> = Omit<

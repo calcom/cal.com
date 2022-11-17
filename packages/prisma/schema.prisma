@@ -524,6 +524,7 @@ model App_RoutingForms_Form {
   disabled    Boolean                         @default(false)
   /// @zod.custom(imports.RoutingFormSettings)
   settings    Json?
+  usedByForms String[]
 }
 
 model App_RoutingForms_Router {

@@ -32,17 +32,12 @@ import FormInputFields from "./FormInputFields";
 import RoutingNavBar from "./RoutingNavBar";
 
 type RoutingForm = SerializableForm<App_RoutingForms_Form>;
-// type ViewOnlyFieldsRoutingForm = {
-//   fields: (NonNullable<RoutingForm["fields"]>[number] & {
-//     globalRouter?: Pick<RoutingForm, "name" | "description" | "id">;
-//   })[];
-// };
 
 export type RoutingFormWithResponseCount = RoutingForm & {
   _count: {
     responses: number;
   };
-} /*& ViewOnlyFieldsRoutingForm*/;
+};
 
 const Actions = ({
   form,
@@ -237,6 +232,8 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
       utils.viewer.appRoutingForms.formQuery.invalidate({ id: form.id });
     },
   });
+  const usedByForms = form.usedByForms;
+
   return (
     <>
       <Form
@@ -289,12 +286,31 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                       }}
                     />
                   </div>
-                  {form.linkedToGlobalRouters ? (
+                  {form.usingForms.length ? (
                     <div className="mt-6">
                       <div className="mb-2 block text-sm font-medium leading-none text-gray-700">
-                        Linked Routers
+                        Using Forms
                       </div>
-                      {form.linkedToGlobalRouters.map((router) => {
+                      {form.usingForms.map((router) => {
+                        return (
+                          <div key={router.id}>
+                            <Link href={`/${appUrl}/route-builder/${router.id}`}>
+                              <a>
+                                <Badge variant="default">{router.name}</Badge>
+                              </a>
+                            </Link>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+
+                  {usedByForms?.length ? (
+                    <div className="mt-6">
+                      <div className="mb-2 block text-sm font-medium leading-none text-gray-700">
+                        Used by Forms
+                      </div>
+                      {usedByForms.map((router) => {
                         return (
                           <div key={router.id}>
                             <Link href={`/${appUrl}/route-builder/${router.id}`}>

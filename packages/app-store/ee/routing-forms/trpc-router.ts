@@ -318,6 +318,23 @@ const appRoutingForms = router({
         );
       }
 
+      const previousRouters =
+        form.routes?.filter((route) => isRouter(route)).map((router) => router.id) || [];
+      const formsToUpdate = routes?.filter((route) => isRouter(route)).map((router) => router.id) || [];
+
+      for (let i = 0; i < formsToUpdate.length; i++) {
+        await prisma.app_RoutingForms_Form.update({
+          where: {
+            id: formsToUpdate[i],
+          },
+          data: {
+            usedByForms: {
+              push: id,
+            },
+          },
+        });
+      }
+
       if (addFallback) {
         const uuid = uuidv4();
         routes = routes || [];
@@ -358,6 +375,7 @@ const appRoutingForms = router({
           // Prisma doesn't allow setting null value directly for JSON. It recommends using JsonNull for that case.
           routes: routes === null ? Prisma.JsonNull : routes,
           id: id,
+          usedByForms,
         },
         update: {
           disabled: disabled,
@@ -366,6 +384,7 @@ const appRoutingForms = router({
           description,
           settings: settings === null ? Prisma.JsonNull : settings,
           routes: routes === null ? Prisma.JsonNull : routes,
+          usedByForms,
         },
       });
     }),
