@@ -296,7 +296,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                           <div key={router.id}>
                             <Link href={`/${appUrl}/route-builder/${router.id}`}>
                               <a>
-                                <Badge variant="default">{router.name}</Badge>
+                                <Badge variant="gray">{router.name}</Badge>
                               </a>
                             </Link>
                           </div>

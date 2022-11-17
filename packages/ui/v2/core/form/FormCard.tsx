@@ -18,7 +18,7 @@ export default function FormCard({
   ...restProps
 }: {
   children: React.ReactNode;
-  label?: string;
+  label?: React.ReactNode;
   deleteField?: Action | null;
   moveUp?: Action | null;
   moveDown?: Action | null;

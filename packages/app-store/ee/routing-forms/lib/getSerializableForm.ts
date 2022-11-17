@@ -2,7 +2,7 @@ import { App_RoutingForms_Form } from "@prisma/client";
 import { z } from "zod";
 
 import logger from "@calcom/lib/logger";
-import { RoutingFormSettings, RoutingFormUsedByForms } from "@calcom/prisma/zod-utils";
+import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
 import isRouter from "../isRouter";
 import { SerializableForm } from "../types/types";
@@ -125,19 +125,21 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
     }
   }
 
-  const usedByFormsIds = form.usedByForms || [];
-  let usedByForms: { name: string; description: string | null; id: string }[] = [];
-  if (usedByFormsIds) {
-    usedByForms = (
-      await prisma.app_RoutingForms_Form.findMany({
-        where: {
-          id: {
-            in: usedByFormsIds,
-          },
+  const usedByForms = (
+    await prisma.app_RoutingForms_Form.findMany({
+      where: {
+        userId: form.userId,
+        routes: {
+          array_contains: [
+            {
+              id: form.id,
+              routerType: "global",
+            },
+          ],
         },
-      })
-    ).map((f) => ({ id: f.id, name: f.name, description: f.description }));
-  }
+      },
+    })
+  ).map((f) => ({ id: f.id, name: f.name, description: f.description }));
 
   // Ideally we should't have needed to explicitly type it but due to some reason it's not working reliably with VSCode TypeCheck
   const serializableForm: SerializableForm<TForm> = {

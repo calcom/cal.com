@@ -101,7 +101,7 @@ function Field({
         label={label || `Field ${fieldIndex + 1}`}
         moveUp={moveUp}
         moveDown={moveDown}
-        badge={globalRouter ? { text: globalRouter.name, variant: "default" } : null}
+        badge={globalRouter ? { text: globalRouter.name, variant: "gray" } : null}
         deleteField={globalRouter ? null : deleteField}>
         <div className="w-full">
           <div className="mb-6 w-full">

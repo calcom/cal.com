@@ -1,5 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { App_RoutingForms_Form } from "@prisma/client";
+import Link from "next/link";
 import React, { useState, useCallback } from "react";
 import { Query, Config, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
@@ -9,8 +10,8 @@ import { z } from "zod";
 import { trpc } from "@calcom/trpc/react";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Icon } from "@calcom/ui";
-import { Button, TextField, TextArea } from "@calcom/ui/components";
-import { SelectWithValidation as Select, Shell } from "@calcom/ui/v2";
+import { Button, TextField, TextArea, Badge } from "@calcom/ui/components";
+import { SelectField, SelectWithValidation as Select, Shell } from "@calcom/ui/v2";
 import FormCard from "@calcom/ui/v2/core/form/FormCard";
 
 import { zodGlobalRouteView, zodLocalRoute } from "../..//zod";
@@ -161,6 +162,7 @@ const Route = ({
   moveDown,
   appUrl,
   disabled = false,
+  removeRouterFromUse,
 }: {
   route: Route;
   routes: Route[];
@@ -171,6 +173,7 @@ const Route = ({
   moveDown?: { fn: () => void; check: () => boolean } | null;
   appUrl: string;
   disabled?: boolean;
+  removeRouterFromUse: (routerId: string) => void;
 }) => {
   const index = routes.indexOf(route);
 
@@ -207,16 +210,33 @@ const Route = ({
   );
 
   if (isRouter(route)) {
-    // Render GlobalRoute
     return (
       <div>
         <FormCard
           moveUp={moveUp}
           moveDown={moveDown}
-          badge={{ variant: "default", text: route.name, href: `/${appUrl}/route-builder/${route.id}` }}
-          label={route.name}
+          deleteField={{
+            check: () => routes.length !== 1,
+            fn: () => {
+              const newRoutes = routes.filter((r) => r.id !== route.id);
+              setRoutes(newRoutes);
+              removeRouterFromUse(route.id);
+            },
+          }}
+          label={
+            <div>
+              <span className="mr-2">{`Route ${index + 1}`}</span>
+              <Link href={`/${appUrl}/route-builder/${route.id}`}>
+                <a>
+                  <Badge variant="gray">
+                    <span className="font-semibold">{route.name}</span>
+                  </Badge>
+                </a>
+              </Link>
+            </div>
+          }
           className="mb-6">
-          <div>{route.description || "A Global Router"}</div>
+          <div>{route.description || ""}</div>
         </FormCard>
       </div>
     );
@@ -375,8 +395,43 @@ const Routes = ({
       return deserializeRoute(route, config);
     });
   });
+  const { data: allForms } = trpc.viewer.appRoutingForms.forms.useQuery();
+
+  const availableRouters =
+    allForms
+      ?.filter((router) => {
+        return router.id !== form.id;
+      })
+      .map((router) => {
+        return {
+          value: router.id,
+          label: router.name,
+          name: router.name,
+          description: router.description,
+        };
+      }) || [];
 
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
+
+  const [routersInUse, setRoutersInUse] = useState<string[]>(
+    routes.filter((route) => isRouter(route)).map((r) => r.id)
+  );
+
+  const routerOptions = (
+    [
+      {
+        label: "Create a New Route",
+        value: "newRoute",
+        name: null,
+        description: null,
+      },
+    ] as {
+      label: string;
+      value: string;
+      name: string | null;
+      description: string | null;
+    }[]
+  ).concat(availableRouters.filter((r) => !routersInUse.includes(r.value)));
 
   const mainRoutes = routes.filter((route) => {
     if (isRouter(route)) return true;
@@ -433,7 +488,15 @@ const Routes = ({
       queryValue: route.queryValue,
     };
   });
+
   hookForm.setValue("routes", routesToSave);
+
+  const removeRouterFromUse = (routerNotInUse: string) => {
+    setRoutersInUse((routersInUse) => {
+      return routersInUse.filter((r) => r !== routerNotInUse);
+    });
+  };
+
   return (
     <div className="flex flex-col-reverse md:flex-row">
       <div ref={animationRef} className="w-full ltr:mr-2 rtl:ml-2">
@@ -444,6 +507,7 @@ const Routes = ({
               key={route.id}
               config={config}
               route={route}
+              removeRouterFromUse={removeRouterFromUse}
               moveUp={{
                 check: () => key !== 0,
                 fn: () => {
@@ -463,44 +527,52 @@ const Routes = ({
             />
           );
         })}
-        <Button
-          type="button"
-          className="mb-6"
-          color="secondary"
-          StartIcon={Icon.FiPlus}
-          data-testid="add-route"
-          onClick={() => {
-            const newEmptyRoute = getEmptyRoute();
-            const newRoutes = [
-              ...routes,
-              {
-                ...newEmptyRoute,
-                state: {
-                  tree: QbUtils.checkTree(QbUtils.loadTree(newEmptyRoute.queryValue), config),
-                  config,
-                },
-              },
-            ];
-            setRoutes(newRoutes);
-          }}>
-          Add Route
-        </Button>
-        <Button
-          onClick={() => {
-            const routerId = prompt("Form ID of Router");
-            if (!routerId) {
+        <SelectField
+          placeholder="Select a router"
+          containerClassName="mb-6"
+          label="Add a new Route"
+          options={routerOptions}
+          key={mainRoutes.length}
+          onChange={(option) => {
+            if (!option) {
               return;
             }
-            setRoutes([
-              ...routes,
-              {
-                routerType: "global",
-                id: routerId,
-              } as Route,
-            ]);
-          }}>
-          Pick Global Router
-        </Button>
+            const router = option.value;
+            if (router === "newRoute") {
+              const newEmptyRoute = getEmptyRoute();
+              const newRoutes = [
+                ...routes,
+                {
+                  ...newEmptyRoute,
+                  state: {
+                    tree: QbUtils.checkTree(QbUtils.loadTree(newEmptyRoute.queryValue), config),
+                    config,
+                  },
+                },
+              ];
+
+              setRoutes(newRoutes);
+            } else {
+              const routerId = router;
+              if (!routerId) {
+                return;
+              }
+              setRoutes([
+                ...routes,
+                {
+                  routerType: "global",
+                  id: routerId,
+                  name: option.name,
+                  description: option.description,
+                } as Route,
+              ]);
+            }
+            setRoutersInUse((prevValue) => {
+              return [...prevValue, option.value];
+            });
+          }}
+        />
+
         <div>
           <Route
             config={config}
@@ -509,6 +581,7 @@ const Routes = ({
             setRoute={setRoute}
             setRoutes={setRoutes}
             appUrl={appUrl}
+            removeRouterFromUse={removeRouterFromUse}
           />
         </div>
       </div>
