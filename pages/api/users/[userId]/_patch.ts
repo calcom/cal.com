@@ -59,7 +59,7 @@ export async function patchHandler(req: NextApiRequest) {
   // Here we only check for ownership of the user if the user is not admin, otherwise we let ADMIN's edit any user
   if (!isAdmin && query.userId !== req.userId) throw new HttpError({ statusCode: 403, message: "Forbidden" });
 
-  const body = schemaUserEditBodyParams.parse(req.body);
+  const body = await schemaUserEditBodyParams.parseAsync(req.body);
   const userSchedules = await prisma.schedule.findMany({
     where: { userId: query.userId },
   });

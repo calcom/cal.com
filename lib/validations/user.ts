@@ -1,6 +1,8 @@
 import { z } from "zod";
 
+import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { _UserModel as User } from "@calcom/prisma/zod";
+import { iso8601 } from "@calcom/prisma/zod-utils";
 
 import { timeZone } from "@lib/validations/shared/timeZone";
 
@@ -50,14 +52,26 @@ enum timeFormat {
   TWENTY_FOUR = 24,
 }
 
+const usernameSchema = z
+  .string()
+  .transform((v) => v.toLowerCase())
+  // .refine(() => {})
+  .superRefine(async (val, ctx) => {
+    if (val) {
+      const result = await checkUsername(val);
+      if (!result.available) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "already_in_use_error" });
+      if (result.premium) ctx.addIssue({ code: z.ZodIssueCode.custom, message: "premium_username" });
+    }
+  });
+
 // @note: These are the values that are editable via PATCH method on the user Model
 export const schemaUserBaseBodyParams = User.pick({
   name: true,
+  email: true,
+  username: true,
   bio: true,
   timeZone: true,
   weekStart: true,
-  endTime: true,
-  bufferTime: true,
   theme: true,
   defaultScheduleId: true,
   locale: true,
@@ -75,13 +89,12 @@ export const schemaUserBaseBodyParams = User.pick({
 // Here we can both require or not (adding optional or nullish) and also rewrite validations for any value
 // for example making weekStart only accept weekdays as input
 const schemaUserEditParams = z.object({
+  email: z.string().email(),
+  username: usernameSchema,
   weekStart: z.nativeEnum(weekdays).optional(),
   brandColor: z.string().min(4).max(9).regex(/^#/).optional(),
   darkBrandColor: z.string().min(4).max(9).regex(/^#/).optional(),
   timeZone: timeZone.optional(),
-  bufferTime: z.number().min(0).max(86400).optional(),
-  startTime: z.number().min(0).max(86400).optional(),
-  endTime: z.number().min(0).max(86400).optional(),
   theme: z.nativeEnum(theme).optional().nullable(),
   timeFormat: z.nativeEnum(timeFormat).optional(),
   defaultScheduleId: z
@@ -97,13 +110,11 @@ const schemaUserEditParams = z.object({
 
 const schemaUserCreateParams = z.object({
   email: z.string().email(),
+  username: usernameSchema,
   weekStart: z.nativeEnum(weekdays).optional(),
   brandColor: z.string().min(4).max(9).regex(/^#/).optional(),
   darkBrandColor: z.string().min(4).max(9).regex(/^#/).optional(),
   timeZone: timeZone.optional(),
-  bufferTime: z.number().min(0).max(86400).optional(),
-  startTime: z.number().min(0).max(86400).optional(),
-  endTime: z.number().min(0).max(86400).optional(),
   theme: z.nativeEnum(theme).optional().nullable(),
   timeFormat: z.nativeEnum(timeFormat).optional(),
   defaultScheduleId: z
@@ -112,7 +123,7 @@ const schemaUserCreateParams = z.object({
     .optional()
     .nullable(),
   locale: z.nativeEnum(locales).optional(),
-  createdDate: z.string().or(z.date()).optional(),
+  createdDate: iso8601.optional(),
 });
 
 // @note: These are the values that are editable via PATCH method on the user Model,
@@ -120,6 +131,7 @@ const schemaUserCreateParams = z.object({
 export const schemaUserEditBodyParams = schemaUserBaseBodyParams
   .merge(schemaUserEditParams)
   .omit({})
+  .partial()
   .strict();
 
 export const schemaUserCreateBodyParams = schemaUserBaseBodyParams
