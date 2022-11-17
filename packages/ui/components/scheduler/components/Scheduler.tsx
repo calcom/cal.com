@@ -42,7 +42,9 @@ export function Scheduler(props: SchedulerComponentProps) {
   return (
     <div
       className="scheduler-wrapper flex h-full w-full flex-col overflow-y-scroll"
-      data-gridstopsperhour={usersCellsStopsPerHour}>
+      style={
+        { "--one-minute-height": `calc(1.75rem/(60/${usersCellsStopsPerHour}))` } as React.CSSProperties // This can't live in the css file because it's a dynamic value and css variable gets super
+      }>
       <SchedulerHeading />
       <div ref={container} className="isolate flex flex-auto flex-col  bg-white">
         <div

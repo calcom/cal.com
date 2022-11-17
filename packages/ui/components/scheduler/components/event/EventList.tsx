@@ -74,7 +74,7 @@ export function EventList({ day }: Props) {
           return (
             <div
               key={`${event.id}-${eventStart.toISOString()}`}
-              className="absolute inset-x-1 w-[90%]"
+              className="absolute inset-x-1 "
               style={{
                 marginLeft,
                 zIndex,
