@@ -22,7 +22,7 @@ type UseAddAppMutationOptions = CustomUseMutationOptions & {
   onSuccess: (data: { setupPending: boolean }) => void;
 };
 
-function useAddAppMutation(_type: App["type"] | null, options: UseAddAppMutationOptions) {
+function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutationOptions) {
   const mutation = useMutation<
     { setupPending: boolean },
     Error,
