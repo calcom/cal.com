@@ -596,7 +596,7 @@
   "monthly_other": "maanden",
   "yearly_one": "jaar",
   "yearly_other": "jaar",
-  "plus_more": "Nog {{count}}",
+  "plus_more": "{{count}} meer",
   "max": "Max.",
   "single_theme": "Enkel Thema",
   "brand_color": "Merkkleur",

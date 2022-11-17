@@ -597,7 +597,7 @@
   "monthly_other": "měs.",
   "yearly_one": "rok",
   "yearly_other": "roky/let",
-  "plus_more": "+ ještě {{count}}",
+  "plus_more": "ještě {{count}}",
   "max": "Max.",
   "single_theme": "Jednotná šablona",
   "brand_color": "Barva značky",

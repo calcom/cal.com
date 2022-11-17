@@ -112,7 +112,9 @@ function BookingListItem(booking: BookingItemProps) {
       label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel"),
       /* When cancelling we need to let the UI and the API know if the intention is to
          cancel all remaining bookings or just that booking instance. */
-      href: `/cancel/${booking.uid}${isTabRecurring && isRecurring ? "?allRemainingBookings=true" : ""}`,
+      href: `/success?uid=${booking.uid}&cancel=true${
+        isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
+      }`,
       icon: Icon.FiX,
     },
     {
@@ -185,26 +187,14 @@ function BookingListItem(booking: BookingItemProps) {
     .concat(booking.recurringInfo?.bookings[BookingStatus.PENDING])
     .sort((date1: Date, date2: Date) => date1.getTime() - date2.getTime());
 
-  const location = booking.location || "";
-
   const onClickTableData = () => {
     router.push({
       pathname: "/success",
       query: {
-        date: booking.startTime,
-        // TODO: Booking when fetched should have id 0 already(for Dynamic Events).
-        type: booking.eventType.id || 0,
-        eventSlug: booking.eventType.slug,
-        username: user?.username || "",
-        name: booking.attendees[0] ? booking.attendees[0].name : undefined,
-        email: booking.attendees[0] ? booking.attendees[0].email : undefined,
-        location: location,
-        eventName: booking.eventType.eventName || "",
-        bookingId: booking.id,
-        recur: booking.recurringEventId,
-        reschedule: isConfirmed,
+        uid: booking.uid,
+        allRemainingBookings: isTabRecurring,
         listingStatus: booking.listingStatus,
-        status: booking.status,
+        email: booking.attendees[0] ? booking.attendees[0].email : undefined,
       },
     });
   };
@@ -471,8 +461,9 @@ const FirstAttendee = ({
   user: UserProps;
   currentEmail: string | null | undefined;
 }) => {
+  const { t } = useLocale();
   return user.email === currentEmail ? (
-    <div className="inline-block">You</div>
+    <div className="inline-block">{t("you")}</div>
   ) : (
     <a
       key={user.email}
@@ -484,18 +475,18 @@ const FirstAttendee = ({
   );
 };
 
-const Attendee: React.FC<{ email: string; children: React.ReactNode }> = ({ email, children }) => {
+type AttendeeProps = {
+  name?: string;
+  email: string;
+};
+
+const Attendee = ({ email, name }: AttendeeProps) => {
   return (
-    <a className=" hover:text-blue-500" href={"mailto:" + email} onClick={(e) => e.stopPropagation()}>
-      {children}
+    <a className="hover:text-blue-500" href={"mailto:" + email} onClick={(e) => e.stopPropagation()}>
+      {name || email}
     </a>
   );
 };
-
-interface AttendeeProps {
-  name: string;
-  email: string;
-}
 
 const DisplayAttendees = ({
   attendees,
@@ -504,42 +495,33 @@ const DisplayAttendees = ({
 }: {
   attendees: AttendeeProps[];
   user: UserProps | null;
-  currentEmail: string | null | undefined;
+  currentEmail?: string | null;
 }) => {
-  if (attendees.length === 1) {
-    return (
-      <div className="text-sm text-gray-900">
-        {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
-        <span>&nbsp;and&nbsp;</span>
-        <Attendee email={attendees[0].email}>{attendees[0].name}</Attendee>
-      </div>
-    );
-  } else if (attendees.length === 2) {
-    return (
-      <div className="text-sm text-gray-900">
-        {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
-        <span>,&nbsp;</span>
-        <Attendee email={attendees[0].email}>{attendees[0].name}</Attendee>
-        <div className="inline-block text-sm text-gray-900">&nbsp;and&nbsp;</div>
-        <Attendee email={attendees[1].email}>{attendees[1].name}</Attendee>
-      </div>
-    );
-  } else {
-    return (
-      <div className="text-sm text-gray-900">
-        {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
-        <span>,&nbsp;</span>
-        <Attendee email={attendees[0].email}>{attendees[0].name}</Attendee>
-        <span>&nbsp;&&nbsp;</span>
-        <Tooltip
-          content={attendees.slice(1).map((attendee, key) => (
-            <p key={key}>{attendee.name}</p>
-          ))}>
-          <div className="inline-block">{attendees.length - 1} more</div>
-        </Tooltip>
-      </div>
-    );
-  }
+  const { t } = useLocale();
+  return (
+    <div className="text-sm text-gray-900">
+      {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
+      {attendees.length > 1 ? <span>,&nbsp;</span> : <span>&nbsp;{t("and")}&nbsp;</span>}
+      <Attendee {...attendees[0]} />
+      {attendees.length > 1 && (
+        <>
+          <div className="inline-block text-sm text-gray-900">&nbsp;{t("and")}&nbsp;</div>
+          {attendees.length > 2 ? (
+            <Tooltip
+              content={attendees.slice(1).map((attendee) => (
+                <p key={attendee.email}>
+                  <Attendee {...attendee} />
+                </p>
+              ))}>
+              <div className="inline-block">{t("plus_more", { count: attendees.length - 1 })}</div>
+            </Tooltip>
+          ) : (
+            <Attendee {...attendees[1]} />
+          )}
+        </>
+      )}
+    </div>
+  );
 };
 
 const Tag = ({ children, className = "" }: React.PropsWithChildren<{ className?: string }>) => {

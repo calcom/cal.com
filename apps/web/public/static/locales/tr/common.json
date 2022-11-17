@@ -597,7 +597,7 @@
   "monthly_other": "ay",
   "yearly_one": "yıl",
   "yearly_other": "yıl",
-  "plus_more": "+ {{count}} tane daha",
+  "plus_more": "{{count}} tane daha",
   "max": "Maks.",
   "single_theme": "Tek Tema",
   "brand_color": "Marka Rengi",

@@ -64,7 +64,7 @@ const VerticalTabItem = function ({
                   {props.isExternalLink ? <Icon.FiExternalLink /> : null}
                 </span>
                 {info && (
-                  <Skeleton as="p" className="mt-1 text-xs font-normal">
+                  <Skeleton as="p" title={t(info)} className="max-w-44 mt-1 truncate text-xs font-normal">
                     {t(info)}
                   </Skeleton>
                 )}

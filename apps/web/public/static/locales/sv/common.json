@@ -596,7 +596,7 @@
   "monthly_other": "månader",
   "yearly_one": "år",
   "yearly_other": "år",
-  "plus_more": "+ {{count}} till",
+  "plus_more": "{{count}} till",
   "max": "Max",
   "single_theme": "Ett tema",
   "brand_color": "Primär färg",

@@ -596,7 +596,7 @@
   "monthly_other": "tháng",
   "yearly_one": "năm",
   "yearly_other": "năm",
-  "plus_more": "+ {{count}} nữa",
+  "plus_more": "{{count}} nữa",
   "max": "Tối đa",
   "single_theme": "Chủ đề đơn",
   "brand_color": "Màu thương hiệu",

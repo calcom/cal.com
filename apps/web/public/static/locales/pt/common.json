@@ -596,7 +596,7 @@
   "monthly_other": "meses",
   "yearly_one": "ano",
   "yearly_other": "anos",
-  "plus_more": "+ {{count}} mais",
+  "plus_more": "{{count}} mais",
   "max": "Máximo",
   "single_theme": "Tema",
   "brand_color": "Cor da marca",
