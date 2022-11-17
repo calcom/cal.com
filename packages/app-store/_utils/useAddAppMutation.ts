@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, UseMutationOptions } from "@tanstack/react-query";
 
 import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -14,7 +14,15 @@ function gotoUrl(url: string, newTab?: boolean) {
   window.location.href = url;
 }
 
-function useAddAppMutation(_type: App["type"] | null, options?: Parameters<typeof useMutation>[2]) {
+type CustomUseMutationOptions =
+  | Omit<UseMutationOptions<unknown, unknown, unknown, unknown>, "mutationKey" | "mutationFn" | "onSuccess">
+  | undefined;
+
+type UseAddAppMutationOptions = CustomUseMutationOptions & {
+  onSuccess: (data: { setupPending: boolean }) => void;
+};
+
+function useAddAppMutation(_type: App["type"] | null, options: UseAddAppMutationOptions) {
   const mutation = useMutation<
     { setupPending: boolean },
     Error,
