@@ -3,7 +3,6 @@ import type { Session } from "next-auth";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { getSession } from "@calcom/lib/auth";
-import { CAL_URL } from "@calcom/lib/constants";
 import { getLocaleFromHeaders } from "@calcom/lib/i18n";
 import { defaultAvatarSrc } from "@calcom/lib/profile";
 import prisma from "@calcom/prisma";
@@ -106,9 +105,9 @@ async function getUserFromSession({
  * Creates context for an incoming request
  * @link https://trpc.io/docs/context
  */
-export const createContext = async ({ req }: CreateContextOptions) => {
+export const createContext = async ({ req }: CreateContextOptions, sessionGetter = getSession) => {
   // for API-response caching see https://trpc.io/docs/caching
-  const session = await getSession({ req });
+  const session = await sessionGetter({ req });
 
   const user = await getUserFromSession({ session, req });
   const locale = user?.locale ?? getLocaleFromHeaders(req);
