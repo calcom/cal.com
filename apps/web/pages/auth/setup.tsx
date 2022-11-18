@@ -1,6 +1,7 @@
 import { CheckIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import classNames from "classnames";
+import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
@@ -12,6 +13,8 @@ import prisma from "@calcom/prisma";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { TextField, EmailField, PasswordField, Label } from "@calcom/ui/components/form";
 import WizardForm from "@calcom/ui/v2/core/WizardForm";
+
+import { ssrInit } from "@server/lib/ssr";
 
 const StepDone = () => {
   const { t } = useLocale();
@@ -222,10 +225,13 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   );
 }
 
-export const getServerSideProps = async () => {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
   const userCount = await prisma.user.count();
+
   return {
     props: {
+      trpcState: ssr.dehydrate(),
       userCount,
     },
   };
