@@ -100,7 +100,7 @@ const IntegrationContainer = ({ app, lastEntry }) => {
   );
 };
 
-const AdminAppsList = () => {
+const AdminAppsList = ({ baseURL, containerClassname }: { baseURL: string; containerClassname: string }) => {
   const { t } = useLocale();
   const router = useRouter();
   const category = router.query.category;
@@ -108,13 +108,13 @@ const AdminAppsList = () => {
   const { data: apps, isLoading } = trpc.viewer.appsRouter.listLocal.useQuery({ variant: category });
 
   return (
-    <AppCategoryNavigation baseURL="/settings/admin/apps">
+    <AppCategoryNavigation baseURL={baseURL} containerClassname="w-full xl:mx-5 xl:w-2/3 xl:pr-5">
       {isLoading ? (
         <SkeletonLoader />
       ) : (
         <div className="rounded-md border border-gray-200">
-          {apps.map((app, index) => (
-            <IntegrationContainer app={app} lastEntry={index === apps.length - 1} key={app.name} />
+          {apps?.map((app, index) => (
+            <IntegrationContainer app={app} lastEntry={index === apps?.length - 1} key={app.name} />
           ))}
         </div>
       )}

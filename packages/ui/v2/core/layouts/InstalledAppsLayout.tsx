@@ -1,5 +1,7 @@
 import React, { ComponentProps } from "react";
 
+import AppsCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
+import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
 import { InstalledAppVariants } from "@calcom/app-store/utils";
 import { trpc } from "@calcom/trpc/react";
 
@@ -57,15 +59,9 @@ export default function InstalledAppsLayout({
   }
   return (
     <Shell {...rest}>
-      <div className="flex flex-col p-2 md:p-0 xl:flex-row">
-        <div className="hidden xl:block">
-          <VerticalTabs tabs={actualTabs} sticky linkProps={{ shallow: true }} />
-        </div>
-        <div className="block xl:hidden">
-          <HorizontalTabs tabs={actualTabs} linkProps={{ shallow: true }} />
-        </div>
-        <main className="w-full xl:mx-5 xl:w-4/5 xl:pr-5">{children}</main>
-      </div>
+      <AppCategoryNavigation baseURL="/apps/installed" containerClassname="w-full xl:mx-5 xl:w-4/5 xl:pr-5">
+        {children}
+      </AppCategoryNavigation>
     </Shell>
   );
 }

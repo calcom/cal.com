@@ -4,7 +4,15 @@ import { HorizontalTabs, VerticalTabs } from "@calcom/ui/v2";
 
 import getAppCategories from "../_utils/getAppCategories";
 
-const AppCategoryNavigation = ({ baseURL, children }: { baseURL: string; children: React.ReactNode }) => {
+const AppCategoryNavigation = ({
+  baseURL,
+  children,
+  containerClassname,
+}: {
+  baseURL: string;
+  children: React.ReactNode;
+  containerClassname: string;
+}) => {
   const appCategories = useMemo(() => getAppCategories(baseURL), [baseURL]);
 
   return (
@@ -15,7 +23,7 @@ const AppCategoryNavigation = ({ baseURL, children }: { baseURL: string; childre
       <div className="block xl:hidden">
         <HorizontalTabs tabs={appCategories} linkProps={{ shallow: true }} />
       </div>
-      <main className="w-full xl:mx-5 xl:w-4/5 xl:pr-5">{children}</main>
+      <main className={containerClassname}>{children}</main>
     </div>
   );
 };
