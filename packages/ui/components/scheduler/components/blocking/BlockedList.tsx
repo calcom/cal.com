@@ -30,7 +30,7 @@ export function BlockedList({ day }: Props) {
       {day.isBefore(dayjs(), "day") && (
         <div
           key={day.format("YYYY-MM-DD")}
-          className="absolute z-50 w-full"
+          className="absolute z-40 w-full"
           style={{
             top: `var(--one-minute-height)`,
             height: `calc(${(endHour + 1 - startHour) * 60} * var(--one-minute-height))`, // Add 1 to endHour to include the last hour that we add to display the last vertical line
@@ -42,7 +42,7 @@ export function BlockedList({ day }: Props) {
       {day.isToday() && (
         <div
           key={day.format("YYYY-MM-DD")}
-          className="absolute z-50 w-full"
+          className="absolute z-40 w-full"
           style={{
             top: `var(--one-minute-height)`, // Still need this as this var takes into consideration the offset of the "AllDayEvents" bar
 
@@ -72,7 +72,7 @@ export function BlockedList({ day }: Props) {
           return (
             <div
               key={`${eventStart.toISOString()}-${i}`}
-              className="absolute z-50 w-full"
+              className="absolute z-40 w-full"
               style={{
                 top: `calc(${eventStartDiff}*var(--one-minute-height))`,
                 height: `calc(${eventDuration}*var(--one-minute-height))`,
