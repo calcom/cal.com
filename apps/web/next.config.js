@@ -232,6 +232,8 @@ const nextConfig = {
   },
   sentry: {
     hideSourceMaps: true,
+    // Prevents Sentry from running on this Edge function, where Sentry doesn't work yet (build whould crash the api route).
+    excludeServerRoutes: [/\/api\/social\/og\/image\/?/],
   },
 };
 

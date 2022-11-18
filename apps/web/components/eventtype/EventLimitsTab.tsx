@@ -234,7 +234,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupInfered, "event
                   label: t("slot_interval_default"),
                   value: -1,
                 },
-                ...[5, 10, 15, 20, 30, 45, 60].map((minutes) => ({
+                ...[5, 10, 15, 20, 30, 45, 60, 75, 90, 105, 120].map((minutes) => ({
                   label: minutes + " " + t("minutes"),
                   value: minutes,
                 })),
