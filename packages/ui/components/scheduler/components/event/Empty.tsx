@@ -6,8 +6,9 @@ type EmptyCellProps = {
 } & GridCellToDateProps;
 
 export function EmptyCell(props: EmptyCellProps) {
-  const { onEmptyCellClick } = useSchedulerStore((state) => ({
+  const { onEmptyCellClick, hoverEventDuration } = useSchedulerStore((state) => ({
     onEmptyCellClick: state.onEmptyCellClick,
+    hoverEventDuration: state.hoverEventDuration,
   }));
   const cellToDate = gridCellToDateTime({
     day: props.day,
@@ -21,7 +22,7 @@ export function EmptyCell(props: EmptyCellProps) {
       className="group w-full"
       style={{ height: "1.75rem", overflow: "visible" }}
       onClick={() => onEmptyCellClick && onEmptyCellClick(cellToDate.toDate())}>
-      {props.eventDuration !== 0 && (
+      {hoverEventDuration !== 0 && (
         <div
           className="opacity-4 hidden rounded-[4px]  border-[1px] border-gray-900 bg-gray-100 py-1  px-[6px]
           text-xs font-semibold leading-5 text-gray-900 hover:bg-gray-200 group-hover:block group-hover:cursor-pointer"
