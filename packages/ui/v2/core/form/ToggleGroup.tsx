@@ -6,7 +6,7 @@ import { classNames } from "@calcom/lib";
 export const ToggleGroupItem = () => <div>hi</div>;
 
 interface ToggleGroupProps extends Omit<RadixToggleGroup.ToggleGroupSingleProps, "type"> {
-  options: { value: string; label: string }[];
+  options: { value: string; label: string; disabled?: boolean }[];
 }
 
 export const ToggleGroup = ({ options, onValueChange, ...props }: ToggleGroupProps) => {
@@ -35,9 +35,15 @@ export const ToggleGroup = ({ options, onValueChange, ...props }: ToggleGroupPro
         />
         {options.map((option) => (
           <RadixToggleGroup.Item
+            disabled={option.disabled}
             key={option.value}
             value={option.value}
-            className="relative rounded-[4px] px-3 py-1 text-sm dark:text-neutral-200 [&[aria-checked='false']]:hover:font-medium"
+            className={classNames(
+              "relative rounded-[4px] px-3 py-1 text-sm  ",
+              option.disabled
+                ? "text-gray-400 hover:cursor-not-allowed dark:text-neutral-100"
+                : "dark:text-neutral-200 [&[aria-checked='false']]:hover:font-medium"
+            )}
             ref={(node) => {
               if (node && value === option.value) {
                 setActiveToggleElement(node);

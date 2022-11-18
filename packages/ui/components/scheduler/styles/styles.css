@@ -9,7 +9,7 @@
   grid-template-rows: var(--gridMobileSize) repeat(attr(data-gridstoperperday number), var(--gridMobileSize)) auto;
 }
 .scheduler-grid-column-template{
-  grid-template-columns: repeat(7, 100%);
+  grid-auto-columns: auto;
 }
 
 @media (min-width: 640px) {
@@ -18,8 +18,3 @@
   }
 }
 
-@media (min-width: 640px) {
-  .scheduler-grid-column-template {
-    grid-template-columns: repeat(7, minmax(0,1fr));
-  }
-}

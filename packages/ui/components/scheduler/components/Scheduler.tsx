@@ -68,7 +68,7 @@ export function Scheduler(props: SchedulerComponentProps) {
 
               {/* Empty Cells */}
               <ol
-                className="scheduler-grid-row-template scheduler-grid-column-template z-50 col-start-1 col-end-2 row-start-1 grid sm:pr-8"
+                className="scheduler-grid-row-template z-50 col-start-1 col-end-2 row-start-1 grid auto-cols-auto sm:pr-8"
                 data-gridstopsperday={numberOfGridStopsPerDay}>
                 <>
                   {[...Array(days.length)].map((_, i) => (
@@ -97,7 +97,7 @@ export function Scheduler(props: SchedulerComponentProps) {
                 </>
               </ol>
               <ol
-                className="scheduler-grid-row-template scheduler-grid-column-template relative col-start-1 col-end-2 row-start-1 grid  sm:pr-8"
+                className="scheduler-grid-row-template relative col-start-1 col-end-2 row-start-1 grid auto-cols-auto  sm:pr-8"
                 data-gridstopsperday={numberOfGridStopsPerDay}>
                 {/*Loop over events per day  */}
                 {days.map((day, i) => {
