@@ -336,6 +336,7 @@ export default function SettingsLayout({
 
   return (
     <Shell
+      withoutSeo={true}
       flexChildrenContainer
       {...rest}
       SidebarContainer={<SettingsSidebarContainer className="hidden lg:flex" />}
