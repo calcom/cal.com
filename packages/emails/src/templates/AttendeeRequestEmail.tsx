@@ -2,12 +2,12 @@ import { AttendeeScheduledEmail } from "./AttendeeScheduledEmail";
 
 export const AttendeeRequestEmail = (props: React.ComponentProps<typeof AttendeeScheduledEmail>) => (
   <AttendeeScheduledEmail
-    title={props.calEvent.organizer.language.translate(
+    title={props.calEvent.attendees[0].language.translate(
       props.calEvent.recurringEvent?.count ? "booking_submitted_recurring" : "booking_submitted"
     )}
     subtitle={
       <>
-        {props.calEvent.organizer.language.translate(
+        {props.calEvent.attendees[0].language.translate(
           props.calEvent.recurringEvent?.count
             ? "user_needs_to_confirm_or_reject_booking_recurring"
             : "user_needs_to_confirm_or_reject_booking",
@@ -16,7 +16,7 @@ export const AttendeeRequestEmail = (props: React.ComponentProps<typeof Attendee
       </>
     }
     headerType="calendarCircle"
-    subject="booking_submitted_subject"
+    subject={props.calEvent.attendees[0].language.translate("booking_submitted_subject")}
     {...props}
   />
 );
