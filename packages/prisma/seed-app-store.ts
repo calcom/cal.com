@@ -233,13 +233,13 @@ export default async function main() {
   await createApp("jitsi", "jitsivideo", ["video"], "jitsi_video");
   // Other apps
   if (process.env.HUBSPOT_CLIENT_ID && process.env.HUBSPOT_CLIENT_SECRET) {
-    await createApp("hubspot", "hubspotothercalendar", ["other"], "hubspot_other_calendar", {
+    await createApp("hubspot", "hubspot", ["other"], "hubspot_other_calendar", {
       client_id: process.env.HUBSPOT_CLIENT_ID,
       client_secret: process.env.HUBSPOT_CLIENT_SECRET,
     });
   }
   if (process.env.SALESFORCE_CONSUMER_KEY && process.env.SALESFORCE_CONSUMER_SECRET) {
-    await createApp("salesforce", "salesforceothercalendar", ["other"], "salesforce_other_calendar", {
+    await createApp("salesforce", "salesforce", ["other"], "salesforce_other_calendar", {
       consumer_key: process.env.SALESFORCE_CONSUMER_KEY,
       consumer_secret: process.env.SALESFORCE_CONSUMER_SECRET,
     });

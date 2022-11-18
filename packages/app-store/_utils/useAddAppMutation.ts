@@ -73,7 +73,7 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
       gotoUrl(json.url, json.newTab);
     }
 
-    return { setupPending: !externalUrl && json.url.endsWith("/setup") };
+    return { setupPending: externalUrl || json.url.endsWith("/setup") };
   }, options);
 
   return mutation;

@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const salesforceClient = new jsforce.Connection({
     clientId: consumer_key,
-    redirectUri: `${WEBAPP_URL}/api/integrations/salesforceothercalendar/callback`,
+    redirectUri: `${WEBAPP_URL}/api/integrations/salesforce/callback`,
   });
 
   const url = salesforceClient.oauth2.getAuthorizationUrl({ scope: "refresh_token full" });
