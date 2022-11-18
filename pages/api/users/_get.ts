@@ -13,6 +13,13 @@ import { Prisma } from ".prisma/client";
  *   get:
  *     operationId: listUsers
  *     summary: Find all users.
+ *     parameters:
+ *       - in: query
+ *         name: apiKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Your API key
  *     tags:
  *     - users
  *     responses:

@@ -8,18 +8,24 @@ import { schemaUserReadPublic } from "@lib/validations/user";
 
 /**
  * @swagger
- * /users/{id}:
+ * /users/{userId}:
  *   get:
  *     summary: Find a user, returns your user if regular user.
  *     operationId: getUserById
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: userId
  *         example: 4
  *         schema:
  *           type: integer
  *         required: true
  *         description: ID of the user to get
+ *       - in: query
+ *         name: apiKey
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Your API key
  *     tags:
  *     - users
  *     responses:

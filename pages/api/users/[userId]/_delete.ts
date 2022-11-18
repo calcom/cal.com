@@ -7,18 +7,24 @@ import { schemaQueryUserId } from "@lib/validations/shared/queryUserId";
 
 /**
  * @swagger
- * /users/{id}:
+ * /users/{userId}:
  *   delete:
  *     summary: Remove an existing user
  *     operationId: removeUserById
  *     parameters:
  *      - in: path
- *        name: id
+ *        name: userId
  *        example: 1
  *        schema:
  *          type: integer
  *        required: true
  *        description: ID of the user to delete
+ *      - in: query
+ *        name: apiKey
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: Your API key
  *     tags:
  *     - users
  *     responses:

@@ -11,6 +11,65 @@ import { schemaUserCreateBodyParams } from "@lib/validations/user";
  *   post:
  *     operationId: addUser
  *     summary: Creates a new user
+ *     parameters:
+ *       - in: query
+ *         name: apiKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Your API key
+ *     requestBody:
+ *       description: Create a new user
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *              - email
+ *              - username
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Email that belongs to the user being edited
+ *               username:
+ *                 type: string
+ *                 description: Username for the user being created
+ *               brandColor:
+ *                 description: The new user's brand color
+ *                 type: string
+ *               darkBrandColor:
+ *                 description: The new user's brand color for dark mode
+ *                 type: string
+ *               weekStart:
+ *                 description: Start of the week. Acceptable values are one of [SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY]
+ *                 type: string
+ *               timeZone: 
+ *                 description: The new user's time zone
+ *                 type: string
+ *               theme:
+ *                 description: Default theme for the new user. Acceptable values are one of [DARK, LIGHT]
+ *                 type: string
+ *               timeFormat:
+ *                 description: The new user's time format. Acceptable values are one of [TWELVE, TWENTY_FOUR]
+ *                 type: string
+ *               locale:
+ *                 description: The new user's locale. Acceptable values are one of [EN, FR, IT, RU, ES, DE, PT, RO, NL, PT_BR, ES_419, KO, JA, PL, AR, IW, ZH_CH, ZH_TW, CS, SR, SV, VI]
+ *                 type: string
+ *           examples:
+ *              user:
+ *                summary: An example of USER
+ *                value:
+ *                  email: email@example.com
+ *                  username: johndoe
+ *                  weekStart: MONDAY
+ *                  brandColor: #555555
+ *                  darkBrandColor: #111111
+ *                  timeZone: EUROPE/PARIS
+ *                  theme: LIGHT
+ *                  timeFormat: TWELVE
+ *                  locale: FR
  *     tags:
  *     - users
  *     responses:

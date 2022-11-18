@@ -8,10 +8,24 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations
 
 /**
  * @swagger
- * /users/{id}:
+ * /users/{userId}:
  *   patch:
  *     summary: Edit an existing user
  *     operationId: editUserById
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         example: 4
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the user to edit
+ *       - in: query
+ *         name: apiKey
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Your API key
  *     requestBody:
  *       description: Edit an existing attendee related to one of your bookings
  *       required: true
@@ -20,27 +34,47 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations
  *           schema:
  *             type: object
  *             properties:
- *               weekStart:
+ *               email:
  *                 type: string
- *                 enum: [Monday, Sunday, Saturday]
- *                 example: Monday
+ *                 format: email
+ *                 description: Email that belongs to the user being edited
+ *               username:
+ *                 type: string
+ *                 description: Username for the user being edited
  *               brandColor:
+ *                 description: The user's brand color
  *                 type: string
- *                 example: "#FF000F"
  *               darkBrandColor:
+ *                 description: The user's brand color for dark mode
  *                 type: string
- *                 example: "#000000"
- *               timeZone:
+ *               weekStart:
+ *                 description: Start of the week. Acceptable values are one of [SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY]
  *                 type: string
- *                 example: Europe/London
- *     parameters:
- *      - in: path
- *        name: id
- *        example: 4
- *        schema:
- *          type: integer
- *        required: true
- *        description: ID of the user to edit
+ *               timeZone: 
+ *                 description: The user's time zone
+ *                 type: string
+ *               theme:
+ *                 description: Default theme for the user. Acceptable values are one of [DARK, LIGHT]
+ *                 type: string
+ *               timeFormat:
+ *                 description: The user's time format. Acceptable values are one of [TWELVE, TWENTY_FOUR]
+ *                 type: string
+ *               locale:
+ *                 description: The user's locale. Acceptable values are one of [EN, FR, IT, RU, ES, DE, PT, RO, NL, PT_BR, ES_419, KO, JA, PL, AR, IW, ZH_CH, ZH_TW, CS, SR, SV, VI]
+ *                 type: string
+ *           examples:
+ *              user:
+ *                summary: An example of USER
+ *                value:
+ *                  email: email@example.com
+ *                  username: johndoe
+ *                  weekStart: MONDAY
+ *                  brandColor: #555555
+ *                  darkBrandColor: #111111
+ *                  timeZone: EUROPE/PARIS
+ *                  theme: LIGHT
+ *                  timeFormat: TWELVE
+ *                  locale: FR
  *     tags:
  *       - users
  *     responses:
