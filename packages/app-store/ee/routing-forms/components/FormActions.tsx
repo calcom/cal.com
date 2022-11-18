@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import type { NextRouter } from "next/router";
 import { useState, createContext, useContext, forwardRef } from "react";
 import { useForm } from "react-hook-form";
+import { Controller } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
@@ -21,6 +22,8 @@ import {
   DropdownMenuTrigger,
   showToast,
   Switch,
+  SelectField,
+  SettingsToggle,
 } from "@calcom/ui/v2";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
@@ -72,6 +75,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
   const hookForm = useForm<{
     name: string;
     description: string;
+    shouldConnect: boolean;
   }>();
 
   const { action, target } = router.query as z.infer<typeof newFormModalQuerySchema>;
@@ -92,6 +96,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
           form={hookForm}
           handleSubmit={(values) => {
             const formId = uuidv4();
+
             mutation.mutate({
               id: formId,
               ...values,
@@ -110,6 +115,21 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
                 placeholder="Form Description"
               />
             </div>
+            <Controller
+              name="shouldConnect"
+              render={({ field: { value, onChange } }) => {
+                return (
+                  <SettingsToggle
+                    title="Keep me connected with the form"
+                    description="Any changes in Router and Fields of the form being duplicated, would reflect in the duplicate."
+                    checked={value}
+                    onCheckedChange={(checked) => {
+                      onChange(checked);
+                    }}
+                  />
+                );
+              }}
+            />
           </div>
           <div className="mt-8 flex flex-row-reverse gap-x-2">
             <Button loading={mutation.isLoading} data-testid="add-form" type="submit">

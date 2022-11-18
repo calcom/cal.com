@@ -21,6 +21,23 @@ async function addForm(page: Page) {
   return formId;
 }
 
+async function selectOption({
+  page,
+  selector,
+  option,
+}: {
+  page: Page;
+  selector: { selector: string; nth: number };
+  option: number;
+}) {
+  const locatorForSelect = page.locator(selector.selector).nth(selector.nth);
+  await locatorForSelect.click();
+  await locatorForSelect
+    .locator('[id*="react-select-"][aria-disabled]')
+    .nth(option - 1)
+    .click();
+}
+
 async function verifySelectOptions(
   selector: { selector: string; nth: number },
   expectedOptions: string[],
@@ -130,7 +147,8 @@ test.describe("Routing Forms", () => {
       );
 
       await page.click('[href*="/apps/routing-forms/route-builder/"]');
-      await page.click('[data-testid="add-route"]');
+      await selectNewRoute(page);
+
       await page.click('[data-testid="add-rule"]');
       await verifySelectOptions(
         {
@@ -324,6 +342,18 @@ test.describe("Routing Forms", () => {
     });
   });
 });
+
+async function selectNewRoute(page: Page) {
+  await selectOption({
+    selector: {
+      selector: ".data-testid-select-router",
+      nth: 0,
+    },
+    option: 1,
+    page,
+  });
+}
+
 async function fillSeededForm(page: Page, routingFormId: string) {
   await gotoRoutingLink(page, routingFormId);
   await page.fill('[data-testid="form-field"]', "event-routing");

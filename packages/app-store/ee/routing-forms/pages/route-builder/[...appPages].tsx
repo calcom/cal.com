@@ -411,8 +411,6 @@ const Routes = ({
         };
       }) || [];
 
-  const [animationRef] = useAutoAnimate<HTMLDivElement>();
-
   const [routersInUse, setRoutersInUse] = useState<string[]>(
     routes.filter((route) => isRouter(route)).map((r) => r.id)
   );
@@ -432,6 +430,8 @@ const Routes = ({
       description: string | null;
     }[]
   ).concat(availableRouters.filter((r) => !routersInUse.includes(r.value)));
+
+  const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
   const mainRoutes = routes.filter((route) => {
     if (isRouter(route)) return true;
@@ -529,7 +529,7 @@ const Routes = ({
         })}
         <SelectField
           placeholder="Select a router"
-          containerClassName="mb-6"
+          containerClassName="mb-6 data-testid-select-router"
           label="Add a new Route"
           options={routerOptions}
           key={mainRoutes.length}

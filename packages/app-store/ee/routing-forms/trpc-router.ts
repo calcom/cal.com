@@ -16,7 +16,7 @@ import { jsonLogicToPrisma } from "./jsonLogicToPrisma";
 import { getSerializableForm } from "./lib/getSerializableForm";
 import { isFormEditAllowed } from "./lib/isAllowed";
 import { Response, SerializableForm } from "./types/types";
-import { zodFields, zodRoutes } from "./zod";
+import { zodFields, zodGlobalRoute, zodRoutes } from "./zod";
 
 async function onFormSubmission(
   form: Ensure<SerializableForm<App_RoutingForms_Form> & { user: User }, "fields">,
@@ -237,12 +237,13 @@ const appRoutingForms = router({
         routes: zodRoutes,
         addFallback: z.boolean().optional(),
         duplicateFrom: z.string().nullable().optional(),
+        shouldConnect: z.boolean().optional(),
         settings: RoutingFormSettings.optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       const { user, prisma } = ctx;
-      const { name, id, description, settings, disabled, addFallback, duplicateFrom } = input;
+      const { name, id, description, settings, disabled, addFallback, duplicateFrom, shouldConnect } = input;
       if (!(await isFormEditAllowed({ userId: user.id, formId: id }))) {
         throw new TRPCError({
           code: "FORBIDDEN",
@@ -258,6 +259,7 @@ const appRoutingForms = router({
             id: duplicateFrom,
           },
           select: {
+            id: true,
             fields: true,
             routes: true,
           },
@@ -276,10 +278,20 @@ const appRoutingForms = router({
             message: "Could not parse source form's fields or routes",
           });
         }
-        // Duplicate just routes and fields
-        // We don't want name, description and responses to be copied
-        routes = routesParsed.data;
-        fields = fieldParsed.data;
+
+        if (shouldConnect) {
+          routes = [
+            zodGlobalRoute.parse({
+              id: sourceForm.id,
+              routerType: "global",
+            }),
+          ];
+        } else {
+          // Duplicate just routes and fields
+          // We don't want name, description and responses to be copied
+          routes = routesParsed.data;
+          fields = fieldParsed.data;
+        }
       }
 
       fields = fields || [];
