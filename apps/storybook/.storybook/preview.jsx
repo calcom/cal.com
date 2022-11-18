@@ -15,7 +15,11 @@ export const parameters = {
   },
 };
 
-addDecorator((storyFn) => <I18nextProvider i18n={i18n}>{storyFn()}</I18nextProvider>);
+addDecorator((storyFn) => (
+  <I18nextProvider i18n={i18n}>
+    <div style={{ margin: "2rem" }}>{storyFn()}</div>
+  </I18nextProvider>
+));
 
 window.getEmbedNamespace = () => {
   const url = new URL(document.URL);

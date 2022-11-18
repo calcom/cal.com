@@ -10,10 +10,46 @@ import "../styles/styles.css";
 
 <Title title="Scheduler" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022"/>
 
-<Scheduler startHour={8} endHour={20} events={Events}
+## Props
+The Args Table below shows you a breakdown of what props can be passed into the Scheduler component. All props should have a desciption to make it self explanitory to see what is going on.
+
+<CustomArgsTable of={Scheduler}/>
+
+## Example
+
+There will be a few examples of how to use the scheduler component to show different usecases.
+
+export const Template = (args) => <Scheduler {...args} />;
+
+<Canvas>
+  <Story name="Customising Start Hour and EndHour"
+    argTypes={{
+      startHour: {
+        control: {type:'number',min:0,max:23,step:1},
+      },
+      endHour: {
+        control: {type:'number',min:0,max:23,step:1},
+      },
+    }}
+    args={{
+      sortEvents:true,
+      startHour:8,
+      endHour:20,
+      events:Events,
+      hoverEventDuration:0,
+    }}
+  >
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+<Canvas>
+  <Story name="Onclick Handlers">
+    <Scheduler startHour={8} endHour={17} events={Events}
           onEventClick={(e)=>alert(e.title)}
           onEmptyCellClick={(date)=>alert(date.toString())}
           sortEvents
           hoverEventDuration={30}
-  />
-
+    />
+  </Story>
+</Canvas>
