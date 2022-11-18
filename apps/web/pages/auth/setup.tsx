@@ -39,7 +39,8 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
     email_address: z.string().email({ message: t("enter_valid_email") }),
     full_name: z.string().min(3, t("at_least_characters", { count: 3 })),
     password: z.string().superRefine((data, ctx) => {
-      const result = isPasswordValid(data, true);
+      const isStrict = true;
+      const result = isPasswordValid(data, true, isStrict);
       Object.keys(result).map((key: string) => {
         if (!result[key as keyof typeof result]) {
           ctx.addIssue({
@@ -185,7 +186,7 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
                   formMethods.setValue("password", e.target.value);
                   await formMethods.trigger("password");
                 }}
-                hintErrors={["caplow", "min", "num"]}
+                hintErrors={["caplow", "admin_min", "num"]}
                 name="password"
                 className="my-0"
                 autoComplete="off"
