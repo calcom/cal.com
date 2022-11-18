@@ -806,7 +806,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       if (prev[curr.type]) {
         prev[curr.type].success += curr.success;
         prev[curr.type].errors = prev[curr.type].errors.concat(curr.errors);
-        prev[curr.type].warnings = prev[curr.type].warnings.concat(curr.warnings);
+        prev[curr.type].warnings = prev[curr.type].warnings?.concat(curr.warnings || []);
       } else {
         prev[curr.type] = curr;
       }
