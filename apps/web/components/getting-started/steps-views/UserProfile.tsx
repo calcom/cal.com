@@ -16,8 +16,11 @@ import type { IOnboardingPageProps } from "../../../pages/getting-started/[[...s
 type FormData = {
   bio: string;
 };
+interface IUserProfileProps {
+  user: IOnboardingPageProps["user"];
+}
 
-const UserProfile = (props: IOnboardingPageProps) => {
+const UserProfile = (props: IUserProfileProps) => {
   const { user } = props;
   const { t } = useLocale();
   const avatarRef = useRef<HTMLInputElement>(null!);
