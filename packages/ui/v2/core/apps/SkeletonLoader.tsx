@@ -1,10 +1,21 @@
+import Meta from "../Meta";
 import { ShellSubHeading } from "../Shell";
 import { SkeletonText } from "../skeleton";
 
-function SkeletonLoader({ className }: { className?: string }) {
+function SkeletonLoader({
+  className,
+  title,
+  description,
+}: {
+  className?: string;
+  title?: string;
+  description?: string;
+}) {
   return (
     <>
       <ShellSubHeading title={<div className="h-6 w-32 bg-gray-100" />} {...{ className }} />
+      {title && description && <Meta title={title} description={description} />}
+
       <ul className="-mx-4 animate-pulse divide-y divide-neutral-200 rounded-md border border-gray-200 bg-white sm:mx-0 sm:overflow-hidden">
         <SkeletonItem />
         <SkeletonItem />
