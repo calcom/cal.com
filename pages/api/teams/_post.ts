@@ -24,9 +24,16 @@ import { schemaTeamBodyParams, schemaTeamReadPublic } from "@lib/validations/tea
 async function postHandler(req: NextApiRequest) {
   const { prisma, body, userId } = req;
   const data = schemaTeamBodyParams.parse(body);
+  // TODO: Perhaps there is a better fix for this?
+  const cloneData: typeof data & {
+    metadata: NonNullable<typeof data.metadata> | undefined;
+  } = {
+    ...data,
+    metadata: data.metadata === null ? {} : data.metadata || undefined,
+  };
   const team = await prisma.team.create({
     data: {
-      ...data,
+      ...cloneData,
       members: {
         // We're also creating the relation membership of team ownership in this call.
         create: { userId, role: "OWNER", accepted: true },
