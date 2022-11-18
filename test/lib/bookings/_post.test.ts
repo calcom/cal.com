@@ -33,7 +33,7 @@ describe("POST /api/bookings", () => {
       expect(JSON.parse(res._getData())).toEqual(
         expect.objectContaining({
           message:
-            "'invalid_type' in 'email': Required; 'invalid_type' in 'end': Required; 'invalid_type' in 'eventTypeId': Required; 'invalid_type' in 'location': Required; 'invalid_type' in 'name': Required; 'invalid_type' in 'start': Required; 'invalid_type' in 'timeZone': Required; 'invalid_type' in 'language': Required; 'invalid_type' in 'customInputs': Required; 'invalid_type' in 'metadata': Required",
+            "invalid_type in 'eventTypeId': Required; invalid_type in 'title': Required; invalid_type in 'startTime': Required; invalid_type in 'startTime': Required; invalid_type in 'endTime': Required; invalid_type in 'endTime': Required",
         })
       );
     });
