@@ -1,8 +1,9 @@
 import dayjs from "@calcom/dayjs";
+import { TimeRange } from "@calcom/types/schedule";
 
 import { SchedulerEvent } from "./types/events";
 
-const startDate = dayjs().add(1, "days").set("hour", 11).set("minute", 0);
+const startDate = dayjs().set("hour", 11).set("minute", 0);
 
 export const Events: SchedulerEvent[] = [
   {
@@ -59,5 +60,12 @@ export const Events: SchedulerEvent[] = [
     allDay: false,
     source: "Booking",
     status: "ACCEPTED",
+  },
+];
+
+export const blockingDates: TimeRange[] = [
+  {
+    start: startDate.hour(8).toDate(),
+    end: startDate.hour(9).toDate(),
   },
 ];

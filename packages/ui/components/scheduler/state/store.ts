@@ -2,13 +2,14 @@ import create from "zustand";
 
 import dayjs from "@calcom/dayjs";
 
+import { blockingDates } from "../_storybookData";
 import {
   SchedulerComponentProps,
   SchedulerPublicActions,
   SchedulerState,
   SchedulerStoreProps,
 } from "../types/state";
-import { weekdayDates } from "../utils";
+import { mergeOverlappingDateRanges, weekdayDates } from "../utils";
 
 const defaultState: SchedulerComponentProps = {
   view: "week",
@@ -30,12 +31,15 @@ export const useSchedulerStore = create<SchedulerStoreProps>((set) => ({
   initState: (state: SchedulerState & SchedulerPublicActions) => {
     // Handle sorting of events if required
     let events = state.events;
+
     if (state.sortEvents) {
       events = state.events.sort((a, b) => a.start.getTime() - b.start.getTime());
     }
-
+    const blockingDates = mergeOverlappingDateRanges(state.blockingDates || []); // We merge overlapping dates so we don't get duplicate blocking "Cells" in the UI
+    console.log(blockingDates);
     set({
       ...state,
+      blockingDates,
       events,
     });
   },

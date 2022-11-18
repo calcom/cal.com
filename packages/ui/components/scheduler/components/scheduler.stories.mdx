@@ -3,7 +3,7 @@ import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable,VariantRow
 import { Icon } from "@calcom/ui/Icon";
 import {Scheduler} from "./Scheduler";
 import {SchedulerEvent} from "../types/events"
-import {Events,DEFAULT_SCHEDULE} from "../_storybookData"
+import {Events,blockingDates} from "../_storybookData"
 import "../styles/styles.css";
 
 <Meta title="UI/Scheduler/Scheduler" component={Scheduler} />
@@ -37,6 +37,7 @@ export const Template = (args) => <Scheduler {...args} />;
       endHour:20,
       events:Events,
       hoverEventDuration:0,
+      blockingDates:blockingDates,
     }}
   >
     {Template.bind({})}

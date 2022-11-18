@@ -57,18 +57,22 @@ export function BlockedList({ day }: Props) {
 
       {blockingDates &&
         blockingDates.map((event, i) => {
+          console.log(dayjs(event.start).toString());
           const eventStart = dayjs(event.start);
           const eventEnd = dayjs(event.end);
-
           const eventDuration = eventEnd.diff(eventStart, "minutes");
 
           const eventStartHour = eventStart.hour();
           const eventStartDiff = (eventStartHour - (startHour || 0)) * 60;
 
+          if (!eventStart.isSame(day, "day")) {
+            return null;
+          }
+
           return (
             <div
               key={`${eventStart.toISOString()}-${i}`}
-              className="absolute z-50 w-[90%]"
+              className="absolute z-50 w-full"
               style={{
                 top: `calc(${eventStartDiff}*var(--one-minute-height))`,
                 height: `calc(${eventDuration}*var(--one-minute-height))`,
