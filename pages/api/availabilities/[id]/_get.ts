@@ -18,6 +18,12 @@ import { schemaQueryIdParseInt } from "@lib/validations/shared/queryIdTransformP
  *           type: integer
  *         required: true
  *         description: ID of the availability to get
+ *       - in: query
+ *         name: apiKey
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Your API key
  *     tags:
  *     - availabilities
  *     externalDocs:
@@ -26,7 +32,9 @@ import { schemaQueryIdParseInt } from "@lib/validations/shared/queryIdTransformP
  *       200:
  *         description: OK
  *       401:
- *        description: Unauthorized
+ *        description: Authorization information is missing or invalid
+ *       404:
+ *        description: Availability not found
  */
 export async function getHandler(req: NextApiRequest) {
   const { prisma, query } = req;

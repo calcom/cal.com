@@ -14,6 +14,19 @@ import { schemaQueryIdParseInt } from "@lib/validations/shared/queryIdTransformP
  *   patch:
  *     operationId: editAvailabilityById
  *     summary: Edit an existing availability
+ *     parameters:
+ *       - in: query
+ *         name: apiKey
+ *         required: true
+ *         description: Your API key
+ *         schema:
+ *           type: integer
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID of the availability to edit
  *     requestBody:
  *       description: Edit an existing availability related to one of your bookings
  *       required: true
@@ -24,20 +37,28 @@ import { schemaQueryIdParseInt } from "@lib/validations/shared/queryIdTransformP
  *             properties:
  *               days:
  *                 type: array
- *                 example: email@example.com
+ *                 description: Array of integers depicting weekdays
+ *                 items:
+ *                   type: integer
+ *                   enum: [0, 1, 2, 3, 4, 5]
+ *               scheduleId:
+ *                 type: integer
+ *                 description: ID of schedule this availability is associated with
  *               startTime:
  *                 type: string
- *                 example: 1970-01-01T17:00:00.000Z
+ *                 description: Start time of the availability
  *               endTime:
  *                 type: string
- *                 example: 1970-01-01T17:00:00.000Z
- *     parameters:
- *      - in: path
- *        name: id
- *        schema:
- *          type: integer
- *        required: true
- *        description: ID of the availability to edit
+ *                 description: End time of the availability
+ *           examples:
+ *              availability:
+ *                summary: An example of availability
+ *                value:
+ *                  scheduleId: 123
+ *                  days: [1,2,3,5]
+ *                  startTime: 1970-01-01T17:00:00.000Z
+ *                  endTime: 1970-01-01T17:00:00.000Z
+ *
  *     tags:
  *     - availabilities
  *     externalDocs:

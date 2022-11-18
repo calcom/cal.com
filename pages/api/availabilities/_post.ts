@@ -14,6 +14,13 @@ import {
  *   post:
  *     operationId: addAvailability
  *     summary: Creates a new availability
+ *     parameters:
+ *        - in: query
+ *          name: apiKey
+ *          requiried: true
+ *          description: Your API key
+ *          schema:
+ *            type: integer
  *     requestBody:
  *       description: Edit an existing availability related to one of your bookings
  *       required: true
@@ -28,13 +35,29 @@ import {
  *             properties:
  *               days:
  *                 type: array
- *                 example: email@example.com
+ *                 description: Array of integers depicting weekdays
+ *                 items:
+ *                   type: integer
+ *                   enum: [0, 1, 2, 3, 4, 5]
+ *               scheduleId:
+ *                 type: integer
+ *                 description: ID of schedule this availability is associated with
  *               startTime:
  *                 type: string
- *                 example: 1970-01-01T17:00:00.000Z
+ *                 description: Start time of the availability
  *               endTime:
  *                 type: string
- *                 example: 1970-01-01T17:00:00.000Z
+ *                 description: End time of the availability
+ *           examples:
+ *              availability:
+ *                summary: An example of availability
+ *                value:
+ *                  scheduleId: 123
+ *                  days: [1,2,3,5]
+ *                  startTime: 1970-01-01T17:00:00.000Z
+ *                  endTime: 1970-01-01T17:00:00.000Z
+ *
+ *
  *     tags:
  *     - availabilities
  *     externalDocs:

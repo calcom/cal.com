@@ -17,6 +17,12 @@ import { schemaQueryIdParseInt } from "@lib/validations/shared/queryIdTransformP
  *          type: integer
  *        required: true
  *        description: ID of the availability to delete
+ *      - in: query
+ *        name: apiKey
+ *        required: true
+ *        schema:
+ *          type: integer
+ *        description: Your API key
  *     tags:
  *     - availabilities
  *     externalDocs:
