@@ -302,7 +302,6 @@ const ProfileView = () => {
                   data-testid="password"
                   name="password"
                   id="password"
-                  type="password"
                   autoComplete="current-password"
                   required
                   label="Password"
@@ -336,7 +335,6 @@ const ProfileView = () => {
               data-testid="password"
               name="password"
               id="password"
-              type="password"
               autoComplete="current-password"
               required
               label="Password"

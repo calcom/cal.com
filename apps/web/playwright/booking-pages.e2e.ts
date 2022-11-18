@@ -92,7 +92,7 @@ test.describe("pro user", () => {
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
     await page.waitForNavigation({
       url(url) {
-        return url.pathname === "/success" && url.searchParams.get("reschedule") === "true";
+        return url.pathname === "/success";
       },
     });
   });
@@ -107,7 +107,7 @@ test.describe("pro user", () => {
     await page.locator('[data-testid="cancel"]').first().click();
     await page.waitForNavigation({
       url: (url) => {
-        return url.pathname.startsWith("/cancel");
+        return url.pathname.startsWith("/success");
       },
     });
     // --- fill form
