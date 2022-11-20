@@ -48,10 +48,22 @@ const AppearanceView = () => {
   });
 
   const formMethods = useForm();
+  const {
+    formState: { isSubmitting },
+  } = formMethods;
 
   if (isLoading) return <SkeletonLoader />;
 
-  if (user)
+  const fields = formMethods.watch();
+
+  if (user) {
+    const isDisabled =
+      isSubmitting ||
+      (fields.theme === user.theme &&
+        fields.brandColor === user.brandColor &&
+        fields.darkBrandColor === user.darkBrandColor &&
+        fields.hideBranding === user.hideBranding);
+
     return (
       <Form
         form={formMethods}
@@ -150,13 +162,14 @@ const AppearanceView = () => {
               <div className="flex w-full text-sm">
                 <div className="mr-1 flex-grow">
                   <div className="flex items-center">
-                    <p className="mr-2 font-semibold">{t("disable_cal_branding")}</p>{" "}
+                    <p className="mr-2 font-semibold">{t("disable_cal_branding")}</p>
                     <Badge variant="gray">{t("pro")}</Badge>
                   </div>
                   <p className="mt-0.5  text-gray-600">{t("removes_cal_branding")}</p>
                 </div>
                 <div className="flex-none">
                   <Switch
+                    id="hideBranding"
                     onCheckedChange={(checked) => formMethods.setValue("hideBranding", checked)}
                     checked={value}
                   />
@@ -165,11 +178,17 @@ const AppearanceView = () => {
             </>
           )}
         />
-        <Button type="submit" color="primary" className="mt-8">
+        <Button
+          disabled={isDisabled}
+          type="submit"
+          loading={mutation.isLoading}
+          color="primary"
+          className="mt-8">
           {t("update")}
         </Button>
       </Form>
     );
+  }
 };
 
 AppearanceView.getLayout = getLayout;
