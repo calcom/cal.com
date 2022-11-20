@@ -90,6 +90,7 @@
     "slug": "wordpress",
     "type": "wordpress_other"
   },
+  {
     "dirName": "ga4",
     "categories": ["analytics"],
     "slug": "ga4",
