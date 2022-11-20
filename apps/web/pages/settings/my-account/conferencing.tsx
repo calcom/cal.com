@@ -3,7 +3,8 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Button } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/components";
+import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/v2";
 import { Dialog, DialogContent } from "@calcom/ui/v2/core/Dialog";
 import Meta from "@calcom/ui/v2/core/Meta";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
@@ -26,16 +27,16 @@ const ConferencingLayout = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const { data: apps, isLoading } = trpc.useQuery(
-    ["viewer.integrations", { variant: "conferencing", onlyInstalled: true }],
+  const { data: apps, isLoading } = trpc.viewer.integrations.useQuery(
+    { variant: "conferencing", onlyInstalled: true },
     {
       suspense: true,
     }
   );
-  const deleteAppMutation = trpc.useMutation("viewer.deleteCredential", {
+  const deleteAppMutation = trpc.viewer.deleteCredential.useMutation({
     onSuccess: () => {
       showToast("Integration deleted successfully", "success");
-      utils.invalidateQueries(["viewer.integrations", { variant: "conferencing", onlyInstalled: true }]);
+      utils.viewer.integrations.invalidate({ variant: "conferencing", onlyInstalled: true });
       setDeleteAppModal(false);
     },
     onError: () => {

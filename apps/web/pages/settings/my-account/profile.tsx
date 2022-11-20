@@ -1,22 +1,22 @@
+import { IdentityProvider } from "@prisma/client";
 import crypto from "crypto";
 import { signOut } from "next-auth/react";
 import { useRef, useState, BaseSyntheticEvent, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/lib/auth";
-import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Icon } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
-import Avatar from "@calcom/ui/v2/core/Avatar";
-import { Button } from "@calcom/ui/v2/core/Button";
+import { Avatar } from "@calcom/ui/components/avatar";
+import { Button } from "@calcom/ui/components/button";
+import { Form, Label, TextField, PasswordField } from "@calcom/ui/components/form";
 import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
 import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
 import Meta from "@calcom/ui/v2/core/Meta";
-import { Form, Label, TextField, PasswordField } from "@calcom/ui/v2/core/form/fields";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 import showToast from "@calcom/ui/v2/core/notifications";
 import { SkeletonContainer, SkeletonText, SkeletonButton, SkeletonAvatar } from "@calcom/ui/v2/core/skeleton";
@@ -49,10 +49,9 @@ interface DeleteAccountValues {
 const ProfileView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const usernameRef = useRef<HTMLInputElement>(null);
 
-  const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
-  const mutation = trpc.useMutation("viewer.updateProfile", {
+  const { data: user, isLoading } = trpc.viewer.me.useQuery();
+  const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: () => {
       showToast(t("settings_updated_successfully"), "success");
     },
@@ -66,11 +65,7 @@ const ProfileView = () => {
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [hasDeleteErrors, setHasDeleteErrors] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState("");
-  const [currentUsername, setCurrentUsername] = useState<string | undefined>(user?.username || undefined);
-  const [inputUsernameValue, setInputUsernameValue] = useState(currentUsername);
-  useEffect(() => {
-    if (user?.username) setCurrentUsername(user?.username);
-  }, [user?.username]);
+
   const form = useForm<DeleteAccountValues>();
 
   const emailMd5 = crypto
@@ -79,7 +74,7 @@ const ProfileView = () => {
     .digest("hex");
 
   const onDeleteMeSuccessMutation = async () => {
-    await utils.invalidateQueries(["viewer.me"]);
+    await utils.viewer.me.invalidate();
     showToast(t("Your account was deleted"), "success");
 
     setHasDeleteErrors(false); // dismiss any open errors
@@ -90,7 +85,7 @@ const ProfileView = () => {
     }
   };
 
-  const confirmPasswordMutation = trpc.useMutation("viewer.auth.verifyPassword", {
+  const confirmPasswordMutation = trpc.viewer.auth.verifyPassword.useMutation({
     onSuccess() {
       mutation.mutate(formMethods.getValues());
       setConfirmPasswordOpen(false);
@@ -104,51 +99,80 @@ const ProfileView = () => {
     setHasDeleteErrors(true);
     setDeleteErrorMessage(errorMessages[error.message]);
   };
-  const deleteMeMutation = trpc.useMutation("viewer.deleteMe", {
+  const deleteMeMutation = trpc.viewer.deleteMe.useMutation({
     onSuccess: onDeleteMeSuccessMutation,
     onError: onDeleteMeErrorMutation,
     async onSettled() {
-      await utils.invalidateQueries(["viewer.me"]);
+      await utils.viewer.me.invalidate();
+    },
+  });
+  const deleteMeWithoutPasswordMutation = trpc.viewer.deleteMeWithoutPassword.useMutation({
+    onSuccess: onDeleteMeSuccessMutation,
+    onError: onDeleteMeErrorMutation,
+    async onSettled() {
+      await utils.viewer.me.invalidate();
     },
   });
 
+  const isCALIdentityProviver = user?.identityProvider === IdentityProvider.CAL;
+
   const onConfirmPassword = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
     e.preventDefault();
+
     const password = passwordRef.current.value;
     confirmPasswordMutation.mutate({ passwordInput: password });
   };
 
   const onConfirmButton = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
     e.preventDefault();
-    const totpCode = form.getValues("totpCode");
-    const password = passwordRef.current.value;
-    deleteMeMutation.mutate({ password, totpCode });
+    if (isCALIdentityProviver) {
+      const totpCode = form.getValues("totpCode");
+      const password = passwordRef.current.value;
+      deleteMeMutation.mutate({ password, totpCode });
+    } else {
+      deleteMeWithoutPasswordMutation.mutate();
+    }
   };
   const onConfirm = ({ totpCode }: DeleteAccountValues, e: BaseSyntheticEvent | undefined) => {
     e?.preventDefault();
-    const password = passwordRef.current.value;
-    deleteMeMutation.mutate({ password, totpCode });
+    if (isCALIdentityProviver) {
+      const password = passwordRef.current.value;
+      deleteMeMutation.mutate({ password, totpCode });
+    } else {
+      deleteMeWithoutPasswordMutation.mutate();
+    }
   };
 
-  const formMethods = useForm<{
-    avatar?: string;
-    username?: string;
-    name?: string;
-    email?: string;
-    bio?: string;
-  }>();
+  const formMethods = useForm({
+    defaultValues: {
+      username: "",
+      avatar: "",
+      name: "",
+      email: "",
+      bio: "",
+    },
+  });
 
-  const { reset } = formMethods;
+  const {
+    reset,
+    formState: { isSubmitting, isDirty },
+  } = formMethods;
 
   useEffect(() => {
-    if (user)
-      reset({
-        avatar: user?.avatar || "",
-        username: user?.username || "",
-        name: user?.name || "",
-        email: user?.email || "",
-        bio: user?.bio || "",
-      });
+    if (user) {
+      reset(
+        {
+          avatar: user?.avatar || "",
+          username: user?.username || "",
+          name: user?.name || "",
+          email: user?.email || "",
+          bio: user?.bio || "",
+        },
+        {
+          keepDirtyValues: true,
+        }
+      );
+    }
   }, [reset, user]);
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -164,7 +188,7 @@ const ProfileView = () => {
   };
   const onSuccessfulUsernameUpdate = async () => {
     showToast(t("settings_updated_successfully"), "success");
-    await utils.invalidateQueries(["viewer.me"]);
+    await utils.viewer.me.invalidate();
   };
 
   const onErrorInUsernameUpdate = () => {
@@ -172,13 +196,14 @@ const ProfileView = () => {
   };
 
   if (isLoading || !user) return <SkeletonLoader />;
+  const isDisabled = isSubmitting || !isDirty;
 
   return (
     <>
       <Form
         form={formMethods}
         handleSubmit={(values) => {
-          if (values.email !== user?.email) {
+          if (values.email !== user?.email && isCALIdentityProviver) {
             setConfirmPasswordOpen(true);
           } else {
             mutation.mutate(values);
@@ -208,15 +233,22 @@ const ProfileView = () => {
           />
         </div>
         <div className="mt-8">
-          <UsernameAvailability
-            currentUsername={currentUsername}
-            setCurrentUsername={setCurrentUsername}
-            inputUsernameValue={inputUsernameValue}
-            usernameRef={usernameRef}
-            setInputUsernameValue={setInputUsernameValue}
-            onSuccessMutation={onSuccessfulUsernameUpdate}
-            onErrorMutation={onErrorInUsernameUpdate}
-            user={user}
+          <Controller
+            control={formMethods.control}
+            name="username"
+            render={({ field: { ref, onChange, value } }) => {
+              return (
+                <UsernameAvailability
+                  currentUsername={user?.username || ""}
+                  inputUsernameValue={value}
+                  usernameRef={ref}
+                  setInputUsernameValue={onChange}
+                  onSuccessMutation={onSuccessfulUsernameUpdate}
+                  onErrorMutation={onErrorInUsernameUpdate}
+                  user={user}
+                />
+              );
+            }}
           />
         </div>
         <div className="mt-8">
@@ -229,7 +261,12 @@ const ProfileView = () => {
           <TextField label={t("about")} hint={t("bio_hint")} {...formMethods.register("bio")} />
         </div>
 
-        <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
+        <Button
+          disabled={isDisabled}
+          color="primary"
+          className="mt-8"
+          type="submit"
+          loading={mutation.isLoading}>
           {t("update")}
         </Button>
 
@@ -260,18 +297,19 @@ const ProfileView = () => {
             actionOnClick={(e) => e && onConfirmButton(e)}>
             <>
               <p className="mb-7">{t("delete_account_confirmation_message")}</p>
-              <PasswordField
-                data-testid="password"
-                name="password"
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                label="Password"
-                ref={passwordRef}
-              />
+              {isCALIdentityProviver && (
+                <PasswordField
+                  data-testid="password"
+                  name="password"
+                  id="password"
+                  autoComplete="current-password"
+                  required
+                  label="Password"
+                  ref={passwordRef}
+                />
+              )}
 
-              {user?.twoFactorEnabled && (
+              {user?.twoFactorEnabled && isCALIdentityProviver && (
                 <Form handleSubmit={onConfirm} className="pb-4" form={form}>
                   <TwoFactor center={false} />
                 </Form>
@@ -297,7 +335,6 @@ const ProfileView = () => {
               data-testid="password"
               name="password"
               id="password"
-              type="password"
               autoComplete="current-password"
               required
               label="Password"

@@ -5,7 +5,7 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
-import Button from "@calcom/ui/v2/core/Button";
+import { Button } from "@calcom/ui/components/button";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 import ContactMenuItem from "./ContactMenuItem";
@@ -22,7 +22,7 @@ export default function HelpMenuItem({ onHelpItemSelect }: HelpMenuItemProps) {
   const [, loadChat] = useChat();
   const { t } = useLocale();
 
-  const mutation = trpc.useMutation("viewer.submitFeedback", {
+  const mutation = trpc.viewer.submitFeedback.useMutation({
     onSuccess: () => {
       setDisableSubmit(true);
       showToast("Thank you, feedback submitted", "success");

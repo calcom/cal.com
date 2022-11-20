@@ -4,8 +4,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
+import { Button } from "@calcom/ui/components/button";
 import { TextArea } from "@calcom/ui/form/fields";
-import Button from "@calcom/ui/v2/core/Button";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 interface IRescheduleDialog {
@@ -20,11 +20,11 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
   const { isOpenDialog, setIsOpenDialog, bookingUId: bookingId } = props;
   const [rescheduleReason, setRescheduleReason] = useState("");
 
-  const { mutate: rescheduleApi, isLoading } = trpc.useMutation("viewer.bookings.requestReschedule", {
+  const { mutate: rescheduleApi, isLoading } = trpc.viewer.bookings.requestReschedule.useMutation({
     async onSuccess() {
       showToast(t("reschedule_request_sent"), "success");
       setIsOpenDialog(false);
-      await utils.invalidateQueries(["viewer.bookings"]);
+      await utils.viewer.bookings.invalidate();
     },
     onError() {
       showToast(t("unexpected_error_try_again"), "error");

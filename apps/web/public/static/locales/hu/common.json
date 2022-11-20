@@ -192,6 +192,7 @@
   "connect_metamask": "Metamask csatlakoztatása",
   "error_404": "404-es hiba",
   "default": "Alapértelmezett",
+  "24_hour_short": "0-24",
   "api_keys": "API kulcsok",
   "create_api_key": "API kulcs létrehozása",
   "edit_api_key": "API kulcs szerkesztése",

@@ -2,13 +2,12 @@ import Script from "next/script";
 
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 
-// TODO: Maintain it from config.json maybe
-const trackingApps: Record<string, Record<string, unknown>> = {
-  fathom: {
-    src: "https://cdn.usefathom.com/script.js",
-    "data-site": "{TRACKING_ID}",
-  },
-};
+import { trackingApps } from "./eventTypeAnalytics";
+
+export type AppScript = { attrs?: Record<string, string> } & (
+  | { src: undefined; content?: string }
+  | { src?: string; content: undefined }
+);
 
 export default function BookingPageTagManager({
   eventType,
@@ -18,18 +17,36 @@ export default function BookingPageTagManager({
   return (
     <>
       {Object.entries(trackingApps).map(([appId, scriptConfig]) => {
-        const trackingId = getEventTypeAppData(eventType, "fathom")?.trackingId;
+        const trackingId = getEventTypeAppData(eventType, appId as keyof typeof trackingApps)?.trackingId;
         if (!trackingId) {
           return null;
         }
-        const parsedScriptConfig: Record<string, unknown> = {};
-        Object.entries(scriptConfig).forEach(([name, value]) => {
-          if (typeof value === "string") {
-            value = value.replace("{TRACKING_ID}", trackingId);
-          }
-          parsedScriptConfig[name] = value;
+        const parseValue = <T extends string | undefined>(val: T): T =>
+          val ? (val.replace(/\{TRACKING_ID\}/g, trackingId) as T) : val;
+
+        return scriptConfig.scripts.map((script, index) => {
+          const parsedAttributes: NonNullable<AppScript["attrs"]> = {};
+          const attrs = script.attrs || {};
+          Object.entries(attrs).forEach(([name, value]) => {
+            if (typeof value === "string") {
+              value = parseValue(value);
+            }
+            parsedAttributes[name] = value;
+          });
+
+          return (
+            <Script
+              src={parseValue(script.src)}
+              id={`${appId}-${index}`}
+              key={`${appId}-${index}`}
+              dangerouslySetInnerHTML={{
+                __html: parseValue(script.content) || "",
+              }}
+              {...parsedAttributes}
+              defer
+            />
+          );
         });
-        return <Script key={appId} {...parsedScriptConfig} defer />;
       })}
     </>
   );

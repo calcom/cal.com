@@ -7,8 +7,8 @@ import { DEFAULT_SCHEDULE } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc, TRPCClientErrorLike } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
+import { Button } from "@calcom/ui/components/button";
 import { Form } from "@calcom/ui/form/fields";
-import { Button } from "@calcom/ui/v2";
 
 interface ISetupAvailabilityProps {
   nextStep: () => void;
@@ -24,9 +24,12 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
   const router = useRouter();
   let queryAvailability;
   if (defaultScheduleId) {
-    queryAvailability = trpc.useQuery(["viewer.availability.schedule", { scheduleId: defaultScheduleId }], {
-      enabled: router.isReady,
-    });
+    queryAvailability = trpc.viewer.availability.schedule.get.useQuery(
+      { scheduleId: defaultScheduleId },
+      {
+        enabled: router.isReady,
+      }
+    );
   }
 
   const availabilityForm = useForm({
@@ -43,8 +46,8 @@ const SetupAvailability = (props: ISetupAvailabilityProps) => {
       nextStep();
     },
   };
-  const createSchedule = trpc.useMutation("viewer.availability.schedule.create", mutationOptions);
-  const updateSchedule = trpc.useMutation("viewer.availability.schedule.update", mutationOptions);
+  const createSchedule = trpc.viewer.availability.schedule.create.useMutation(mutationOptions);
+  const updateSchedule = trpc.viewer.availability.schedule.update.useMutation(mutationOptions);
   return (
     <Form
       className="w-full bg-white text-black dark:bg-opacity-5 dark:text-white"

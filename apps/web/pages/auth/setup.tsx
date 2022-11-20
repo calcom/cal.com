@@ -10,7 +10,7 @@ import { isPasswordValid } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { TextField, EmailField, PasswordField, Label } from "@calcom/ui/v2";
+import { TextField, EmailField, PasswordField, Label } from "@calcom/ui/components/form";
 import WizardForm from "@calcom/ui/v2/core/WizardForm";
 
 const StepDone = () => {
@@ -90,7 +90,7 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
 
   return (
     <FormProvider {...formMethods}>
-      <form id="setup-step-1" name="setup-step-1" className="space-y-4" onSubmit={onSubmit}>
+      <form id="wizard-step-1" name="wizard-step-1" className="space-y-4" onSubmit={onSubmit}>
         <div>
           <Controller
             name="username"

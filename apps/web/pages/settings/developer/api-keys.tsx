@@ -7,7 +7,8 @@ import ApiKeyListItem from "@calcom/features/ee/api-keys/components/v2/ApiKeyLis
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { EmptyScreen, Button } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/components";
+import { EmptyScreen } from "@calcom/ui/v2";
 import { Dialog, DialogContent } from "@calcom/ui/v2/core/Dialog";
 import Meta from "@calcom/ui/v2/core/Meta";
 import SkeletonLoader from "@calcom/ui/v2/core/apps/SkeletonLoader";
@@ -16,7 +17,7 @@ import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 const ApiKeysView = () => {
   const { t } = useLocale();
 
-  const { data, isLoading } = trpc.useQuery(["viewer.apiKeys.list"]);
+  const { data, isLoading } = trpc.viewer.apiKeys.list.useQuery();
 
   const [apiKeyModal, setApiKeyModal] = useState(false);
   const [apiKeyToEdit, setApiKeyToEdit] = useState<(TApiKeys & { neverExpires?: boolean }) | undefined>(

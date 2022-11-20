@@ -4,13 +4,14 @@ import { NextSeo, NextSeoProps } from "next-seo";
 import {
   AppImageProps,
   constructAppImage,
+  constructGenericImage,
   constructMeetingImage,
   MeetingImageProps,
 } from "@calcom/lib/OgImages";
-import { truncate, truncateOnWord } from "@calcom/lib/text";
+import { getBrowserInfo } from "@calcom/lib/browser/browser.utils";
+import { truncateOnWord } from "@calcom/lib/text";
 
 import { getSeoImage, seoConfig } from "@lib/config/next-seo.config";
-import { getBrowserInfo } from "@lib/core/browser/browser.utils";
 
 export type HeadSeoProps = {
   title: string;
@@ -72,12 +73,11 @@ const buildSeoMeta = (pageProps: {
 
 export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
   const defaultUrl = getBrowserInfo()?.url;
-  const image = getSeoImage("default");
 
   const { title, description, siteName, canonical = defaultUrl, nextSeoProps = {}, app, meeting } = props;
 
-  const truncatedDescription = truncate(description, 24);
-  const longerTruncatedDescriptionOnWords = truncateOnWord(description, 148);
+  const image = getSeoImage("ogImage") + constructGenericImage({ title, description });
+  const truncatedDescription = truncateOnWord(description, 158);
 
   const pageTitle = title + " | Cal.com";
   let seoObject = buildSeoMeta({
@@ -101,7 +101,7 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
 
   if (app) {
     const pageImage =
-      getSeoImage("ogImage") + constructAppImage({ ...app, description: longerTruncatedDescriptionOnWords });
+      getSeoImage("ogImage") + constructAppImage({ ...app, description: truncatedDescription });
     seoObject = buildSeoMeta({
       title: pageTitle,
       description: truncatedDescription,

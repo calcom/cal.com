@@ -7,7 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import logger from "@calcom/lib/logger";
 import { trpc } from "@calcom/trpc/react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
-import Button from "@calcom/ui/v2/core/Button";
+import { Button } from "@calcom/ui/components/button";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 interface IConfirmDialogWipe {
@@ -73,7 +73,7 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
     },
     {
       async onSettled() {
-        await utils.invalidateQueries(["viewer.bookings"]);
+        await utils.viewer.bookings.invalidate();
       },
     }
   );

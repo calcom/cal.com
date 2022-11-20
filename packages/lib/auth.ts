@@ -36,14 +36,15 @@ export async function getSession(options: GetSessionParams): Promise<Session | n
 export function isPasswordValid(password: string): boolean;
 export function isPasswordValid(
   password: string,
-  breakdown: boolean
+  breakdown: boolean,
+  strict?: boolean
 ): { caplow: boolean; num: boolean; min: boolean };
-export function isPasswordValid(password: string, breakdown?: boolean) {
+export function isPasswordValid(password: string, breakdown?: boolean, strict?: boolean) {
   let cap = false, // Has uppercase characters
     low = false, // Has lowercase characters
     num = false, // At least one number
-    min = false; // Seven characters
-  if (password.length > 6) min = true;
+    min = false; // Eight characters, or fifteen in strict mode.
+  if (password.length > 7 && (!strict || password.length > 14)) min = true;
   for (let i = 0; i < password.length; i++) {
     if (!isNaN(parseInt(password[i]))) num = true;
     else {
@@ -75,6 +76,7 @@ export enum ErrorCode {
   NewPasswordMatchesOld = "new-password-matches-old",
   ThirdPartyIdentityProviderEnabled = "third-party-identity-provider-enabled",
   RateLimitExceeded = "rate-limit-exceeded",
+  SocialIdentityProviderRequired = "social-identity-provider-required",
 }
 
 export const identityProviderNameMap: { [key in IdentityProvider]: string } = {

@@ -39,13 +39,15 @@ import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { Icon } from "@calcom/ui/Icon";
 import { Tooltip } from "@calcom/ui/Tooltip";
+import { Button } from "@calcom/ui/components";
+import AddressInput from "@calcom/ui/form/AddressInputLazy";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { EmailInput, Form } from "@calcom/ui/form/fields";
-import { Button } from "@calcom/ui/v2";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
+import useMeQuery from "@lib/hooks/useMeQuery";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
@@ -66,6 +68,8 @@ type BookingFormValues = {
   notes?: string;
   locationType?: EventLocationType["type"];
   guests?: string[];
+  address?: string;
+  attendeeAddress?: string;
   phone?: string;
   hostPhoneNumber?: string; // Maybe come up with a better way to name this to distingish between two types of phone numbers
   customInputs?: {
@@ -86,6 +90,9 @@ const BookingPage = ({
   ...restProps
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
+  // Get user so we can determine 12/24 hour format preferences
+  const query = useMeQuery();
+  const user = query.data;
   const isEmbed = useIsEmbed(restProps.isEmbed);
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
@@ -115,7 +122,7 @@ const BookingPage = ({
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
-      const { id, paymentUid } = responseData;
+      const { uid, paymentUid } = responseData;
       if (paymentUid) {
         return await router.push(
           createPaymentLink({
@@ -131,17 +138,10 @@ const BookingPage = ({
       return router.push({
         pathname: "/success",
         query: {
-          date,
-          type: eventType.id,
-          eventSlug: eventType.slug,
-          username: profile.slug,
-          reschedule: !!rescheduleUid,
-          name: bookingForm.getValues("name"),
-          email: bookingForm.getValues("email"),
-          location: responseData.location,
-          eventName: profile.eventName || "",
-          bookingId: id,
+          uid,
           isSuccessBookingPage: true,
+          email: bookingForm.getValues("email"),
+          eventTypeSlug: eventType.slug,
         },
       });
     },
@@ -149,31 +149,15 @@ const BookingPage = ({
 
   const recurringMutation = useMutation(createRecurringBooking, {
     onSuccess: async (responseData = []) => {
-      const { attendees = [], id, recurringEventId } = responseData[0] || {};
-      const location = (function humanReadableLocation(location) {
-        if (!location) {
-          return;
-        }
-        if (location.includes("integration")) {
-          return t("web_conferencing_details_to_follow");
-        }
-        return location;
-      })(responseData[0].location);
+      const { uid } = responseData[0] || {};
 
       return router.push({
         pathname: "/success",
         query: {
-          date,
-          type: eventType.id,
-          eventSlug: eventType.slug,
-          recur: recurringEventId,
-          username: profile.slug,
-          reschedule: !!rescheduleUid,
-          name: attendees[0].name,
-          email: attendees[0].email,
-          location,
-          eventName: profile.eventName || "",
-          bookingId: id,
+          uid,
+          allRemainingBookings: true,
+          email: bookingForm.getValues("email"),
+          eventTypeSlug: eventType.slug,
         },
       });
     },
@@ -264,6 +248,7 @@ const BookingPage = ({
         .refine((val) => isValidPhoneNumber(val))
         .optional()
         .nullable(),
+      attendeeAddress: z.string().optional().nullable(),
       smsReminderNumber: z
         .string()
         .refine((val) => isValidPhoneNumber(val))
@@ -292,10 +277,10 @@ const BookingPage = ({
 
   const selectedLocation = getEventLocationType(selectedLocationType);
   const AttendeeInput =
-    selectedLocation?.attendeeInputType === "text"
-      ? "input"
-      : selectedLocation?.attendeeInputType === "phone"
+    selectedLocation?.attendeeInputType === "phone"
       ? PhoneInput
+      : selectedLocation?.attendeeInputType === "attendeeAddress"
+      ? AddressInput
       : null;
 
   // Calculate the booking date(s)
@@ -351,6 +336,7 @@ const BookingPage = ({
         location: getEventLocationValue(locations, {
           type: booking.locationType ? booking.locationType : selectedLocationType || "",
           phone: booking.phone,
+          attendeeAddress: booking.attendeeAddress,
         }),
         metadata,
         customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
@@ -381,6 +367,7 @@ const BookingPage = ({
         location: getEventLocationValue(locations, {
           type: (booking.locationType ? booking.locationType : selectedLocationType) || "",
           phone: booking.phone,
+          attendeeAddress: booking.attendeeAddress,
         }),
         metadata,
         customInputs: Object.keys(booking.customInputs || {}).map((inputId) => ({
@@ -492,19 +479,20 @@ const BookingPage = ({
                 <div className="text-bookinghighlight flex items-start text-sm">
                   <Icon.FiCalendar className="mr-[10px] ml-[2px] mt-[2px] inline-block h-4 w-4" />
                   <div className="text-sm font-medium">
-                    {(rescheduleUid || !eventType.recurringEvent?.freq) &&
-                      parseDate(dayjs(date).tz(timeZone()), i18n)}
+                    {(rescheduleUid || !eventType.recurringEvent?.freq) && `${parseDate(date, i18n)}`}
                     {!rescheduleUid &&
                       eventType.recurringEvent?.freq &&
-                      recurringStrings.slice(0, 5).map((aDate, key) => <p key={key}>{aDate}</p>)}
+                      recurringStrings.slice(0, 5).map((timeFormatted, key) => {
+                        return <p key={key}>{timeFormatted}</p>;
+                      })}
                     {!rescheduleUid && eventType.recurringEvent?.freq && recurringStrings.length > 5 && (
                       <div className="flex">
                         <Tooltip
-                          content={recurringStrings.slice(5).map((aDate, key) => (
-                            <p key={key}>{aDate}</p>
+                          content={recurringStrings.slice(5).map((timeFormatted, key) => (
+                            <p key={key}>{timeFormatted}</p>
                           ))}>
                           <p className="dark:text-darkgray-600 text-sm">
-                            {t("plus_more", { count: recurringStrings.length - 5 })}
+                            + {t("plus_more", { count: recurringStrings.length - 5 })}
                           </p>
                         </Tooltip>
                       </div>
@@ -642,16 +630,39 @@ const BookingPage = ({
                 {AttendeeInput && (
                   <div className="mb-4">
                     <label
-                      htmlFor="phone"
+                      htmlFor={
+                        selectedLocationType === LocationType.Phone
+                          ? "phone"
+                          : selectedLocationType === LocationType.AttendeeInPerson
+                          ? "attendeeAddress"
+                          : ""
+                      }
                       className="block text-sm font-medium text-gray-700 dark:text-white">
-                      {t("phone_number")}
+                      {selectedLocationType === LocationType.Phone
+                        ? t("phone_number")
+                        : selectedLocationType === LocationType.AttendeeInPerson
+                        ? t("Address")
+                        : ""}
                     </label>
                     <div className="mt-1">
                       <AttendeeInput<BookingFormValues>
                         control={bookingForm.control}
-                        name="phone"
+                        bookingForm={bookingForm}
+                        name={
+                          selectedLocationType === LocationType.Phone
+                            ? "phone"
+                            : selectedLocationType === LocationType.AttendeeInPerson
+                            ? "attendeeAddress"
+                            : ""
+                        }
                         placeholder={t(selectedLocation?.attendeeInputPlaceholder || "")}
-                        id="phone"
+                        id={
+                          selectedLocationType === LocationType.Phone
+                            ? "phone"
+                            : selectedLocationType === LocationType.AttendeeInPerson
+                            ? "attendeeAddress"
+                            : ""
+                        }
                         required
                         disabled={disableInput}
                       />
@@ -797,7 +808,7 @@ const BookingPage = ({
                     <label
                       htmlFor="smsReminderNumber"
                       className="block text-sm font-medium text-gray-700 dark:text-white">
-                      {t("number_for_sms_reminders")}
+                      {t("number_sms_notifications")}
                     </label>
                     <div className="mt-1">
                       <PhoneInput<BookingFormValues>

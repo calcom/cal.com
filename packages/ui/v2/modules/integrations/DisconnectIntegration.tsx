@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
-import { Button, ButtonProps } from "@calcom/ui/v2/core/Button";
+import { Button, ButtonProps } from "@calcom/ui/components/button";
 import { Dialog, DialogTrigger, DialogContent } from "@calcom/ui/v2/core/Dialog";
 import showToast from "@calcom/ui/v2/core/notifications";
 
@@ -25,7 +25,7 @@ export default function DisconnectIntegration({
   const { t } = useLocale();
   const [modalOpen, setModalOpen] = useState(false);
 
-  const mutation = trpc.useMutation("viewer.deleteCredential", {
+  const mutation = trpc.viewer.deleteCredential.useMutation({
     onSuccess: () => {
       showToast(t("app_removed_successfully"), "success");
       setModalOpen(false);

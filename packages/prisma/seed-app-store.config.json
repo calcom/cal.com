@@ -89,5 +89,28 @@
     "categories": ["other"],
     "slug": "wordpress",
     "type": "wordpress_other"
+  },
+    "dirName": "ga4",
+    "categories": ["analytics"],
+    "slug": "ga4",
+    "type": "ga4_analytics"
+  },
+  {
+    "dirName": "pipedream",
+    "categories": ["automation"],
+    "slug": "pipedream",
+    "type": "pipedream_automation"
+  },
+  {
+    "dirName": "sirius_video",
+    "categories": ["video"],
+    "slug": "sirius_video",
+    "type": "sirius_video_video"
+  },
+  {
+    "dirName": "sendgrid",
+    "categories": ["other"],
+    "slug": "sendgrid",
+    "type": "sendgrid_other_calendar"
   }
 ]

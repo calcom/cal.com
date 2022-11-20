@@ -9,7 +9,7 @@ import logger from "@calcom/lib/logger";
 import { checkLimit } from "@calcom/lib/server";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
-import { stringToDayjs } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, stringToDayjs } from "@calcom/prisma/zod-utils";
 import { BookingLimit, EventBusyDetails } from "@calcom/types/Calendar";
 
 import { getBusyTimes } from "./getBusyTimes";
@@ -22,18 +22,20 @@ const availabilitySchema = z
     username: z.string().optional(),
     userId: z.number().optional(),
     afterEventBuffer: z.number().optional(),
+    beforeEventBuffer: z.number().optional(),
     withSource: z.boolean().optional(),
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
-const getEventType = (id: number) =>
-  prisma.eventType.findUnique({
+const getEventType = async (id: number) => {
+  const eventType = await prisma.eventType.findUnique({
     where: { id },
     select: {
       id: true,
       seatsPerTimeSlot: true,
       bookingLimits: true,
       timeZone: true,
+      metadata: true,
       schedule: {
         select: {
           availability: true,
@@ -49,6 +51,14 @@ const getEventType = (id: number) =>
       },
     },
   });
+  if (!eventType) {
+    return eventType;
+  }
+  return {
+    ...eventType,
+    metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+  };
+};
 
 type EventType = Awaited<ReturnType<typeof getEventType>>;
 
@@ -92,6 +102,7 @@ export async function getUserAvailability(
     dateTo: string;
     eventTypeId?: number;
     afterEventBuffer?: number;
+    beforeEventBuffer?: number;
   },
   initialData?: {
     user?: User;
@@ -99,7 +110,7 @@ export async function getUserAvailability(
     currentSeats?: CurrentSeats;
   }
 ) {
-  const { username, userId, dateFrom, dateTo, eventTypeId, afterEventBuffer } =
+  const { username, userId, dateFrom, dateTo, eventTypeId, afterEventBuffer, beforeEventBuffer } =
     availabilitySchema.parse(query);
 
   if (!dateFrom.isValid() || !dateTo.isValid())
@@ -134,14 +145,14 @@ export async function getUserAvailability(
     eventTypeId,
     userId: currentUser.id,
     selectedCalendars,
+    beforeEventBuffer,
+    afterEventBuffer,
   });
 
   const bufferedBusyTimes: EventBusyDetails[] = busyTimes.map((a) => ({
     ...a,
-    start: dayjs(a.start).subtract(currentUser.bufferTime, "minute").toISOString(),
-    end: dayjs(a.end)
-      .add(currentUser.bufferTime + (afterEventBuffer || 0), "minute")
-      .toISOString(),
+    start: dayjs(a.start).toISOString(),
+    end: dayjs(a.end).toISOString(),
     title: a.title,
     source: query.withSource ? a.source : undefined,
   }));
@@ -198,13 +209,15 @@ export async function getUserAvailability(
       });
     }
   }
-  const schedule = eventType?.schedule
-    ? { ...eventType?.schedule }
-    : {
-        ...currentUser.schedules.filter(
-          (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
-        )[0],
-      };
+
+  const schedule =
+    !eventType?.metadata?.config?.useHostSchedulesForTeamEvent && eventType?.schedule
+      ? { ...eventType?.schedule }
+      : {
+          ...currentUser.schedules.filter(
+            (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
+          )[0],
+        };
 
   const startGetWorkingHours = performance.now();
 

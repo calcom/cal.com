@@ -22,7 +22,7 @@ test.describe("Event Types tests", () => {
     });
 
     test("has at least 2 events", async ({ page }) => {
-      const $eventTypes = page.locator("[data-testid=event-types] > *");
+      const $eventTypes = page.locator("[data-testid=event-types] > li a");
       const count = await $eventTypes.count();
       expect(count).toBeGreaterThanOrEqual(2);
     });
@@ -110,7 +110,7 @@ test.describe("Event Types tests", () => {
       expect(formSlug).toBe(firstSlug);
     });
     test("edit first event", async ({ page }) => {
-      const $eventTypes = page.locator("[data-testid=event-types] > *");
+      const $eventTypes = page.locator("[data-testid=event-types] > li a");
       const firstEventTypeElement = $eventTypes.first();
       await firstEventTypeElement.click();
       await page.waitForNavigation({
@@ -134,13 +134,13 @@ test.describe("Event Types tests", () => {
     });
 
     test("has at least 2 events where first is enabled", async ({ page }) => {
-      const $eventTypes = page.locator("[data-testid=event-types] > *");
+      const $eventTypes = page.locator("[data-testid=event-types] > li a");
       const count = await $eventTypes.count();
       expect(count).toBeGreaterThanOrEqual(2);
     });
 
     test("edit first event", async ({ page }) => {
-      const $eventTypes = page.locator("[data-testid=event-types] > *");
+      const $eventTypes = page.locator("[data-testid=event-types] > li a");
       const firstEventTypeElement = $eventTypes.first();
       await firstEventTypeElement.click();
       await page.waitForNavigation({

@@ -20,7 +20,6 @@ export const InstallAppButtonMap = {
   office365calendar: dynamic(() => import("./office365calendar/components/InstallAppButton")),
   office365video: dynamic(() => import("./office365video/components/InstallAppButton")),
   riverside: dynamic(() => import("./riverside/components/InstallAppButton")),
-  slackmessaging: dynamic(() => import("./slackmessaging/components/InstallAppButton")),
   tandemvideo: dynamic(() => import("./tandemvideo/components/InstallAppButton")),
   vital: dynamic(() => import("./vital/components/InstallAppButton")),
   whereby: dynamic(() => import("./whereby/components/InstallAppButton")),
@@ -34,6 +33,7 @@ export const AppSettingsComponentsMap = {
 };
 export const EventTypeAddonMap = {
   fathom: dynamic(() => import("./fathom/extensions/EventTypeAppCard")),
+  ga4: dynamic(() => import("./ga4/extensions/EventTypeAppCard")),
   giphy: dynamic(() => import("./giphy/extensions/EventTypeAppCard")),
   qr_code: dynamic(() => import("./qr_code/extensions/EventTypeAppCard")),
   rainbow: dynamic(() => import("./rainbow/extensions/EventTypeAppCard")),

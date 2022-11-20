@@ -2,8 +2,8 @@ import { GetStaticPaths, InferGetStaticPropsType } from "next";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
+import { AppSetupPage } from "@calcom/app-store/_pages/setup";
 import { getStaticProps } from "@calcom/app-store/_pages/setup/_getStaticProps";
-import { AppSetupPage } from "@calcom/app-store/_pages/v2/setup";
 
 export default function SetupInformation(props: InferGetStaticPropsType<typeof getStaticProps>) {
   const router = useRouter();
@@ -23,7 +23,7 @@ export default function SetupInformation(props: InferGetStaticPropsType<typeof g
     });
   }
 
-  return <AppSetupPage slug={`${slug}-V2`} {...props} />;
+  return <AppSetupPage slug={slug} {...props} />;
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
