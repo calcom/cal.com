@@ -37,20 +37,22 @@ const SkeletonLoader = () => {
 const AppearanceView = () => {
   const { t } = useLocale();
 
+  const utils = trpc.useContext();
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
+  const formMethods = useForm();
+  const {
+    formState: { isSubmitting },
+  } = formMethods;
+
   const mutation = trpc.viewer.updateProfile.useMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
+      await utils.viewer.me.invalidate();
       showToast(t("settings_updated_successfully"), "success");
     },
     onError: () => {
       showToast(t("error_updating_settings"), "error");
     },
   });
-
-  const formMethods = useForm();
-  const {
-    formState: { isSubmitting },
-  } = formMethods;
 
   if (isLoading) return <SkeletonLoader />;
 
