@@ -10,6 +10,10 @@ const handler: AppDeclarativeHandler = {
   slug: appConfig.slug,
   supportsMultipleInstalls: false,
   handlerType: "add",
+  redirect: {
+    newTab: true,
+    url: "https://wordpress.org/plugins/cal-com/",
+  },
   createCredential: ({ appType, user, slug }) =>
     createDefaultInstallation({ appType, userId: user.id, slug, key: {} }),
 };
