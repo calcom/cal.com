@@ -80,6 +80,7 @@ plugins.push(withAxiom);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
+  productionBrowserSourceMaps: true,
   /* We already do type check on GH actions */
   typescript: {
     ignoreBuildErrors: !!process.env.CI,
@@ -88,10 +89,8 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: !!process.env.CI,
   },
-  experimental: {
-    images: {
-      unoptimized: true,
-    },
+  images: {
+    unoptimized: true,
   },
   webpack: (config) => {
     config.plugins.push(
@@ -230,11 +229,6 @@ const nextConfig = {
 
     return redirects;
   },
-  sentry: {
-    hideSourceMaps: true,
-    // Prevents Sentry from running on this Edge function, where Sentry doesn't work yet (build whould crash the api route).
-    excludeServerRoutes: [/\/api\/social\/og\/image\/?/],
-  },
 };
 
 const sentryWebpackPluginOptions = {
@@ -242,6 +236,14 @@ const sentryWebpackPluginOptions = {
 };
 
 const moduleExports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
+
+if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+  nextConfig.sentry = {
+    hideSourceMaps: true,
+    // Prevents Sentry from running on this Edge function, where Sentry doesn't work yet (build whould crash the api route).
+    excludeServerRoutes: [/\/api\/social\/og\/image\/?/],
+  };
+}
 
 // Sentry should be the last thing to export to catch everything right
 module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
