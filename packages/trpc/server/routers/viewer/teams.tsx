@@ -603,7 +603,7 @@ export const viewerTeamsRouter = router({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed retrieving a checkout session URL.",
           });
-        return { url: checkoutSession.url };
+        return { url: checkoutSession.url, message: "Payment required to publish team" };
       }
 
       if (!metadata.data?.requestedSlug) {
@@ -629,7 +629,10 @@ export const viewerTeamsRouter = router({
       // Sync Services: Close.com
       closeComUpdateTeam(prevTeam, updatedTeam);
 
-      return { url: `${WEBAPP_URL}/settings/teams/${updatedTeam.id}/profile` };
+      return {
+        url: `${WEBAPP_URL}/settings/teams/${updatedTeam.id}/profile`,
+        message: "Team published succesfully",
+      };
     }),
   /** This is a temporal endpoint so we can progressively upgrade teams to the new billing system. */
   getUpgradeable: authedProcedure.query(async ({ ctx }) => {
