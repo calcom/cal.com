@@ -24,8 +24,9 @@ export function EmptyCell(props: EmptyCellProps) {
       onClick={() => onEmptyCellClick && onEmptyCellClick(cellToDate.toDate())}>
       {hoverEventDuration !== 0 && (
         <div
-          className="opacity-4 hidden rounded-[4px]  border-[1px] border-gray-900 bg-gray-100 py-1  px-[6px]
-          text-xs font-semibold leading-5 text-gray-900 hover:bg-gray-200 group-hover:block group-hover:cursor-pointer"
+          className="opacity-4 absolute inset-x-1  hidden rounded-[4px] border-[1px] border-gray-900  bg-gray-100
+          py-1
+          px-[6px] text-xs font-semibold leading-5 text-gray-900 hover:bg-gray-200 group-hover:block group-hover:cursor-pointer"
           style={{
             height: `calc(${props.eventDuration}*var(--one-minute-height))`,
             zIndex: 56,

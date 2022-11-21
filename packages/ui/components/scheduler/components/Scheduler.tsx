@@ -69,6 +69,7 @@ export function Scheduler(props: SchedulerComponentProps) {
               {/* Empty Cells */}
               <ol
                 className="scheduler-grid-row-template z-50 col-start-1 col-end-2 row-start-1 grid auto-cols-auto sm:pr-8"
+                style={{ marginTop: containerOffset.current?.offsetHeight }}
                 data-gridstopsperday={numberOfGridStopsPerDay}>
                 <>
                   {[...Array(days.length)].map((_, i) => (
@@ -76,6 +77,7 @@ export function Scheduler(props: SchedulerComponentProps) {
                       key={i}
                       style={{
                         gridRow: `2 / span ${numberOfGridStopsPerDay}`,
+                        position: "relative",
                       }}>
                       {/* While startDate < endDate:  */}
                       {[...Array(numberOfGridStopsPerDay)].map((_, j) => {
