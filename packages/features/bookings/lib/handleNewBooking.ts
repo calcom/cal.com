@@ -635,6 +635,12 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   if (rescheduleUid) {
     originalRescheduledBooking = await getOriginalRescheduledBooking(rescheduleUid);
   }
+  // If the user is not the owner of the event, new booking should be always pending.
+  // Otherwise, an owner rescheduling should be always accepted.
+  // Before comparing make sure that userId is set, otherwise undefined === undefined
+  const userReschedulingIsOwner = userId && originalRescheduledBooking?.user?.id === userId;
+  const isConfirmedByDefault =
+    (!eventType.requiresConfirmation && !stripeAppData.price) || userReschedulingIsOwner;
 
   async function createBooking() {
     if (originalRescheduledBooking) {
@@ -654,12 +660,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
     const dynamicGroupSlugRef = !eventTypeId ? (reqBody.user as string).toLowerCase() : null;
 
-    // If the user is not the owner of the event, new booking should be always pending.
-    // Otherwise, an owner rescheduling should be always accepted.
-    // Before comparing make sure that userId is set, otherwise undefined === undefined
-    const userReschedulingIsOwner = userId && originalRescheduledBooking?.user?.id === userId;
-    const isConfirmedByDefault =
-      (!eventType.requiresConfirmation && !stripeAppData.price) || userReschedulingIsOwner;
     const newBookingData: Prisma.BookingCreateInput = {
       uid,
       title: evt.title,
@@ -897,8 +897,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     }
   }
 
-  // FIXME: instead of requiresConfirmation, we should check if isConfirmedByDefault is set or not.
-  if (eventType.requiresConfirmation && !rescheduleUid && noEmail !== true) {
+  if (!isConfirmedByDefault && noEmail !== true) {
     await sendOrganizerRequestEmail({ ...evt, additionalNotes });
     await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
   }
@@ -923,7 +922,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   log.debug(`Booking ${organizerUser.username} completed`);
 
-  if (!eventType.requiresConfirmation) {
+  if (isConfirmedByDefault) {
     const eventTrigger: WebhookTriggerEvents = rescheduleUid
       ? WebhookTriggerEvents.BOOKING_RESCHEDULED
       : WebhookTriggerEvents.BOOKING_CREATED;
