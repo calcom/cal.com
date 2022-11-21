@@ -20,9 +20,9 @@ export type ButtonBaseProps = {
   /** @deprecated This has now been replaced by button group. */
   combined?: boolean;
   flex?: boolean;
-};
+} & VariantProps<typeof buttonClasses>;
+
 export type ButtonProps = ButtonBaseProps &
-  VariantProps<typeof buttonClasses> &
   (
     | (Omit<JSX.IntrinsicElements["a"], "href" | "onClick" | "ref"> & LinkProps)
     | (Omit<JSX.IntrinsicElements["button"], "onClick" | "ref"> & { href?: never })
