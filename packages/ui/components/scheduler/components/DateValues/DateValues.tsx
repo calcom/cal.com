@@ -13,11 +13,14 @@ export function DateValues({ days, containerNavRef }: Props) {
     <div
       ref={containerNavRef}
       className="sticky top-0 z-30 flex-none bg-white shadow ring-1 ring-black ring-opacity-5 sm:pr-8">
-      <div className="grid grid-cols-7 text-sm leading-6 text-gray-500 sm:hidden">
+      <div className="flex  text-sm leading-6 text-gray-500 sm:hidden" data-dayslength={days.length}>
         {days.map((day) => {
           const isToday = dayjs().isSame(day, "day");
           return (
-            <button key={day.toString()} type="button" className="flex flex-col items-center pt-2 pb-3">
+            <button
+              key={day.toString()}
+              type="button"
+              className="flex flex-1 flex-col items-center pt-2 pb-3">
               {day.format("dd")}{" "}
               <span
                 className={classNames(
@@ -30,14 +33,16 @@ export function DateValues({ days, containerNavRef }: Props) {
           );
         })}
       </div>
-      <div className="-mr-px hidden grid-cols-7 divide-x divide-gray-100 border-r border-gray-100 text-sm leading-6 text-gray-500 sm:grid">
+      <div
+        className="-mr-px hidden auto-cols-fr divide-x
+        divide-gray-100 border-r border-gray-100 text-sm leading-6 text-gray-500 sm:flex ">
         <div className="col-end-1 w-14" />
         {days.map((day) => {
           const isToday = dayjs().isSame(day, "day");
           return (
             <div
               key={day.toString()}
-              className={classNames("flex items-center justify-center py-3", isToday && "font-bold")}>
+              className={classNames("flex flex-1 items-center justify-center py-3", isToday && "font-bold")}>
               <span>
                 {day.format("ddd")}{" "}
                 <span

@@ -2,7 +2,6 @@ import create from "zustand";
 
 import dayjs from "@calcom/dayjs";
 
-import { blockingDates } from "../_storybookData";
 import {
   SchedulerComponentProps,
   SchedulerPublicActions,
