@@ -105,7 +105,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                   <li>You&apos;re set!</li>
                 </Trans>
               </ol>
-              <Link href="/apps/installed" passHref={true}>
+              <Link href="/apps/installed/automation?hl=zapier" passHref={true}>
                 <Button color="secondary">{t("done")}</Button>
               </Link>
             </div>

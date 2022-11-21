@@ -20,6 +20,8 @@ const calComSharedFields: CloseComFieldOptions = [["Contact Role", "text", false
 const serviceName = "closecom_service";
 
 export default class CloseComService extends SyncServiceCore implements ISyncService {
+  protected declare service: CloseCom;
+
   constructor() {
     super(serviceName, CloseCom, logger.getChildLogger({ prefix: [`[[sync] ${serviceName}`] }));
   }
@@ -120,7 +122,7 @@ export default class CloseComService extends SyncServiceCore implements ISyncSer
         this.log.debug("sync:closecom:web:team:update", { prevTeam, updatedTeam });
         const leadId = await getCloseComLeadId(this.service, { companyName: prevTeam.name });
         this.log.debug("sync:closecom:web:team:update:leadId", { leadId });
-        this.service.lead.update(leadId, updatedTeam);
+        this.service.lead.update(leadId, { companyName: updatedTeam.name });
       },
     },
     membership: {

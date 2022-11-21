@@ -41,5 +41,5 @@ export const IS_STRIPE_ENABLED = !!(
   process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
   process.env.STRIPE_PRIVATE_KEY
 );
-/** Self hosted shouldn't checkout when creating teams */
-export const IS_TEAM_BILLING_ENABLED = IS_STRIPE_ENABLED && !IS_SELF_HOSTED;
+/** Self hosted shouldn't checkout when creating teams unless required */
+export const IS_TEAM_BILLING_ENABLED = IS_STRIPE_ENABLED && (!IS_SELF_HOSTED || HOSTED_CAL_FEATURES);

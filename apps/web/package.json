@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "2.1.5",
+  "version": "2.2.2",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -19,7 +19,7 @@
     "check-changed-files": "ts-node scripts/ts-check-changed-files.ts"
   },
   "engines": {
-    "node": ">=16.x",
+    "node": "16.x",
     "yarn": ">=1.19.0 < 2.0.0"
   },
   "dependencies": {
@@ -56,7 +56,7 @@
     "@radix-ui/react-switch": "^1.0.0",
     "@radix-ui/react-toggle-group": "^1.0.0",
     "@radix-ui/react-tooltip": "^1.0.0",
-    "@sentry/nextjs": "^7.17.3",
+    "@sentry/nextjs": "^7.20.0",
     "@stripe/react-stripe-js": "^1.10.0",
     "@stripe/stripe-js": "^1.35.0",
     "@tanstack/react-query": "^4.3.9",
@@ -73,7 +73,6 @@
     "handlebars": "^4.7.7",
     "ical.js": "^1.4.0",
     "ics": "^2.37.0",
-    "jimp": "^0.16.1",
     "kbar": "^0.1.0-beta.36",
     "libphonenumber-js": "^1.10.12",
     "lodash": "^4.17.21",
