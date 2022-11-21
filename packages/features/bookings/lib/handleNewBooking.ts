@@ -979,7 +979,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           rescheduleUid,
           metadata: reqBody.metadata,
           eventTypeId,
-          //FIXME: FOr consistency b/w webhook and actual DB state, it should use isConfirmedByDefault here
           status: "ACCEPTED",
         }).catch((e) => {
           console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);

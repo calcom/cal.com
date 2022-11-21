@@ -925,7 +925,7 @@ export const bookingsRouter = router({
             evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
             evtOfBooking.uid = updatedBookings[index].uid;
 
-            const firstBooking = index === 0;
+            const isFirstBooking = index === 0;
 
             await scheduleWorkflowReminders(
               updatedBookings[index]?.eventType?.workflows || [],
@@ -933,7 +933,7 @@ export const bookingsRouter = router({
               evtOfBooking,
               false,
               false,
-              firstBooking
+              isFirstBooking
             );
           }
         }
