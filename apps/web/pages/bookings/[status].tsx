@@ -21,7 +21,7 @@ import SkeletonLoader from "@components/booking/SkeletonLoader";
 type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["status"];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
 
-const validStatuses = ["upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
+export const validStatuses = ["upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
 
 const descriptionByStatus: Record<BookingListingStatus, string> = {
   upcoming: "upcoming_bookings",
