@@ -29,7 +29,7 @@ export function EmptyCell(props: EmptyCellProps) {
           px-[6px] text-xs font-semibold leading-5 text-gray-900 hover:bg-gray-200 group-hover:block group-hover:cursor-pointer"
           style={{
             height: `calc(${props.eventDuration}*var(--one-minute-height))`,
-            zIndex: 56,
+            zIndex: 49,
             width: "90%",
           }}>
           <div className="overflow-ellipsis leading-4">{cellToDate.format("HH:mm")}</div>

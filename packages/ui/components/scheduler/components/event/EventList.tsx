@@ -25,7 +25,7 @@ export function EventList({ day }: Props) {
           let width = 90;
           let marginLeft: string | number = 0;
           let right = 0;
-          let zIndex = 50;
+          let zIndex = 61;
 
           const eventStart = dayjs(event.start);
           const eventEnd = dayjs(event.end);
@@ -46,7 +46,7 @@ export function EventList({ day }: Props) {
               // figure out which event has the longest duration
               const nextEventDuration = nextEventEnd.diff(nextEventStart, "minutes");
               if (nextEventDuration > eventDuration) {
-                zIndex = 55;
+                zIndex = 65;
 
                 marginLeft = "auto";
                 // 7 looks like a really random number but we need to take into account the bordersize on the event.
@@ -63,7 +63,7 @@ export function EventList({ day }: Props) {
               // figure out which event has the longest duration
               const prevEventDuration = prevEventEnd.diff(prevEventStart, "minutes");
               if (prevEventDuration > eventDuration) {
-                zIndex = 55;
+                zIndex = 65;
                 marginLeft = "auto";
                 right = 7;
                 width = width / 2;

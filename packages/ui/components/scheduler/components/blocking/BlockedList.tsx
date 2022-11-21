@@ -33,6 +33,7 @@ export function BlockedList({ day }: Props) {
           className="absolute z-40 w-full"
           style={{
             top: `var(--one-minute-height)`,
+            zIndex: 60,
             height: `calc(${(endHour + 1 - startHour) * 60} * var(--one-minute-height))`, // Add 1 to endHour to include the last hour that we add to display the last vertical line
           }}>
           <BlockedTimeCell />
@@ -45,7 +46,7 @@ export function BlockedList({ day }: Props) {
           className="absolute z-40 w-full"
           style={{
             top: `var(--one-minute-height)`, // Still need this as this var takes into consideration the offset of the "AllDayEvents" bar
-
+            zIndex: 60,
             height: `calc(${roundX(
               nowComparedToDayStart,
               60 / gridCellsPerHour
@@ -57,7 +58,6 @@ export function BlockedList({ day }: Props) {
 
       {blockingDates &&
         blockingDates.map((event, i) => {
-          console.log(dayjs(event.start).toString());
           const eventStart = dayjs(event.start);
           const eventEnd = dayjs(event.end);
           const eventDuration = eventEnd.diff(eventStart, "minutes");
@@ -72,8 +72,9 @@ export function BlockedList({ day }: Props) {
           return (
             <div
               key={`${eventStart.toISOString()}-${i}`}
-              className="absolute z-40 w-full"
+              className="absolute w-full"
               style={{
+                zIndex: 60,
                 top: `calc(${eventStartDiff}*var(--one-minute-height))`,
                 height: `calc(${eventDuration}*var(--one-minute-height))`,
               }}>
