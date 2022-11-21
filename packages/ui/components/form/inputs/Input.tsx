@@ -67,7 +67,7 @@ const Addon = ({ isFilled, children, className, error }: AddonProps) => (
       isFilled && "bg-gray-100",
       className
     )}>
-    <div className={classNames("flex h-full flex-col justify-center px-1 text-sm", error && "text-red-900")}>
+    <div className={classNames("flex h-full flex-col justify-center text-sm", error && "text-red-900")}>
       <span className="whitespace-nowrap py-2.5">{children}</span>
     </div>
   </div>
