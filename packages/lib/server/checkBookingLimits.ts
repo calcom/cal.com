@@ -86,7 +86,7 @@ export async function checkLimit({
       }
 
       throw new HttpError({
-        message: `Booking limit of ${limitingNumber}/${filter} reached for this eventType`,
+        message: `Booking limit of ${limitingNumber}/${filter} reached for this Event Type`,
         statusCode: 403,
       });
     }
