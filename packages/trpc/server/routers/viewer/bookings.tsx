@@ -916,7 +916,7 @@ export const bookingsRouter = router({
         updatedBookings.push(updatedBooking);
       }
 
-      //Workflows
+      //Workflows - set reminders for confirmed events
       try {
         for (let index = 0; index < updatedBookings.length; index++) {
           if (updatedBookings[index].eventType?.workflows) {
