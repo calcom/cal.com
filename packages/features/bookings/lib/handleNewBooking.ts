@@ -923,72 +923,75 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   log.debug(`Booking ${organizerUser.username} completed`);
 
-  const eventTrigger: WebhookTriggerEvents = rescheduleUid
-    ? WebhookTriggerEvents.BOOKING_RESCHEDULED
-    : WebhookTriggerEvents.BOOKING_CREATED;
-  const subscriberOptions = {
-    userId: organizerUser.id,
-    eventTypeId,
-    triggerEvent: eventTrigger,
-  };
-
-  const subscriberOptionsMeetingEnded = {
-    userId: organizerUser.id,
-    eventTypeId,
-    triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-  };
-
-  try {
-    const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
-
-    subscribersMeetingEnded.forEach((subscriber) => {
-      if (rescheduleUid && originalRescheduledBooking) {
-        cancelScheduledJobs(originalRescheduledBooking, undefined, true);
-      }
-      if (booking && booking.status === BookingStatus.ACCEPTED) {
-        scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
-      }
-    });
-  } catch (error) {
-    log.error("Error while running scheduledJobs for booking", error);
-  }
-
-  try {
-    // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-    const subscribers = await getWebhooks(subscriberOptions);
-    console.log("evt:", {
-      ...evt,
-      metadata: reqBody.metadata,
-    });
-    const bookingId = booking?.id;
-
-    const eventTypeInfo: EventTypeInfo = {
-      eventTitle: eventType.title,
-      eventDescription: eventType.description,
-      requiresConfirmation: eventType.requiresConfirmation || null,
-      price: stripeAppData.price,
-      currency: eventType.currency,
-      length: eventType.length,
+  if (!eventType.requiresConfirmation) {
+    const eventTrigger: WebhookTriggerEvents = rescheduleUid
+      ? WebhookTriggerEvents.BOOKING_RESCHEDULED
+      : WebhookTriggerEvents.BOOKING_CREATED;
+    const subscriberOptions = {
+      userId: organizerUser.id,
+      eventTypeId,
+      triggerEvent: eventTrigger,
     };
 
-    const promises = subscribers.map((sub) =>
-      sendPayload(sub.secret, eventTrigger, new Date().toISOString(), sub, {
+    const subscriberOptionsMeetingEnded = {
+      userId: organizerUser.id,
+      eventTypeId,
+      triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+    };
+
+    try {
+      const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
+
+      subscribersMeetingEnded.forEach((subscriber) => {
+        if (rescheduleUid && originalRescheduledBooking) {
+          cancelScheduledJobs(originalRescheduledBooking, undefined, true);
+        }
+        if (booking && booking.status === BookingStatus.ACCEPTED) {
+          scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
+        }
+      });
+    } catch (error) {
+      log.error("Error while running scheduledJobs for booking", error);
+    }
+
+    try {
+      // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
+      const subscribers = await getWebhooks(subscriberOptions);
+      console.log("evt:", {
         ...evt,
-        ...eventTypeInfo,
-        bookingId,
-        rescheduleUid,
         metadata: reqBody.metadata,
-        eventTypeId,
-        //FIXME: FOr consistency b/w webhook and actual DB state, it should use isConfirmedByDefault here
-        status: eventType.requiresConfirmation ? "PENDING" : "ACCEPTED",
-      }).catch((e) => {
-        console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
-      })
-    );
-    await Promise.all(promises);
-  } catch (error) {
-    log.error("Error while sending webhook", error);
+      });
+      const bookingId = booking?.id;
+
+      const eventTypeInfo: EventTypeInfo = {
+        eventTitle: eventType.title,
+        eventDescription: eventType.description,
+        requiresConfirmation: eventType.requiresConfirmation || null,
+        price: stripeAppData.price,
+        currency: eventType.currency,
+        length: eventType.length,
+      };
+
+      const promises = subscribers.map((sub) =>
+        sendPayload(sub.secret, eventTrigger, new Date().toISOString(), sub, {
+          ...evt,
+          ...eventTypeInfo,
+          bookingId,
+          rescheduleUid,
+          metadata: reqBody.metadata,
+          eventTypeId,
+          //FIXME: FOr consistency b/w webhook and actual DB state, it should use isConfirmedByDefault here
+          status: "ACCEPTED",
+        }).catch((e) => {
+          console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
+        })
+      );
+      await Promise.all(promises);
+    } catch (error) {
+      log.error("Error while sending webhook", error);
+    }
   }
+
   // Avoid passing referencesToCreate with id unique constrain values
   // refresh hashed link if used
   const urlSeed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}`;
@@ -1034,7 +1037,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       reqBody.smsReminderNumber as string | null,
       evt,
       evt.requiresConfirmation || false,
-      rescheduleUid ? true : false
+      rescheduleUid ? true : false,
+      true
     );
   } catch (error) {
     log.error("Error while scheduling workflow reminders", error);
