@@ -68,6 +68,11 @@ export function BlockedList({ day }: Props) {
           if (!eventStart.isSame(day, "day")) {
             return null;
           }
+          console.log({ eventStart: eventStart.toISOString(), eventEnd: eventEnd.toISOString() });
+
+          if (eventStart.isBefore(dayjs())) {
+            return null;
+          }
 
           return (
             <div
