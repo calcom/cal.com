@@ -74,6 +74,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               defaultValue={eventType.destinationCalendar || undefined}
               render={({ field: { onChange, value } }) => (
                 <DestinationCalendarSelector
+                  destinationCalendar={eventType.destinationCalendar}
                   value={value ? value.externalId : undefined}
                   onChange={onChange}
                   hidePlaceholder
@@ -97,7 +98,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               StartIcon={Icon.FiEdit}
               size="icon"
               color="minimal"
-              className="hover:stroke-3 hover:bg-transparent hover:text-black"
+              className="hover:stroke-3 min-w-fit px-0 hover:bg-transparent hover:text-black"
               onClick={() => setShowEventNameTip((old) => !old)}
             />
           }

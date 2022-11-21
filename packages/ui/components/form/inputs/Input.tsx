@@ -67,7 +67,7 @@ const Addon = ({ isFilled, children, className, error }: AddonProps) => (
       isFilled && "bg-gray-100",
       className
     )}>
-    <div className={classNames("flex h-full flex-col justify-center px-1 text-sm", error && "text-red-900")}>
+    <div className={classNames("flex h-full flex-col justify-center text-sm", error && "text-red-900")}>
       <span className="whitespace-nowrap py-2.5">{children}</span>
     </div>
   </div>
@@ -296,25 +296,7 @@ const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLForm
             });
         }}
         {...passThrough}>
-        {
-          /* @see https://react-hook-form.com/advanced-usage/#SmartFormComponent */
-          React.Children.map(props.children, (child) => {
-            return typeof child !== "string" &&
-              typeof child !== "number" &&
-              typeof child !== "boolean" &&
-              child &&
-              "props" in child &&
-              child.props.name
-              ? React.createElement(child.type, {
-                  ...{
-                    ...child.props,
-                    register: form.register,
-                    key: child.props.name,
-                  },
-                })
-              : child;
-          })
-        }
+        {props.children}
       </form>
     </FormProvider>
   );
