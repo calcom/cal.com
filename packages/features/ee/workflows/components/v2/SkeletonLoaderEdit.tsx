@@ -3,7 +3,7 @@ import { SkeletonContainer, SkeletonText } from "@calcom/ui/v2";
 function SkeletonLoader() {
   return (
     <SkeletonContainer>
-      <div className="ml-2 md:flex">
+      <div className="mt-10 ml-2 md:flex">
         <div className="mr-6 flex flex-col md:flex-none">
           <SkeletonText className="h-4 w-28" />
           <SkeletonText className="mt-2 mb-6 h-8 w-full md:w-64" />
