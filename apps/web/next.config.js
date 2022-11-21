@@ -97,10 +97,16 @@ const nextConfig = {
       new CopyWebpackPlugin({
         patterns: [
           {
-            from: "../../packages/app-store/**/static/**",
+            from: "../../packages/app-store/*/static/**",
             to({ context, absoluteFilename }) {
-              const appName = /app-store\/(.*)\/static/.exec(absoluteFilename);
-              return Promise.resolve(`${context}/public/app-store/${appName[1]}/[name][ext]`);
+              // Adds compatibility for windows path
+              const absoluteFilenameWin = absoluteFilename.replaceAll("\\", "/");
+              // Adds compatibility for windows path
+              const normalizedContext = context.replaceAll("\\", "/");
+              const appName =
+                /app-store\/(.*)\/static/.exec(absoluteFilename) ||
+                /app-store\/(.*)\/static/.exec(absoluteFilenameWin);
+              return Promise.resolve(`${normalizedContext}/public/app-store/${appName[1]}/[name][ext]`);
             },
           },
         ],
