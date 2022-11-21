@@ -1,6 +1,7 @@
 import { CheckIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import classNames from "classnames";
+import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
@@ -12,6 +13,8 @@ import prisma from "@calcom/prisma";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { TextField, EmailField, PasswordField, Label } from "@calcom/ui/components/form";
 import WizardForm from "@calcom/ui/v2/core/WizardForm";
+
+import { ssrInit } from "@server/lib/ssr";
 
 const StepDone = () => {
   const { t } = useLocale();
@@ -39,7 +42,8 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
     email_address: z.string().email({ message: t("enter_valid_email") }),
     full_name: z.string().min(3, t("at_least_characters", { count: 3 })),
     password: z.string().superRefine((data, ctx) => {
-      const result = isPasswordValid(data, true);
+      const isStrict = true;
+      const result = isPasswordValid(data, true, isStrict);
       Object.keys(result).map((key: string) => {
         if (!result[key as keyof typeof result]) {
           ctx.addIssue({
@@ -185,7 +189,7 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
                   formMethods.setValue("password", e.target.value);
                   await formMethods.trigger("password");
                 }}
-                hintErrors={["caplow", "min", "num"]}
+                hintErrors={["caplow", "admin_min", "num"]}
                 name="password"
                 className="my-0"
                 autoComplete="off"
@@ -221,10 +225,13 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   );
 }
 
-export const getServerSideProps = async () => {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
   const userCount = await prisma.user.count();
+
   return {
     props: {
+      trpcState: ssr.dehydrate(),
       userCount,
     },
   };
