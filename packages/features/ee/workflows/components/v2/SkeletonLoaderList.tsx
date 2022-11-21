@@ -3,11 +3,13 @@ import { SkeletonText } from "@calcom/ui/v2";
 
 function SkeletonLoader() {
   return (
-    <ul className="animate-pulse divide-y divide-neutral-200 rounded-md border border-gray-200 bg-white sm:overflow-hidden">
-      <SkeletonItem />
-      <SkeletonItem />
-      <SkeletonItem />
-    </ul>
+    <>
+      <ul className="mt-24 animate-pulse divide-y divide-neutral-200 rounded-md border border-gray-200 bg-white sm:overflow-hidden">
+        <SkeletonItem />
+        <SkeletonItem />
+        <SkeletonItem />
+      </ul>
+    </>
   );
 }
 
