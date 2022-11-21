@@ -1,8 +1,8 @@
-import autoAnimate from "@formkit/auto-animate";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
@@ -85,11 +85,8 @@ export const EventSetupTab = (
 
   const Locations = () => {
     const { t } = useLocale();
-    const animationRef = useRef(null);
 
-    useEffect(() => {
-      animationRef.current && autoAnimate(animationRef.current);
-    }, [animationRef]);
+    const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
     const validLocations = formMethods.getValues("locations").filter((location) => {
       const eventLocation = getEventLocationType(location.type);

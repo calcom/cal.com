@@ -14,6 +14,8 @@ import { showToast, SkeletonText } from "@calcom/ui/v2";
 import { Button, SkeletonButton, Shell } from "@calcom/ui/v2";
 import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
 
+import HeadSeo from "@components/seo/head-seo";
+
 const Component = ({
   name,
   type,
@@ -66,7 +68,7 @@ const Component = ({
   return (
     <div className="relative flex-1 flex-col items-start justify-start px-4 md:flex md:px-8 lg:flex-row lg:px-0">
       {hasImages && (
-        <div className="flex-2 mb-4 -ml-4 -mr-4 flex min-h-[450px] w-auto snap-x snap-mandatory flex-row overflow-auto whitespace-nowrap bg-gray-100  p-4 md:mb-8 md:-ml-8 md:-mr-8 md:p-8 lg:mx-0 lg:mb-0 lg:max-w-2xl lg:flex-col lg:rounded-md">
+        <div className="align-center mb-4 -ml-4 -mr-4 flex min-h-[450px] w-auto basis-3/5 snap-x snap-mandatory flex-row overflow-auto whitespace-nowrap bg-gray-100 p-4  md:mb-8 md:-ml-8 md:-mr-8 md:p-8 lg:mx-0 lg:mb-0 lg:max-w-2xl lg:flex-col lg:justify-center lg:rounded-md">
           {images ? (
             images.map((img) => (
               <img
@@ -83,7 +85,7 @@ const Component = ({
       )}
       <div
         className={classNames(
-          "sticky top-0 -mt-4 max-w-xl flex-1 pb-12 text-sm lg:pb-0",
+          "sticky top-0 -mt-4 max-w-xl basis-2/5 pb-12 text-sm lg:pb-0",
           hasImages && "lg:ml-8"
         )}>
         <div className="mb-8 flex pt-4">
@@ -276,6 +278,7 @@ const Component = ({
 
 export default function App(props: {
   name: string;
+  description: AppType["description"];
   type: AppType["type"];
   isGlobal?: AppType["isGlobal"];
   logo: string;
@@ -300,7 +303,16 @@ export default function App(props: {
   const { t } = useLocale();
 
   return (
-    <Shell large isPublic heading={t("app_store")} backPath="/apps">
+    <Shell large isPublic heading={t("app_store")} backPath="/apps" withoutSeo>
+      <HeadSeo
+        title={props.name}
+        description={props.description}
+        app={{ slug: props.logo, name: props.name, description: props.description }}
+        nextSeoProps={{
+          nofollow: true,
+          noindex: true,
+        }}
+      />
       {props.licenseRequired ? (
         <LicenseRequired>
           <Component {...props} />

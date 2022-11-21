@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import autoAnimate from "@formkit/auto-animate";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -69,6 +69,7 @@ export type FormValues = {
   periodCountCalendarDays: "1" | "0";
   periodDates: { startDate: Date; endDate: Date };
   seatsPerTimeSlot: number | null;
+  seatsShowAttendees: boolean | null;
   seatsPerTimeSlotEnabled: boolean;
   minimumBookingNotice: number;
   beforeBufferTime: number;
@@ -105,13 +106,11 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   // TODO: It isn't a good idea to maintain state using setEventType. If we want to connect the SSR'd data to tRPC, we should useQuery(["viewer.eventTypes.get"]) with initialData
   // Due to this change, when Form is saved, there is no way to propagate that info to eventType (e.g. disabling stripe app doesn't allow recurring tab to be enabled without refresh).
   const [eventType, setEventType] = useState(dbEventType);
-  const animationParentRef = useRef(null);
+
   const router = useRouter();
   const { tabName } = querySchema.parse(router.query);
 
-  useEffect(() => {
-    animationParentRef.current && autoAnimate(animationParentRef.current);
-  }, [animationParentRef]);
+  const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
   const updateMutation = trpc.useMutation("viewer.eventTypes.update", {
     onSuccess: async ({ eventType: newEventType }) => {
@@ -232,6 +231,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             beforeBufferTime,
             afterBufferTime,
             seatsPerTimeSlot,
+            seatsShowAttendees,
             bookingLimits,
             recurringEvent,
             locations,
@@ -259,6 +259,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             afterEventBuffer: afterBufferTime,
             bookingLimits,
             seatsPerTimeSlot,
+            seatsShowAttendees,
             metadata,
           });
         }}>
@@ -391,6 +392,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       price: true,
       destinationCalendar: true,
       seatsPerTimeSlot: true,
+      seatsShowAttendees: true,
       workflows: {
         include: {
           workflow: {

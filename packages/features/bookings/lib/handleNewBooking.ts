@@ -45,7 +45,7 @@ import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/Syn
 import prisma, { userSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema, extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
-import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
+import type { AdditionalInformation, AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import sendPayload, { EventTypeInfo } from "../../webhooks/lib/sendPayload";
@@ -154,6 +154,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       hideCalendarNotes: true,
       seatsPerTimeSlot: true,
       recurringEvent: true,
+      seatsShowAttendees: true,
       bookingLimits: true,
       workflows: {
         include: {
@@ -245,11 +246,19 @@ async function ensureAvailableUsers(
   return availableUsers;
 }
 
-async function handler(req: NextApiRequest & { userId?: number }) {
+async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   const { userId } = req;
 
-  const { recurringCount, noEmail, eventTypeSlug, eventTypeId, hasHashedBookingLink, language, ...reqBody } =
-    extendedBookingCreateBody.parse(req.body);
+  const {
+    recurringCount,
+    noEmail,
+    eventTypeSlug,
+    eventTypeId,
+    hasHashedBookingLink,
+    language,
+    appsStatus: reqAppsStatus,
+    ...reqBody
+  } = extendedBookingCreateBody.parse(req.body);
 
   // handle dynamic user
   const dynamicUserList = Array.isArray(reqBody.user)
@@ -445,6 +454,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     hideCalendarNotes: eventType.hideCalendarNotes,
     requiresConfirmation: eventType.requiresConfirmation ?? false,
     eventTypeId: eventType.id,
+    seatsShowAttendees: !!eventType.seatsShowAttendees,
   };
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
@@ -505,7 +515,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
     const newSeat = booking.attendees.length !== 0;
 
-    await sendScheduledSeatsEmails(evt, invitee[0], newSeat);
+    await sendScheduledSeatsEmails(evt, invitee[0], newSeat, !!eventType.seatsShowAttendees);
 
     const credentials = await refreshCredentials(organizerUser.credentials);
     const eventManager = new EventManager({ ...organizerUser, credentials });
@@ -593,7 +603,8 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
     // If the user is not the owner of the event, new booking should be always pending.
     // Otherwise, an owner rescheduling should be always accepted.
-    const userReschedulingIsOwner = originalRescheduledBooking?.user?.id === userId;
+    // Before comparing make sure that userId is set, otherwise undefined === undefined
+    const userReschedulingIsOwner = userId && originalRescheduledBooking?.user?.id === userId;
     const isConfirmedByDefault =
       (!eventType.requiresConfirmation && !stripeAppData.price) || userReschedulingIsOwner;
     const newBookingData: Prisma.BookingCreateInput = {
@@ -690,7 +701,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   let referencesToCreate: PartialReference[] = [];
 
   type Booking = Prisma.PromiseReturnType<typeof createBooking>;
-  let booking: Booking | null = null;
+  let booking: (Booking & { appsStatus?: AppsStatus[] }) | null = null;
   try {
     booking = await createBooking();
     // Sync Services
@@ -713,6 +724,39 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
   const credentials = await refreshCredentials(organizerUser.credentials);
   const eventManager = new EventManager({ ...organizerUser, credentials });
+
+  function handleAppsStatus(
+    results: EventResult<AdditionalInformation>[],
+    booking: (Booking & { appsStatus?: AppsStatus[] }) | null
+  ) {
+    // Taking care of apps status
+    const resultStatus: AppsStatus[] = results.map((app) => ({
+      appName: app.appName,
+      type: app.type,
+      success: app.success ? 1 : 0,
+      failures: !app.success ? 1 : 0,
+    }));
+
+    if (reqAppsStatus === undefined) {
+      if (booking !== null) {
+        booking.appsStatus = resultStatus;
+      }
+      evt.appsStatus = resultStatus;
+      return;
+    }
+    // From down here we can assume reqAppsStatus is not undefined anymore
+    // Other status exist, so this is the last booking of a series,
+    // proceeding to prepare the info for the event
+    const calcAppsStatus = reqAppsStatus.concat(resultStatus).reduce((prev, curr) => {
+      if (prev[curr.type]) {
+        prev[curr.type].success += curr.success;
+      } else {
+        prev[curr.type] = curr;
+      }
+      return prev;
+    }, {} as { [key: string]: AppsStatus });
+    evt.appsStatus = Object.values(calcAppsStatus);
+  }
 
   if (originalRescheduledBooking?.uid) {
     // Use EventManager to conditionally use all needed integrations.
@@ -747,6 +791,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
           metadata.hangoutLink = updatedEvent.hangoutLink;
           metadata.conferenceData = updatedEvent.conferenceData;
           metadata.entryPoints = updatedEvent.entryPoints;
+          handleAppsStatus(results, booking);
         }
       }
 
@@ -786,6 +831,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
+        handleAppsStatus(results, booking);
       }
       if (noEmail !== true) {
         await sendScheduledEmails({
@@ -798,6 +844,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     }
   }
 
+  // FIXME: instead of requiresConfirmation, we should check if isConfirmedByDefault is set or not.
   if (eventType.requiresConfirmation && !rescheduleUid && noEmail !== true) {
     await sendOrganizerRequestEmail({ ...evt, additionalNotes });
     await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
@@ -838,95 +885,119 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
   };
 
-  const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
+  try {
+    const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
 
-  subscribersMeetingEnded.forEach((subscriber) => {
-    if (rescheduleUid && originalRescheduledBooking) {
-      cancelScheduledJobs(originalRescheduledBooking);
-    }
-    if (booking && booking.status === BookingStatus.ACCEPTED) {
-      scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
-    }
-  });
-
-  // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
-  const subscribers = await getWebhooks(subscriberOptions);
-
-  getGlobalSubscribers(eventTrigger).forEach((subscriberUrl) => {
-    subscribers.push({
-      id: "global",
-      subscriberUrl,
-      secret: null,
-      payloadTemplate: null,
-      appId: null,
+    subscribersMeetingEnded.forEach((subscriber) => {
+      if (rescheduleUid && originalRescheduledBooking) {
+        cancelScheduledJobs(originalRescheduledBooking);
+      }
+      if (booking && booking.status === BookingStatus.ACCEPTED) {
+        scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
+      }
     });
-  });
+  } catch (error) {
+    log.error("Error while running scheduledJobs for booking", error);
+  }
 
-  console.log("evt:", {
-    ...evt,
-    metadata: reqBody.metadata,
-  });
-  const bookingId = booking?.id;
+  try {
+    // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
+    const subscribers = await getWebhooks(subscriberOptions);
 
-  const eventTypeInfo: EventTypeInfo = {
-    eventTitle: eventType.title,
-    eventDescription: eventType.description,
-    requiresConfirmation: eventType.requiresConfirmation || null,
-    price: stripeAppData.price,
-    currency: eventType.currency,
-    length: eventType.length,
-  };
+    getGlobalSubscribers(eventTrigger).forEach((subscriberUrl) => {
+      subscribers.push({
+        id: "global",
+        subscriberUrl,
+        secret: null,
+        payloadTemplate: null,
+        appId: null,
+      });
+    });
 
-  const promises = subscribers.map((sub) =>
-    sendPayload(sub.secret, eventTrigger, new Date().toISOString(), sub, {
+    console.log("evt:", {
       ...evt,
-      ...eventTypeInfo,
-      bookingId,
-      rescheduleUid,
       metadata: reqBody.metadata,
-      eventTypeId,
-      status: eventType.requiresConfirmation ? "PENDING" : "ACCEPTED",
-    }).catch((e) => {
-      console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
-    })
-  );
-  await Promise.all(promises);
+    });
+    const bookingId = booking?.id;
+
+    const eventTypeInfo: EventTypeInfo = {
+      eventTitle: eventType.title,
+      eventDescription: eventType.description,
+      requiresConfirmation: eventType.requiresConfirmation || null,
+      price: stripeAppData.price,
+      currency: eventType.currency,
+      length: eventType.length,
+    };
+
+    const promises = subscribers.map((sub) =>
+      sendPayload(sub.secret, eventTrigger, new Date().toISOString(), sub, {
+        ...evt,
+        ...eventTypeInfo,
+        bookingId,
+        rescheduleUid,
+        metadata: reqBody.metadata,
+        eventTypeId,
+        //FIXME: FOr consistency b/w webhook and actual DB state, it should use isConfirmedByDefault here
+        status: eventType.requiresConfirmation ? "PENDING" : "ACCEPTED",
+      }).catch((e) => {
+        console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
+      })
+    );
+    await Promise.all(promises);
+  } catch (error) {
+    log.error("Error while sending webhook", error);
+  }
   // Avoid passing referencesToCreate with id unique constrain values
   // refresh hashed link if used
   const urlSeed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}`;
   const hashedUid = translator.fromUUID(uuidv5(urlSeed, uuidv5.URL));
 
-  if (hasHashedBookingLink) {
-    await prisma.hashedLink.update({
+  try {
+    if (hasHashedBookingLink) {
+      await prisma.hashedLink.update({
+        where: {
+          link: reqBody.hashedLink as string,
+        },
+        data: {
+          link: hashedUid,
+        },
+      });
+    }
+  } catch (error) {
+    log.error("Error while updating hashed link", error);
+  }
+
+  if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
+
+  try {
+    await prisma.booking.update({
       where: {
-        link: reqBody.hashedLink as string,
+        uid: booking.uid,
       },
       data: {
-        link: hashedUid,
-      },
-    });
-  }
-  if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
-  await prisma.booking.update({
-    where: {
-      uid: booking.uid,
-    },
-    data: {
-      references: {
-        createMany: {
-          data: referencesToCreate,
+        references: {
+          createMany: {
+            data: referencesToCreate,
+          },
         },
       },
-    },
-  });
+    });
+  } catch (error) {
+    log.error("Error while creating booking references", error);
+  }
 
-  await scheduleWorkflowReminders(
-    eventType.workflows,
-    reqBody.smsReminderNumber as string | null,
-    evt,
-    evt.requiresConfirmation || false,
-    rescheduleUid ? true : false
-  );
+  try {
+    await scheduleWorkflowReminders(
+      eventType.workflows,
+      reqBody.smsReminderNumber as string | null,
+      evt,
+      evt.requiresConfirmation || false,
+      rescheduleUid ? true : false
+    );
+  } catch (error) {
+    log.error("Error while scheduling workflow reminders", error);
+  }
+
   // booking successful
   req.statusCode = 201;
   return booking;

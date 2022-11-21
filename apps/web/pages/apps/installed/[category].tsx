@@ -1,4 +1,5 @@
 import { InferGetServerSidePropsType } from "next";
+import { useRouter } from "next/router";
 import z from "zod";
 
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
@@ -188,9 +189,10 @@ const querySchema = z.object({
   category: z.nativeEnum(InstalledAppVariants),
 });
 
-export default function InstalledApps({ category }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function InstalledApps() {
   const { t } = useLocale();
-
+  const router = useRouter();
+  const category = router.query.category;
   return (
     <InstalledAppsLayout heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
       {(category === InstalledAppVariants.payment || category === InstalledAppVariants.conferencing) && (

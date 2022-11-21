@@ -1,5 +1,6 @@
 import { FormValues } from "pages/event-types/[type]";
 import { Controller, useFormContext } from "react-hook-form";
+import { SingleValueProps, OptionProps, components } from "react-select";
 
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
@@ -7,6 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui";
+import { Badge } from "@calcom/ui/v2";
 import Button from "@calcom/ui/v2/core/Button";
 import Select from "@calcom/ui/v2/core/form/select";
 import { SkeletonText } from "@calcom/ui/v2/core/skeleton";
@@ -16,6 +18,35 @@ import { SelectSkeletonLoader } from "@components/v2/availability/SkeletonLoader
 type AvailabilityOption = {
   label: string;
   value: number;
+  isDefault: boolean;
+};
+
+const Option = ({ ...props }: OptionProps<AvailabilityOption>) => {
+  const { label, isDefault } = props.data;
+  return (
+    <components.Option {...props}>
+      <span>{label}</span>
+      {isDefault && (
+        <Badge variant="blue" className="ml-2">
+          Default
+        </Badge>
+      )}
+    </components.Option>
+  );
+};
+
+const SingleValue = ({ ...props }: SingleValueProps<AvailabilityOption>) => {
+  const { label, isDefault } = props.data;
+  return (
+    <components.SingleValue {...props}>
+      <span>{label}</span>
+      {isDefault && (
+        <Badge variant="blue" className="ml-2">
+          Default
+        </Badge>
+      )}
+    </components.SingleValue>
+  );
 };
 
 const AvailabilitySelect = ({
@@ -38,6 +69,7 @@ const AvailabilitySelect = ({
   const options = schedules.map((schedule) => ({
     value: schedule.id,
     label: schedule.name,
+    isDefault: schedule.isDefault,
   }));
 
   const value = options.find((option) =>
@@ -53,6 +85,8 @@ const AvailabilitySelect = ({
       onChange={props.onChange}
       className={classNames("block w-full min-w-0 flex-1 rounded-sm text-sm", className)}
       value={value}
+      components={{ Option, SingleValue }}
+      isMulti={false}
     />
   );
 };
@@ -130,7 +164,7 @@ export const AvailabilityTab = () => {
             {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
           </span>
           <Button
-            href={`/availability/${scheduleId}`}
+            href={`/availability/${schedule?.schedule.id}`}
             color="minimal"
             EndIcon={Icon.FiExternalLink}
             target="_blank"

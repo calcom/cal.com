@@ -35,7 +35,10 @@ interface Props {
   children: ReactNode;
   isMobile?: boolean;
   rescheduleUid?: string;
-  user?: TeamBookingPageProps["user"] | BookPageProps["user"] | HashLinkPageProps["user"];
+  user?:
+    | TeamBookingPageProps["userToBeBooked"]
+    | BookPageProps["userToBeBooked"]
+    | HashLinkPageProps["userToBeBooked"];
 }
 
 const BookingDescription: FC<Props> = (props) => {
@@ -86,11 +89,9 @@ const BookingDescription: FC<Props> = (props) => {
             {t("requires_confirmation")}
           </div>
         )}
-        {!isBookingPage && !props.rescheduleUid ? (
-          <AvailableEventLocations
-            locations={eventType.locations as AvailabilityPageProps["eventType"]["locations"]}
-          />
-        ) : null}
+        <AvailableEventLocations
+          locations={eventType.locations as AvailabilityPageProps["eventType"]["locations"]}
+        />
         <p
           className={classNames(
             "text-sm font-medium",

@@ -15,7 +15,7 @@ type Props = {
 function CustomInputItem({ required, deleteOnClick, editOnClick, type, question }: Props) {
   const { t } = useLocale();
   return (
-    <li className="border-1 flex border border-gray-200 bg-white px-6 py-4 first:rounded-t-md last:rounded-b-md only:rounded-md  xl:ml-7 ">
+    <li className="border-1 flex border border-gray-200 bg-white px-6 py-4 first:rounded-t-md last:rounded-b-md only:rounded-md">
       <div className="flex flex-col">
         <div className="flex items-center">
           <span className="pr-2 text-sm font-semibold leading-none text-black">{question}</span>

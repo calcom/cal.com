@@ -9,37 +9,27 @@ import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/custom
 import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
 import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getLocationOptions } from "@calcom/app-store/utils";
-import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { DailyLocationType } from "@calcom/core/location";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
+import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
+import { CAL_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
-import jackson from "@calcom/lib/jackson";
-import {
-  hostedCal,
-  isSAMLAdmin,
-  isSAMLLoginEnabled,
-  samlProductID,
-  samlTenantID,
-  samlTenantProduct,
-  tenantPrefix,
-} from "@calcom/lib/saml";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { isTeamOwner } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
 import {
   deleteWebUser as syncServicesDeleteWebUser,
   updateWebUser as syncServicesUpdateWebUser,
 } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { baseEventTypeSelect, baseUserSelect, bookingMinimalSelect } from "@calcom/prisma";
-import { userMetadata, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 
 import { TRPCError } from "@trpc/server";
@@ -50,6 +40,7 @@ import { authRouter } from "./viewer/auth";
 import { availabilityRouter } from "./viewer/availability";
 import { bookingsRouter } from "./viewer/bookings";
 import { eventTypesRouter } from "./viewer/eventTypes";
+import { samlRouter } from "./viewer/saml";
 import { slotsRouter } from "./viewer/slots";
 import { viewerTeamsRouter } from "./viewer/teams";
 import { webhookRouter } from "./viewer/webhook";
@@ -255,6 +246,40 @@ const loggedInViewerRouter = createProtectedRouter()
       return;
     },
   })
+  .mutation("deleteMeWithoutPassword", {
+    async resolve({ ctx }) {
+      const user = await prisma.user.findUnique({
+        where: {
+          email: ctx.user.email.toLowerCase(),
+        },
+      });
+      if (!user) {
+        throw new Error(ErrorCode.UserNotFound);
+      }
+
+      if (user.identityProvider === IdentityProvider.CAL) {
+        throw new Error(ErrorCode.SocialIdentityProviderRequired);
+      }
+
+      if (user.twoFactorEnabled) {
+        throw new Error(ErrorCode.SocialIdentityProviderRequired);
+      }
+
+      // Remove me from Stripe
+      await deleteStripeCustomer(user).catch(console.warn);
+
+      // Remove my account
+      const deletedUser = await ctx.prisma.user.delete({
+        where: {
+          id: ctx.user.id,
+        },
+      });
+      // Sync Services
+      syncServicesDeleteWebUser(deletedUser);
+
+      return;
+    },
+  })
   .mutation("away", {
     input: z.object({
       away: z.boolean(),
@@ -276,7 +301,16 @@ const loggedInViewerRouter = createProtectedRouter()
       const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
         hashedLink: true,
         destinationCalendar: true,
-        team: true,
+        team: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            // logo: true, // Skipping to avoid 4mb limit
+            bio: true,
+            hideBranding: true,
+          },
+        },
         metadata: true,
         users: {
           select: baseUserSelect,
@@ -307,7 +341,6 @@ const loggedInViewerRouter = createProtectedRouter()
                   id: true,
                   name: true,
                   slug: true,
-                  logo: true,
                   members: {
                     select: {
                       userId: true,
@@ -349,10 +382,13 @@ const loggedInViewerRouter = createProtectedRouter()
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
 
-      const userEventTypes = user.eventTypes.map((eventType) => ({
+      const mapEventType = (eventType: typeof user.eventTypes[number]) => ({
         ...eventType,
-        metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-      }));
+        // @FIXME: cc @hariombalhara This is failing with production data
+        // metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+      });
+
+      const userEventTypes = user.eventTypes.map(mapEventType);
       // backwards compatibility, TMP:
       const typesRaw = (
         await prisma.eventType.findMany({
@@ -369,10 +405,7 @@ const loggedInViewerRouter = createProtectedRouter()
             },
           ],
         })
-      ).map((eventType) => ({
-        ...eventType,
-        metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-      }));
+      ).map(mapEventType);
 
       type EventTypeGroup = {
         teamId?: number | null;
@@ -413,17 +446,14 @@ const loggedInViewerRouter = createProtectedRouter()
           teamId: membership.team.id,
           profile: {
             name: membership.team.name,
-            image: membership.team.logo || "",
+            image: `${CAL_URL}/team/${membership.team.slug}/avatar.png`,
             slug: "team/" + membership.team.slug,
           },
           metadata: {
             membershipCount: membership.team.members.length,
             readOnly: membership.role === MembershipRole.MEMBER,
           },
-          eventTypes: membership.team.eventTypes.map((eventType) => ({
-            ...eventType,
-            metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-          })),
+          eventTypes: membership.team.eventTypes.map(mapEventType),
         }))
       );
       return {
@@ -1038,99 +1068,6 @@ const loggedInViewerRouter = createProtectedRouter()
       }
     },
   })
-  .query("showSAMLView", {
-    input: z.object({
-      teamsView: z.boolean(),
-      teamId: z.union([z.number(), z.null(), z.undefined()]),
-    }),
-    async resolve({ input, ctx }) {
-      const { user } = ctx;
-      const { teamsView, teamId } = input;
-
-      if ((teamsView && !hostedCal) || (!teamsView && hostedCal)) {
-        return {
-          isSAMLLoginEnabled: false,
-          hostedCal,
-        };
-      }
-
-      let enabled = isSAMLLoginEnabled;
-
-      // in teams view we already check for isAdmin
-      if (teamsView) {
-        enabled = enabled && user.plan === "PRO";
-      } else {
-        enabled = enabled && isSAMLAdmin(user.email);
-      }
-
-      let provider;
-      if (enabled) {
-        const { apiController } = await jackson();
-
-        try {
-          const resp = await apiController.getConfig({
-            tenant: teamId ? tenantPrefix + teamId : samlTenantID,
-            product: samlProductID,
-          });
-          provider = resp.provider;
-        } catch (err) {
-          console.error("Error getting SAML config", err);
-          throw new TRPCError({ code: "BAD_REQUEST", message: "SAML configuration fetch failed" });
-        }
-      }
-
-      return {
-        isSAMLLoginEnabled: enabled,
-        hostedCal,
-        provider,
-      };
-    },
-  })
-  .mutation("updateSAMLConfig", {
-    input: z.object({
-      encodedRawMetadata: z.string(),
-      teamId: z.union([z.number(), z.null(), z.undefined()]),
-    }),
-    async resolve({ ctx, input }) {
-      const { encodedRawMetadata, teamId } = input;
-      if (teamId && !(await isTeamOwner(ctx.user?.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
-      const { apiController } = await jackson();
-
-      try {
-        return await apiController.config({
-          encodedRawMetadata,
-          defaultRedirectUrl: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/auth/saml/idp`,
-          redirectUrl: JSON.stringify([`${process.env.NEXT_PUBLIC_WEBAPP_URL}/*`]),
-          tenant: teamId ? tenantPrefix + teamId : samlTenantID,
-          product: samlProductID,
-        });
-      } catch (err) {
-        console.error("Error setting SAML config", err);
-        throw new TRPCError({ code: "BAD_REQUEST" });
-      }
-    },
-  })
-  .mutation("deleteSAMLConfig", {
-    input: z.object({
-      teamId: z.union([z.number(), z.null(), z.undefined()]),
-    }),
-    async resolve({ ctx, input }) {
-      const { teamId } = input;
-      if (teamId && !(await isTeamOwner(ctx.user?.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
-
-      const { apiController } = await jackson();
-
-      try {
-        return await apiController.deleteConfig({
-          tenant: teamId ? tenantPrefix + teamId : samlTenantID,
-          product: samlProductID,
-        });
-      } catch (err) {
-        console.error("Error deleting SAML configuration", err);
-        throw new TRPCError({ code: "BAD_REQUEST" });
-      }
-    },
-  })
   .mutation("submitFeedback", {
     input: z.object({
       rating: z.string(),
@@ -1527,6 +1464,7 @@ export const viewerRouter = createRouter()
   .merge("apiKeys.", apiKeysRouter)
   .merge("slots.", slotsRouter)
   .merge("workflows.", workflowsRouter)
+  .merge("saml.", samlRouter)
 
   // NOTE: Add all app related routes in the bottom till the problem described in @calcom/app-store/trpc-routers.ts is solved.
   // After that there would just one merge call here for all the apps.

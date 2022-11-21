@@ -126,14 +126,16 @@ const Layout = (props: LayoutProps) => {
 
   return (
     <>
-      <HeadSeo
-        title={pageTitle ?? "Cal.com"}
-        description={props.subtitle ? props.subtitle?.toString() : ""}
-        nextSeoProps={{
-          nofollow: true,
-          noindex: true,
-        }}
-      />
+      {!props.withoutSeo && (
+        <HeadSeo
+          title={pageTitle ?? "Cal.com"}
+          description={props.subtitle ? props.subtitle?.toString() : ""}
+          nextSeoProps={{
+            nofollow: true,
+            noindex: true,
+          }}
+        />
+      )}
       <div>
         <Toaster position="bottom-right" />
       </div>
@@ -168,11 +170,13 @@ type LayoutProps = {
   TopNavContainer?: ReactNode;
   drawerState?: DrawerState;
   HeadingLeftIcon?: ReactNode;
-  backPath?: string; // renders back button to specified path
+  backPath?: string | boolean; // renders back button to specified path
   // use when content needs to expand with flex
   flexChildrenContainer?: boolean;
   isPublic?: boolean;
   withoutMain?: boolean;
+  // Gives you the option to skip HeadSEO and render your own.
+  withoutSeo?: boolean;
 };
 
 const CustomBrandingContainer = () => {
@@ -233,8 +237,8 @@ function UserDropdown({ small }: { small?: boolean }) {
     return null;
   }
   return (
-    <Dropdown open={menuOpen} onOpenChange={() => setHelpOpen(false)}>
-      <DropdownMenuTrigger asChild onClick={() => setMenuOpen(true)}>
+    <Dropdown open={menuOpen}>
+      <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
         <button className="group flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-100 sm:pl-3 md:rounded-none lg:pl-2">
           <span
             className={classNames(
@@ -280,7 +284,10 @@ function UserDropdown({ small }: { small?: boolean }) {
       </DropdownMenuTrigger>
       <DropdownMenuPortal>
         <DropdownMenuContent
-          onInteractOutside={() => setMenuOpen(false)}
+          onInteractOutside={() => {
+            setMenuOpen(false);
+            setHelpOpen(false);
+          }}
           className="overflow-hidden rounded-md">
           {helpOpen ? (
             <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
@@ -338,21 +345,21 @@ function UserDropdown({ small }: { small?: boolean }) {
                   <Icon.FiMap className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" /> {t("visit_roadmap")}
                 </a>
               </DropdownMenuItem>
+              <DropdownMenuItem>
+                <button
+                  onClick={() => setHelpOpen(true)}
+                  className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                  <Icon.FiHelpCircle
+                    className={classNames(
+                      "text-gray-500 group-hover:text-neutral-500",
+                      "h-4 w-4 flex-shrink-0 ltr:mr-2"
+                    )}
+                    aria-hidden="true"
+                  />
 
-              <button
-                className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-                onClick={() => setHelpOpen(true)}>
-                <Icon.FiHelpCircle
-                  className={classNames(
-                    "text-gray-500 group-hover:text-neutral-500",
-                    "h-4 w-4 flex-shrink-0 ltr:mr-2"
-                  )}
-                  aria-hidden="true"
-                />
-
-                {t("help")}
-              </button>
-
+                  {t("help")}
+                </button>
+              </DropdownMenuItem>
               <DropdownMenuItem>
                 <a
                   target="_blank"
@@ -766,7 +773,9 @@ export function ShellMain(props: LayoutProps) {
           <Button
             size="icon"
             color="minimal"
-            onClick={() => router.push(props.backPath as string)}
+            onClick={() =>
+              typeof props.backPath === "string" ? router.push(props.backPath as string) : router.back()
+            }
             StartIcon={Icon.FiArrowLeft}
             aria-label="Go Back"
             className="ltr:mr-2 rtl:ml-2"
