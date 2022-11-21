@@ -45,6 +45,8 @@ import { HeadSeo } from "@components/seo/head-seo";
 
 import { ssrInit } from "@server/lib/ssr";
 
+import { validStatuses } from "./bookings/[status]";
+
 function redirectToExternalUrl(url: string) {
   window.parent.location.href = url;
 }
@@ -150,6 +152,7 @@ const querySchema = z.object({
   cancel: stringToBoolean,
   reschedule: stringToBoolean,
   isSuccessBookingPage: z.string().optional(),
+  listingStatus: z.enum(validStatuses),
 });
 
 export default function Success(props: SuccessProps) {
@@ -160,6 +163,7 @@ export default function Success(props: SuccessProps) {
     allRemainingBookings,
     isSuccessBookingPage,
     cancel: isCancellationMode,
+    listingStatus,
   } = querySchema.parse(router.query);
 
   if (isCancellationMode && typeof window !== "undefined") {
