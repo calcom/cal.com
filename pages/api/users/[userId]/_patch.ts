@@ -50,7 +50,7 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "@lib/validations
  *               weekStart:
  *                 description: Start of the week. Acceptable values are one of [SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY]
  *                 type: string
- *               timeZone: 
+ *               timeZone:
  *                 description: The user's time zone
  *                 type: string
  *               theme:

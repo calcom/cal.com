@@ -45,7 +45,7 @@ import { schemaUserCreateBodyParams } from "@lib/validations/user";
  *               weekStart:
  *                 description: Start of the week. Acceptable values are one of [SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY]
  *                 type: string
- *               timeZone: 
+ *               timeZone:
  *                 description: The new user's time zone
  *                 type: string
  *               theme:
