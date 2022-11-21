@@ -1,4 +1,4 @@
-import sendgrid from "@sendgrid/client";
+import client from "@sendgrid/client";
 import { ClientRequest } from "@sendgrid/client/src/request";
 import { ClientResponse } from "@sendgrid/client/src/response";
 
@@ -49,14 +49,12 @@ const environmentApiKey = process.env.SENDGRID_SYNC_API_KEY || "";
  * one account only, not configurable by any user at any moment.
  */
 export default class Sendgrid {
-  private sendgrid: typeof sendgrid;
   private log: typeof logger;
 
   constructor(providedApiKey = "") {
     this.log = logger.getChildLogger({ prefix: [`[[lib] sendgrid`] });
     if (!providedApiKey && !environmentApiKey) throw Error("Sendgrid Api Key not present");
-    this.sendgrid = sendgrid;
-    this.sendgrid.setApiKey(providedApiKey || environmentApiKey);
+    client.setApiKey(providedApiKey || environmentApiKey);
   }
 
   public username = async () => {
@@ -69,7 +67,7 @@ export default class Sendgrid {
 
   public async sendgridRequest<R = ClientResponse>(data: ClientRequest): Promise<R> {
     this.log.debug("sendgridRequest:request", data);
-    const results = await this.sendgrid.request(data);
+    const results = await client.request(data);
     this.log.debug("sendgridRequest:results", results);
     if (results[1].errors) throw Error(`Sendgrid request error: ${results[1].errors}`);
     return results[1];

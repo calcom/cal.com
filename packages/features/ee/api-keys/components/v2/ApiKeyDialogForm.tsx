@@ -25,9 +25,9 @@ export default function ApiKeyDialogForm({
   const { t } = useLocale();
   const utils = trpc.useContext();
 
-  const updateApiKeyMutation = trpc.useMutation("viewer.apiKeys.edit", {
+  const updateApiKeyMutation = trpc.viewer.apiKeys.edit.useMutation({
     onSuccess() {
-      utils.invalidateQueries("viewer.apiKeys.list");
+      utils.viewer.apiKeys.list.invalidate();
       showToast(t("api_key_updated"), "success");
       handleClose();
     },
@@ -104,10 +104,10 @@ export default function ApiKeyDialogForm({
               console.log("Name changed");
               await updateApiKeyMutation.mutate({ id: defaultValues.id, note: event.note });
             } else {
-              const apiKey = await utils.client.mutation("viewer.apiKeys.create", event);
+              const apiKey = await utils.client.viewer.apiKeys.create.mutate(event);
               setApiKey(apiKey);
               setApiKeyDetails({ ...event });
-              await utils.invalidateQueries(["viewer.apiKeys.list"]);
+              await utils.viewer.apiKeys.list.invalidate();
               setSuccessfulNewApiKeyModal(true);
             }
           }}

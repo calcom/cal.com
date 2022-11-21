@@ -7,14 +7,12 @@ import stripe from "@calcom/app-store/stripepayment/lib/server";
 import EventManager from "@calcom/core/EventManager";
 import { sendScheduledEmails } from "@calcom/emails";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { HttpError as HttpCode } from "@calcom/lib/http-error";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
-import { IS_PRODUCTION } from "@lib/config/constants";
-import { HttpError as HttpCode } from "@lib/core/http/error";
-
-import { getTranslation } from "@server/lib/i18n";
 
 export const config = {
   api: {

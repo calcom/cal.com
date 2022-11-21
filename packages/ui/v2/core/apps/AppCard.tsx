@@ -1,4 +1,5 @@
 import type { Credential } from "@prisma/client";
+import { useRouter } from "next/router";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
@@ -15,8 +16,12 @@ interface AppCardProps {
 
 export default function AppCard({ app, credentials }: AppCardProps) {
   const { t } = useLocale();
+  const router = useRouter();
   const mutation = useAddAppMutation(null, {
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Refresh SSR page content without actual reload
+      router.replace(router.asPath);
+      if (data.setupPending) return;
       showToast(t("app_successfully_installed"), "success");
     },
     onError: (error) => {

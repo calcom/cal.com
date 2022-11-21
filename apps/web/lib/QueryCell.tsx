@@ -9,18 +9,13 @@ import { ReactNode } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
-import { trpc } from "@calcom/trpc/react";
-import type {
-  inferHandlerInput,
-  inferProcedureInput,
-  inferProcedureOutput,
-  ProcedureRecord,
-} from "@calcom/trpc/server";
+import type { DecorateProcedure } from "@calcom/trpc/react/shared";
+import type { AnyQueryProcedure, inferProcedureInput, inferProcedureOutput } from "@calcom/trpc/server";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { Alert } from "@calcom/ui/Alert";
 import Loader from "@calcom/ui/Loader";
 
-import type { UseTRPCQueryOptions } from "@trpc/react/shared";
+import type { UseTRPCQueryOptions } from "@trpc/react-query/shared";
 
 type ErrorLike = {
   message: string;
@@ -87,34 +82,24 @@ export function QueryCell<TData, TError extends ErrorLike>(
   return null;
 }
 
-type inferProcedures<TObj extends ProcedureRecord> = {
-  [TPath in keyof TObj]: {
-    input: inferProcedureInput<TObj[TPath]>;
-    output: inferProcedureOutput<TObj[TPath]>;
-  };
-};
-type TQueryValues = inferProcedures<AppRouter["_def"]["queries"]>;
-type TQueries = AppRouter["_def"]["queries"];
 type TError = TRPCClientErrorLike<AppRouter>;
 
-const withQuery = <TPath extends keyof TQueryValues & string>(
-  pathAndInput: [path: TPath, ...args: inferHandlerInput<TQueries[TPath]>],
-  params?: UseTRPCQueryOptions<
-    TPath,
-    TQueryValues[TPath]["input"],
-    TQueryValues[TPath]["output"],
-    TQueryValues[TPath]["output"],
-    TError
-  >
+const withQuery = <
+  TQuery extends AnyQueryProcedure,
+  TInput = inferProcedureInput<TQuery>,
+  TOutput = inferProcedureOutput<TQuery>
+>(
+  queryProcedure: DecorateProcedure<TQuery, any>,
+  input?: TInput,
+  params?: UseTRPCQueryOptions<any, TInput, TOutput, TOutput, TError>
 ) => {
   return function WithQuery(
     opts: Omit<
-      Partial<QueryCellOptionsWithEmpty<TQueryValues[TPath]["output"], TError>> &
-        QueryCellOptionsNoEmpty<TQueryValues[TPath]["output"], TError>,
+      Partial<QueryCellOptionsWithEmpty<TOutput, TError>> & QueryCellOptionsNoEmpty<TOutput, TError>,
       "query"
     >
   ) {
-    const query = trpc.useQuery(pathAndInput, params);
+    const query = queryProcedure.useQuery(input, params);
     return <QueryCell query={query} {...opts} />;
   };
 };

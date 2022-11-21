@@ -43,7 +43,8 @@ const Component = ({
   const router = useRouter();
 
   const mutation = useAddAppMutation(null, {
-    onSuccess: () => {
+    onSuccess: (data) => {
+      if (data.setupPending) return;
       showToast(t("app_successfully_installed"), "success");
     },
     onError: (error) => {
@@ -58,11 +59,14 @@ const Component = ({
   }).format(price);
 
   const [existingCredentials, setExistingCredentials] = useState<number[]>([]);
-  const appCredentials = trpc.useQuery(["viewer.appCredentialsByType", { appType: type }], {
-    onSuccess(data) {
-      setExistingCredentials(data);
-    },
-  });
+  const appCredentials = trpc.viewer.appCredentialsByType.useQuery(
+    { appType: type },
+    {
+      onSuccess(data) {
+        setExistingCredentials(data);
+      },
+    }
+  );
 
   const allowedMultipleInstalls = categories.indexOf("calendar") > -1;
 
@@ -143,6 +147,7 @@ const Component = ({
             </div>
           ) : existingCredentials.length > 0 ? (
             <DisconnectIntegration
+              buttonProps={{ color: "secondary" }}
               label={t("disconnect")}
               credentialId={existingCredentials[0]}
               onSuccess={() => {

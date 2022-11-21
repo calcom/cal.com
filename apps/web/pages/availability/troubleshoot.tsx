@@ -2,11 +2,11 @@ import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import Shell from "@calcom/ui/Shell";
 import { SkeletonText } from "@calcom/ui/v2/core/skeleton";
 
-type User = inferQueryOutput<"viewer.me">;
+type User = RouterOutputs["viewer"]["me"];
 
 export interface IBusySlot {
   start: string | Date;
@@ -19,16 +19,13 @@ const AvailabilityView = ({ user }: { user: User }) => {
   const { t } = useLocale();
   const [selectedDate, setSelectedDate] = useState(dayjs());
 
-  const { data, isLoading } = trpc.useQuery(
-    [
-      "viewer.availability.user",
-      {
-        username: user.username!,
-        dateFrom: selectedDate.startOf("day").utc().format(),
-        dateTo: selectedDate.endOf("day").utc().format(),
-        withSource: true,
-      },
-    ],
+  const { data, isLoading } = trpc.viewer.availability.user.useQuery(
+    {
+      username: user.username!,
+      dateFrom: selectedDate.startOf("day").utc().format(),
+      dateTo: selectedDate.endOf("day").utc().format(),
+      withSource: true,
+    },
     {
       enabled: !!user.username,
     }
@@ -99,7 +96,7 @@ const AvailabilityView = ({ user }: { user: User }) => {
 };
 
 export default function Troubleshoot() {
-  const { data, isLoading } = trpc.useQuery(["viewer.me"]);
+  const { data, isLoading } = trpc.viewer.me.useQuery();
   const { t } = useLocale();
   return (
     <div>

@@ -2,19 +2,16 @@ import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 
-import {
-  addSeat,
-  downgradeTeamMembers,
-  ensureSubscriptionQuantityCorrectness,
-  getTeamSeatStats,
-  removeSeat,
-  upgradeTeam,
-} from "@calcom/app-store/stripepayment/lib/team-billing";
+import { addSeat, getRequestedSlugError, removeSeat } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
-import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  cancelTeamSubscriptionFromStripe,
+  purchaseTeamSubscription,
+} from "@calcom/features/ee/teams/lib/payments";
+import { HOSTED_CAL_FEATURES, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { getTeamWithMembers, isTeamAdmin, isTeamOwner, isTeamMember } from "@calcom/lib/server/queries/teams";
+import { getTeamWithMembers, isTeamAdmin, isTeamMember, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
 import {
   closeComDeleteTeam,
@@ -23,21 +20,24 @@ import {
   closeComUpsertTeamUser,
 } from "@calcom/lib/sync/SyncServiceManager";
 import { availabilityUserSelect } from "@calcom/prisma";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
-import { createProtectedRouter } from "../../createRouter";
+import { authedProcedure, router } from "../../trpc";
 
-export const viewerTeamsRouter = createProtectedRouter()
+export const viewerTeamsRouter = router({
   // Retrieves team by id
-  .query("get", {
-    input: z.object({
-      teamId: z.number(),
-    }),
-    async resolve({ ctx, input }) {
-      const team = await getTeamWithMembers(input.teamId);
-      if (!team?.members.find((m) => m.id === ctx.user.id)) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not a member of this team." });
+  get: authedProcedure
+    .input(
+      z.object({
+        teamId: z.number(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const team = await getTeamWithMembers(input.teamId, undefined, ctx.user.id);
+      if (!team) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
       }
       const membership = team?.members.find((membership) => membership.id === ctx.user.id);
 
@@ -50,68 +50,60 @@ export const viewerTeamsRouter = createProtectedRouter()
         },
         requiresUpgrade: HOSTED_CAL_FEATURES ? !!team.members.find((m) => m.plan !== UserPlan.PRO) : false,
       };
-    },
-  })
-  // Returns teams I a member of
-  .query("list", {
-    async resolve({ ctx }) {
-      const memberships = await ctx.prisma.membership.findMany({
-        where: {
-          userId: ctx.user.id,
-        },
-        orderBy: { role: "desc" },
-      });
-      const teams = await ctx.prisma.team.findMany({
-        where: {
-          id: {
-            in: memberships.map((membership) => membership.teamId),
-          },
-        },
-      });
-
-      return memberships.map((membership) => ({
-        role: membership.role,
-        accepted: membership.accepted,
-        ...teams.find((team) => team.id === membership.teamId),
-      }));
-    },
-  })
-  .mutation("create", {
-    input: z.object({
-      name: z.string(),
-      slug: z.string().optional().nullable(),
-      logo: z.string().optional().nullable(),
     }),
-    async resolve({ ctx, input }) {
-      if (ctx.user.plan === "FREE") {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "You need a team plan." });
-      }
+  // Returns teams I a member of
+  list: authedProcedure.query(async ({ ctx }) => {
+    const memberships = await ctx.prisma.membership.findMany({
+      where: {
+        userId: ctx.user.id,
+      },
+      include: {
+        team: true,
+      },
+      orderBy: { role: "desc" },
+    });
 
-      const slug = input.slug || slugify(input.name);
+    return memberships.map(({ team, ...membership }) => ({
+      role: membership.role,
+      accepted: membership.accepted,
+      ...team,
+    }));
+  }),
+  create: authedProcedure
+    .input(
+      z.object({
+        name: z.string(),
+        slug: z.string().transform((val) => slugify(val.trim())),
+        logo: z
+          .string()
+          .optional()
+          .nullable()
+          .transform((v) => v || null),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { slug, name, logo } = input;
 
-      const nameCollisions = await ctx.prisma.team.count({
-        where: {
-          OR: [{ name: input.name }, { slug: slug }],
-        },
+      const nameCollisions = await ctx.prisma.team.findFirst({
+        where: { OR: [{ name }, { slug }] },
       });
 
-      if (nameCollisions > 0)
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Team name already taken." });
+      if (nameCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "Team name already taken." });
 
       const createTeam = await ctx.prisma.team.create({
         data: {
-          name: input.name,
-          slug: slug,
-          logo: input.logo || null,
-        },
-      });
-
-      await ctx.prisma.membership.create({
-        data: {
-          teamId: createTeam.id,
-          userId: ctx.user.id,
-          role: MembershipRole.OWNER,
-          accepted: true,
+          name,
+          logo,
+          members: {
+            create: {
+              userId: ctx.user.id,
+              role: MembershipRole.OWNER,
+              accepted: true,
+            },
+          },
+          metadata: {
+            requestedSlug: slug,
+          },
         },
       });
 
@@ -119,19 +111,20 @@ export const viewerTeamsRouter = createProtectedRouter()
       closeComUpsertTeamUser(createTeam, ctx.user, MembershipRole.OWNER);
 
       return createTeam;
-    },
-  })
-  // Allows team owner to update team metadata
-  .mutation("update", {
-    input: z.object({
-      id: z.number(),
-      bio: z.string().optional(),
-      name: z.string().optional(),
-      logo: z.string().optional(),
-      slug: z.string().optional(),
-      hideBranding: z.boolean().optional(),
     }),
-    async resolve({ ctx, input }) {
+  // Allows team owner to update team metadata
+  update: authedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        bio: z.string().optional(),
+        name: z.string().optional(),
+        logo: z.string().optional(),
+        slug: z.string().optional(),
+        hideBranding: z.boolean().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       if (!(await isTeamAdmin(ctx.user?.id, input.id))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
       if (input.slug) {
@@ -149,33 +142,56 @@ export const viewerTeamsRouter = createProtectedRouter()
         },
       });
 
+      if (!prevTeam) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
+
+      const data: Prisma.TeamUpdateArgs["data"] = {
+        name: input.name,
+        logo: input.logo,
+        bio: input.bio,
+        hideBranding: input.hideBranding,
+      };
+
+      if (
+        input.slug &&
+        IS_TEAM_BILLING_ENABLED &&
+        /** If the team doesn't have a slug we can assume that it hasn't been published yet. */
+        !prevTeam.slug
+      ) {
+        // Save it on the metadata so we can use it later
+        data.metadata = {
+          requestedSlug: input.slug,
+        };
+      } else {
+        data.slug = input.slug;
+
+        // If we save slug, we don't need the requestedSlug anymore
+        const metadataParse = teamMetadataSchema.safeParse(prevTeam.metadata);
+        if (metadataParse.success) {
+          const { requestedSlug, ...cleanMetadata } = metadataParse.data || {};
+          data.metadata = {
+            ...cleanMetadata,
+          };
+        }
+      }
+
       const updatedTeam = await ctx.prisma.team.update({
-        where: {
-          id: input.id,
-        },
-        data: {
-          name: input.name,
-          slug: input.slug,
-          logo: input.logo,
-          bio: input.bio,
-          hideBranding: input.hideBranding,
-        },
+        where: { id: input.id },
+        data,
       });
 
       // Sync Services: Close.com
       if (prevTeam) closeComUpdateTeam(prevTeam, updatedTeam);
-    },
-  })
-  .mutation("delete", {
-    input: z.object({
-      teamId: z.number(),
     }),
-    async resolve({ ctx, input }) {
+  delete: authedProcedure
+    .input(
+      z.object({
+        teamId: z.number(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       if (!(await isTeamOwner(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-      if (process.env.STRIPE_PRIVATE_KEY) {
-        await downgradeTeamMembers(input.teamId);
-      }
+      if (IS_TEAM_BILLING_ENABLED) await cancelTeamSubscriptionFromStripe(input.teamId);
 
       // delete all memberships
       await ctx.prisma.membership.deleteMany({
@@ -192,15 +208,15 @@ export const viewerTeamsRouter = createProtectedRouter()
 
       // Sync Services: Close.cm
       closeComDeleteTeam(deletedTeam);
-    },
-  })
-  // Allows owner to remove member from team
-  .mutation("removeMember", {
-    input: z.object({
-      teamId: z.number(),
-      memberId: z.number(),
     }),
-    async resolve({ ctx, input }) {
+  removeMember: authedProcedure
+    .input(
+      z.object({
+        teamId: z.number(),
+        memberId: z.number(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       const isAdmin = await isTeamAdmin(ctx.user?.id, input.teamId);
       if (!isAdmin && ctx.user?.id !== input.memberId) throw new TRPCError({ code: "UNAUTHORIZED" });
       // Only a team owner can remove another team owner.
@@ -228,17 +244,18 @@ export const viewerTeamsRouter = createProtectedRouter()
       closeComDeleteTeamMembership(membership.user);
 
       if (HOSTED_CAL_FEATURES) await removeSeat(ctx.user.id, input.teamId, input.memberId);
-    },
-  })
-  .mutation("inviteMember", {
-    input: z.object({
-      teamId: z.number(),
-      usernameOrEmail: z.string(),
-      role: z.nativeEnum(MembershipRole),
-      language: z.string(),
-      sendEmailInvitation: z.boolean(),
     }),
-    async resolve({ ctx, input }) {
+  inviteMember: authedProcedure
+    .input(
+      z.object({
+        teamId: z.number(),
+        usernameOrEmail: z.string(),
+        role: z.nativeEnum(MembershipRole),
+        language: z.string(),
+        sendEmailInvitation: z.boolean(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
       if (input.role === MembershipRole.OWNER && !(await isTeamOwner(ctx.user?.id, input.teamId)))
         throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -342,14 +359,15 @@ export const viewerTeamsRouter = createProtectedRouter()
       } catch (e) {
         console.log(e);
       }
-    },
-  })
-  .mutation("acceptOrLeave", {
-    input: z.object({
-      teamId: z.number(),
-      accept: z.boolean(),
     }),
-    async resolve({ ctx, input }) {
+  acceptOrLeave: authedProcedure
+    .input(
+      z.object({
+        teamId: z.number(),
+        accept: z.boolean(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       if (input.accept) {
         const membership = await ctx.prisma.membership.update({
           where: {
@@ -387,15 +405,16 @@ export const viewerTeamsRouter = createProtectedRouter()
           console.log(e);
         }
       }
-    },
-  })
-  .mutation("changeMemberRole", {
-    input: z.object({
-      teamId: z.number(),
-      memberId: z.number(),
-      role: z.nativeEnum(MembershipRole),
     }),
-    async resolve({ ctx, input }) {
+  changeMemberRole: authedProcedure
+    .input(
+      z.object({
+        teamId: z.number(),
+        memberId: z.number(),
+        role: z.nativeEnum(MembershipRole),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       if (!(await isTeamAdmin(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
       // Only owners can award owner role.
       if (input.role === MembershipRole.OWNER && !(await isTeamOwner(ctx.user?.id, input.teamId)))
@@ -446,17 +465,18 @@ export const viewerTeamsRouter = createProtectedRouter()
 
       // Sync Services: Close.com
       closeComUpsertTeamUser(membership.team, membership.user, membership.role);
-    },
-  })
-  .query("getMemberAvailability", {
-    input: z.object({
-      teamId: z.number(),
-      memberId: z.number(),
-      timezone: z.string(),
-      dateFrom: z.string(),
-      dateTo: z.string(),
     }),
-    async resolve({ ctx, input }) {
+  getMemberAvailability: authedProcedure
+    .input(
+      z.object({
+        teamId: z.number(),
+        memberId: z.number(),
+        timezone: z.string(),
+        dateFrom: z.string(),
+        dateTo: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
       const team = await isTeamMember(ctx.user?.id, input.teamId);
       if (!team) throw new TRPCError({ code: "UNAUTHORIZED" });
 
@@ -485,40 +505,15 @@ export const viewerTeamsRouter = createProtectedRouter()
         },
         { user: member.user }
       );
-    },
-  })
-  .mutation("upgradeTeam", {
-    input: z.object({
-      teamId: z.number(),
     }),
-    async resolve({ ctx, input }) {
-      if (!HOSTED_CAL_FEATURES)
-        throw new TRPCError({ code: "FORBIDDEN", message: "Team billing is not enabled" });
-      return await upgradeTeam(ctx.user.id, input.teamId);
-    },
-  })
-  .query("getTeamSeats", {
-    input: z.object({
-      teamId: z.number(),
-    }),
-    async resolve({ input }) {
-      return await getTeamSeatStats(input.teamId);
-    },
-  })
-  .mutation("ensureSubscriptionQuantityCorrectness", {
-    input: z.object({
-      teamId: z.number(),
-    }),
-    async resolve({ ctx, input }) {
-      return await ensureSubscriptionQuantityCorrectness(ctx.user.id, input.teamId);
-    },
-  })
-  .query("getMembershipbyUser", {
-    input: z.object({
-      teamId: z.number(),
-      memberId: z.number(),
-    }),
-    async resolve({ ctx, input }) {
+  getMembershipbyUser: authedProcedure
+    .input(
+      z.object({
+        teamId: z.number(),
+        memberId: z.number(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
       if (ctx.user.id !== input.memberId) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
@@ -534,15 +529,16 @@ export const viewerTeamsRouter = createProtectedRouter()
           },
         },
       });
-    },
-  })
-  .mutation("updateMembership", {
-    input: z.object({
-      teamId: z.number(),
-      memberId: z.number(),
-      disableImpersonation: z.boolean(),
     }),
-    async resolve({ ctx, input }) {
+  updateMembership: authedProcedure
+    .input(
+      z.object({
+        teamId: z.number(),
+        memberId: z.number(),
+        disableImpersonation: z.boolean(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       if (ctx.user.id !== input.memberId) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
@@ -561,5 +557,93 @@ export const viewerTeamsRouter = createProtectedRouter()
           disableImpersonation: input.disableImpersonation,
         },
       });
-    },
-  });
+    }),
+  validateTeamSlug: authedProcedure
+    .input(
+      z.object({
+        slug: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const team = await ctx.prisma.team.findFirst({
+        where: {
+          slug: input.slug,
+        },
+      });
+
+      return !team;
+    }),
+  publish: authedProcedure
+    .input(
+      z.object({
+        teamId: z.number(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!(await isTeamAdmin(ctx.user.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+      const { teamId: id } = input;
+
+      const prevTeam = await ctx.prisma.team.findFirst({ where: { id }, include: { members: true } });
+
+      if (!prevTeam) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
+
+      const metadata = teamMetadataSchema.safeParse(prevTeam.metadata);
+
+      if (!metadata.success) throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid team metadata" });
+
+      // if payment needed, respond with checkout url
+      if (IS_TEAM_BILLING_ENABLED) {
+        const checkoutSession = await purchaseTeamSubscription({
+          teamId: prevTeam.id,
+          seats: prevTeam.members.length,
+          userId: ctx.user.id,
+        });
+        if (!checkoutSession.url)
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed retrieving a checkout session URL.",
+          });
+        return { url: checkoutSession.url };
+      }
+
+      if (!metadata.data?.requestedSlug) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Can't publish team without `requestedSlug`" });
+      }
+
+      const { requestedSlug, ...newMetadata } = metadata.data;
+      let updatedTeam: Awaited<ReturnType<typeof ctx.prisma.team.update>>;
+
+      try {
+        updatedTeam = await ctx.prisma.team.update({
+          where: { id },
+          data: {
+            slug: requestedSlug,
+            metadata: { ...newMetadata },
+          },
+        });
+      } catch (error) {
+        const { message } = getRequestedSlugError(error, requestedSlug);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message });
+      }
+
+      // Sync Services: Close.com
+      closeComUpdateTeam(prevTeam, updatedTeam);
+
+      return { url: `${WEBAPP_URL}/settings/teams/${updatedTeam.id}/profile` };
+    }),
+  /** This is a temporal endpoint so we can progressively upgrade teams to the new billing system. */
+  getUpgradeable: authedProcedure.query(async ({ ctx }) => {
+    if (!IS_TEAM_BILLING_ENABLED) return [];
+    let { teams } = await ctx.prisma.user.findUniqueOrThrow({
+      where: { id: ctx.user.id },
+      include: { teams: { where: { role: MembershipRole.OWNER }, include: { team: true } } },
+    });
+    /** We only need to return teams that don't have a `subscriptionId` on their metadata */
+    teams = teams.filter((m) => {
+      const metadata = teamMetadataSchema.safeParse(m.team.metadata);
+      if (metadata.success && metadata.data?.subscriptionId) return false;
+      return true;
+    });
+    return teams;
+  }),
+});

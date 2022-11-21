@@ -1,6 +1,6 @@
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Icon } from "@calcom/ui/Icon";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
@@ -8,7 +8,7 @@ import Switch from "@calcom/ui/v2/core/Switch";
 import { Tooltip } from "@calcom/ui/v2/core/Tooltip";
 import showToast from "@calcom/ui/v2/core/notifications";
 
-export type TWebhook = inferQueryOutput<"viewer.webhook.list">[number];
+export type TWebhook = RouterOutputs["viewer"]["webhook"]["list"][number];
 
 export default function WebhookListItem(props: {
   webhook: TWebhook;
@@ -18,16 +18,16 @@ export default function WebhookListItem(props: {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const { webhook } = props;
-  const deleteWebhook = trpc.useMutation("viewer.webhook.delete", {
+  const deleteWebhook = trpc.viewer.webhook.delete.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.webhook.list"]);
+      await utils.viewer.webhook.list.invalidate();
       showToast(t("webhook_removed_successfully"), "success");
     },
   });
-  const toggleWebhook = trpc.useMutation("viewer.webhook.edit", {
+  const toggleWebhook = trpc.viewer.webhook.edit.useMutation({
     async onSuccess(data) {
       console.log("data", data);
-      await utils.invalidateQueries(["viewer.webhook.list"]);
+      await utils.viewer.webhook.list.invalidate();
       // TODO: Better success message
       showToast(t(data?.active ? "enabled" : "disabled"), "success");
     },

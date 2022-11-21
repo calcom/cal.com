@@ -27,7 +27,8 @@ if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_E
 if (process.env.VERCEL_URL && !process.env.NEXT_PUBLIC_WEBAPP_URL) {
   process.env.NEXT_PUBLIC_WEBAPP_URL = "https://" + process.env.VERCEL_URL;
 }
-if (process.env.NEXT_PUBLIC_WEBAPP_URL) {
+// Check for configuration of NEXTAUTH_URL before overriding
+if (!process.env.NEXTAUTH_URL && process.env.NEXT_PUBLIC_WEBAPP_URL) {
   process.env.NEXTAUTH_URL = process.env.NEXT_PUBLIC_WEBAPP_URL + "/api/auth";
 }
 if (!process.env.NEXT_PUBLIC_WEBSITE_URL) {
@@ -231,6 +232,8 @@ const nextConfig = {
   },
   sentry: {
     hideSourceMaps: true,
+    // Prevents Sentry from running on this Edge function, where Sentry doesn't work yet (build whould crash the api route).
+    excludeServerRoutes: [/\/api\/social\/og\/image\/?/],
   },
 };
 

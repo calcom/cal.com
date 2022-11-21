@@ -33,18 +33,18 @@ const UserProfile = (props: IUserProfile) => {
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({ defaultValues: { bio: user?.bio || "" } });
-  const { data: eventTypes } = trpc.useQuery(["viewer.eventTypes.list"]);
+  const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
   const utils = trpc.useContext();
   const router = useRouter();
-  const createEventType = trpc.useMutation("viewer.eventTypes.create");
+  const createEventType = trpc.viewer.eventTypes.create.useMutation();
   const createWebhookMutation = trpc.useMutation("viewer.webhook.create");
 
-  const mutation = trpc.useMutation("viewer.updateProfile", {
+  const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (_data, context) => {
       if (context.avatar) {
         showToast(t("your_user_profile_updated_successfully"), "success");
-        await utils.refetchQueries(["viewer.me"]);
+        await utils.viewer.me.refetch();
       } else {
         try {
           if (eventTypes?.length === 0) {
@@ -63,7 +63,7 @@ const UserProfile = (props: IUserProfile) => {
           console.error(error);
         }
 
-        await utils.refetchQueries(["viewer.me"]);
+        await utils.viewer.me.refetch();
         router.push("/");
       }
     },
