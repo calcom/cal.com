@@ -30,7 +30,7 @@ const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
   select: { id: true, type: true, key: true, userId: true, appId: true },
 });
 
-type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
+export type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
 
 export enum InstalledAppVariants {
   "conferencing" = "conferencing",

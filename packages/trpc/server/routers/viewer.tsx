@@ -16,6 +16,7 @@ import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
 import { CAL_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
@@ -436,19 +437,18 @@ const loggedInViewerRouter = router({
           slug: true,
         },
       });
-      let apps = getApps(credentials).map(
-        ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => {
-          const credentialIds = credentials.filter((c) => c.type === app.type).map((c) => c.id);
-          const invalidCredentialIds = credentials
-            .filter((c) => c.type === app.type && c.invalid)
-            .map((c) => c.id);
-          return {
-            ...app,
-            credentialIds,
-            invalidCredentialIds,
-          };
-        }
-      );
+      let apps = await getEnabledApps(credentials);
+      apps = credentials.map(({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => {
+        const credentialIds = credentials.filter((c) => c.type === app.type).map((c) => c.id);
+        const invalidCredentialIds = credentials
+          .filter((c) => c.type === app.type && c.invalid)
+          .map((c) => c.id);
+        return {
+          ...app,
+          credentialIds,
+          invalidCredentialIds,
+        };
+      });
 
       if (exclude) {
         // exclusion filter
@@ -503,7 +503,7 @@ const loggedInViewerRouter = router({
       const { user } = ctx;
       const { credentials } = user;
 
-      const apps = getApps(credentials);
+      const apps = await getEnabledApps(credentials);
       return apps
         .filter((app) => app.extendsFeature?.includes(input.extendsFeature))
         .map((app) => ({
@@ -796,7 +796,7 @@ const loggedInViewerRouter = router({
       },
     });
 
-    const integrations = getApps(credentials);
+    const integrations = await getEnabledApps(credentials);
 
     const t = await getTranslation(ctx.user.locale ?? "en", "common");
 

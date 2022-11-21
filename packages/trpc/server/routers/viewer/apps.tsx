@@ -3,6 +3,7 @@ import z from "zod";
 
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { getLocalAppMetadata } from "@calcom/app-store/utils";
+import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 
 import { TRPCError } from "@trpc/server";
@@ -85,6 +86,7 @@ export const appsRouter = router({
         throw new TRPCError({
           code: "UNAUTHORIZED",
         });
+
       const app = await ctx.prisma.app.update({
         where: {
           slug: input.slug,
@@ -105,7 +107,6 @@ export const appsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      console.log("🚀 ~ file: apps.tsx ~ line 109 ~ .mutation ~ input", input);
       if (ctx.session.user.role !== "ADMIN")
         throw new TRPCError({
           code: "UNAUTHORIZED",
