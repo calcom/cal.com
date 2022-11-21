@@ -6,6 +6,7 @@ import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKey
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
 import { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
@@ -46,17 +47,31 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
   const videoAdapters = getVideoAdapters([credential]);
   const [firstVideoAdapter] = videoAdapters;
   let createdMeeting;
+  let returnObject = {
+    appName: credential.appName,
+    type: credential.type,
+    uid,
+    originalEvent: calEvent,
+  };
   try {
+    // Check to see if video app is enabled
+    const enabledApp = await prisma.app.findFirst({
+      where: {
+        slug: credential.appId,
+      },
+      select: {
+        enabled: true,
+      },
+    });
+
+    if (!enabledApp.enabled) throw "Current location app is not enabled";
+
     createdMeeting = await firstVideoAdapter?.createMeeting(calEvent);
 
+    returnObject = { ...returnObject, createdEvent: createdMeeting, success: true };
+
     if (!createdMeeting) {
-      return {
-        appName: credential.appName,
-        type: credential.type,
-        success: false,
-        uid,
-        originalEvent: calEvent,
-      };
+      returnObject = { ...returnObject, success: false };
     }
   } catch (err) {
     await sendBrokenIntegrationEmail(calEvent, "video");
@@ -68,16 +83,11 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
       createdMeeting = defaultMeeting;
       calEvent.location = "integrations:dailyvideo";
     }
+
+    returnObject = { ...returnObject, success: false, errorMessage: err };
   }
 
-  return {
-    appName: credential.appName,
-    type: credential.type,
-    success: true,
-    uid,
-    createdEvent: createdMeeting,
-    originalEvent: calEvent,
-  };
+  return returnObject;
 };
 
 const updateMeeting = async (

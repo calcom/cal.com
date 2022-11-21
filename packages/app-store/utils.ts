@@ -70,8 +70,6 @@ export async function getLocationOptions(integrations: ReturnType<typeof getApps
     }
   });
 
-  console.log("🚀 ~ file: utils.ts ~ line 61 ~ getLocationOptions ~ locations", locations);
-
   return translateLocations(locations, t);
 }
 
