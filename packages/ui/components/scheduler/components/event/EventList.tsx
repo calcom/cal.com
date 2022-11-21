@@ -10,9 +10,10 @@ type Props = {
 };
 
 export function EventList({ day }: Props) {
-  const { startHour, events } = useSchedulerStore((state) => ({
+  const { startHour, events, eventOnClick } = useSchedulerStore((state) => ({
     startHour: state.startHour,
     events: state.events,
+    eventOnClick: state.onEventClick,
   }));
 
   return (
@@ -83,7 +84,7 @@ export function EventList({ day }: Props) {
                 top: `calc(${eventStartDiff}*var(--one-minute-height))`,
                 height: `calc(${eventDuration}*var(--one-minute-height))`,
               }}>
-              <Event event={event} eventDuration={eventDuration} />
+              <Event event={event} eventDuration={eventDuration} onEventClick={eventOnClick} />
             </div>
           );
         })}
