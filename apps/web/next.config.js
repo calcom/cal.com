@@ -97,7 +97,7 @@ const nextConfig = {
       new CopyWebpackPlugin({
         patterns: [
           {
-            from: "../../packages/app-store/*/static/**",
+            from: "../../packages/app-store/**/static/**",
             to({ context, absoluteFilename }) {
               // Adds compatibility for windows path
               const absoluteFilenameWin = absoluteFilename.replaceAll("\\", "/");
