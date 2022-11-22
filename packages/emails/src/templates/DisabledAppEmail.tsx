@@ -5,20 +5,21 @@ import { CAL_URL } from "@calcom/lib/constants";
 
 import { BaseEmailHtml, CallToAction } from "../components";
 
-export const DisabledPaymentEmail = (
+export const DisabledAppEmail = (
   props: {
-    title: string;
     appName: string;
-    eventTypeId: number;
+    appType: string[];
     t: TFunction;
+    title?: string;
+    eventTypeId?: number;
   } & Partial<React.ComponentProps<typeof BaseEmailHtml>>
 ) => {
-  const { title, appName, eventTypeId, t } = props;
+  const { title, appName, eventTypeId, t, appType } = props;
 
   return (
     <BaseEmailHtml
       // subject={t("payment_app_disabled")}
-      subject="Payment app disabled">
+      subject="App disabled">
       <p>
         {/* <Trans i18n="disabled_payment_email_body" t={t}> */}
         The admin has disabled {appName} which affects your event type {title}.{/* </Trans> */}

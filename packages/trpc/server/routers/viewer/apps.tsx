@@ -3,9 +3,10 @@ import z from "zod";
 
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { getLocalAppMetadata, getAppName } from "@calcom/app-store/utils";
-import { sendDisabledPaymentEmail } from "@calcom/emails";
+import { sendDisabledAppEmail } from "@calcom/emails";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
+import { getTranslation } from "@calcom/lib/server/i18n";
 
 import { TRPCError } from "@trpc/server";
 
@@ -99,7 +100,9 @@ export const appsRouter = router({
           code: "UNAUTHORIZED",
         });
 
-      const app = await ctx.prisma.app.update({
+      const { prisma } = ctx;
+
+      const app = await prisma.app.update({
         where: {
           slug: input.slug,
         },
@@ -108,53 +111,94 @@ export const appsRouter = router({
         },
       });
 
-      // If disabling a payment app then prevent collecting payments and alert users
-      if (input.enabled && app.categories.some((category) => category === "payment")) {
-        // Get app name from metadata
-        const localApps = getLocalAppMetadata();
-        const appMetadata = localApps.find((localApp) => localApp.slug === app.slug);
+      // Get app name from metadata
+      const localApps = getLocalAppMetadata();
+      const appMetadata = localApps.find((localApp) => localApp.slug === app.slug);
 
-        const eventTypesWithPayments = await ctx.prisma.eventType.findMany({
-          where: {
-            metadata: {
-              path: ["apps", "stripe", "enabled"],
-              equals: true,
+      // If disabling an app then we need to alert users basesd on the app type
+      if (input.enabled) {
+        if (app.categories.some((category) => category === "calendar" || category === "video")) {
+          const appCredentials = await prisma.credential.findMany({
+            where: {
+              appId: app.slug,
             },
-          },
-          select: {
-            id: true,
-            title: true,
-            users: {
-              select: {
-                email: true,
-              },
-            },
-            metadata: true,
-          },
-        });
-
-        // Loop through all event types and email users to alert them that payment will be paused
-        Promise.all(
-          eventTypesWithPayments.map(async (eventType) => {
-            eventType.users.map(async (user) => {
-              await sendDisabledPaymentEmail(eventType.title, user.email, appMetadata.name, eventType.id);
-            });
-            await ctx.prisma.eventType.update({
-              where: {
-                id: eventType.id,
-              },
-              data: {
-                metadata: {
-                  ...eventType.metadata,
-                  apps: {
-                    ...eventType.metadata.apps,
-                    stripe: { ...eventType.metadata.apps.stripe, enabled: false },
-                  },
+            select: {
+              user: {
+                select: {
+                  email: true,
+                  locale: true,
                 },
               },
-            });
-          })
-        );
+            },
+          });
+          console.log("🚀 ~ file: apps.tsx ~ line 132 ~ .mutation ~ appCredentials", appCredentials);
+
+          Promise.all(
+            appCredentials.map(async (credential) => {
+              const t = await getTranslation(credential.user?.locale || "en", "common");
+
+              await sendDisabledAppEmail(
+                credential.user.email,
+                appMetadata?.name || app.slug,
+                app.categories,
+                t
+              );
+            })
+          );
+        } else {
+          const eventTypesWithApp = await prisma.eventType.findMany({
+            where: {
+              metadata: {
+                path: ["apps", app.slug as string, "enabled"],
+                equals: true,
+              },
+            },
+            select: {
+              id: true,
+              title: true,
+              users: {
+                select: {
+                  email: true,
+                  locale: true,
+                },
+              },
+              metadata: true,
+            },
+          });
+
+          // Loop through all event types and email users to alert them that payment will be paused
+          Promise.all(
+            eventTypesWithApp.map(async (eventType) => {
+              await prisma.eventType.update({
+                where: {
+                  id: eventType.id,
+                },
+                data: {
+                  metadata: {
+                    ...eventType.metadata,
+                    apps: {
+                      ...eventType.metadata.apps,
+                      [app.slug]: { ...eventType.metadata.apps[app.slug], enabled: false },
+                    },
+                  },
+                },
+              });
+
+              const t = await getTranslation(user.locale || "en", "common");
+
+              eventType.users.map(async (user) => {
+                await sendDisabledAppEmail(
+                  eventType.title,
+                  user.email,
+                  appMetadata?.name,
+                  appMetdata?.categories,
+                  eventType.id,
+                  t
+                );
+              });
+            })
+          );
+        }
       }
 
       return app.enabled;

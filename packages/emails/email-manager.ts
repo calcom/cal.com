@@ -1,3 +1,5 @@
+import { TFunction } from "next-i18next";
+
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import AttendeeAwaitingPaymentEmail from "./templates/attendee-awaiting-payment-email";
@@ -9,7 +11,7 @@ import AttendeeRescheduledEmail from "./templates/attendee-rescheduled-email";
 import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
 import AttendeeWasRequestedToRescheduleEmail from "./templates/attendee-was-requested-to-reschedule-email";
 import BrokenIntegrationEmail from "./templates/broken-integration-email";
-import DisabledPaymentEmail from "./templates/disabled-payment-email";
+import DisabledAppEmail from "./templates/disabled-app-email";
 import FeedbackEmail, { Feedback } from "./templates/feedback-email";
 import ForgotPasswordEmail, { PasswordReset } from "./templates/forgot-password-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
@@ -330,15 +332,24 @@ export const sendBrokenIntegrationEmail = async (evt: CalendarEvent, type: "vide
   });
 };
 
-export const sendDisabledPaymentEmail = async (
-  title: string,
-  email: string,
-  appName: string,
-  eventTypeId: number
-) => {
+export const sendDisabledAppEmail = async ({
+  email,
+  appName,
+  appType,
+  t,
+  title = undefined,
+  eventTypeId = undefined,
+}: {
+  email: string;
+  appName: string;
+  appType: string[];
+  t: TFunction;
+  title?: string;
+  eventTypeId?: number;
+}) => {
   await new Promise((resolve, reject) => {
     try {
-      const disabledPaymentEmail = new DisabledPaymentEmail(title, email, appName, eventTypeId);
+      const disabledPaymentEmail = new DisabledAppEmail(title, email, appName, appType, eventTypeId, t);
       resolve(disabledPaymentEmail.sendEmail());
     } catch (e) {
       reject(console.error("DisabledPaymentEmail.sendEmail failed", e));
