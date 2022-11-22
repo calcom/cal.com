@@ -1,5 +1,5 @@
 import { AppCategories } from "@prisma/client";
-import z from "zod";
+import z, { string } from "zod";
 
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { getLocalAppMetadata } from "@calcom/app-store/utils";
@@ -9,6 +9,17 @@ import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { TRPCError } from "@trpc/server";
 
 import { router, authedProcedure } from "../../trpc";
+
+interface FilteredApp {
+  name: string;
+  slug: string;
+  logo: string;
+  title?: string;
+  type: string;
+  description: string;
+  keys: unknown;
+  enabled: boolean;
+}
 
 export const appsRouter = router({
   listLocal: authedProcedure
@@ -37,7 +48,7 @@ export const appsRouter = router({
         },
       });
 
-      const filteredApps = [];
+      const filteredApps: FilteredApp[] = [];
 
       for (const app of localApps) {
         if (app.variant === input.variant) {
@@ -82,7 +93,7 @@ export const appsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      if (ctx.session.user.role !== "ADMIN")
+      if (ctx.session.user?.role !== "ADMIN")
         throw new TRPCError({
           code: "UNAUTHORIZED",
         });
@@ -95,6 +106,28 @@ export const appsRouter = router({
           enabled: !input.enabled,
         },
       });
+
+      // If disabling a payment app then prevent collecting payments and alert users
+      if (input.enabled && app.categories.some((category) => category === "payment")) {
+        const eventTypesWithPayments = await ctx.prisma.eventType.findMany({
+          where: {
+            metadata: {
+              path: ["apps", "stripe", "enabled"],
+              equals: true,
+            },
+          },
+          select: {
+            id: true,
+            title: true,
+            users: {
+              select: {
+                email: true,
+              },
+            },
+          },
+        });
+      }
+
       return app.enabled;
     }),
   saveKeys: authedProcedure

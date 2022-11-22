@@ -9,6 +9,7 @@ import AttendeeRescheduledEmail from "./templates/attendee-rescheduled-email";
 import AttendeeScheduledEmail from "./templates/attendee-scheduled-email";
 import AttendeeWasRequestedToRescheduleEmail from "./templates/attendee-was-requested-to-reschedule-email";
 import BrokenIntegrationEmail from "./templates/broken-integration-email";
+import DisabledPaymentEmail from "./templates/disabled-payment-email";
 import FeedbackEmail, { Feedback } from "./templates/feedback-email";
 import ForgotPasswordEmail, { PasswordReset } from "./templates/forgot-password-email";
 import OrganizerCancelledEmail from "./templates/organizer-cancelled-email";
@@ -325,6 +326,16 @@ export const sendBrokenIntegrationEmail = async (evt: CalendarEvent, type: "vide
       resolve(brokenIntegrationEmail.sendEmail());
     } catch (e) {
       reject(console.error("FeedbackEmail.sendEmail failed", e));
+    }
+  });
+};
+
+export const sendDisabledPaymentEmail = async (title: string, email: string) => {
+  await new Promise((resolve, reject) => {
+    try {
+      return;
+    } catch (e) {
+      reject(console.error("DisabledPaymentEmail.sendEmail failed", e));
     }
   });
 };

@@ -1371,5 +1371,7 @@
   "test_preview": "Test Preview",
   "route_to": "Route to",
   "test_preview_description": "Test your routing form without submitting any data",
-  "test_routing": "Test Routing"
+  "test_routing": "Test Routing",
+  "payment_app_disabled": "An admin has disabled a payment app",
+  "edit_event_type": "Edit event type"
 }
