@@ -29,6 +29,7 @@ export const apiHandlers = {
   rainbow: import("./rainbow/api"),
   raycast: import("./raycast/api"),
   riverside: import("./riverside/api"),
+  salesforce: import("./salesforce/api"),
   sendgrid: import("./sendgrid/api"),
   signal: import("./signal/api"),
   sirius_video: import("./sirius_video/api"),
