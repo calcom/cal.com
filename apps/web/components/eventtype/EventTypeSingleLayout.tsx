@@ -202,7 +202,6 @@ function EventTypeSingleLayout({
               color="secondary"
               size="icon"
               StartIcon={Icon.FiLink}
-              combined
               tooltip={t("copy_link")}
               onClick={() => {
                 navigator.clipboard.writeText(permalink);

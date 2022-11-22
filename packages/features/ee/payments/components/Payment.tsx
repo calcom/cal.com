@@ -2,12 +2,11 @@ import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import stripejs, { StripeCardElementChangeEvent, StripeElementLocale } from "@stripe/stripe-js";
 import { useRouter } from "next/router";
 import { stringify } from "querystring";
-import React, { SyntheticEvent, useEffect, useState } from "react";
+import { SyntheticEvent, useEffect, useState } from "react";
 
 import { PaymentData } from "@calcom/app-store/stripepayment/lib/server";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import Button from "@calcom/ui/Button";
-
-import { useLocale } from "@lib/hooks/useLocale";
 
 const CARD_OPTIONS: stripejs.StripeCardElementOptions = {
   iconStyle: "solid" as const,
@@ -105,6 +104,7 @@ export default function PaymentComponent(props: Props) {
       <CardElement id="card-element" options={CARD_OPTIONS} onChange={handleChange} />
       <div className="mt-2 flex justify-center">
         <Button
+          color="primary"
           type="submit"
           disabled={["processing", "error"].includes(state.status)}
           loading={state.status === "processing"}

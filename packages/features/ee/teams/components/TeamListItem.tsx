@@ -149,7 +149,6 @@ export default function TeamListItem(props: Props) {
                       }}
                       size="icon"
                       StartIcon={Icon.FiLink}
-                      combined
                     />
                   </Tooltip>
                 )}
