@@ -37,6 +37,7 @@ import { metadata as tandemvideo_meta } from "./tandemvideo/_metadata";
 import { metadata as typeform_meta } from "./typeform/_metadata";
 import { metadata as vital_meta } from "./vital/_metadata";
 import { metadata as weather_in_your_calendar_meta } from "./weather_in_your_calendar/_metadata";
+import { metadata as whatsapp_meta } from "./whatsapp/_metadata";
 import { metadata as whereby_meta } from "./whereby/_metadata";
 import { metadata as wipemycalother_meta } from "./wipemycalother/_metadata";
 import { metadata as zapier_meta } from "./zapier/_metadata";
@@ -78,6 +79,7 @@ export const appStoreMetadata = {
   typeform: typeform_meta,
   vital: vital_meta,
   weather_in_your_calendar: weather_in_your_calendar_meta,
+  whatsapp: whatsapp_meta,
   whereby: whereby_meta,
   wipemycalother: wipemycalother_meta,
   zapier: zapier_meta,
