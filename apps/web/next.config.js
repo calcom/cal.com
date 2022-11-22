@@ -1,7 +1,7 @@
 require("dotenv").config({ path: "../../.env" });
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const { withSentryConfig } = require("@sentry/nextjs");
-
+const os = require("os");
 const withTM = require("next-transpile-modules")([
   "@calcom/app-store",
   "@calcom/core",
@@ -100,13 +100,14 @@ const nextConfig = {
             from: "../../packages/app-store/**/static/**",
             to({ context, absoluteFilename }) {
               // Adds compatibility for windows path
-              const absoluteFilenameWin = absoluteFilename.replaceAll("\\", "/");
-              // Adds compatibility for windows path
-              const normalizedContext = context.replaceAll("\\", "/");
-              const appName =
-                /app-store\/(.*)\/static/.exec(absoluteFilename) ||
-                /app-store\/(.*)\/static/.exec(absoluteFilenameWin);
-              return Promise.resolve(`${normalizedContext}/public/app-store/${appName[1]}/[name][ext]`);
+              if (os.platform() === "win32") {
+                const absoluteFilenameWin = absoluteFilename.replaceAll("\\", "/");
+                const contextWin = context.replaceAll("\\", "/");
+                const appName = /app-store\/(.*)\/static/.exec(absoluteFilenameWin);
+                return Promise.resolve(`${contextWin}/public/app-store/${appName[1]}/[name][ext]`);
+              }
+              const appName = /app-store\/(.*)\/static/.exec(absoluteFilename);
+              return Promise.resolve(`${context}/public/app-store/${appName[1]}/[name][ext]`);
             },
           },
         ],
