@@ -1,8 +1,9 @@
 import { AppCategories } from "@prisma/client";
-import z, { string } from "zod";
+import z from "zod";
 
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
-import { getLocalAppMetadata } from "@calcom/app-store/utils";
+import { getLocalAppMetadata, getAppName } from "@calcom/app-store/utils";
+import { sendDisabledPaymentEmail } from "@calcom/emails";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 
@@ -109,6 +110,10 @@ export const appsRouter = router({
 
       // If disabling a payment app then prevent collecting payments and alert users
       if (input.enabled && app.categories.some((category) => category === "payment")) {
+        // Get app name from metadata
+        const localApps = getLocalAppMetadata();
+        const appMetadata = localApps.find((localApp) => localApp.slug === app.slug);
+
         const eventTypesWithPayments = await ctx.prisma.eventType.findMany({
           where: {
             metadata: {
@@ -126,6 +131,15 @@ export const appsRouter = router({
             },
           },
         });
+
+        // Loop through all event types and email users to alert them that payment will be paused
+        Promise.all(
+          eventTypesWithPayments.map(async (eventType) => {
+            eventType.users.map(async (user) => {
+              await sendDisabledPaymentEmail(eventType.title, user.email, appMetadata.name, eventType.id);
+            });
+          })
+        );
       }
 
       return app.enabled;

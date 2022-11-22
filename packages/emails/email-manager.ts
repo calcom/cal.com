@@ -330,10 +330,16 @@ export const sendBrokenIntegrationEmail = async (evt: CalendarEvent, type: "vide
   });
 };
 
-export const sendDisabledPaymentEmail = async (title: string, email: string) => {
+export const sendDisabledPaymentEmail = async (
+  title: string,
+  email: string,
+  appName: string,
+  eventTypeId: number
+) => {
   await new Promise((resolve, reject) => {
     try {
-      return;
+      const disabledPaymentEmail = new DisabledPaymentEmail(title, email, appName, eventTypeId);
+      resolve(disabledPaymentEmail.sendEmail());
     } catch (e) {
       reject(console.error("DisabledPaymentEmail.sendEmail failed", e));
     }

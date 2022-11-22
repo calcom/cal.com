@@ -5,7 +5,7 @@ import { getRichDescription } from "@calcom/lib/CalEventParser";
 import { renderEmail } from "..";
 import BaseEmail from "./_base-email";
 
-export default class BrokenIntegrationEmail extends BaseEmail {
+export default class DisabledPaymentEmail extends BaseEmail {
   title: string;
   emails: string;
   appName: string;
