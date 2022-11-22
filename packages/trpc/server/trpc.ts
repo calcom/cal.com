@@ -4,7 +4,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 
 import { Context } from "./createContext";
 
-export const t = initTRPC.context<Context>().create({
+const t = initTRPC.context<Context>().create({
   transformer: superjson,
 });
 
@@ -29,5 +29,8 @@ const isAuthedMiddleware = t.middleware(({ ctx, next }) => {
   });
 });
 
+export const router = t.router;
+export const mergeRouters = t.mergeRouters;
+export const middleware = t.middleware;
 export const publicProcedure = t.procedure.use(perfMiddleware);
 export const authedProcedure = t.procedure.use(perfMiddleware).use(isAuthedMiddleware);
