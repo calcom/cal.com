@@ -113,5 +113,11 @@
     "categories": ["video"],
     "slug": "whatsapp",
     "type": "whatsapp_video"
+  },
+  {
+    "dirName": "signal",
+    "categories": ["video"],
+    "slug": "signal",
+    "type": "signal_video"
   }
 ]
