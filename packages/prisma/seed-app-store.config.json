@@ -112,9 +112,9 @@
     "dirName": "whatsapp",
     "categories": ["video"],
     "slug": "whatsapp",
-    "type": "whatsapp_video"}
-  {,
-  }
+    "type": "whatsapp_video"
+  },
+  {
     "dirName": "telegram",
     "categories": ["video"],
     "slug": "telegram",
