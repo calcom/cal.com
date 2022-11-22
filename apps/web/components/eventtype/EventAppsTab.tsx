@@ -116,15 +116,17 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
           <h2 className="mt-0 mb-2 text-lg font-semibold text-gray-900">Available Apps</h2>
         ) : null}
         <div className="before:border-0">
-          {notInstalledApps?.map((app) => (
-            <AppCardWrapper
-              getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
-              setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
-              key={app.slug}
-              app={app}
-              eventType={eventType}
-            />
-          ))}
+          {notInstalledApps?.map((app) => {
+            return app.enabled ? (
+              <AppCardWrapper
+                getAppData={getAppDataGetter(app.slug as EventTypeAppsList)}
+                setAppData={getAppDataSetter(app.slug as EventTypeAppsList)}
+                key={app.slug}
+                app={app}
+                eventType={eventType}
+              />
+            ) : null;
+          })}
         </div>
       </div>
     </>

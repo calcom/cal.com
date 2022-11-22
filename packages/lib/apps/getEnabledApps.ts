@@ -7,11 +7,14 @@ const getEnabledApps = async (userCredentials: CredentialData[], variant: string
     ...(variant && { where: { category: variant === "conferencing" ? "video" : variant } }),
   });
 
-  let apps = getApps(userCredentials);
+  const apps = getApps(userCredentials);
 
-  apps = apps.filter((app) => enabledApps.some((enabledApp) => enabledApp.slug === app.slug));
+  const filteredApps = enabledApps.map((app) => {
+    const appMetadata = apps.find((metadata) => metadata.slug === app.slug);
+    return { ...appMetadata, enabled: app.enabled };
+  });
 
-  return apps;
+  return filteredApps;
 };
 
 export default getEnabledApps;
