@@ -30,12 +30,14 @@ import { metadata as qr_code_meta } from "./qr_code/_metadata";
 import { metadata as rainbow_meta } from "./rainbow/_metadata";
 import { metadata as raycast_meta } from "./raycast/_metadata";
 import { metadata as riverside_meta } from "./riverside/_metadata";
+import { metadata as sendgrid_meta } from "./sendgrid/_metadata";
 import { metadata as sirius_video_meta } from "./sirius_video/_metadata";
 import { metadata as stripepayment_meta } from "./stripepayment/_metadata";
 import { metadata as tandemvideo_meta } from "./tandemvideo/_metadata";
 import { metadata as typeform_meta } from "./typeform/_metadata";
 import { metadata as vital_meta } from "./vital/_metadata";
 import { metadata as weather_in_your_calendar_meta } from "./weather_in_your_calendar/_metadata";
+import { metadata as whatsapp_meta } from "./whatsapp/_metadata";
 import { metadata as whereby_meta } from "./whereby/_metadata";
 import { metadata as wipemycalother_meta } from "./wipemycalother/_metadata";
 import { metadata as zapier_meta } from "./zapier/_metadata";
@@ -70,12 +72,14 @@ export const appStoreMetadata = {
   rainbow: rainbow_meta,
   raycast: raycast_meta,
   riverside: riverside_meta,
+  sendgrid: sendgrid_meta,
   sirius_video: sirius_video_meta,
   stripepayment: stripepayment_meta,
   tandemvideo: tandemvideo_meta,
   typeform: typeform_meta,
   vital: vital_meta,
   weather_in_your_calendar: weather_in_your_calendar_meta,
+  whatsapp: whatsapp_meta,
   whereby: whereby_meta,
   wipemycalother: wipemycalother_meta,
   zapier: zapier_meta,

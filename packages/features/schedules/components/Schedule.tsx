@@ -384,7 +384,7 @@ const CopyTimes = ({
       </div>
       <hr />
       <div className="space-x-2 px-2">
-        <Button color="minimalSecondary" onClick={() => onCancel()}>
+        <Button color="minimal" onClick={() => onCancel()}>
           {t("cancel")}
         </Button>
         <Button color="primary" onClick={() => onClick(selected)}>
