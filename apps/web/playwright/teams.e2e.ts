@@ -52,7 +52,7 @@ test.describe("Teams", () => {
     });
 
     await test.step("Can disband team", async () => {
-      await page.locator("text=Delete Team").click();
+      await page.locator("text=Disband Team").click();
       await page.locator("text=Yes, disband team").click();
       await page.waitForURL("/teams");
       await expect(await page.locator(`text=${user.username}'s Team`).count()).toEqual(0);
