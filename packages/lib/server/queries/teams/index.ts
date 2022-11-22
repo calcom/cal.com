@@ -3,6 +3,8 @@ import { Prisma, UserPlan } from "@prisma/client";
 import prisma, { minimalEventTypeSelect, baseEventTypeSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
+import { WEBAPP_URL } from "../../../constants";
+
 export type TeamWithMembers = Awaited<ReturnType<typeof getTeamWithMembers>>;
 
 export async function getTeamEventsWithMembers() {
@@ -35,7 +37,7 @@ export async function getTeamEventsWithMembers() {
   return { teams };
 }
 
-export async function getTeamWithMembers(id?: number, slug?: string) {
+export async function getTeamWithMembers(id?: number, slug?: string, userId?: number) {
   const userSelect = Prisma.validator<Prisma.UserSelect>()({
     username: true,
     email: true,
@@ -53,6 +55,9 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
     hideBranding: true,
     members: {
       select: {
+        accepted: true,
+        role: true,
+        disableImpersonation: true,
         user: {
           select: userSelect,
         },
@@ -72,26 +77,26 @@ export async function getTeamWithMembers(id?: number, slug?: string) {
     },
   });
 
-  const team = await prisma.team.findUnique({
-    where: id ? { id } : { slug },
+  const where: Prisma.TeamFindFirstArgs["where"] = {};
+
+  if (userId) where.members = { some: { userId } };
+  if (id) where.id = id;
+  if (slug) where.slug = slug;
+
+  const team = await prisma.team.findFirst({
+    where,
     select: teamSelect,
   });
 
   if (!team) return null;
-  const memberships = await prisma.membership.findMany({
-    where: {
-      teamId: team.id,
-    },
-  });
-
   const members = team.members.map((obj) => {
-    const membership = memberships.find((membership) => obj.user.id === membership.userId);
     return {
       ...obj.user,
       isMissingSeat: obj.user.plan === UserPlan.FREE,
-      role: membership?.role,
-      accepted: membership?.accepted,
-      disableImpersonation: membership?.disableImpersonation,
+      role: obj.role,
+      accepted: obj.accepted,
+      disableImpersonation: obj.disableImpersonation,
+      avatar: `${WEBAPP_URL}/${obj.user.username}/avatar.png`,
     };
   });
 

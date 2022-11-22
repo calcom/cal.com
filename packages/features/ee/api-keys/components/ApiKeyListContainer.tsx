@@ -15,7 +15,7 @@ import ApiKeyListItem, { TApiKeys } from "./ApiKeyListItem";
 
 function ApiKeyListContainer() {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.apiKeys.list"]);
+  const query = trpc.viewer.apiKeys.list.useQuery();
   const data = query.data;
 
   const [newApiKeyModal, setNewApiKeyModal] = useState(false);

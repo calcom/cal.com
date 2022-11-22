@@ -19,9 +19,9 @@ function WorkflowsPage() {
   const session = useSession();
   const router = useRouter();
 
-  const { data, isLoading } = trpc.useQuery(["viewer.workflows.list"]);
+  const { data, isLoading } = trpc.viewer.workflows.list.useQuery();
 
-  const createMutation = trpc.useMutation("viewer.workflows.createV2", {
+  const createMutation = trpc.viewer.workflows.createV2.useMutation({
     onSuccess: async ({ workflow }) => {
       await router.replace("/workflows/" + workflow.id);
     },

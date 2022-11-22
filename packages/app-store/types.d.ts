@@ -2,7 +2,7 @@ import React from "react";
 import { z } from "zod";
 
 import { _EventTypeModel } from "@calcom/prisma/zod";
-import { inferQueryOutput } from "@calcom/trpc/react";
+import { RouterOutputs } from "@calcom/trpc/react";
 import { ButtonBaseProps } from "@calcom/ui/Button";
 import { ButtonBaseProps as v2ButtonBaseProps } from "@calcom/ui/components/button";
 
@@ -30,6 +30,6 @@ export type EventTypeAppCardComponentProps = {
   > & {
     URL: string;
   };
-  app: inferQueryOutput<"viewer.apps">[number];
+  app: RouterOutputs["viewer"]["apps"][number];
 };
 export type EventTypeAppCardComponent = React.FC<EventTypeAppCardComponentProps>;

@@ -37,3 +37,10 @@ export const SEO_IMG_DEFAULT = `${WEBSITE_URL}/og-image.png`;
 export const SEO_IMG_OGIMG = `${CAL_URL}/api/social/og/image`;
 export const SEO_IMG_OGIMG_VIDEO = `${WEBSITE_URL}/video-og-image.png`;
 export const SIGNUP_DISABLED = true;
+export const IS_STRIPE_ENABLED = !!(
+  process.env.STRIPE_CLIENT_ID &&
+  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
+  process.env.STRIPE_PRIVATE_KEY
+);
+/** Self hosted shouldn't checkout when creating teams */
+export const IS_TEAM_BILLING_ENABLED = IS_STRIPE_ENABLED && !IS_SELF_HOSTED;
