@@ -155,6 +155,7 @@ const BookingPage = ({
         pathname: "/success",
         query: {
           uid,
+          allRemainingBookings: true,
           email: bookingForm.getValues("email"),
           eventTypeSlug: eventType.slug,
         },
@@ -859,7 +860,7 @@ const BookingPage = ({
                   {!eventType.disableGuests && !guestToggle && (
                     <Button
                       type="button"
-                      color="minimalSecondary"
+                      color="minimal"
                       size="icon"
                       tooltip={t("additional_guests")}
                       StartIcon={Icon.FiUserPlus}
@@ -877,7 +878,6 @@ const BookingPage = ({
                   </Button>
                   <Button
                     type="submit"
-                    className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast dark:hover:border-darkmodebrandcontrast mr-auto dark:border-transparent"
                     data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
                     loading={mutation.isLoading || recurringMutation.isLoading}>
                     {rescheduleUid ? t("reschedule") : t("confirm")}
@@ -910,7 +910,7 @@ function ErrorMessage({ error }: { error: unknown }) {
         <div className="ltr:ml-3 rtl:mr-3">
           <p className="text-sm text-yellow-700">
             {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
-            {error instanceof HttpError || error instanceof Error ? error.message : "Unknown error"}
+            {error instanceof HttpError || error instanceof Error ? t(error.message) : "Unknown error"}
           </p>
         </div>
       </div>

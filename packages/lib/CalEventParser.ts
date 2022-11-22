@@ -78,12 +78,15 @@ export const getAppsStatus = (calEvent: CalendarEvent) => {
     return "";
   }
   return `\n${calEvent.attendees[0].language.translate("apps_status")}
-      \n${calEvent.appsStatus.map(
-        (app) =>
-          `\t${app.appName} ${app.success >= 1 && `✅ ${app.success > 1 ? `(x${app.success})` : ""}`} ${
-            app.failures >= 1 && `❌ ${app.failures > 1 ? `(x${app.failures})` : ""}`
-          }`
-      )}
+      ${calEvent.appsStatus.map((app) => {
+        return `\n- ${app.appName} ${
+          app.success >= 1 ? `✅ ${app.success > 1 ? `(x${app.success})` : ""}` : ""
+        }${
+          app.warnings && app.warnings.length >= 1 ? app.warnings.map((warning) => `\n   - ${warning}`) : ""
+        } ${app.failures && app.failures >= 1 ? `❌ ${app.failures > 1 ? `(x${app.failures})` : ""}` : ""} ${
+          app.errors && app.errors.length >= 1 ? app.errors.map((error) => `\n   - ${error}`) : ""
+        }`;
+      })}
     `;
 };
 
@@ -132,7 +135,10 @@ export const getUid = (calEvent: CalendarEvent): string => {
 };
 
 export const getCancelLink = (calEvent: CalendarEvent): string => {
-  return WEBAPP_URL + "/cancel/" + getUid(calEvent);
+  return (
+    WEBAPP_URL +
+    `/success?uid=${getUid(calEvent)}&cancel=true&allRemainingBookings=${!!calEvent.recurringEvent}`
+  );
 };
 
 export const getRescheduleLink = (calEvent: CalendarEvent): string => {

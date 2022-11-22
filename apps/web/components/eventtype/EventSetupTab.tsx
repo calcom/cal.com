@@ -138,10 +138,10 @@ export const EventSetupTab = (
                     <div key={index} className="flex flex-grow items-center">
                       <img
                         src={eventLocationType.iconUrl}
-                        className="h-6 w-6"
+                        className="h-4 w-4"
                         alt={`${eventLocationType.label} logo`}
                       />
-                      <span className="truncate text-sm ltr:ml-2 rtl:mr-2">
+                      <span className="truncate text-sm ltr:ml-1 rtl:mr-1">
                         {location[eventLocationType.defaultValueVariable] || eventLocationType.label}
                       </span>
                     </div>

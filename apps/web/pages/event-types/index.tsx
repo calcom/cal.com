@@ -56,7 +56,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
   return (
     <Link href={`/event-types/${type.id}?tabName=setup`}>
       <a
-        className="w-full overflow-hidden pr-4 text-sm"
+        className="flex-1 overflow-hidden pr-4 text-sm"
         title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
         <div>
           <span
@@ -311,7 +311,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               size="icon"
                               href={calLink}
                               StartIcon={Icon.FiExternalLink}
-                              combined
                             />
                           </Tooltip>
 
@@ -324,7 +323,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 showToast(t("link_copied"), "success");
                                 navigator.clipboard.writeText(calLink);
                               }}
-                              combined
                             />
                           </Tooltip>
                           <Dropdown modal={false}>
@@ -336,7 +334,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 type="button"
                                 size="icon"
                                 color="secondary"
-                                combined
                                 StartIcon={Icon.FiMoreHorizontal}
                               />
                             </DropdownMenuTrigger>
