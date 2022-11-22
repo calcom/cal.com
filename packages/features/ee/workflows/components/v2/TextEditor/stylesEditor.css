@@ -54,8 +54,9 @@
   position: relative;
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
-  height: 300px;
+  height: 200px;
   overflow: scroll;
+  resize: vertical;
 }
 
 .editor-input {
