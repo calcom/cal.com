@@ -5,12 +5,6 @@
   font-size: 14px;
 }
 
-.other ul {
-  padding: 0;
-  margin: 0;
-  list-style-type: none;
-}
-
 .editor li {
   padding-left: 1.28571429em;
   text-indent: -1.28571429em;
@@ -24,26 +18,12 @@
   list-style: decimal inside
 }
 
-.editor h1 {
-  font-size: 24px;
-  color: #333;
-}
-
-.editor h2 {
-  font-size: 18px;
-  color: #444;
-  margin-bottom: 7px;
-}
-
 .editor-container {
   border-radius: 6px;
-  color: #000;
   position: relative;
   line-height: 20px;
   font-weight: 400;
   text-align: left;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
   border-color: #D1D5DB;
   border-width: 1px;
   padding: 1px
@@ -61,28 +41,12 @@
 
 .editor-input {
   min-height: 150px;
-  resize: none;
   font-size: 14px;
-  caret-color: rgb(5, 5, 5);
   position: relative;
   tab-size: 1;
   outline: 0;
   padding: 15px 10px;
-  caret-color: #444;
-  width: 100%
-}
-
-.editor-placeholder {
-  color: #999;
-  overflow: hidden;
-  position: absolute;
-  text-overflow: ellipsis;
-  top: 15px;
-  left: 10px;
-  font-size: 15px;
-  user-select: none;
-  display: inline-block;
-  pointer-events: none;
+  outline: none
 }
 
 .editor-text-bold {
@@ -97,7 +61,6 @@
   color: rgb(33, 111, 219);
   text-decoration: none;
 }
-
 
 .editor-tokenFunction {
   color: #dd4a68;
@@ -114,30 +77,30 @@
 }
 
 .editor-heading-h1 {
-  font-size: 19px;
+  font-size: 25px;
   font-weight: 400;
-  margin: 0;
-  margin-bottom: 12px;
-  padding: 0;
+  margin-bottom: 20px;
+  font-weight: bold;
 }
 
 
 .editor-heading-h2 {
-  font-size: 17px;
-  font-weight: 400;
-  margin: 0;
-  margin-top: 10px;
-  padding: 0;
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 20px;
 }
 
-.editor-list-ul ul {
-  padding: 0px;
-  margin: 0;
-  margin-left: 0px;
+.editor-list-ul  {
+  margin-bottom: 12px;
 }
+
+.editor-list-ol  {
+  margin-bottom: 12px;
+}
+
 
 .editor-listitem {
-  margin: 8px 32px 8px 32px;
+  margin: 0px 32px;
 }
 
 .editor-nested-listitem {
@@ -148,7 +111,6 @@ pre::-webkit-scrollbar {
   background: transparent;
   width: 10px;
 }
-
 
 pre::-webkit-scrollbar-thumb {
   background: #999;
@@ -172,10 +134,6 @@ pre::-webkit-scrollbar-thumb {
   padding: 8px;
   cursor: pointer;
   vertical-align: middle;
-}
-
-.toolbar button.toolbar-item:disabled {
-  cursor: not-allowed;
 }
 
 .toolbar button.toolbar-item.spaced {
@@ -208,7 +166,6 @@ pre::-webkit-scrollbar-thumb {
 .toolbar .toolbar-item:hover:not([disabled]) {
   background-color: #eee;
 }
-
 
 .toolbar select.toolbar-item {
   border: 0;
@@ -251,6 +208,7 @@ pre::-webkit-scrollbar-thumb {
 
 .toolbar i.chevron-down {
   margin-top: 3px;
+  margin-left: 5px;
   width: 16px;
   height: 16px;
   display: flex;
@@ -283,31 +241,6 @@ i.chevron-down {
 #block-controls button:focus-visible {
   border-color: blue;
 }
-
-#block-controls span.block-type.paragraph {
-  background-image: url(images/icons/text-paragraph.svg);
-}
-
-#block-controls span.block-type.paragraph {
-  background-image: url(images/icons/link.svg);
-}
-
-#block-controls span.block-type.h1 {
-  background-image: url(images/icons/link.svg);
-}
-
-#block-controls span.block-type.h2 {
-  background-image: url(images/icons/link.svg);
-}
-
-#block-controls span.block-type.ul {
-  background-image: url(images/icons/list-ul.svg);
-}
-
-#block-controls span.block-type.ol {
-  background-image: url(images/icons/list-ol.svg);
-}
-
 
 .dropdown {
   z-index: 5;
@@ -483,7 +416,6 @@ i.chevron-down {
 .icon.ol {
   background-image: url(images/icons/list-ol.svg);
 }
-
 
 i.bold {
   background-image: url(images/icons/type-bold.svg);

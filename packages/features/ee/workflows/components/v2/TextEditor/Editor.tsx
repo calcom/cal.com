@@ -20,10 +20,6 @@ import ListMaxIndentLevelPlugin from "./plugins/ListMaxIndentLevelPlugin";
 import ToolbarPlugin from "./plugins/ToolbarPlugin";
 import "./stylesEditor.css";
 
-function Placeholder() {
-  return <div className="editor-placeholder">Enter some rich text...</div>;
-}
-
 export type TextEditorProps = {
   form: UseFormReturn<FormValues>;
   stepNumber: number;
@@ -60,10 +56,7 @@ export default function Editor(props: TextEditorProps) {
         <div className="editor-container">
           <ToolbarPlugin form={props.form} stepNumber={props.stepNumber} />
           <div className="editor-inner">
-            <RichTextPlugin
-              contentEditable={<ContentEditable className="editor-input" />}
-              placeholder={<Placeholder />}
-            />
+            <RichTextPlugin contentEditable={<ContentEditable className="editor-input" />} />
             <AutoFocusPlugin />
             <ListPlugin />
             <LinkPlugin />
