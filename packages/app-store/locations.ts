@@ -91,7 +91,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     variable: "locationLink",
     messageForOrganizer: "Provide a Meeting Link",
     defaultValueVariable: "link",
-    iconUrl: "/globe.svg",
+    iconUrl: "/link.svg",
   },
   {
     default: true,
