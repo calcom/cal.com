@@ -185,6 +185,7 @@
     "$CI",
     "$CLOSECOM_API_KEY",
     "$SENDGRID_API_KEY",
+    "$SENDGRID_SYNC_API_KEY",
     "$SENDGRID_EMAIL",
     "$TWILIO_TOKEN",
     "$TWILIO_SID",

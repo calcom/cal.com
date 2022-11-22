@@ -168,7 +168,7 @@ test("prepare data to create custom activity type instance: two attendees, no ad
   const event = {
     attendees,
     startTime: now.toISOString(),
-  } as CalendarEvent;
+  } as unknown as CalendarEvent;
 
   CloseCom.prototype.activity = {
     type: {
