@@ -72,6 +72,48 @@ export function getLocationOptions(integrations: ReturnType<typeof getApps>, t: 
   return translateLocations(locations, t);
 }
 
+export function getLocationGroupedOptions(integrations: ReturnType<typeof getApps>, t: TFunction) {
+  const apps: Record<string, { label: string; value: string; disabled?: boolean }[]> = {};
+  integrations.forEach((app) => {
+    if (app.locationOption) {
+      const category = app.category;
+      if (apps[category]) {
+        apps[category] = [...apps[category], app.locationOption];
+      } else {
+        apps[category] = [app.locationOption];
+      }
+    }
+  });
+
+  defaultLocations.forEach((l) => {
+    const category = l.category;
+    if (apps[category]) {
+      apps[category] = [
+        ...apps[category],
+        {
+          label: l.label,
+          value: l.type,
+        },
+      ];
+    } else {
+      apps[category] = [
+        {
+          label: l.label,
+          value: l.type,
+        },
+      ];
+    }
+  });
+  const locations = [];
+
+  for (const category in apps) {
+    const tmp = { label: category, options: apps[category] };
+    locations.push(tmp);
+  }
+
+  return locations;
+}
+
 /**
  * This should get all available apps to the user based on his saved
  * credentials, this should also get globally available apps.

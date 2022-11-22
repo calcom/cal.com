@@ -282,11 +282,12 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                       maxMenuHeight={150}
                       name="location"
                       defaultValue={selection}
-                      options={
-                        booking
-                          ? locationOptions.filter((location) => location.value !== "phone")
-                          : locationOptions
-                      }
+                      // options={
+                      //   booking
+                      //     ? locationOptions.filter((location) => location.value !== "phone")
+                      //     : locationOptions
+                      // }
+                      options={locationOptions}
                       isSearchable={false}
                       onChange={(val) => {
                         if (val) {
