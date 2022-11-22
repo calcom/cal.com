@@ -284,23 +284,32 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         className="text-sm"
                         onChange={(val) => {
                           if (val) {
-                            if (val.value === WorkflowActions.SMS_NUMBER) {
-                              setIsPhoneNumberNeeded(true);
+                            const oldValue = form.getValues(`steps.${step.stepNumber - 1}.action`);
+                            const wasSMSAction =
+                              oldValue === WorkflowActions.SMS_ATTENDEE ||
+                              oldValue === WorkflowActions.SMS_NUMBER;
+                            const isSMSAction =
+                              val.value === WorkflowActions.SMS_ATTENDEE ||
+                              val.value === WorkflowActions.SMS_NUMBER;
+
+                            if (isSMSAction) {
                               setIsSenderIdNeeded(true);
                               setIsEmailAddressNeeded(false);
-                            } else if (val.value === WorkflowActions.EMAIL_ADDRESS) {
-                              setIsEmailAddressNeeded(true);
-                              setIsPhoneNumberNeeded(false);
-                              setIsSenderIdNeeded(false);
-                            } else if (val.value === WorkflowActions.SMS_ATTENDEE) {
-                              setIsSenderIdNeeded(true);
-                              setIsEmailAddressNeeded(false);
-                              setIsPhoneNumberNeeded(false);
+                              setIsPhoneNumberNeeded(val.value === WorkflowActions.SMS_NUMBER);
+
+                              if (!wasSMSAction) {
+                                form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
+                              }
                             } else {
-                              setIsEmailAddressNeeded(false);
                               setIsPhoneNumberNeeded(false);
                               setIsSenderIdNeeded(false);
+                              setIsEmailAddressNeeded(val.value === WorkflowActions.EMAIL_ADDRESS);
+
+                              if (wasSMSAction) {
+                                form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
+                              }
                             }
+
                             form.unregister(`steps.${step.stepNumber - 1}.sendTo`);
                             form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
                             if (
