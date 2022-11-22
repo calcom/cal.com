@@ -238,6 +238,12 @@ export default async function main() {
       client_secret: process.env.HUBSPOT_CLIENT_SECRET,
     });
   }
+  if (process.env.SALESFORCE_CONSUMER_KEY && process.env.SALESFORCE_CONSUMER_SECRET) {
+    await createApp("salesforce", "salesforce", ["other"], "salesforce_other_calendar", {
+      consumer_key: process.env.SALESFORCE_CONSUMER_KEY,
+      consumer_secret: process.env.SALESFORCE_CONSUMER_SECRET,
+    });
+  }
   await createApp("wipe-my-cal", "wipemycalother", ["other"], "wipemycal_other");
   if (process.env.GIPHY_API_KEY) {
     await createApp("giphy", "giphy", ["other"], "giphy_other", {
