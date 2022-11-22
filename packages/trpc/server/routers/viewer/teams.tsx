@@ -154,14 +154,24 @@ export const viewerTeamsRouter = router({
       if (
         input.slug &&
         IS_TEAM_BILLING_ENABLED &&
-        /** If the team doesn't have a slug we can assume that it hasn't been published yet. */ !prevTeam.slug
+        /** If the team doesn't have a slug we can assume that it hasn't been published yet. */
+        !prevTeam.slug
       ) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You cannot change the slug until you publish your team",
-        });
+        // Save it on the metadata so we can use it later
+        data.metadata = {
+          requestedSlug: input.slug,
+        };
       } else {
         data.slug = input.slug;
+
+        // If we save slug, we don't need the requestedSlug anymore
+        const metadataParse = teamMetadataSchema.safeParse(prevTeam.metadata);
+        if (metadataParse.success) {
+          const { requestedSlug, ...cleanMetadata } = metadataParse.data || {};
+          data.metadata = {
+            ...cleanMetadata,
+          };
+        }
       }
 
       const updatedTeam = await ctx.prisma.team.update({
@@ -581,10 +591,9 @@ export const viewerTeamsRouter = router({
 
       const metadata = teamMetadataSchema.safeParse(prevTeam.metadata);
 
-      if (!metadata.success || !metadata.data?.requestedSlug)
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Can't publish team without `requestedSlug`" });
+      if (!metadata.success) throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid team metadata" });
 
-      // if payment needed, responed with checkout url
+      // if payment needed, respond with checkout url
       if (IS_TEAM_BILLING_ENABLED) {
         const checkoutSession = await purchaseTeamSubscription({
           teamId: prevTeam.id,
@@ -597,6 +606,10 @@ export const viewerTeamsRouter = router({
             message: "Failed retrieving a checkout session URL.",
           });
         return { url: checkoutSession.url };
+      }
+
+      if (!metadata.data?.requestedSlug) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Can't publish team without `requestedSlug`" });
       }
 
       const { requestedSlug, ...newMetadata } = metadata.data;
@@ -620,4 +633,19 @@ export const viewerTeamsRouter = router({
 
       return { url: `${WEBAPP_URL}/settings/teams/${updatedTeam.id}/profile` };
     }),
+  /** This is a temporal endpoint so we can progressively upgrade teams to the new billing system. */
+  getUpgradeable: authedProcedure.query(async ({ ctx }) => {
+    if (!IS_TEAM_BILLING_ENABLED) return [];
+    let { teams } = await ctx.prisma.user.findUniqueOrThrow({
+      where: { id: ctx.user.id },
+      include: { teams: { where: { role: MembershipRole.OWNER }, include: { team: true } } },
+    });
+    /** We only need to return teams that don't have a `subscriptionId` on their metadata */
+    teams = teams.filter((m) => {
+      const metadata = teamMetadataSchema.safeParse(m.team.metadata);
+      if (metadata.success && metadata.data?.subscriptionId) return false;
+      return true;
+    });
+    return teams;
+  }),
 });

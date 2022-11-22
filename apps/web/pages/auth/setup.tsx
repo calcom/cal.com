@@ -90,7 +90,7 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
 
   return (
     <FormProvider {...formMethods}>
-      <form id="setup-step-1" name="setup-step-1" className="space-y-4" onSubmit={onSubmit}>
+      <form id="wizard-step-1" name="wizard-step-1" className="space-y-4" onSubmit={onSubmit}>
         <div>
           <Controller
             name="username"

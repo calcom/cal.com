@@ -17,7 +17,7 @@ import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } 
 import { Icon } from "@calcom/ui/Icon";
 import { Button } from "@calcom/ui/components";
 import { Checkbox } from "@calcom/ui/components";
-import { EmailField, Label, TextArea } from "@calcom/ui/components/form";
+import { EmailField, Label, TextArea, TextField } from "@calcom/ui/components/form";
 import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
 import { DialogClose, DialogContent } from "@calcom/ui/v2";
 import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
@@ -50,6 +50,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
+  );
+
+  const [isSenderIdNeeded, setIsSenderIdNeeded] = useState(
+    step?.action === WorkflowActions.SMS_NUMBER || step?.action === WorkflowActions.SMS_ATTENDEE
+      ? true
+      : false
   );
 
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(
@@ -279,13 +285,20 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           if (val) {
                             if (val.value === WorkflowActions.SMS_NUMBER) {
                               setIsPhoneNumberNeeded(true);
+                              setIsSenderIdNeeded(true);
                               setIsEmailAddressNeeded(false);
                             } else if (val.value === WorkflowActions.EMAIL_ADDRESS) {
                               setIsEmailAddressNeeded(true);
                               setIsPhoneNumberNeeded(false);
+                              setIsSenderIdNeeded(false);
+                            } else if (val.value === WorkflowActions.SMS_ATTENDEE) {
+                              setIsSenderIdNeeded(true);
+                              setIsEmailAddressNeeded(false);
+                              setIsPhoneNumberNeeded(false);
                             } else {
                               setIsEmailAddressNeeded(false);
                               setIsPhoneNumberNeeded(false);
+                              setIsSenderIdNeeded(false);
                             }
                             form.unregister(`steps.${step.stepNumber - 1}.sendTo`);
                             form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
@@ -315,43 +328,64 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     );
                   }}
                 />
-                {form.getValues(`steps.${step.stepNumber - 1}.action`) === WorkflowActions.SMS_ATTENDEE && (
-                  <div className="mt-5">
-                    <Controller
-                      name={`steps.${step.stepNumber - 1}.numberRequired`}
-                      control={form.control}
-                      render={() => (
-                        <Checkbox
-                          defaultChecked={
-                            form.getValues(`steps.${step.stepNumber - 1}.numberRequired`) || false
-                          }
-                          description={t("make_phone_number_required")}
-                          onChange={(e) =>
-                            form.setValue(`steps.${step.stepNumber - 1}.numberRequired`, e.target.checked)
-                          }
-                        />
-                      )}
-                    />
-                  </div>
-                )}
               </div>
-              {isPhoneNumberNeeded && (
-                <div className="mt-5 rounded-md bg-gray-50 p-4">
-                  <Label>{t("custom_phone_number")}</Label>
-                  <PhoneInput<FormValues>
+              {(isPhoneNumberNeeded || isSenderIdNeeded) && (
+                <div className="mt-2 rounded-md bg-gray-50 p-4 pt-0">
+                  {isPhoneNumberNeeded && (
+                    <>
+                      <Label className="pt-4">{t("custom_phone_number")}</Label>
+                      <PhoneInput<FormValues>
+                        control={form.control}
+                        name={`steps.${step.stepNumber - 1}.sendTo`}
+                        placeholder={t("phone_number")}
+                        id={`steps.${step.stepNumber - 1}.sendTo`}
+                        className="w-full rounded-md"
+                        required
+                      />
+                      {form.formState.errors.steps &&
+                        form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
+                          <p className="mt-1 text-xs text-red-500">
+                            {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
+                          </p>
+                        )}
+                    </>
+                  )}
+                  {isSenderIdNeeded && (
+                    <>
+                      <div className="pt-4">
+                        <TextField
+                          label={t("sender_id")}
+                          type="text"
+                          placeholder="Cal"
+                          maxLength={11}
+                          {...form.register(`steps.${step.stepNumber - 1}.sender`)}
+                        />
+                      </div>
+                      {form.formState.errors.steps &&
+                        form.formState?.errors?.steps[step.stepNumber - 1]?.sender && (
+                          <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
+                        )}
+                    </>
+                  )}
+                </div>
+              )}
+              {form.getValues(`steps.${step.stepNumber - 1}.action`) === WorkflowActions.SMS_ATTENDEE && (
+                <div className="mt-2">
+                  <Controller
+                    name={`steps.${step.stepNumber - 1}.numberRequired`}
                     control={form.control}
-                    name={`steps.${step.stepNumber - 1}.sendTo`}
-                    placeholder={t("phone_number")}
-                    id={`steps.${step.stepNumber - 1}.sendTo`}
-                    className="w-full rounded-md"
-                    required
-                  />
-                  {form.formState.errors.steps &&
-                    form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
-                      <p className="mt-1 text-sm text-red-500">
-                        {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
-                      </p>
+                    render={() => (
+                      <Checkbox
+                        defaultChecked={
+                          form.getValues(`steps.${step.stepNumber - 1}.numberRequired`) || false
+                        }
+                        description={t("make_phone_number_required")}
+                        onChange={(e) =>
+                          form.setValue(`steps.${step.stepNumber - 1}.numberRequired`, e.target.checked)
+                        }
+                      />
                     )}
+                  />
                 </div>
               )}
               {isEmailAddressNeeded && (
@@ -408,7 +442,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       />
                       {form.formState.errors.steps &&
                         form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject && (
-                          <p className="mt-1 text-sm text-red-500">
+                          <p className="mt-1 text-xs text-red-500">
                             {form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject?.message || ""}
                           </p>
                         )}
@@ -433,7 +467,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   />
                   {form.formState.errors.steps &&
                     form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
-                      <p className="mt-1 text-sm text-red-500">
+                      <p className="mt-1 text-xs text-red-500">
                         {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
                       </p>
                     )}
@@ -497,6 +531,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         emailSubject,
                         reminderBody,
                         template: step.template,
+                        sender: step.sender || "Cal",
                       });
                     } else {
                       const isNumberValid =
