@@ -78,7 +78,6 @@ export default function RoutingForms({
                                   target="_blank"
                                   StartIcon={Icon.FiExternalLink}
                                   color="secondary"
-                                  combined
                                   size="icon"
                                   disabled={disabled}
                                 />
@@ -87,7 +86,6 @@ export default function RoutingForms({
                                 routingForm={form}
                                 action="copyLink"
                                 color="secondary"
-                                combined
                                 size="icon"
                                 StartIcon={Icon.FiLink}
                                 disabled={disabled}

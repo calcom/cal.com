@@ -125,7 +125,6 @@ export default function MemberListItem(props: Props) {
                   color="secondary"
                   size="icon"
                   StartIcon={Icon.FiClock}
-                  combined
                 />
               </Tooltip>
               <Tooltip content={t("view_public_page")}>
@@ -136,7 +135,6 @@ export default function MemberListItem(props: Props) {
                   className={classNames(!editMode ? "rounded-r-md" : "")}
                   size="icon"
                   StartIcon={Icon.FiExternalLink}
-                  combined
                 />
               </Tooltip>
               {editMode && (
@@ -147,7 +145,6 @@ export default function MemberListItem(props: Props) {
                       size="icon"
                       className="rounded-r-md"
                       StartIcon={Icon.FiMoreHorizontal}
-                      combined
                     />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
