@@ -21,6 +21,12 @@ const templates: Template[] = [
     link: "https://workflows.zapier.com/?attempt_id=a086d136-b084-45bc-a6aa-c9f460b05b7d&template=1082047",
   },
   {
+    icon: "salesforce.svg",
+    app: "Salesforce",
+    text: "Create Salesforce leads from new bookings",
+    link: "https://zapier.com/editor/170116721?attempt_id=9f939229-ee89-4391-b9c7-f4645c60dbd4",
+  },
+  {
     icon: "todoist.svg",
     app: "Todoist",
     text: "Create Todoist tasks for scheduled events",
