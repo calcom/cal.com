@@ -1,4 +1,8 @@
+import type { Prisma } from "@prisma/client";
+import { MembershipRole } from "@prisma/client";
 import type { NextApiRequest } from "next";
+
+import { HttpError } from "@calcom/lib/http-error";
 
 import { schemaQueryTeamId } from "@lib/validations/shared/queryTeamId";
 
@@ -11,6 +15,20 @@ async function authMiddleware(req: NextApiRequest) {
   await prisma.team.findFirstOrThrow({
     where: { id: teamId, members: { some: { userId } } },
   });
+}
+
+export async function checkPermissions(
+  req: NextApiRequest,
+  role: Prisma.MembershipWhereInput["role"] = MembershipRole.OWNER
+) {
+  const { userId, prisma, isAdmin } = req;
+  const { teamId } = schemaQueryTeamId.parse(req.query);
+  const args: Prisma.TeamFindFirstArgs = { where: { id: teamId } };
+  /** If not ADMIN then we check if the actual user belongs to team and matches the required role */
+  if (!isAdmin) args.where = { ...args.where, members: { some: { userId, role } } };
+  const team = await prisma.team.findFirst(args);
+  if (!team) throw new HttpError({ statusCode: 401, message: `Unauthorized: ${role.toString()} required` });
+  return team;
 }
 
 export default authMiddleware;

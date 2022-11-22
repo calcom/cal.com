@@ -1,5 +1,8 @@
+import { MembershipRole } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
+import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
 import { schemaMembershipPublic } from "@lib/validations/membership";
@@ -24,6 +27,23 @@ import { schemaTeamBodyParams, schemaTeamReadPublic } from "@lib/validations/tea
 async function postHandler(req: NextApiRequest) {
   const { prisma, body, userId } = req;
   const data = schemaTeamBodyParams.parse(body);
+
+  if (data.slug) {
+    const alreadyExist = await prisma.team.findFirst({
+      where: {
+        slug: data.slug,
+      },
+    });
+    if (alreadyExist) throw new HttpError({ statusCode: 409, message: "Team slug already exists" });
+    if (IS_TEAM_BILLING_ENABLED) {
+      // Setting slug in metadata, so it can be published later
+      data.metadata = {
+        requestedSlug: data.slug,
+      };
+      delete data.slug;
+    }
+  }
+
   // TODO: Perhaps there is a better fix for this?
   const cloneData: typeof data & {
     metadata: NonNullable<typeof data.metadata> | undefined;
@@ -34,9 +54,10 @@ async function postHandler(req: NextApiRequest) {
   const team = await prisma.team.create({
     data: {
       ...cloneData,
+      createdAt: new Date(),
       members: {
         // We're also creating the relation membership of team ownership in this call.
-        create: { userId, role: "OWNER", accepted: true },
+        create: { userId, role: MembershipRole.OWNER, accepted: true },
       },
     },
     include: { members: true },
