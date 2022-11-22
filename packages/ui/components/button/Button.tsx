@@ -4,6 +4,7 @@ import React, { forwardRef } from "react";
 import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
+import { applyStyleToMultipleVariants } from "@calcom/lib/cva";
 
 import Tooltip from "../../v2/core/Tooltip";
 
@@ -17,8 +18,6 @@ export type ButtonBaseProps = {
   shallow?: boolean;
   /**Tool tip used when icon size is set to small */
   tooltip?: string;
-  /** @deprecated This has now been replaced by button group. */
-  combined?: boolean;
   flex?: boolean;
 } & VariantProps<typeof buttonClasses>;
 
@@ -62,12 +61,12 @@ const buttonClasses = cva(
         color: "primary",
         className: "bg-gray-800/30 text-white/30 dark:bg-opacity-30 dark:bg-darkgray-700 dark:text-black/30",
       },
-      {
-        disabled: undefined,
+      ...applyStyleToMultipleVariants({
+        disabled: [undefined, false],
         color: "primary",
         className:
           "bg-brand-500 hover:bg-brand-400 focus:border focus:border-white focus:outline-none focus:ring-2 focus:ring-offset focus:ring-brand-500 dark:hover:bg-darkgray-600 dark:bg-darkgray-900",
-      },
+      }),
       // Secondary variants
       {
         disabled: true,
@@ -81,12 +80,12 @@ const buttonClasses = cva(
         className:
           "bg-gray-100 text-gray-900/30 dark:bg-darkgray-100 dark:text-darkgray-900/30 dark:border-darkgray-200",
       },
-      {
-        disabled: undefined,
+      ...applyStyleToMultipleVariants({
+        disabled: [undefined, false],
         color: "secondary",
         className:
           "border border-gray-300 dark:border-darkgray-300 hover:bg-gray-50 hover:border-gray-400 focus:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus:bg-darkgray-200 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-gray-900 dark:focus:ring-white",
-      },
+      }),
       // Minimal variants
       {
         disabled: true,
@@ -100,12 +99,12 @@ const buttonClasses = cva(
         className:
           "bg-gray-100 text-gray-900/30 dark:bg-darkgray-100 dark:text-darkgray-900/30 dark:border-darkgray-200",
       },
-      {
-        disabled: undefined,
+      applyStyleToMultipleVariants({
+        disabled: [undefined, false],
         color: "minimal",
         className:
           "hover:bg-gray-100 focus:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus:bg-darkgray-200 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-gray-900 dark:focus:ring-white",
-      },
+      }),
       // Destructive variants
       {
         disabled: true,
@@ -119,12 +118,12 @@ const buttonClasses = cva(
         className:
           "text-red-700/30 dark:text-red-700/30 hover:text-red-700/30 bg-red-100 border border-red-200",
       },
-      {
-        disabled: undefined,
+      ...applyStyleToMultipleVariants({
+        disabled: [false, undefined],
         color: "destructive",
         className:
           "border dark:text-white text-gray-900 hover:text-red-700 focus:text-red-700 dark:hover:text-red-700 dark:focus:text-red-700 hover:border-red-100 focus:border-red-100 hover:bg-red-100  focus:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-red-700",
-      },
+      }),
     ],
     defaultVariants: {
       color: "primary",
@@ -145,7 +144,6 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     StartIcon,
     EndIcon,
     shallow,
-    combined = false,
     // attributes propagated from `HTMLAnchorProps` or `HTMLButtonProps`
     ...passThroughProps
   } = props;
