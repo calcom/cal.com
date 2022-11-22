@@ -52,6 +52,7 @@ export async function getBusyTimes(params: {
         title: true,
         eventType: {
           select: {
+            id: true,
             afterEventBuffer: true,
             beforeEventBuffer: true,
           },
@@ -67,7 +68,7 @@ export async function getBusyTimes(params: {
           .add((eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0), "minute")
           .toDate(),
         title,
-        source: `eventType-${eventTypeId}-booking-${id}`,
+        source: `eventType-${eventType?.id}-booking-${id}`,
       }))
     );
   logger.silly(`Busy Time from Cal Bookings ${JSON.stringify(busyTimes)}`);

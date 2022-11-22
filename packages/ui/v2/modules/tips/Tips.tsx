@@ -31,6 +31,22 @@ const tips = [
     description: "Ask screening questions of potential bookers to connect them with the right person",
     href: "https://cal.com/blog/cal-v-1-8",
   },
+  {
+    id: 4,
+    thumbnailUrl: "https://img.youtube.com/vi/zGr_s-fG84k/0.jpg",
+    mediaLink: "https://youtu.be/zGr_s-fG84k",
+    title: "Requires Confirmation",
+    description: "Learn how to be in charge of your bookings",
+    href: "https://docs.cal.com/deep-dives/event-types#opt-in-booking",
+  },
+  {
+    id: 5,
+    thumbnailUrl: "https://img.youtube.com/vi/0v_nQtpxC_4/0.jpg",
+    mediaLink: "https://youtu.be/0v_nQtpxC_4",
+    title: "Accept Payments",
+    description: "Charge for your time with Cal.com's Stripe App",
+    href: "https://app.cal.com/apps/stripe",
+  },
 ];
 
 export default function Tips() {

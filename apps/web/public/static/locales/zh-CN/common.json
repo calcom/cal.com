@@ -596,7 +596,7 @@
   "monthly_other": "月",
   "yearly_one": "年",
   "yearly_other": "年",
-  "plus_more": "+ 另外 {{count}}",
+  "plus_more": "另外 {{count}}",
   "max": "最大",
   "single_theme": "主题",
   "brand_color": "品牌颜色",
