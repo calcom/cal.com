@@ -56,7 +56,7 @@ export default function Editor(props: TextEditorProps) {
         <div className="editor-container">
           <ToolbarPlugin form={props.form} stepNumber={props.stepNumber} />
           <div className="editor-inner">
-            <RichTextPlugin contentEditable={<ContentEditable className="editor-input" />} />
+            <RichTextPlugin contentEditable={<ContentEditable className="editor-input" />} placeholder="" />
             <AutoFocusPlugin />
             <ListPlugin />
             <LinkPlugin />
