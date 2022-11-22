@@ -126,7 +126,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
             {headers[currentStepIndex]?.skipText && (
               <div className="flex w-full flex-row justify-center">
                 <Button
-                  color="minimalSecondary"
+                  color="minimal"
                   data-testid="skip-step"
                   onClick={(event) => {
                     event.preventDefault();
