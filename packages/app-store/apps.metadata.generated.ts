@@ -6,7 +6,7 @@ import { metadata as applecalendar_meta } from "./applecalendar/_metadata";
 import { metadata as around_meta } from "./around/_metadata";
 import { metadata as caldavcalendar_meta } from "./caldavcalendar/_metadata";
 import { metadata as campfire_meta } from "./campfire/_metadata";
-import { metadata as closecomothercalendar_meta } from "./closecomothercalendar/_metadata";
+import { metadata as closecom_meta } from "./closecom/_metadata";
 import { metadata as dailyvideo_meta } from "./dailyvideo/_metadata";
 import { metadata as routing_forms_meta } from "./ee/routing-forms/_metadata";
 import { metadata as exchange2013calendar_meta } from "./exchange2013calendar/_metadata";
@@ -17,7 +17,7 @@ import { metadata as ga4_meta } from "./ga4/_metadata";
 import { metadata as giphy_meta } from "./giphy/_metadata";
 import { metadata as googlecalendar_meta } from "./googlecalendar/_metadata";
 import { metadata as googlevideo_meta } from "./googlevideo/_metadata";
-import { metadata as hubspotothercalendar_meta } from "./hubspotothercalendar/_metadata";
+import { metadata as hubspot_meta } from "./hubspot/_metadata";
 import { metadata as huddle01video_meta } from "./huddle01video/_metadata";
 import { metadata as jitsivideo_meta } from "./jitsivideo/_metadata";
 import { metadata as larkcalendar_meta } from "./larkcalendar/_metadata";
@@ -49,7 +49,7 @@ export const appStoreMetadata = {
   around: around_meta,
   caldavcalendar: caldavcalendar_meta,
   campfire: campfire_meta,
-  closecomothercalendar: closecomothercalendar_meta,
+  closecom: closecom_meta,
   dailyvideo: dailyvideo_meta,
   "routing-forms": routing_forms_meta,
   exchange2013calendar: exchange2013calendar_meta,
@@ -60,7 +60,7 @@ export const appStoreMetadata = {
   giphy: giphy_meta,
   googlecalendar: googlecalendar_meta,
   googlevideo: googlevideo_meta,
-  hubspotothercalendar: hubspotothercalendar_meta,
+  hubspot: hubspot_meta,
   huddle01video: huddle01video_meta,
   jitsivideo: jitsivideo_meta,
   larkcalendar: larkcalendar_meta,

@@ -36,8 +36,8 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
       isOmniInstall = variables.isOmniInstall;
       type = variables.type;
     }
-    if (type === "sendgrid_other_calendar") {
-      type = "sendgrid";
+    if (type?.endsWith("_other_calendar")) {
+      type = type.split("_other_calendar")[0];
     }
     const state: IntegrationOAuthCallbackState = {
       returnTo:
@@ -73,7 +73,7 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
       gotoUrl(json.url, json.newTab);
     }
 
-    return { setupPending: !externalUrl && json.url.endsWith("/setup") };
+    return { setupPending: externalUrl || json.url.endsWith("/setup") };
   }, options);
 
   return mutation;

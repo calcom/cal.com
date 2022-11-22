@@ -39,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const hubspotToken: HubspotToken = await hubspotClient.oauth.tokensApi.createToken(
     "authorization_code",
     code,
-    WEBAPP_URL + "/api/integrations/hubspotothercalendar/callback",
+    WEBAPP_URL + "/api/integrations/hubspot/callback",
     client_id,
     client_secret
   );

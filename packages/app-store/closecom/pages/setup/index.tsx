@@ -42,7 +42,7 @@ export default function CloseComSetup() {
           <div>
             {/* eslint-disable @next/next/no-img-element */}
             <img
-              src="/api/app-store/closecomothercalendar/icon.svg"
+              src="/api/app-store/closecom/icon.svg"
               alt="Apple Calendar"
               className="h-12 w-12 max-w-2xl"
             />
@@ -65,7 +65,7 @@ export default function CloseComSetup() {
               <Form
                 form={form}
                 handleSubmit={async (values) => {
-                  const res = await fetch("/api/integrations/closecomothercalendar/add", {
+                  const res = await fetch("/api/integrations/closecom/add", {
                     method: "POST",
                     body: JSON.stringify(values),
                     headers: {
@@ -122,7 +122,7 @@ export default function CloseComSetup() {
                       if (!check) return;
                       const api_key = form.getValues("api_key");
                       setTestLoading(true);
-                      const res = await fetch("/api/integrations/closecomothercalendar/check", {
+                      const res = await fetch("/api/integrations/closecom/check", {
                         method: "POST",
                         body: JSON.stringify({ api_key }),
                         headers: {

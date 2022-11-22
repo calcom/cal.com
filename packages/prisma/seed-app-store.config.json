@@ -109,6 +109,12 @@
     "type": "sendgrid_other_calendar"
   },
   {
+    "dirName": "closecom",
+    "categories": ["other"],
+    "slug": "closecom",
+    "type": "closecom_other_calendar"
+  },
+  {
     "dirName": "whatsapp",
     "categories": ["video"],
     "slug": "whatsapp",
