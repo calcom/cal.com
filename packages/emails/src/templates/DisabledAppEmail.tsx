@@ -17,22 +17,56 @@ export const DisabledAppEmail = (
   const { title, appName, eventTypeId, t, appType } = props;
 
   return (
-    <BaseEmailHtml
-      // subject={t("payment_app_disabled")}
-      subject="App disabled">
-      <p>
-        {/* <Trans i18n="disabled_payment_email_body" t={t}> */}
-        The admin has disabled {appName} which affects your event type {title}.{/* </Trans> */}
-      </p>
-      Attendees are still able to book this type of event but will not be prompted to pay. You may hide hide
-      the event type to prevent this until your admin renables your payment method.
-      <p />
-      <hr />
-      <CallToAction
-        // label={props.language("edit_event_type")}
-        label="Edit event type"
-        href={`${CAL_URL}/event-types/${eventTypeId}?tabName=apps`}
-      />
+    <BaseEmailHtml subject={t("app_disabled", { appName })}>
+      {appType.some((type) => type === "payment") ? (
+        <>
+          <p>{t("disabled_app_affects_event_type", { appName: appName, eventType: title })}</p>
+          <p style={{ fontWeight: 400, lineHeight: "24px" }}>{t("payment_disabled_still_able_to_book")}</p>
+
+          <hr />
+
+          <CallToAction
+            label={t("edit_event_type")}
+            href={`${CAL_URL}/event-types/${eventTypeId}?tabName=apps`}
+          />
+        </>
+      ) : title && eventTypeId ? (
+        <>
+          <p>{(t("app_disabled_with_event_type"), { appName, title })}</p>
+
+          <hr />
+
+          <CallToAction
+            label={t("edit_event_type")}
+            href={`${CAL_URL}/event-types/${eventTypeId}?tabName=apps`}
+          />
+        </>
+      ) : appType.some((type) => type === "video") ? (
+        <>
+          <p>{(t("app_disabled_video"), { appName })}</p>
+
+          <hr />
+
+          <CallToAction label={t("navigate_installed_apps")} href={`${CAL_URL}/apps/installed`} />
+        </>
+      ) : appType.some((type) => type === "calendar") ? (
+        <>
+          <p>{t("admin_has_disabled", { appName })}</p>
+          <p style={{ fontWeight: 400, lineHeight: "24px" }}>{t("disabled_calendar")}</p>
+
+          <hr />
+
+          <CallToAction label={t("navigate_installed_apps")} href={`${CAL_URL}/apps/installed`} />
+        </>
+      ) : (
+        <>
+          <p>{t("admin_has_disabled", { appName })}</p>
+
+          <hr />
+
+          <CallToAction label={t("navigate_installed_apps")} href={`${CAL_URL}/apps/installed`} />
+        </>
+      )}
     </BaseEmailHtml>
   );
 };

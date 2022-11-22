@@ -60,11 +60,13 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Content-Type", "text/html");
   res.setHeader("Cache-Control", "no-cache, no-store, private, must-revalidate");
   res.write(
-    renderEmail("DisabledPaymentEmail", {
-      title: "15",
+    renderEmail("DisabledAppEmail", {
+      email: "pro@example.com",
       appName: "Stripe",
-      eventTypeId: 21,
+      appType: ["payment"],
       t: t,
+      title: "Payment event",
+      eventTypeId: 15,
     })
   );
   res.end();

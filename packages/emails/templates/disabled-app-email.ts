@@ -34,10 +34,10 @@ export default class DisabledAppEmail extends BaseEmail {
     return {
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: this.email,
-      //   TODO add translation
-      subject: `${this.t("admin_has_disabled", { appName: this.appName })} ${
-        this.title && this.eventTypeId && this.t("this_affects_event_type", { eventType: this.title })
-      }`,
+      subject:
+        this.title && this.eventTypeId
+          ? this.t("disabled_app_affects_event_type", { appName: this.appName, eventType: this.title })
+          : this.t("admin_has_disabled", { appName: this.appName }),
       html: renderEmail("DisabledAppEmail", {
         title: this.title,
         appName: this.appName,
@@ -52,6 +52,8 @@ export default class DisabledAppEmail extends BaseEmail {
   protected getTextBody(): string {
     return this.appType.some((type) => type === "payment")
       ? this.t("disable_payment_app", { appName: this.appName, title: this.title })
+      : this.appType.some((type) => type === "video")
+      ? this.t("app_disabled_video", { appName: this.appName })
       : this.t("app_disabled", { appName: this.appName });
   }
 }

@@ -131,18 +131,19 @@ export const appsRouter = router({
               },
             },
           });
-          console.log("🚀 ~ file: apps.tsx ~ line 132 ~ .mutation ~ appCredentials", appCredentials);
 
           Promise.all(
             appCredentials.map(async (credential) => {
               const t = await getTranslation(credential.user?.locale || "en", "common");
 
-              await sendDisabledAppEmail(
-                credential.user.email,
-                appMetadata?.name || app.slug,
-                app.categories,
-                t
-              );
+              if (credential.user?.email) {
+                await sendDisabledAppEmail({
+                  email: credential.user.email,
+                  appName: appMetadata?.name || app.slug,
+                  appType: app.categories,
+                  t,
+                });
+              }
             })
           );
         } else {

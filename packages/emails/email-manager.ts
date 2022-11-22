@@ -349,7 +349,7 @@ export const sendDisabledAppEmail = async ({
 }) => {
   await new Promise((resolve, reject) => {
     try {
-      const disabledPaymentEmail = new DisabledAppEmail(title, email, appName, appType, eventTypeId, t);
+      const disabledPaymentEmail = new DisabledAppEmail(email, appName, appType, t, title, eventTypeId);
       resolve(disabledPaymentEmail.sendEmail());
     } catch (e) {
       reject(console.error("DisabledPaymentEmail.sendEmail failed", e));
