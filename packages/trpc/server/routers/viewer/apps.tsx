@@ -129,6 +129,7 @@ export const appsRouter = router({
                 email: true,
               },
             },
+            metadata: true,
           },
         });
 
@@ -137,6 +138,20 @@ export const appsRouter = router({
           eventTypesWithPayments.map(async (eventType) => {
             eventType.users.map(async (user) => {
               await sendDisabledPaymentEmail(eventType.title, user.email, appMetadata.name, eventType.id);
+            });
+            await ctx.prisma.eventType.update({
+              where: {
+                id: eventType.id,
+              },
+              data: {
+                metadata: {
+                  ...eventType.metadata,
+                  apps: {
+                    ...eventType.metadata.apps,
+                    stripe: { ...eventType.metadata.apps.stripe, enabled: false },
+                  },
+                },
+              },
             });
           })
         );
