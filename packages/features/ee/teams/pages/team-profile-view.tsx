@@ -276,7 +276,7 @@ const ProfileView = () => {
             <Dialog>
               <DialogTrigger asChild>
                 <Button color="destructive" className="border" StartIcon={Icon.FiTrash2}>
-                  {t("delete_team")}
+                  {t("disband_team")}
                 </Button>
               </DialogTrigger>
               <ConfirmationDialogContent
