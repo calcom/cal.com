@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
   if (!client_id) return res.status(400).json({ message: "HubSpot client id missing." });
 
-  const redirectUri = WEBAPP_URL + "/api/integrations/hubspotothercalendar/callback";
+  const redirectUri = WEBAPP_URL + "/api/integrations/hubspot/callback";
   const url = hubspotClient.oauth.getAuthorizationUrl(client_id, redirectUri, scopes.join(" "));
   res.status(200).json({ url });
 }
