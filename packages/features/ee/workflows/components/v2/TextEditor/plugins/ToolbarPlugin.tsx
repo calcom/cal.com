@@ -478,6 +478,9 @@ export default function ToolbarPlugin(props: TextEditorProps) {
           type="button"
           onClick={() => {
             editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
+            if (isItalic) {
+              editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
+            }
           }}
           className={"toolbar-item spaced " + (isBold ? "active" : "")}
           aria-label="Format Bold">
@@ -487,6 +490,9 @@ export default function ToolbarPlugin(props: TextEditorProps) {
           type="button"
           onClick={() => {
             editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
+            if (isBold) {
+              editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
+            }
           }}
           className={"toolbar-item spaced " + (isItalic ? "active" : "")}
           aria-label="Format Italics">
