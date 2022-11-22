@@ -14,6 +14,7 @@ import { Alert } from "@calcom/ui/v2/core/Alert";
 import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
 import { List } from "@calcom/ui/v2/core/List";
 import { ShellSubHeading } from "@calcom/ui/v2/core/Shell";
+import SkeletonLoader from "@calcom/ui/v2/core/apps/SkeletonLoader";
 import InstalledAppsLayout from "@calcom/ui/v2/core/layouts/InstalledAppsLayout";
 import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
 
@@ -21,7 +22,6 @@ import { QueryCell } from "@lib/QueryCell";
 
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import IntegrationListItem from "@components/apps/IntegrationListItem";
-import SkeletonLoader from "@components/availability/SkeletonLoader";
 
 function ConnectOrDisconnectIntegrationButton(props: {
   credentialIds: number[];
