@@ -107,5 +107,11 @@
     "categories": ["other"],
     "slug": "sendgrid",
     "type": "sendgrid_other_calendar"
+  },
+  {
+    "dirName": "telegram",
+    "categories": ["video"],
+    "slug": "telegram",
+    "type": "telegram_video"
   }
 ]
