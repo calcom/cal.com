@@ -291,12 +291,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
     <>
       <nav className="fixed z-20 flex w-full items-center justify-between border-b border-gray-100 bg-gray-50 p-4 sm:relative lg:hidden">
         <div className="flex items-center space-x-3 ">
-          <Button
-            StartIcon={Icon.FiMenu}
-            color="minimalSecondary"
-            size="icon"
-            onClick={props.onSideContainerOpen}
-          />
+          <Button StartIcon={Icon.FiMenu} color="minimal" size="icon" onClick={props.onSideContainerOpen} />
           <a href="/" className="flex items-center space-x-2 rounded-md px-3 py-1 hover:bg-gray-200">
             <Icon.FiArrowLeft className="text-gray-700" />
             <p className="font-semibold text-black">{t("settings")}</p>

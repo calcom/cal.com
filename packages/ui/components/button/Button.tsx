@@ -1,24 +1,14 @@
+import { cva, VariantProps } from "class-variance-authority";
 import Link, { LinkProps } from "next/link";
 import React, { forwardRef } from "react";
 import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
+import { applyStyleToMultipleVariants } from "@calcom/lib/cva";
 
 import Tooltip from "../../v2/core/Tooltip";
 
 export type ButtonBaseProps = {
-  /* Primary: Signals most important actions at any given point in the application.
-       Secondary: Gives visual weight to actions that are important
-       Minimal: Used for actions that we want to give very little significane to */
-  color?: keyof typeof variantClassName;
-  /**Default: H = 36px (default)
-       Large: H = 38px (Onboarding, modals)
-       Icon: Makes the button be an icon button */
-  size?: "base" | "lg" | "icon";
-  /**Signals the button is loading */
-  loading?: boolean;
-  /** Disables the button from being clicked */
-  disabled?: boolean;
   /** Action that happens when the button is clicked */
   onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   /**Left aligned icon*/
@@ -28,34 +18,119 @@ export type ButtonBaseProps = {
   shallow?: boolean;
   /**Tool tip used when icon size is set to small */
   tooltip?: string;
-  /** @deprecated This has now been replaced by button group. */
-  combined?: boolean;
   flex?: boolean;
-};
+} & VariantProps<typeof buttonClasses>;
+
 export type ButtonProps = ButtonBaseProps &
   (
     | (Omit<JSX.IntrinsicElements["a"], "href" | "onClick" | "ref"> & LinkProps)
     | (Omit<JSX.IntrinsicElements["button"], "onClick" | "ref"> & { href?: never })
   );
 
-const variantClassName = {
-  primary:
-    "border border-transparent text-white bg-brand-500 hover:bg-brand-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500",
-  secondary: "border border-gray-200 text-brand-900 bg-white hover:bg-gray-100",
-  minimal:
-    "text-gray-700 bg-transparent hover:bg-gray-100 focus:outline-none focus:ring-offset-1 focus:bg-gray-100 focus:ring-brand-900 dark:text-darkgray-900 hover:dark:text-gray-50",
-  minimalSecondary:
-    "text-gray-700 bg-transparent hover:bg-gray-100 dark:hover:bg-darkgray-200 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-gray-100 focus:ring-brand-900 dark:text-darkgray-900 hover:dark:text-gray-50 border border-transparent hover:border-gray-300 dark:hover:border-darkgray-300",
-  destructive:
-    "text-gray-900 focus:text-red-700 bg-transparent hover:bg-red-100 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:bg-red-100 focus:ring-red-700",
-};
-const variantDisabledClassName = {
-  primary: "border border-transparent bg-brand-500 bg-opacity-20 text-white",
-  secondary: "border border-gray-200 text-brand-900 bg-white opacity-30",
-  minimal: "text-gray-400 bg-transparent",
-  minimalSecondary: "text-gray-400 bg-transparent",
-  destructive: "text-red-700 bg-transparent opacity-30",
-};
+const buttonClasses = cva(
+  "inline-flex items-center text-sm font-medium relative rounded-md transition-colors",
+  {
+    variants: {
+      color: {
+        primary: "text-white dark:text-black",
+        secondary: "text-gray-900 dark:text-darkgray-900",
+        minimal: "text-gray-900 dark:text-darkgray-900",
+        destructive: "",
+      },
+      size: {
+        base: "h-9 px-4 py-2.5  ",
+        lg: "h-[36px] px-4 py-2.5 ",
+        icon: "flex justify-center min-h-[36px] min-w-[36px] ",
+      },
+      loading: {
+        true: "cursor-wait",
+      },
+      disabled: {
+        true: "cursor-not-allowed",
+      },
+    },
+    compoundVariants: [
+      // Primary variants
+      {
+        disabled: true,
+        color: "primary",
+        className: "bg-gray-800 bg-opacity-30 dark:bg-opacity-30 dark:bg-darkgray-800",
+      },
+      {
+        loading: true,
+        color: "primary",
+        className: "bg-gray-800/30 text-white/30 dark:bg-opacity-30 dark:bg-darkgray-700 dark:text-black/30",
+      },
+      ...applyStyleToMultipleVariants({
+        disabled: [undefined, false],
+        color: "primary",
+        className:
+          "bg-brand-500 hover:bg-brand-400 focus:border focus:border-white focus:outline-none focus:ring-2 focus:ring-offset focus:ring-brand-500 dark:hover:bg-darkgray-600 dark:bg-darkgray-900",
+      }),
+      // Secondary variants
+      {
+        disabled: true,
+        color: "secondary",
+        className:
+          "border border-gray-200 bg-opacity-30 text-gray-900/30 bg-white dark:bg-darkgray-100 dark:text-darkgray-900/30 dark:border-darkgray-200",
+      },
+      {
+        loading: true,
+        color: "secondary",
+        className:
+          "bg-gray-100 text-gray-900/30 dark:bg-darkgray-100 dark:text-darkgray-900/30 dark:border-darkgray-200",
+      },
+      ...applyStyleToMultipleVariants({
+        disabled: [undefined, false],
+        color: "secondary",
+        className:
+          "border border-gray-300 dark:border-darkgray-300 hover:bg-gray-50 hover:border-gray-400 focus:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus:bg-darkgray-200 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-gray-900 dark:focus:ring-white",
+      }),
+      // Minimal variants
+      {
+        disabled: true,
+        color: "minimal",
+        className:
+          "border:gray-200 bg-opacity-30 text-gray-900/30 dark:bg-darkgray-100 dark:text-darkgray-900/30 dark:border-darkgray-200",
+      },
+      {
+        loading: true,
+        color: "minimal",
+        className:
+          "bg-gray-100 text-gray-900/30 dark:bg-darkgray-100 dark:text-darkgray-900/30 dark:border-darkgray-200",
+      },
+      applyStyleToMultipleVariants({
+        disabled: [undefined, false],
+        color: "minimal",
+        className:
+          "hover:bg-gray-100 focus:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus:bg-darkgray-200 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-gray-900 dark:focus:ring-white",
+      }),
+      // Destructive variants
+      {
+        disabled: true,
+        color: "destructive",
+        className:
+          "text-red-700/30 dark:text-red-700/30 bg-red-100/40 dark:bg-red-100/80 border border-red-200",
+      },
+      {
+        loading: true,
+        color: "destructive",
+        className:
+          "text-red-700/30 dark:text-red-700/30 hover:text-red-700/30 bg-red-100 border border-red-200",
+      },
+      ...applyStyleToMultipleVariants({
+        disabled: [false, undefined],
+        color: "destructive",
+        className:
+          "border dark:text-white text-gray-900 hover:text-red-700 focus:text-red-700 dark:hover:text-red-700 dark:focus:text-red-700 hover:border-red-100 focus:border-red-100 hover:bg-red-100  focus:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-red-700",
+      }),
+    ],
+    defaultVariants: {
+      color: "primary",
+      size: "base",
+    },
+  }
+);
 
 export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonProps>(function Button(
   props: ButtonProps,
@@ -63,13 +138,12 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
 ) {
   const {
     loading = false,
-    color = "primary",
-    size = "base",
+    color,
+    size,
     type = "button",
     StartIcon,
     EndIcon,
     shallow,
-    combined = false,
     // attributes propagated from `HTMLAnchorProps` or `HTMLButtonProps`
     ...passThroughProps
   } = props;
@@ -86,17 +160,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       type: !isLink ? type : undefined,
       ref: forwardedRef,
       className: classNames(
-        // base styles independent what type of button it is
-        "inline-flex items-center text-sm font-medium relative",
-        // different styles depending on size
-        size === "base" && "h-9 px-4 py-2.5  ",
-        size === "lg" && "h-[36px] px-4 py-2.5 ",
-        size === "icon" && "flex justify-center min-h-[36px] min-w-[36px] ",
-        combined ? "" : "rounded-md",
-        // different styles depending on color
-        // set not-allowed cursor if disabled
-        disabled ? variantDisabledClassName[color] : variantClassName[color],
-        loading ? "cursor-wait" : disabled ? "cursor-not-allowed" : "",
+        buttonClasses({ color, size, loading, disabled: props.disabled }),
         props.className
       ),
       // if we click a disabled button, we prevent going through the click handler
@@ -116,10 +180,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
       {loading && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform">
           <svg
-            className={classNames(
-              "mx-4 h-5 w-5 animate-spin",
-              color === "primary" ? "text-white dark:text-black" : "text-black"
-            )}
+            className="mx-4 h-5 w-5 animate-spin text-black dark:text-white"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24">

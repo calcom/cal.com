@@ -289,7 +289,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupInfered, "event
           <SettingsToggle
             title={t("limit_future_bookings")}
             description={t("limit_future_bookings_description")}
-            checked={value !== "UNLIMITED"}
+            checked={value && value !== "UNLIMITED"}
             onCheckedChange={(bool) => formMethods.setValue("periodType", bool ? "ROLLING" : "UNLIMITED")}>
             <RadioGroup.Root
               defaultValue={watchPeriodType}
