@@ -425,10 +425,6 @@ i.italic {
   background-image: url(images/icons/type-italic.svg);
 }
 
-i.underline {
-  background-image: url(images/icons/type-underline.svg);
-}
-
 i.link {
   background-image: url(images/icons/link.svg);
 }

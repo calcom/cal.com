@@ -16,7 +16,6 @@ import { UseFormReturn } from "react-hook-form";
 
 import ExampleTheme from "./ExampleTheme";
 import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
-import ListMaxIndentLevelPlugin from "./plugins/ListMaxIndentLevelPlugin";
 import ToolbarPlugin from "./plugins/ToolbarPlugin";
 import "./stylesEditor.css";
 
@@ -61,7 +60,6 @@ export default function Editor(props: TextEditorProps) {
             <ListPlugin />
             <LinkPlugin />
             <AutoLinkPlugin />
-            <ListMaxIndentLevelPlugin maxDepth={7} />
             <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
           </div>
         </div>
