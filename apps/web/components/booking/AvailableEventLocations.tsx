@@ -16,7 +16,9 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
         }
         return (
           <div key={location.type} className="flex flex-row items-center text-sm font-medium">
-            {eventLocationType.iconUrl ? (
+            {eventLocationType.iconUrl === "/link.svg" ? (
+              <Icon.FiLink className="dark:text-darkgray-600 mr-[10px] ml-[2px] h-4 w-4 opacity-70 dark:opacity-100 " />
+            ) : (
               <img
                 src={eventLocationType.iconUrl}
                 className={classNames(
@@ -25,8 +27,6 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
                 )}
                 alt={`${eventLocationType.label} icon`}
               />
-            ) : (
-              <Icon.FiLink className="mr-[10px] ml-[2px] h-4 w-4 opacity-70 dark:opacity-100 " />
             )}
             <Tooltip content={locationKeyToString(location)}>
               <p className="truncate">{locationKeyToString(location)}</p>
