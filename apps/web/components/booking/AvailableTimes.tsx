@@ -91,7 +91,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
               bookingUid: slot.bookingUid,
               username: slot.users?.[0],
             });
-            const path = router.pathname.endsWith("/embed") ? "../book" : "book"
+            const path = router.pathname.endsWith("/embed") ? "../book" : "book";
             const bookingUrl = `${path}?${new URLSearchParams(bookingParams).toString()}`;
 
             return (

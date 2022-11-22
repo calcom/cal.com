@@ -4,8 +4,8 @@ import { useRouter } from "next/router";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
-import { SIGNUP_DISABLED } from "@calcom/lib/constants";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { SIGNUP_DISABLED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Alert } from "@calcom/ui/Alert";

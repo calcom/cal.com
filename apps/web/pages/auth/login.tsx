@@ -7,8 +7,8 @@ import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { FaGoogle } from "react-icons/fa";
 
-import { SIGNUP_DISABLED } from "@calcom/lib/constants";
 import { isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
+import { SIGNUP_DISABLED } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
