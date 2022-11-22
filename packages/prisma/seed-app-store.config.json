@@ -107,5 +107,11 @@
     "categories": ["other"],
     "slug": "sendgrid",
     "type": "sendgrid_other_calendar"
+  },
+  {
+    "dirName": "whatsapp",
+    "categories": ["video"],
+    "slug": "whatsapp",
+    "type": "whatsapp_video"
   }
 ]
