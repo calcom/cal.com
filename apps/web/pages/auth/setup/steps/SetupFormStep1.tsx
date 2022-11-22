@@ -1,6 +1,7 @@
 import { CheckIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import classNames from "classnames";
+import { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -14,6 +15,23 @@ import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { TextField, EmailField, PasswordField, Label } from "@calcom/ui/components/form";
 import WizardForm from "@calcom/ui/v2/core/WizardForm";
 
+import { ssrInit } from "@server/lib/ssr";
+
+const StepDone = () => {
+  const { t } = useLocale();
+
+  return (
+    <div className="min-h-36 my-6 flex flex-col items-center justify-center">
+      <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-gray-600 dark:bg-white">
+        <CheckIcon className="inline-block h-10 w-10 text-white dark:bg-white dark:text-gray-600" />
+      </div>
+      <div className="max-w-[420px] text-center">
+        <h2 className="mt-6 mb-1 text-lg font-medium dark:text-gray-300">{t("all_done")}</h2>
+      </div>
+    </div>
+  );
+};
+
 const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
   const router = useRouter();
   const { t } = useLocale();
@@ -25,7 +43,8 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
     email_address: z.string().email({ message: t("enter_valid_email") }),
     full_name: z.string().min(3, t("at_least_characters", { count: 3 })),
     password: z.string().superRefine((data, ctx) => {
-      const result = isPasswordValid(data, true);
+      const isStrict = true;
+      const result = isPasswordValid(data, true, isStrict);
       Object.keys(result).map((key: string) => {
         if (!result[key as keyof typeof result]) {
           ctx.addIssue({
@@ -177,7 +196,7 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
                   formMethods.setValue("password", e.target.value);
                   await formMethods.trigger("password");
                 }}
-                hintErrors={["caplow", "min", "num"]}
+                hintErrors={["caplow", "admin_min", "num"]}
                 name="password"
                 className="my-0"
                 autoComplete="off"
