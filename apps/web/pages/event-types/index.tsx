@@ -311,7 +311,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               size="icon"
                               href={calLink}
                               StartIcon={Icon.FiExternalLink}
-                              combined
                             />
                           </Tooltip>
 
@@ -324,7 +323,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 showToast(t("link_copied"), "success");
                                 navigator.clipboard.writeText(calLink);
                               }}
-                              combined
                             />
                           </Tooltip>
                           <Dropdown modal={false}>
@@ -336,7 +334,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 type="button"
                                 size="icon"
                                 color="secondary"
-                                combined
                                 StartIcon={Icon.FiMoreHorizontal}
                               />
                             </DropdownMenuTrigger>
