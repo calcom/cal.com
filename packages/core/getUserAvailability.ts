@@ -202,10 +202,13 @@ export async function getUserAvailability(
         const startDate = dayjs(booking.start).startOf(filter);
         // this is parsed above with parseBookingLimit so we know it's safe.
         const endDate = dayjs(startDate).endOf(filter);
-
+        const bookingEventTypeId = booking.source?.split("-")[1];
         if (dayjs(booking.start).isBetween(startDate, endDate)) total++;
-        if (total >= limit)
+        // Only check OUR booking that matches the current eventTypeId
+        // we don't care about another event type in this case as we dont need to know their booking limits
+        if (total >= limit && bookingEventTypeId === eventType?.id?.toString()) {
           bufferedBusyTimes.push({ start: startDate.toISOString(), end: endDate.toISOString() });
+        }
       });
     }
   }

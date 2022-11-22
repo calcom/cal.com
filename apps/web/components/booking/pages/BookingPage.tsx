@@ -911,7 +911,7 @@ function ErrorMessage({ error }: { error: unknown }) {
         <div className="ltr:ml-3 rtl:mr-3">
           <p className="text-sm text-yellow-700">
             {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
-            {error instanceof HttpError || error instanceof Error ? error.message : "Unknown error"}
+            {error instanceof HttpError || error instanceof Error ? t(error.message) : "Unknown error"}
           </p>
         </div>
       </div>
