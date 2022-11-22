@@ -138,9 +138,10 @@ const DatePicker = ({
       onMonthChange(browsingDate.add(newMonth, "month"));
     }
   };
-
   const month = browsingDate
-    ? new Intl.DateTimeFormat(i18n.language, { month: "long" }).format(new Date(browsingDate.toISOString()))
+    ? new Intl.DateTimeFormat(i18n.language, { month: "long" }).format(
+        new Date(browsingDate.year(), browsingDate.month())
+      )
     : null;
 
   return (
