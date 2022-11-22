@@ -31,6 +31,7 @@ export const apiHandlers = {
   riverside: import("./riverside/api"),
   salesforce: import("./salesforce/api"),
   sendgrid: import("./sendgrid/api"),
+  signal: import("./signal/api"),
   sirius_video: import("./sirius_video/api"),
   stripepayment: import("./stripepayment/api"),
   tandemvideo: import("./tandemvideo/api"),
