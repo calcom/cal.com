@@ -217,7 +217,7 @@ const WebhookForm = (props: {
           render={({ field: { value } }) => (
             <>
               <Label className="font-sm mt-8 text-gray-900">
-                <>{t("event_triggers")}</>
+                <>{t("payload")}</>
               </Label>
               <div className="flex rounded-md border">
                 <div
