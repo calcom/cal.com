@@ -7,15 +7,16 @@ import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { FaGoogle } from "react-icons/fa";
 
-import { SIGNUP_DISABLED } from "@calcom/lib/constants";
 import { isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
+import { SIGNUP_DISABLED } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { Icon } from "@calcom/ui";
 import { Alert } from "@calcom/ui/Alert";
-import { Button, EmailField, PasswordField } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/components";
+import { EmailField, PasswordField } from "@calcom/ui/components/form";
 import SAMLLogin from "@calcom/ui/v2/modules/auth/SAMLLogin";
 
 import { ErrorCode, getSession } from "@lib/auth";
@@ -24,7 +25,7 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AddToHomescreen from "@components/AddToHomescreen";
 import TwoFactor from "@components/auth/TwoFactor";
-import AuthContainer from "@components/v2/ui/AuthContainer";
+import AuthContainer from "@components/ui/AuthContainer";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 import { ssrInit } from "@server/lib/ssr";

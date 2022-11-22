@@ -4,13 +4,13 @@ import { useRouter } from "next/router";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
-import { SIGNUP_DISABLED } from "@calcom/lib/constants";
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { SIGNUP_DISABLED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Alert } from "@calcom/ui/Alert";
-import Button from "@calcom/ui/v2/core/Button";
-import { EmailField, PasswordField, TextField } from "@calcom/ui/v2/core/form/fields";
+import { Button } from "@calcom/ui/components/button";
+import { EmailField, PasswordField, TextField } from "@calcom/ui/components/form";
 import { HeadSeo } from "@calcom/web/components/seo/head-seo";
 import { asStringOrNull } from "@calcom/web/lib/asStringOrNull";
 import { WEBAPP_URL } from "@calcom/web/lib/config/constants";
@@ -55,12 +55,11 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
       method: "POST",
     })
       .then(handleErrors)
-      .then(
-        async () =>
-          await signIn("Cal.com", {
-            callbackUrl: (`${WEBAPP_URL}/${router.query.callbackUrl}` || "") as string,
-          })
-      )
+      .then(async () => {
+        await signIn("Cal.com", {
+          callbackUrl: router.query.callbackUrl ? `${WEBAPP_URL}/${router.query.callbackUrl}` : WEBAPP_URL,
+        });
+      })
       .catch((err) => {
         methods.setError("apiError", { message: err.message });
       });
@@ -153,7 +152,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   // no token given, treat as a normal signup without verification token
   if (!token) {
     return {
-      props,
+      props: JSON.parse(JSON.stringify(props)),
     };
   }
 

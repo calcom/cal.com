@@ -56,6 +56,7 @@ export type FormValues = {
   locations: {
     type: EventLocationType["type"];
     address?: string;
+    attendeeAddress?: string;
     link?: string;
     hostPhoneNumber?: string;
     displayLocationPublicly?: boolean;
@@ -133,12 +134,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         message = `${err.data.code}: You are not able to update this event`;
       }
 
-      if (err.data?.code === "PARSE_ERROR") {
+      if (err.data?.code === "PARSE_ERROR" || err.data?.code === "BAD_REQUEST") {
         message = `${err.data.code}: ${err.message}`;
       }
 
       if (message) {
         showToast(message, "error");
+      } else {
+        showToast(err.message, "error");
       }
     },
   });
@@ -190,7 +193,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         teamMembers={teamMembers}
       />
     ),
-    availability: <AvailabilityTab />,
+    availability: <AvailabilityTab isTeamEvent={!!team} />,
     team: (
       <EventTeamTab
         eventType={eventType}
@@ -218,6 +221,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       enabledWorkflowsNumber={eventType.workflows.length}
       eventType={eventType}
       team={team}
+      isUpdateMutationLoading={updateMutation.isLoading}
       formMethods={formMethods}
       disableBorder={tabName === "apps" || tabName === "workflows"}
       currentUserMembership={props.currentUserMembership}>

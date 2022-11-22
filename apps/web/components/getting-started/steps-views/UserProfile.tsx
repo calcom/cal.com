@@ -6,7 +6,9 @@ import { useForm } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import { Button, showToast, TextArea } from "@calcom/ui/v2";
+import { Button } from "@calcom/ui/components";
+import { TextArea } from "@calcom/ui/components/form";
+import { showToast } from "@calcom/ui/v2";
 import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
 
 import { AvatarSSR } from "@components/ui/AvatarSSR";
@@ -100,8 +102,7 @@ const UserProfile = (props: IUserProfile) => {
 
   return (
     <form onSubmit={onSubmit}>
-      <p className="font-cal text-sm">{t("profile_picture")}</p>
-      <div className="mt-4 flex flex-row items-center justify-start rtl:justify-end">
+      <div className="flex flex-row items-center justify-start rtl:justify-end">
         {user && <AvatarSSR user={user} alt="Profile picture" className="h-16 w-16" />}
         <input
           ref={avatarRef}
@@ -116,7 +117,7 @@ const UserProfile = (props: IUserProfile) => {
           <ImageUploader
             target="avatar"
             id="avatar-upload"
-            buttonMsg={t("upload")}
+            buttonMsg={t("add_profile_photo")}
             handleAvatarChange={(newAvatar) => {
               avatarRef.current.value = newAvatar;
               const nativeInputValueSetter = Object.getOwnPropertyDescriptor(

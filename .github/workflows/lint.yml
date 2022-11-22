@@ -30,7 +30,10 @@ jobs:
         if: steps.yarn-cache.outputs.cache-hit != 'true'
         run: yarn --frozen-lockfile
 
-      - name: Lint
+      - name: Test Code Linting
+        run: yarn lint
+
+      - name: Save Code Linting Reports
         run: yarn lint:report
         continue-on-error: true
 

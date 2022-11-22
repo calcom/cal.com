@@ -2,13 +2,13 @@ import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferQueryOutput, trpc } from "@calcom/trpc/react";
-import Badge from "@calcom/ui/Badge";
 import Button from "@calcom/ui/Button";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
 import { Icon } from "@calcom/ui/Icon";
 import { ListItem } from "@calcom/ui/List";
 import { Tooltip } from "@calcom/ui/Tooltip";
+import { Badge } from "@calcom/ui/components/badge";
 
 export type TApiKeys = inferQueryOutput<"viewer.apiKeys.list">[number];
 

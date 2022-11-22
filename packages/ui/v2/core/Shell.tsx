@@ -29,7 +29,7 @@ import Dropdown, {
 } from "@calcom/ui/Dropdown";
 import { Icon } from "@calcom/ui/Icon";
 import TimezoneChangeDialog from "@calcom/ui/TimezoneChangeDialog";
-import Button from "@calcom/ui/v2/core/Button";
+import { Button } from "@calcom/ui/components/button";
 import showToast from "@calcom/ui/v2/core/notifications";
 import Tips from "@calcom/ui/v2/modules/tips/Tips";
 
@@ -517,7 +517,7 @@ const navigation: NavigationItemType[] = [
   },
   {
     name: "settings",
-    href: "/settings",
+    href: "/settings/my-account/profile",
     icon: Icon.FiSettings,
   },
 ];
@@ -812,7 +812,7 @@ export function ShellMain(props: LayoutProps) {
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className="w-full ltr:mr-4 rtl:ml-4 sm:block">
               {props.heading && (
-                <h1 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 mb-1 truncate text-xl font-bold tracking-wide text-black xl:max-w-full">
+                <h1 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 mb-1 hidden truncate text-xl font-bold tracking-wide text-black sm:block xl:max-w-full">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
               )}

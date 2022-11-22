@@ -2,14 +2,14 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import Badge from "@calcom/ui/v2/core/Badge";
+import { Badge } from "@calcom/ui/components/badge";
 import Loader from "@calcom/ui/v2/core/Loader";
 import Meta from "@calcom/ui/v2/core/Meta";
 import Switch from "@calcom/ui/v2/core/Switch";
 import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
 
-import DisableTwoFactorModal from "@components/v2/settings/DisableTwoFactorModal";
-import EnableTwoFactorModal from "@components/v2/settings/EnableTwoFactorModal";
+import DisableTwoFactorModal from "@components/settings/DisableTwoFactorModal";
+import EnableTwoFactorModal from "@components/settings/EnableTwoFactorModal";
 
 const TwoFactorAuthView = () => {
   const utils = trpc.useContext();
