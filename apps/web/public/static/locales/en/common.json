@@ -1372,5 +1372,6 @@
   "test_preview": "Test Preview",
   "route_to": "Route to",
   "test_preview_description": "Test your routing form without submitting any data",
-  "test_routing": "Test Routing"
+  "test_routing": "Test Routing",
+  "booking_limit_reached":"Booking Limit for this event type has been reached"
 }
