@@ -21,14 +21,14 @@ export const UserAvatars = ({
             image: profile.image,
             alt: profile.name,
             title: profile.name,
-            href: `${CAL_URL}/${profile.username}`,
+            href: profile.username ? `${CAL_URL}/${profile.username}` : undefined,
           },
           ...(showMembers
             ? users.map((user) => ({
                 title: user.name,
                 image: `${CAL_URL}/${user.username}/avatar.png`,
                 alt: user.name || undefined,
-                href: `${CAL_URL}/${user.username}`,
+                href: user.username ? `${CAL_URL}/${user.username}` : undefined,
               }))
             : []),
         ].filter((item) => !!item.image) as {
