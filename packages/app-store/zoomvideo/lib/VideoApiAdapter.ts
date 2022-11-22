@@ -339,7 +339,10 @@ const handleZoomResponse = async (response: Response, credentialId: Credential["
     }
     throw Error(response.statusText);
   }
-
+  // handle 204 response code with empty response (causes crash otherwise as "" is invalid JSON)
+  if (response.status === 204) {
+    return;
+  }
   return responseClone.json();
 };
 

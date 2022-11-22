@@ -123,7 +123,7 @@ const BookingPage = ({
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
-      const { id, paymentUid } = responseData;
+      const { uid, paymentUid } = responseData;
       if (paymentUid) {
         return await router.push(
           createPaymentLink({
@@ -139,17 +139,10 @@ const BookingPage = ({
       return router.push({
         pathname: "/success",
         query: {
-          date,
-          type: eventType.id,
-          eventSlug: eventType.slug,
-          username: profile.slug,
-          reschedule: !!rescheduleUid,
-          name: bookingForm.getValues("name"),
-          email: bookingForm.getValues("email"),
-          location: responseData.location,
-          eventName: profile.eventName || "",
-          bookingId: id,
+          uid,
           isSuccessBookingPage: true,
+          email: bookingForm.getValues("email"),
+          eventTypeSlug: eventType.slug,
         },
       });
     },
@@ -157,31 +150,15 @@ const BookingPage = ({
 
   const recurringMutation = useMutation(createRecurringBooking, {
     onSuccess: async (responseData = []) => {
-      const { attendees = [], id, recurringEventId } = responseData[0] || {};
-      const location = (function humanReadableLocation(location) {
-        if (!location) {
-          return;
-        }
-        if (location.includes("integration")) {
-          return t("web_conferencing_details_to_follow");
-        }
-        return location;
-      })(responseData[0].location);
+      const { uid } = responseData[0] || {};
 
       return router.push({
         pathname: "/success",
         query: {
-          date,
-          type: eventType.id,
-          eventSlug: eventType.slug,
-          recur: recurringEventId,
-          username: profile.slug,
-          reschedule: !!rescheduleUid,
-          name: attendees[0].name,
-          email: attendees[0].email,
-          location,
-          eventName: profile.eventName || "",
-          bookingId: id,
+          uid,
+          allRemainingBookings: true,
+          email: bookingForm.getValues("email"),
+          eventTypeSlug: eventType.slug,
         },
       });
     },
@@ -516,7 +493,7 @@ const BookingPage = ({
                             <p key={key}>{timeFormatted}</p>
                           ))}>
                           <p className="dark:text-darkgray-600 text-sm">
-                            {t("plus_more", { count: recurringStrings.length - 5 })}
+                            + {t("plus_more", { count: recurringStrings.length - 5 })}
                           </p>
                         </Tooltip>
                       </div>

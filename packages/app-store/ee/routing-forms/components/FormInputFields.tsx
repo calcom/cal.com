@@ -50,7 +50,7 @@ export default function FormInputFields(props: Props) {
                 /* @ts-ignore */
                 required={!!field.required}
                 listValues={options}
-                data-testid="field"
+                data-testid="form-field"
                 setValue={(value) => {
                   setResponse((response) => {
                     response = response || {};
