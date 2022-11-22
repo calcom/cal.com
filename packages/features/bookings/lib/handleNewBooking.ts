@@ -7,7 +7,6 @@ import {
   WebhookTriggerEvents,
 } from "@prisma/client";
 import async from "async";
-import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
 import { RRule } from "rrule";
 import short from "short-uuid";
@@ -22,7 +21,7 @@ import { cancelScheduledJobs, scheduleTrigger } from "@calcom/app-store/zapier/l
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
-import dayjs, { ConfigType } from "@calcom/dayjs";
+import dayjs from "@calcom/dayjs";
 import {
   sendAttendeeRequestEmail,
   sendOrganizerRequestEmail,
@@ -48,7 +47,6 @@ import { EventTypeMetaDataSchema, extendedBookingCreateBody } from "@calcom/pris
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
-import { WorkingHours } from "@calcom/types/schedule";
 
 import sendPayload, { EventTypeInfo } from "../../webhooks/lib/sendPayload";
 
@@ -86,56 +84,40 @@ async function refreshCredentials(credentials: Array<Credential>): Promise<Array
   return await async.mapLimit(credentials, 5, refreshCredential);
 }
 
-const isWithinAvailableHours = (
-  timeSlot: { start: ConfigType; end: ConfigType },
-  {
-    workingHours,
-  }: {
-    workingHours: WorkingHours[];
-  }
-) => {
-  const timeSlotStart = dayjs(timeSlot.start).utc();
-  const timeSlotEnd = dayjs(timeSlot.end).utc();
-  for (const workingHour of workingHours) {
-    // TODO: Double check & possibly fix timezone conversions.
-    const startTime = timeSlotStart.startOf("day").add(workingHour.startTime, "minute");
-    const endTime = timeSlotEnd.startOf("day").add(workingHour.endTime, "minute");
-    if (
-      workingHour.days.includes(timeSlotStart.day()) &&
-      // UTC mode, should be performant.
-      timeSlotStart.isBetween(startTime, endTime, null, "[)") &&
-      timeSlotEnd.isBetween(startTime, endTime, null, "(]")
-    ) {
-      return true;
-    }
-  }
-  return false;
-};
+function isAvailable(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, length: number): boolean {
+  // Check for conflicts
+  let t = true;
 
-// if true, there are conflicts.
-function checkForConflicts(busyTimes: BufferedBusyTimes, time: dayjs.ConfigType, length: number) {
   // Early return
-  if (!Array.isArray(busyTimes) || busyTimes.length < 1) {
-    return false; // guaranteed no conflicts when there is no busy times.
-  }
+  if (!Array.isArray(busyTimes) || busyTimes.length < 1) return t;
 
-  for (const busyTime of busyTimes) {
+  let i = 0;
+  while (t === true && i < busyTimes.length) {
+    const busyTime = busyTimes[i];
+    i++;
     const startTime = dayjs(busyTime.start);
     const endTime = dayjs(busyTime.end);
+
     // Check if time is between start and end times
     if (dayjs(time).isBetween(startTime, endTime, null, "[)")) {
-      return true;
+      t = false;
+      break;
     }
+
     // Check if slot end time is between start and end time
     if (dayjs(time).add(length, "minutes").isBetween(startTime, endTime)) {
-      return true;
+      t = false;
+      break;
     }
+
     // Check if startTime is between slot
     if (startTime.isBetween(dayjs(time), dayjs(time).add(length, "minutes"))) {
-      return true;
+      t = false;
+      break;
     }
   }
-  return false;
+
+  return t;
 }
 
 const getEventTypesFromDB = async (eventTypeId: number) => {
@@ -218,7 +200,7 @@ async function ensureAvailableUsers(
   const availableUsers: typeof eventType.users = [];
   /** Let's start checking for availability */
   for (const user of eventType.users) {
-    const { busy: bufferedBusyTimes, workingHours } = await getUserAvailability(
+    const { busy: bufferedBusyTimes } = await getUserAvailability(
       {
         userId: user.id,
         eventTypeId: eventType.id,
@@ -227,22 +209,9 @@ async function ensureAvailableUsers(
       { user, eventType }
     );
 
-    // check if time slot is outside of schedule.
-    if (
-      !isWithinAvailableHours(
-        { start: input.dateFrom, end: input.dateTo },
-        {
-          workingHours,
-        }
-      )
-    ) {
-      // user does not have availability at this time, skip user.
-      continue;
-    }
-
     console.log("calendarBusyTimes==>>>", bufferedBusyTimes);
 
-    let foundConflict = false;
+    let isAvailableToBeBooked = true;
     try {
       if (eventType.recurringEvent) {
         const recurringEvent = parseRecurringEvent(eventType.recurringEvent);
@@ -251,19 +220,23 @@ async function ensureAvailableUsers(
         // DONE: Decreased computational complexity from O(2^n) to O(n) by refactoring this loop to stop
         // running at the first unavailable time.
         let i = 0;
-        while (!foundConflict && i < allBookingDates.length) {
-          foundConflict = checkForConflicts(bufferedBusyTimes, allBookingDates[i++], eventType.length);
+        while (isAvailableToBeBooked === true && i < allBookingDates.length) {
+          const aDate = allBookingDates[i];
+          i++;
+          isAvailableToBeBooked = isAvailable(bufferedBusyTimes, aDate, eventType.length);
+          // We bail at the first false, we don't need to keep checking
+          if (!isAvailableToBeBooked) break;
         }
       } else {
-        foundConflict = checkForConflicts(bufferedBusyTimes, input.dateFrom, eventType.length);
+        isAvailableToBeBooked = isAvailable(bufferedBusyTimes, input.dateFrom, eventType.length);
       }
     } catch {
       log.debug({
         message: "Unable set isAvailableToBeBooked. Using true. ",
       });
     }
-    // no conflicts found, add to available users.
-    if (!foundConflict) {
+
+    if (isAvailableToBeBooked) {
       availableUsers.push(user);
     }
   }
@@ -486,9 +459,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (reqBody.bookingUid) {
-    if (!eventType.seatsPerTimeSlot) {
+    if (!eventType.seatsPerTimeSlot)
       throw new HttpError({ statusCode: 404, message: "Event type does not have seats" });
-    }
 
     const booking = await prisma.booking.findUnique({
       where: {
@@ -510,9 +482,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         },
       },
     });
-    if (!booking) {
-      throw new HttpError({ statusCode: 404, message: "Booking not found" });
-    }
+    if (!booking) throw new HttpError({ statusCode: 404, message: "Booking not found" });
 
     // Need to add translation for attendees to pass type checks. Since these values are never written to the db we can just use the new attendee language
     const bookingAttendees = booking.attendees.map((attendee) => {
@@ -521,13 +491,11 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
     evt = { ...evt, attendees: [...bookingAttendees, invitee[0]] };
 
-    if (eventType.seatsPerTimeSlot <= booking.attendees.length) {
+    if (eventType.seatsPerTimeSlot <= booking.attendees.length)
       throw new HttpError({ statusCode: 409, message: "Booking seats are full" });
-    }
 
-    if (booking.attendees.find((attendee) => attendee.email === invitee[0].email)) {
+    if (booking.attendees.some((attendee) => attendee.email === invitee[0].email))
       throw new HttpError({ statusCode: 409, message: "Already signed up for time slot" });
-    }
 
     await prisma.booking.update({
       where: {
@@ -546,13 +514,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     });
 
     const newSeat = booking.attendees.length !== 0;
-    /**
-     * Remember objects are passed into functions as references
-     * so if you modify it in a inner function it will be modified in the outer function
-     * deep cloning evt to avoid this
-     */
-    const copyEvent = cloneDeep(evt);
-    await sendScheduledSeatsEmails(copyEvent, invitee[0], newSeat, !!eventType.seatsShowAttendees);
+
+    await sendScheduledSeatsEmails(evt, invitee[0], newSeat, !!eventType.seatsShowAttendees);
 
     const credentials = await refreshCredentials(organizerUser.credentials);
     const eventManager = new EventManager({ ...organizerUser, credentials });
