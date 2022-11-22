@@ -4,14 +4,14 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
 import { Dialog } from "@calcom/ui/Dialog";
-import { ButtonBaseProps } from "@calcom/ui/components/button";
+import { ButtonProps } from "@calcom/ui/components/button";
 import showToast from "@calcom/ui/v2/core/notifications";
 
 export default function DisconnectIntegration(props: {
   /** Integration credential id */
   id: number;
   externalId?: string;
-  render: (renderProps: ButtonBaseProps) => JSX.Element;
+  render: (renderProps: ButtonProps) => JSX.Element;
   onOpenChange: (isOpen: boolean) => unknown | Promise<unknown>;
 }) {
   const { id, externalId = "" } = props;
