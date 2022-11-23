@@ -65,7 +65,7 @@ export function Dialog(props: DialogProps) {
 }
 type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]> & {
   size?: "xl" | "lg" | "md";
-  type: "creation" | "confirmation";
+  type?: "creation" | "confirmation";
   title?: string;
   description?: string | JSX.Element | undefined;
   closeText?: string;
@@ -80,7 +80,10 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
 };
 
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
-  ({ children, title, Icon, actionProps, useOwnActionButtons, ...props }, forwardedRef) => {
+  (
+    { children, title, Icon, actionProps, useOwnActionButtons, type = "creation", ...props },
+    forwardedRef
+  ) => {
     const { t } = useLocale();
 
     return (
@@ -102,14 +105,14 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
             `${props.className || ""}`
           )}
           ref={forwardedRef}>
-          {props.type === "creation" && (
+          {type === "creation" && (
             <div>
               {title && <DialogHeader title={title} />}
               {props.description && <p className="pb-5 text-sm text-gray-500">{props.description}</p>}
               <div className="flex flex-col space-y-6">{children}</div>
             </div>
           )}
-          {props.type === "confirmation" && (
+          {type === "confirmation" && (
             <div className="flex">
               {Icon && (
                 <div className="mr-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-300">

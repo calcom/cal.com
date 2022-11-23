@@ -9,8 +9,9 @@ export const createEventTypeInput = _EventTypeModel
     teamId: true,
     schedulingType: true,
     hidden: true,
+    locations: true
   })
-  .partial({ hidden: true })
+  .partial({ hidden: true, locations: true })
   .refine((data) => (data.teamId ? data.teamId && data.schedulingType : true), {
     path: ["schedulingType"],
     message: "You must select a scheduling type for team events",

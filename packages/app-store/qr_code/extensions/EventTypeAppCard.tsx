@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
-import { Tooltip } from "@calcom/ui/v2";
+import { Tooltip } from "@calcom/ui";
 
 import { appDataSchema } from "../zod";
 

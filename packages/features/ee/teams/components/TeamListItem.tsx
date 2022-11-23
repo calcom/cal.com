@@ -6,21 +6,23 @@ import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/Icon";
-import { Avatar } from "@calcom/ui/components";
-import { Button } from "@calcom/ui/components/button";
-import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
-import { Dialog, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
-import Dropdown, {
+import {
+  Avatar,
+  Button,
+  ButtonGroup,
+  ConfirmationDialogContent,
+  Dialog,
+  DialogTrigger,
+  Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@calcom/ui/v2/core/Dropdown";
-import { Tooltip } from "@calcom/ui/v2/core/Tooltip";
-import showToast from "@calcom/ui/v2/core/notifications";
+  Icon,
+  showToast,
+  Tooltip,
+} from "@calcom/ui";
 
 import { TeamRole } from "./TeamPill";
 

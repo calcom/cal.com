@@ -2,7 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import Link from "next/link";
 
 import { RouterOutputs } from "@calcom/trpc/react";
-import { Switch } from "@calcom/ui/v2";
+import { Switch } from "@calcom/ui";
 import OmniInstallAppButton from "@calcom/web/components/apps/OmniInstallAppButton";
 
 import { SetAppDataGeneric } from "../EventTypeAppContext";

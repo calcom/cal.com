@@ -1,7 +1,7 @@
 // import * as example from "./_example";
 import * as applecalendar from "./applecalendar";
 import * as caldavcalendar from "./caldavcalendar";
-import * as closecomothercalendar from "./closecomothercalendar";
+import * as closecom from "./closecom";
 import * as dailyvideo from "./dailyvideo";
 import * as exchange2013calendar from "./exchange2013calendar";
 import * as exchange2016calendar from "./exchange2016calendar";
@@ -9,12 +9,13 @@ import * as exchangecalendar from "./exchangecalendar";
 import * as giphy from "./giphy";
 import * as googlecalendar from "./googlecalendar";
 import * as googlevideo from "./googlevideo";
-import * as hubspotothercalendar from "./hubspotothercalendar";
+import * as hubspot from "./hubspot";
 import * as huddle01video from "./huddle01video";
 import * as jitsivideo from "./jitsivideo";
 import * as larkcalendar from "./larkcalendar";
 import * as office365calendar from "./office365calendar";
 import * as office365video from "./office365video";
+import * as salesforce from "./salesforce";
 import * as sendgrid from "./sendgrid";
 import * as stripepayment from "./stripepayment";
 import * as tandemvideo from "./tandemvideo";
@@ -27,16 +28,17 @@ const appStore = {
   //   example,
   applecalendar,
   caldavcalendar,
-  closecomothercalendar,
+  closecom,
   dailyvideo,
   googlecalendar,
   googlevideo,
-  hubspotothercalendar,
+  hubspot,
   huddle01video,
   jitsivideo,
   larkcalendar,
   office365calendar,
   office365video,
+  salesforce,
   sendgrid,
   stripepayment,
   tandemvideo,
