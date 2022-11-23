@@ -286,7 +286,7 @@ export const EventSetupTab = (
         )}
         <div className="!mt-4 [&_label]:my-1 [&_label]:font-normal">
           <SettingsToggle
-            title="Allow booker to select duration"
+            title={t("allow_booker_to_select_duration")}
             checked={multipleDuration !== undefined}
             onCheckedChange={(e) => {
               if (multipleDuration !== undefined) {
