@@ -14,7 +14,7 @@ export default class OrganizerPaymentRefundFailedEmail extends OrganizerSchedule
     }
 
     return {
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `Mento Coaching <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.t("refund_failed_subject", {
         eventType: this.calEvent.type,

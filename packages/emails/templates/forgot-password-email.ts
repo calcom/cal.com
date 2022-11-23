@@ -26,7 +26,7 @@ export default class ForgotPasswordEmail extends BaseEmail {
   protected getNodeMailerPayload(): Record<string, unknown> {
     return {
       to: `${this.passwordEvent.user.name} <${this.passwordEvent.user.email}>`,
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `Mento Coaching <${this.getMailerOptions().from}>`,
       subject: this.passwordEvent.language("reset_password_subject"),
       html: renderEmail("ForgotPasswordEmail", this.passwordEvent),
       text: this.getTextBody(),

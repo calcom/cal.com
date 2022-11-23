@@ -18,7 +18,7 @@ export default class FeedbackEmail extends BaseEmail {
 
   protected getNodeMailerPayload(): Record<string, unknown> {
     return {
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `Mento Coaching <${this.getMailerOptions().from}>`,
       to: process.env.SEND_FEEDBACK_EMAIL,
       subject: `User Feedback`,
       html: renderEmail("FeedbackEmail", this.feedback),

@@ -80,7 +80,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
         filename: "event.ics",
         content: this.getiCalEventAsString(),
       },
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `Mento Coaching <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.t(subject, {
         eventType: this.calEvent.type,
