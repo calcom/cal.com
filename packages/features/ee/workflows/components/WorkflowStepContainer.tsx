@@ -1,4 +1,3 @@
-import { ArrowDownIcon } from "@heroicons/react/outline";
 import {
   TimeUnit,
   WorkflowActions,
@@ -6,73 +5,70 @@ import {
   WorkflowTemplates,
   WorkflowTriggerEvents,
 } from "@prisma/client";
-import { isValidPhoneNumber } from "libphonenumber-js";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
-import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui";
-import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
-import { Dialog } from "@calcom/ui/Dialog";
-import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
-import { Icon } from "@calcom/ui/Icon";
-import Select from "@calcom/ui/form/Select";
-import { TextArea } from "@calcom/ui/form/fields";
-import showToast from "@calcom/ui/v2/core/notifications";
+import {
+  Button,
+  Checkbox,
+  ConfirmationDialogContent,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  Dropdown,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  EmailField,
+  Icon,
+  Label,
+  PhoneInput,
+  Select,
+  showToast,
+  TextArea,
+  TextField,
+} from "@calcom/ui";
 
 import { AddVariablesDropdown } from "../components/AddVariablesDropdown";
 import {
   getWorkflowActionOptions,
   getWorkflowTemplateOptions,
-  getWorkflowTimeUnitOptions,
   getWorkflowTriggerOptions,
 } from "../lib/getOptions";
-import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
+import { translateVariablesToEnglish } from "../lib/variableTranslations";
 import type { FormValues } from "../pages/workflow";
+import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
 type WorkflowStepProps = {
   step?: WorkflowStep;
   form: UseFormReturn<FormValues>;
   reload?: boolean;
   setReload?: Dispatch<SetStateAction<boolean>>;
-  editCounter: number;
-  setEditCounter: Dispatch<SetStateAction<number>>;
+  isFreeUser: boolean;
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
-  const { step, form, reload, setReload, editCounter, setEditCounter } = props;
-  const [editNumberMode, setEditNumberMode] = useState(
-    step?.action === WorkflowActions.SMS_NUMBER && !step?.sendTo ? true : false
-  );
-  const [editEmailBodyMode, setEditEmailBodyMode] = useState(false);
-  const [sendTo, setSendTo] = useState(step?.sendTo || "");
-  const [errorMessageNumber, setErrorMessageNumber] = useState("");
-  const [errorMessageCustomInput, setErrorMessageCustomInput] = useState("");
-  const [isInfoParagraphOpen, setIsInfoParagraphOpen] = useState(false);
+  const { step, form, reload, setReload, isFreeUser } = props;
+  const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
-  const [isTestActionDisabled, setIsTestActionDisabled] = useState(false);
 
-  const [translatedReminderBody, setTranslatedReminderBody] = useState(
-    getTranslatedText((step ? form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) : "") || "", {
-      locale: i18n.language,
-      t,
-    })
-  );
-
-  const [translatedSubject, setTranslatedSubject] = useState(
-    getTranslatedText((step ? form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) : "") || "", {
-      locale: i18n.language,
-      t,
-    })
-  );
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
+  );
+
+  const [isSenderIdNeeded, setIsSenderIdNeeded] = useState(
+    step?.action === WorkflowActions.SMS_NUMBER || step?.action === WorkflowActions.SMS_ATTENDEE
+      ? true
+      : false
+  );
+
+  const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(
+    step?.action === WorkflowActions.EMAIL_ADDRESS ? true : false
   );
 
   const [isCustomReminderBodyNeeded, setIsCustomReminderBodyNeeded] = useState(
@@ -80,23 +76,33 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   );
 
   const [isEmailSubjectNeeded, setIsEmailSubjectNeeded] = useState(
-    step?.action === WorkflowActions.EMAIL_ATTENDEE || step?.action === WorkflowActions.EMAIL_HOST
+    step?.action === WorkflowActions.EMAIL_ATTENDEE ||
+      step?.action === WorkflowActions.EMAIL_HOST ||
+      step?.action === WorkflowActions.EMAIL_ADDRESS
       ? true
       : false
   );
 
   const [showTimeSection, setShowTimeSection] = useState(
-    form.getValues("trigger") === WorkflowTriggerEvents.BEFORE_EVENT ? true : false
+    form.getValues("trigger") === WorkflowTriggerEvents.BEFORE_EVENT ||
+      form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
+  );
+
+  const [showTimeSectionAfter, setShowTimeSectionAfter] = useState(
+    form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
   );
 
   const actionOptions = getWorkflowActionOptions(t);
   const triggerOptions = getWorkflowTriggerOptions(t);
-  const timeUnitOptions = getWorkflowTimeUnitOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t);
 
-  const { ref: emailSubjectFormRef } = form.register(`steps.${step ? step.stepNumber - 1 : 0}.emailSubject`);
+  const { ref: emailSubjectFormRef, ...restEmailSubjectForm } = step
+    ? form.register(`steps.${step.stepNumber - 1}.emailSubject`)
+    : { ref: null, name: "" };
 
-  const { ref: reminderBodyFormRef } = form.register(`steps.${step ? step.stepNumber - 1 : 0}.reminderBody`);
+  const { ref: reminderBodyFormRef, ...restReminderBodyForm } = step
+    ? form.register(`steps.${step.stepNumber - 1}.reminderBody`)
+    : { ref: null, name: "" };
 
   const refEmailSubject = useRef<HTMLTextAreaElement | null>(null);
 
@@ -109,15 +115,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         const cursorPosition = refEmailSubject?.current?.selectionStart || currentEmailSubject.length;
         const subjectWithAddedVariable = `${currentEmailSubject.substring(0, cursorPosition)}{${variable
           .toUpperCase()
-          .replace(" ", "_")}}${currentEmailSubject.substring(cursorPosition)}`;
-        setTranslatedSubject(subjectWithAddedVariable);
+          .replace(/ /g, "_")}}${currentEmailSubject.substring(cursorPosition)}`;
+        form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectWithAddedVariable);
       } else {
         const currentMessageBody = refReminderBody?.current?.value || "";
         const cursorPosition = refReminderBody?.current?.selectionStart || currentMessageBody.length;
         const messageWithAddedVariable = `${currentMessageBody.substring(0, cursorPosition)}{${variable
           .toUpperCase()
-          .replace(" ", "_")}}${currentMessageBody.substring(cursorPosition)}`;
-        setTranslatedReminderBody(messageWithAddedVariable);
+          .replace(/ /g, "_")}}${currentMessageBody.substring(cursorPosition)}`;
+        form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, messageWithAddedVariable);
       }
     }
   };
@@ -137,20 +143,28 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   //trigger
   if (!step) {
     const trigger = form.getValues("trigger");
-    const timeUnit = form.getValues("timeUnit");
+    const triggerString = t(`${trigger.toLowerCase()}_trigger`);
 
-    const selectedTrigger = { label: t(`${trigger.toLowerCase()}_trigger`), value: trigger };
-    const selectedTimeUnit = timeUnit
-      ? { label: t(`${timeUnit.toLowerCase()}_timeUnit`), value: timeUnit }
-      : undefined;
+    const selectedTrigger = {
+      label: triggerString.charAt(0).toUpperCase() + triggerString.slice(1),
+      value: trigger,
+    };
 
     return (
       <>
         <div className="flex justify-center">
-          <div className=" min-w-80 w-[50rem] rounded border border-gray-200 bg-white pl-10 pr-12 pb-9 pt-5">
-            <div className="text-base font-bold">{t("trigger")}</div>
-            <div className="text-sm text-gray-600">{t("when_something_happens")}</div>
+          <div className="min-w-80 w-full rounded-md border border-gray-200 bg-white p-7">
+            <div className="flex">
+              <div className="mt-[3px] mr-5 flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 p-1 text-xs font-medium">
+                1
+              </div>
+              <div>
+                <div className="text-base font-bold">{t("trigger")}</div>
+                <div className="text-sm text-gray-600">{t("when_something_happens")}</div>
+              </div>
+            </div>
             <div className="my-7 border-t border-gray-200" />
+            <Label>{t("when")}</Label>
             <Controller
               name="trigger"
               control={form.control}
@@ -158,16 +172,25 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 return (
                   <Select
                     isSearchable={false}
-                    className="mt-3 block w-full min-w-0 flex-1 rounded-sm text-sm"
+                    className="text-sm"
                     onChange={(val) => {
                       if (val) {
                         form.setValue("trigger", val.value);
-                        if (val.value === WorkflowTriggerEvents.BEFORE_EVENT) {
+                        if (
+                          val.value === WorkflowTriggerEvents.BEFORE_EVENT ||
+                          val.value === WorkflowTriggerEvents.AFTER_EVENT
+                        ) {
                           setShowTimeSection(true);
+                          if (val.value === WorkflowTriggerEvents.AFTER_EVENT) {
+                            setShowTimeSectionAfter(true);
+                          } else {
+                            setShowTimeSectionAfter(false);
+                          }
                           form.setValue("time", 24);
                           form.setValue("timeUnit", TimeUnit.HOUR);
                         } else {
                           setShowTimeSection(false);
+                          setShowTimeSectionAfter(false);
                           form.unregister("time");
                           form.unregister("timeUnit");
                         }
@@ -180,40 +203,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               }}
             />
             {showTimeSection && (
-              <div className="mt-5 space-y-1">
-                <label htmlFor="label" className="mb-2 block text-sm font-medium text-gray-700">
-                  {t("how_long_before")}
-                </label>
-                <div className="flex">
-                  <input
-                    type="number"
-                    min="1"
-                    defaultValue={form.getValues("time") || 24}
-                    className="mr-5 block w-20 rounded-sm border-gray-300 px-3 py-2 text-sm marker:border focus:border-neutral-800 focus:outline-none focus:ring-1 focus:ring-neutral-800"
-                    {...form.register("time", { valueAsNumber: true })}
-                  />
-                  <div className="w-28">
-                    <Controller
-                      name="timeUnit"
-                      control={form.control}
-                      render={() => {
-                        return (
-                          <Select
-                            isSearchable={false}
-                            className="block min-w-0 flex-1 rounded-sm text-sm"
-                            onChange={(val) => {
-                              if (val) {
-                                form.setValue("timeUnit", val.value);
-                              }
-                            }}
-                            defaultValue={selectedTimeUnit || timeUnitOptions[1]}
-                            options={timeUnitOptions}
-                          />
-                        );
-                      }}
-                    />
-                  </div>
-                </div>
+              <div className="mt-5">
+                <Label>{showTimeSectionAfter ? t("how_long_after") : t("how_long_before")}</Label>
+                <TimeTimeUnitInput form={form} />
               </div>
             )}
           </div>
@@ -223,21 +215,73 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   }
 
   if (step && step.action) {
-    const selectedAction = { label: t(`${step.action.toLowerCase()}_action`), value: step.action };
+    const actionString = t(`${step.action.toLowerCase()}_action`);
+
+    const selectedAction = {
+      label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
+      value: step.action,
+    };
+
     const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
 
     return (
       <>
-        <div className="flex justify-center ">
-          <ArrowDownIcon className="my-4 h-7 stroke-1 text-gray-500" />
+        <div className="my-3 flex justify-center">
+          <Icon.FiArrowDown className="stroke-[1.5px] text-3xl text-gray-500" />
         </div>
         <div className="flex justify-center">
-          <div className=" min-w-80 flex w-[50rem] rounded border border-gray-200 bg-white px-6 pb-9 pt-5 pr-3 sm:px-10">
-            <div className="w-full pt-5">
-              <div className="text-base font-bold">{t("action")}</div>
-              <div className="text-sm text-gray-600">{t("action_is_performed")}</div>
+          <div className="min-w-80 flex w-full rounded-md border border-gray-200 bg-white p-7">
+            <div className="w-full">
+              <div className="flex">
+                <div className="w-full">
+                  <div className="flex">
+                    <div className="mt-[3px] mr-5 flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 p-1 text-xs">
+                      {step.stepNumber + 1}
+                    </div>
+                    <div>
+                      <div className="text-base font-bold">{t("action")}</div>
+                      <div className="text-sm text-gray-600">{t("action_is_performed")}</div>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <Dropdown>
+                    <DropdownMenuTrigger asChild>
+                      <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem>
+                        <Button
+                          onClick={() => {
+                            const steps = form.getValues("steps");
+                            const updatedSteps = steps
+                              ?.filter((currStep) => currStep.id !== step.id)
+                              .map((s) => {
+                                const updatedStep = s;
+                                if (step.stepNumber < updatedStep.stepNumber) {
+                                  updatedStep.stepNumber = updatedStep.stepNumber - 1;
+                                }
+                                return updatedStep;
+                              });
+                            form.setValue("steps", updatedSteps);
+                            if (setReload) {
+                              setReload(!reload);
+                            }
+                          }}
+                          color="secondary"
+                          size="base"
+                          StartIcon={Icon.FiTrash2}
+                          className="w-full rounded-none">
+                          {t("delete")}
+                        </Button>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </Dropdown>
+                </div>
+              </div>
               <div className="my-7 border-t border-gray-200" />
               <div>
+                <Label>{t("do_this")}</Label>
                 <Controller
                   name={`steps.${step.stepNumber - 1}.action`}
                   control={form.control}
@@ -245,127 +289,125 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     return (
                       <Select
                         isSearchable={false}
-                        className="mt-3 block w-full min-w-0 flex-1 rounded-sm text-sm"
+                        className="text-sm"
                         onChange={(val) => {
                           if (val) {
-                            let counter = 0;
                             if (val.value === WorkflowActions.SMS_NUMBER) {
                               setIsPhoneNumberNeeded(true);
-                              setEditNumberMode(true);
-                              counter = counter + 1;
-                              setIsTestActionDisabled(true);
-                            } else {
+                              setIsSenderIdNeeded(true);
+                              setIsEmailAddressNeeded(false);
+                            } else if (val.value === WorkflowActions.EMAIL_ADDRESS) {
+                              setIsEmailAddressNeeded(true);
                               setIsPhoneNumberNeeded(false);
-                              setEditNumberMode(false);
+                              setIsSenderIdNeeded(false);
+                            } else if (val.value === WorkflowActions.SMS_ATTENDEE) {
+                              setIsSenderIdNeeded(true);
+                              setIsEmailAddressNeeded(false);
+                              setIsPhoneNumberNeeded(false);
+                            } else {
+                              setIsEmailAddressNeeded(false);
+                              setIsPhoneNumberNeeded(false);
+                              setIsSenderIdNeeded(false);
                             }
-                            if (
-                              form.getValues(`steps.${step.stepNumber - 1}.template`) ===
-                              WorkflowTemplates.CUSTOM
-                            ) {
-                              setEditEmailBodyMode(true);
-                              counter = counter + 1;
-                              setIsTestActionDisabled(true);
-                            }
+                            form.unregister(`steps.${step.stepNumber - 1}.sendTo`);
+                            form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
                             if (
                               val.value === WorkflowActions.EMAIL_ATTENDEE ||
-                              val.value === WorkflowActions.EMAIL_HOST
+                              val.value === WorkflowActions.EMAIL_HOST ||
+                              val.value === WorkflowActions.EMAIL_ADDRESS
                             ) {
                               setIsEmailSubjectNeeded(true);
                             } else {
                               setIsEmailSubjectNeeded(false);
                             }
-                            setEditCounter(counter);
                             form.setValue(`steps.${step.stepNumber - 1}.action`, val.value);
-                            setErrorMessageNumber("");
-                            setErrorMessageCustomInput("");
                           }
                         }}
                         defaultValue={selectedAction}
-                        options={actionOptions}
+                        options={
+                          isFreeUser
+                            ? actionOptions.filter(
+                                (actionOption) =>
+                                  actionOption.value !== WorkflowActions.SMS_ATTENDEE &&
+                                  actionOption.value !== WorkflowActions.SMS_NUMBER
+                              )
+                            : actionOptions
+                        }
                       />
                     );
                   }}
                 />
-                {form.getValues(`steps.${step.stepNumber - 1}.action`) === WorkflowActions.SMS_ATTENDEE && (
-                  <p className="mt-2 ml-1 text-sm text-gray-500">{t("not_triggering_existing_bookings")}</p>
-                )}
               </div>
-              {isPhoneNumberNeeded && (
-                <>
-                  <label
-                    htmlFor="sendTo"
-                    className="mt-5 block text-sm font-medium text-gray-700 dark:text-white">
-                    {t("phone_number")}
-                  </label>
-                  <div className="flex space-y-1">
-                    <div className="mt-1 ">
-                      <PhoneInput
-                        international
-                        value={sendTo}
-                        onChange={(newValue) => {
-                          if (newValue) {
-                            setSendTo(newValue);
-                          } else {
-                            setSendTo("");
-                          }
-                          setErrorMessageNumber("");
-                        }}
-                        placeholder={t("enter_phone_number")}
-                        id="sendTo"
-                        disabled={!editNumberMode}
+              {(isPhoneNumberNeeded || isSenderIdNeeded) && (
+                <div className="mt-2 rounded-md bg-gray-50 p-4 pt-0">
+                  {isPhoneNumberNeeded && (
+                    <>
+                      <Label className="pt-4">{t("custom_phone_number")}</Label>
+                      <PhoneInput<FormValues>
+                        control={form.control}
+                        name={`steps.${step.stepNumber - 1}.sendTo`}
+                        placeholder={t("phone_number")}
+                        id={`steps.${step.stepNumber - 1}.sendTo`}
+                        className="w-full rounded-md"
                         required
-                        countrySelectProps={{ className: "text-black" }}
-                        numberInputProps={{ className: "border-0 text-sm focus:ring-0 dark:bg-gray-700" }}
-                        className={classNames(
-                          "focus-within:border-brand order-1 block w-full rounded-sm border border-gray-300 py-px pl-3 ring-black focus-within:ring-1 disabled:text-gray-500 disabled:opacity-50 dark:border-gray-900 dark:bg-gray-700 dark:text-white dark:selection:bg-green-500 disabled:dark:text-gray-500",
-                          !editNumberMode ? "text-gray-500 dark:text-gray-500" : ""
-                        )}
                       />
-                    </div>
-                    {!editNumberMode ? (
-                      <Button
-                        type="button"
-                        color="secondary"
-                        className="-ml-3"
-                        onClick={() => {
-                          setEditNumberMode(true);
-                          setEditCounter(editCounter + 1);
-                          setIsTestActionDisabled(true);
-                        }}>
-                        {t("edit")}
-                      </Button>
-                    ) : (
-                      <Button
-                        type="button"
-                        color="primary"
-                        className="-ml-3"
-                        onClick={async () => {
-                          if (sendTo) {
-                            if (isValidPhoneNumber(sendTo)) {
-                              form.setValue(`steps.${step.stepNumber - 1}.sendTo`, sendTo);
-                              setEditNumberMode(false);
-                              setEditCounter(editCounter - 1);
-                              if (!editEmailBodyMode) {
-                                setIsTestActionDisabled(false);
-                              }
-                            } else {
-                              setErrorMessageNumber(t("invalid_input"));
-                            }
-                          } else {
-                            setErrorMessageNumber(t("no_input"));
-                          }
-                        }}>
-                        {t("save")}
-                      </Button>
+                      {form.formState.errors.steps &&
+                        form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
+                          <p className="mt-1 text-xs text-red-500">
+                            {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
+                          </p>
+                        )}
+                    </>
+                  )}
+                  {isSenderIdNeeded && (
+                    <>
+                      <div className="pt-4">
+                        <TextField
+                          label={t("sender_id")}
+                          type="text"
+                          placeholder="Cal"
+                          maxLength={11}
+                          {...form.register(`steps.${step.stepNumber - 1}.sender`)}
+                        />
+                      </div>
+                      {form.formState.errors.steps &&
+                        form.formState?.errors?.steps[step.stepNumber - 1]?.sender && (
+                          <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
+                        )}
+                    </>
+                  )}
+                </div>
+              )}
+              {form.getValues(`steps.${step.stepNumber - 1}.action`) === WorkflowActions.SMS_ATTENDEE && (
+                <div className="mt-2">
+                  <Controller
+                    name={`steps.${step.stepNumber - 1}.numberRequired`}
+                    control={form.control}
+                    render={() => (
+                      <Checkbox
+                        defaultChecked={
+                          form.getValues(`steps.${step.stepNumber - 1}.numberRequired`) || false
+                        }
+                        description={t("make_phone_number_required")}
+                        onChange={(e) =>
+                          form.setValue(`steps.${step.stepNumber - 1}.numberRequired`, e.target.checked)
+                        }
+                      />
                     )}
-                  </div>
-                  {errorMessageNumber && <p className="mt-1 text-sm text-red-500">{errorMessageNumber}</p>}
-                </>
+                  />
+                </div>
+              )}
+              {isEmailAddressNeeded && (
+                <div className="mt-5 rounded-md bg-gray-50 p-4">
+                  <EmailField
+                    required
+                    label={t("email_address")}
+                    {...form.register(`steps.${step.stepNumber - 1}.sendTo`)}
+                  />
+                </div>
               )}
               <div className="mt-5">
-                <label htmlFor="label" className="mt-5 block text-sm font-medium text-gray-700">
-                  {t("choose_template")}
-                </label>
+                <Label>{t("message_template")}</Label>
                 <Controller
                   name={`steps.${step.stepNumber - 1}.template`}
                   control={form.control}
@@ -373,21 +415,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                     return (
                       <Select
                         isSearchable={false}
-                        className="mt-3 block w-full min-w-0 flex-1 rounded-sm text-sm"
+                        className="text-sm"
                         onChange={(val) => {
                           if (val) {
                             form.setValue(`steps.${step.stepNumber - 1}.template`, val.value);
                             const isCustomTemplate = val.value === WorkflowTemplates.CUSTOM;
                             setIsCustomReminderBodyNeeded(isCustomTemplate);
-                            if (isCustomTemplate) {
-                              setEditEmailBodyMode(true);
-                              setEditCounter(editCounter + 1);
-                            } else if (editEmailBodyMode) {
-                              setEditEmailBodyMode(false);
-                              setEditCounter(editCounter - 1);
-                            }
-
-                            setErrorMessageCustomInput("");
                           }
                         }}
                         defaultValue={selectedTemplate}
@@ -398,216 +431,133 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 />
               </div>
               {isCustomReminderBodyNeeded && (
-                <>
+                <div className="mt-2 rounded-md bg-gray-50 p-4 pt-2 md:p-6 md:pt-4">
                   {isEmailSubjectNeeded && (
-                    <div className="mt-5 mb-2 ">
-                      <label className="mt-3 mb-1 block text-sm font-medium text-gray-700">
-                        {t("subject")}
-                      </label>
-                      <div className="mtext-sm border-1 focus-within:border-1 rounded-sm border border-gray-300 bg-white focus-within:border-black">
-                        <AddVariablesDropdown
-                          disabled={!editEmailBodyMode}
-                          addVariable={addVariable}
-                          isEmailSubject={true}
-                        />
-                        <TextArea
-                          name="emailSubject"
-                          disabled={!editEmailBodyMode}
-                          ref={(e) => {
-                            emailSubjectFormRef(e);
-                            refEmailSubject.current = e;
-                          }}
-                          value={translatedSubject}
-                          onChange={(e) => {
-                            setTranslatedSubject(e.target.value);
-                          }}
-                          rows={1}
-                          className={classNames(
-                            "block w-full rounded-sm border-0 p-2 text-sm  focus:border-0 focus:ring-0 dark:border-black dark:bg-black dark:text-white",
-                            !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
-                          )}
-                        />
+                    <div className="mb-5">
+                      <div className="mb-2 flex items-center">
+                        <Label className="mb-0 flex-none">{t("subject")}</Label>
+                        <div className="flex-grow text-right">
+                          <AddVariablesDropdown addVariable={addVariable} isEmailSubject={true} />
+                        </div>
                       </div>
+                      <TextArea
+                        ref={(e) => {
+                          emailSubjectFormRef?.(e);
+                          refEmailSubject.current = e;
+                        }}
+                        className="my-0"
+                        required
+                        {...restEmailSubjectForm}
+                      />
+                      {form.formState.errors.steps &&
+                        form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject && (
+                          <p className="mt-1 text-xs text-red-500">
+                            {form.formState?.errors?.steps[step.stepNumber - 1]?.emailSubject?.message || ""}
+                          </p>
+                        )}
                     </div>
                   )}
-                  <label className="mt-3 mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                    {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
-                  </label>
-                  <div className="border-1 focus-within:border-1 mb-2 rounded-sm border border-gray-300 bg-white text-sm focus-within:border-black">
-                    <AddVariablesDropdown
-                      disabled={!editEmailBodyMode}
-                      addVariable={addVariable}
-                      isEmailSubject={false}
-                    />
-                    <TextArea
-                      name="reminderBody"
-                      disabled={!editEmailBodyMode}
-                      ref={(e) => {
-                        reminderBodyFormRef(e);
-                        refReminderBody.current = e;
-                      }}
-                      value={translatedReminderBody}
-                      onChange={(e) => {
-                        setTranslatedReminderBody(e.target.value);
-                      }}
-                      rows={5}
-                      className={classNames(
-                        "block w-full rounded-sm border-0 p-2 text-sm  focus:border-0 focus:ring-0 dark:border-black dark:bg-black dark:text-white",
-                        !editEmailBodyMode ? "text-gray-500 dark:text-gray-500" : ""
-                      )}
-                    />
+                  <div className="mb-2 flex items-center">
+                    <Label className="mb-0 flex-none">
+                      {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
+                    </Label>
+                    <div className="flex-grow text-right">
+                      <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} />
+                    </div>
                   </div>
-                  <div className="mt-3 mb-5 ">
-                    <button
-                      className="flex"
-                      type="button"
-                      onClick={() => setIsInfoParagraphOpen(!isInfoParagraphOpen)}>
-                      {isInfoParagraphOpen ? (
-                        <Icon.FiChevronDown className="w5 h-5 text-gray-700" />
-                      ) : (
-                        <Icon.FiChevronRight className="w5 h-5 text-gray-700" />
-                      )}
-                      <span className="text-sm">{t("using_additional_inputs_as_variables")}</span>
-                    </button>
-                    {isInfoParagraphOpen && (
-                      <div className="mt-4 ml-6 w-full pr-6 text-sm">
-                        <div className="lg:flex">
-                          <div className="lg:w-1/2">
-                            <p className="font-medium">{t("example_1")}:</p>
-                            <p>{`${t("additonal_input_label")}: ${t("company_size")}`}</p>
-                            <p>{`${t("variable")}: {${t("company_size")
-                              .replace(/[^a-zA-Z0-9 ]/g, "")
-                              .trim()
-                              .replace(/ /g, "_")
-                              .toUpperCase()}}`}</p>
-                          </div>
-                          <div className="mt-3 lg:mt-0 lg:w-1/2">
-                            <p className="font-medium">{t("example_2")}:</p>
-                            <p>{`${t("additonal_input_label")}: ${t("what_help_needed")}`}</p>
-                            <p>{`${t("variable")}: {${t("what_help_needed")
-                              .replace(/[^a-zA-Z0-9 ]/g, "")
-                              .trim()
-                              .replace(/ /g, "_")
-                              .toUpperCase()}}`}</p>
-                          </div>
-                        </div>
-                        <p className="mt-4 font-medium">{t("variable_format")}:</p>
-                        <p>{t("custom_input_as_variable_info")}</p>
-                      </div>
+                  <TextArea
+                    ref={(e) => {
+                      reminderBodyFormRef?.(e);
+                      refReminderBody.current = e;
+                    }}
+                    className="my-0 h-24"
+                    required
+                    {...restReminderBodyForm}
+                  />
+                  {form.formState.errors.steps &&
+                    form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
+                      <p className="mt-1 text-xs text-red-500">
+                        {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
+                      </p>
                     )}
+                  <div className="mt-3 ">
+                    <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
+                      <div className="mt-2 flex text-sm text-gray-600">
+                        <Icon.FiHelpCircle className="mt-[3px] mr-2 h-3 w-3" />
+                        <p className="text-left">{t("using_additional_inputs_as_variables")}</p>
+                      </div>
+                    </button>
                   </div>
-
-                  {errorMessageCustomInput && (
-                    <p className="mb-3 text-sm text-red-500">{errorMessageCustomInput}</p>
-                  )}
-
-                  {!editEmailBodyMode ? (
-                    <Button
-                      type="button"
-                      color="secondary"
-                      onClick={() => {
-                        setEditEmailBodyMode(true);
-                        setEditCounter(editCounter + 1);
-                        setIsTestActionDisabled(true);
-                      }}>
-                      {t("edit")}
-                    </Button>
-                  ) : (
-                    <Button
-                      type="button"
-                      color="primary"
-                      onClick={async () => {
-                        let isEmpty = false;
-                        let errorMessage = "";
-
-                        if (isEmailSubjectNeeded) {
-                          if (!translatedReminderBody || !translatedSubject) {
-                            isEmpty = true;
-                            errorMessage = "Email body or subject is empty";
-                          }
-                        } else if (!translatedReminderBody) {
-                          isEmpty = true;
-                          errorMessage = "Text message is empty";
-                        }
-                        form.setValue(
-                          `steps.${step.stepNumber - 1}.reminderBody`,
-                          translateVariablesToEnglish(translatedReminderBody, { locale: i18n.language, t })
-                        );
-                        form.setValue(
-                          `steps.${step.stepNumber - 1}.emailSubject`,
-                          translateVariablesToEnglish(translatedSubject, { locale: i18n.language, t })
-                        );
-                        if (!isEmpty) {
-                          setEditEmailBodyMode(false);
-                          setEditCounter(editCounter - 1);
-                          if (!editNumberMode) {
-                            setIsTestActionDisabled(false);
-                          }
-                        }
-                        setErrorMessageCustomInput(errorMessage);
-                      }}>
-                      {t("save")}
-                    </Button>
-                  )}
-                </>
+                </div>
               )}
               {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
                 <Button
                   type="button"
                   className="mt-7 w-full"
-                  disabled={isTestActionDisabled}
                   onClick={() => {
+                    let isEmpty = false;
+                    if (!form.getValues(`steps.${step.stepNumber - 1}.sendTo`) && isPhoneNumberNeeded) {
+                      form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
+                        type: "custom",
+                        message: t("no_input"),
+                      });
+                      isEmpty = true;
+                    }
                     if (
-                      form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_NUMBER
+                      form.getValues(`steps.${step.stepNumber - 1}.template`) === WorkflowTemplates.CUSTOM
                     ) {
+                      if (!form.getValues(`steps.${step.stepNumber - 1}.reminderBody`)) {
+                        form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
+                          type: "custom",
+                          message: t("no_input"),
+                        });
+                        isEmpty = true;
+                      } else if (
+                        isEmailSubjectNeeded &&
+                        !form.getValues(`steps.${step.stepNumber - 1}.emailSubject`)
+                      ) {
+                        form.setError(`steps.${step.stepNumber - 1}.emailSubject`, {
+                          type: "custom",
+                          message: t("no_input"),
+                        });
+                        isEmpty = true;
+                      }
+                    }
+
+                    if (!isPhoneNumberNeeded && !isEmpty) {
+                      //translate body and reminder to english
+                      const emailSubject = translateVariablesToEnglish(
+                        form.getValues(`steps.${step.stepNumber - 1}.emailSubject`) || "",
+                        { locale: i18n.language, t }
+                      );
+                      const reminderBody = translateVariablesToEnglish(
+                        form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "",
+                        { locale: i18n.language, t }
+                      );
+
                       testActionMutation.mutate({
                         action: step.action,
-                        emailSubject: step.emailSubject || "",
-                        reminderBody: step.reminderBody || "",
+                        emailSubject,
+                        reminderBody,
                         template: step.template,
+                        sender: step.sender || "Cal",
                       });
                     } else {
-                      setConfirmationDialogOpen(true);
+                      const isNumberValid =
+                        form.formState.errors.steps &&
+                        form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo
+                          ? false
+                          : true;
+
+                      if (isPhoneNumberNeeded && isNumberValid && !isEmpty) {
+                        setConfirmationDialogOpen(true);
+                      }
                     }
                   }}
                   color="secondary">
                   <div className="w-full">{t("test_action")}</div>
                 </Button>
               )}
-            </div>
-            <div>
-              <Dropdown>
-                <DropdownMenuTrigger asChild>
-                  <Button type="button" color="minimal" size="icon" StartIcon={Icon.FiMoreHorizontal} />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem>
-                    <Button
-                      onClick={() => {
-                        const steps = form.getValues("steps");
-                        const updatedSteps = steps
-                          ?.filter((currStep) => currStep.id !== step.id)
-                          .map((s) => {
-                            const updatedStep = s;
-                            if (step.stepNumber < updatedStep.stepNumber) {
-                              updatedStep.stepNumber = updatedStep.stepNumber - 1;
-                            }
-                            return updatedStep;
-                          });
-                        form.setValue("steps", updatedSteps);
-                        if (setReload) {
-                          setReload(!reload);
-                        }
-                      }}
-                      color="warn"
-                      size="sm"
-                      StartIcon={Icon.FiTrash}
-                      className="w-full rounded-none">
-                      {t("delete")}
-                    </Button>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </Dropdown>
             </div>
           </div>
         </div>
@@ -618,17 +568,77 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             confirmBtnText={t("send_sms")}
             onConfirm={(e) => {
               e.preventDefault();
+              const reminderBody = translateVariablesToEnglish(
+                form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "",
+                { locale: i18n.language, t }
+              );
+
               testActionMutation.mutate({
                 action: step.action,
-                emailSubject: step.emailSubject || "",
-                reminderBody: step.reminderBody || "",
+                emailSubject: "",
+                reminderBody: reminderBody || "",
                 template: step.template,
                 sendTo: step.sendTo || "",
               });
               setConfirmationDialogOpen(false);
             }}>
-            {t("send_sms_to_number", { number: sendTo })}
+            {t("send_sms_to_number", { number: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) })}
           </ConfirmationDialogContent>
+        </Dialog>
+        <Dialog open={isAdditionalInputsDialogOpen} onOpenChange={setIsAdditionalInputsDialogOpen}>
+          <DialogContent useOwnActionButtons type="creation" className="sm:max-w-[610px] md:h-[570px]">
+            <div className="-m-3 h-[430px] overflow-x-hidden overflow-y-scroll sm:m-0">
+              <h1 className="w-full text-xl font-semibold ">{t("how_additional_inputs_as_variables")}</h1>
+              <div className="mb-7 mt-7 rounded-md bg-gray-50 p-3 sm:p-4">
+                <p className="test-sm font-medium">{t("format")}</p>
+                <ul className="mt-2 ml-5 list-disc text-gray-900">
+                  <li>{t("uppercase_for_letters")}</li>
+                  <li>{t("replace_whitespaces_underscores")}</li>
+                  <li>{t("ignore_special_characters")}</li>
+                </ul>
+                <div className="mt-6">
+                  <p className="test-sm w-full font-medium">{t("example_1")}</p>
+                  <div className="mt-2 grid grid-cols-12">
+                    <div className="test-sm col-span-5 mr-2 text-gray-600">{t("additional_input_label")}</div>
+                    <div className="test-sm col-span-7 text-gray-900">{t("company_size")}</div>
+                    <div className="test-sm col-span-5 w-full text-gray-600">{t("variable")}</div>
+
+                    <div className="test-sm col-span-7 break-words text-gray-900">
+                      {" "}
+                      {`{${t("company_size")
+                        .replace(/[^a-zA-Z0-9 ]/g, "")
+                        .trim()
+                        .replace(/ /g, "_")
+                        .toUpperCase()}}`}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-6">
+                  <p className="test-sm w-full font-medium">{t("example_2")}</p>
+                  <div className="mt-2 grid grid-cols-12">
+                    <div className="test-sm col-span-5 mr-2 text-gray-600">{t("additional_input_label")}</div>
+                    <div className="test-sm col-span-7 text-gray-900">{t("what_help_needed")}</div>
+                    <div className="test-sm col-span-5 text-gray-600">{t("variable")}</div>
+                    <div className="test-sm col-span-7 break-words text-gray-900">
+                      {" "}
+                      {`{${t("what_help_needed")
+                        .replace(/[^a-zA-Z0-9 ]/g, "")
+                        .trim()
+                        .replace(/ /g, "_")
+                        .toUpperCase()}}`}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-row-reverse">
+              <DialogClose asChild>
+                <Button color="primary" type="button">
+                  {t("close")}
+                </Button>
+              </DialogClose>
+            </div>
+          </DialogContent>
         </Dialog>
       </>
     );

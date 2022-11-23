@@ -1,9 +1,7 @@
 import { TeamsListing } from "@calcom/features/ee/teams/components";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components/button";
-import { Shell } from "@calcom/ui/v2";
+import { Button, Icon, Shell } from "@calcom/ui";
 
 function Teams() {
   const { t } = useLocale();

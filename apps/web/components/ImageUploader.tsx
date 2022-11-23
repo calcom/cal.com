@@ -1,8 +1,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Cropper from "react-easy-crop";
 
-import Button from "@calcom/ui/Button";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
+import { Button, Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui";
 
 import { Area, getCroppedImg } from "@lib/cropImage";
 import { useFileReader } from "@lib/hooks/useFileReader";

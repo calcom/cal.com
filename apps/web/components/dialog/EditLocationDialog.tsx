@@ -6,20 +6,16 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import {
-  LocationType,
-  getEventLocationType,
   EventLocationType,
+  getEventLocationType,
+  getHumanReadableLocationValue,
+  getMessageForOrganizer,
   LocationObject,
+  LocationType,
 } from "@calcom/app-store/locations";
-import { getMessageForOrganizer } from "@calcom/app-store/locations";
-import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui";
-import { Dialog, DialogContent } from "@calcom/ui/Dialog";
-import { Icon } from "@calcom/ui/Icon";
-import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
-import { Form } from "@calcom/ui/form/fields";
+import { Button, Dialog, DialogContent, Form, Icon, PhoneInput } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
 

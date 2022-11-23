@@ -1,12 +1,5 @@
-import Button from "@calcom/ui/Button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogProps,
-} from "@calcom/ui/Dialog";
+import type { DialogProps } from "@calcom/ui";
+import { Button, Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
 
 import useAddAppMutation from "../../_utils/useAddAppMutation";
 
@@ -14,7 +7,7 @@ export function AccountDialog(props: DialogProps) {
   const mutation = useAddAppMutation("office365_video");
   return (
     <Dialog name="Account check" {...props}>
-      <DialogContent>
+      <DialogContent type="confirmation">
         <DialogHeader
           title="Connecting with MS Teams requires a work/school Microsoft account."
           subtitle="If you continue with a personal account you will receive an error"

@@ -8,8 +8,7 @@ import React, { AriaRole, ComponentType, Fragment } from "react";
 
 import { CONSOLE_URL, SUPPORT_MAIL_ADDRESS, WEBSITE_DOMAIN } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import EmptyScreen from "@calcom/ui/EmptyScreen";
-import { Icon } from "@calcom/ui/Icon";
+import { EmptyScreen, Icon } from "@calcom/ui";
 
 type LicenseRequiredProps = {
   as?: keyof JSX.IntrinsicElements | "";

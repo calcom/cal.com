@@ -10,11 +10,15 @@ import { COMPANY_NAME, SUPPORT_MAIL_ADDRESS, WEBSITE_DOMAIN } from "@calcom/lib/
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components";
-import { showToast, SkeletonText } from "@calcom/ui/v2";
-import { SkeletonButton, Shell } from "@calcom/ui/v2";
-import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
+import {
+  Button,
+  DisconnectIntegration,
+  Icon,
+  Shell,
+  showToast,
+  SkeletonButton,
+  SkeletonText,
+} from "@calcom/ui";
 
 import HeadSeo from "@components/seo/head-seo";
 
@@ -124,6 +128,7 @@ const Component = ({
                   render={({ useDefaultComponent, ...props }) => {
                     if (useDefaultComponent) {
                       props = {
+                        ...props,
                         onClick: () => {
                           mutation.mutate({ type, variant, slug });
                         },
@@ -162,6 +167,7 @@ const Component = ({
               render={({ useDefaultComponent, ...props }) => {
                 if (useDefaultComponent) {
                   props = {
+                    ...props,
                     onClick: () => {
                       mutation.mutate({ type, variant, slug });
                     },
