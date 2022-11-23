@@ -271,7 +271,7 @@ export default NextAuth({
           username: user.username,
           email: user.email,
           role: user.role,
-          impersonatedByUID: user?.impersonatedByUID as number,
+          impersonatedByUID: user?.impersonatedByUID,
         };
       }
 
@@ -331,16 +331,16 @@ export default NextAuth({
     async signIn(params) {
       const { user, account, profile } = params;
 
-      if (account.provider === "email") {
+      if (account?.provider === "email") {
         return true;
       }
       // In this case we've already verified the credentials in the authorize
       // callback so we can sign the user in.
-      if (account.type === "credentials") {
+      if (account?.type === "credentials") {
         return true;
       }
 
-      if (account.type !== "oauth") {
+      if (account?.type !== "oauth") {
         return false;
       }
 
@@ -352,12 +352,14 @@ export default NextAuth({
         return false;
       }
 
-      if (account.provider) {
+      if (account?.provider) {
         let idP: IdentityProvider = IdentityProvider.GOOGLE;
         if (account.provider === "saml") {
           idP = IdentityProvider.SAML;
         }
-        user.email_verified = user.email_verified || user.emailVerified || profile.email_verified;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore-error TODO validate email_verified key on profile
+        user.email_verified = user.email_verified || !!user.emailVerified || profile.email_verified;
 
         if (!user.email_verified) {
           return "/auth/error?error=unverified-email";
@@ -440,7 +442,7 @@ export default NextAuth({
                 emailVerified: new Date(Date.now()),
                 name: user.name,
                 identityProvider: idP,
-                identityProviderId: user.id as string,
+                identityProviderId: String(user.id),
               },
             });
 
@@ -463,7 +465,7 @@ export default NextAuth({
             name: user.name,
             email: user.email,
             identityProvider: idP,
-            identityProviderId: user.id as string,
+            identityProviderId: String(user.id),
           },
         });
         const linkAccountNewUserData = { ...account, userId: newUser.id };
