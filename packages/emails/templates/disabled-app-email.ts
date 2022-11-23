@@ -31,6 +31,11 @@ export default class DisabledAppEmail extends BaseEmail {
   }
 
   protected getNodeMailerPayload(): Record<string, unknown> {
+    console.log(
+      "🚀 ~ file: disabled-app-email.ts ~ line 40 ~ DisabledAppEmail ~ getNodeMailerPayload ~ this.t",
+      typeof this.t
+    );
+
     return {
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: this.email,

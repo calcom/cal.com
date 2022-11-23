@@ -21,9 +21,8 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
       isLoading: isLoadingStep1,
     },
     {
-      // TODO: add translations
-      title: "Enable apps",
-      description: "Apps",
+      title: t("enable_apps"),
+      description: t("enable_apps_description"),
       content: <AdminAppsList baseURL="/auth/setup" />,
       isLoading: false,
     },

@@ -454,7 +454,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       appId: true,
     },
   });
-  console.log("🚀 ~ file: index.tsx ~ line 450 ~ getServerSideProps ~ credentials", credentials);
 
   const { locations, metadata, ...restEventType } = rawEventType;
 

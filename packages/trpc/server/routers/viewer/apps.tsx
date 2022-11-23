@@ -172,14 +172,15 @@ export const appsRouter = router({
                 },
               });
 
-              const t = await getTranslation(user.locale || "en", "common");
-
               eventType.users.map(async (user) => {
+                const t = await getTranslation(user.locale || "en", "common");
+                console.log("🚀 ~ file: apps.tsx ~ line 189 ~ eventType.users.map ~ t", t);
+
                 await sendDisabledAppEmail(
                   eventType.title,
                   user.email,
                   appMetadata?.name,
-                  appMetdata?.categories,
+                  appMetadata?.categories,
                   eventType.id,
                   t
                 );

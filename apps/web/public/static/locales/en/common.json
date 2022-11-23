@@ -1383,5 +1383,7 @@
   "app_disabled_video": "The admin has disabled {{appName}} which may affect your event types. If you have event types with {{appName}} as the location then it will default to Cal Video.",
   "app_disabled_subject": "{{appName}} has been disabled",
   "navigate_installed_apps": "Go to installed apps",
-  "disabled_calendar": "If you have another calendar installed new bookings will be added to it. If not then connect a new calendar so you do not miss any new bookings."
+  "disabled_calendar": "If you have another calendar installed new bookings will be added to it. If not then connect a new calendar so you do not miss any new bookings.",
+  "enable_apps": "Enable Apps",
+  "enable_apps_description": "Enable apps that users can integrate with Cal.com"
 }

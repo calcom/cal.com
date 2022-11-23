@@ -56,7 +56,7 @@ function translateLocations(locations: OptionTypeBase[], t: TFunction) {
   }));
 }
 
-export async function getLocationOptions(integrations: ReturnType<typeof getApps>, t: TFunction) {
+export function getLocationOptions(integrations: ReturnType<typeof getApps>, t: TFunction) {
   const locations: OptionTypeBase[] = [];
   defaultLocations.forEach((l) => {
     locations.push({
@@ -118,11 +118,6 @@ function getApps(userCredentials: CredentialData[]) {
 
   return apps;
 }
-
-/**
-const appKey = deriveAppDictKeyFromType(app.name, appKeysSchemas);
-const appKeySchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
- */
 
 export function getLocalAppMetadata() {
   return ALL_APPS;
