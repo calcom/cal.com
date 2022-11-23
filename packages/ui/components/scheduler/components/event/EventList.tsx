@@ -67,7 +67,10 @@ export function EventList({ day }: Props) {
                 zIndex = 65;
                 marginLeft = "auto";
                 right = 8;
-                width = 80;
+                width = width / 2;
+                if (eventDuration >= 30) {
+                  width = 80;
+                }
               }
             }
           }
