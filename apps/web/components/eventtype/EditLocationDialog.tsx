@@ -311,9 +311,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                         ),
                       }}
                       formatOptionLabel={(e) => (
-                        <div style={{ display: "flex", alignItems: "center" }}>
-                          {e.icon && <img src={e.icon} alt="cover" className="h-5 w-5" />}
-                          <span style={{ marginLeft: 5 }}>{e.label}</span>
+                        <div className="flex items-center gap-2.5">
+                          {e.icon && <img src={e.icon} alt="app-icon" className="h-5 w-5" />}
+                          <span>{e.label}</span>
                         </div>
                       )}
                       formatGroupLabel={(e) => <p className="text-xs font-medium text-gray-600">{e.label}</p>}

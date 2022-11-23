@@ -13,7 +13,7 @@ import { Button, Icon, Label, Select, Skeleton, TextField } from "@calcom/ui";
 
 import { slugify } from "@lib/slugify";
 
-import { EditLocationDialog } from "@components/eventtype/EditLocationDialog";
+import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 
 type OptionTypeBase = {
   label: string;
