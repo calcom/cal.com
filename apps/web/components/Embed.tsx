@@ -4,6 +4,7 @@ import { NextRouter, useRouter } from "next/router";
 import { createRef, forwardRef, MutableRefObject, RefObject, useRef, useState } from "react";
 import { components, ControlProps } from "react-select";
 
+import { APP_NAME, EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Button,
@@ -19,8 +20,6 @@ import {
   TextArea,
   TextField,
 } from "@calcom/ui";
-
-import { APP_NAME, EMBED_LIB_URL, WEBAPP_URL } from "@lib/config/constants";
 
 import ColorPicker from "@components/ui/colorpicker";
 import Select from "@components/ui/form/Select";
