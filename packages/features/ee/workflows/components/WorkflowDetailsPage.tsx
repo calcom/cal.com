@@ -28,9 +28,6 @@ export default function WorkflowDetailsPage(props: Props) {
   const { t } = useLocale();
   const router = useRouter();
 
-  const me = useMeQuery();
-  const isFreeUser = me.data?.plan === "FREE";
-
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
   const [reload, setReload] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -124,7 +121,7 @@ export default function WorkflowDetailsPage(props: Props) {
         <div className="w-full rounded-md border border-gray-200 bg-gray-50 p-3 py-5 md:ml-3 md:p-8">
           {form.getValues("trigger") && (
             <div>
-              <WorkflowStepContainer form={form} isFreeUser={isFreeUser} />
+              <WorkflowStepContainer form={form} />
             </div>
           )}
           {form.getValues("steps") && (
@@ -137,7 +134,6 @@ export default function WorkflowDetailsPage(props: Props) {
                     step={step}
                     reload={reload}
                     setReload={setReload}
-                    isFreeUser={isFreeUser}
                   />
                 );
               })}
@@ -147,7 +143,11 @@ export default function WorkflowDetailsPage(props: Props) {
             <Icon.FiArrowDown className="stroke-[1.5px] text-3xl text-gray-500" />
           </div>
           <div className="flex justify-center">
-            <Button type="button" onClick={() => setIsAddActionDialogOpen(true)} color="secondary">
+            <Button
+              type="button"
+              onClick={() => setIsAddActionDialogOpen(true)}
+              color="secondary"
+              className="bg-white">
               {t("add_action")}
             </Button>
           </div>
@@ -157,7 +157,6 @@ export default function WorkflowDetailsPage(props: Props) {
         isOpenDialog={isAddActionDialogOpen}
         setIsOpenDialog={setIsAddActionDialogOpen}
         addAction={addAction}
-        isFreeUser={isFreeUser}
       />
       <DeleteDialog
         isOpenDialog={deleteDialogOpen}
