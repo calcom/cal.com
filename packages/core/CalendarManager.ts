@@ -190,6 +190,7 @@ export const createEvent = async (
   const uid: string = getUid(calEvent);
   const calendar = getCalendar(credential);
   let success = true;
+  let calError: string | undefined = undefined;
 
   // Check if the disabledNotes flag is set to true
   if (calEvent.hideCalendarNotes) {
@@ -207,11 +208,13 @@ export const createEvent = async (
         if (error?.code === 404) {
           return undefined;
         }
+        if (error?.calError) {
+          calError = error.calError;
+        }
         log.error("createEvent failed", error, calEvent);
         // @TODO: This code will be off till we can investigate an error with it
         //https://github.com/calcom/cal.com/issues/3949
         // await sendBrokenIntegrationEmail(calEvent, "calendar");
-        https: log.error("createEvent failed", error, calEvent);
         return undefined;
       })
     : undefined;
@@ -223,6 +226,8 @@ export const createEvent = async (
     uid,
     createdEvent: creationResult,
     originalEvent: calEvent,
+    calError,
+    calWarnings: creationResult?.additionalInfo.calWarnings,
   };
 };
 
@@ -235,6 +240,9 @@ export const updateEvent = async (
   const uid = getUid(calEvent);
   const calendar = getCalendar(credential);
   let success = false;
+  let calError: string | undefined = undefined;
+  let calWarnings: string[] | undefined = [];
+
   if (bookingRefUid === "") {
     log.error("updateEvent failed", "bookingRefUid is empty", calEvent, credential);
   }
@@ -251,9 +259,18 @@ export const updateEvent = async (
             // @see https://github.com/calcom/cal.com/issues/3949
             // await sendBrokenIntegrationEmail(calEvent, "calendar");
             log.error("updateEvent failed", e, calEvent);
+            if (e?.calError) {
+              calError = e.calError;
+            }
             return undefined;
           })
       : undefined;
+
+  if (Array.isArray(updatedResult)) {
+    calWarnings = updatedResult.flatMap((res) => res.additionalInfo.calWarnings ?? []);
+  } else {
+    calWarnings = updatedResult?.additionalInfo.calWarnings;
+  }
 
   return {
     appName: credential.appName,
@@ -262,6 +279,8 @@ export const updateEvent = async (
     uid,
     updatedEvent: updatedResult,
     originalEvent: calEvent,
+    calError,
+    calWarnings,
   };
 };
 

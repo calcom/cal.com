@@ -13,18 +13,18 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { HttpError } from "@calcom/lib/http-error";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Alert } from "@calcom/ui/Alert";
-import { Icon } from "@calcom/ui/Icon";
-import Loader from "@calcom/ui/Loader";
-import Shell from "@calcom/ui/Shell";
-import { Option } from "@calcom/ui/form/MultiSelectCheckboxes";
+import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
+import { Alert, Button, Form, Shell, showToast } from "@calcom/ui";
 
-import LicenseRequired from "../../common/components/LicenseRequired";
+import LicenseRequired from "../../common/components/v2/LicenseRequired";
+import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
+import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
 
 export type FormValues = {
   name: string;
@@ -34,6 +34,13 @@ export type FormValues = {
   time?: number;
   timeUnit?: TimeUnit;
 };
+
+export function onlyLettersNumbersSpaces(str: string) {
+  if (str.length <= 11 && /^[A-Za-z0-9\s]*$/.test(str)) {
+    return true;
+  }
+  return false;
+}
 
 const formSchema = z.object({
   name: z.string(),
@@ -50,9 +57,15 @@ const formSchema = z.object({
       reminderBody: z.string().nullable(),
       emailSubject: z.string().nullable(),
       template: z.nativeEnum(WorkflowTemplates),
+      numberRequired: z.boolean().nullable(),
       sendTo: z
         .string()
-        .refine((val) => isValidPhoneNumber(val))
+        .refine((val) => isValidPhoneNumber(val) || val.includes("@"))
+        .nullable(),
+      sender: z
+        .string()
+        .refine((val) => onlyLettersNumbersSpaces(val))
+        .optional()
         .nullable(),
     })
     .array(),
@@ -63,26 +76,25 @@ const querySchema = z.object({
 });
 
 function WorkflowPage() {
-  const { t } = useLocale();
+  const { t, i18n } = useLocale();
   const session = useSession();
   const router = useRouter();
-  const me = useMeQuery();
-  const isFreeUser = me.data?.plan === "FREE";
 
-  const [editIcon, setEditIcon] = useState(true);
   const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
 
   const form = useForm<FormValues>({
+    mode: "onBlur",
     resolver: zodResolver(formSchema),
   });
+
   const { workflow: workflowId } = router.isReady ? querySchema.parse(router.query) : { workflow: -1 };
+  const utils = trpc.useContext();
 
   const {
     data: workflow,
     isError,
     error,
-    dataUpdatedAt,
   } = trpc.viewer.workflows.get.useQuery(
     { id: +workflowId },
     {
@@ -91,7 +103,7 @@ function WorkflowPage() {
   );
 
   useEffect(() => {
-    if (workflow && !form.getValues("name")) {
+    if (workflow) {
       setSelectedEventTypes(
         workflow.activeOn.map((active) => ({
           value: String(active.eventType.id),
@@ -104,80 +116,127 @@ function WorkflowPage() {
             label: active.eventType.slug,
           }))
         : undefined;
+
+      //translate dynamic variables into local language
+      const steps = workflow.steps.map((step) => {
+        const updatedStep = step;
+        if (step.reminderBody) {
+          updatedStep.reminderBody = getTranslatedText(step.reminderBody || "", {
+            locale: i18n.language,
+            t,
+          });
+        }
+        if (step.emailSubject) {
+          updatedStep.emailSubject = getTranslatedText(step.emailSubject || "", {
+            locale: i18n.language,
+            t,
+          });
+        }
+        return updatedStep;
+      });
+
       form.setValue("name", workflow.name);
-      form.setValue("steps", workflow.steps);
+      form.setValue("steps", steps);
       form.setValue("trigger", workflow.trigger);
       form.setValue("time", workflow.time || undefined);
       form.setValue("timeUnit", workflow.timeUnit || undefined);
       form.setValue("activeOn", activeOn || []);
       setIsAllDataLoaded(true);
     }
-  }, [dataUpdatedAt]);
+  }, [workflow]);
 
-  return (
-    <Shell
-      title="Title"
-      heading={
-        session.data?.hasValidLicense &&
-        isAllDataLoaded && (
-          <div className="group relative cursor-pointer" onClick={() => setEditIcon(false)}>
-            {editIcon ? (
-              <>
-                <h1
-                  style={{ fontSize: 22, letterSpacing: "-0.0009em" }}
-                  className="inline pl-0 text-gray-900 focus:text-black group-hover:text-gray-500">
-                  {form.getValues("name") && form.getValues("name") !== ""
-                    ? form.getValues("name")
-                    : workflow?.name}
-                </h1>
-                <Icon.FiEdit2 className="ml-1 -mt-1 inline h-4 w-4 text-gray-700 group-hover:text-gray-500" />
-              </>
-            ) : (
-              <div style={{ marginBottom: -11 }}>
-                <input
-                  type="text"
-                  autoFocus
-                  style={{ top: -6, fontSize: 22 }}
-                  required
-                  className="relative h-10 w-full cursor-pointer border-none bg-transparent pl-0 text-gray-900 hover:text-gray-700 focus:text-black focus:outline-none focus:ring-0"
-                  placeholder={t("Custom workflow")}
-                  {...form.register("name")}
-                  defaultValue={workflow?.name}
-                  onBlur={() => {
-                    setEditIcon(true);
-                    form.getValues("name") === "" && form.setValue("name", workflow?.name || "");
-                  }}
-                />
-              </div>
-            )}
+  const updateMutation = trpc.viewer.workflows.update.useMutation({
+    onSuccess: async ({ workflow }) => {
+      if (workflow) {
+        utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
+
+        showToast(
+          t("workflow_updated_successfully", {
+            workflowName: workflow.name,
+          }),
+          "success"
+        );
+      }
+      await router.push("/workflows");
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+    },
+  });
+
+  return session.data ? (
+    <Form
+      form={form}
+      handleSubmit={async (values) => {
+        let activeOnEventTypeIds: number[] = [];
+
+        values.steps.forEach((step) => {
+          if (step.reminderBody) {
+            step.reminderBody = translateVariablesToEnglish(step.reminderBody, { locale: i18n.language, t });
+          }
+          if (step.emailSubject) {
+            step.emailSubject = translateVariablesToEnglish(step.emailSubject, { locale: i18n.language, t });
+          }
+        });
+
+        if (values.activeOn) {
+          activeOnEventTypeIds = values.activeOn.map((option) => {
+            return parseInt(option.value, 10);
+          });
+        }
+        updateMutation.mutate({
+          id: parseInt(router.query.workflow as string, 10),
+          name: values.name,
+          activeOn: activeOnEventTypeIds,
+          steps: values.steps,
+          trigger: values.trigger,
+          time: values.time || null,
+          timeUnit: values.timeUnit || null,
+        });
+      }}>
+      <Shell
+        backPath="/workflows"
+        title={workflow && workflow.name ? workflow.name : "Untitled"}
+        CTA={
+          <div>
+            <Button type="submit">{t("save")}</Button>
           </div>
-        )
-      }>
-      <LicenseRequired>
-        {isFreeUser ? (
-          <Alert className="border " severity="warning" title={t("pro_feature_workflows")} />
-        ) : (
-          <>
-            {!isError ? (
-              <>
-                {isAllDataLoaded ? (
+        }
+        heading={
+          session.data?.hasValidLicense &&
+          isAllDataLoaded && (
+            <div className={classNames(workflow && !workflow.name ? "text-gray-400" : "")}>
+              {workflow && workflow.name ? workflow.name : "untitled"}
+            </div>
+          )
+        }>
+        <LicenseRequired>
+          {!isError ? (
+            <>
+              {isAllDataLoaded ? (
+                <>
                   <WorkflowDetailsPage
                     form={form}
                     workflowId={+workflowId}
                     selectedEventTypes={selectedEventTypes}
                     setSelectedEventTypes={setSelectedEventTypes}
                   />
-                ) : (
-                  <Loader />
-                )}
-              </>
-            ) : (
-              <Alert severity="error" title="Something went wrong" message={error.message} />
-            )}
-          </>
-        )}
-      </LicenseRequired>
-    </Shell>
+                </>
+              ) : (
+                <SkeletonLoader />
+              )}
+            </>
+          ) : (
+            <Alert severity="error" title="Something went wrong" message={error.message} />
+          )}
+        </LicenseRequired>
+      </Shell>
+    </Form>
+  ) : (
+    <></>
   );
 }
 

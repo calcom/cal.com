@@ -1,10 +1,9 @@
 // @see: https://github.com/wojtekmaj/react-daterange-picker/issues/91
 import "@wojtekmaj/react-daterange-picker/dist/DateRangePicker.css";
 import PrimitiveDateRangePicker from "@wojtekmaj/react-daterange-picker/dist/entry.nostyle";
-import React from "react";
 
-import { Icon } from "@calcom/ui/Icon";
-import "@calcom/ui/v2/core/form/date-range-picker/styles.css";
+import { Icon } from "../../../..";
+import "./styles.css";
 
 type Props = {
   disabled?: boolean | undefined;

@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import { ensureSession } from "@calcom/lib/auth";
+import { getSession } from "@calcom/lib/auth";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
@@ -18,8 +18,6 @@ const querySchema = z.object({
 });
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  await ensureSession({ req });
-
   const { team: id, session_id } = querySchema.parse(req.query);
 
   const checkoutSession = await stripe.checkout.sessions.retrieve(session_id, {
@@ -64,6 +62,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     // Sync Services: Close.com
     closeComUpdateTeam(prevTeam, team);
   }
+
+  const session = await getSession({ req });
+
+  if (!session) return { message: "Team upgraded successfully" };
 
   // redirect to team screen
   res.redirect(302, `${WEBAPP_URL}/settings/teams/${team.id}/profile?upgraded=true`);
