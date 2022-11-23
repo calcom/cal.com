@@ -52,6 +52,15 @@ interface CreateEventTypeBtnProps {
   options: EventTypeParent[];
 }
 
+const isValidJSONString = (str: string) => {
+  try {
+    JSON.parse(str);
+  } catch (e) {
+    return false;
+  }
+  return true;
+};
+
 export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
   const { t } = useLocale();
   const router = useRouter();
@@ -82,7 +91,13 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
         ? router.query.description
         : "";
     const slug: string = typeof router.query.slug === "string" && router.query.slug ? router.query.slug : "";
+    const locations =
+      typeof router.query.locations === "string" &&
+      isValidJSONString(decodeURIComponent(router.query.locations))
+        ? JSON.parse(decodeURIComponent(router.query.locations))
+        : [];
 
+    setValue("locations", locations);
     setValue("title", title);
     setValue("length", length);
     setValue("description", description);
@@ -137,7 +152,16 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
   return (
     <Dialog
       name="new-eventtype"
-      clearQueryParamsOnClose={["eventPage", "teamId", "type", "description", "title", "length", "slug"]}>
+      clearQueryParamsOnClose={[
+        "eventPage",
+        "teamId",
+        "type",
+        "description",
+        "title",
+        "length",
+        "slug",
+        "locations",
+      ]}>
       {!hasTeams || props.isIndividualTeam ? (
         <Button
           onClick={() => openModal(props.options[0])}
