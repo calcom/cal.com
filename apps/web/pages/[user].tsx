@@ -27,7 +27,7 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { BadgeCheckIcon, Icon } from "@calcom/ui/Icon";
+import { BadgeCheckIcon, Icon } from "@calcom/ui";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import { inferSSRProps } from "@lib/types/inferSSRProps";

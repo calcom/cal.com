@@ -6,13 +6,16 @@ import ApiKeyDialogForm from "@calcom/features/ee/api-keys/components/ApiKeyDial
 import ApiKeyListItem from "@calcom/features/ee/api-keys/components/ApiKeyListItem";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Button } from "@calcom/ui/components";
-import { EmptyScreen } from "@calcom/ui/v2";
-import { Dialog, DialogContent } from "@calcom/ui/v2/core/Dialog";
-import Meta from "@calcom/ui/v2/core/Meta";
-import SkeletonLoader from "@calcom/ui/v2/core/apps/SkeletonLoader";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  EmptyScreen,
+  getSettingsLayout as getLayout,
+  Icon,
+  Meta,
+  SkeletonLoader,
+} from "@calcom/ui";
 
 const ApiKeysView = () => {
   const { t } = useLocale();

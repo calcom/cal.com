@@ -4,7 +4,7 @@ import PrimitiveDateRangePicker from "@wojtekmaj/react-daterange-picker/dist/ent
 import React from "react";
 import "react-calendar/dist/Calendar.css";
 
-import { Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui";
 
 type Props = {
   startDate: Date;

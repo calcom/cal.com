@@ -1,6 +1,6 @@
 import React from "react";
 
-import { Alert, AlertProps } from "@calcom/ui/Alert";
+import { Alert, AlertProps } from "@calcom/ui";
 
 import { sandboxPage } from ".";
 

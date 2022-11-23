@@ -1,12 +1,18 @@
-import React, { useState, Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components/button";
-import { TextArea } from "@calcom/ui/form/fields";
-import showToast from "@calcom/ui/v2/core/notifications";
+import {
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  Icon,
+  showToast,
+  TextArea,
+} from "@calcom/ui";
 
 interface IRescheduleDialog {
   isOpenDialog: boolean;

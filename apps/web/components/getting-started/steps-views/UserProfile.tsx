@@ -6,10 +6,7 @@ import { useForm } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components";
-import { TextArea } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/v2";
-import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
+import { Button, ImageUploader, showToast, TextArea } from "@calcom/ui";
 
 import { AvatarSSR } from "@components/ui/AvatarSSR";
 

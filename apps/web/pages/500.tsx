@@ -1,7 +1,7 @@
 import Head from "next/head";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
-import Button from "@calcom/ui/Button";
+import { Button } from "@calcom/ui";
 
 export default function Error500() {
   return (

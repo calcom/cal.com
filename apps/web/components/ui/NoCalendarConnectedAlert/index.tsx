@@ -3,7 +3,7 @@ import { Trans } from "next-i18next";
 
 import { trpc } from "@calcom/trpc/react";
 // @TODO: alert v2
-import { Alert } from "@calcom/ui/Alert";
+import { Alert } from "@calcom/ui";
 
 import { LinkText } from "../LinkText";
 

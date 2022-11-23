@@ -1,7 +1,4 @@
-import React from "react";
-
-import { Button, ButtonBaseProps } from "@calcom/ui/Button";
-import { Icon } from "@calcom/ui/Icon";
+import { Button, ButtonBaseProps, Icon } from "@calcom/ui";
 
 import { sandboxPage } from ".";
 

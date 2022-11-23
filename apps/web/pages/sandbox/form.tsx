@@ -1,7 +1,4 @@
-import React from "react";
-
-import { Label, Input, TextField } from "@calcom/ui/form/fields";
-import { Segment, SegmentOption } from "@calcom/ui/v2/core";
+import { Input, Label, Segment, SegmentOption, TextField } from "@calcom/ui";
 
 import { sandboxPage } from ".";
 

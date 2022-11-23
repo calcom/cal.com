@@ -4,9 +4,7 @@ import { classNames } from "@calcom/lib";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components/button";
-import { showToast } from "@calcom/ui/v2";
+import { Button, Icon, showToast } from "@calcom/ui";
 
 /**
  * Use this component to allow installing an app from anywhere on the app.
