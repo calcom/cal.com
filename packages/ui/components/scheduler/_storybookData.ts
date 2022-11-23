@@ -68,8 +68,4 @@ export const blockingDates: TimeRange[] = [
     start: startDate.add(1, "day").hour(10).toDate(),
     end: startDate.add(1, "day").hour(13).toDate(),
   },
-  {
-    start: startDate.hour(10).toDate(),
-    end: startDate.hour(13).toDate(),
-  },
 ];

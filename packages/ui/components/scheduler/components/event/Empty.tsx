@@ -1,15 +1,12 @@
 import { useSchedulerStore } from "../../state/store";
 import { gridCellToDateTime, GridCellToDateProps } from "../../utils";
 
-type EmptyCellProps = {
-  eventDuration: number;
-} & GridCellToDateProps;
-
-export function EmptyCell(props: EmptyCellProps) {
+export function EmptyCell(props: GridCellToDateProps) {
   const { onEmptyCellClick, hoverEventDuration } = useSchedulerStore((state) => ({
     onEmptyCellClick: state.onEmptyCellClick,
     hoverEventDuration: state.hoverEventDuration,
   }));
+
   const cellToDate = gridCellToDateTime({
     day: props.day,
     gridCellIdx: props.gridCellIdx,
@@ -17,6 +14,7 @@ export function EmptyCell(props: EmptyCellProps) {
     selectionLength: props.selectionLength,
     startHour: props.startHour,
   });
+
   return (
     <div
       className="group w-full"
@@ -28,7 +26,7 @@ export function EmptyCell(props: EmptyCellProps) {
           py-1
           px-[6px] text-xs font-semibold leading-5 text-gray-900 hover:bg-gray-200 group-hover:block group-hover:cursor-pointer"
           style={{
-            height: `calc(${props.eventDuration}*var(--one-minute-height))`,
+            height: `calc(${hoverEventDuration}*var(--one-minute-height))`,
             zIndex: 49,
             width: "90%",
           }}>
