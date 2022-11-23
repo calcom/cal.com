@@ -14,17 +14,13 @@ function roundX(x: number, roundBy: number) {
   return Math.round(x / roundBy) * roundBy;
 }
 
-export function BlockedList({ day }: Props) {
-  const { startHour, blockingDates, endHour, gridCellsPerHour } = useSchedulerStore((state) => ({
-    startHour: state.startHour || 0,
-    endHour: state.endHour || 23,
-    blockingDates: state.blockingDates,
-    gridCellsPerHour: state.gridCellsPerHour || 4,
-  }));
+type BlockedDayProps = {
+  startHour: number;
+  endHour: number;
+  day: dayjs.Dayjs;
+};
 
-  const dayStart = useMemo(() => day.startOf("day").hour(startHour), [day, startHour]);
-  const nowComparedToDayStart = useMemo(() => dayjs().diff(dayStart, "minutes"), [dayStart]);
-
+function BlockedBeforeToday({ day, startHour, endHour }: BlockedDayProps) {
   return (
     <>
       {day.isBefore(dayjs(), "day") && (
@@ -39,7 +35,14 @@ export function BlockedList({ day }: Props) {
           <BlockedTimeCell />
         </div>
       )}
-
+    </>
+  );
+}
+function BlockedToday({ day, startHour, gridCellsPerHour }: BlockedDayProps & { gridCellsPerHour: number }) {
+  const dayStart = useMemo(() => day.startOf("day").hour(startHour), [day, startHour]);
+  const nowComparedToDayStart = useMemo(() => dayjs().diff(dayStart, "minutes"), [dayStart]);
+  return (
+    <>
       {day.isToday() && (
         <div
           key={day.format("YYYY-MM-DD")}
@@ -55,7 +58,22 @@ export function BlockedList({ day }: Props) {
           <BlockedTimeCell />
         </div>
       )}
+    </>
+  );
+}
 
+export function BlockedList({ day }: Props) {
+  const { startHour, blockingDates, endHour, gridCellsPerHour } = useSchedulerStore((state) => ({
+    startHour: state.startHour || 0,
+    endHour: state.endHour || 23,
+    blockingDates: state.blockingDates,
+    gridCellsPerHour: state.gridCellsPerHour || 4,
+  }));
+
+  return (
+    <>
+      <BlockedBeforeToday day={day} startHour={startHour} endHour={endHour} />
+      <BlockedToday gridCellsPerHour={gridCellsPerHour} day={day} startHour={startHour} endHour={endHour} />
       {blockingDates &&
         blockingDates.map((event, i) => {
           const eventStart = dayjs(event.start);
@@ -68,10 +86,11 @@ export function BlockedList({ day }: Props) {
           if (!eventStart.isSame(day, "day")) {
             return null;
           }
-          console.log({ eventStart: eventStart.toISOString(), eventEnd: eventEnd.toISOString() });
 
           if (eventStart.isBefore(dayjs())) {
-            return null;
+            if (eventEnd.isBefore(dayjs())) {
+              return null;
+            }
           }
 
           return (
