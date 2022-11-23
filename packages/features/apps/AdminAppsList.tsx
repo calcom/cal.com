@@ -1,16 +1,23 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useRouter } from "next/router";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { TextField, Button, Form, KeyField } from "@calcom/ui/components";
-import { Dialog, DialogTrigger, DialogContent } from "@calcom/ui/v2";
-import { Switch, showToast } from "@calcom/ui/v2";
-import { SkeletonContainer, SkeletonText, SkeletonButton } from "@calcom/ui/v2/core/skeleton";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  Form,
+  KeyField,
+  showToast,
+  SkeletonButton,
+  SkeletonContainer,
+  SkeletonText,
+  Switch,
+} from "@calcom/ui";
 
 const IntegrationContainer = ({ app, lastEntry, category }) => {
   const utils = trpc.useContext();

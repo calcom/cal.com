@@ -1,4 +1,4 @@
-import { Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui";
 
 const getAppCategories = (baseURL: string) => {
   return [

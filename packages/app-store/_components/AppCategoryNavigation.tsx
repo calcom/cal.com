@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import { HorizontalTabs, VerticalTabs } from "@calcom/ui/v2";
+import { HorizontalTabs, VerticalTabs } from "@calcom/ui";
 
 import getAppCategories from "../_utils/getAppCategories";
 

@@ -9,6 +9,7 @@ export {
   InputField,
   InputGroupBox,
   InputLeading,
+  KeyField,
   PasswordField,
   TextArea,
   TextAreaField,
