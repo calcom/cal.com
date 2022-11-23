@@ -27,12 +27,8 @@ export {
   Checkbox,
   DatePicker,
   FormStep,
-  getReactSelectProps,
   Radio,
   RadioGroup,
-  Select,
-  SelectField,
-  SelectWithValidation,
 } from "./form";
 export { default as LinkIconButton } from "./LinkIconButton";
 export { List, ListItem } from "./List";
