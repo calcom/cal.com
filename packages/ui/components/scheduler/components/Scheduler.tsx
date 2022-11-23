@@ -6,6 +6,7 @@ import { SchedulerComponentProps } from "../types/state";
 import { getDaysBetweenDates, getHoursToDisplay } from "../utils";
 import { DateValues } from "./DateValues/DateValues";
 import { BlockedList } from "./blocking/BlockedList";
+import { CurrentTime } from "./currentTime";
 import { EmptyCell } from "./event/Empty";
 import { EventList } from "./event/EventList";
 import { SchedulerHeading } from "./heading/SchedulerHeading";
@@ -46,16 +47,16 @@ export function Scheduler(props: SchedulerComponentProps) {
         { "--one-minute-height": `calc(1.75rem/(60/${usersCellsStopsPerHour}))` } as React.CSSProperties // This can't live in the css file because it's a dynamic value and css variable gets super
       }>
       <SchedulerHeading />
-      <div ref={container} className="isolate flex flex-auto flex-col  bg-white">
+      <div ref={container} className="relative isolate flex flex-auto  flex-col bg-white">
         <div
           style={{ width: "165%" }}
           className="flex max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
-          {/* <CurrentTime
+          <DateValues containerNavRef={containerNav} days={days} />
+          <CurrentTime
             containerNavRef={containerNav}
             containerOffsetRef={containerOffset}
             containerRef={container}
-          /> */}
-          <DateValues containerNavRef={containerNav} days={days} />
+          />
           <div className="flex flex-auto">
             <div className="sticky left-0 z-10 w-14 flex-none bg-white ring-1 ring-gray-100" />
             <div className="grid flex-auto grid-cols-1 grid-rows-1 ">

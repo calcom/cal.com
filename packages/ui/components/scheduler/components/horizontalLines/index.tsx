@@ -15,7 +15,7 @@ export const HorizontalLines = ({
   const id = useId();
   return (
     <div
-      className=" divide-gray-10 col-start-1 col-end-2 row-start-1 grid divide-y"
+      className=" col-start-1 col-end-2 row-start-1 grid divide-y divide-gray-300"
       style={{
         gridTemplateRows: `repeat(${hours.length}, minmax(${1.75 * numberOfGridStopsPerCell}rem,1fr)`,
       }}>
