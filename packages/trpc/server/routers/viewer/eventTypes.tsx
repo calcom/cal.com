@@ -360,7 +360,8 @@ export const eventTypesRouter = router({
     };
 
     const appKeys = await getAppKeysFromSlug("daily-video");
-    if (typeof appKeys.api_key === "string") {
+    // Shouldn't override input locations
+    if (rest.locations?.length === 0 && typeof appKeys.api_key === "string") {
       data.locations = [{ type: DailyLocationType }];
     }
 
