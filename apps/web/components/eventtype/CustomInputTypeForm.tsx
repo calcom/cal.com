@@ -1,9 +1,8 @@
 import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
-import React, { FC } from "react";
+import { FC } from "react";
 import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
 
-import { Button } from "@calcom/ui/components";
-import { TextField, Select } from "@calcom/ui/components/form";
+import { Button, Select, TextField } from "@calcom/ui";
 
 import { useLocale } from "@lib/hooks/useLocale";
 

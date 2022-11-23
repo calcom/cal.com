@@ -10,9 +10,19 @@ import DestinationCalendarSelector from "@calcom/features/calendars/DestinationC
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Checkbox, Button, TextField, Label } from "@calcom/ui/components";
-import { CustomInputItem, Dialog, DialogContent, SettingsToggle, showToast, Tooltip } from "@calcom/ui/v2";
+import {
+  Button,
+  Checkbox,
+  CustomInputItem,
+  Dialog,
+  DialogContent,
+  Icon,
+  Label,
+  SettingsToggle,
+  showToast,
+  TextField,
+  Tooltip,
+} from "@calcom/ui";
 
 import CustomInputTypeForm from "@components/eventtype/CustomInputTypeForm";
 

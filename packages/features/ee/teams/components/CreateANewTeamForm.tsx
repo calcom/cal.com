@@ -5,10 +5,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Avatar, Button } from "@calcom/ui/components";
-import { Form, TextField } from "@calcom/ui/components/form";
-import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
+import { Avatar, Button, Form, Icon, ImageUploader, TextField } from "@calcom/ui";
 
 import { NewTeamFormValues } from "../lib/types";
 

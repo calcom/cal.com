@@ -4,8 +4,7 @@ import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Form, TextField } from "@calcom/ui/components";
-import { Alert } from "@calcom/ui/v2";
+import { Alert, Button, Form, TextField } from "@calcom/ui";
 
 export default function Exchange2013CalendarSetup() {
   const { t } = useLocale();

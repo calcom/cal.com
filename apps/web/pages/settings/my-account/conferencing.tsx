@@ -2,15 +2,25 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Button } from "@calcom/ui/components";
-import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/v2";
-import { Dialog, DialogContent } from "@calcom/ui/v2/core/Dialog";
-import Meta from "@calcom/ui/v2/core/Meta";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
-import showToast from "@calcom/ui/v2/core/notifications";
-import { SkeletonContainer, SkeletonText } from "@calcom/ui/v2/core/skeleton";
-import { List, ListItem, ListItemText, ListItemTitle } from "@calcom/ui/v2/modules/List";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  Dropdown,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  getSettingsLayout as getLayout,
+  Icon,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemTitle,
+  Meta,
+  showToast,
+  SkeletonContainer,
+  SkeletonText,
+} from "@calcom/ui";
 
 const SkeletonLoader = () => {
   return (
@@ -53,12 +63,12 @@ const ConferencingLayout = () => {
   return (
     <div className="w-full bg-white sm:mx-0 xl:mt-0">
       <Meta title="Conferencing" description="Add your favourite video conferencing apps for your meetings" />
-      <List roundContainer={true}>
+      <List>
         {apps?.items &&
           apps.items
             .map((app) => ({ ...app, title: app.title || app.name }))
             .map((app) => (
-              <ListItem rounded={false} className="flex-col border-0" key={app.title}>
+              <ListItem className="flex-col border-0" key={app.title}>
                 <div className="flex w-full flex-1 items-center space-x-3 pl-1 pt-1 rtl:space-x-reverse">
                   {
                     // eslint-disable-next-line @next/next/no-img-element
