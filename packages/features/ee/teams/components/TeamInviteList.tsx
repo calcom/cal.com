@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { MembershipRole } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import { showToast } from "@calcom/ui/v2";
+import { showToast } from "@calcom/ui";
 
 import TeamInviteListItem from "./TeamInviteListItem";
 

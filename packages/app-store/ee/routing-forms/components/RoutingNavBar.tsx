@@ -1,4 +1,4 @@
-import { HorizontalTabs } from "@calcom/ui/v2";
+import { HorizontalTabs } from "@calcom/ui";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
 

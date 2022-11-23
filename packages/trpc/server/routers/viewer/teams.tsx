@@ -589,8 +589,7 @@ export const viewerTeamsRouter = router({
 
       const metadata = teamMetadataSchema.safeParse(prevTeam.metadata);
 
-      if (!metadata.success || !metadata.data?.requestedSlug)
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Can't publish team without `requestedSlug`" });
+      if (!metadata.success) throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid team metadata" });
 
       // if payment needed, respond with checkout url
       if (IS_TEAM_BILLING_ENABLED) {
@@ -604,7 +603,11 @@ export const viewerTeamsRouter = router({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed retrieving a checkout session URL.",
           });
-        return { url: checkoutSession.url };
+        return { url: checkoutSession.url, message: "Payment required to publish team" };
+      }
+
+      if (!metadata.data?.requestedSlug) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Can't publish team without `requestedSlug`" });
       }
 
       const { requestedSlug, ...newMetadata } = metadata.data;
@@ -626,6 +629,24 @@ export const viewerTeamsRouter = router({
       // Sync Services: Close.com
       closeComUpdateTeam(prevTeam, updatedTeam);
 
-      return { url: `${WEBAPP_URL}/settings/teams/${updatedTeam.id}/profile` };
+      return {
+        url: `${WEBAPP_URL}/settings/teams/${updatedTeam.id}/profile`,
+        message: "Team published succesfully",
+      };
     }),
+  /** This is a temporal endpoint so we can progressively upgrade teams to the new billing system. */
+  getUpgradeable: authedProcedure.query(async ({ ctx }) => {
+    if (!IS_TEAM_BILLING_ENABLED) return [];
+    let { teams } = await ctx.prisma.user.findUniqueOrThrow({
+      where: { id: ctx.user.id },
+      include: { teams: { where: { role: MembershipRole.OWNER }, include: { team: true } } },
+    });
+    /** We only need to return teams that don't have a `subscriptionId` on their metadata */
+    teams = teams.filter((m) => {
+      const metadata = teamMetadataSchema.safeParse(m.team.metadata);
+      if (metadata.success && metadata.data?.subscriptionId) return false;
+      return true;
+    });
+    return teams;
+  }),
 });

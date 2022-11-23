@@ -788,6 +788,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       type: app.type,
       success: app.success ? 1 : 0,
       failures: !app.success ? 1 : 0,
+      errors: app.calError ? [app.calError] : [],
+      warnings: app.calWarnings,
     }));
 
     if (reqAppsStatus === undefined) {
@@ -803,6 +805,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     const calcAppsStatus = reqAppsStatus.concat(resultStatus).reduce((prev, curr) => {
       if (prev[curr.type]) {
         prev[curr.type].success += curr.success;
+        prev[curr.type].errors = prev[curr.type].errors.concat(curr.errors);
+        prev[curr.type].warnings = prev[curr.type].warnings?.concat(curr.warnings || []);
       } else {
         prev[curr.type] = curr;
       }

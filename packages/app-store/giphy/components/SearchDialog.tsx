@@ -1,12 +1,9 @@
-import { SearchIcon, LinkIcon } from "@heroicons/react/outline";
-import { useState } from "react";
-import { Dispatch, SetStateAction } from "react";
+import { LinkIcon, SearchIcon } from "@heroicons/react/outline";
+import { Dispatch, SetStateAction, useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert } from "@calcom/ui/Alert";
-import Button from "@calcom/ui/Button";
-import { Dialog, DialogClose, DialogContent, DialogFooter } from "@calcom/ui/Dialog";
+import { Alert, Button, Dialog, DialogClose, DialogContent, DialogFooter } from "@calcom/ui";
 
 interface ISearchDialog {
   isOpenDialog: boolean;

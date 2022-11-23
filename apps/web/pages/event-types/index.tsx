@@ -6,23 +6,29 @@ import React, { Fragment, useEffect, useState } from "react";
 
 import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { TRPCClientError } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Button, ButtonGroup, Badge } from "@calcom/ui/components";
-import { Dialog, EmptyScreen, showToast, Switch, Tooltip } from "@calcom/ui/v2";
-import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
-import Dropdown, {
+import { RouterOutputs, trpc, TRPCClientError } from "@calcom/trpc/react";
+import {
+  Badge,
+  Button,
+  ButtonGroup,
+  ConfirmationDialogContent,
+  CreateEventTypeButton,
+  Dialog,
+  Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuPortal,
-} from "@calcom/ui/v2/core/Dropdown";
-import Shell from "@calcom/ui/v2/core/Shell";
-import CreateEventTypeButton from "@calcom/ui/v2/modules/event-types/CreateEventType";
-import EventTypeDescription from "@calcom/ui/v2/modules/event-types/EventTypeDescription";
+  EmptyScreen,
+  EventTypeDescription,
+  Icon,
+  Shell,
+  showToast,
+  Switch,
+  Tooltip,
+} from "@calcom/ui";
 
 import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
@@ -56,7 +62,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
   return (
     <Link href={`/event-types/${type.id}?tabName=setup`}>
       <a
-        className="w-full overflow-hidden pr-4 text-sm"
+        className="flex-1 overflow-hidden pr-4 text-sm"
         title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
         <div>
           <span
@@ -312,7 +318,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               size="icon"
                               href={calLink}
                               StartIcon={Icon.FiExternalLink}
-                              combined
                             />
                           </Tooltip>
 
@@ -325,7 +330,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 showToast(t("link_copied"), "success");
                                 navigator.clipboard.writeText(calLink);
                               }}
-                              combined
                             />
                           </Tooltip>
                           <Dropdown modal={false}>
@@ -337,7 +341,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 type="button"
                                 size="icon"
                                 color="secondary"
-                                combined
                                 StartIcon={Icon.FiMoreHorizontal}
                               />
                             </DropdownMenuTrigger>

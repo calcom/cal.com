@@ -3,8 +3,7 @@ import { SyntheticEvent, useMemo, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components";
-import { Dialog, DialogContent, Select } from "@calcom/ui/v2";
+import { Button, Dialog, DialogContent, Select } from "@calcom/ui";
 
 type MembershipRoleOption = {
   label: string;

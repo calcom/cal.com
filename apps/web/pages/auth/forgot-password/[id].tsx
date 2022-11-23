@@ -7,7 +7,7 @@ import React, { useMemo } from "react";
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import { Button, TextField } from "@calcom/ui/components";
+import { Button, TextField } from "@calcom/ui";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
