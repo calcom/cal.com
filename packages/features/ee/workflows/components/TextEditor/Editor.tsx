@@ -11,9 +11,9 @@ import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPl
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
-import { FormValues } from "ee/workflows/pages/workflow";
 import { UseFormReturn } from "react-hook-form";
 
+import { FormValues } from "../../pages/workflow";
 import ExampleTheme from "./ExampleTheme";
 import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
 import ToolbarPlugin from "./plugins/ToolbarPlugin";
