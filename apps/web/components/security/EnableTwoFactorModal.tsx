@@ -3,9 +3,7 @@ import { useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import Button from "@calcom/ui/Button";
-import { Dialog, DialogContent } from "@calcom/ui/Dialog";
-import { Form } from "@calcom/ui/components/form";
+import { Button, Dialog, DialogContent, Form } from "@calcom/ui";
 
 import TwoFactor from "@components/auth/TwoFactor";
 

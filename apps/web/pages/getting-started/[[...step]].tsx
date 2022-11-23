@@ -7,9 +7,7 @@ import { z } from "zod";
 import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { User } from "@calcom/prisma/client";
-import { Button } from "@calcom/ui/components/button";
-import { StepCard } from "@calcom/ui/v2/core/StepCard";
-import { Steps } from "@calcom/ui/v2/core/Steps";
+import { Button, StepCard, Steps } from "@calcom/ui";
 
 import prisma from "@lib/prisma";
 
@@ -123,7 +121,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
             {headers[currentStepIndex]?.skipText && (
               <div className="flex w-full flex-row justify-center">
                 <Button
-                  color="minimalSecondary"
+                  color="minimal"
                   data-testid="skip-step"
                   onClick={(event) => {
                     event.preventDefault();

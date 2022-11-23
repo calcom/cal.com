@@ -3,9 +3,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/Icon";
-import Shell from "@calcom/ui/Shell";
-import { EmptyScreen, showToast } from "@calcom/ui/v2";
+import { EmptyScreen, Icon, Shell, showToast } from "@calcom/ui";
 
 import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";

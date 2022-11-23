@@ -4,11 +4,7 @@ import { Suspense } from "react";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Button } from "@calcom/ui/components/button";
-import { EmptyScreen, SkeletonText } from "@calcom/ui/v2";
-import Meta from "@calcom/ui/v2/core/Meta";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
+import { Button, EmptyScreen, getSettingsLayout as getLayout, Icon, Meta, SkeletonText } from "@calcom/ui";
 
 import { WebhookListItem, WebhookListSkeleton } from "../components";
 

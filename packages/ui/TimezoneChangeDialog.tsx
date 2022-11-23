@@ -1,11 +1,11 @@
 import { useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { DialogContent, showToast } from "@calcom/ui/v2";
-import { Dialog } from "@calcom/ui/v2/core/Dialog";
+
+import { Dialog, DialogContent, showToast } from ".";
 
 export default function TimezoneChangeDialog() {
   const { t } = useLocale();
