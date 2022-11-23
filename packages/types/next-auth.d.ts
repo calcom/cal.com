@@ -1,4 +1,4 @@
-import { UserPermissionRole } from "@prisma/client";
+import { User as PrismaUser } from "@prisma/client";
 import { DefaultUser } from "next-auth";
 
 declare module "next-auth" {
@@ -7,13 +7,14 @@ declare module "next-auth" {
    */
   interface Session {
     hasValidLicense: boolean;
-    user: User & {
-      role: UserPermissionRole;
-      impersonatedByUID?: number;
-    };
+    user: User;
   }
   interface User extends Omit<DefaultUser, "id"> {
-    id: number;
-    username?: string;
+    id: PrismaUser["id"];
+    emailVerified?: PrismaUser["emailVerified"];
+    email_verified?: boolean;
+    impersonatedByUID?: number;
+    username?: PrismaUser["username"];
+    role?: PrismaUser["role"];
   }
 }
