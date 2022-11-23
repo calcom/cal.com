@@ -156,6 +156,7 @@ export const eventTypesRouter = router({
       // Position is required by lodash to sort on it. Don't remove it, TS won't complain but it would silently break reordering
       position: true,
       hashedLink: true,
+      locations: true,
       destinationCalendar: true,
       team: {
         select: {
@@ -359,7 +360,8 @@ export const eventTypesRouter = router({
     };
 
     const appKeys = await getAppKeysFromSlug("daily-video");
-    if (typeof appKeys.api_key === "string") {
+    // Shouldn't override input locations
+    if (rest.locations?.length === 0 && typeof appKeys.api_key === "string") {
       data.locations = [{ type: DailyLocationType }];
     }
 
