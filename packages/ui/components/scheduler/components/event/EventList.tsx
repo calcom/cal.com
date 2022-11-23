@@ -79,7 +79,7 @@ export function EventList({ day }: Props) {
               style={{
                 marginLeft,
                 zIndex,
-                right: `${right}%`,
+                right: `calc(${right}% - 1px)`,
                 width: `${width}%`,
                 top: `calc(${eventStartDiff}*var(--one-minute-height))`,
                 height: `calc(${eventDuration}*var(--one-minute-height))`,
