@@ -4,15 +4,21 @@ import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseReq
 import ConfigDialogForm from "@calcom/features/ee/sso/components/ConfigDialogForm";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Alert } from "@calcom/ui/Alert";
-import { ClipboardCopyIcon } from "@calcom/ui/Icon";
-import { Button, Label, Badge } from "@calcom/ui/components";
-import { showToast } from "@calcom/ui/v2";
-import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
-import { Dialog, DialogTrigger, DialogContent } from "@calcom/ui/v2/core/Dialog";
-import Meta from "@calcom/ui/v2/core/Meta";
-import SkeletonLoader from "@calcom/ui/v2/core/apps/SkeletonLoader";
+import {
+  Alert,
+  Badge,
+  Button,
+  ClipboardCopyIcon,
+  ConfirmationDialogContent,
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  Icon,
+  Label,
+  Meta,
+  showToast,
+  SkeletonLoader,
+} from "@calcom/ui";
 
 export default function SAMLConfiguration({ teamId }: { teamId: number | null }) {
   const { t } = useLocale();

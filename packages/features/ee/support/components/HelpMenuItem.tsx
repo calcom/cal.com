@@ -4,9 +4,7 @@ import { useChat } from "react-live-chat-loader";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components/button";
-import showToast from "@calcom/ui/v2/core/notifications";
+import { Button, Icon, showToast } from "@calcom/ui";
 
 import ContactMenuItem from "./ContactMenuItem";
 

@@ -6,9 +6,11 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Icon } from "@calcom/ui/Icon";
-import { Button, ButtonGroup, Avatar } from "@calcom/ui/components";
 import {
+  Avatar,
+  Button,
+  ButtonGroup,
+  ConfirmationDialogContent,
   Dialog,
   DialogContent,
   DialogTrigger,
@@ -18,10 +20,10 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  Icon,
   showToast,
   Tooltip,
-} from "@calcom/ui/v2/core";
-import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
+} from "@calcom/ui";
 
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamPill, { TeamRole } from "./TeamPill";

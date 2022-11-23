@@ -15,4 +15,4 @@ export { StarIcon as StarIconSolid } from "@heroicons/react/solid";
 // I want:
 // export CollectionIcon as Icon.Collection
 // so I can
-// import { Icon } from "@calcom/ui/Icon";
+// import { Icon } from "@calcom/ui";

@@ -1,17 +1,22 @@
 import { useRouter } from "next/router";
 import { useMemo } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import { Form, Label } from "@calcom/ui/components/form";
-import Meta from "@calcom/ui/v2/core/Meta";
-import TimezoneSelect from "@calcom/ui/v2/core/TimezoneSelect";
-import Select from "@calcom/ui/v2/core/form/select";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
-import showToast from "@calcom/ui/v2/core/notifications";
-import { SkeletonContainer, SkeletonText, SkeletonButton } from "@calcom/ui/v2/core/skeleton";
+import {
+  Button,
+  Form,
+  getSettingsLayout as getLayout,
+  Label,
+  Meta,
+  Select,
+  showToast,
+  SkeletonButton,
+  SkeletonContainer,
+  SkeletonText,
+  TimezoneSelect,
+} from "@calcom/ui";
 
 import { withQuery } from "@lib/QueryCell";
 import { nameOfDay } from "@lib/core/i18n/weekday";
