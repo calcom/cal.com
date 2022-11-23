@@ -76,8 +76,11 @@ export function BlockedList({ day }: Props) {
       <BlockedToday gridCellsPerHour={gridCellsPerHour} day={day} startHour={startHour} endHour={endHour} />
       {blockingDates &&
         blockingDates.map((event, i) => {
-          const eventStart = dayjs(event.start);
+          const dayStart = day.startOf("day").hour(startHour);
+          const blockingStart = dayjs(event.start);
           const eventEnd = dayjs(event.end);
+
+          const eventStart = dayStart.isAfter(blockingStart) ? dayStart : blockingStart;
           const eventDuration = eventEnd.diff(eventStart, "minutes");
 
           const eventStartHour = eventStart.hour();
