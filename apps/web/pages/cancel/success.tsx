@@ -3,8 +3,7 @@ import { useRouter } from "next/router";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components/button";
+import { Button, Icon } from "@calcom/ui";
 
 import { HeadSeo } from "@components/seo/head-seo";
 

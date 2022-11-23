@@ -1,6 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { MobileNavigationMoreItems } from "@calcom/ui/Shell";
-import { Shell } from "@calcom/ui/v2";
+import { MobileNavigationMoreItems, Shell } from "@calcom/ui";
 
 export default function MorePage() {
   const { t } = useLocale();

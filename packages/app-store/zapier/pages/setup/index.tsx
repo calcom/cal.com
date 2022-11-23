@@ -5,9 +5,7 @@ import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { ClipboardCopyIcon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components";
-import { showToast, Tooltip } from "@calcom/ui/v2";
+import { Button, ClipboardCopyIcon, showToast, Tooltip } from "@calcom/ui";
 
 export interface IZapierSetupProps {
   inviteLink: string;
@@ -105,7 +103,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                   <li>You&apos;re set!</li>
                 </Trans>
               </ol>
-              <Link href="/apps/installed" passHref={true}>
+              <Link href="/apps/installed/automation?hl=zapier" passHref={true}>
                 <Button color="secondary">{t("done")}</Button>
               </Link>
             </div>
