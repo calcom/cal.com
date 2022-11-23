@@ -1,15 +1,15 @@
-import { useCallback, useEffect, useMemo, useState, Fragment } from "react";
-import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import type {
-  UseFieldArrayRemove,
-  FieldValues,
+  ArrayPath,
+  Control,
+  ControllerRenderProps,
+  FieldArrayWithId,
   FieldPath,
   FieldPathValue,
-  FieldArrayWithId,
-  ArrayPath,
-  ControllerRenderProps,
-  Control,
+  FieldValues,
+  UseFieldArrayRemove,
 } from "react-hook-form";
+import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import { GroupBase, Props } from "react-select";
 
 import dayjs, { ConfigType, Dayjs } from "@calcom/dayjs";
@@ -19,11 +19,16 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { TimeRange } from "@calcom/types/schedule";
-import { Icon } from "@calcom/ui";
-import Dropdown, { DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
-import { Button } from "@calcom/ui/components/button";
-import { Select, Switch } from "@calcom/ui/v2";
-import { SkeletonText } from "@calcom/ui/v2/core/skeleton";
+import {
+  Button,
+  Dropdown,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  Icon,
+  Select,
+  SkeletonText,
+  Switch,
+} from "@calcom/ui";
 
 export type FieldPathByValue<TFieldValues extends FieldValues, TValue> = {
   [Key in FieldPath<TFieldValues>]: FieldPathValue<TFieldValues, Key> extends TValue ? Key : never;

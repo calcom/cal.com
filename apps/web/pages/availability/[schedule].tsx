@@ -10,15 +10,19 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Schedule as ScheduleType } from "@calcom/types/schedule";
-import { Icon } from "@calcom/ui";
-import { Button } from "@calcom/ui/components/button";
-import { Form, Label } from "@calcom/ui/components/form";
-import Shell from "@calcom/ui/v2/core/Shell";
-import Switch from "@calcom/ui/v2/core/Switch";
-import TimezoneSelect from "@calcom/ui/v2/core/TimezoneSelect";
-import VerticalDivider from "@calcom/ui/v2/core/VerticalDivider";
-import showToast from "@calcom/ui/v2/core/notifications";
-import { Skeleton, SkeletonText } from "@calcom/ui/v2/core/skeleton";
+import {
+  Button,
+  Form,
+  Icon,
+  Label,
+  Shell,
+  showToast,
+  Skeleton,
+  SkeletonText,
+  Switch,
+  TimezoneSelect,
+  VerticalDivider,
+} from "@calcom/ui";
 
 import { HttpError } from "@lib/core/http/error";
 

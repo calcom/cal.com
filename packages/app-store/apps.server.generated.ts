@@ -35,6 +35,7 @@ export const apiHandlers = {
   sirius_video: import("./sirius_video/api"),
   stripepayment: import("./stripepayment/api"),
   tandemvideo: import("./tandemvideo/api"),
+  telegram: import("./telegram/api"),
   typeform: import("./typeform/api"),
   vital: import("./vital/api"),
   weather_in_your_calendar: import("./weather_in_your_calendar/api"),

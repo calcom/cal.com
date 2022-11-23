@@ -36,6 +36,7 @@ import { metadata as signal_meta } from "./signal/_metadata";
 import { metadata as sirius_video_meta } from "./sirius_video/_metadata";
 import { metadata as stripepayment_meta } from "./stripepayment/_metadata";
 import { metadata as tandemvideo_meta } from "./tandemvideo/_metadata";
+import { metadata as telegram_meta } from "./telegram/_metadata";
 import { metadata as typeform_meta } from "./typeform/_metadata";
 import { metadata as vital_meta } from "./vital/_metadata";
 import { metadata as weather_in_your_calendar_meta } from "./weather_in_your_calendar/_metadata";
@@ -80,6 +81,7 @@ export const appStoreMetadata = {
   sirius_video: sirius_video_meta,
   stripepayment: stripepayment_meta,
   tandemvideo: tandemvideo_meta,
+  telegram: telegram_meta,
   typeform: typeform_meta,
   vital: vital_meta,
   weather_in_your_calendar: weather_in_your_calendar_meta,

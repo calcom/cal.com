@@ -1,14 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Check, X } from "react-feather";
-import { useForm, Controller } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, TextField, Form } from "@calcom/ui/components";
-import { showToast } from "@calcom/ui/v2";
+import { Button, Form, showToast, TextField } from "@calcom/ui";
 
 const formSchema = z.object({
   api_key: z.string(),

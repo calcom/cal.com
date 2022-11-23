@@ -3,7 +3,7 @@ import classNames from "classnames";
 import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -12,9 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { Icon } from "@calcom/ui/Icon";
-import { Button, Avatar } from "@calcom/ui/components";
-import EventTypeDescription from "@calcom/ui/v2/modules/event-types/EventTypeDescription";
+import { Avatar, Button, EventTypeDescription, Icon } from "@calcom/ui";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";

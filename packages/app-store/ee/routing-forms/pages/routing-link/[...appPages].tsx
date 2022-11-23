@@ -1,7 +1,6 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useState, useRef, FormEvent } from "react";
-import { useEffect } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 
@@ -13,8 +12,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button } from "@calcom/ui/components";
-import showToast from "@calcom/ui/v2/core/notifications";
+import { Button, showToast } from "@calcom/ui";
 
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 

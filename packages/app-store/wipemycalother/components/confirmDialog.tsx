@@ -6,9 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import logger from "@calcom/lib/logger";
 import { trpc } from "@calcom/trpc/react";
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
-import { Button } from "@calcom/ui/components/button";
-import showToast from "@calcom/ui/v2/core/notifications";
+import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, showToast } from "@calcom/ui";
 
 interface IConfirmDialogWipe {
   isOpenDialog: boolean;

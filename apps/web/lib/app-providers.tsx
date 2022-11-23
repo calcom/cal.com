@@ -10,7 +10,7 @@ import { ComponentProps, ReactNode } from "react";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { trpc } from "@calcom/trpc/react";
-import { MetaProvider } from "@calcom/ui/v2/core/Meta";
+import { MetaProvider } from "@calcom/ui";
 
 import usePublicPage from "@lib/hooks/usePublicPage";
 

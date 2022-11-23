@@ -1,6 +1,6 @@
 import { BookingStatus } from "@prisma/client";
 import { useRouter } from "next/router";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 
 import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
@@ -9,14 +9,20 @@ import { formatTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { RouterInputs, RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
-import { Icon } from "@calcom/ui/Icon";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import { TextArea } from "@calcom/ui/form/fields";
-import MeetingTimeInTimezones from "@calcom/ui/v2/core/MeetingTimeInTimezones";
-import Tooltip from "@calcom/ui/v2/core/Tooltip";
-import showToast from "@calcom/ui/v2/core/notifications";
+import {
+  Badge,
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  Icon,
+  MeetingTimeInTimezones,
+  showToast,
+  TextArea,
+  Tooltip,
+} from "@calcom/ui";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 

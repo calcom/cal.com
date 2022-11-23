@@ -3,11 +3,15 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Badge } from "@calcom/ui/components/badge";
-import { SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui/v2";
-import Meta from "@calcom/ui/v2/core/Meta";
-import Switch from "@calcom/ui/v2/core/Switch";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
+import {
+  Badge,
+  getSettingsLayout as getLayout,
+  Meta,
+  Switch,
+  SkeletonButton,
+  SkeletonContainer,
+  SkeletonText,
+} from "@calcom/ui";
 
 import DisableTwoFactorModal from "@components/settings/DisableTwoFactorModal";
 import EnableTwoFactorModal from "@components/settings/EnableTwoFactorModal";

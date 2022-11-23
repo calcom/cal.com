@@ -2,12 +2,17 @@ import { useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/Icon";
-import { TextField } from "@calcom/ui/components/form";
-import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/v2";
+import {
+  Dropdown,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  Icon,
+  TextField,
+} from "@calcom/ui";
 
-import { getWorkflowTimeUnitOptions } from "../../lib/getOptions";
-import type { FormValues } from "../../pages/v2/workflow";
+import { getWorkflowTimeUnitOptions } from "../lib/getOptions";
+import type { FormValues } from "../pages/workflow";
 
 type Props = {
   form: UseFormReturn<FormValues>;

@@ -6,13 +6,10 @@ import { useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
-import { getEventLocationType, EventLocationType } from "@calcom/app-store/locations";
+import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components";
-import { Label, TextField } from "@calcom/ui/components/form";
-import { Select, Skeleton } from "@calcom/ui/v2";
+import { Button, Icon, Label, Select, Skeleton, TextField } from "@calcom/ui";
 
 import { slugify } from "@lib/slugify";
 
