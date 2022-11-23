@@ -2,7 +2,7 @@ import classNames from "classnames";
 import { Check, Info } from "react-feather";
 import toast from "react-hot-toast";
 
-export default function showToast(message: string, variant: "success" | "warning" | "error") {
+export function showToast(message: string, variant: "success" | "warning" | "error") {
   switch (variant) {
     case "success":
       toast.custom(
@@ -66,3 +66,4 @@ export default function showToast(message: string, variant: "success" | "warning
       break;
   }
 }
+export default showToast;

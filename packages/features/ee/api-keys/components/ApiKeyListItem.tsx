@@ -2,15 +2,16 @@ import dayjs from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import Dropdown, {
+import {
+  Badge,
+  Button,
+  Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@calcom/ui/v2/core/Dropdown";
+  Icon,
+} from "@calcom/ui";
 
 export type TApiKeys = RouterOutputs["viewer"]["apiKeys"]["list"][number];
 

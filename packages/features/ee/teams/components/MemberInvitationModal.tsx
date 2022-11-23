@@ -5,10 +5,16 @@ import { Controller, useForm } from "react-hook-form";
 
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, TextField } from "@calcom/ui/components";
-import CheckboxField from "@calcom/ui/components/form/checkbox/Checkbox";
-import { Form } from "@calcom/ui/form/fields";
-import { Dialog, DialogContent, DialogFooter, Select } from "@calcom/ui/v2";
+import {
+  Button,
+  CheckboxField,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  Form,
+  Select,
+  TextField,
+} from "@calcom/ui";
 
 import { PendingMember } from "../lib/types";
 

@@ -6,9 +6,20 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Checkbox, EmailField, Form, Label, TextField } from "@calcom/ui/components";
-import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
-import { Dialog, DialogClose, DialogContent, DialogFooter, Select } from "@calcom/ui/v2";
+import {
+  Button,
+  Checkbox,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  EmailField,
+  Form,
+  Label,
+  PhoneInput,
+  Select,
+  TextField,
+} from "@calcom/ui";
 
 import { WORKFLOW_ACTIONS } from "../lib/constants";
 import { getWorkflowActionOptions } from "../lib/getOptions";

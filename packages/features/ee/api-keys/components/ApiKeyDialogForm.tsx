@@ -6,14 +6,17 @@ import { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/v2/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { DialogFooter } from "@calcom/ui/Dialog";
-import { ClipboardCopyIcon } from "@calcom/ui/Icon";
-import { Tooltip } from "@calcom/ui/Tooltip";
-import { Button } from "@calcom/ui/components/button";
-import { Form, TextField } from "@calcom/ui/components/form";
-import { DatePicker } from "@calcom/ui/v2";
-import Switch from "@calcom/ui/v2/core/Switch";
-import showToast from "@calcom/ui/v2/core/notifications";
+import {
+  Button,
+  ClipboardCopyIcon,
+  DatePicker,
+  DialogFooter,
+  Form,
+  showToast,
+  Switch,
+  TextField,
+  Tooltip,
+} from "@calcom/ui";
 
 export default function ApiKeyDialogForm({
   defaultValues,

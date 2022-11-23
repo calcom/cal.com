@@ -12,17 +12,26 @@ import "react-phone-number-input/style.css";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Dialog } from "@calcom/ui/Dialog";
-import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
-import { Button } from "@calcom/ui/components";
-import { Checkbox } from "@calcom/ui/components";
-import { EmailField, Label, TextArea, TextField } from "@calcom/ui/components/form";
-import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
-import { DialogClose, DialogContent } from "@calcom/ui/v2";
-import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
-import Select from "@calcom/ui/v2/core/form/select";
-import showToast from "@calcom/ui/v2/core/notifications";
+import {
+  Button,
+  Checkbox,
+  ConfirmationDialogContent,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  Dropdown,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  EmailField,
+  Icon,
+  Label,
+  PhoneInput,
+  Select,
+  showToast,
+  TextArea,
+  TextField,
+} from "@calcom/ui";
 
 import { AddVariablesDropdown } from "../components/AddVariablesDropdown";
 import {

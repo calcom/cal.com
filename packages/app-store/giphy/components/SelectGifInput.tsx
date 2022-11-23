@@ -1,8 +1,8 @@
-import { PlusIcon, PencilAltIcon, XIcon } from "@heroicons/react/solid";
+import { PencilAltIcon, PlusIcon, XIcon } from "@heroicons/react/solid";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import Button from "@calcom/ui/Button";
+import { Button } from "@calcom/ui";
 
 import { SearchDialog } from "./SearchDialog";
 

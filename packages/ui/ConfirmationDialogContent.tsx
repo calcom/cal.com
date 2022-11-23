@@ -7,9 +7,8 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import React, { PropsWithChildren, ReactNode } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui";
-import { Button } from "@calcom/ui/Button";
-import { DialogClose, DialogContent } from "@calcom/ui/Dialog";
+
+import { Button, DialogClose, DialogContent, Icon } from ".";
 
 export type ConfirmationDialogContentProps = {
   confirmBtn?: ReactNode;

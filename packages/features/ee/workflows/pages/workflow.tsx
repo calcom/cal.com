@@ -18,16 +18,13 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Form } from "@calcom/ui/components";
-import { Option } from "@calcom/ui/form/MultiSelectCheckboxes";
-import { showToast, Alert } from "@calcom/ui/v2";
-import Shell from "@calcom/ui/v2/core/Shell";
+import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
+import { Alert, Button, Form, Shell, showToast } from "@calcom/ui";
 
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
-import { getTranslatedText } from "../lib/variableTranslations";
-import { translateVariablesToEnglish } from "../lib/variableTranslations";
+import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
 
 export type FormValues = {
   name: string;

@@ -1,9 +1,9 @@
-import { useCallback, useRef, useState } from "react";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 
-import { isValidHexCode, fallBackHex } from "@calcom/lib/CustomBranding";
-import Swatch from "@calcom/ui/v2/core/Swatch";
+import { fallBackHex, isValidHexCode } from "@calcom/lib/CustomBranding";
+
+import { Swatch } from "../..";
 
 type Handler = (event: MouseEvent | Event) => void;
 function useEventListener<

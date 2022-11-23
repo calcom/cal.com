@@ -5,15 +5,8 @@ import { useRouter } from "next/router";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { trpc } from "@calcom/trpc/react";
-import {
-  ConfirmationDialogContent,
-  Dialog,
-  DialogTrigger,
-  Icon,
-  LinkIconButton,
-  showToast,
-} from "@calcom/ui";
 
+import { ConfirmationDialogContent, Dialog, DialogTrigger, Icon, LinkIconButton, showToast } from "../../..";
 import CreateEventTypeButton from "../event-types/CreateEventType";
 
 export default function TeamSettingsRightSidebar(props: { team: TeamWithMembers; role: MembershipRole }) {

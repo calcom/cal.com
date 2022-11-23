@@ -1,11 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui";
-import {
-  Dropdown,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@calcom/ui/v2/core/Dropdown";
+import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Icon } from "@calcom/ui";
 
 interface IAddVariablesDropdown {
   addVariable: (isEmailSubject: boolean, variable: string) => void;

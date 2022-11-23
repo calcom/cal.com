@@ -2,7 +2,8 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, ButtonProps, Dialog, DialogContent, DialogTrigger, Icon, showToast } from "@calcom/ui";
+
+import { Button, ButtonProps, Dialog, DialogContent, DialogTrigger, Icon, showToast } from "../../..";
 
 export default function DisconnectIntegration({
   credentialId,

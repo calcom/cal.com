@@ -3,8 +3,7 @@ import { z } from "zod";
 
 import { _EventTypeModel } from "@calcom/prisma/zod";
 import { RouterOutputs } from "@calcom/trpc/react";
-import { ButtonBaseProps } from "@calcom/ui/Button";
-import { ButtonBaseProps as v2ButtonBaseProps } from "@calcom/ui/components/button";
+import { ButtonBaseProps, ButtonBaseProps as v2ButtonBaseProps } from "@calcom/ui";
 
 export type IntegrationOAuthCallbackState = {
   returnTo: string;

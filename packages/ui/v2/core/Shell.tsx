@@ -21,6 +21,7 @@ import isCalcom from "@calcom/lib/isCalcom";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
+
 import {
   Button,
   Dropdown,
@@ -33,7 +34,7 @@ import {
   showToast,
   TimezoneChangeDialog,
   Tips,
-} from "@calcom/ui";
+} from "../..";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
