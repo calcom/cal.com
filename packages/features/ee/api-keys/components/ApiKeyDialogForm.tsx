@@ -71,7 +71,8 @@ export default function ApiKeyDialogForm({
           </div>
           <div>
             <div className="flex">
-              <code className="mb-2 w-full truncate rounded-md rounded-r-none bg-gray-100 px-3 py-2 align-middle font-mono text-gray-800">
+              <code className="mb-2 w-full truncate rounded-md rounded-r-none bg-gray-100 py-[6px] pl-2 pr-2 align-middle font-mono text-gray-800">
+                {" "}
                 {apiKey}
               </code>
               <Tooltip side="top" content={t("copy_to_clipboard")}>
