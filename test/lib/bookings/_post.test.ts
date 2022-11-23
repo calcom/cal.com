@@ -4,7 +4,7 @@ import { createMocks } from "node-mocks-http";
 
 import dayjs from "@calcom/dayjs";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
-import { buildBooking, buildEventType, buildWebhook, buildUser } from "@calcom/lib/test/builder";
+import { buildBooking, buildEventType, buildWebhook } from "@calcom/lib/test/builder";
 import prisma from "@calcom/prisma";
 
 import { prismaMock } from "../../../../../tests/config/singleton";
@@ -137,7 +137,7 @@ describe("POST /api/bookings", () => {
         prisma,
       });
 
-      prismaMock.eventType.findUniqueOrThrow.mockResolvedValue(buildEventType({ users: [] }));
+      prismaMock.eventType.findUniqueOrThrow.mockResolvedValue(buildEventType());
 
       await handler(req, res);
       console.log({ statusCode: res._getStatusCode(), data: JSON.parse(res._getData()) });
@@ -172,7 +172,7 @@ describe("POST /api/bookings", () => {
           prisma,
         });
 
-        prismaMock.eventType.findUniqueOrThrow.mockResolvedValue(buildEventType({ users: [buildUser()] }));
+        prismaMock.eventType.findUniqueOrThrow.mockResolvedValue(buildEventType());
         prismaMock.booking.findMany.mockResolvedValue([]);
 
         await handler(req, res);
