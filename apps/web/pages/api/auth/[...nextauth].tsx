@@ -440,7 +440,7 @@ export default NextAuth({
                 emailVerified: new Date(Date.now()),
                 name: user.name,
                 identityProvider: idP,
-                identityProviderId: user.id as string,
+                identityProviderId: String(user.id),
               },
             });
 
@@ -463,7 +463,7 @@ export default NextAuth({
             name: user.name,
             email: user.email,
             identityProvider: idP,
-            identityProviderId: user.id as string,
+            identityProviderId: String(user.id),
           },
         });
         const linkAccountNewUserData = { ...account, userId: newUser.id };
