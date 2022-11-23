@@ -1,18 +1,16 @@
 import { WorkflowActions } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Button } from "@calcom/ui/components";
-import { showToast, Switch, Tooltip, EmptyScreen } from "@calcom/ui/v2";
+import { Button, EmptyScreen, Icon, showToast, Switch, Tooltip } from "@calcom/ui";
 
-import LicenseRequired from "../../../common/components/v2/LicenseRequired";
-import { getActionIcon } from "../../lib/getActionIcon";
+import LicenseRequired from "../../common/components/v2/LicenseRequired";
+import { getActionIcon } from "../lib/getActionIcon";
 import SkeletonLoader from "./SkeletonLoaderEventWorkflowsTab";
 import { WorkflowType } from "./WorkflowListPage";
 

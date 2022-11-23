@@ -34,8 +34,7 @@ import { localStorage } from "@calcom/lib/webstorage";
 import prisma, { baseUserSelect } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Icon } from "@calcom/ui/Icon";
-import { Button, EmailInput } from "@calcom/ui/components";
+import { Button, EmailInput, Icon } from "@calcom/ui";
 
 import { timeZone } from "@lib/clock";
 import { inferSSRProps } from "@lib/types/inferSSRProps";

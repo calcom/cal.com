@@ -2,7 +2,7 @@ import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert } from "@calcom/ui/Alert";
+import { Alert } from "@calcom/ui";
 
 function ImpersonatingBanner() {
   const { t } = useLocale();

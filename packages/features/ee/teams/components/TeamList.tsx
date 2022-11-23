@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import showToast from "@calcom/ui/v2/core/notifications";
+import { showToast } from "@calcom/ui";
 
 import TeamListItem from "./TeamListItem";
 

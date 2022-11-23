@@ -3,7 +3,7 @@ import { GoPrimitiveDot } from "react-icons/go";
 
 import classNames from "@calcom/lib/classNames";
 
-export const badgeClassNameByVariant = {
+const badgeClassNameByVariant = {
   default: "bg-orange-100 text-orange-800",
   warning: "bg-orange-100 text-orange-800",
   orange: "bg-orange-100 text-orange-800",

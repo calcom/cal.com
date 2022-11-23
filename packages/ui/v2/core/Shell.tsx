@@ -21,18 +21,20 @@ import isCalcom from "@calcom/lib/isCalcom";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
-import Dropdown, {
+
+import {
+  Button,
+  Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@calcom/ui/Dropdown";
-import { Icon } from "@calcom/ui/Icon";
-import TimezoneChangeDialog from "@calcom/ui/TimezoneChangeDialog";
-import { Button } from "@calcom/ui/components/button";
-import showToast from "@calcom/ui/v2/core/notifications";
-import Tips from "@calcom/ui/v2/modules/tips/Tips";
+  Icon,
+  showToast,
+  TimezoneChangeDialog,
+  Tips,
+} from "../..";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
