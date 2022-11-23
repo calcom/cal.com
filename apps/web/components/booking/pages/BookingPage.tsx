@@ -5,7 +5,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState, useReducer } from "react";
+import { useEffect, useMemo, useReducer, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
@@ -14,11 +14,11 @@ import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import {
-  locationKeyToString,
-  getEventLocationValue,
-  getEventLocationType,
   EventLocationType,
+  getEventLocationType,
+  getEventLocationValue,
   getHumanReadableLocationValue,
+  locationKeyToString,
 } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
@@ -37,12 +37,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { Icon } from "@calcom/ui/Icon";
-import { Tooltip } from "@calcom/ui/Tooltip";
-import { Button } from "@calcom/ui/components";
-import AddressInput from "@calcom/ui/form/AddressInputLazy";
-import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
-import { EmailInput, Form } from "@calcom/ui/form/fields";
+import { AddressInput, Button, EmailInput, Form, Icon, PhoneInput, Tooltip } from "@calcom/ui";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -122,7 +117,7 @@ const BookingPage = ({
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
-      const { id, paymentUid } = responseData;
+      const { uid, paymentUid } = responseData;
       if (paymentUid) {
         return await router.push(
           createPaymentLink({
@@ -138,17 +133,10 @@ const BookingPage = ({
       return router.push({
         pathname: "/success",
         query: {
-          date,
-          type: eventType.id,
-          eventSlug: eventType.slug,
-          username: profile.slug,
-          reschedule: !!rescheduleUid,
-          name: bookingForm.getValues("name"),
-          email: bookingForm.getValues("email"),
-          location: responseData.location,
-          eventName: profile.eventName || "",
-          bookingId: id,
+          uid,
           isSuccessBookingPage: true,
+          email: bookingForm.getValues("email"),
+          eventTypeSlug: eventType.slug,
         },
       });
     },
@@ -156,31 +144,15 @@ const BookingPage = ({
 
   const recurringMutation = useMutation(createRecurringBooking, {
     onSuccess: async (responseData = []) => {
-      const { attendees = [], id, recurringEventId } = responseData[0] || {};
-      const location = (function humanReadableLocation(location) {
-        if (!location) {
-          return;
-        }
-        if (location.includes("integration")) {
-          return t("web_conferencing_details_to_follow");
-        }
-        return location;
-      })(responseData[0].location);
+      const { uid } = responseData[0] || {};
 
       return router.push({
         pathname: "/success",
         query: {
-          date,
-          type: eventType.id,
-          eventSlug: eventType.slug,
-          recur: recurringEventId,
-          username: profile.slug,
-          reschedule: !!rescheduleUid,
-          name: attendees[0].name,
-          email: attendees[0].email,
-          location,
-          eventName: profile.eventName || "",
-          bookingId: id,
+          uid,
+          allRemainingBookings: true,
+          email: bookingForm.getValues("email"),
+          eventTypeSlug: eventType.slug,
         },
       });
     },
@@ -515,7 +487,7 @@ const BookingPage = ({
                             <p key={key}>{timeFormatted}</p>
                           ))}>
                           <p className="dark:text-darkgray-600 text-sm">
-                            {t("plus_more", { count: recurringStrings.length - 5 })}
+                            + {t("plus_more", { count: recurringStrings.length - 5 })}
                           </p>
                         </Tooltip>
                       </div>
@@ -883,7 +855,7 @@ const BookingPage = ({
                   {!eventType.disableGuests && !guestToggle && (
                     <Button
                       type="button"
-                      color="minimalSecondary"
+                      color="minimal"
                       size="icon"
                       tooltip={t("additional_guests")}
                       StartIcon={Icon.FiUserPlus}
@@ -901,7 +873,6 @@ const BookingPage = ({
                   </Button>
                   <Button
                     type="submit"
-                    className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast dark:hover:border-darkmodebrandcontrast mr-auto dark:border-transparent"
                     data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
                     loading={mutation.isLoading || recurringMutation.isLoading}>
                     {rescheduleUid ? t("reschedule") : t("confirm")}
@@ -934,7 +905,7 @@ function ErrorMessage({ error }: { error: unknown }) {
         <div className="ltr:ml-3 rtl:mr-3">
           <p className="text-sm text-yellow-700">
             {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
-            {error instanceof HttpError || error instanceof Error ? error.message : "Unknown error"}
+            {error instanceof HttpError || error instanceof Error ? t(error.message) : "Unknown error"}
           </p>
         </div>
       </div>

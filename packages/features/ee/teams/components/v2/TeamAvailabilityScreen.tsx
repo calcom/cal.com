@@ -1,19 +1,17 @@
-import React, { useState, useEffect, CSSProperties } from "react";
+import { CSSProperties, useEffect, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 
 import dayjs from "@calcom/dayjs";
 import { CAL_URL } from "@calcom/lib/constants";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
-import { Avatar } from "@calcom/ui/components/avatar";
-import Select from "@calcom/ui/form/Select";
-import TimezoneSelect, { ITimezone } from "@calcom/ui/form/TimezoneSelect";
-import DatePicker from "@calcom/ui/v2/core/form/DatePicker";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { ITimezone } from "@calcom/ui";
+import { Avatar, DatePickerField as DatePicker, Select, TimezoneSelect } from "@calcom/ui";
 
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 
 interface Props {
-  team?: inferQueryOutput<"viewer.teams.get">;
+  team?: RouterOutputs["viewer"]["teams"]["get"];
 }
 
 export default function TeamAvailabilityScreen(props: Props) {
@@ -25,7 +23,7 @@ export default function TeamAvailabilityScreen(props: Props) {
   const [frequency, setFrequency] = useState<15 | 30 | 60>(30);
 
   useEffect(() => {
-    utils.invalidateQueries(["viewer.teams.getMemberAvailability"]);
+    utils.viewer.teams.getMemberAvailability.invalidate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTimeZone, selectedDate]);
 

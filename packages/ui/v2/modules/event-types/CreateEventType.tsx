@@ -13,21 +13,27 @@ import { HttpError } from "@calcom/lib/http-error";
 import slugify from "@calcom/lib/slugify";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
-import { Alert } from "@calcom/ui/Alert";
-import { Icon } from "@calcom/ui/Icon";
-import { Avatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
-import { Form, TextAreaField, TextField } from "@calcom/ui/components/form";
-import { Dialog, DialogClose, DialogContent } from "@calcom/ui/v2/core/Dialog";
-import Dropdown, {
+
+import {
+  Alert,
+  Avatar,
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@calcom/ui/v2/core/Dropdown";
-import * as RadioArea from "@calcom/ui/v2/core/form/radio-area/RadioAreaGroup";
-import showToast from "@calcom/ui/v2/core/notifications";
+  Form,
+  Icon,
+  RadioGroup as RadioArea,
+  showToast,
+  TextAreaField,
+  TextField,
+} from "../../..";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
 export interface EventTypeParent {
@@ -62,7 +68,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
   const form = useForm<z.infer<typeof createEventTypeInput>>({
     resolver: zodResolver(createEventTypeInput),
   });
-  const { setValue, watch, register } = form;
+  const { setValue, register } = form;
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -84,7 +90,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
     // If query params change, update the form
   }, [router.isReady, router.query, setValue]);
 
-  const createMutation = trpc.useMutation("viewer.eventTypes.create", {
+  const createMutation = trpc.viewer.eventTypes.create.useMutation({
     onSuccess: async ({ eventType }) => {
       await router.replace("/event-types/" + eventType.id);
       showToast(t("event_type_created_successfully", { eventTypeTitle: eventType.title }), "success");
@@ -345,13 +351,10 @@ function CreateEventTeamsItem(props: {
   option: EventTypeParent;
 }) {
   const session = useSession();
-  const membershipQuery = trpc.useQuery([
-    "viewer.teams.getMembershipbyUser",
-    {
-      memberId: session.data?.user?.id as number,
-      teamId: props.option.teamId as number,
-    },
-  ]);
+  const membershipQuery = trpc.viewer.teams.getMembershipbyUser.useQuery({
+    memberId: session.data?.user?.id as number,
+    teamId: props.option.teamId as number,
+  });
 
   const isDisabled = membershipQuery.data?.role === "MEMBER";
 

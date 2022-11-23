@@ -9,7 +9,6 @@ import {
 import async from "async";
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
-import { RRule } from "rrule";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 import z from "zod";
@@ -212,7 +211,11 @@ async function ensureAvailableUsers(
   eventType: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
     users: User[];
   },
-  input: { dateFrom: string; dateTo: string }
+  input: { dateFrom: string; dateTo: string },
+  recurringDatesInfo?: {
+    allRecurringDates: string[] | undefined;
+    currentRecurringIndex: number | undefined;
+  }
 ) {
   const availableUsers: typeof eventType.users = [];
   /** Let's start checking for availability */
@@ -241,11 +244,14 @@ async function ensureAvailableUsers(
 
     console.log("calendarBusyTimes==>>>", bufferedBusyTimes);
 
-    let foundConflict = true;
+    let foundConflict = false;
     try {
-      if (eventType.recurringEvent) {
-        const recurringEvent = parseRecurringEvent(eventType.recurringEvent);
-        const allBookingDates = new RRule({ dtstart: new Date(input.dateFrom), ...recurringEvent }).all();
+      if (
+        eventType.recurringEvent &&
+        recurringDatesInfo?.currentRecurringIndex === 0 &&
+        recurringDatesInfo.allRecurringDates
+      ) {
+        const allBookingDates = recurringDatesInfo.allRecurringDates.map((strDate) => new Date(strDate));
         // Go through each date for the recurring event and check if each one's availability
         // DONE: Decreased computational complexity from O(2^n) to O(n) by refactoring this loop to stop
         // running at the first unavailable time.
@@ -277,6 +283,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   const {
     recurringCount,
+    allRecurringDates,
+    currentRecurringIndex,
     noEmail,
     eventTypeSlug,
     eventTypeId,
@@ -376,10 +384,20 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       {
         ...eventType,
         users,
+        ...(eventType.recurringEvent && {
+          recurringEvent: {
+            ...eventType.recurringEvent,
+            count: recurringCount || eventType.recurringEvent.count,
+          },
+        }),
       },
       {
         dateFrom: reqBody.start,
         dateTo: reqBody.end,
+      },
+      {
+        allRecurringDates,
+        currentRecurringIndex,
       }
     );
 
@@ -492,6 +510,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         uid: reqBody.bookingUid,
       },
       select: {
+        uid: true,
         id: true,
         attendees: true,
         userId: true,
@@ -769,6 +788,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       type: app.type,
       success: app.success ? 1 : 0,
       failures: !app.success ? 1 : 0,
+      errors: app.calError ? [app.calError] : [],
+      warnings: app.calWarnings,
     }));
 
     if (reqAppsStatus === undefined) {
@@ -784,6 +805,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     const calcAppsStatus = reqAppsStatus.concat(resultStatus).reduce((prev, curr) => {
       if (prev[curr.type]) {
         prev[curr.type].success += curr.success;
+        prev[curr.type].errors = prev[curr.type].errors.concat(curr.errors);
+        prev[curr.type].warnings = prev[curr.type].warnings?.concat(curr.warnings || []);
       } else {
         prev[curr.type] = curr;
       }

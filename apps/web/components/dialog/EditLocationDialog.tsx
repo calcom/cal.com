@@ -6,27 +6,23 @@ import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import {
-  LocationType,
-  getEventLocationType,
   EventLocationType,
+  getEventLocationType,
+  getHumanReadableLocationValue,
+  getMessageForOrganizer,
   LocationObject,
+  LocationType,
 } from "@calcom/app-store/locations";
-import { getMessageForOrganizer } from "@calcom/app-store/locations";
-import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui";
-import { Dialog, DialogContent } from "@calcom/ui/Dialog";
-import { Icon } from "@calcom/ui/Icon";
-import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
-import { Form } from "@calcom/ui/form/fields";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import { Button, Dialog, DialogContent, Form, Icon, PhoneInput } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
 
 import CheckboxField from "@components/ui/form/CheckboxField";
 import Select from "@components/ui/form/Select";
 
-type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
+type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
 type OptionTypeBase = {
   label: string;
@@ -81,7 +77,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     setSelectedLocation,
   } = props;
   const { t } = useLocale();
-  const locationsQuery = trpc.useQuery(["viewer.locationOptions"]);
+  const locationsQuery = trpc.viewer.locationOptions.useQuery();
 
   useEffect(() => {
     if (selection) {

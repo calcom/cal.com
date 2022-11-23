@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
+import { getSettingsLayout as getLayout } from "@calcom/ui";
 
 import SAMLConfiguration from "../components/SAMLConfiguration";
 

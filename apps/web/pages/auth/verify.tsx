@@ -8,8 +8,7 @@ import z from "zod";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components";
-import showToast from "@calcom/ui/v2/core/notifications";
+import { Button, showToast } from "@calcom/ui";
 
 import Loader from "@components/Loader";
 
@@ -57,13 +56,10 @@ export default function Verify() {
   const router = useRouter();
   const { t, sessionId, stripeCustomerId } = querySchema.parse(router.query);
   const [secondsLeft, setSecondsLeft] = useState(30);
-  const { data } = trpc.useQuery([
-    "viewer.public.stripeCheckoutSession",
-    {
-      stripeCustomerId,
-      checkoutSessionId: sessionId,
-    },
-  ]);
+  const { data } = trpc.viewer.public.stripeCheckoutSession.useQuery({
+    stripeCustomerId,
+    checkoutSessionId: sessionId,
+  });
   useSendFirstVerificationLogin({ email: data?.customer?.email, username: data?.customer?.username });
   // @note: check for t=timestamp and apply disabled state and secondsLeft accordingly
   // to avoid refresh to skip waiting 30 seconds to re-send email

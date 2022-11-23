@@ -1,17 +1,12 @@
 import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { trpc } from "@calcom/trpc/react";
-import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
-import { Icon } from "@calcom/ui/Icon";
-import { Dialog, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
-import LinkIconButton from "@calcom/ui/v2/core/LinkIconButton";
-import showToast from "@calcom/ui/v2/core/notifications";
 
+import { ConfirmationDialogContent, Dialog, DialogTrigger, Icon, LinkIconButton, showToast } from "../../..";
 import CreateEventTypeButton from "../event-types/CreateEventType";
 
 export default function TeamSettingsRightSidebar(props: { team: TeamWithMembers; role: MembershipRole }) {
@@ -21,16 +16,16 @@ export default function TeamSettingsRightSidebar(props: { team: TeamWithMembers;
 
   const permalink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${props.team?.slug}`;
 
-  const deleteTeamMutation = trpc.useMutation("viewer.teams.delete", {
+  const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
+      await utils.viewer.teams.get.invalidate();
       router.push(`/settings/teams`);
       showToast(t("your_team_updated_successfully"), "success");
     },
   });
-  const acceptOrLeaveMutation = trpc.useMutation("viewer.teams.acceptOrLeave", {
+  const acceptOrLeaveMutation = trpc.viewer.teams.acceptOrLeave.useMutation({
     onSuccess: () => {
-      utils.invalidateQueries(["viewer.teams.list"]);
+      utils.viewer.teams.list.invalidate();
       router.push(`/settings/teams`);
     },
   });

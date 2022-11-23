@@ -1,4 +1,4 @@
-import { HorizontalTabs } from "@calcom/ui/v2";
+import { HorizontalTabs } from "@calcom/ui";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
 
@@ -17,6 +17,11 @@ export default function RoutingNavBar({
     {
       name: "Routing",
       href: `${appUrl}/route-builder/${form?.id}`,
+      className: "pointer-events-none opacity-30 lg:pointer-events-auto lg:opacity-100",
+    },
+    {
+      name: "Reporting",
+      href: `${appUrl}/reporting/${form?.id}`,
       className: "pointer-events-none opacity-30 lg:pointer-events-auto lg:opacity-100",
     },
   ];

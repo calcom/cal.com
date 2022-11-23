@@ -10,15 +10,19 @@ import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { Schedule as ScheduleType } from "@calcom/types/schedule";
-import { Icon } from "@calcom/ui";
-import { Button } from "@calcom/ui/components/button";
-import { Form, Label } from "@calcom/ui/components/form";
-import Shell from "@calcom/ui/v2/core/Shell";
-import Switch from "@calcom/ui/v2/core/Switch";
-import TimezoneSelect from "@calcom/ui/v2/core/TimezoneSelect";
-import VerticalDivider from "@calcom/ui/v2/core/VerticalDivider";
-import showToast from "@calcom/ui/v2/core/notifications";
-import { Skeleton, SkeletonText } from "@calcom/ui/v2/core/skeleton";
+import {
+  Button,
+  Form,
+  Icon,
+  Label,
+  Shell,
+  showToast,
+  Skeleton,
+  SkeletonText,
+  Switch,
+  TimezoneSelect,
+  VerticalDivider,
+} from "@calcom/ui";
 
 import { HttpError } from "@lib/core/http/error";
 
@@ -41,7 +45,7 @@ export default function Availability({ schedule }: { schedule: number }) {
   const utils = trpc.useContext();
   const me = useMeQuery();
   const { timeFormat } = me.data || { timeFormat: null };
-  const { data, isLoading } = trpc.useQuery(["viewer.availability.schedule", { scheduleId: schedule }]);
+  const { data, isLoading } = trpc.viewer.availability.schedule.get.useQuery({ scheduleId: schedule });
 
   const form = useForm<AvailabilityFormValues>();
   const { control, reset } = form;
@@ -57,18 +61,18 @@ export default function Availability({ schedule }: { schedule: number }) {
     }
   }, [data, isLoading, reset]);
 
-  const updateMutation = trpc.useMutation("viewer.availability.schedule.update", {
+  const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async ({ prevDefaultId, currentDefaultId, ...data }) => {
       if (prevDefaultId && currentDefaultId) {
         // check weather the default schedule has been changed by comparing  previous default schedule id and current default schedule id.
         if (prevDefaultId !== currentDefaultId) {
           // if not equal, invalidate previous default schedule id and refetch previous default schedule id.
-          utils.invalidateQueries(["viewer.availability.schedule", { scheduleId: prevDefaultId }]);
-          utils.refetchQueries(["viewer.availability.schedule", { scheduleId: prevDefaultId }]);
+          utils.viewer.availability.schedule.get.invalidate({ scheduleId: prevDefaultId });
+          utils.viewer.availability.schedule.get.refetch({ scheduleId: prevDefaultId });
         }
       }
-      utils.setQueryData(["viewer.availability.schedule", { scheduleId: data.schedule.id }], data);
-      utils.invalidateQueries(["viewer.availability.list"]);
+      utils.viewer.availability.schedule.get.setData({ scheduleId: data.schedule.id }, data);
+      utils.viewer.availability.list.invalidate();
       showToast(
         t("availability_updated_successfully", {
           scheduleName: data.schedule.name,
@@ -118,7 +122,7 @@ export default function Availability({ schedule }: { schedule: number }) {
             </Skeleton>
             <Switch
               id="hiddenSwitch"
-              disabled={isLoading}
+              disabled={isLoading || data?.isDefault}
               checked={form.watch("isDefault")}
               onCheckedChange={(e) => {
                 form.setValue("isDefault", e);
