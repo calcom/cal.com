@@ -1166,7 +1166,7 @@
   "general_description": "Manage settings for your language and timezone",
   "calendars_description": "Configure how your event types interact with your calendars",
   "appearance_description": "Manage settings for your booking appearance",
-  "conferencing_description": "Manage your video conferencing apps for your meetings",
+  "conferencing_description": "Add your favourite video conferencing apps for your meetings",
   "password_description": "Manage settings for your account passwords",
   "2fa_description": "Manage settings for your account passwords",
   "we_just_need_basic_info": "We just need some basic info to get your profile setup.",
