@@ -27,12 +27,14 @@ import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Icon, DatePicker } from "@calcom/ui";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 // import { timeZone } from "@lib/clock";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
+import useRouterQuery from "@lib/hooks/useRouterQuery";
 import { isBrandingHidden } from "@lib/isBrandingHidden";
 
 import Gates, { Gate, GateState } from "@components/Gates";
@@ -70,6 +72,7 @@ const useSlots = ({
   endTime,
   usernameList,
   timeZone,
+  duration,
 }: {
   eventTypeId: number;
   eventTypeSlug: string;
@@ -77,6 +80,7 @@ const useSlots = ({
   endTime?: Dayjs;
   usernameList: string[];
   timeZone?: string;
+  duration?: string;
 }) => {
   const { data, isLoading, isPaused } = trpc.viewer.public.slots.getSchedule.useQuery(
     {
@@ -86,6 +90,7 @@ const useSlots = ({
       startTime: startTime?.toISOString() || "",
       endTime: endTime?.toISOString() || "",
       timeZone,
+      duration,
     },
     {
       enabled: !!startTime && !!endTime,
@@ -126,6 +131,7 @@ const SlotPicker = ({
 }) => {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
+  const { duration } = useRouterQuery("duration");
   const { date, setQuery: setDate } = useRouterQuery("date");
   const { month, setQuery: setMonth } = useRouterQuery("month");
   const router = useRouter();
@@ -151,7 +157,7 @@ const SlotPicker = ({
         setSelectedDate(dayjs.tz(date, timeZone));
       }
     }
-  }, [router.isReady, month, date, timeZone]);
+  }, [router.isReady, month, date, duration, timeZone]);
 
   const { i18n, isLocaleReady } = useLocale();
   const { slots: _1 } = useSlots({
@@ -161,6 +167,7 @@ const SlotPicker = ({
     startTime: selectedDate?.startOf("day"),
     endTime: selectedDate?.endOf("day"),
     timeZone,
+    duration,
   });
   const { slots: _2, isLoading } = useSlots({
     eventTypeId: eventType.id,
@@ -169,6 +176,7 @@ const SlotPicker = ({
     startTime: browsingDate?.startOf("month"),
     endTime: browsingDate?.endOf("month"),
     timeZone,
+    duration,
   });
 
   const slots = useMemo(() => ({ ..._2, ..._1 }), [_1, _2]);
@@ -230,13 +238,13 @@ function TimezoneDropdown({
   return (
     <Popover.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
       <Popover.Trigger className="min-w-32 dark:text-darkgray-600 radix-state-open:bg-gray-200 dark:radix-state-open:bg-darkgray-200 group relative mb-2 -ml-2 inline-block rounded-md px-2 py-2 text-left text-gray-600">
-        <p className="text-sm font-medium">
-          <Icon.FiGlobe className="mr-[10px] ml-[2px] -mt-[2px] inline-block h-4 w-4" />
+        <p className="flex items-center text-sm font-medium">
+          <Icon.FiGlobe className="min-h-4 min-w-4 mr-[10px] ml-[2px] -mt-[2px] inline-block" />
           {timeZone}
           {isTimeOptionsOpen ? (
-            <Icon.FiChevronUp className="ml-1 inline-block h-4 w-4" />
+            <Icon.FiChevronUp className="min-h-4 min-w-4 ml-1 inline-block" />
           ) : (
-            <Icon.FiChevronDown className="ml-1 inline-block h-4 w-4" />
+            <Icon.FiChevronDown className="min-h-4 min-w-4 ml-1 inline-block" />
           )}
         </p>
       </Popover.Trigger>
@@ -257,23 +265,6 @@ const dateQuerySchema = z.object({
   date: z.string().optional().default(""),
   timeZone: z.string().optional().default(""),
 });
-
-const useRouterQuery = <T extends string>(name: T) => {
-  const router = useRouter();
-  const existingQueryParams = router.asPath.split("?")[1];
-
-  const urlParams = new URLSearchParams(existingQueryParams);
-  const query = Object.fromEntries(urlParams);
-
-  const setQuery = (newValue: string | number | null | undefined) => {
-    router.replace({ query: { ...router.query, [name]: newValue } }, undefined, { shallow: true });
-    router.replace({ query: { ...router.query, ...query, [name]: newValue } }, undefined, { shallow: true });
-  };
-
-  return { [name]: query[name], setQuery } as {
-    [K in T]: string | undefined;
-  } & { setQuery: typeof setQuery };
-};
 
 export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
 

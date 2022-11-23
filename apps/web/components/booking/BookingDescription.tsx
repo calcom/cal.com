@@ -1,9 +1,12 @@
 import { SchedulingType } from "@prisma/client";
-import { FC, ReactNode } from "react";
+import { FC, ReactNode, useEffect } from "react";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui";
+import { Badge } from "@calcom/ui/components/badge";
+
+import useRouterQuery from "@lib/hooks/useRouterQuery";
 
 import { UserAvatars } from "@components/booking/UserAvatars";
 import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
@@ -40,6 +43,18 @@ interface Props {
 const BookingDescription: FC<Props> = (props) => {
   const { profile, eventType, isBookingPage = false, children } = props;
   const { t } = useLocale();
+  const { duration, setQuery: setDuration } = useRouterQuery("duration");
+  useEffect(() => {
+    if (eventType.metadata?.multipleDuration !== undefined) {
+      if (!duration) {
+        setDuration(eventType.length);
+      } else {
+        if (!eventType.metadata?.multipleDuration.includes(Number(duration))) {
+          setDuration(eventType.length);
+        }
+      }
+    }
+  }, []);
   return (
     <>
       <UserAvatars
@@ -92,11 +107,42 @@ const BookingDescription: FC<Props> = (props) => {
         />
         <p
           className={classNames(
-            "text-sm font-medium",
+            "flex flex-nowrap text-sm font-medium",
             isBookingPage && "dark:text-darkgray-600 text-gray-600"
           )}>
-          <Icon.FiClock className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
-          {eventType.length} {t("minutes")}
+          <Icon.FiClock
+            className={classNames(
+              "min-h-4 min-w-4 mr-[10px] ml-[2px] inline-block",
+              isBookingPage && "mt-[2px]"
+            )}
+          />
+          {eventType.metadata?.multipleDuration !== undefined ? (
+            !isBookingPage ? (
+              <ul className="-mt-1 flex flex-wrap gap-1">
+                {eventType.metadata.multipleDuration.map((dur, idx) => (
+                  <li key={idx}>
+                    <Badge
+                      variant="gray"
+                      size="lg"
+                      data-duration={dur}
+                      className={classNames(
+                        duration === dur.toString() && "bg-gray-300 dark:border-white dark:bg-inherit",
+                        "dark:bg-darkgray-200 dark:hover:border-darkmodebrand cursor-pointer border border-transparent bg-gray-100 hover:bg-gray-300 dark:text-white"
+                      )}
+                      onClick={() => {
+                        setDuration(dur);
+                      }}>
+                      {dur} {t("minute_timeUnit")}
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              `${duration} ${t("minutes")}`
+            )
+          ) : (
+            `${eventType.length} ${t("minutes")}`
+          )}
         </p>
         {children}
       </div>

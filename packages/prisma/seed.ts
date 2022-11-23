@@ -250,6 +250,14 @@ async function main() {
         length: 60,
       },
       {
+        title: "Multiple duration",
+        slug: "multiple-duration",
+        length: 75,
+        metadata: {
+          multipleDuration: [30, 75, 90],
+        },
+      },
+      {
         title: "paid",
         slug: "paid",
         length: 60,
