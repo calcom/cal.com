@@ -161,6 +161,8 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
           success: z.number(),
           failures: z.number(),
           type: z.string(),
+          errors: z.string().array(),
+          warnings: z.string().array().optional(),
         })
       )
       .optional(),
