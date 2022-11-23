@@ -4,7 +4,8 @@ import React from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RadioArea, RadioAreaGroup } from "@calcom/ui/v2/core/form/radio-area/RadioAreaGroup";
+
+import { RadioArea, RadioAreaGroup } from "./RadioAreaGroup";
 
 interface OptionProps
   extends Pick<React.OptionHTMLAttributes<HTMLOptionElement>, "value" | "label" | "className"> {

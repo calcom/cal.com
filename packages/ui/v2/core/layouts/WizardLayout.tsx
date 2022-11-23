@@ -3,8 +3,7 @@ import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
-import { StepCard } from "@calcom/ui/v2/core/StepCard";
-import { Steps } from "@calcom/ui/v2/core/Steps";
+import { StepCard, Steps } from "../../..";
 
 export default function WizardLayout({
   children,

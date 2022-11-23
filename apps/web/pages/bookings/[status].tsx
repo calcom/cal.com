@@ -7,11 +7,7 @@ import { z } from "zod";
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterInputs, RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Alert } from "@calcom/ui/Alert";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components";
-import { EmptyScreen } from "@calcom/ui/v2";
-import BookingLayout from "@calcom/ui/v2/core/layouts/BookingLayout";
+import { Alert, BookingLayout, Button, EmptyScreen, Icon } from "@calcom/ui";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 

@@ -8,6 +8,8 @@ import { applyStyleToMultipleVariants } from "@calcom/lib/cva";
 
 import Tooltip from "../../v2/core/Tooltip";
 
+type InferredVariantProps = VariantProps<typeof buttonClasses>;
+
 export type ButtonBaseProps = {
   /** Action that happens when the button is clicked */
   onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
@@ -19,7 +21,9 @@ export type ButtonBaseProps = {
   /**Tool tip used when icon size is set to small */
   tooltip?: string;
   flex?: boolean;
-} & VariantProps<typeof buttonClasses>;
+} & Omit<InferredVariantProps, "color"> & {
+    color?: NonNullable<InferredVariantProps["color"]>;
+  };
 
 export type ButtonProps = ButtonBaseProps &
   (
@@ -38,7 +42,8 @@ const buttonClasses = cva(
         destructive: "",
       },
       size: {
-        base: "h-9 px-4 py-2.5  ",
+        sm: "px-3 py-2 leading-4 rounded-sm" /** For backwards compatibility */,
+        base: "h-9 px-4 py-2.5 ",
         lg: "h-[36px] px-4 py-2.5 ",
         icon: "flex justify-center min-h-[36px] min-w-[36px] ",
       },
@@ -138,7 +143,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
 ) {
   const {
     loading = false,
-    color,
+    color = "primary",
     size,
     type = "button",
     StartIcon,

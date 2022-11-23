@@ -3,8 +3,7 @@ import { ArrowRightIcon } from "@heroicons/react/solid";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { List } from "@calcom/ui/List";
-import { SkeletonAvatar, SkeletonText, SkeletonButton } from "@calcom/ui/v2";
+import { SkeletonAvatar, SkeletonText, SkeletonButton, List } from "@calcom/ui";
 
 import { CalendarItem } from "../components/CalendarItem";
 import { ConnectedCalendarItem } from "../components/ConnectedCalendarItem";
