@@ -9,8 +9,8 @@ import { z } from "zod";
 
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getEventTypeAppData, getLocationOptions } from "@calcom/app-store/utils";
-import { LocationObject, EventLocationType } from "@calcom/core/location";
-import { parseRecurringEvent, parseBookingLimit, validateBookingLimitOrder } from "@calcom/lib";
+import { EventLocationType, LocationObject } from "@calcom/core/location";
+import { parseBookingLimit, parseRecurringEvent, validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
 import findDurationType from "@calcom/lib/findDurationType";
@@ -20,8 +20,7 @@ import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { BookingLimit, RecurringEvent } from "@calcom/types/Calendar";
-import { Form } from "@calcom/ui/form/fields";
-import { showToast } from "@calcom/ui/v2";
+import { Form, showToast } from "@calcom/ui";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
@@ -164,6 +163,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
       },
+      periodType: eventType.periodType,
+      periodCountCalendarDays: eventType.periodCountCalendarDays ? "1" : "0",
       schedulingType: eventType.schedulingType,
       minimumBookingNotice: eventType.minimumBookingNotice,
       minimumBookingNoticeInDurationType: convertToNewDurationType(

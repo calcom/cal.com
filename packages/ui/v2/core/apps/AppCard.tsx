@@ -5,9 +5,9 @@ import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { App } from "@calcom/types/App";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components/button";
-import { showToast } from "@calcom/ui/v2";
+
+import { Button, Icon } from "../../..";
+import { showToast } from "../notifications";
 
 interface AppCardProps {
   app: App;
@@ -18,9 +18,10 @@ export default function AppCard({ app, credentials }: AppCardProps) {
   const { t } = useLocale();
   const router = useRouter();
   const mutation = useAddAppMutation(null, {
-    onSuccess: () => {
+    onSuccess: (data) => {
       // Refresh SSR page content without actual reload
       router.replace(router.asPath);
+      if (data.setupPending) return;
       showToast(t("app_successfully_installed"), "success");
     },
     onError: (error) => {
@@ -70,6 +71,7 @@ export default function AppCard({ app, credentials }: AppCardProps) {
                 render={({ useDefaultComponent, ...props }) => {
                   if (useDefaultComponent) {
                     props = {
+                      ...props,
                       onClick: () => {
                         mutation.mutate({ type: app.type, variant: app.variant, slug: app.slug });
                       },
@@ -96,11 +98,14 @@ export default function AppCard({ app, credentials }: AppCardProps) {
                 render={({ useDefaultComponent, ...props }) => {
                   if (useDefaultComponent) {
                     props = {
+                      ...props,
                       onClick: () => {
                         mutation.mutate({ type: app.type, variant: app.variant, slug: app.slug });
                       },
                     };
                   }
+                  props.color;
+                  //     ^?
                   return (
                     <Button
                       StartIcon={Icon.FiPlus}

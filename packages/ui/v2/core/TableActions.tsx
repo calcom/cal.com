@@ -1,15 +1,16 @@
 import React, { FC } from "react";
 
 import { SVGComponent } from "@calcom/types/SVGComponent";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components/button";
+
 import {
+  Button,
+  Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuPortal,
-} from "@calcom/ui/v2/core/Dropdown";
-import Dropdown from "@calcom/ui/v2/core/Dropdown";
+  DropdownMenuTrigger,
+  Icon,
+} from "../..";
 
 export type ActionType = {
   id: string;

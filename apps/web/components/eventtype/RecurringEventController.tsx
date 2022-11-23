@@ -5,8 +5,7 @@ import { useFormContext } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { Alert } from "@calcom/ui/Alert";
-import { Select, SettingsToggle } from "@calcom/ui/v2";
+import { Alert, Select, SettingsToggle } from "@calcom/ui";
 
 type RecurringEventControllerProps = {
   recurringEvent: RecurringEvent | null;

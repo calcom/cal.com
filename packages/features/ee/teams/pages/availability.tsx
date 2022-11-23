@@ -5,10 +5,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Alert } from "@calcom/ui/Alert";
-import Loader from "@calcom/ui/Loader";
-import Shell from "@calcom/ui/Shell";
-import { Avatar } from "@calcom/ui/components/avatar";
+import { Alert, Avatar, Loader, Shell } from "@calcom/ui";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import TeamAvailabilityScreen from "../components/TeamAvailabilityScreen";
