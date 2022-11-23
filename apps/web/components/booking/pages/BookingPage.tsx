@@ -622,7 +622,7 @@ const BookingPage = ({
                   )}
                 </>
                 {/* TODO: Change name and id ="phone" to something generic */}
-                {AttendeeInput && (
+                {AttendeeInput && !disableInput && (
                   <div className="mb-4">
                     <label
                       htmlFor={
@@ -659,7 +659,6 @@ const BookingPage = ({
                             : ""
                         }
                         required
-                        disabled={disableInput}
                       />
                     </div>
                     {bookingForm.formState.errors.phone && (
