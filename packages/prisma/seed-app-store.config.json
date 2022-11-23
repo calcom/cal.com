@@ -121,6 +121,13 @@
     "type": "whatsapp_video"
   },
   {
+    "dirName": "telegram",
+    "categories": ["video"],
+    "slug": "telegram",
+    "type": "telegram_video"
+
+  },
+  {
     "dirName": "signal",
     "categories": ["video"],
     "slug": "signal",
