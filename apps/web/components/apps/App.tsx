@@ -127,6 +127,7 @@ const Component = ({
                   render={({ useDefaultComponent, ...props }) => {
                     if (useDefaultComponent) {
                       props = {
+                        ...props,
                         onClick: () => {
                           mutation.mutate({ type, variant, slug });
                         },
@@ -165,6 +166,7 @@ const Component = ({
               render={({ useDefaultComponent, ...props }) => {
                 if (useDefaultComponent) {
                   props = {
+                    ...props,
                     onClick: () => {
                       mutation.mutate({ type, variant, slug });
                     },

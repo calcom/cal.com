@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { _EventTypeModel } from "@calcom/prisma/zod";
 import { RouterOutputs } from "@calcom/trpc/react";
-import { ButtonBaseProps, ButtonBaseProps as v2ButtonBaseProps } from "@calcom/ui";
+import { ButtonProps } from "@calcom/ui";
 
 export type IntegrationOAuthCallbackState = {
   returnTo: string;
@@ -11,13 +11,10 @@ export type IntegrationOAuthCallbackState = {
 
 export interface InstallAppButtonProps {
   render: (
-    renderProps:
-      | Omit<ButtonBaseProps, "color" | "size"> & {
-          /** Tells that the default render component should be used */
-          useDefaultComponent?: boolean;
-          color?: ButtonBaseProps["color"] & v2ButtonBaseProps["color"];
-          size?: ButtonBaseProps["size"] & v2ButtonBaseProps["size"];
-        }
+    renderProps: ButtonProps & {
+      /** Tells that the default render component should be used */
+      useDefaultComponent?: boolean;
+    }
   ) => JSX.Element;
   onChanged?: () => unknown;
 }

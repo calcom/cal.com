@@ -63,12 +63,12 @@ const ConferencingLayout = () => {
   return (
     <div className="w-full bg-white sm:mx-0 xl:mt-0">
       <Meta title="Conferencing" description="Add your favourite video conferencing apps for your meetings" />
-      <List roundContainer={true}>
+      <List>
         {apps?.items &&
           apps.items
             .map((app) => ({ ...app, title: app.title || app.name }))
             .map((app) => (
-              <ListItem rounded={false} className="flex-col border-0" key={app.title}>
+              <ListItem className="flex-col border-0" key={app.title}>
                 <div className="flex w-full flex-1 items-center space-x-3 pl-1 pt-1 rtl:space-x-reverse">
                   {
                     // eslint-disable-next-line @next/next/no-img-element

@@ -35,7 +35,7 @@ export default function SelectGifInput(props: ISelectGifInput) {
 
         {selectedGif && (
           <Button
-            color="warn"
+            color="destructive"
             type="button"
             StartIcon={XIcon}
             onClick={() => {

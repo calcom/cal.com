@@ -71,6 +71,7 @@ export default function AppCard({ app, credentials }: AppCardProps) {
                 render={({ useDefaultComponent, ...props }) => {
                   if (useDefaultComponent) {
                     props = {
+                      ...props,
                       onClick: () => {
                         mutation.mutate({ type: app.type, variant: app.variant, slug: app.slug });
                       },
@@ -97,11 +98,14 @@ export default function AppCard({ app, credentials }: AppCardProps) {
                 render={({ useDefaultComponent, ...props }) => {
                   if (useDefaultComponent) {
                     props = {
+                      ...props,
                       onClick: () => {
                         mutation.mutate({ type: app.type, variant: app.variant, slug: app.slug });
                       },
                     };
                   }
+                  props.color;
+                  //     ^?
                   return (
                     <Button
                       StartIcon={Icon.FiPlus}
