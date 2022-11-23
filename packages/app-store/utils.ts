@@ -73,7 +73,7 @@ export function getLocationOptions(integrations: ReturnType<typeof getApps>, t: 
 }
 
 export function getLocationGroupedOptions(integrations: ReturnType<typeof getApps>, t: TFunction) {
-  const apps: Record<string, { label: string; value: string; disabled?: boolean; icon?: any }[]> = {};
+  const apps: Record<string, { label: string; value: string; disabled?: boolean; icon?: string }[]> = {};
   integrations.forEach((app) => {
     if (app.locationOption) {
       const category = app.category;
@@ -109,11 +109,22 @@ export function getLocationGroupedOptions(integrations: ReturnType<typeof getApp
   });
   const locations = [];
 
+  // Translating labels and pushing into array
   for (const category in apps) {
     const tmp = { label: category, options: apps[category] };
+    if (tmp.label === "in person") {
+      tmp.options.map((l) => ({ ...l, label: t(l.value) }));
+    } else {
+      tmp.options.map((l) => ({
+        ...l,
+        label: t(l.label.toLowerCase().split(" ").join("_")),
+      }));
+    }
+
+    tmp.label = t(tmp.label);
+
     locations.push(tmp);
   }
-
   return locations;
 }
 

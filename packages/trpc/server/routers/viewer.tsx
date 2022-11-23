@@ -773,7 +773,6 @@ const loggedInViewerRouter = router({
 
     const t = await getTranslation(ctx.user.locale ?? "en", "common");
 
-    // const locationOptions = getLocationOptions(integrations, t);
     const locationOptions = getLocationGroupedOptions(integrations, t);
 
     return locationOptions;
