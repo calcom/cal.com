@@ -23,7 +23,7 @@ import type { HubspotToken } from "../api/callback";
 
 const hubspotClient = new hubspot.Client();
 
-export default class HubspotOtherCalendarService implements Calendar {
+export default class HubspotCalendarService implements Calendar {
   private url = "";
   private integrationName = "";
   private auth: Promise<{ getToken: () => Promise<any> }>;
@@ -168,7 +168,7 @@ export default class HubspotOtherCalendarService implements Calendar {
         const hubspotRefreshToken: HubspotToken = await hubspotClient.oauth.tokensApi.createToken(
           "refresh_token",
           undefined,
-          WEBAPP_URL + "/api/integrations/hubspotothercalendar/callback",
+          WEBAPP_URL + "/api/integrations/hubspot/callback",
           this.client_id,
           this.client_secret,
           refreshToken
