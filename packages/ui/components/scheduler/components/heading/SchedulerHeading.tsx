@@ -1,16 +1,12 @@
 import dayjs from "@calcom/dayjs";
-import useResponsive from "@calcom/lib/hooks/useResponsive";
 
 import { Icon } from "../../../../Icon";
-import { ToggleGroup } from "../../../../v2/core/form/ToggleGroup";
 import { Button } from "../../../button";
 import { ButtonGroup } from "../../../buttonGroup";
 import { useSchedulerStore } from "../../state/store";
 
 export function SchedulerHeading() {
-  const { isSm } = useResponsive();
-  const { startDate, endDate, handleDateChange, view } = useSchedulerStore((state) => ({
-    view: state.view,
+  const { startDate, endDate, handleDateChange } = useSchedulerStore((state) => ({
     startDate: dayjs(state.startDate),
     endDate: dayjs(state.endDate),
     handleDateChange: state.handleDateChange,
@@ -23,13 +19,14 @@ export function SchedulerHeading() {
         <span className="text-gray-500">,{startDate.format("YYYY")}</span>
       </h1>
       <div className="flex items-center space-x-2">
-        <ToggleGroup
+        {/* TODO: Renable when we have daily/mobile support */}
+        {/* <ToggleGroup
           options={[
             { label: "Daily", value: "day", disabled: false },
             { label: "Weekly", value: "week", disabled: isSm },
           ]}
           defaultValue={view === "day" ? "day" : "week"}
-        />
+        /> */}
 
         <ButtonGroup combined>
           {/* TODO: i18n label with correct view */}

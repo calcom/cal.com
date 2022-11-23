@@ -1,2 +1,1 @@
-export * from "./Scheduler";
-export * from "./event";
+export { default as Scheduler } from "./Scheduler";

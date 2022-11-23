@@ -65,7 +65,11 @@ export const Events: SchedulerEvent[] = [
 
 export const blockingDates: TimeRange[] = [
   {
-    start: startDate.hour(8).toDate(),
-    end: startDate.hour(9).toDate(),
+    start: startDate.add(1, "day").hour(10).toDate(),
+    end: startDate.add(1, "day").hour(13).toDate(),
+  },
+  {
+    start: startDate.hour(10).toDate(),
+    end: startDate.hour(13).toDate(),
   },
 ];

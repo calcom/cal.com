@@ -4,16 +4,15 @@ import { useSchedulerStore } from "../state/store";
 import "../styles/styles.css";
 import { SchedulerComponentProps } from "../types/state";
 import { getDaysBetweenDates, getHoursToDisplay } from "../utils";
-import { DateValues } from "./DateValues/DateValues";
 import { BlockedList } from "./blocking/BlockedList";
-import { CurrentTime } from "./currentTime";
+import { DateValues } from "./dateValues/DateValues";
 import { EmptyCell } from "./event/Empty";
 import { EventList } from "./event/EventList";
 import { SchedulerHeading } from "./heading/SchedulerHeading";
 import { HorizontalLines } from "./horizontalLines";
 import { VeritcalLines } from "./verticalLines";
 
-export function Scheduler(props: SchedulerComponentProps) {
+export default function Scheduler(props: SchedulerComponentProps) {
   const container = useRef<HTMLDivElement | null>(null);
   const containerNav = useRef<HTMLDivElement | null>(null);
   const containerOffset = useRef<HTMLDivElement | null>(null);
@@ -52,11 +51,12 @@ export function Scheduler(props: SchedulerComponentProps) {
           style={{ width: "165%" }}
           className="flex max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
           <DateValues containerNavRef={containerNav} days={days} />
-          <CurrentTime
+          {/* TODO: Implement this at a later date. */}
+          {/* <CurrentTime
             containerNavRef={containerNav}
             containerOffsetRef={containerOffset}
             containerRef={container}
-          />
+          /> */}
           <div className="flex flex-auto">
             <div className="sticky left-0 z-10 w-14 flex-none bg-white ring-1 ring-gray-100" />
             <div className="grid flex-auto grid-cols-1 grid-rows-1 ">

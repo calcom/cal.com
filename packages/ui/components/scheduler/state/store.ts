@@ -35,7 +35,7 @@ export const useSchedulerStore = create<SchedulerStoreProps>((set) => ({
       events = state.events.sort((a, b) => a.start.getTime() - b.start.getTime());
     }
     const blockingDates = mergeOverlappingDateRanges(state.blockingDates || []); // We merge overlapping dates so we don't get duplicate blocking "Cells" in the UI
-    console.log(blockingDates);
+
     set({
       ...state,
       blockingDates,
