@@ -3,7 +3,7 @@ import { useState } from "react";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui";
 import { Button } from "@calcom/ui/components/button";
 import { Alert } from "@calcom/ui/v2/core/Alert";
 import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";

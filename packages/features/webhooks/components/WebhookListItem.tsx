@@ -1,7 +1,7 @@
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui";
 import { Badge } from "@calcom/ui/components/badge";
 import { Button } from "@calcom/ui/components/button";
 import Switch from "@calcom/ui/v2/core/Switch";

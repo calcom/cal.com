@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui";
 import { Button } from "@calcom/ui/components";
 import { showToast } from "@calcom/ui/v2/core";
 import Meta from "@calcom/ui/v2/core/Meta";

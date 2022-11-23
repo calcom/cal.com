@@ -7,7 +7,7 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui";
 import { Button, ButtonGroup } from "@calcom/ui/components";
 import {
   Dropdown,

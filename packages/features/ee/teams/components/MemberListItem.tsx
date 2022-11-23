@@ -6,7 +6,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui";
 import { Button, ButtonGroup, Avatar } from "@calcom/ui/components";
 import {
   Dialog,

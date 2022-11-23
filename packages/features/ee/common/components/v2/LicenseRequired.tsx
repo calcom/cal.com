@@ -2,7 +2,7 @@ import { useSession } from "next-auth/react";
 import React, { AriaRole, ComponentType, Fragment } from "react";
 
 import { CONSOLE_URL } from "@calcom/lib/constants";
-import { Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui";
 import { EmptyScreen } from "@calcom/ui/v2";
 
 type LicenseRequiredProps = {

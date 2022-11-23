@@ -5,7 +5,7 @@ import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { App } from "@calcom/types/App";
-import { Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui";
 import { Button } from "@calcom/ui/components/button";
 import { showToast } from "@calcom/ui/v2";
 

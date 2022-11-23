@@ -1,6 +1,6 @@
 import { components, GroupBase, Props, ValueContainerProps } from "react-select";
 
-import { Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui";
 
 import { Select } from "../..";
 

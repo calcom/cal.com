@@ -1,7 +1,7 @@
 import React, { FC } from "react";
 
 import { SVGComponent } from "@calcom/types/SVGComponent";
-import { Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui";
 import { Button } from "@calcom/ui/components/button";
 import {
   DropdownMenuContent,

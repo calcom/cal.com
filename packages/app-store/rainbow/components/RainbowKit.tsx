@@ -15,7 +15,7 @@ import { useAccount, useSignMessage } from "wagmi";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui";
 import { SkeletonText } from "@calcom/ui/v2";
 import showToast from "@calcom/ui/v2/core/notifications";
 

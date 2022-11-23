@@ -3,7 +3,7 @@ import { Icon as FeatherIcon } from "react-feather";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SVGComponent } from "@calcom/types/SVGComponent";
-import { Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui";
 import { Button } from "@calcom/ui/components/button";
 
 type WorkflowExampleType = {

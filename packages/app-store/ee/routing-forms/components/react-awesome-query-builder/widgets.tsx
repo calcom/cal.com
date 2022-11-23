@@ -10,7 +10,7 @@ import {
   TextWidgetProps,
 } from "react-awesome-query-builder";
 
-import { Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui";
 import { Button as CalButton, TextArea, TextField } from "@calcom/ui/components";
 import { SelectWithValidation as Select } from "@calcom/ui/v2";
 

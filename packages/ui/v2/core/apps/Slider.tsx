@@ -4,7 +4,7 @@ import "@glidejs/glide/dist/css/glide.theme.min.css";
 import { useEffect, useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui";
 
 import { SkeletonText } from "../skeleton";
 

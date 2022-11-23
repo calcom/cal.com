@@ -3,7 +3,7 @@ import "@wojtekmaj/react-daterange-picker/dist/DateRangePicker.css";
 import PrimitiveDateRangePicker from "@wojtekmaj/react-daterange-picker/dist/entry.nostyle";
 import React from "react";
 
-import { Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui";
 import "@calcom/ui/v2/core/form/date-range-picker/styles.css";
 
 type Props = {

@@ -1,5 +1,5 @@
 import { classNames } from "@calcom/lib";
-import { Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui";
 
 import Divider from "../Divider";
 
