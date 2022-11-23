@@ -67,7 +67,7 @@ export function EventList({ day }: Props) {
                 zIndex = 65;
                 marginLeft = "auto";
                 right = 8;
-                width = width / 2;
+                width = 80;
               }
             }
           }
