@@ -125,7 +125,6 @@
     "categories": ["video"],
     "slug": "telegram",
     "type": "telegram_video"
-
   },
   {
     "dirName": "signal",
