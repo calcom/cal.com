@@ -186,6 +186,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       length: type.length,
       type: type.schedulingType,
       teamId: group.teamId,
+      locations: encodeURIComponent(JSON.stringify(type.locations)),
     };
     if (!group.teamId) {
       delete query.teamId;
