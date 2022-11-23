@@ -42,8 +42,6 @@ export {
   CustomInputItem,
   EmptyScreen,
   HorizontalTabs,
-  SelectField,
-  SelectWithValidation,
   SettingsToggle,
   showToast,
   SkeletonAvatar,
@@ -55,7 +53,7 @@ export {
   VerticalTabs,
 } from "./v2";
 export type { AlertProps } from "./v2";
-export { getReactSelectProps, Segment, SegmentOption } from "./v2/core";
+export { Segment, SegmentOption } from "./v2/core";
 export { default as AllApps } from "./v2/core/apps/AllApps";
 export { default as AppCard } from "./v2/core/apps/AppCard";
 export { default as AppStoreCategories } from "./v2/core/apps/Categories";
