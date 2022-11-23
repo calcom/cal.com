@@ -299,10 +299,9 @@ export default function Success(props: SuccessProps) {
   const locationToDisplay = getSuccessPageLocationMessage(location, t);
 
   const hasSMSAttendeeAction =
-    eventType.workflows.filter(
-      (workflowEventType) =>
-        workflowEventType.workflow.steps.filter((step) => step.action === WorkflowActions.SMS_ATTENDEE).length
-    ).length > 0;
+    eventType.workflows.find((workflowEventType) =>
+      workflowEventType.workflow.steps.find((step) => step.action === WorkflowActions.SMS_ATTENDEE)
+    ) !== undefined;
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
