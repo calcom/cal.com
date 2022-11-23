@@ -36,8 +36,8 @@ export function Event({
         selected && "border-[1px] border-transparent bg-gray-900 text-white",
         disabled ? "hover:cursor-default" : "hover:cursor-pointer"
       )}>
-      <div className="overflow-ellipsis leading-4">
-        <p className="w-full">{event.title}</p>
+      <div className="w-full overflow-hidden overflow-ellipsis whitespace-nowrap text-left leading-4">
+        {event.title}
       </div>
       {eventDuration >= 30 && (
         <p className="text-[10px] leading-none text-gray-500">
