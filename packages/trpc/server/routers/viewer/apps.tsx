@@ -2,15 +2,12 @@ import { AppCategories } from "@prisma/client";
 import z from "zod";
 
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
-import { getLocalAppMetadata, getAppName } from "@calcom/app-store/utils";
+import { getLocalAppMetadata } from "@calcom/app-store/utils";
 import { sendDisabledAppEmail } from "@calcom/emails";
-import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { getTranslation } from "@calcom/lib/server/i18n";
 
-import { TRPCError } from "@trpc/server";
-
-import { router, authedProcedure } from "../../trpc";
+import { authedAdminProcedure, router } from "../../trpc";
 
 interface FilteredApp {
   name: string;
@@ -24,23 +21,18 @@ interface FilteredApp {
 }
 
 export const appsRouter = router({
-  listLocal: authedProcedure
+  listLocal: authedAdminProcedure
     .input(
       z.object({
-        variant: z.string(),
+        category: z.nativeEnum(AppCategories),
       })
     )
     .query(async ({ ctx, input }) => {
-      if (ctx.session.user.role !== "ADMIN")
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
-
       const localApps = getLocalAppMetadata();
       const dbApps = await ctx.prisma.app.findMany({
         where: {
           categories: {
-            has: input.variant === "conferencing" ? "video" : (input.variant as AppCategories),
+            has: input.category,
           },
         },
         select: {
@@ -53,7 +45,7 @@ export const appsRouter = router({
       const filteredApps: FilteredApp[] = [];
 
       for (const app of localApps) {
-        if (app.variant === input.variant) {
+        if (app.variant === input.category) {
           // Find app metadata
           const dbData = dbApps.find((dbApp) => dbApp.slug === app.slug);
 
@@ -87,7 +79,7 @@ export const appsRouter = router({
       }
       return filteredApps;
     }),
-  toggle: authedProcedure
+  toggle: authedAdminProcedure
     .input(
       z.object({
         slug: z.string(),
@@ -95,11 +87,6 @@ export const appsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      if (ctx.session.user?.role !== "ADMIN")
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
-
       const { prisma } = ctx;
 
       const app = await prisma.app.update({
@@ -204,7 +191,7 @@ export const appsRouter = router({
 
       return app.enabled;
     }),
-  saveKeys: authedProcedure
+  saveKeys: authedAdminProcedure
     .input(
       z.object({
         slug: z.string(),
@@ -214,10 +201,6 @@ export const appsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      if (ctx.session.user.role !== "ADMIN")
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
       const appKey = deriveAppDictKeyFromType(input.type, appKeysSchemas);
       const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
 

@@ -1,10 +1,11 @@
+import { AppCategories } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
@@ -23,12 +24,7 @@ const IntegrationContainer = ({ app, lastEntry, category }) => {
   const utils = trpc.useContext();
   const [disableDialog, setDisableDialog] = useState(false);
   const [hideKey, setHideKey] = useState(
-    app.keys &&
-      Object.assign(
-        ...Object.keys(app.keys).map((key) => {
-          return { [key]: true };
-        })
-      )
+    app.keys && Object.assign(...Object.keys(app.keys).map((key) => ({ [key]: true })))
   );
 
   const formMethods = useForm();
@@ -128,14 +124,18 @@ const IntegrationContainer = ({ app, lastEntry, category }) => {
   );
 };
 
-const AdminAppsList = ({ baseURL }: { baseURL: string }) => {
-  const { t } = useLocale();
-  const router = useRouter();
-  const category = router.query.category || "calendar";
+const querySchema = z.object({
+  category: z.nativeEnum(AppCategories).optional().default(AppCategories.calendar),
+});
 
-  const { data: apps, isLoading } = trpc.viewer.appsRouter.listLocal.useQuery({
-    variant: category,
-  });
+const AdminAppsList = ({ baseURL }: { baseURL: string }) => {
+  const router = useRouter();
+  const { category } = querySchema.parse(router.query);
+
+  const { data: apps, isLoading } = trpc.viewer.appsRouter.listLocal.useQuery(
+    { category },
+    { enabled: router.isReady }
+  );
 
   return (
     <AppCategoryNavigation baseURL={baseURL} containerClassname="w-full xl:mx-5 xl:w-2/3 xl:pr-5">

@@ -29,8 +29,22 @@ const isAuthedMiddleware = t.middleware(({ ctx, next }) => {
   });
 });
 
+const isAdminMiddleware = t.middleware(({ ctx, next }) => {
+  if (!ctx.user || !ctx.session || ctx.user.role !== "ADMIN") {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  return next({
+    ctx: {
+      // infers that `user` and `session` are non-nullable to downstream procedures
+      session: ctx.session,
+      user: ctx.user,
+    },
+  });
+});
+
 export const router = t.router;
 export const mergeRouters = t.mergeRouters;
 export const middleware = t.middleware;
 export const publicProcedure = t.procedure.use(perfMiddleware);
 export const authedProcedure = t.procedure.use(perfMiddleware).use(isAuthedMiddleware);
+export const authedAdminProcedure = t.procedure.use(perfMiddleware).use(isAdminMiddleware);
