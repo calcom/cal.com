@@ -1,14 +1,14 @@
 import { GetStaticPropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
+  APP_NAME,
   COMPANY_NAME,
   DEVELOPER_DOCS,
   DOCS_URL,
   JOIN_SLACK,
-  WEBSITE_DOMAIN,
   WEBSITE_URL,
 } from "@calcom/lib/constants";
 import { Icon } from "@calcom/ui";
@@ -200,7 +200,7 @@ export default function Custom404() {
                   <a target="_blank" href={url} className="mt-2 inline-block text-lg" rel="noreferrer">
                     {t("the_username")}{" "}
                     <strong className="text-blue-500">
-                      {WEBSITE_DOMAIN}
+                      {APP_NAME}
                       {username}
                     </strong>{" "}
                     {t("is_still_available")} <span className="text-blue-500">{t("register_now")}</span>.

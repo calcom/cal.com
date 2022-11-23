@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
 
-import { APP_NAME, CAL_URL, WEBAPP_URL, WEBSITE_DOMAIN } from "@calcom/lib/constants";
+import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
@@ -581,7 +581,7 @@ const EventTypesPage = () => {
   return (
     <div>
       <Head>
-        <title>Home | {WEBSITE_DOMAIN}</title>
+        <title>Home | {APP_NAME}</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Shell

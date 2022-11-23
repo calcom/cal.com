@@ -15,12 +15,12 @@ import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import {
+  APP_NAME,
+  COMPANY_NAME,
   DESKTOP_APP_LINK,
   JOIN_SLACK,
   ROADMAP,
   WEBAPP_URL,
-  WEBSITE_DOMAIN,
-  COMPANY_NAME,
 } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -139,7 +139,7 @@ const Layout = (props: LayoutProps) => {
     <>
       {!props.withoutSeo && (
         <HeadSeo
-          title={pageTitle ?? WEBSITE_DOMAIN}
+          title={pageTitle ?? APP_NAME}
           description={props.subtitle ? props.subtitle?.toString() : ""}
           nextSeoProps={{
             nofollow: true,

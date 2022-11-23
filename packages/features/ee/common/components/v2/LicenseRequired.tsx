@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import React, { AriaRole, ComponentType, Fragment } from "react";
 
-import { CONSOLE_URL, SUPPORT_MAIL_ADDRESS, WEBSITE_DOMAIN } from "@calcom/lib/constants";
+import { APP_NAME, CONSOLE_URL, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen, Icon } from "@calcom/ui";
 
@@ -34,7 +34,7 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
               dangerouslySetInnerHTML={{
                 __html: t("enterprise_license_description", {
                   consoleUrl: `<a href="${CONSOLE_URL}" target="_blank" rel="noopener noreferrer" class="underline">
-                ${WEBSITE_DOMAIN}
+                ${APP_NAME}
               </a>`,
                   supportMail: `<a href="mailto:${SUPPORT_MAIL_ADDRESS}" class="underline">
                 ${SUPPORT_MAIL_ADDRESS}

@@ -1,6 +1,6 @@
 import { TFunction } from "next-i18next";
 
-import { APP_NAME, WEBSITE_DOMAIN } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
 import BaseEmail from "./_base-email";
@@ -29,7 +29,7 @@ export default class TeamInviteEmail extends BaseEmail {
       subject: this.teamInviteEvent.language("user_invited_you", {
         user: this.teamInviteEvent.from,
         team: this.teamInviteEvent.teamName,
-        domainName: WEBSITE_DOMAIN,
+        appName: APP_NAME,
       }),
       html: renderEmail("TeamInviteEmail", this.teamInviteEvent),
       text: "",

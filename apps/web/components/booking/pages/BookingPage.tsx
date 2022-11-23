@@ -31,7 +31,7 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { WEBSITE_DOMAIN } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -427,7 +427,7 @@ const BookingPage = ({
                 eventTypeTitle: eventType.title,
                 profileName: profile.name,
               })}{" "}
-          | {WEBSITE_DOMAIN}
+          | {APP_NAME}
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
