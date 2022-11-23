@@ -73,14 +73,15 @@ export function getLocationOptions(integrations: ReturnType<typeof getApps>, t: 
 }
 
 export function getLocationGroupedOptions(integrations: ReturnType<typeof getApps>, t: TFunction) {
-  const apps: Record<string, { label: string; value: string; disabled?: boolean }[]> = {};
+  const apps: Record<string, { label: string; value: string; disabled?: boolean; icon?: any }[]> = {};
   integrations.forEach((app) => {
     if (app.locationOption) {
       const category = app.category;
+      const option = { ...app.locationOption, icon: app.imageSrc };
       if (apps[category]) {
-        apps[category] = [...apps[category], app.locationOption];
+        apps[category] = [...apps[category], option];
       } else {
-        apps[category] = [app.locationOption];
+        apps[category] = [option];
       }
     }
   });
@@ -93,6 +94,7 @@ export function getLocationGroupedOptions(integrations: ReturnType<typeof getApp
         {
           label: l.label,
           value: l.type,
+          icon: l.iconUrl,
         },
       ];
     } else {
@@ -100,6 +102,7 @@ export function getLocationGroupedOptions(integrations: ReturnType<typeof getApp
         {
           label: l.label,
           value: l.type,
+          icon: l.iconUrl,
         },
       ];
     }
