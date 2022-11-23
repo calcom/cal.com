@@ -1,17 +1,12 @@
 import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { trpc } from "@calcom/trpc/react";
-import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
-import { Icon } from "@calcom/ui/Icon";
-import { Dialog, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
-import LinkIconButton from "@calcom/ui/v2/core/LinkIconButton";
-import showToast from "@calcom/ui/v2/core/notifications";
 
+import { ConfirmationDialogContent, Dialog, DialogTrigger, Icon, LinkIconButton, showToast } from "../../..";
 import CreateEventTypeButton from "../event-types/CreateEventType";
 
 export default function TeamSettingsRightSidebar(props: { team: TeamWithMembers; role: MembershipRole }) {

@@ -1,7 +1,7 @@
 import { FC, useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import TimezoneSelect, { ITimezoneOption } from "@calcom/ui/v2/core/TimezoneSelect";
+import { ITimezoneOption, TimezoneSelect } from "@calcom/ui";
 
 import { timeZone } from "../../lib/clock";
 

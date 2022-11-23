@@ -2,15 +2,19 @@ import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/components/form";
-import Meta from "@calcom/ui/v2/core/Meta";
-import Switch from "@calcom/ui/v2/core/Switch";
-import ColorPicker from "@calcom/ui/v2/core/colorpicker";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
-import showToast from "@calcom/ui/v2/core/notifications";
-import { SkeletonContainer, SkeletonText, SkeletonButton } from "@calcom/ui/v2/core/skeleton";
+import {
+  Badge,
+  Button,
+  ColorPicker,
+  Form,
+  getSettingsLayout as getLayout,
+  Meta,
+  showToast,
+  SkeletonButton,
+  SkeletonContainer,
+  SkeletonText,
+  Switch,
+} from "@calcom/ui";
 
 const SkeletonLoader = () => {
   return (

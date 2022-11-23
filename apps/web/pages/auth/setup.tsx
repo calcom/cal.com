@@ -11,8 +11,7 @@ import { isPasswordValid } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { TextField, EmailField, PasswordField, Label } from "@calcom/ui/components/form";
-import WizardForm from "@calcom/ui/v2/core/WizardForm";
+import { EmailField, Label, PasswordField, TextField, WizardForm } from "@calcom/ui";
 
 import { ssrInit } from "@server/lib/ssr";
 
