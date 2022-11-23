@@ -255,7 +255,6 @@ const DisplayShortcuts = (item: shortcutArrayType) => {
 
 function RenderResults() {
   const { results } = useMatches();
-  const { t } = useLocale();
 
   return (
     <KBarResults
