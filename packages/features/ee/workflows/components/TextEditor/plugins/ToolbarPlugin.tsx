@@ -22,7 +22,10 @@ import {
   GridSelection,
   $getRoot,
   $insertNodes,
+  LexicalEditor,
+  EditorState,
 } from "lexical";
+import { RefObject, Dispatch, SetStateAction } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -45,11 +48,7 @@ const blockTypeToBlockName: BlockType = {
   ul: "Bulleted List",
 };
 
-function Divider() {
-  return <div className="divider" />;
-}
-
-function positionEditorElement(editor: any, rect: any) {
+function positionEditorElement(editor: HTMLInputElement, rect: DOMRect | null) {
   if (rect === null) {
     editor.style.opacity = "0";
     editor.style.top = "-1000px";
@@ -61,7 +60,7 @@ function positionEditorElement(editor: any, rect: any) {
   }
 }
 
-function FloatingLinkEditor({ editor }: any) {
+function FloatingLinkEditor({ editor }: { editor: LexicalEditor }) {
   const editorRef = useRef<HTMLInputElement>(null);
   const mouseDownRef = useRef(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -97,12 +96,12 @@ function FloatingLinkEditor({ editor }: any) {
       selection !== null &&
       !nativeSelection?.isCollapsed &&
       rootElement !== null &&
-      rootElement.contains(nativeSelection?.anchorNode)
+      rootElement.contains(nativeSelection?.anchorNode || null)
     ) {
       const domRange = nativeSelection?.getRangeAt(0);
-      let rect;
+      let rect: DOMRect | undefined;
       if (nativeSelection?.anchorNode === rootElement) {
-        let inner = rootElement;
+        let inner: Element = rootElement;
         while (inner.firstElementChild != null) {
           inner = inner.firstElementChild;
         }
@@ -111,7 +110,7 @@ function FloatingLinkEditor({ editor }: any) {
         rect = domRange?.getBoundingClientRect();
       }
       if (!mouseDownRef.current) {
-        positionEditorElement(editorElem, rect);
+        positionEditorElement(editorElem, rect || null);
       }
 
       setLastSelection(selection);
@@ -127,7 +126,7 @@ function FloatingLinkEditor({ editor }: any) {
 
   useEffect(() => {
     return mergeRegister(
-      editor.registerUpdateListener(({ editorState }: any) => {
+      editor.registerUpdateListener(({ editorState }: { editorState: EditorState }) => {
         editorState.read(() => {
           updateLinkEditor();
         });
@@ -203,20 +202,7 @@ function FloatingLinkEditor({ editor }: any) {
   );
 }
 
-function Select({ onChange, className, options, value }: any) {
-  return (
-    <select className={className} onChange={onChange} value={value}>
-      <option hidden={true} value="" />
-      {options.map((option: any) => (
-        <option key={option} value={option}>
-          {option}
-        </option>
-      ))}
-    </select>
-  );
-}
-
-function getSelectedNode(selection: any) {
+function getSelectedNode(selection: RangeSelection) {
   const anchor = selection.anchor;
   const focus = selection.focus;
   const anchorNode = selection.anchor.getNode();
@@ -232,7 +218,19 @@ function getSelectedNode(selection: any) {
   }
 }
 
-function BlockOptionsDropdownList({ editor, blockType, toolbarRef, setShowBlockOptionsDropDown }: any) {
+type BlockOptionsDropdownProps = {
+  editor: LexicalEditor;
+  blockType: string;
+  toolbarRef: RefObject<HTMLDivElement>;
+  setShowBlockOptionsDropDown: Dispatch<SetStateAction<boolean>>;
+};
+
+function BlockOptionsDropdownList({
+  editor,
+  blockType,
+  toolbarRef,
+  setShowBlockOptionsDropDown,
+}: BlockOptionsDropdownProps) {
   const dropDownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -307,18 +305,18 @@ function BlockOptionsDropdownList({ editor, blockType, toolbarRef, setShowBlockO
 
   const formatBulletList = () => {
     if (blockType !== "ul") {
-      editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND);
+      editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined);
     } else {
-      editor.dispatchCommand(REMOVE_LIST_COMMAND);
+      editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
     }
     setShowBlockOptionsDropDown(false);
   };
 
   const formatNumberedList = () => {
     if (blockType !== "ol") {
-      editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND);
+      editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined);
     } else {
-      editor.dispatchCommand(REMOVE_LIST_COMMAND);
+      editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
     }
     setShowBlockOptionsDropDown(false);
   };
@@ -380,11 +378,9 @@ export default function ToolbarPlugin(props: TextEditorProps) {
           setBlockType(type);
         }
       }
-      // Update text format
       setIsBold(selection.hasFormat("bold"));
       setIsItalic(selection.hasFormat("italic"));
 
-      // Update links
       const node = getSelectedNode(selection);
       const parent = node.getParent();
       if ($isLinkNode(parent) || $isLinkNode(node)) {
@@ -409,26 +405,22 @@ export default function ToolbarPlugin(props: TextEditorProps) {
 
   useEffect(() => {
     editor.update(() => {
-      // In the browser you can use the native DOMParser API to parse the HTML string.
       const parser = new DOMParser();
       const dom = parser.parseFromString(
         props.form.getValues(`steps.${props.stepNumber - 1}.reminderBody`) || "",
         "text/html"
       );
 
-      // Once you have the DOM instance it's easy to generate LexicalNodes.
       const nodes = $generateNodesFromDOM(editor, dom);
 
-      // Select the root
       $getRoot().select();
-
-      // Insert them at a selection.
       $insertNodes(nodes);
 
       editor.registerUpdateListener(({ editorState }) => {
         editorState.read(() => {
           const textInHtml = $generateHtmlFromNodes(editor);
           props.form.setValue(`steps.${props.stepNumber - 1}.reminderBody`, textInHtml);
+          props.form.clearErrors();
         });
       });
     });

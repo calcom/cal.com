@@ -502,7 +502,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   )}
                   {form.formState.errors.steps &&
                     form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
-                      <p className="mt-1 text-xs text-red-500">
+                      <p className="mt-1 text-sm text-red-500">
                         {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
                       </p>
                     )}
