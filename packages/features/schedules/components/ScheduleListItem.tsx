@@ -5,10 +5,15 @@ import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Availability } from "@calcom/prisma/client";
 import { RouterOutputs } from "@calcom/trpc/react";
-import Dropdown, { DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
-import { Icon } from "@calcom/ui/Icon";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
+import {
+  Badge,
+  Button,
+  Dropdown,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  Icon,
+} from "@calcom/ui";
 
 export function ScheduleListItem({
   schedule,

@@ -6,16 +6,23 @@ import { Fragment } from "react";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Button } from "@calcom/ui/components";
-import { Badge } from "@calcom/ui/components/badge";
-import { Alert } from "@calcom/ui/v2";
-import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
-import Meta from "@calcom/ui/v2/core/Meta";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
-import { SkeletonContainer, SkeletonText, SkeletonButton } from "@calcom/ui/v2/core/skeleton";
-import { List, ListItem, ListItemText, ListItemTitle } from "@calcom/ui/v2/modules/List";
-import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
+import {
+  Alert,
+  Badge,
+  Button,
+  DisconnectIntegration,
+  EmptyScreen,
+  getSettingsLayout as getLayout,
+  Icon,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemTitle,
+  Meta,
+  SkeletonButton,
+  SkeletonContainer,
+  SkeletonText,
+} from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
 

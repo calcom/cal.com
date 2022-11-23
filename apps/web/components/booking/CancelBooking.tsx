@@ -5,8 +5,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { Icon } from "@calcom/ui/Icon";
-import { Button, TextArea } from "@calcom/ui/components";
+import { Button, Icon, TextArea } from "@calcom/ui";
 
 type Props = {
   booking: {

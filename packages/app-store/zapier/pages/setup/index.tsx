@@ -5,9 +5,7 @@ import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { ClipboardCopyIcon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components";
-import { showToast, Tooltip } from "@calcom/ui/v2";
+import { Button, ClipboardCopyIcon, showToast, Tooltip } from "@calcom/ui";
 
 export interface IZapierSetupProps {
   inviteLink: string;

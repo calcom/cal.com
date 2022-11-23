@@ -1,6 +1,6 @@
 import { App_RoutingForms_Form } from "@prisma/client";
 import { useEffect, useState } from "react";
-import { useForm, UseFormReturn, Controller } from "react-hook-form";
+import { Controller, useForm, UseFormReturn } from "react-hook-form";
 
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -8,24 +8,35 @@ import { trpc } from "@calcom/trpc/react";
 import {
   AppGetServerSidePropsContext,
   AppPrisma,
-  AppUser,
   AppSsrInit,
+  AppUser,
 } from "@calcom/types/AppGetServerSideProps";
-import { Icon } from "@calcom/ui";
-import { Dialog, DialogContent, DialogClose, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
-import { Button, ButtonGroup } from "@calcom/ui/components";
-import { Form, TextAreaField, TextField } from "@calcom/ui/components/form";
-import { showToast, DropdownMenuSeparator, Tooltip, VerticalDivider } from "@calcom/ui/v2";
-import Meta from "@calcom/ui/v2/core/Meta";
-import SettingsToggle from "@calcom/ui/v2/core/SettingsToggle";
-import { ShellMain } from "@calcom/ui/v2/core/Shell";
-import Banner from "@calcom/ui/v2/core/banner";
+import {
+  Banner,
+  Button,
+  ButtonGroup,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DropdownMenuSeparator,
+  Form,
+  Icon,
+  Meta,
+  SettingsToggle,
+  ShellMain,
+  showToast,
+  TextAreaField,
+  TextField,
+  Tooltip,
+  VerticalDivider,
+} from "@calcom/ui";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
 import { processRoute } from "../lib/processRoute";
 import { RoutingPages } from "../pages/route-builder/[...appPages]";
-import { SerializableForm } from "../types/types";
-import { Response, Route } from "../types/types";
+import { Response, Route, SerializableForm } from "../types/types";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
 import RoutingNavBar from "./RoutingNavBar";
