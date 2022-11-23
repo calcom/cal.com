@@ -1,1 +1,1 @@
-export * from "./SchedulerHeading";
+export { SchedulerHeading } from "./SchedulerHeading";
