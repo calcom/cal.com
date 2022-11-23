@@ -49,7 +49,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
   const watchDayRange = watch(name);
 
   return (
-    <div className="bg-r-500 mb-1 flex w-full flex-col py-1 sm:flex-row">
+    <div className="mb-1 flex w-full flex-col py-1 sm:flex-row">
       {/* Label & switch container */}
       <div className="flex h-11 items-center justify-between sm:w-32">
         <div>
