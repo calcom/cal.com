@@ -26,6 +26,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { AddVariablesDropdown } from "../../AddVariablesDropdown";
 import { TextEditorProps } from "../Editor";
 
 const LowPriority = 1;
@@ -394,6 +395,18 @@ export default function ToolbarPlugin(props: TextEditorProps) {
     }
   }, [editor]);
 
+  const addVariable = (variable: string) => {
+    editor.update(() => {
+      const selection = $getSelection();
+      if ($isRangeSelection(selection)) {
+        editor.update(() => {
+          const formatedVariable = `{${variable.toUpperCase().replace(/ /g, "_")}}`;
+          selection?.insertRawText(formatedVariable);
+        });
+      }
+    });
+  };
+
   useEffect(() => {
     editor.update(() => {
       // In the browser you can use the native DOMParser API to parse the HTML string.
@@ -448,64 +461,69 @@ export default function ToolbarPlugin(props: TextEditorProps) {
   }, [editor, isLink]);
 
   return (
-    <div className="toolbar" ref={toolbarRef}>
-      {supportedBlockTypes.has(blockType) && (
+    <div className="toolbar flex" ref={toolbarRef}>
+      <>
+        {supportedBlockTypes.has(blockType) && (
+          <>
+            <button
+              type="button"
+              className="toolbar-item block-controls"
+              onClick={() => setShowBlockOptionsDropDown(!showBlockOptionsDropDown)}
+              aria-label="Formatting Options">
+              <span className={"icon block-type " + blockType} />
+              <span className="text">{blockTypeToBlockName[blockType as keyof BlockType]}</span>
+              <i className="chevron-down" />
+            </button>
+            {showBlockOptionsDropDown &&
+              createPortal(
+                <BlockOptionsDropdownList
+                  editor={editor}
+                  blockType={blockType}
+                  toolbarRef={toolbarRef}
+                  setShowBlockOptionsDropDown={setShowBlockOptionsDropDown}
+                />,
+                document.body
+              )}
+          </>
+        )}
+
         <>
           <button
             type="button"
-            className="toolbar-item block-controls"
-            onClick={() => setShowBlockOptionsDropDown(!showBlockOptionsDropDown)}
-            aria-label="Formatting Options">
-            <span className={"icon block-type " + blockType} />
-            <span className="text">{blockTypeToBlockName[blockType as keyof BlockType]}</span>
-            <i className="chevron-down" />
-          </button>
-          {showBlockOptionsDropDown &&
-            createPortal(
-              <BlockOptionsDropdownList
-                editor={editor}
-                blockType={blockType}
-                toolbarRef={toolbarRef}
-                setShowBlockOptionsDropDown={setShowBlockOptionsDropDown}
-              />,
-              document.body
-            )}
-        </>
-      )}
-
-      <>
-        <button
-          type="button"
-          onClick={() => {
-            editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
-            if (isItalic) {
-              editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
-            }
-          }}
-          className={"toolbar-item spaced " + (isBold ? "active" : "")}
-          aria-label="Format Bold">
-          <i className="format bold" />
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
-            if (isBold) {
+            onClick={() => {
               editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
-            }
-          }}
-          className={"toolbar-item spaced " + (isItalic ? "active" : "")}
-          aria-label="Format Italics">
-          <i className="format italic" />
-        </button>
-        <button
-          type="button"
-          onClick={insertLink}
-          className={"toolbar-item spaced " + (isLink ? "active" : "")}
-          aria-label="Insert Link">
-          <i className="format link" />
-        </button>
-        {isLink && createPortal(<FloatingLinkEditor editor={editor} />, document.body)}{" "}
+              if (isItalic) {
+                editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
+              }
+            }}
+            className={"toolbar-item spaced " + (isBold ? "active" : "")}
+            aria-label="Format Bold">
+            <i className="format bold" />
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
+              if (isBold) {
+                editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
+              }
+            }}
+            className={"toolbar-item spaced " + (isItalic ? "active" : "")}
+            aria-label="Format Italics">
+            <i className="format italic" />
+          </button>
+          <button
+            type="button"
+            onClick={insertLink}
+            className={"toolbar-item spaced " + (isLink ? "active" : "")}
+            aria-label="Insert Link">
+            <i className="format link" />
+          </button>
+          {isLink && createPortal(<FloatingLinkEditor editor={editor} />, document.body)}{" "}
+        </>
+        <div className="ml-auto">
+          <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} />
+        </div>
       </>
     </div>
   );

@@ -8,7 +8,7 @@ import {
 } from "@calcom/ui/v2/core/Dropdown";
 
 interface IAddVariablesDropdown {
-  addVariable: (isEmailSubject: boolean, variable: string) => void;
+  addVariable: (variable: string, isEmailSubject?: boolean) => void;
   isEmailSubject: boolean;
 }
 
@@ -45,7 +45,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
                 key={variable}
                 type="button"
                 className="w-full px-4 py-2"
-                onClick={() => props.addVariable(props.isEmailSubject, t(`${variable}_workflow`))}>
+                onClick={() => props.addVariable(t(`${variable}_workflow`), props.isEmailSubject)}>
                 <div className="sm:grid sm:grid-cols-2">
                   <div className="mr-3 text-left md:col-span-1">
                     {`{${t(`${variable}_workflow`).toUpperCase().replace(/ /g, "_")}}`}

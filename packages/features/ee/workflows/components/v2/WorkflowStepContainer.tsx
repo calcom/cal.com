@@ -100,7 +100,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const refReminderBody = useRef<HTMLTextAreaElement | null>(null);
 
-  const addVariable = (isEmailSubject: boolean, variable: string) => {
+  const addVariable = (variable: string, isEmailSubject?: boolean) => {
     if (step) {
       if (isEmailSubject) {
         const currentEmailSubject = refEmailSubject?.current?.value || "";
