@@ -107,10 +107,7 @@ export default function Scheduler(props: SchedulerComponentProps) {
                   {/*Loop over events per day  */}
                   {days.map((day, i) => {
                     return (
-                      <li
-                        key={day.toISOString()}
-                        className="relative"
-                        style={{ gridColumnStart: i + 1, marginTop: containerOffset.current?.offsetHeight }}>
+                      <li key={day.toISOString()} className="relative" style={{ gridColumnStart: i + 1 }}>
                         <EventList day={day} />
                         <BlockedList day={day} containerRef={container} />
                       </li>
