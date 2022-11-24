@@ -49,12 +49,11 @@ type WorkflowStepProps = {
   form: UseFormReturn<FormValues>;
   reload?: boolean;
   setReload?: Dispatch<SetStateAction<boolean>>;
-  isFreeUser: boolean;
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
-  const { step, form, reload, setReload, isFreeUser } = props;
+  const { step, form, reload, setReload } = props;
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
 
@@ -334,15 +333,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           }
                         }}
                         defaultValue={selectedAction}
-                        options={
-                          isFreeUser
-                            ? actionOptions.filter(
-                                (actionOption) =>
-                                  actionOption.value !== WorkflowActions.SMS_ATTENDEE &&
-                                  actionOption.value !== WorkflowActions.SMS_NUMBER
-                              )
-                            : actionOptions
-                        }
+                        options={actionOptions}
                       />
                     );
                   }}
