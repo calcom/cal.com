@@ -196,7 +196,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     };
 
     const recurrence = getRecurrence(event);
-
+    console.log(JSON.stringify({ organizer: event.organizer }, null, 2));
     // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
     return {
       topic: event.title,
@@ -204,7 +204,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       start_time: event.startTime,
       duration: (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 60000,
       //schedule_for: "string",   TODO: Used when scheduling the meeting for someone else (needed?)
-      timezone: event.attendees[0].timeZone,
+      timezone: event.organizer.timeZone,
       //password: "string",       TODO: Should we use a password? Maybe generate a random one?
       agenda: event.description,
       settings: {
