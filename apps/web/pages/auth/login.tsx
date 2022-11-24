@@ -4,7 +4,7 @@ import { getCsrfToken, signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { useForm, FormProvider } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import { FaGoogle } from "react-icons/fa";
 
 import { isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
@@ -12,11 +12,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
-import { Icon } from "@calcom/ui";
-import { Alert } from "@calcom/ui/Alert";
-import { Button } from "@calcom/ui/components";
-import { EmailField, PasswordField } from "@calcom/ui/components/form";
-import SAMLLogin from "@calcom/ui/v2/modules/auth/SAMLLogin";
+import { Alert, Button, EmailField, Icon, PasswordField, SAMLLogin } from "@calcom/ui";
 
 import { ErrorCode, getSession } from "@lib/auth";
 import { WEBAPP_URL, WEBSITE_URL } from "@lib/config/constants";

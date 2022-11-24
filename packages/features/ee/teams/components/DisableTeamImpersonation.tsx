@@ -1,7 +1,7 @@
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { showToast, Switch } from "@calcom/ui/v2/core";
+import { showToast, Switch } from "@calcom/ui";
 
 const DisableTeamImpersonation = ({
   teamId,

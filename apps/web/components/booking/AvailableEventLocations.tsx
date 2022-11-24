@@ -1,7 +1,6 @@
 import { getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
 import { classNames } from "@calcom/lib";
-import { Icon } from "@calcom/ui";
-import Tooltip from "@calcom/ui/v2/core/Tooltip";
+import { Icon, Tooltip } from "@calcom/ui";
 
 import { Props } from "./pages/AvailabilityPage";
 

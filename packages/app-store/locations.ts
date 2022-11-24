@@ -12,6 +12,7 @@ export type DefaultEventLocationType = {
   type: DefaultEventLocationTypeEnum;
   label: string;
   messageForOrganizer: string;
+  category: string;
 
   iconUrl: string;
 
@@ -71,6 +72,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     attendeeInputPlaceholder: `Enter Address`,
     defaultValueVariable: "attendeeAddress",
     iconUrl: "/map-pin.svg",
+    category: "in person",
   },
   {
     default: true,
@@ -82,6 +84,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     variable: "locationAddress",
     defaultValueVariable: "address",
     iconUrl: "/map-pin.svg",
+    category: "in person",
   },
   {
     default: true,
@@ -92,6 +95,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     messageForOrganizer: "Provide a Meeting Link",
     defaultValueVariable: "link",
     iconUrl: "/link.svg",
+    category: "other",
   },
   {
     default: true,
@@ -106,6 +110,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     // This isn't inputType phone because organizer doesn't need to provide it.
     // inputType: "phone"
     iconUrl: "/phone.svg",
+    category: "phone",
   },
   {
     default: true,
@@ -116,6 +121,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     variable: "locationPhoneNumber",
     defaultValueVariable: "hostPhoneNumber",
     iconUrl: "/phone.svg",
+    category: "phone",
   },
 ];
 

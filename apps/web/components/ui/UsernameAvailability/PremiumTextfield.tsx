@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { debounce, noop } from "lodash";
 import { useRouter } from "next/router";
-import { RefCallback, useMemo, useEffect, useState } from "react";
+import { RefCallback, useEffect, useMemo, useState } from "react";
 
 import { getPremiumPlanMode, getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
@@ -11,10 +11,17 @@ import { User } from "@calcom/prisma/client";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
-import { Icon, StarIconSolid } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components/button";
-import { Input, Label } from "@calcom/ui/components/form";
+import {
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  Icon,
+  Input,
+  Label,
+  StarIconSolid,
+} from "@calcom/ui";
 
 export enum UsernameChangeStatusEnum {
   NORMAL = "NORMAL",

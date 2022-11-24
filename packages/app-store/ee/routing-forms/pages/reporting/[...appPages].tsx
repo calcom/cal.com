@@ -1,18 +1,26 @@
-import React, { useRef, useState, useCallback } from "react";
-import { Query, Config, Builder, Utils as QbUtils, JsonLogicResult } from "react-awesome-query-builder";
-import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
+import React, { useCallback, useRef, useState } from "react";
+import {
+  Builder,
+  BuilderProps,
+  Config,
+  ImmutableTree,
+  JsonLogicResult,
+  JsonTree,
+  Query,
+  Utils as QbUtils,
+} from "react-awesome-query-builder";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button } from "@calcom/ui";
-import { Shell } from "@calcom/ui/v2";
+import { Button, Shell } from "@calcom/ui";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
-import SingleForm from "../../components/SingleForm";
-import { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/SingleForm";
+import SingleForm, {
+  getServerSidePropsForSingleFormView as getServerSideProps,
+} from "../../components/SingleForm";
 import QueryBuilderInitialConfig from "../../components/react-awesome-query-builder/config/config";
 import "../../components/react-awesome-query-builder/styles.css";
 import { JsonLogicQuery } from "../../jsonLogicToPrisma";

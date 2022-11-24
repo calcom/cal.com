@@ -3,9 +3,7 @@ import { useRouter } from "next/router";
 import { ReactNode, useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui";
-import { showToast } from "@calcom/ui/v2";
-import { ListItem, ListItemText, ListItemTitle } from "@calcom/ui/v2/core/List";
+import { Icon, ListItem, ListItemText, ListItemTitle, showToast } from "@calcom/ui";
 
 import classNames from "@lib/classNames";
 

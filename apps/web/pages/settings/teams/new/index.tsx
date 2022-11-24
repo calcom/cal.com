@@ -1,7 +1,7 @@
 import Head from "next/head";
 
 import { CreateANewTeamForm } from "@calcom/features/ee/teams/components";
-import { getLayout } from "@calcom/ui/v2/core/layouts/WizardLayout";
+import { getWizardLayout as getLayout } from "@calcom/ui";
 
 const CreateNewTeamPage = () => {
   return (

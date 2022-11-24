@@ -1,4 +1,4 @@
-import { BookingStatus } from "@prisma/client";
+import { BookingStatus, WorkflowActions } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { createEvent } from "ics";
@@ -34,8 +34,7 @@ import { localStorage } from "@calcom/lib/webstorage";
 import prisma, { baseUserSelect } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Icon } from "@calcom/ui/Icon";
-import { Button, EmailInput } from "@calcom/ui/components";
+import { Button, EmailInput, Icon } from "@calcom/ui";
 
 import { timeZone } from "@lib/clock";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -299,6 +298,11 @@ export default function Success(props: SuccessProps) {
 
   const locationToDisplay = getSuccessPageLocationMessage(location, t);
 
+  const hasSMSAttendeeAction =
+    eventType.workflows.find((workflowEventType) =>
+      workflowEventType.workflow.steps.find((step) => step.action === WorkflowActions.SMS_ATTENDEE)
+    ) !== undefined;
+
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
       {userIsOwner && !isEmbed && (
@@ -453,7 +457,7 @@ export default function Success(props: SuccessProps) {
                           </>
                         );
                       })}
-                    {bookingInfo?.smsReminderNumber && (
+                    {bookingInfo?.smsReminderNumber && hasSMSAttendeeAction && (
                       <>
                         <div className="mt-9 font-medium">{t("number_sms_notifications")}</div>
                         <div className="col-span-2 mb-2 mt-9">
@@ -776,6 +780,15 @@ const getEventTypesFromDB = async (id: number) => {
           slug: true,
           name: true,
           hideBranding: true,
+        },
+      },
+      workflows: {
+        select: {
+          workflow: {
+            select: {
+              steps: true,
+            },
+          },
         },
       },
       metadata: true,
