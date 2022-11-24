@@ -392,6 +392,7 @@ export default function Success(props: SuccessProps) {
                         allRemainingBookings={allRemainingBookings}
                         date={date}
                         is24h={is24h}
+                        isCancelled={isCancelled}
                       />
                     </div>
                     {(bookingInfo?.user || bookingInfo?.attendees) && (
@@ -669,6 +670,7 @@ type RecurringBookingsProps = {
   date: dayjs.Dayjs;
   is24h: boolean;
   allRemainingBookings: boolean;
+  isCancelled: boolean;
 };
 
 export function RecurringBookings({
@@ -677,6 +679,7 @@ export function RecurringBookings({
   date,
   allRemainingBookings,
   is24h,
+  isCancelled,
 }: RecurringBookingsProps) {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const { t } = useLocale();
@@ -699,7 +702,7 @@ export function RecurringBookings({
         )}
         {eventType.recurringEvent?.count &&
           recurringBookingsSorted.slice(0, 4).map((dateStr: string, idx: number) => (
-            <div key={idx} className="mb-2">
+            <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
               {dayjs.tz(dateStr, timeZone()).format("MMMM DD, YYYY")}
               <br />
               {formatTime(dateStr, is24h ? 24 : 12, timeZone())} -{" "}
@@ -717,7 +720,7 @@ export function RecurringBookings({
             <CollapsibleContent>
               {eventType.recurringEvent?.count &&
                 recurringBookingsSorted.slice(4).map((dateStr: string, idx: number) => (
-                  <div key={idx} className="mb-2">
+                  <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
                     {dayjs.tz(dateStr, timeZone()).format("MMMM DD, YYYY")}
                     <br />
                     {formatTime(dateStr, is24h ? 24 : 12, timeZone())} -{" "}
@@ -733,13 +736,13 @@ export function RecurringBookings({
   }
 
   return (
-    <>
+    <div className={classNames(isCancelled ? "line-through" : "")}>
       {dayjs.tz(date, timeZone()).format("MMMM DD, YYYY")}
       <br />
       {formatTime(date, is24h ? 24 : 12, timeZone())} -{" "}
       {formatTime(dayjs(date).add(eventType.length, "m"), is24h ? 24 : 12, timeZone())}{" "}
       <span className="text-bookinglight">({timeZone()})</span>
-    </>
+    </div>
   );
 }
 
