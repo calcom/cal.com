@@ -8,7 +8,7 @@ import ethRouter from "@calcom/app-store/rainbow/trpc/router";
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
 import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
 import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
-import getApps, { getLocationOptions } from "@calcom/app-store/utils";
+import getApps, { getLocationGroupedOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { DailyLocationType } from "@calcom/core/location";
@@ -769,12 +769,11 @@ const loggedInViewerRouter = router({
         appId: true,
       },
     });
-
     const integrations = getApps(credentials);
 
     const t = await getTranslation(ctx.user.locale ?? "en", "common");
 
-    const locationOptions = getLocationOptions(integrations, t);
+    const locationOptions = getLocationGroupedOptions(integrations, t);
 
     return locationOptions;
   }),
