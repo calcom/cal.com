@@ -3,7 +3,7 @@ import shallow from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
 
-import { useSchedulerStore } from "../../state/store";
+import { useCalendarStore } from "../../state/store";
 import { BlockedTimeCell } from "./BlockedTimeCell";
 
 type Props = {
@@ -74,7 +74,7 @@ function BlockedToday({
 }
 
 export function BlockedList({ day }: Props) {
-  const { startHour, blockingDates, endHour, gridCellsPerHour } = useSchedulerStore(
+  const { startHour, blockingDates, endHour, gridCellsPerHour } = useCalendarStore(
     (state) => ({
       startHour: state.startHour || 0,
       endHour: state.endHour || 23,

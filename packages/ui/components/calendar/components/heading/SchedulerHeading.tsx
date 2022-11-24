@@ -3,10 +3,10 @@ import dayjs from "@calcom/dayjs";
 import { Icon } from "../../../../Icon";
 import { Button } from "../../../button";
 import { ButtonGroup } from "../../../buttonGroup";
-import { useSchedulerStore } from "../../state/store";
+import { useCalendarStore } from "../../state/store";
 
 export function SchedulerHeading() {
-  const { startDate, endDate, handleDateChange } = useSchedulerStore((state) => ({
+  const { startDate, endDate, handleDateChange } = useCalendarStore((state) => ({
     startDate: dayjs(state.startDate),
     endDate: dayjs(state.endDate),
     handleDateChange: state.handleDateChange,

@@ -3,14 +3,14 @@ import create from "zustand";
 import dayjs from "@calcom/dayjs";
 
 import {
-  SchedulerComponentProps,
-  SchedulerPublicActions,
-  SchedulerState,
-  SchedulerStoreProps,
+  CalendarComponentProps,
+  CalendarPublicActions,
+  CalendarState,
+  CalendarStoreProps,
 } from "../types/state";
 import { mergeOverlappingDateRanges, weekdayDates } from "../utils";
 
-const defaultState: SchedulerComponentProps = {
+const defaultState: CalendarComponentProps = {
   view: "week",
   startDate: weekdayDates(0, new Date()).startDate,
   endDate: weekdayDates(0, new Date()).endDate,
@@ -20,19 +20,21 @@ const defaultState: SchedulerComponentProps = {
   gridCellsPerHour: 4,
 };
 
-export const useSchedulerStore = create<SchedulerStoreProps>((set) => ({
+export const useCalendarStore = create<CalendarStoreProps>((set) => ({
   ...defaultState,
-  setView: (view: SchedulerComponentProps["view"]) => set({ view }),
-  setStartDate: (startDate: SchedulerComponentProps["startDate"]) => set({ startDate }),
-  setEndDate: (endDate: SchedulerComponentProps["endDate"]) => set({ endDate }),
-  setEvents: (events: SchedulerComponentProps["events"]) => set({ events }),
+  setView: (view: CalendarComponentProps["view"]) => set({ view }),
+  setStartDate: (startDate: CalendarComponentProps["startDate"]) => set({ startDate }),
+  setEndDate: (endDate: CalendarComponentProps["endDate"]) => set({ endDate }),
+  setEvents: (events: CalendarComponentProps["events"]) => set({ events }),
   // This looks a bit odd but init state only overrides the public props + actions as we don't want to override our internal state
-  initState: (state: SchedulerState & SchedulerPublicActions) => {
+  initState: (state: CalendarState & CalendarPublicActions) => {
     // Handle sorting of events if required
     let events = state.events;
 
     if (state.sortEvents) {
-      events = state.events.sort((a, b) => a.start.getTime() - b.start.getTime());
+      events = state.events.sort(
+        (a, b) => dayjs(a.start).get("milliseconds") - dayjs(b.start).get("milliseconds")
+      );
     }
     const blockingDates = mergeOverlappingDateRanges(state.blockingDates || []); // We merge overlapping dates so we don't get duplicate blocking "Cells" in the UI
 

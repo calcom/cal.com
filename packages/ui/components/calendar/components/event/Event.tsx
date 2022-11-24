@@ -1,13 +1,13 @@
 import dayjs from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
 
-import { SchedulerEvent } from "../../types/events";
+import { CalendarEvent } from "../../types/events";
 
 type EventProps = {
-  event: SchedulerEvent;
+  event: CalendarEvent;
   currentlySelectedEventId?: number;
   eventDuration: number;
-  onEventClick?: (event: SchedulerEvent) => void;
+  onEventClick?: (event: CalendarEvent) => void;
   disabled?: boolean;
 };
 

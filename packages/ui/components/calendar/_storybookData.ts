@@ -1,11 +1,11 @@
 import dayjs from "@calcom/dayjs";
 import { TimeRange } from "@calcom/types/schedule";
 
-import { SchedulerEvent } from "./types/events";
+import { CalendarEvent } from "./types/events";
 
 const startDate = dayjs().set("hour", 11).set("minute", 0);
 
-export const events: SchedulerEvent[] = [
+export const events: CalendarEvent[] = [
   {
     id: 1,
     title: "Event 1",

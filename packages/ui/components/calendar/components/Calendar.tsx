@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useRef } from "react";
 
-import { useSchedulerStore } from "../state/store";
+import { useCalendarStore } from "../state/store";
 import "../styles/styles.css";
-import { SchedulerComponentProps } from "../types/state";
+import { CalendarComponentProps } from "../types/state";
 import { getDaysBetweenDates, getHoursToDisplay } from "../utils";
 import { DateValues } from "./DateValues";
 import { BlockedList } from "./blocking/BlockedList";
@@ -13,17 +13,17 @@ import { SchedulerHeading } from "./heading/SchedulerHeading";
 import { HorizontalLines } from "./horizontalLines";
 import { VeritcalLines } from "./verticalLines";
 
-export function Scheduler(props: SchedulerComponentProps) {
+export function Calendar(props: CalendarComponentProps) {
   const container = useRef<HTMLDivElement | null>(null);
   const containerNav = useRef<HTMLDivElement | null>(null);
   const containerOffset = useRef<HTMLDivElement | null>(null);
-  const initalState = useSchedulerStore((state) => state.initState);
+  const initalState = useCalendarStore((state) => state.initState);
 
-  const { startDate } = useSchedulerStore((state) => ({ startDate: state.startDate }));
-  const { endDate } = useSchedulerStore((state) => ({ endDate: state.endDate }));
-  const { startHour } = useSchedulerStore((state) => ({ startHour: state.startHour || 0 }));
-  const { endHour } = useSchedulerStore((state) => ({ endHour: state.endHour || 23 }));
-  const { usersCellsStopsPerHour } = useSchedulerStore((state) => ({
+  const { startDate } = useCalendarStore((state) => ({ startDate: state.startDate }));
+  const { endDate } = useCalendarStore((state) => ({ endDate: state.endDate }));
+  const { startHour } = useCalendarStore((state) => ({ startHour: state.startHour || 0 }));
+  const { endHour } = useCalendarStore((state) => ({ endHour: state.endHour || 23 }));
+  const { usersCellsStopsPerHour } = useCalendarStore((state) => ({
     usersCellsStopsPerHour: state.gridCellsPerHour || 4,
   }));
 

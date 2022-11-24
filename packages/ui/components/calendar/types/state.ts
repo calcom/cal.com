@@ -1,6 +1,6 @@
 import { TimeRange } from "@calcom/types/schedule";
 
-import { SchedulerEvent } from "./events";
+import { CalendarEvent } from "./events";
 
 export type View = "month" | "week" | "day";
 export type Hours =
@@ -30,29 +30,28 @@ export type Hours =
   | 23;
 
 // These will be on eventHandlers - e.g. do more actions on view change if required
-export type SchedulerPublicActions = {
+export type CalendarPublicActions = {
   onViewChange?: (view: View) => void;
-  onEventClick?: (event: SchedulerEvent) => void;
-  onEventContextMenu?: (event: SchedulerEvent) => void;
-  /** Passing in a emptyCellClick will also show the on hover for creating new events. */
+  onEventClick?: (event: CalendarEvent) => void;
+  onEventContextMenu?: (event: CalendarEvent) => void;
   onEmptyCellClick?: (date: Date) => void;
   onDateChange?: (startDate: Date, endDate?: Date) => void;
 };
 
 // We have private actions here that we want to be available in state but not as component props.
-export type SchedulerPrivateActions = {
+export type CalendarPrivateActions = {
   /** initState is used to init the state from public props -> Doesn't override internal state */
-  initState: (state: SchedulerState & SchedulerPublicActions) => void;
-  setView: (view: SchedulerComponentProps["view"]) => void;
-  setStartDate: (startDate: SchedulerComponentProps["startDate"]) => void;
-  setEndDate: (endDate: SchedulerComponentProps["endDate"]) => void;
-  setEvents: (events: SchedulerComponentProps["events"]) => void;
-  selectedEvent?: SchedulerEvent;
-  setSelectedEvent: (event: SchedulerEvent) => void;
+  initState: (state: CalendarState & CalendarPublicActions) => void;
+  setView: (view: CalendarComponentProps["view"]) => void;
+  setStartDate: (startDate: CalendarComponentProps["startDate"]) => void;
+  setEndDate: (endDate: CalendarComponentProps["endDate"]) => void;
+  setEvents: (events: CalendarComponentProps["events"]) => void;
+  selectedEvent?: CalendarEvent;
+  setSelectedEvent: (event: CalendarEvent) => void;
   handleDateChange: (payload: "INCREMENT" | "DECREMENT") => void;
 };
 
-export type SchedulerState = {
+export type CalendarState = {
   /** @NotImplemented This in future will change the view to be daily/weekly/monthly  DAY/WEEK are supported currently however WEEK is the most adv.*/
   view?: View;
   startDate: Date;
@@ -62,7 +61,7 @@ export type SchedulerState = {
    * Please enter events already SORTED. This is required to setup tab index correctly.
    * @Note Ideally you should pass in a sorted array from the DB however, pass the prop `sortEvents` if this is not possible and we will sort this for you..
    */
-  events: SchedulerEvent[];
+  events: CalendarEvent[];
   /** Any time ranges passed in here will display as blocked on the users calendar. Note: Anything < than the current date automatically gets blocked. */
   blockingDates?: TimeRange[];
   /** Loading will only expect events to be loading. */
@@ -85,10 +84,13 @@ export type SchedulerState = {
   endHour?: Hours;
   /** Toggle the ability to scroll to currentTime */
   scrollToCurrentTime?: boolean;
-  /** Toggle the ability show the current time on the calendar*/
+  /** Toggle the ability show the current time on the calendar
+   *  @NotImplemented
+   */
   showCurrentTimeLine?: boolean;
   /**
    * This indicates the number of grid stops that are available per hour. 4 -> Grid set to 15 minutes.
+   * @NotImplemented
    * @default 4
    */
   gridCellsPerHour?: number;
@@ -104,6 +106,6 @@ export type SchedulerState = {
   sortEvents?: boolean;
 };
 
-export type SchedulerComponentProps = SchedulerPublicActions & SchedulerState;
+export type CalendarComponentProps = CalendarPublicActions & CalendarState;
 
-export type SchedulerStoreProps = SchedulerComponentProps & SchedulerPrivateActions;
+export type CalendarStoreProps = CalendarComponentProps & CalendarPrivateActions;

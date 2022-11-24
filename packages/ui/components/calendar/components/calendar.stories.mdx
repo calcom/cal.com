@@ -13,24 +13,24 @@ import { Icon } from "@calcom/ui";
 
 import { events, blockingDates } from "../_storybookData";
 import "../styles/styles.css";
-import { SchedulerEvent } from "../types/events";
-import { Scheduler } from "./Scheduler";
+import { CalendarEvent } from "../types/events";
+import { Calendar } from "./Calendar";
 
-<Meta title="UI/Scheduler/Scheduler" component={Scheduler} />
+<Meta title="UI/Calendar" component={Calendar} />
 
-<Title title="Scheduler" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022" />
+<Title title="Calendar" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022" />
 
 ## Props
 
-The Args Table below shows you a breakdown of what props can be passed into the Scheduler component. All props should have a desciption to make it self explanitory to see what is going on.
+The Args Table below shows you a breakdown of what props can be passed into the Calendar component. All props should have a desciption to make it self explanitory to see what is going on.
 
-<CustomArgsTable of={Scheduler} />
+<CustomArgsTable of={Calendar} />
 
 ## Example
 
-There will be a few examples of how to use the scheduler component to show different usecases.
+There will be a few examples of how to use the Calendar component to show different usecases.
 
-export const Template = (args) => <Scheduler {...args} />;
+export const Template = (args) => <Calendar {...args} />;
 
 <Canvas>
   <Story
@@ -57,7 +57,7 @@ export const Template = (args) => <Scheduler {...args} />;
 
 <Canvas>
   <Story name="Onclick Handlers">
-    <Scheduler
+    <Calendar
       startHour={8}
       endHour={17}
       events={events}

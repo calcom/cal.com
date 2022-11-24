@@ -1,10 +1,10 @@
 import shallow from "zustand/shallow";
 
-import { useSchedulerStore } from "../../state/store";
+import { useCalendarStore } from "../../state/store";
 import { gridCellToDateTime, GridCellToDateProps } from "../../utils";
 
 export function EmptyCell(props: GridCellToDateProps) {
-  const { onEmptyCellClick, hoverEventDuration } = useSchedulerStore(
+  const { onEmptyCellClick, hoverEventDuration } = useCalendarStore(
     (state) => ({
       onEmptyCellClick: state.onEmptyCellClick,
       hoverEventDuration: state.hoverEventDuration,

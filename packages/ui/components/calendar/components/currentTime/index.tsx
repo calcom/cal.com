@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 
-import { useSchedulerStore } from "../../state/store";
+import { useCalendarStore } from "../../state/store";
 
 type Props = {
   containerNavRef: React.RefObject<HTMLDivElement>;
@@ -12,7 +12,7 @@ type Props = {
 
 export function CurrentTime({ containerOffsetRef }: Props) {
   const [currentTimePos, setCurrentTimePos] = useState<number>(0);
-  const { startHour, endHour } = useSchedulerStore((state) => ({
+  const { startHour, endHour } = useCalendarStore((state) => ({
     startHour: state.startHour || 0,
     endHour: state.endHour || 23,
   }));
