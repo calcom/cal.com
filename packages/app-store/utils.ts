@@ -72,6 +72,62 @@ export function getLocationOptions(integrations: ReturnType<typeof getApps>, t: 
   return translateLocations(locations, t);
 }
 
+export function getLocationGroupedOptions(integrations: ReturnType<typeof getApps>, t: TFunction) {
+  const apps: Record<string, { label: string; value: string; disabled?: boolean; icon?: string }[]> = {};
+  integrations.forEach((app) => {
+    if (app.locationOption) {
+      const category = app.category;
+      const option = { ...app.locationOption, icon: app.imageSrc };
+      if (apps[category]) {
+        apps[category] = [...apps[category], option];
+      } else {
+        apps[category] = [option];
+      }
+    }
+  });
+
+  defaultLocations.forEach((l) => {
+    const category = l.category;
+    if (apps[category]) {
+      apps[category] = [
+        ...apps[category],
+        {
+          label: l.label,
+          value: l.type,
+          icon: l.iconUrl,
+        },
+      ];
+    } else {
+      apps[category] = [
+        {
+          label: l.label,
+          value: l.type,
+          icon: l.iconUrl,
+        },
+      ];
+    }
+  });
+  const locations = [];
+
+  // Translating labels and pushing into array
+  for (const category in apps) {
+    const tmp = { label: category, options: apps[category] };
+    if (tmp.label === "in person") {
+      tmp.options.map((l) => ({ ...l, label: t(l.value) }));
+    } else {
+      tmp.options.map((l) => ({
+        ...l,
+        label: t(l.label.toLowerCase().split(" ").join("_")),
+      }));
+    }
+
+    tmp.label = t(tmp.label);
+
+    locations.push(tmp);
+  }
+  return locations;
+}
+
 /**
  * This should get all available apps to the user based on his saved
  * credentials, this should also get globally available apps.
