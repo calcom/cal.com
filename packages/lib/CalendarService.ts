@@ -311,8 +311,9 @@ export default abstract class BaseCalendarService implements Calendar {
       if (vevent?.getFirstPropertyValue("transp") === "TRANSPARENT") return;
 
       const event = new ICAL.Event(vevent);
-
-      const tzid: string | undefined = vevent?.getFirstPropertyValue("tzid");
+      const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
+      const timezone = dtstart ? dtstart["timezone"] : undefined;
+      const tzid: string | undefined = vevent?.getFirstPropertyValue("tzid") || timezone;
       // In case of icalendar, when only tzid is available without vtimezone, we need to add vtimezone explicitly to take care of timezone diff
       if (!vcalendar.getFirstSubcomponent("vtimezone") && tzid) {
         const timezoneComp = new ICAL.Component("vtimezone");
