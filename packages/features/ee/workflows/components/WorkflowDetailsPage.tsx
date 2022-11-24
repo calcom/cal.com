@@ -1,19 +1,19 @@
-import { ArrowDownIcon } from "@heroicons/react/outline";
 import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
 import { useRouter } from "next/router";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui";
-import MultiSelectCheckboxes, { Option } from "@calcom/ui/form/MultiSelectCheckboxes";
-import { Form } from "@calcom/ui/form/fields";
-import showToast from "@calcom/ui/v2/core/notifications";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import { Icon } from "@calcom/ui";
+import { Button, Label, TextField } from "@calcom/ui";
+import { MultiSelectCheckboxes } from "@calcom/ui";
+import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
 
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
+import { DeleteDialog } from "./DeleteDialog";
 import WorkflowStepContainer from "./WorkflowStepContainer";
 
 interface Props {
@@ -27,11 +27,10 @@ export default function WorkflowDetailsPage(props: Props) {
   const { form, workflowId, selectedEventTypes, setSelectedEventTypes } = props;
   const { t } = useLocale();
   const router = useRouter();
-  const utils = trpc.useContext();
 
   const [isAddActionDialogOpen, setIsAddActionDialogOpen] = useState(false);
   const [reload, setReload] = useState(false);
-  const [editCounter, setEditCounter] = useState(0);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const { data, isLoading } = trpc.viewer.eventTypes.getByViewer.useQuery();
 
@@ -50,29 +49,7 @@ export default function WorkflowDetailsPage(props: Props) {
     [data]
   );
 
-  const updateMutation = trpc.viewer.workflows.update.useMutation({
-    onSuccess: async ({ workflow }) => {
-      if (workflow) {
-        utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
-
-        showToast(
-          t("workflow_updated_successfully", {
-            workflowName: workflow.name,
-          }),
-          "success"
-        );
-      }
-      await router.push("/workflows");
-    },
-    onError: (err) => {
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
-      }
-    },
-  });
-
-  const addAction = (action: WorkflowActions, sendTo?: string) => {
+  const addAction = (action: WorkflowActions, sendTo?: string, numberRequired?: boolean, sender?: string) => {
     const steps = form.getValues("steps");
     const id =
       steps?.length > 0
@@ -94,38 +71,22 @@ export default function WorkflowDetailsPage(props: Props) {
       workflowId: workflowId,
       reminderBody: null,
       emailSubject: null,
-      template: WorkflowTemplates.REMINDER,
-      numberRequired: null,
+      template: WorkflowTemplates.CUSTOM,
+      numberRequired: numberRequired || false,
+      sender: sender || "Cal",
     };
     steps?.push(step);
     form.setValue("steps", steps);
   };
 
   return (
-    <div>
-      <Form
-        form={form}
-        handleSubmit={async (values) => {
-          let activeOnEventTypeIds: number[] = [];
-          if (values.activeOn) {
-            activeOnEventTypeIds = values.activeOn.map((option) => {
-              return parseInt(option.value, 10);
-            });
-          }
-          updateMutation.mutate({
-            id: parseInt(router.query.workflow as string, 10),
-            name: values.name,
-            activeOn: activeOnEventTypeIds,
-            steps: values.steps,
-            trigger: values.trigger,
-            time: values.time || null,
-            timeUnit: values.timeUnit || null,
-          });
-        }}>
-        <div className="-mt-7 space-y-1">
-          <label htmlFor="label" className="blocktext-sm mb-2 font-medium text-gray-700">
-            {t("active_on")}:
-          </label>
+    <>
+      <div className="my-8 sm:my-0 md:flex">
+        <div className="pl-2 pr-3 md:sticky md:top-6 md:h-0 md:pl-0">
+          <div className="mb-5">
+            <TextField label={`${t("workflow_name")}:`} type="text" {...form.register("name")} />
+          </div>
+          <Label>{t("which_event_type_apply")}</Label>
           <Controller
             name="activeOn"
             control={form.control}
@@ -134,6 +95,7 @@ export default function WorkflowDetailsPage(props: Props) {
                 <MultiSelectCheckboxes
                   options={eventTypeOptions}
                   isLoading={isLoading}
+                  className="w-full md:w-64"
                   setSelected={setSelectedEventTypes}
                   selected={selectedEventTypes}
                   setValue={(s: Option[]) => {
@@ -143,13 +105,23 @@ export default function WorkflowDetailsPage(props: Props) {
               );
             }}
           />
+          <div className="my-7 border-transparent md:border-t md:border-gray-200" />
+          <Button
+            type="button"
+            StartIcon={Icon.FiTrash2}
+            color="destructive"
+            className="border"
+            onClick={() => setDeleteDialogOpen(true)}>
+            {t("delete_workflow")}
+          </Button>
+          <div className="my-7 border-t border-gray-200 md:border-none" />
         </div>
 
         {/* Workflow Trigger Event & Steps */}
-        <div className="mt-5 px-5 pt-10 pb-5">
+        <div className="w-full rounded-md border border-gray-200 bg-gray-50 p-3 py-5 md:ml-3 md:p-8">
           {form.getValues("trigger") && (
             <div>
-              <WorkflowStepContainer form={form} setEditCounter={setEditCounter} editCounter={editCounter} />
+              <WorkflowStepContainer form={form} />
             </div>
           )}
           {form.getValues("steps") && (
@@ -162,33 +134,36 @@ export default function WorkflowDetailsPage(props: Props) {
                     step={step}
                     reload={reload}
                     setReload={setReload}
-                    setEditCounter={setEditCounter}
-                    editCounter={editCounter}
                   />
                 );
               })}
             </>
           )}
-          <div className="flex justify-center">
-            <ArrowDownIcon className="my-4 h-7 stroke-1 text-gray-500" />
+          <div className="my-3 flex justify-center">
+            <Icon.FiArrowDown className="stroke-[1.5px] text-3xl text-gray-500" />
           </div>
           <div className="flex justify-center">
-            <Button type="button" onClick={() => setIsAddActionDialogOpen(true)} color="secondary">
+            <Button
+              type="button"
+              onClick={() => setIsAddActionDialogOpen(true)}
+              color="secondary"
+              className="bg-white">
               {t("add_action")}
             </Button>
           </div>
-          <div className="rtl:space-x-reverse; mt-10 flex justify-end space-x-2">
-            <Button type="submit" disabled={updateMutation.isLoading || editCounter > 0}>
-              {t("save")}
-            </Button>
-          </div>
         </div>
-      </Form>
+      </div>
       <AddActionDialog
         isOpenDialog={isAddActionDialogOpen}
         setIsOpenDialog={setIsAddActionDialogOpen}
         addAction={addAction}
       />
-    </div>
+      <DeleteDialog
+        isOpenDialog={deleteDialogOpen}
+        setIsOpenDialog={setDeleteDialogOpen}
+        workflowId={workflowId}
+        additionalFunction={async () => await router.push("/workflows")}
+      />
+    </>
   );
 }

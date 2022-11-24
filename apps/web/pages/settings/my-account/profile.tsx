@@ -1,7 +1,7 @@
 import { IdentityProvider } from "@prisma/client";
 import crypto from "crypto";
 import { signOut } from "next-auth/react";
-import { useRef, useState, BaseSyntheticEvent, useEffect } from "react";
+import { BaseSyntheticEvent, useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/lib/auth";
@@ -9,17 +9,27 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
-import { Icon } from "@calcom/ui";
-import { Alert } from "@calcom/ui/Alert";
-import { Avatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
-import { Form, Label, TextField, PasswordField } from "@calcom/ui/components/form";
-import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
-import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
-import Meta from "@calcom/ui/v2/core/Meta";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
-import showToast from "@calcom/ui/v2/core/notifications";
-import { SkeletonContainer, SkeletonText, SkeletonButton, SkeletonAvatar } from "@calcom/ui/v2/core/skeleton";
+import {
+  Alert,
+  Avatar,
+  Button,
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  Form,
+  getSettingsLayout as getLayout,
+  Icon,
+  ImageUploader,
+  Label,
+  Meta,
+  PasswordField,
+  showToast,
+  SkeletonAvatar,
+  SkeletonButton,
+  SkeletonContainer,
+  SkeletonText,
+  TextField,
+} from "@calcom/ui";
 
 import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailability } from "@components/ui/UsernameAvailability";
