@@ -29,7 +29,6 @@ interface IAddActionDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   addAction: (action: WorkflowActions, sendTo?: string, numberRequired?: boolean, sender?: string) => void;
-  isFreeUser: boolean;
 }
 
 interface ISelectActionOption {
@@ -44,20 +43,13 @@ type AddActionFormValues = {
   sender?: string;
 };
 
-const cleanUpActionsForFreeUser = (actions: ISelectActionOption[]) => {
-  return actions.filter(
-    (item) => item.value !== WorkflowActions.SMS_ATTENDEE && item.value !== WorkflowActions.SMS_NUMBER
-  );
-};
-
 export const AddActionDialog = (props: IAddActionDialog) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, addAction, isFreeUser } = props;
+  const { isOpenDialog, setIsOpenDialog, addAction } = props;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(false);
   const [isSenderIdNeeded, setIsSenderIdNeeded] = useState(false);
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(false);
-  const workflowActions = getWorkflowActionOptions(t);
-  const actionOptions = isFreeUser ? cleanUpActionsForFreeUser(workflowActions) : workflowActions;
+  const actionOptions = getWorkflowActionOptions(t);
 
   const formSchema = z.object({
     action: z.enum(WORKFLOW_ACTIONS),
