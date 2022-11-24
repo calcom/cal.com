@@ -4,7 +4,7 @@ import { useSchedulerStore } from "../state/store";
 import "../styles/styles.css";
 import { SchedulerComponentProps } from "../types/state";
 import { getDaysBetweenDates, getHoursToDisplay } from "../utils";
-import { DateValues } from "./DateValues/DateValues";
+import { DateValues } from "./DateValues";
 import { BlockedList } from "./blocking/BlockedList";
 import { EmptyCell } from "./event/Empty";
 import { EventList } from "./event/EventList";
@@ -13,17 +13,17 @@ import { SchedulerHeading } from "./heading/SchedulerHeading";
 import { HorizontalLines } from "./horizontalLines";
 import { VeritcalLines } from "./verticalLines";
 
-export default function Scheduler(props: SchedulerComponentProps) {
+export function Scheduler(props: SchedulerComponentProps) {
   const container = useRef<HTMLDivElement | null>(null);
   const containerNav = useRef<HTMLDivElement | null>(null);
   const containerOffset = useRef<HTMLDivElement | null>(null);
   const initalState = useSchedulerStore((state) => state.initState);
 
-  const { startDate, endDate, startHour, endHour, usersCellsStopsPerHour } = useSchedulerStore((state) => ({
-    startDate: state.startDate,
-    endDate: state.endDate,
-    startHour: state.startHour || 0,
-    endHour: state.endHour || 23,
+  const { startDate } = useSchedulerStore((state) => ({ startDate: state.startDate }));
+  const { endDate } = useSchedulerStore((state) => ({ endDate: state.endDate }));
+  const { startHour } = useSchedulerStore((state) => ({ startHour: state.startHour || 0 }));
+  const { endHour } = useSchedulerStore((state) => ({ endHour: state.endHour || 23 }));
+  const { usersCellsStopsPerHour } = useSchedulerStore((state) => ({
     usersCellsStopsPerHour: state.gridCellsPerHour || 4,
   }));
 
@@ -121,6 +121,7 @@ export default function Scheduler(props: SchedulerComponentProps) {
   );
 }
 
+/** @todo Will be removed once we have mobile support */
 const MobileNotSupported = ({ children }: { children: React.ReactNode }) => {
   return (
     <>

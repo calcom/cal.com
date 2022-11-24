@@ -51,12 +51,10 @@ export const useSchedulerStore = create<SchedulerStoreProps>((set) => ({
         const newEndDate = dayjs(endDate).add(1, state.view).toDate();
 
         // Do nothing if
-        if (state.minDate && newStartDate < state.minDate) {
-          return {
-            startDate,
-            endDate,
-          };
-        } else if (state.maxDate && newEndDate > state.maxDate) {
+        if (
+          (state.minDate && newStartDate < state.minDate) ||
+          (state.maxDate && newEndDate > state.maxDate)
+        ) {
           return {
             startDate,
             endDate,
@@ -69,14 +67,13 @@ export const useSchedulerStore = create<SchedulerStoreProps>((set) => ({
           startDate: newStartDate,
           endDate: newEndDate,
         };
-      } else {
-        const newStartDate = dayjs(startDate).subtract(1, state.view).toDate();
-        const newEndDate = dayjs(endDate).subtract(1, state.view).toDate();
-        state.onDateChange && state.onDateChange(newStartDate, newEndDate);
-        return {
-          startDate: newStartDate,
-          endDate: newEndDate,
-        };
       }
+      const newStartDate = dayjs(startDate).subtract(1, state.view).toDate();
+      const newEndDate = dayjs(endDate).subtract(1, state.view).toDate();
+      state.onDateChange && state.onDateChange(newStartDate, newEndDate);
+      return {
+        startDate: newStartDate,
+        endDate: newEndDate,
+      };
     }),
 }));

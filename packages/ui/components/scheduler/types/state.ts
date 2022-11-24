@@ -29,7 +29,7 @@ export type Hours =
   | 22
   | 23;
 
-// These will be on eventHandlers - e.g. do more actions on viewchange if required
+// These will be on eventHandlers - e.g. do more actions on view change if required
 export type SchedulerPublicActions = {
   onViewChange?: (view: View) => void;
   onEventClick?: (event: SchedulerEvent) => void;
@@ -39,9 +39,9 @@ export type SchedulerPublicActions = {
   onDateChange?: (startDate: Date, endDate?: Date) => void;
 };
 
-// We have private actions here that we want to be avalbile in state but not as component props.
+// We have private actions here that we want to be available in state but not as component props.
 export type SchedulerPrivateActions = {
-  // initState is used to init the state from public props -> Doesnt override internal state
+  /** initState is used to init the state from public props -> Doesn't override internal state */
   initState: (state: SchedulerState & SchedulerPublicActions) => void;
   setView: (view: SchedulerComponentProps["view"]) => void;
   setStartDate: (startDate: SchedulerComponentProps["startDate"]) => void;
@@ -58,8 +58,8 @@ export type SchedulerState = {
   startDate: Date;
   /** By default we just dynamically create endDate from the viewType */
   endDate: Date;
-  /**Please enter events already SORTED. This is required to setup tab index correctly.
-   *
+  /**
+   * Please enter events already SORTED. This is required to setup tab index correctly.
    * @Note Ideally you should pass in a sorted array from the DB however, pass the prop `sortEvents` if this is not possible and we will sort this for you..
    */
   events: SchedulerEvent[];
@@ -71,35 +71,35 @@ export type SchedulerState = {
   eventsDisabled?: boolean;
   /** If you don't want the date to be scrollable past a certian date */
   minDate?: Date;
-  /** If you don't want the date to be scrollable past a certian date */
+  /** If you don't want the date to be scrollable past a certain date */
   maxDate?: Date;
-  /** Defined the time your calendar will start at
-   *
+  /**
+   * Defined the time your calendar will start at
    * @default 0
    */
   startHour?: Hours;
-  /** Defined the time your calendar will end at
-   *
+  /**
+   * Defined the time your calendar will end at
    * @default 23
    */
   endHour?: Hours;
-  /** Toggle the ablity to scroll to currentTime */
+  /** Toggle the ability to scroll to currentTime */
   scrollToCurrentTime?: boolean;
-  /** Toggle the ablity show the current time on the calendar*/
+  /** Toggle the ability show the current time on the calendar*/
   showCurrentTimeLine?: boolean;
-  /** This indicates the number of gridstops that are avalabile per hour. 4 -> Grid set to 15 minutes.
-   *
+  /**
+   * This indicates the number of grid stops that are available per hour. 4 -> Grid set to 15 minutes.
    * @default 4
    */
   gridCellsPerHour?: number;
-  /** Sets the duration on the hover event. In minutes.
-   *
+  /**
+   * Sets the duration on the hover event. In minutes.
    * @Note set to 0 to disable any hover actions.
    */
   hoverEventDuration?: number;
-  /**If passed in we will sort the events internally.
-   *
-   * @Note It is recommended to sort the events before passing them into the schedler - e.g. On DB level.
+  /**
+   * If passed in we will sort the events internally.
+   * @Note It is recommended to sort the events before passing them into the scheduler - e.g. On DB level.
    */
   sortEvents?: boolean;
 };
