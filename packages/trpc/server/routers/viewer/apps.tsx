@@ -92,6 +92,8 @@ export const appsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { prisma } = ctx;
 
+      // TODO upsert an app if unavailable
+
       const app = await prisma.app.update({
         where: {
           slug: input.slug,
