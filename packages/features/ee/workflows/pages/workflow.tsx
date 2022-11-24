@@ -26,9 +26,6 @@ import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
 import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
 
-/* eslint-disable @typescript-eslint/no-var-requires */
-const { convert } = require("html-to-text");
-
 export type FormValues = {
   name: string;
   activeOn: Option[];
@@ -182,10 +179,12 @@ function WorkflowPage() {
         values.steps.forEach((step) => {
           const isSMSAction =
             step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER;
+
+          const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
+
           const isBodyEmpty =
-            step.template === WorkflowTemplates.CUSTOM &&
-            !isSMSAction &&
-            convert(step.reminderBody).length <= 1;
+            step.template === WorkflowTemplates.CUSTOM && !isSMSAction && strippedHtml.length <= 1;
+
           if (isBodyEmpty) {
             form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
               type: "custom",
