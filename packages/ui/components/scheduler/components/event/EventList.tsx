@@ -1,4 +1,4 @@
-import React from "react";
+import shallow from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
 
@@ -10,11 +10,14 @@ type Props = {
 };
 
 export function EventList({ day }: Props) {
-  const { startHour, events, eventOnClick } = useSchedulerStore((state) => ({
-    startHour: state.startHour,
-    events: state.events,
-    eventOnClick: state.onEventClick,
-  }));
+  const { startHour, events, eventOnClick } = useSchedulerStore(
+    (state) => ({
+      startHour: state.startHour,
+      events: state.events,
+      eventOnClick: state.onEventClick,
+    }),
+    shallow
+  );
 
   return (
     <>

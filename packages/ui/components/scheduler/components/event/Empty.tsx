@@ -1,11 +1,16 @@
+import shallow from "zustand/shallow";
+
 import { useSchedulerStore } from "../../state/store";
 import { gridCellToDateTime, GridCellToDateProps } from "../../utils";
 
 export function EmptyCell(props: GridCellToDateProps) {
-  const { onEmptyCellClick, hoverEventDuration } = useSchedulerStore((state) => ({
-    onEmptyCellClick: state.onEmptyCellClick,
-    hoverEventDuration: state.hoverEventDuration,
-  }));
+  const { onEmptyCellClick, hoverEventDuration } = useSchedulerStore(
+    (state) => ({
+      onEmptyCellClick: state.onEmptyCellClick,
+      hoverEventDuration: state.hoverEventDuration,
+    }),
+    shallow
+  );
 
   const cellToDate = gridCellToDateTime({
     day: props.day,

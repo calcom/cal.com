@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import shallow from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
 
@@ -73,12 +74,15 @@ function BlockedToday({
 }
 
 export function BlockedList({ day }: Props) {
-  const { startHour, blockingDates, endHour, gridCellsPerHour } = useSchedulerStore((state) => ({
-    startHour: state.startHour || 0,
-    endHour: state.endHour || 23,
-    blockingDates: state.blockingDates,
-    gridCellsPerHour: state.gridCellsPerHour || 4,
-  }));
+  const { startHour, blockingDates, endHour, gridCellsPerHour } = useSchedulerStore(
+    (state) => ({
+      startHour: state.startHour || 0,
+      endHour: state.endHour || 23,
+      blockingDates: state.blockingDates,
+      gridCellsPerHour: state.gridCellsPerHour || 4,
+    }),
+    shallow
+  );
 
   return (
     <>
