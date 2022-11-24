@@ -38,9 +38,19 @@ function BlockedBeforeToday({ day, startHour, endHour }: BlockedDayProps) {
     </>
   );
 }
-function BlockedToday({ day, startHour, gridCellsPerHour }: BlockedDayProps & { gridCellsPerHour: number }) {
+function BlockedToday({
+  day,
+  startHour,
+  gridCellsPerHour,
+  endHour,
+}: BlockedDayProps & { gridCellsPerHour: number }) {
   const dayStart = useMemo(() => day.startOf("day").hour(startHour), [day, startHour]);
-  const nowComparedToDayStart = useMemo(() => dayjs().diff(dayStart, "minutes"), [dayStart]);
+  const dayEnd = useMemo(() => day.startOf("day").hour(endHour), [day, endHour]);
+  const dayEndInMinutes = useMemo(() => dayEnd.diff(dayStart, "minutes"), [dayEnd, dayStart]);
+  let nowComparedToDayStart = useMemo(() => dayjs().diff(dayStart, "minutes"), [dayStart]);
+
+  if (nowComparedToDayStart > dayEndInMinutes) nowComparedToDayStart = dayEndInMinutes;
+
   return (
     <>
       {day.isToday() && (
