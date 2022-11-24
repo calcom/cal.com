@@ -196,7 +196,6 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     };
 
     const recurrence = getRecurrence(event);
-    console.log(JSON.stringify({ organizer: event.organizer }, null, 2));
     // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
     return {
       topic: event.title,
