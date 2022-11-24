@@ -3,7 +3,8 @@ import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, I
 
 interface IAddVariablesDropdown {
   addVariable: (variable: string, isEmailSubject?: boolean) => void;
-  isEmailSubject: boolean;
+  isEmailSubject?: boolean;
+  isTextEditor?: boolean;
 }
 
 const variables = [
@@ -23,9 +24,21 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
   return (
     <Dropdown>
       <DropdownMenuTrigger className="pt-[6px] focus:bg-gray-50">
-        <div className="flex items-center ">
-          {t("add_variable")}
-          <Icon.FiChevronDown className="ml-1 h-4 w-4" />
+        <div className="items-center ">
+          {props.isTextEditor ? (
+            <>
+              <div className="hidden sm:flex">
+                {t("add_variable")}
+                <Icon.FiChevronDown className="ml-1 h-4 w-4" />
+              </div>
+              <div className="block sm:hidden">+</div>
+            </>
+          ) : (
+            <div className="flex">
+              {t("add_variable")}
+              <Icon.FiChevronDown className="ml-1 h-4 w-4" />
+            </div>
+          )}
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="h-40 overflow-scroll">

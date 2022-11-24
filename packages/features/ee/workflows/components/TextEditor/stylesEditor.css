@@ -134,6 +134,7 @@ pre::-webkit-scrollbar-thumb {
   padding: 8px;
   cursor: pointer;
   vertical-align: middle;
+  height: 36px;
 }
 
 .toolbar button.toolbar-item.spaced {
@@ -183,7 +184,6 @@ pre::-webkit-scrollbar-thumb {
 }
 
 .toolbar .toolbar-item .text {
-  display: flex;
   line-height: 20px;
   width: 200px;
   vertical-align: middle;
@@ -204,34 +204,6 @@ pre::-webkit-scrollbar-thumb {
   margin-right: 8px;
   line-height: 16px;
   background-size: contain;
-}
-
-.toolbar i.chevron-down {
-  margin-top: 3px;
-  margin-left: 5px;
-  width: 16px;
-  height: 16px;
-  display: flex;
-  user-select: none;
-}
-
-.toolbar i.chevron-down.inside {
-  width: 16px;
-  height: 16px;
-  display: flex;
-  margin-left: -25px;
-  margin-top: 11px;
-  margin-right: 10px;
-  pointer-events: none;
-}
-
-i.chevron-down {
-  background-color: transparent;
-  background-size: contain;
-  display: inline-block;
-  height: 8px;
-  width: 8px;
-  background-image: url(images/icons/chevron-down.svg);
 }
 
 #block-controls button:hover {

@@ -29,6 +29,8 @@ import { RefObject, Dispatch, SetStateAction } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { Icon } from "@calcom/ui";
+
 import { AddVariablesDropdown } from "../../AddVariablesDropdown";
 import { TextEditorProps } from "../Editor";
 
@@ -463,8 +465,10 @@ export default function ToolbarPlugin(props: TextEditorProps) {
               onClick={() => setShowBlockOptionsDropDown(!showBlockOptionsDropDown)}
               aria-label="Formatting Options">
               <span className={"icon block-type " + blockType} />
-              <span className="text">{blockTypeToBlockName[blockType as keyof BlockType]}</span>
-              <i className="chevron-down" />
+              <span className="text hidden sm:flex">
+                {blockTypeToBlockName[blockType as keyof BlockType]}
+              </span>
+              <Icon.FiChevronDown className="h-4 w-4" />
             </button>
             {showBlockOptionsDropDown &&
               createPortal(
@@ -514,7 +518,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
           {isLink && createPortal(<FloatingLinkEditor editor={editor} />, document.body)}{" "}
         </>
         <div className="ml-auto">
-          <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} />
+          <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} isTextEditor={true} />
         </div>
       </>
     </div>
