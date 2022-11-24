@@ -6,6 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
@@ -124,7 +125,10 @@ const IntegrationContainer = ({ app, lastEntry, category }) => {
 };
 
 const querySchema = z.object({
-  category: z.nativeEnum(AppCategories).optional().default(AppCategories.calendar),
+  category: z
+    .nativeEnum({ ...AppCategories, conferencing: "conferencing" })
+    .optional()
+    .default(AppCategories.calendar),
 });
 
 const AdminAppsList = ({ baseURL }: { baseURL: string }) => {

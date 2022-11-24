@@ -24,7 +24,7 @@ export const appsRouter = router({
   listLocal: authedAdminProcedure
     .input(
       z.object({
-        category: z.nativeEnum(AppCategories),
+        category: z.nativeEnum({ ...AppCategories, conferencing: "conferencing" }),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -32,7 +32,10 @@ export const appsRouter = router({
       const dbApps = await ctx.prisma.app.findMany({
         where: {
           categories: {
-            has: input.category,
+            has:
+              input.category === "conferencing"
+                ? AppCategories.video
+                : AppCategories[input.category as keyof typeof AppCategories],
           },
         },
         select: {
