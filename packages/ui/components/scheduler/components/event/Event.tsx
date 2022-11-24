@@ -40,7 +40,7 @@ export function Event({
         {event.title}
       </div>
       {eventDuration >= 30 && (
-        <p className="text-[10px] leading-none text-gray-500">
+        <p className="text-left text-[10px] leading-none text-gray-500">
           {dayjs(event.start).format("HH:mm")} - {dayjs(event.end).format("HH:mm")}
         </p>
       )}
