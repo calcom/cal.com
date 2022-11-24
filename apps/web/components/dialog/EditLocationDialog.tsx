@@ -40,6 +40,7 @@ interface ISetLocationDialog {
   setShowLocationModal: React.Dispatch<React.SetStateAction<boolean>>;
   isOpenDialog: boolean;
   setSelectedLocation?: (param: OptionTypeBase | undefined) => void;
+  setEditingLocationType?: (param: string) => void;
 }
 
 const LocationInput = (props: {
@@ -77,6 +78,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     isOpenDialog,
     defaultValues,
     setSelectedLocation,
+    setEditingLocationType,
   } = props;
   const { t } = useLocale();
   const locationsQuery = trpc.viewer.locationOptions.useQuery();
@@ -318,7 +320,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                           ),
                         }}
                         formatOptionLabel={(e) => (
-                          <div className="flex items-center gap-2.5">
+                          <div className="flex items-center gap-3">
                             {e.icon && <img src={e.icon} alt="app-icon" className="h-5 w-5" />}
                             <span>{e.label}</span>
                           </div>
@@ -356,6 +358,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 onClick={() => {
                   setShowLocationModal(false);
                   setSelectedLocation?.(undefined);
+                  setEditingLocationType?.("");
                   locationFormMethods.unregister("locationType");
                 }}
                 type="button"
