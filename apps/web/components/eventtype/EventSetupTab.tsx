@@ -4,6 +4,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
+import { MultiValue } from "react-select";
 import { z } from "zod";
 
 import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
@@ -48,8 +49,14 @@ export const EventSetupTab = (
     { value: 180, label: t("multiple_duration_hours", { count: 180, hours: 3 }) },
   ];
 
-  const selectedMultipleDuration = multipleDurationOptions.filter((mdOpt) =>
-    multipleDuration?.includes(mdOpt.value)
+  const [selectedMultipleDuration, setSelectedMultipleDuration] = useState<
+    MultiValue<{
+      value: number;
+      label: string;
+    }>
+  >(multipleDurationOptions.filter((mdOpt) => multipleDuration?.includes(mdOpt.value)));
+  const [defaultDuration, setDefaultDuration] = useState(
+    selectedMultipleDuration.find((opt) => opt.value === eventType.length) ?? null
   );
 
   const openLocationModal = (type: EventLocationType["type"]) => {
@@ -239,7 +246,7 @@ export const EventSetupTab = (
                 defaultValue={selectedMultipleDuration}
                 name="metadata.multipleDuration"
                 isSearchable={false}
-                className="h-auto !min-h-[36px]"
+                className="h-auto !min-h-[36px] text-sm"
                 options={multipleDurationOptions}
                 onChange={(options) => {
                   const values = options
@@ -248,6 +255,10 @@ export const EventSetupTab = (
                       return a - b;
                     });
                   setMultipleDuration(values);
+                  setSelectedMultipleDuration(options);
+                  if (!options.find((opt) => opt.value === defaultDuration?.value)) {
+                    setDefaultDuration(null);
+                  }
                   formMethods.setValue("metadata.multipleDuration", values);
                 }}
               />
@@ -257,15 +268,16 @@ export const EventSetupTab = (
                 {t("default_duration")}
               </Skeleton>
               <Select
-                defaultValue={
-                  selectedMultipleDuration.find((dur) => dur.value === eventType.length) ??
-                  selectedMultipleDuration[0]
-                }
+                value={defaultDuration}
                 isSearchable={false}
                 name="length"
+                className="text-sm"
                 noOptionsMessage={() => t("default_duration_no_options")}
                 options={selectedMultipleDuration}
                 onChange={(option) => {
+                  setDefaultDuration(
+                    selectedMultipleDuration.find((opt) => opt.value === option?.value) ?? null
+                  );
                   formMethods.setValue("length", Number(option?.value));
                 }}
               />
@@ -288,7 +300,7 @@ export const EventSetupTab = (
           <SettingsToggle
             title={t("allow_booker_to_select_duration")}
             checked={multipleDuration !== undefined}
-            onCheckedChange={(e) => {
+            onCheckedChange={() => {
               if (multipleDuration !== undefined) {
                 setMultipleDuration(undefined);
                 formMethods.setValue("metadata.multipleDuration", undefined);

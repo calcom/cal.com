@@ -3,8 +3,7 @@ import { FC, ReactNode, useEffect } from "react";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui";
-import { Badge } from "@calcom/ui/components/badge";
+import { Icon, Badge } from "@calcom/ui";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
@@ -105,7 +104,7 @@ const BookingDescription: FC<Props> = (props) => {
         <AvailableEventLocations
           locations={eventType.locations as AvailabilityPageProps["eventType"]["locations"]}
         />
-        <p
+        <div
           className={classNames(
             "flex flex-nowrap text-sm font-medium",
             isBookingPage && "dark:text-darkgray-600 text-gray-600"
@@ -124,7 +123,6 @@ const BookingDescription: FC<Props> = (props) => {
                     <Badge
                       variant="gray"
                       size="lg"
-                      data-duration={dur}
                       className={classNames(
                         duration === dur.toString() && "bg-gray-300 dark:border-white dark:bg-inherit",
                         "dark:bg-darkgray-200 dark:hover:border-darkmodebrand cursor-pointer border border-transparent bg-gray-100 hover:bg-gray-300 dark:text-white"
@@ -143,7 +141,7 @@ const BookingDescription: FC<Props> = (props) => {
           ) : (
             `${eventType.length} ${t("minutes")}`
           )}
-        </p>
+        </div>
         {children}
       </div>
     </>

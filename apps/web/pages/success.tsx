@@ -199,6 +199,10 @@ export default function Success(props: SuccessProps) {
     });
   }
 
+  const calculatedDuration = dayjs(props.bookingInfo.endTime).diff(
+    dayjs(props.bookingInfo.startTime),
+    "minutes"
+  );
   const attendeeName = typeof name === "string" ? name : "Nameless";
 
   const eventNameObject = {
@@ -231,7 +235,7 @@ export default function Success(props: SuccessProps) {
     sdkActionManager.fire("bookingSuccessful", {
       eventType,
       date: date.toString(),
-      duration: eventType.length,
+      duration: calculatedDuration,
       organizer: {
         name: users[0].name || "Nameless",
         email: users[0].email || "Email-less",
@@ -263,7 +267,9 @@ export default function Success(props: SuccessProps) {
       title: eventName,
       description: props.eventType.description ? props.eventType.description : undefined,
       /** formatted to required type of description ^ */
-      duration: { minutes: props.eventType.length },
+      duration: {
+        minutes: calculatedDuration,
+      },
       ...optional,
     });
 
@@ -383,6 +389,7 @@ export default function Success(props: SuccessProps) {
                     <div className="col-span-2 mb-6 last:mb-0">
                       <RecurringBookings
                         eventType={props.eventType}
+                        duration={calculatedDuration}
                         recurringBookings={props.recurringBookings}
                         allRemainingBookings={allRemainingBookings}
                         date={date}
@@ -519,7 +526,7 @@ export default function Success(props: SuccessProps) {
                             `https://calendar.google.com/calendar/r/eventedit?dates=${date
                               .utc()
                               .format("YYYYMMDDTHHmmss[Z]")}/${date
-                              .add(props.eventType.length, "minute")
+                              .add(calculatedDuration, "minute")
                               .utc()
                               .format("YYYYMMDDTHHmmss[Z]")}&text=${eventName}&details=${
                               props.eventType.description
@@ -549,7 +556,7 @@ export default function Success(props: SuccessProps) {
                               "https://outlook.live.com/calendar/0/deeplink/compose?body=" +
                                 props.eventType.description +
                                 "&enddt=" +
-                                date.add(props.eventType.length, "minute").utc().format() +
+                                date.add(calculatedDuration, "minute").utc().format() +
                                 "&path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=" +
                                 date.utc().format() +
                                 "&subject=" +
@@ -575,7 +582,7 @@ export default function Success(props: SuccessProps) {
                               "https://outlook.office.com/calendar/0/deeplink/compose?body=" +
                                 props.eventType.description +
                                 "&enddt=" +
-                                date.add(props.eventType.length, "minute").utc().format() +
+                                date.add(calculatedDuration, "minute").utc().format() +
                                 "&path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=" +
                                 date.utc().format() +
                                 "&subject=" +
@@ -662,6 +669,7 @@ type RecurringBookingsProps = {
   eventType: SuccessProps["eventType"];
   recurringBookings: SuccessProps["recurringBookings"];
   date: dayjs.Dayjs;
+  duration: number;
   is24h: boolean;
   allRemainingBookings: boolean;
 };
@@ -669,6 +677,7 @@ type RecurringBookingsProps = {
 export function RecurringBookings({
   eventType,
   recurringBookings,
+  duration,
   date,
   allRemainingBookings,
   is24h,
@@ -847,6 +856,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       smsReminderNumber: true,
       recurringEventId: true,
       startTime: true,
+      endTime: true,
       location: true,
       status: true,
       cancellationReason: true,
@@ -883,6 +893,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   // @NOTE: had to do this because Server side cant return [Object objects]
   // probably fixable with json.stringify -> json.parse
   bookingInfo["startTime"] = (bookingInfo?.startTime as Date)?.toISOString() as unknown as Date;
+  bookingInfo["endTime"] = (bookingInfo?.endTime as Date)?.toISOString() as unknown as Date;
 
   const eventTypeRaw = !bookingInfo.eventTypeId
     ? getDefaultEvent(eventTypeSlug || "")
