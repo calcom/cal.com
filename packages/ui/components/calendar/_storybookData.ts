@@ -60,6 +60,15 @@ export const events: CalendarEvent[] = [
     source: "Booking",
     status: "ACCEPTED",
   },
+  {
+    id: 6,
+    title: "Event 1 Overlap Two",
+    start: startDate.toDate(),
+    end: startDate.add(30, "minutes").toDate(),
+    allDay: false,
+    source: "Booking",
+    status: "ACCEPTED",
+  },
 ];
 
 export const blockingDates: TimeRange[] = [

@@ -43,6 +43,7 @@ export function EventList({ day }: Props) {
 
           // Check for overlapping events since this is sorted it should just work.
           if (nextEvent) {
+            console.log("Next" + nextEvent.title);
             const nextEventStart = dayjs(nextEvent.start);
             const nextEventEnd = dayjs(nextEvent.end);
             // check if next event starts before this event ends
@@ -53,11 +54,19 @@ export function EventList({ day }: Props) {
                 zIndex = 65;
 
                 marginLeft = "auto";
-                // 7 looks like a really random number but we need to take into account the bordersize on the event.
+                // 8 looks like a really random number but we need to take into account the bordersize on the event.
                 // Logically it should be 5% but this causes a bit of a overhang which we don't want.
                 right = 8;
                 width = width / 2;
               }
+            }
+
+            if (nextEventStart.isSame(eventStart)) {
+              zIndex = 66;
+
+              marginLeft = "auto";
+              right = 8;
+              width = width / 2;
             }
           } else if (prevEvent) {
             const prevEventStart = dayjs(prevEvent.start);
