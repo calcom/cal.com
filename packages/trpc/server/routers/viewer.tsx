@@ -429,14 +429,6 @@ const loggedInViewerRouter = router({
       const { variant, exclude, onlyInstalled } = input;
       const { credentials } = user;
 
-      const enabledAppsSlug = await ctx.prisma.app.findMany({
-        where: {
-          enabled: true,
-        },
-        select: {
-          slug: true,
-        },
-      });
       let apps = await getEnabledApps(credentials);
       apps = credentials.map(({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => {
         const credentialIds = credentials.filter((c) => c.type === app.type).map((c) => c.id);
@@ -463,8 +455,6 @@ const loggedInViewerRouter = router({
       if (onlyInstalled) {
         apps = apps.flatMap((item) => (item.credentialIds.length > 0 || item.isGlobal ? [item] : []));
       }
-
-      apps = apps.filter((app) => enabledAppsSlug.some((enabledApp) => enabledApp.slug === app.slug));
 
       return {
         items: apps,

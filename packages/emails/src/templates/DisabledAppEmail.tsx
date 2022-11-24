@@ -15,15 +15,16 @@ export const DisabledAppEmail = (
   } & Partial<React.ComponentProps<typeof BaseEmailHtml>>
 ) => {
   const { title, appName, eventTypeId, t, appType } = props;
+  console.log("🚀 ~ file: DisabledAppEmail.tsx ~ line 18 ~ props", props);
 
   return (
-    <BaseEmailHtml subject={t("app_disabled", { appName })}>
+    <BaseEmailHtml subject={t("app_disabled", { appName: appName })}>
       {appType.some((type) => type === "payment") ? (
         <>
           <p>{t("disabled_app_affects_event_type", { appName: appName, eventType: title })}</p>
           <p style={{ fontWeight: 400, lineHeight: "24px" }}>{t("payment_disabled_still_able_to_book")}</p>
 
-          <hr />
+          <hr style={{ marginBottom: "24px" }} />
 
           <CallToAction
             label={t("edit_event_type")}
@@ -34,7 +35,7 @@ export const DisabledAppEmail = (
         <>
           <p>{(t("app_disabled_with_event_type"), { appName, title })}</p>
 
-          <hr />
+          <hr style={{ marginBottom: "24px" }} />
 
           <CallToAction
             label={t("edit_event_type")}
@@ -45,7 +46,7 @@ export const DisabledAppEmail = (
         <>
           <p>{(t("app_disabled_video"), { appName })}</p>
 
-          <hr />
+          <hr style={{ marginBottom: "24px" }} />
 
           <CallToAction label={t("navigate_installed_apps")} href={`${CAL_URL}/apps/installed`} />
         </>
@@ -54,7 +55,7 @@ export const DisabledAppEmail = (
           <p>{t("admin_has_disabled", { appName })}</p>
           <p style={{ fontWeight: 400, lineHeight: "24px" }}>{t("disabled_calendar")}</p>
 
-          <hr />
+          <hr style={{ marginBottom: "24px" }} />
 
           <CallToAction label={t("navigate_installed_apps")} href={`${CAL_URL}/apps/installed`} />
         </>
@@ -62,7 +63,7 @@ export const DisabledAppEmail = (
         <>
           <p>{t("admin_has_disabled", { appName })}</p>
 
-          <hr />
+          <hr style={{ marginBottom: "24px" }} />
 
           <CallToAction label={t("navigate_installed_apps")} href={`${CAL_URL}/apps/installed`} />
         </>

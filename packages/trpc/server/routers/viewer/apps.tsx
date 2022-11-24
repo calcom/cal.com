@@ -98,13 +98,14 @@ export const appsRouter = router({
         },
       });
 
-      // Get app name from metadata
-      const localApps = getLocalAppMetadata();
-      const appMetadata = localApps.find((localApp) => localApp.slug === app.slug);
-
       // If disabling an app then we need to alert users basesd on the app type
       if (input.enabled) {
+        // Get app name from metadata
+        const localApps = getLocalAppMetadata();
+        const appMetadata = localApps.find((localApp) => localApp.slug === app.slug);
+
         if (app.categories.some((category) => category === "calendar" || category === "video")) {
+          // Find all users with the app credentials
           const appCredentials = await prisma.credential.findMany({
             where: {
               appId: app.slug,
@@ -154,7 +155,6 @@ export const appsRouter = router({
             },
           });
 
-          // Loop through all event types and email users to alert them that payment will be paused
           Promise.all(
             eventTypesWithApp.map(async (eventType) => {
               await prisma.eventType.update({
@@ -174,16 +174,15 @@ export const appsRouter = router({
 
               eventType.users.map(async (user) => {
                 const t = await getTranslation(user.locale || "en", "common");
-                console.log("🚀 ~ file: apps.tsx ~ line 189 ~ eventType.users.map ~ t", t);
 
-                await sendDisabledAppEmail(
-                  eventType.title,
-                  user.email,
-                  appMetadata?.name,
-                  appMetadata?.categories,
-                  eventType.id,
-                  t
-                );
+                await sendDisabledAppEmail({
+                  email: user.email,
+                  appName: appMetadata?.name,
+                  appType: app.categories,
+                  t,
+                  title: eventType.title,
+                  eventTypeId: eventType.id,
+                });
               });
             })
           );

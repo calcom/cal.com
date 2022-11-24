@@ -1385,5 +1385,11 @@
   "navigate_installed_apps": "Go to installed apps",
   "disabled_calendar": "If you have another calendar installed new bookings will be added to it. If not then connect a new calendar so you do not miss any new bookings.",
   "enable_apps": "Enable Apps",
-  "enable_apps_description": "Enable apps that users can integrate with Cal.com"
+  "enable_apps_description": "Enable apps that users can integrate with Cal.com",
+  "app_is_enabled": "{{appName}} is enabled",
+  "app_is_disabled": "{{appName}} is disabled",
+  "keys_have_been_saved": "Keys have been saved",
+  "disable_app": "Disable App",
+  "disable_app_description": "Disabling this app could cause problems with how your users interact with Cal",
+
 }

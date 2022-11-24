@@ -23,17 +23,17 @@ export default class DisabledAppEmail extends BaseEmail {
   ) {
     super();
     this.email = email;
-    this.title = title;
     this.appName = appName;
-    this.eventTypeId = eventTypeId;
     this.appType = appType;
     this.t = t;
+    this.title = title;
+    this.eventTypeId = eventTypeId;
   }
 
   protected getNodeMailerPayload(): Record<string, unknown> {
     console.log(
-      "🚀 ~ file: disabled-app-email.ts ~ line 40 ~ DisabledAppEmail ~ getNodeMailerPayload ~ this.t",
-      typeof this.t
+      "🚀 ~ file: disabled-app-email.ts ~ line 46 ~ DisabledAppEmail ~ getNodeMailerPayload ~ this.appType",
+      this.appType
     );
 
     return {

@@ -92,7 +92,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     t: __t,
     ...passThrough
   } = props;
-  console.log("🚀 ~ file: Input.tsx ~ line 99 ~ InputField ~ readOnly", readOnly);
 
   return (
     <div className={classNames(containerClassName)}>

@@ -21,11 +21,9 @@ import {
 } from "@calcom/ui";
 
 const IntegrationContainer = ({ app, lastEntry, category }) => {
+  const { t } = useLocale();
   const utils = trpc.useContext();
   const [disableDialog, setDisableDialog] = useState(false);
-  const [hideKey, setHideKey] = useState(
-    app.keys && Object.assign(...Object.keys(app.keys).map((key) => ({ [key]: true })))
-  );
 
   const formMethods = useForm();
 
@@ -33,15 +31,16 @@ const IntegrationContainer = ({ app, lastEntry, category }) => {
     onSuccess: (enabled) => {
       utils.viewer.appsRouter.listLocal.invalidate({ variant: category });
       setDisableDialog(false);
-      // TODO add translations, two strings
-      showToast(`${app.name} is ${enabled ? "enabled" : "disabled"}`, "success");
+      showToast(
+        enabled ? t("app_is_enabled", { appName: app.name }) : t("app_is_disabled", { appName: app.name }),
+        "success"
+      );
     },
   });
 
   const saveKeysMutation = trpc.viewer.appsRouter.saveKeys.useMutation({
     onSuccess: () => {
-      // TODO add translations
-      showToast(`Keys have been saved`, "success");
+      showToast(t("keys_have_been_saved"), "success");
     },
   });
 
@@ -111,10 +110,10 @@ const IntegrationContainer = ({ app, lastEntry, category }) => {
 
       <Dialog open={disableDialog} onOpenChange={setDisableDialog}>
         <DialogContent
-          title="Disable app"
+          title={t("disable_app")}
           type="confirmation"
-          description="Disabling this app could cause problems with how your users interact with Cal"
-          actionText="Disable"
+          description={t("disable_app_description")}
+          actionText={t("disable")}
           actionOnClick={() => {
             enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
           }}
