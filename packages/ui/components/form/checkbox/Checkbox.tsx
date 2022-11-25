@@ -8,6 +8,7 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
   descriptionAsLabel?: boolean;
   informationIconText?: string;
   error?: boolean;
+  className?: string;
 };
 
 const CheckboxField = forwardRef<HTMLInputElement, Props>(
@@ -53,7 +54,8 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                       !error && disabled
                         ? "bg-gray-300 checked:bg-gray-300"
                         : "checked:bg-gray-800 hover:bg-gray-100",
-                      error && "border-red-800 checked:bg-red-800 hover:bg-red-400"
+                      error && "border-red-800 checked:bg-red-800 hover:bg-red-400",
+                      rest.className
                     )}
                   />
                 </div>
