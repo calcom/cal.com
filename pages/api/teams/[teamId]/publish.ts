@@ -36,8 +36,7 @@ const patchHandler = async (req: NextApiRequest, res: NextApiResponse) => {
   const caller = viewerRouter.createCaller(ctx);
   try {
     const { teamId } = schemaQueryTeamId.parse(req.query);
-    const success_url = req.url?.replace("/publish", "");
-    return await caller.teams.publish({ teamId, success_url });
+    return await caller.teams.publish({ teamId });
   } catch (cause) {
     if (cause instanceof TRPCError) {
       const statusCode = getHTTPStatusCodeFromError(cause);
