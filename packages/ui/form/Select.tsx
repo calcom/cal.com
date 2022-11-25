@@ -97,10 +97,7 @@ export function UnstyledSelect<
         }),
         indicatorSeparator: () => ({
           display: "hidden",
-        }),
-        dropdownIndicator: (provided) => ({
-          ...provided,
-          paddingRight: 4,
+          color: "black",
         }),
       }}
     />
