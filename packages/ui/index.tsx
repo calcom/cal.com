@@ -16,6 +16,7 @@ export {
   Input,
   InputField,
   InputGroupBox,
+  InputFieldWithSelect,
   InputLeading,
   Label,
   PasswordField,

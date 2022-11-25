@@ -6,7 +6,7 @@ import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Alert, showToast, Skeleton, Tooltip } from "../../..";
+import { Alert, showToast, Skeleton, Tooltip, UnstyledSelect } from "../../..";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 
@@ -334,3 +334,18 @@ export function InputGroupBox(props: JSX.IntrinsicElements["div"]) {
     </div>
   );
 }
+
+export const InputFieldWithSelect = forwardRef<
+  HTMLInputElement,
+  InputFieldProps & { selectProps: typeof UnstyledSelect }
+>(function EmailField(props, ref) {
+  return (
+    <InputField
+      ref={ref}
+      {...props}
+      inputIsFullWidth={false}
+      addOnPadding={0}
+      addOnSuffix={<UnstyledSelect {...props.selectProps} />}
+    />
+  );
+});
