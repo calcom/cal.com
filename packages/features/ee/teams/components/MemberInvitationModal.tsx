@@ -33,7 +33,7 @@ type MembershipRoleOption = {
 
 export interface NewMemberForm {
   emailOrUsername: string;
-  role: MembershipRoleOption;
+  role: MembershipRole;
   sendInviteEmail: boolean;
 }
 
@@ -80,7 +80,12 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             ""
           )
         }>
-        <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values)}>
+        <Form
+          form={newMemberFormMethods}
+          handleSubmit={(values) => {
+            console.log(values);
+            props.onSubmit(values);
+          }}>
           <div className="mt-6 space-y-6">
             <Controller
               name="emailOrUsername"
@@ -106,8 +111,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             <Controller
               name="role"
               control={newMemberFormMethods.control}
-              defaultValue={options[1]}
-              render={({ field: { option, onChange } }) => (
+              defaultValue={options[0].value}
+              render={({ field: { onChange } }) => (
                 <div>
                   <Label className="font-medium text-gray-900" htmlFor="role">
                     {t("role")}
@@ -116,10 +121,10 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     isFullWidth={true}
                     id="role"
                     onValueChange={onChange}
-                    defaultValue="member"
+                    defaultValue={options[0].value}
                     options={[
-                      { value: "owner", label: t("owner") },
-                      { value: "member", label: t("member") },
+                      { value: "OWNER", label: t("owner") },
+                      { value: "MEMBER", label: t("member") },
                     ]}
                   />
                 </div>
@@ -130,14 +135,12 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               control={newMemberFormMethods.control}
               defaultValue={true}
               render={() => (
-                <div className="relative  flex items-start">
-                  <CheckboxField
-                    className="mr-0"
-                    defaultChecked={true}
-                    description={t("send_invite_email")}
-                    onChange={(e) => newMemberFormMethods.setValue("sendInviteEmail", e.target.checked)}
-                  />
-                </div>
+                <CheckboxField
+                  className="mr-0"
+                  defaultChecked={true}
+                  description={t("send_invite_email")}
+                  onChange={(e) => newMemberFormMethods.setValue("sendInviteEmail", e.target.checked)}
+                />
               )}
             />
           </div>
