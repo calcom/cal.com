@@ -118,7 +118,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     onValueChange={onChange}
                     defaultValue={options[0].value}
                     options={[
-                      { value: "OWNER", label: t("owner") },
+                      { value: "ADMIN", label: t("admin") },
                       { value: "MEMBER", label: t("member") },
                     ]}
                   />
