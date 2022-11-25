@@ -94,7 +94,7 @@ export const getDescription = (calEvent: CalendarEvent) => {
   if (!calEvent.description) {
     return "";
   }
-  return `\n${calEvent.attendees[0].language.translate("description")}
+  return `\n${calEvent.organizer.language.translate("description")}
     ${calEvent.description}
     `;
 };
