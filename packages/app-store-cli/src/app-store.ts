@@ -94,6 +94,7 @@ function generateFiles() {
   function forEachAppDir(callback: (arg: App) => void) {
     for (let i = 0; i < appDirs.length; i++) {
       const configPath = path.join(APP_STORE_PATH, appDirs[i].path, "config.json");
+      console.log("🚀 ~ file: app-store.ts ~ line 97 ~ forEachAppDir ~ configPath", configPath);
       let app;
 
       if (fs.existsSync(configPath)) {
