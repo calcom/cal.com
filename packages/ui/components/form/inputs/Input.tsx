@@ -166,7 +166,7 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
         addOnSuffix={
           <Tooltip content={textLabel}>
             <button
-              className="absolute right-3 bottom-0 h-9 text-gray-900"
+              className="absolute bottom-0 right-3 h-9 text-gray-900"
               type="button"
               onClick={() => toggleIsPasswordVisible()}>
               {isPasswordVisible ? (
