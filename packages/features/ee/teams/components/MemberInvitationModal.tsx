@@ -80,12 +80,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             ""
           )
         }>
-        <Form
-          form={newMemberFormMethods}
-          handleSubmit={(values) => {
-            console.log(values);
-            props.onSubmit(values);
-          }}>
+        <Form form={newMemberFormMethods} handleSubmit={(values) => props.onSubmit(values)}>
           <div className="mt-6 space-y-6">
             <Controller
               name="emailOrUsername"
