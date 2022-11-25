@@ -2,7 +2,6 @@ import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
@@ -88,7 +87,10 @@ export const CreateANewTeamForm = () => {
                 className="mt-2"
                 name="slug"
                 label={t("team_url")}
-                addOnLeading={`${WEBAPP_URL}/team/`}
+                addOnLeading={`${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace("https://", "")?.replace(
+                  "http://",
+                  ""
+                )}/`}
                 value={value}
                 onChange={(e) => {
                   newTeamFormMethods.setValue("slug", slugify(e?.target.value), {
