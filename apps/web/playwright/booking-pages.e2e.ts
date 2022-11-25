@@ -112,11 +112,16 @@ test.describe("pro user", () => {
     });
     // --- fill form
     await page.locator('[data-testid="cancel"]').click();
+
     await page.waitForNavigation({
-      url(url) {
-        return url.pathname === "/cancel/success";
+      url: (url) => {
+        return url.pathname.startsWith("/success");
       },
     });
+    const successHeadling = await page.locator('[data-testid="success-headline"]').innerText();
+
+    await expect(successHeadling).toBe("This event is cancelled");
+
     await page.goto(`/${pro.username}`);
     await bookFirstEvent(page);
   });
