@@ -19,9 +19,7 @@ function AdminView() {
         onSubmit={(e) => {
           e.preventDefault();
           const enteredUsername = usernameRef.current?.value.toLowerCase();
-          signIn("impersonation-auth", { username: enteredUsername }).then((res) => {
-            console.log(res);
-          });
+          signIn("impersonation-auth", { username: enteredUsername });
         }}>
         <div className="flex items-center space-x-2">
           <TextField
