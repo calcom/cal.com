@@ -815,6 +815,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     evt.appsStatus = Object.values(calcAppsStatus);
   }
 
+  let videoCallUrl = evt.videoCallData && evt.videoCallData.url ? evt.videoCallData.url : null;
+
   if (originalRescheduledBooking?.uid) {
     // Use EventManager to conditionally use all needed integrations.
     const updateManager = await eventManager.reschedule(
@@ -849,9 +851,9 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           metadata.conferenceData = updatedEvent.conferenceData;
           metadata.entryPoints = updatedEvent.entryPoints;
           handleAppsStatus(results, booking);
+          videoCallUrl = metadata.hangoutLink || videoCallUrl;
         }
       }
-
       if (noEmail !== true) {
         await sendRescheduledEmails({
           ...evt,
@@ -889,6 +891,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
         handleAppsStatus(results, booking);
+        videoCallUrl = metadata.hangoutLink || videoCallUrl;
       }
       if (noEmail !== true) {
         await sendScheduledEmails({
@@ -1017,11 +1020,13 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
 
   try {
+    const metadata = videoCallUrl ? { videoCallUrl } : undefined;
     await prisma.booking.update({
       where: {
         uid: booking.uid,
       },
       data: {
+        metadata,
         references: {
           createMany: {
             data: referencesToCreate,
