@@ -36,7 +36,7 @@
     "@calcom/features": "*",
     "@calcom/lib": "*",
     "@calcom/ui": "*",
-    "@sentry/nextjs": "^7.17.3",
+    "@sentry/nextjs": "^7.20.0",
     "bcryptjs": "^2.4.3",
     "memory-cache": "^0.2.0",
     "modify-response-middleware": "^1.1.0",
