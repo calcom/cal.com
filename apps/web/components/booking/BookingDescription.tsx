@@ -124,8 +124,10 @@ const BookingDescription: FC<Props> = (props) => {
                       variant="gray"
                       size="lg"
                       className={classNames(
-                        duration === dur.toString() && "bg-gray-300 dark:border-white dark:bg-inherit",
-                        "dark:bg-darkgray-200 dark:hover:border-darkmodebrand cursor-pointer border border-transparent bg-gray-100 hover:bg-gray-300 dark:text-white"
+                        duration === dur.toString()
+                          ? "bg-darkgray-200 text-darkgray-900 dark:bg-darkmodebrand dark:!text-darkmodebrandcontrast"
+                          : "hover:bg-darkgray-200 dark:hover:bg-darkmodebrand hover:text-darkgray-900 dark:hover:text-darkmodebrandcontrast dark:bg-darkgray-200 bg-gray-200 text-gray-900 dark:text-white",
+                        "cursor-pointer"
                       )}
                       onClick={() => {
                         setDuration(dur);

@@ -42,12 +42,12 @@ export const EventSetupTab = (
     { value: 30, label: t("multiple_duration_mins", { count: 30 }) },
     { value: 45, label: t("multiple_duration_mins", { count: 45 }) },
     { value: 50, label: t("multiple_duration_mins", { count: 50 }) },
-    { value: 60, label: t("multiple_duration_hour", { count: 60 }) },
-    { value: 75, label: t("multiple_duration_hour_mins", { count: 75, mins: 15 }) },
-    { value: 80, label: t("multiple_duration_hour_mins", { count: 80, mins: 20 }) },
-    { value: 90, label: t("multiple_duration_hour_mins", { count: 90, mins: 30 }) },
-    { value: 120, label: t("multiple_duration_hours", { count: 120, hours: 2 }) },
-    { value: 180, label: t("multiple_duration_hours", { count: 180, hours: 3 }) },
+    { value: 60, label: t("multiple_duration_mins", { count: 60 }) },
+    { value: 75, label: t("multiple_duration_mins", { count: 75 }) },
+    { value: 80, label: t("multiple_duration_mins", { count: 80 }) },
+    { value: 90, label: t("multiple_duration_mins", { count: 90 }) },
+    { value: 120, label: t("multiple_duration_mins", { count: 120 }) },
+    { value: 180, label: t("multiple_duration_mins", { count: 180 }) },
   ];
 
   const [selectedMultipleDuration, setSelectedMultipleDuration] = useState<
@@ -270,7 +270,14 @@ export const EventSetupTab = (
                   setMultipleDuration(values);
                   setSelectedMultipleDuration(options);
                   if (!options.find((opt) => opt.value === defaultDuration?.value)) {
-                    setDefaultDuration(null);
+                    if (options.length > 0) {
+                      setDefaultDuration(options[0]);
+                    } else {
+                      setDefaultDuration(null);
+                    }
+                  }
+                  if (options.length === 1 && defaultDuration === null) {
+                    setDefaultDuration(options[0]);
                   }
                   formMethods.setValue("metadata.multipleDuration", values);
                 }}
