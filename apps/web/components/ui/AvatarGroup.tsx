@@ -1,3 +1,4 @@
+import Link from "next/link";
 import React from "react";
 
 import classNames from "@lib/classNames";
@@ -12,6 +13,7 @@ export type AvatarGroupProps = {
     image: string;
     title?: string;
     alt?: string;
+    href?: string;
   }[];
   className?: string;
 };
@@ -21,15 +23,25 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
     <ul className={classNames(props.className)}>
       {props.items.slice(0, props.truncateAfter).map((item, idx) => {
         if (item.image != null) {
+          const avatar = (
+            <AvatarSSR
+              className={props.border}
+              imageSrc={item.image}
+              title={item.title}
+              alt={item.alt || ""}
+              size={props.size}
+            />
+          );
+
           return (
             <li key={idx} className="-mr-2 inline-block">
-              <AvatarSSR
-                className={props.border}
-                imageSrc={item.image}
-                title={item.title}
-                alt={item.alt || ""}
-                size={props.size}
-              />
+              {item.href ? (
+                <Link href={item.href}>
+                  <a>{avatar}</a>
+                </Link>
+              ) : (
+                avatar
+              )}
             </li>
           );
         }
