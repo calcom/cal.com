@@ -1,12 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { withMiddleware } from "@lib/helpers/withMiddleware";
-import type { PaymentResponse } from "@lib/types";
-import { schemaPaymentPublic } from "@lib/validations/payment";
+import { withMiddleware } from "~/lib/helpers/withMiddleware";
+import type { PaymentResponse } from "~/lib/types";
+import { schemaPaymentPublic } from "~/lib/validations/payment";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
-} from "@lib/validations/shared/queryIdTransformParseInt";
+} from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
  * @swagger

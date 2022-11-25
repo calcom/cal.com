@@ -4,7 +4,7 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { membershipCreateBodySchema, schemaMembershipPublic } from "@lib/validations/membership";
+import { membershipCreateBodySchema, schemaMembershipPublic } from "~/lib/validations/membership";
 
 /**
  * @swagger

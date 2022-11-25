@@ -6,7 +6,7 @@ import { defaultResponder } from "@calcom/lib/server";
 import {
   schemaEventTypeCustomInputBodyParams,
   schemaEventTypeCustomInputPublic,
-} from "@lib/validations/event-type-custom-input";
+} from "~/lib/validations/event-type-custom-input";
 
 /**
  * @swagger

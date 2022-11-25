@@ -1,6 +1,6 @@
 import type { NextApiRequest } from "next";
 
-import { schemaQueryIdParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
+import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 async function authMiddleware(req: NextApiRequest) {
   const { userId, prisma, isAdmin, query } = req;

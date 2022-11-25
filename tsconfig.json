@@ -5,26 +5,16 @@
     "jsx": "preserve",
     "baseUrl": ".",
     "paths": {
-      "@api/*": [
-        "pages/api/*"
-      ],
-      "@lib/*": [
-        "lib/*"
-      ],
-      "@/*": [
-        "*"
-      ]
+      "~/*": ["*"],
+      "@prisma/client/*": ["@calcom/prisma/client/*"]
     }
   },
   "include": [
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
+    "../../packages/types/*.d.ts",
     "../../packages/types/next-auth.d.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "templates",
-    "auth"
-  ]
+  "exclude": ["node_modules", "templates", "auth"]
 }

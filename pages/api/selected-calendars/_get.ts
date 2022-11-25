@@ -4,8 +4,8 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaSelectedCalendarPublic } from "@lib/validations/selected-calendar";
-import { schemaQuerySingleOrMultipleUserIds } from "@lib/validations/shared/queryUserId";
+import { schemaSelectedCalendarPublic } from "~/lib/validations/selected-calendar";
+import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
 
 /**
  * @swagger

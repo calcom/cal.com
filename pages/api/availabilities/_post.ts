@@ -6,7 +6,7 @@ import { defaultResponder } from "@calcom/lib/server";
 import {
   schemaAvailabilityCreateBodyParams,
   schemaAvailabilityReadPublic,
-} from "@lib/validations/availability";
+} from "~/lib/validations/availability";
 
 /**
  * @swagger

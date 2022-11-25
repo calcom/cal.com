@@ -8,7 +8,7 @@ import {
   membershipEditBodySchema,
   membershipIdSchema,
   schemaMembershipPublic,
-} from "@lib/validations/membership";
+} from "~/lib/validations/membership";
 
 /**
  * @swagger

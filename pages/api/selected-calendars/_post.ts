@@ -7,7 +7,7 @@ import { defaultResponder } from "@calcom/lib/server";
 import {
   schemaSelectedCalendarBodyParams,
   schemaSelectedCalendarPublic,
-} from "@lib/validations/selected-calendar";
+} from "~/lib/validations/selected-calendar";
 
 /**
  * @swagger

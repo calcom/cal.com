@@ -2,7 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaQueryIdParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
+import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
  * @swagger

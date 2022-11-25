@@ -4,8 +4,8 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaBookingReadPublic } from "@lib/validations/booking";
-import { schemaQuerySingleOrMultipleUserIds } from "@lib/validations/shared/queryUserId";
+import { schemaBookingReadPublic } from "~/lib/validations/booking";
+import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
 
 /**
  * @swagger

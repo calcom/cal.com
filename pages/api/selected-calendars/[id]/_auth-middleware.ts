@@ -2,7 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 
-import { selectedCalendarIdSchema } from "@lib/validations/selected-calendar";
+import { selectedCalendarIdSchema } from "~/lib/validations/selected-calendar";
 
 async function authMiddleware(req: NextApiRequest) {
   const { userId, isAdmin } = req;

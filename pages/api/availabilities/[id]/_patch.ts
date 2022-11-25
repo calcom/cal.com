@@ -5,8 +5,8 @@ import { defaultResponder } from "@calcom/lib/server";
 import {
   schemaAvailabilityEditBodyParams,
   schemaAvailabilityReadPublic,
-} from "@lib/validations/availability";
-import { schemaQueryIdParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
+} from "~/lib/validations/availability";
+import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
  * @swagger

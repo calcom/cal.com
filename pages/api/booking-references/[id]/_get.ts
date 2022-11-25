@@ -2,8 +2,8 @@ import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaBookingReferenceReadPublic } from "@lib/validations/booking-reference";
-import { schemaQueryIdParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
+import { schemaBookingReferenceReadPublic } from "~/lib/validations/booking-reference";
+import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
  * @swagger

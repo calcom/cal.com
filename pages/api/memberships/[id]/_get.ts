@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
 
-import { membershipIdSchema, schemaMembershipPublic } from "@lib/validations/membership";
+import { membershipIdSchema, schemaMembershipPublic } from "~/lib/validations/membership";
 
 /**
  * @swagger

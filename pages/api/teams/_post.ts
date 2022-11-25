@@ -5,8 +5,8 @@ import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaMembershipPublic } from "@lib/validations/membership";
-import { schemaTeamBodyParams, schemaTeamReadPublic } from "@lib/validations/team";
+import { schemaMembershipPublic } from "~/lib/validations/membership";
+import { schemaTeamBodyParams, schemaTeamReadPublic } from "~/lib/validations/team";
 
 /**
  * @swagger

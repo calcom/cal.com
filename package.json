@@ -35,7 +35,6 @@
     "@calcom/embed-snippet": "*",
     "@calcom/features": "*",
     "@calcom/lib": "*",
-    "@calcom/ui": "*",
     "@sentry/nextjs": "^7.20.0",
     "bcryptjs": "^2.4.3",
     "memory-cache": "^0.2.0",

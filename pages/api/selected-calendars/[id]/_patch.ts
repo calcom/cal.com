@@ -8,7 +8,7 @@ import {
   schemaSelectedCalendarPublic,
   schemaSelectedCalendarUpdateBodyParams,
   selectedCalendarIdSchema,
-} from "@lib/validations/selected-calendar";
+} from "~/lib/validations/selected-calendar";
 
 /**
  * @swagger

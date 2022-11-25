@@ -4,7 +4,7 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 
-import { schemaQueryTeamId } from "@lib/validations/shared/queryTeamId";
+import { schemaQueryTeamId } from "~/lib/validations/shared/queryTeamId";
 
 async function authMiddleware(req: NextApiRequest) {
   const { userId, prisma, isAdmin } = req;

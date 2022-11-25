@@ -2,8 +2,8 @@ import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaQueryIdAsString } from "@lib/validations/shared/queryIdString";
-import { schemaWebhookReadPublic } from "@lib/validations/webhook";
+import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
+import { schemaWebhookReadPublic } from "~/lib/validations/webhook";
 
 /**
  * @swagger

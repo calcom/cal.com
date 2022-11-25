@@ -4,11 +4,11 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaMembershipPublic } from "@lib/validations/membership";
+import { schemaMembershipPublic } from "~/lib/validations/membership";
 import {
   schemaQuerySingleOrMultipleTeamIds,
   schemaQuerySingleOrMultipleUserIds,
-} from "@lib/validations/shared/queryUserId";
+} from "~/lib/validations/shared/queryUserId";
 
 /**
  * @swagger

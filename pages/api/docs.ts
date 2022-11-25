@@ -1,8 +1,9 @@
-import pjson from "@/package.json";
 import modifyRes from "modify-response-middleware";
 import { use } from "next-api-middleware";
 import { withSwagger } from "next-swagger-doc";
 import { NextApiRequest, NextApiResponse } from "next/types";
+
+import pjson from "~/package.json";
 
 const swaggerHandler = withSwagger({
   definition: {

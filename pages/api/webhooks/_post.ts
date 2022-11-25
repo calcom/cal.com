@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaWebhookCreateBodyParams, schemaWebhookReadPublic } from "@lib/validations/webhook";
+import { schemaWebhookCreateBodyParams, schemaWebhookReadPublic } from "~/lib/validations/webhook";
 
 /**
  * @swagger

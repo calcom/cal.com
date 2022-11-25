@@ -2,8 +2,8 @@ import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaSchedulePublic, schemaSingleScheduleBodyParams } from "@lib/validations/schedule";
-import { schemaQueryIdParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
+import { schemaSchedulePublic, schemaSingleScheduleBodyParams } from "~/lib/validations/schedule";
+import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
  * @swagger

@@ -3,8 +3,8 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaEventTypeEditBodyParams, schemaEventTypeReadPublic } from "@lib/validations/event-type";
-import { schemaQueryIdParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
+import { schemaEventTypeEditBodyParams, schemaEventTypeReadPublic } from "~/lib/validations/event-type";
+import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
  * @swagger

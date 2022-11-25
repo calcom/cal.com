@@ -5,8 +5,8 @@ import { defaultResponder } from "@calcom/lib/server";
 import {
   schemaEventTypeCustomInputEditBodyParams,
   schemaEventTypeCustomInputPublic,
-} from "@lib/validations/event-type-custom-input";
-import { schemaQueryIdParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
+} from "~/lib/validations/event-type-custom-input";
+import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
  * @swagger

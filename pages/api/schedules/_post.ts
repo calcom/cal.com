@@ -5,7 +5,7 @@ import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/avail
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaCreateScheduleBodyParams, schemaSchedulePublic } from "@lib/validations/schedule";
+import { schemaCreateScheduleBodyParams, schemaSchedulePublic } from "~/lib/validations/schedule";
 
 /**
  * @swagger

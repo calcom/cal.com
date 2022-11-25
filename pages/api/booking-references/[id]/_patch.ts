@@ -6,8 +6,8 @@ import { defaultResponder } from "@calcom/lib/server";
 import {
   schemaBookingEditBodyParams,
   schemaBookingReferenceReadPublic,
-} from "@lib/validations/booking-reference";
-import { schemaQueryIdParseInt } from "@lib/validations/shared/queryIdTransformParseInt";
+} from "~/lib/validations/booking-reference";
+import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 /**
  * @swagger

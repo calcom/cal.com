@@ -3,8 +3,8 @@ import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaQueryTeamId } from "@lib/validations/shared/queryTeamId";
-import { schemaTeamReadPublic } from "@lib/validations/team";
+import { schemaQueryTeamId } from "~/lib/validations/shared/queryTeamId";
+import { schemaTeamReadPublic } from "~/lib/validations/team";
 
 /**
  * @swagger

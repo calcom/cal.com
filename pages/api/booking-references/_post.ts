@@ -6,7 +6,7 @@ import { defaultResponder } from "@calcom/lib/server";
 import {
   schemaBookingCreateBodyParams,
   schemaBookingReferenceReadPublic,
-} from "@lib/validations/booking-reference";
+} from "~/lib/validations/booking-reference";
 
 /**
  * @swagger

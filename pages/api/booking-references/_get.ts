@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaBookingReferenceReadPublic } from "@lib/validations/booking-reference";
+import { schemaBookingReferenceReadPublic } from "~/lib/validations/booking-reference";
 
 /**
  * @swagger

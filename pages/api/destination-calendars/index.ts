@@ -1,11 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { withMiddleware } from "@lib/helpers/withMiddleware";
-import { DestinationCalendarResponse, DestinationCalendarsResponse } from "@lib/types";
+import { withMiddleware } from "~/lib/helpers/withMiddleware";
+import { DestinationCalendarResponse, DestinationCalendarsResponse } from "~/lib/types";
 import {
   schemaDestinationCalendarCreateBodyParams,
   schemaDestinationCalendarReadPublic,
-} from "@lib/validations/destination-calendar";
+} from "~/lib/validations/destination-calendar";
 
 async function createOrlistAllDestinationCalendars(
   { method, body, userId, prisma }: NextApiRequest,

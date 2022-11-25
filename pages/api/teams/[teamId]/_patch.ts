@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import type { NextApiRequest } from "next";
 
 import { purchaseTeamSubscription } from "@calcom/features/ee/teams/lib/payments";
@@ -5,12 +6,10 @@ import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaQueryTeamId } from "@lib/validations/shared/queryTeamId";
-import { schemaTeamReadPublic, schemaTeamUpdateBodyParams } from "@lib/validations/team";
-
 import { TRPCError } from "@trpc/server";
 
-import { Prisma } from ".prisma/client";
+import { schemaQueryTeamId } from "~/lib/validations/shared/queryTeamId";
+import { schemaTeamReadPublic, schemaTeamUpdateBodyParams } from "~/lib/validations/team";
 
 /**
  * @swagger

@@ -2,7 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaSelectedCalendarPublic, selectedCalendarIdSchema } from "@lib/validations/selected-calendar";
+import { schemaSelectedCalendarPublic, selectedCalendarIdSchema } from "~/lib/validations/selected-calendar";
 
 /**
  * @swagger

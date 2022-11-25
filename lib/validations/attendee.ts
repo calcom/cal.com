@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { _AttendeeModel as Attendee } from "@calcom/prisma/zod";
 
-import { timeZone } from "@lib/validations/shared/timeZone";
+import { timeZone } from "~/lib/validations/shared/timeZone";
 
 export const schemaAttendeeBaseBodyParams = Attendee.pick({
   bookingId: true,

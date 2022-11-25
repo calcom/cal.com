@@ -4,7 +4,7 @@ import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { _UserModel as User } from "@calcom/prisma/zod";
 import { iso8601 } from "@calcom/prisma/zod-utils";
 
-import { timeZone } from "@lib/validations/shared/timeZone";
+import { timeZone } from "~/lib/validations/shared/timeZone";
 
 // @note: These are the ONLY values allowed as weekStart. So user don't introduce bad data.
 enum weekdays {

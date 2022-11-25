@@ -4,7 +4,7 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaAttendeeReadPublic } from "@lib/validations/attendee";
+import { schemaAttendeeReadPublic } from "~/lib/validations/attendee";
 
 /**
  * @swagger

@@ -1,15 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { withMiddleware } from "@lib/helpers/withMiddleware";
-import type { DestinationCalendarResponse } from "@lib/types";
+import { withMiddleware } from "~/lib/helpers/withMiddleware";
+import type { DestinationCalendarResponse } from "~/lib/types";
 import {
   schemaDestinationCalendarEditBodyParams,
   schemaDestinationCalendarReadPublic,
-} from "@lib/validations/destination-calendar";
+} from "~/lib/validations/destination-calendar";
 import {
   schemaQueryIdParseInt,
   withValidQueryIdTransformParseInt,
-} from "@lib/validations/shared/queryIdTransformParseInt";
+} from "~/lib/validations/shared/queryIdTransformParseInt";
 
 export async function destionationCalendarById(
   { method, query, body, userId, prisma }: NextApiRequest,

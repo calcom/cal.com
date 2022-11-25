@@ -3,7 +3,7 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaUserCreateBodyParams } from "@lib/validations/user";
+import { schemaUserCreateBodyParams } from "~/lib/validations/user";
 
 /**
  * @swagger

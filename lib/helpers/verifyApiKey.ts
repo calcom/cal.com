@@ -3,7 +3,7 @@ import { NextMiddleware } from "next-api-middleware";
 import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 
-import { isAdminGuard } from "@lib/utils/isAdmin";
+import { isAdminGuard } from "~/lib/utils/isAdmin";
 
 // Used to check if the apiKey is not expired, could be extracted if reused. but not for now.
 export const dateNotInPast = function (date: Date) {

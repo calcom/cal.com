@@ -5,8 +5,8 @@ import { z } from "zod";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaSchedulePublic } from "@lib/validations/schedule";
-import { schemaQuerySingleOrMultipleUserIds } from "@lib/validations/shared/queryUserId";
+import { schemaSchedulePublic } from "~/lib/validations/schedule";
+import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
 
 export const schemaUserIds = z
   .union([z.string(), z.array(z.string())])

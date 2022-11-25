@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { _EventTypeCustomInputModel, _EventTypeModel as EventType } from "@calcom/prisma/zod";
 
-import { Frequency } from "@lib/types";
+import { Frequency } from "~/lib/types";
 
 import { jsonSchema } from "./shared/jsonSchema";
 import { schemaQueryUserId } from "./shared/queryUserId";

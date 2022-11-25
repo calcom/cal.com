@@ -1,21 +1,21 @@
-import { AppStoreLocationType, DefaultEventLocationType } from "@calcom/app-store/locations";
+import type { EventLocationType } from "@calcom/app-store/locations";
 import {
-  User,
-  Team,
-  Credential,
-  SelectedCalendar,
-  EventTypeCustomInput,
   Attendee,
   Availability,
-  BookingReference,
   Booking,
-  Webhook,
+  BookingReference,
+  Credential,
   DestinationCalendar,
+  EventType,
+  EventTypeCustomInput,
   Membership,
   Payment,
-  Schedule,
   ReminderMail,
-  EventType,
+  Schedule,
+  SelectedCalendar,
+  Team,
+  User,
+  Webhook,
 } from "@calcom/prisma/client";
 
 // Base response, used for all responses
@@ -139,7 +139,7 @@ interface EventTypeExtended extends Omit<EventType, "recurringEvent" | "location
         link?: string | undefined;
         address?: string | undefined;
         hostPhoneNumber?: string | undefined;
-        type: DefaultEventLocationType | typeof AppStoreLocationType;
+        type: EventLocationType;
       }[]
     | null
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

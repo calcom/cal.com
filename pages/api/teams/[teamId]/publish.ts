@@ -6,11 +6,11 @@ import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { viewerRouter } from "@calcom/trpc/server/routers/viewer";
 
-import { withMiddleware } from "@lib/helpers/withMiddleware";
-import { schemaQueryTeamId } from "@lib/validations/shared/queryTeamId";
-
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
+
+import { withMiddleware } from "~/lib/helpers/withMiddleware";
+import { schemaQueryTeamId } from "~/lib/validations/shared/queryTeamId";
 
 import authMiddleware, { checkPermissions } from "./_auth-middleware";
 

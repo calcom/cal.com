@@ -2,8 +2,8 @@ import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
 
-import { withMiddleware } from "@lib/helpers/withMiddleware";
-import { schemaUsersReadPublic } from "@lib/validations/user";
+import { withMiddleware } from "~/lib/helpers/withMiddleware";
+import { schemaUsersReadPublic } from "~/lib/validations/user";
 
 import { Prisma } from ".prisma/client";
 
