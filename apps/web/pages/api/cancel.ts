@@ -6,8 +6,8 @@ import { defaultResponder, defaultHandler } from "@calcom/lib/server";
 
 async function handler(req: NextApiRequest & { userId?: number }) {
   const session = await getSession({ req });
-  /* To mimic API behavior */
-  req.userId = session?.user?.id;
+  /* To mimic API behavior and comply with types */
+  req.userId = session?.user?.id || -1;
   return await handleCancelBooking(req);
 }
 
