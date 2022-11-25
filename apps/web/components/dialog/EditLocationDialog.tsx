@@ -17,7 +17,7 @@ import {
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogContent, Form, Icon, PhoneInput } from "@calcom/ui";
+import { Button, Dialog, DialogClose, DialogContent, DialogFooter, Form, Icon, PhoneInput } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -212,13 +212,13 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
 
   return (
     <Dialog open={isOpenDialog}>
-      <DialogContent asChild>
-        <div className="inline-block transform rounded-sm bg-white px-4 pt-5 pb-4 text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6 sm:align-middle">
-          <div className="mb-4 sm:flex sm:items-start">
-            <div className="bg-secondary-100 mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
-              <Icon.FiMapPin className="text-primary-600 h-6 w-6" />
-            </div>
-            <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+      <DialogContent useOwnActionButtons>
+        <div className="flex flex-row space-x-3">
+          <div className="bg-secondary-100 mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full sm:mx-0 sm:h-10 sm:w-10">
+            <Icon.FiMapPin className="text-primary-600 h-6 w-6" />
+          </div>
+          <div className="w-full">
+            <div className="mt-3 text-center sm:mt-0 sm:text-left">
               <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
                 {t("edit_location")}
               </h3>
@@ -226,148 +226,152 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 <p className="text-sm text-gray-400">{t("this_input_will_shown_booking_this_event")}</p>
               )}
             </div>
-            <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left" />
-          </div>
-          {booking && (
-            <>
-              <p className="mt-6 mb-2 ml-1 text-sm font-bold text-black">{t("current_location")}:</p>
-              <p className="mb-2 ml-1 text-sm text-black">
-                {getHumanReadableLocationValue(booking.location, t)}
-              </p>
-            </>
-          )}
-          <Form
-            form={locationFormMethods}
-            handleSubmit={async (values) => {
-              const { locationType: newLocation, displayLocationPublicly } = values;
+            <div className="mt-3 text-center sm:mt-0 sm:text-left" />
 
-              let details = {};
-              if (newLocation === LocationType.InPerson) {
-                details = {
-                  address: values.locationAddress,
-                };
-              }
-              const eventLocationType = getEventLocationType(newLocation);
+            {booking && (
+              <>
+                <p className="mt-6 mb-2 ml-1 text-sm font-bold text-black">{t("current_location")}:</p>
+                <p className="mb-2 ml-1 text-sm text-black">
+                  {getHumanReadableLocationValue(booking.location, t)}
+                </p>
+              </>
+            )}
+            <Form
+              form={locationFormMethods}
+              handleSubmit={async (values) => {
+                const { locationType: newLocation, displayLocationPublicly } = values;
 
-              // TODO: There can be a property that tells if it is to be saved in `link`
-              if (
-                newLocation === LocationType.Link ||
-                (!eventLocationType?.default && eventLocationType?.linkType === "static")
-              ) {
-                details = { link: values.locationLink };
-              }
-
-              if (newLocation === LocationType.UserPhone) {
-                details = { hostPhoneNumber: values.locationPhoneNumber };
-              }
-
-              if (eventLocationType?.organizerInputType) {
-                details = {
-                  ...details,
-                  displayLocationPublicly,
-                };
-              }
-
-              saveLocation(newLocation, details);
-              setShowLocationModal(false);
-              setSelectedLocation?.(undefined);
-              locationFormMethods.unregister([
-                "locationType",
-                "locationLink",
-                "locationAddress",
-                "locationPhoneNumber",
-              ]);
-            }}>
-            <QueryCell
-              query={locationsQuery}
-              success={({ data: locationOptions }) => {
-                if (!locationOptions.length) return null;
-                if (booking) {
-                  locationOptions.forEach((location) => {
-                    if (location.label === "phone") {
-                      location.options.filter((l) => l.value !== "phone");
-                    } else if (location.label === "in person") {
-                      location.options.filter((l) => l.value !== "attendeeInPerson");
-                    }
-                  });
+                let details = {};
+                if (newLocation === LocationType.InPerson) {
+                  details = {
+                    address: values.locationAddress,
+                  };
                 }
-                return (
-                  <Controller
-                    name="locationType"
-                    control={locationFormMethods.control}
-                    render={() => (
-                      <Select<{ label: string; value: string; icon?: string }>
-                        maxMenuHeight={150}
-                        name="location"
-                        defaultValue={selection}
-                        options={locationOptions}
-                        components={{
-                          Option: (props) => (
-                            <components.Option {...props}>
-                              <div className="flex items-center gap-3">
-                                {props.data.icon && (
-                                  <img src={props.data.icon} alt="cover" className="h-3.5 w-3.5" />
-                                )}
-                                <span
-                                  className={classNames(
-                                    "text-sm font-medium",
-                                    props.isSelected ? "text-white" : "text-gray-900"
-                                  )}>
-                                  {props.data.label}
-                                </span>
-                              </div>
-                            </components.Option>
-                          ),
-                        }}
-                        formatOptionLabel={(e) => (
-                          <div className="flex items-center gap-3">
-                            {e.icon && <img src={e.icon} alt="app-icon" className="h-5 w-5" />}
-                            <span>{e.label}</span>
-                          </div>
-                        )}
-                        formatGroupLabel={(e) => (
-                          <p className="text-xs font-medium text-gray-600">{e.label}</p>
-                        )}
-                        isSearchable
-                        className="my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 text-sm"
-                        onChange={(val) => {
-                          if (val) {
-                            locationFormMethods.setValue("locationType", val.value);
-                            locationFormMethods.unregister([
-                              "locationLink",
-                              "locationAddress",
-                              "locationPhoneNumber",
-                            ]);
-                            locationFormMethods.clearErrors([
-                              "locationLink",
-                              "locationPhoneNumber",
-                              "locationAddress",
-                            ]);
-                            setSelectedLocation?.(val);
-                          }
-                        }}
-                      />
-                    )}
-                  />
-                );
-              }}
-            />
-            {selectedLocation && LocationOptions}
-            <div className="mt-4 flex justify-end space-x-2">
-              <Button
-                onClick={() => {
-                  setShowLocationModal(false);
-                  setSelectedLocation?.(undefined);
-                  setEditingLocationType?.("");
-                  locationFormMethods.unregister("locationType");
+                const eventLocationType = getEventLocationType(newLocation);
+
+                // TODO: There can be a property that tells if it is to be saved in `link`
+                if (
+                  newLocation === LocationType.Link ||
+                  (!eventLocationType?.default && eventLocationType?.linkType === "static")
+                ) {
+                  details = { link: values.locationLink };
+                }
+
+                if (newLocation === LocationType.UserPhone) {
+                  details = { hostPhoneNumber: values.locationPhoneNumber };
+                }
+
+                if (eventLocationType?.organizerInputType) {
+                  details = {
+                    ...details,
+                    displayLocationPublicly,
+                  };
+                }
+
+                saveLocation(newLocation, details);
+                setShowLocationModal(false);
+                setSelectedLocation?.(undefined);
+                locationFormMethods.unregister([
+                  "locationType",
+                  "locationLink",
+                  "locationAddress",
+                  "locationPhoneNumber",
+                ]);
+              }}>
+              <QueryCell
+                query={locationsQuery}
+                success={({ data: locationOptions }) => {
+                  if (!locationOptions.length) return null;
+                  if (booking) {
+                    locationOptions.forEach((location) => {
+                      if (location.label === "phone") {
+                        location.options.filter((l) => l.value !== "phone");
+                      } else if (location.label === "in person") {
+                        location.options.filter((l) => l.value !== "attendeeInPerson");
+                      }
+                    });
+                  }
+                  return (
+                    <Controller
+                      name="locationType"
+                      control={locationFormMethods.control}
+                      render={() => (
+                        <Select<{ label: string; value: string; icon?: string }>
+                          maxMenuHeight={150}
+                          name="location"
+                          defaultValue={selection}
+                          options={locationOptions}
+                          components={{
+                            Option: (props) => (
+                              <components.Option {...props}>
+                                <div className="flex items-center gap-3">
+                                  {props.data.icon && (
+                                    <img src={props.data.icon} alt="cover" className="h-3.5 w-3.5" />
+                                  )}
+                                  <span
+                                    className={classNames(
+                                      "text-sm font-medium",
+                                      props.isSelected ? "text-white" : "text-gray-900"
+                                    )}>
+                                    {props.data.label}
+                                  </span>
+                                </div>
+                              </components.Option>
+                            ),
+                          }}
+                          formatOptionLabel={(e) => (
+                            <div className="flex items-center gap-3">
+                              {e.icon && <img src={e.icon} alt="app-icon" className="h-5 w-5" />}
+                              <span>{e.label}</span>
+                            </div>
+                          )}
+                          formatGroupLabel={(e) => (
+                            <p className="text-xs font-medium text-gray-600">{e.label}</p>
+                          )}
+                          isSearchable
+                          className="my-4 block w-full min-w-0 flex-1 rounded-sm border border-gray-300 text-sm"
+                          onChange={(val) => {
+                            if (val) {
+                              locationFormMethods.setValue("locationType", val.value);
+                              locationFormMethods.unregister([
+                                "locationLink",
+                                "locationAddress",
+                                "locationPhoneNumber",
+                              ]);
+                              locationFormMethods.clearErrors([
+                                "locationLink",
+                                "locationPhoneNumber",
+                                "locationAddress",
+                              ]);
+                              setSelectedLocation?.(val);
+                            }
+                          }}
+                        />
+                      )}
+                    />
+                  );
                 }}
-                type="button"
-                color="secondary">
-                {t("cancel")}
-              </Button>
-              <Button type="submit">{t("update")}</Button>
-            </div>
-          </Form>
+              />
+              {selectedLocation && LocationOptions}
+              <DialogFooter>
+                <div className="mt-4 flex justify-end space-x-2">
+                  <Button
+                    onClick={() => {
+                      setShowLocationModal(false);
+                      setSelectedLocation?.(undefined);
+                      setEditingLocationType?.("");
+                      locationFormMethods.unregister("locationType");
+                    }}
+                    type="button"
+                    color="secondary">
+                    {t("cancel")}
+                  </Button>
+
+                  <Button type="submit">{t("update")}</Button>
+                </div>
+              </DialogFooter>
+            </Form>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
