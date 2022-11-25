@@ -7,6 +7,8 @@ import { sendDisabledAppEmail } from "@calcom/emails";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { getTranslation } from "@calcom/lib/server/i18n";
 
+import { TRPCError } from "@trpc/server";
+
 import { authedAdminProcedure, router } from "../../trpc";
 
 interface FilteredApp {
@@ -92,23 +94,30 @@ export const appsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { prisma } = ctx;
 
-      // TODO upsert an app if unavailable
+      // Get app name from metadata
+      const localApps = getLocalAppMetadata();
+      const appMetadata = localApps.find((localApp) => localApp.slug === input.slug);
 
-      const app = await prisma.app.update({
+      if (!appMetadata?.dirName && appMetadata?.categories)
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "App metadata could not be found" });
+
+      const app = await prisma.app.upsert({
         where: {
           slug: input.slug,
         },
-        data: {
+        update: {
           enabled: !input.enabled,
+        },
+        create: {
+          slug: input.slug,
+          dirName: appMetadata?.dirName || "",
+          categories: appMetadata?.categories || undefined,
+          keys: undefined,
         },
       });
 
       // If disabling an app then we need to alert users basesd on the app type
       if (input.enabled) {
-        // Get app name from metadata
-        const localApps = getLocalAppMetadata();
-        const appMetadata = localApps.find((localApp) => localApp.slug === app.slug);
-
         if (app.categories.some((category) => category === "calendar" || category === "video")) {
           // Find all users with the app credentials
           const appCredentials = await prisma.credential.findMany({
