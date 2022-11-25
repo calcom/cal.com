@@ -221,7 +221,7 @@ function BookingListItem(booking: BookingItemProps) {
 
       {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}
       <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
-        <DialogContent>
+        <DialogContent useOwnActionButtons>
           <DialogHeader title={t("rejection_reason_title")} />
 
           <p className="-mt-4 text-sm text-gray-500">{t("rejection_reason_description")}</p>

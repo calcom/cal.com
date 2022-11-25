@@ -7,7 +7,7 @@ export function AccountDialog(props: DialogProps) {
   const mutation = useAddAppMutation("office365_video");
   return (
     <Dialog name="Account check" {...props}>
-      <DialogContent type="confirmation">
+      <DialogContent type="confirmation" useOwnActionButtons>
         <DialogHeader
           title="Connecting with MS Teams requires a work/school Microsoft account."
           subtitle="If you continue with a personal account you will receive an error"

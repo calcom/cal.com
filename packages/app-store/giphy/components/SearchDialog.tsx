@@ -111,7 +111,7 @@ export const SearchDialog = (props: ISearchDialog) => {
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent>
+      <DialogContent useOwnActionButtons>
         <h3 className="leading-16 font-cal text-xl text-gray-900" id="modal-title">
           {t("add_gif_to_confirmation")}
         </h3>
