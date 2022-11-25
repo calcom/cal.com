@@ -41,6 +41,7 @@ import {
 } from "../lib/getOptions";
 import { translateVariablesToEnglish } from "../lib/variableTranslations";
 import type { FormValues } from "../pages/workflow";
+import Editor from "./TextEditor/Editor";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
 type WorkflowStepProps = {
@@ -107,7 +108,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const refReminderBody = useRef<HTMLTextAreaElement | null>(null);
 
-  const addVariable = (isEmailSubject: boolean, variable: string) => {
+  const addVariable = (variable: string, isEmailSubject?: boolean) => {
     if (step) {
       if (isEmailSubject) {
         const currentEmailSubject = refEmailSubject?.current?.value || "";
@@ -291,23 +292,32 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         className="text-sm"
                         onChange={(val) => {
                           if (val) {
-                            if (val.value === WorkflowActions.SMS_NUMBER) {
-                              setIsPhoneNumberNeeded(true);
+                            const oldValue = form.getValues(`steps.${step.stepNumber - 1}.action`);
+                            const wasSMSAction =
+                              oldValue === WorkflowActions.SMS_ATTENDEE ||
+                              oldValue === WorkflowActions.SMS_NUMBER;
+                            const isSMSAction =
+                              val.value === WorkflowActions.SMS_ATTENDEE ||
+                              val.value === WorkflowActions.SMS_NUMBER;
+
+                            if (isSMSAction) {
                               setIsSenderIdNeeded(true);
                               setIsEmailAddressNeeded(false);
-                            } else if (val.value === WorkflowActions.EMAIL_ADDRESS) {
-                              setIsEmailAddressNeeded(true);
-                              setIsPhoneNumberNeeded(false);
-                              setIsSenderIdNeeded(false);
-                            } else if (val.value === WorkflowActions.SMS_ATTENDEE) {
-                              setIsSenderIdNeeded(true);
-                              setIsEmailAddressNeeded(false);
-                              setIsPhoneNumberNeeded(false);
+                              setIsPhoneNumberNeeded(val.value === WorkflowActions.SMS_NUMBER);
+
+                              if (!wasSMSAction) {
+                                form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
+                              }
                             } else {
-                              setIsEmailAddressNeeded(false);
                               setIsPhoneNumberNeeded(false);
                               setIsSenderIdNeeded(false);
+                              setIsEmailAddressNeeded(val.value === WorkflowActions.EMAIL_ADDRESS);
+
+                              if (wasSMSAction) {
+                                form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
+                              }
                             }
+
                             form.unregister(`steps.${step.stepNumber - 1}.sendTo`);
                             form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
                             if (
@@ -424,8 +434,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               {isCustomReminderBodyNeeded && (
                 <div className="mt-2 rounded-md bg-gray-50 p-4 pt-2 md:p-6 md:pt-4">
                   {isEmailSubjectNeeded && (
-                    <div className="mb-5">
-                      <div className="mb-2 flex items-center">
+                    <div className="mb-6">
+                      <div className="flex items-center">
                         <Label className="mb-0 flex-none">{t("subject")}</Label>
                         <div className="flex-grow text-right">
                           <AddVariablesDropdown addVariable={addVariable} isEmailSubject={true} />
@@ -436,7 +446,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           emailSubjectFormRef?.(e);
                           refEmailSubject.current = e;
                         }}
-                        className="my-0"
+                        rows={1}
+                        className="my-0 focus:ring-transparent"
                         required
                         {...restEmailSubjectForm}
                       />
@@ -448,26 +459,41 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         )}
                     </div>
                   )}
-                  <div className="mb-2 flex items-center">
-                    <Label className="mb-0 flex-none">
-                      {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
-                    </Label>
-                    <div className="flex-grow text-right">
-                      <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} />
-                    </div>
-                  </div>
-                  <TextArea
-                    ref={(e) => {
-                      reminderBodyFormRef?.(e);
-                      refReminderBody.current = e;
-                    }}
-                    className="my-0 h-24"
-                    required
-                    {...restReminderBodyForm}
-                  />
+
+                  {step.action !== WorkflowActions.SMS_ATTENDEE &&
+                  step.action !== WorkflowActions.SMS_NUMBER ? (
+                    <>
+                      <div className="mb-2 flex items-center pb-[1.5px]">
+                        <Label className="mb-0 flex-none ">
+                          {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
+                        </Label>
+                      </div>
+                      <Editor form={form} stepNumber={step.stepNumber} />
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center">
+                        <Label className="mb-0 flex-none">
+                          {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
+                        </Label>
+                        <div className="flex-grow text-right">
+                          <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} />
+                        </div>
+                      </div>
+                      <TextArea
+                        ref={(e) => {
+                          reminderBodyFormRef?.(e);
+                          refReminderBody.current = e;
+                        }}
+                        className="my-0 h-24"
+                        required
+                        {...restReminderBodyForm}
+                      />
+                    </>
+                  )}
                   {form.formState.errors.steps &&
                     form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody && (
-                      <p className="mt-1 text-xs text-red-500">
+                      <p className="mt-1 text-sm text-red-500">
                         {form.formState?.errors?.steps[step.stepNumber - 1]?.reminderBody?.message || ""}
                       </p>
                     )}

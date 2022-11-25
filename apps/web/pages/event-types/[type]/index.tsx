@@ -172,7 +172,17 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         findDurationType(eventType.minimumBookingNotice),
         eventType.minimumBookingNotice
       ),
-      metadata: eventType.metadata,
+      // fallback to !!eventType.schedule when 'useHostSchedulesForTeamEvent' is undefined
+      metadata: {
+        ...eventType.metadata,
+        config: {
+          ...eventType.metadata.config,
+          useHostSchedulesForTeamEvent:
+            typeof eventType.metadata.config?.useHostSchedulesForTeamEvent !== "undefined"
+              ? eventType.metadata.config?.useHostSchedulesForTeamEvent === true
+              : !!eventType.schedule,
+        },
+      },
     },
   });
 
