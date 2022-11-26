@@ -2,6 +2,7 @@ import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 import Stripe from "stripe";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 
@@ -226,8 +227,8 @@ async function createCheckoutSession(
     payment_method_types: ["card"],
     customer: customerId,
     line_items,
-    success_url: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/teams/${teamId}/upgrade?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/`,
+    success_url: `${WEBAPP_URL}/api/teams/${teamId}/upgrade?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${WEBAPP_URL}/`,
     allow_promotion_codes: true,
   };
 
