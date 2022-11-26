@@ -1,21 +1,47 @@
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { InferGetStaticPropsType, NextPageContext } from "next";
+import { ChangeEventHandler, useState } from "react";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
 import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/client";
-import { AllApps, AppsLayout, AppStoreCategories, TrendingAppsSlider } from "@calcom/ui";
+import { AllApps, AppsLayout, AppStoreCategories, Icon, TextField, TrendingAppsSlider } from "@calcom/ui";
 
 import { ssgInit } from "@server/lib/ssg";
 
+function AppsSearch({ onChange }: { onChange: ChangeEventHandler<HTMLInputElement> }) {
+  return (
+    <TextField
+      className="!border-gray-100 bg-gray-100 !pl-0 focus:!ring-offset-0"
+      addOnLeading={<Icon.FiSearch className="h-4 w-4 text-gray-500" />}
+      addOnClassname="!border-gray-100"
+      containerClassName="focus:!ring-offset-0"
+      type="search"
+      autoComplete="false"
+      onChange={onChange}
+    />
+  );
+}
+
 export default function Apps({ appStore, categories }: InferGetStaticPropsType<typeof getServerSideProps>) {
   const { t } = useLocale();
+  const [searchText, setSearchText] = useState<string | undefined>(undefined);
+  const [appsContainerRef] = useAutoAnimate<HTMLDivElement>();
 
   return (
-    <AppsLayout isPublic heading={t("app_store")} subtitle={t("app_store_description")}>
-      <AppStoreCategories categories={categories} />
-      <TrendingAppsSlider items={appStore} />
-      <AllApps apps={appStore} />
+    <AppsLayout
+      isPublic
+      heading={t("app_store")}
+      subtitle={t("app_store_description")}
+      actions={<AppsSearch onChange={(e) => setSearchText(e.target.value)} />}>
+      {!searchText && (
+        <div ref={appsContainerRef}>
+          <AppStoreCategories categories={categories} />
+          <TrendingAppsSlider items={appStore} />
+        </div>
+      )}
+      <AllApps apps={appStore} searchText={searchText} />
     </AppsLayout>
   );
 }

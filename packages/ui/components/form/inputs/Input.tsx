@@ -6,7 +6,7 @@ import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Alert, showToast, Skeleton, Tooltip } from "../../..";
+import { Alert, Icon, showToast, Skeleton, Tooltip } from "../../..";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 
@@ -40,6 +40,7 @@ type InputFieldProps = {
   addOnLeading?: ReactNode;
   addOnSuffix?: ReactNode;
   addOnFilled?: boolean;
+  addOnClassname?: string;
   error?: string;
   labelSrOnly?: boolean;
   containerClassName?: string;
@@ -74,6 +75,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
   const { t: _t, isLocaleReady, i18n } = useLocale();
   const t = props.t || _t;
   const name = props.name || "";
+  const [inputValue, setInputValue] = useState<string>("");
   const {
     label = t(name),
     labelProps,
@@ -83,7 +85,10 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     addOnLeading,
     addOnSuffix,
     addOnFilled = true,
+    addOnClassname,
     hint,
+    type,
+    onChange,
     hintErrors,
     labelSrOnly,
     containerClassName,
@@ -107,26 +112,42 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
       {addOnLeading || addOnSuffix ? (
         <div className="relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1">
           {addOnLeading && (
-            <Addon isFilled={addOnFilled} className="rounded-l-md border-r-0">
+            <Addon isFilled={addOnFilled} className={classNames("rounded-l-md border-r-0", addOnClassname)}>
               {addOnLeading}
             </Addon>
           )}
           <Input
             id={id}
             placeholder={placeholder}
+            value={inputValue}
+            onChange={(e) => {
+              console.log("entrooo");
+              setInputValue(e.target.value);
+              onChange && onChange(e);
+            }}
             className={classNames(
               className,
               addOnLeading && "rounded-l-none",
               addOnSuffix && "rounded-r-none",
+              type === "search" && "pr-8",
               "!my-0 !ring-0"
             )}
             {...passThrough}
             ref={ref}
           />
           {addOnSuffix && (
-            <Addon isFilled={addOnFilled} className="rounded-r-md border-l-0">
+            <Addon isFilled={addOnFilled} className={classNames("rounded-r-md border-l-0", addOnClassname)}>
               {addOnSuffix}
             </Addon>
+          )}
+          {type === "search" && inputValue !== "" && (
+            <Icon.FiX
+              className="absolute right-2 top-2.5 h-4 w-4 text-gray-500"
+              onClick={(e) => {
+                setInputValue("");
+                onChange && onChange(e as unknown as React.ChangeEvent<HTMLInputElement>);
+              }}
+            />
           )}
         </div>
       ) : (
