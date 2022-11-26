@@ -33,7 +33,6 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import getGlobalSubscribers from "@calcom/lib/getGlobalSubscribers";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { HttpError } from "@calcom/lib/http-error";
 import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
@@ -926,16 +925,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     try {
       // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
       const subscribers = await getWebhooks(subscriberOptions);
-
-      getGlobalSubscribers(eventTrigger).forEach((subscriberUrl: string) => {
-        subscribers.push({
-          id: "global",
-          subscriberUrl,
-          secret: null,
-          payloadTemplate: null,
-          appId: null,
-        });
-      });
 
       console.log("evt:", {
         ...evt,
