@@ -86,7 +86,7 @@ export {
 } from "./v2/core/Dropdown";
 export { RadioGroup } from "./v2/core/form";
 export { BooleanToggleGroupField } from "./v2/core/form/BooleanToggleGroup";
-export { default as DateRangePicker } from "./v2/core/form/date-range-picker/DateRangePicker";
+export { DateRangePickerLazy as DateRangePicker } from "./v2/core/form/date-range-picker";
 export { default as DatePickerField } from "./v2/core/form/DatePicker";
 export { default as FormCard } from "./v2/core/form/FormCard";
 export { default as MultiSelectCheckboxes } from "./v2/core/form/MultiSelectCheckboxes";
