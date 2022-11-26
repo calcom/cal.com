@@ -22,6 +22,7 @@ import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/re
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload, { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import getGlobalSubscribers from "@calcom/lib/getGlobalSubscribers";
 import { HttpError } from "@calcom/lib/http-error";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
@@ -173,6 +174,16 @@ async function handler(req: NextApiRequest & { userId?: number }) {
   };
 
   const webhooks = await getWebhooks(subscriberOptions);
+  getGlobalSubscribers(eventTrigger).forEach((subscriberUrl) => {
+    webhooks.push({
+      id: "global",
+      subscriberUrl,
+      secret: null,
+      payloadTemplate: null,
+      appId: null,
+    });
+  });
+
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
       ...evt,
