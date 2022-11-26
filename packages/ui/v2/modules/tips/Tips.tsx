@@ -6,11 +6,11 @@ import { localStorage } from "@calcom/lib/webstorage";
 
 import Card from "../../core/Card";
 
-const tips = [
+export const tips = [
   {
     id: 1,
     thumbnailUrl: "https://img.youtube.com/vi/60HJt8DOVNo/0.jpg",
-    mediaLink: "https://www.youtube.com/watch?v=60HJt8DOVNo",
+    mediaLink: "https://go.cal.com/dynamic-video",
     title: "Dynamic booking links",
     description: "Booking link that allows people to quickly schedule meetings.",
     href: "https://cal.com/blog/cal-v-1-9",
@@ -18,7 +18,7 @@ const tips = [
   {
     id: 2,
     thumbnailUrl: "https://img.youtube.com/vi/EAc46SPL6iA/0.jpg",
-    mediaLink: "https://youtu.be/EAc46SPL6iA",
+    mediaLink: "https://go.cal.com/teams-video",
     title: "How to set up Teams",
     description: "Learn how to use round-robin and collective events.",
     href: "https://docs.cal.com/deep-dives/event-types",
@@ -26,7 +26,7 @@ const tips = [
   {
     id: 3,
     thumbnailUrl: "https://img.youtube.com/vi/c7ZKFuLy1fg/0.jpg",
-    mediaLink: "https://youtu.be/c7ZKFuLy1fg",
+    mediaLink: "https://go.cal.com/routing-video",
     title: "Routing Forms, Workflows",
     description: "Ask screening questions of potential bookers to connect them with the right person",
     href: "https://cal.com/blog/cal-v-1-8",
@@ -34,7 +34,7 @@ const tips = [
   {
     id: 4,
     thumbnailUrl: "https://img.youtube.com/vi/zGr_s-fG84k/0.jpg",
-    mediaLink: "https://youtu.be/zGr_s-fG84k",
+    mediaLink: "https://go.cal.com/confirmation-video",
     title: "Requires Confirmation",
     description: "Learn how to be in charge of your bookings",
     href: "https://docs.cal.com/deep-dives/event-types#opt-in-booking",
@@ -42,10 +42,18 @@ const tips = [
   {
     id: 5,
     thumbnailUrl: "https://img.youtube.com/vi/0v_nQtpxC_4/0.jpg",
-    mediaLink: "https://youtu.be/0v_nQtpxC_4",
+    mediaLink: "https://go.cal.com/payments-video",
     title: "Accept Payments",
     description: "Charge for your time with Cal.com's Stripe App",
     href: "https://app.cal.com/apps/stripe",
+  },
+  {
+    id: 6,
+    thumbnailUrl: "https://img.youtube.com/vi/yGiZo1Ry5-8/0.jpg",
+    mediaLink: "https://go.cal.com/recurring-video",
+    title: "Recurring Bookings",
+    description: "Learn how to create a recurring schedule",
+    href: "https://go.cal.com/recurring-video",
   },
 ];
 
