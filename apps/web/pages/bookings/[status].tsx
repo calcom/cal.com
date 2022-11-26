@@ -6,19 +6,16 @@ import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
-import { Alert } from "@calcom/ui/Alert";
-import { Icon } from "@calcom/ui/Icon";
-import { Button, EmptyScreen } from "@calcom/ui/v2";
-import BookingLayout from "@calcom/ui/v2/core/layouts/BookingLayout";
+import { RouterInputs, RouterOutputs, trpc } from "@calcom/trpc/react";
+import { Alert, BookingLayout, Button, EmptyScreen, Icon } from "@calcom/ui";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
-type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
-type BookingOutput = inferQueryOutput<"viewer.bookings">["bookings"][0];
+type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["status"];
+type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
 
 const validStatuses = ["upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
 
@@ -39,11 +36,14 @@ export default function Bookings() {
   const { status } = router.isReady ? querySchema.parse(router.query) : { status: "upcoming" as const };
   const { t } = useLocale();
 
-  const query = trpc.useInfiniteQuery(["viewer.bookings", { status, limit: 10 }], {
-    // first render has status `undefined`
-    enabled: router.isReady,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-  });
+  const query = trpc.viewer.bookings.get.useInfiniteQuery(
+    { status, limit: 10 },
+    {
+      // first render has status `undefined`
+      enabled: router.isReady,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  );
 
   // Animate page (tab) tranistions to look smoothing
 
@@ -94,14 +94,19 @@ export default function Bookings() {
                 <tbody className="divide-y divide-gray-200 bg-white" data-testid="bookings">
                   {query.data.pages.map((page, index) => (
                     <Fragment key={index}>
-                      {page.bookings.filter(filterBookings).map((booking: BookingOutput) => (
-                        <BookingListItem
-                          key={booking.id}
-                          listingStatus={status}
-                          recurringBookings={page.recurringInfo}
-                          {...booking}
-                        />
-                      ))}
+                      {page.bookings.filter(filterBookings).map((booking: BookingOutput) => {
+                        const recurringInfo = page.recurringInfo.find(
+                          (info) => info.recurringEventId === booking.recurringEventId
+                        );
+                        return (
+                          <BookingListItem
+                            key={booking.id}
+                            listingStatus={status}
+                            recurringInfo={recurringInfo}
+                            {...booking}
+                          />
+                        );
+                      })}
                     </Fragment>
                   ))}
                 </tbody>

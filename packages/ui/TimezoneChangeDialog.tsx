@@ -1,15 +1,15 @@
 import { useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { DialogContent, showToast } from "@calcom/ui/v2";
-import { Dialog } from "@calcom/ui/v2/core/Dialog";
+
+import { Dialog, DialogContent, showToast } from ".";
 
 export default function TimezoneChangeDialog() {
   const { t } = useLocale();
-  const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
+  const { data: user, isLoading } = trpc.viewer.me.useQuery();
   const utils = trpc.useContext();
   const userTz = user?.timeZone;
   const currentTz = dayjs.tz.guess();
@@ -18,7 +18,7 @@ export default function TimezoneChangeDialog() {
   // update user settings
   const onSuccessMutation = async () => {
     showToast(t("updated_timezone_to", { formattedCurrentTz }), "success");
-    await utils.invalidateQueries(["viewer.me"]);
+    await utils.viewer.me.invalidate();
   };
 
   const onErrorMutation = () => {
@@ -26,7 +26,7 @@ export default function TimezoneChangeDialog() {
   };
 
   // update timezone in db
-  const mutation = trpc.useMutation("viewer.updateProfile", {
+  const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: onSuccessMutation,
     onError: onErrorMutation,
   });

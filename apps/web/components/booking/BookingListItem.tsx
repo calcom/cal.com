@@ -1,6 +1,6 @@
 import { BookingStatus } from "@prisma/client";
 import { useRouter } from "next/router";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 
 import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
@@ -8,50 +8,59 @@ import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
-import { Icon } from "@calcom/ui/Icon";
-import { TextArea } from "@calcom/ui/form/fields";
-import Badge from "@calcom/ui/v2/core/Badge";
-import Button from "@calcom/ui/v2/core/Button";
-import MeetingTimeInTimezones from "@calcom/ui/v2/core/MeetingTimeInTimezones";
-import Tooltip from "@calcom/ui/v2/core/Tooltip";
-import showToast from "@calcom/ui/v2/core/notifications";
+import { RouterInputs, RouterOutputs, trpc } from "@calcom/trpc/react";
+import {
+  Badge,
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  Icon,
+  MeetingTimeInTimezones,
+  showToast,
+  TextArea,
+  Tooltip,
+} from "@calcom/ui";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
-import { extractRecurringDates } from "@lib/parseDate";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 import TableActions, { ActionType } from "@components/ui/TableActions";
 
-type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
+type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["status"];
 
-type BookingItem = inferQueryOutput<"viewer.bookings">["bookings"][number];
+type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
 type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
-  recurringBookings: inferQueryOutput<"viewer.bookings">["recurringInfo"];
+  recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
 };
 
 function BookingListItem(booking: BookingItemProps) {
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();
   const user = query.data;
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
-  const mutation = trpc.useMutation(["viewer.bookings.confirm"], {
-    onSuccess: () => {
-      setRejectionDialogIsOpen(false);
-      showToast(t("booking_confirmation_success"), "success");
-      utils.invalidateQueries("viewer.bookings");
+  const mutation = trpc.viewer.bookings.confirm.useMutation({
+    onSuccess: (data) => {
+      if (data.status === BookingStatus.REJECTED) {
+        setRejectionDialogIsOpen(false);
+        showToast(t("booking_rejection_success"), "success");
+      } else {
+        showToast(t("booking_confirmation_success"), "success");
+      }
+      utils.viewer.bookings.invalidate();
     },
     onError: () => {
       showToast(t("booking_confirmation_failed"), "error");
-      utils.invalidateQueries("viewer.bookings");
+      utils.viewer.bookings.invalidate();
     },
   });
 
@@ -109,7 +118,9 @@ function BookingListItem(booking: BookingItemProps) {
       label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel"),
       /* When cancelling we need to let the UI and the API know if the intention is to
          cancel all remaining bookings or just that booking instance. */
-      href: `/cancel/${booking.uid}${isTabRecurring && isRecurring ? "?allRemainingBookings=true" : ""}`,
+      href: `/success?uid=${booking.uid}&cancel=true${
+        isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
+      }`,
       icon: Icon.FiX,
     },
     {
@@ -159,11 +170,11 @@ function BookingListItem(booking: BookingItemProps) {
   const startTime = dayjs(booking.startTime).format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
-  const setLocationMutation = trpc.useMutation("viewer.bookings.editLocation", {
+  const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
       showToast(t("location_updated"), "success");
       setIsOpenLocationDialog(false);
-      utils.invalidateQueries("viewer.bookings");
+      utils.viewer.bookings.invalidate();
     },
   });
 
@@ -176,37 +187,20 @@ function BookingListItem(booking: BookingItemProps) {
     setLocationMutation.mutate({ bookingId: booking.id, newLocation });
   };
 
-  // Extract recurring dates is intensive to run, so use useMemo.
-  // Calculate the booking date(s) and setup recurring event data to show
-  // @FIXME: This is importing the RRULE library which is already heavy. Find out a more optimal way do this.
-  const [recurringStrings, recurringDates] = useMemo(() => {
-    if (booking.recurringBookings !== undefined && booking.eventType.recurringEvent?.freq !== undefined) {
-      return extractRecurringDates(booking, user?.timeZone, i18n);
-    }
-    return [[], []];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.timeZone, i18n.language, booking.recurringBookings]);
-
-  const location = booking.location || "";
+  // Getting accepted recurring dates to show
+  const recurringDates = booking.recurringInfo?.bookings[BookingStatus.ACCEPTED]
+    .concat(booking.recurringInfo?.bookings[BookingStatus.CANCELLED])
+    .concat(booking.recurringInfo?.bookings[BookingStatus.PENDING])
+    .sort((date1: Date, date2: Date) => date1.getTime() - date2.getTime());
 
   const onClickTableData = () => {
     router.push({
       pathname: "/success",
       query: {
-        date: booking.startTime,
-        // TODO: Booking when fetched should have id 0 already(for Dynamic Events).
-        type: booking.eventType.id || 0,
-        eventSlug: booking.eventType.slug,
-        username: user?.username || "",
-        name: booking.attendees[0] ? booking.attendees[0].name : undefined,
-        email: booking.attendees[0] ? booking.attendees[0].email : undefined,
-        location: location,
-        eventName: booking.eventType.eventName || "",
-        bookingId: booking.id,
-        recur: booking.recurringEventId,
-        reschedule: isConfirmed,
+        uid: booking.uid,
+        allRemainingBookings: isTabRecurring,
         listingStatus: booking.listingStatus,
-        status: booking.status,
+        email: booking.attendees[0] ? booking.attendees[0].email : undefined,
       },
     });
   };
@@ -275,13 +269,11 @@ function BookingListItem(booking: BookingItemProps) {
                 attendees={booking.attendees}
               />
             </div>
-
             {isPending && (
               <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
                 {t("unconfirmed")}
               </Badge>
             )}
-
             {booking.eventType?.team && (
               <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
                 {booking.eventType.team.name}
@@ -292,10 +284,11 @@ function BookingListItem(booking: BookingItemProps) {
                 {t("pending_payment")}
               </Badge>
             )}
-
-            <div className="mt-2 text-sm text-gray-400">
-              <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
-            </div>
+            {recurringDates !== undefined && (
+              <div className="mt-2 text-sm text-gray-400">
+                <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
+              </div>
+            )}
           </div>
         </td>
         <td className={"w-full px-4" + (isRejected ? " line-through" : "")} onClick={onClickTableData}>
@@ -331,9 +324,11 @@ function BookingListItem(booking: BookingItemProps) {
                 {t("pending_payment")}
               </Badge>
             )}
-            <div className="text-sm text-gray-400 sm:hidden">
-              <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
-            </div>
+            {recurringDates !== undefined && (
+              <div className="text-sm text-gray-400 sm:hidden">
+                <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
+              </div>
+            )}
           </div>
 
           <div className="cursor-pointer py-4">
@@ -403,11 +398,16 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
   const { t } = useLocale();
   const now = new Date();
   const recurringCount = recurringDates.filter((date) => {
-    return date >= now;
+    return (
+      date >= now &&
+      !booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
+        .map((date) => date.toDateString())
+        .includes(date.toDateString())
+    );
   }).length;
 
   return (
-    (booking.recurringBookings &&
+    (booking.recurringInfo &&
       booking.eventType?.recurringEvent?.freq &&
       (booking.listingStatus === "recurring" ||
         booking.listingStatus === "unconfirmed" ||
@@ -415,13 +415,20 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
         <div className="underline decoration-gray-400 decoration-dashed underline-offset-2">
           <div className="flex">
             <Tooltip
-              content={recurringDates.map((aDate, key) => (
-                <p key={key} className={classNames(recurringDates[key] < now && "line-through")}>
-                  {formatTime(booking.startTime, user?.timeFormat, user?.timeZone)}
-                  {" - "}
-                  {dayjs(aDate).format("D MMMM YYYY")}
-                </p>
-              ))}>
+              content={recurringDates.map((aDate, key) => {
+                const pastOrCancelled =
+                  aDate < now ||
+                  booking.recurringInfo?.bookings[BookingStatus.CANCELLED]
+                    .map((date) => date.toDateString())
+                    .includes(aDate.toDateString());
+                return (
+                  <p key={key} className={classNames(pastOrCancelled && "line-through")}>
+                    {formatTime(aDate, user?.timeFormat, user?.timeZone)}
+                    {" - "}
+                    {dayjs(aDate).format("D MMMM YYYY")}
+                  </p>
+                );
+              })}>
               <div className="text-gray-600 dark:text-white">
                 <Icon.FiRefreshCcw
                   strokeWidth="3"
@@ -435,7 +442,7 @@ const RecurringBookingsTooltip = ({ booking, recurringDates }: RecurringBookings
                     : getEveryFreqFor({
                         t,
                         recurringEvent: booking.eventType.recurringEvent,
-                        recurringCount,
+                        recurringCount: booking.recurringInfo.count,
                       })}
                 </p>
               </div>
@@ -460,8 +467,9 @@ const FirstAttendee = ({
   user: UserProps;
   currentEmail: string | null | undefined;
 }) => {
+  const { t } = useLocale();
   return user.email === currentEmail ? (
-    <div className="inline-block">You</div>
+    <div className="inline-block">{t("you")}</div>
   ) : (
     <a
       key={user.email}
@@ -473,18 +481,18 @@ const FirstAttendee = ({
   );
 };
 
-const Attendee: React.FC<{ email: string; children: React.ReactNode }> = ({ email, children }) => {
+type AttendeeProps = {
+  name?: string;
+  email: string;
+};
+
+const Attendee = ({ email, name }: AttendeeProps) => {
   return (
-    <a className=" hover:text-blue-500" href={"mailto:" + email} onClick={(e) => e.stopPropagation()}>
-      {children}
+    <a className="hover:text-blue-500" href={"mailto:" + email} onClick={(e) => e.stopPropagation()}>
+      {name || email}
     </a>
   );
 };
-
-interface AttendeeProps {
-  name: string;
-  email: string;
-}
 
 const DisplayAttendees = ({
   attendees,
@@ -493,42 +501,33 @@ const DisplayAttendees = ({
 }: {
   attendees: AttendeeProps[];
   user: UserProps | null;
-  currentEmail: string | null | undefined;
+  currentEmail?: string | null;
 }) => {
-  if (attendees.length === 1) {
-    return (
-      <div className="text-sm text-gray-900">
-        {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
-        <span>&nbsp;and&nbsp;</span>
-        <Attendee email={attendees[0].email}>{attendees[0].name}</Attendee>
-      </div>
-    );
-  } else if (attendees.length === 2) {
-    return (
-      <div className="text-sm text-gray-900">
-        {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
-        <span>,&nbsp;</span>
-        <Attendee email={attendees[0].email}>{attendees[0].name}</Attendee>
-        <div className="inline-block text-sm text-gray-900">&nbsp;and&nbsp;</div>
-        <Attendee email={attendees[1].email}>{attendees[1].name}</Attendee>
-      </div>
-    );
-  } else {
-    return (
-      <div className="text-sm text-gray-900">
-        {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
-        <span>,&nbsp;</span>
-        <Attendee email={attendees[0].email}>{attendees[0].name}</Attendee>
-        <span>&nbsp;&&nbsp;</span>
-        <Tooltip
-          content={attendees.slice(1).map((attendee, key) => (
-            <p key={key}>{attendee.name}</p>
-          ))}>
-          <div className="inline-block">{attendees.length - 1} more</div>
-        </Tooltip>
-      </div>
-    );
-  }
+  const { t } = useLocale();
+  return (
+    <div className="text-sm text-gray-900">
+      {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
+      {attendees.length > 1 ? <span>,&nbsp;</span> : <span>&nbsp;{t("and")}&nbsp;</span>}
+      <Attendee {...attendees[0]} />
+      {attendees.length > 1 && (
+        <>
+          <div className="inline-block text-sm text-gray-900">&nbsp;{t("and")}&nbsp;</div>
+          {attendees.length > 2 ? (
+            <Tooltip
+              content={attendees.slice(1).map((attendee) => (
+                <p key={attendee.email}>
+                  <Attendee {...attendee} />
+                </p>
+              ))}>
+              <div className="inline-block">{t("plus_more", { count: attendees.length - 1 })}</div>
+            </Tooltip>
+          ) : (
+            <Attendee {...attendees[1]} />
+          )}
+        </>
+      )}
+    </div>
+  );
 };
 
 const Tag = ({ children, className = "" }: React.PropsWithChildren<{ className?: string }>) => {

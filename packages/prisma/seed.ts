@@ -347,7 +347,7 @@ async function main() {
             title: "Seeded Yoga class",
             description: "seeded",
             recurringEventId: Buffer.from("seeded-yoga-class").toString("base64"),
-            startTime: dayjs().subtract(4, "day").toDate(),
+            startTime: dayjs().subtract(4, "day").add(1, "week").toDate(),
             endTime: dayjs().subtract(4, "day").add(1, "week").add(30, "minutes").toDate(),
             status: BookingStatus.ACCEPTED,
           },
@@ -356,7 +356,7 @@ async function main() {
             title: "Seeded Yoga class",
             description: "seeded",
             recurringEventId: Buffer.from("seeded-yoga-class").toString("base64"),
-            startTime: dayjs().subtract(4, "day").toDate(),
+            startTime: dayjs().subtract(4, "day").add(2, "week").toDate(),
             endTime: dayjs().subtract(4, "day").add(2, "week").add(30, "minutes").toDate(),
             status: BookingStatus.ACCEPTED,
           },
@@ -365,7 +365,7 @@ async function main() {
             title: "Seeded Yoga class",
             description: "seeded",
             recurringEventId: Buffer.from("seeded-yoga-class").toString("base64"),
-            startTime: dayjs().subtract(4, "day").toDate(),
+            startTime: dayjs().subtract(4, "day").add(3, "week").toDate(),
             endTime: dayjs().subtract(4, "day").add(3, "week").add(30, "minutes").toDate(),
             status: BookingStatus.ACCEPTED,
           },
@@ -510,7 +510,8 @@ async function main() {
   await createUserAndEventType({
     user: {
       email: "admin@example.com",
-      password: "admin",
+      /** To comply with admin password requirements  */
+      password: "ADMINadmin2022!",
       username: "admin",
       name: "Admin Example",
       plan: "PRO",
@@ -574,6 +575,7 @@ async function main() {
           ],
         },
       },
+      createdAt: new Date(),
     },
     [
       {

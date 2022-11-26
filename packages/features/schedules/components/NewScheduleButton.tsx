@@ -4,11 +4,7 @@ import { useForm } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
-import { Icon } from "@calcom/ui/Icon";
-import { Form } from "@calcom/ui/form/fields";
-import Button from "@calcom/ui/v2/core/Button";
-import showToast from "@calcom/ui/v2/core/notifications";
+import { Button, Dialog, DialogClose, DialogContent, DialogTrigger, Form, Icon, showToast } from "@calcom/ui";
 
 export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) {
   const router = useRouter();
@@ -20,11 +16,11 @@ export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) 
   const { register } = form;
   const utils = trpc.useContext();
 
-  const createMutation = trpc.useMutation("viewer.availability.schedule.create", {
+  const createMutation = trpc.viewer.availability.schedule.create.useMutation({
     onSuccess: async ({ schedule }) => {
       await router.push("/availability/" + schedule.id);
       showToast(t("schedule_created_successfully", { scheduleName: schedule.name }), "success");
-      utils.setQueryData(["viewer.availability.list"], (data) => {
+      utils.viewer.availability.list.setData(undefined, (data) => {
         const newSchedule = { ...schedule, isDefault: false, availability: [] };
         if (!data)
           return {

@@ -2,8 +2,7 @@ import { useRouter } from "next/router";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc/react";
-import SkeletonLoader from "@calcom/ui/v2/core/apps/SkeletonLoader";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
+import { getSettingsLayout as getLayout, SkeletonLoader } from "@calcom/ui";
 
 import SAMLConfiguration from "../components/SAMLConfiguration";
 
@@ -16,11 +15,14 @@ const SAMLSSO = () => {
 
   const teamId = Number(router.query.id);
 
-  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId }], {
-    onError: () => {
-      router.push("/settings");
-    },
-  });
+  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
+    { teamId },
+    {
+      onError: () => {
+        router.push("/settings");
+      },
+    }
+  );
 
   if (isLoading) {
     return <SkeletonLoader />;

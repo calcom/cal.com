@@ -9,7 +9,7 @@ import logger from "@calcom/lib/logger";
 import { checkLimit } from "@calcom/lib/server";
 import { performance } from "@calcom/lib/server/perfObserver";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
-import { stringToDayjs } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, stringToDayjs } from "@calcom/prisma/zod-utils";
 import { BookingLimit, EventBusyDetails } from "@calcom/types/Calendar";
 
 import { getBusyTimes } from "./getBusyTimes";
@@ -27,14 +27,15 @@ const availabilitySchema = z
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
-const getEventType = (id: number) =>
-  prisma.eventType.findUnique({
+const getEventType = async (id: number) => {
+  const eventType = await prisma.eventType.findUnique({
     where: { id },
     select: {
       id: true,
       seatsPerTimeSlot: true,
       bookingLimits: true,
       timeZone: true,
+      metadata: true,
       schedule: {
         select: {
           availability: true,
@@ -50,6 +51,14 @@ const getEventType = (id: number) =>
       },
     },
   });
+  if (!eventType) {
+    return eventType;
+  }
+  return {
+    ...eventType,
+    metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+  };
+};
 
 type EventType = Awaited<ReturnType<typeof getEventType>>;
 
@@ -193,20 +202,25 @@ export async function getUserAvailability(
         const startDate = dayjs(booking.start).startOf(filter);
         // this is parsed above with parseBookingLimit so we know it's safe.
         const endDate = dayjs(startDate).endOf(filter);
-
+        const bookingEventTypeId = booking.source?.split("-")[1];
         if (dayjs(booking.start).isBetween(startDate, endDate)) total++;
-        if (total >= limit)
+        // Only check OUR booking that matches the current eventTypeId
+        // we don't care about another event type in this case as we dont need to know their booking limits
+        if (total >= limit && bookingEventTypeId === eventType?.id?.toString()) {
           bufferedBusyTimes.push({ start: startDate.toISOString(), end: endDate.toISOString() });
+        }
       });
     }
   }
-  const schedule = eventType?.schedule
-    ? { ...eventType?.schedule }
-    : {
-        ...currentUser.schedules.filter(
-          (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
-        )[0],
-      };
+
+  const schedule =
+    !eventType?.metadata?.config?.useHostSchedulesForTeamEvent && eventType?.schedule
+      ? { ...eventType?.schedule }
+      : {
+          ...currentUser.schedules.filter(
+            (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
+          )[0],
+        };
 
   const startGetWorkingHours = performance.now();
 

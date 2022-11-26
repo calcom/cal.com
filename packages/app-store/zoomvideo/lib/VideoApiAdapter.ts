@@ -196,7 +196,6 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     };
 
     const recurrence = getRecurrence(event);
-
     // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
     return {
       topic: event.title,
@@ -204,7 +203,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       start_time: event.startTime,
       duration: (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 60000,
       //schedule_for: "string",   TODO: Used when scheduling the meeting for someone else (needed?)
-      timezone: event.attendees[0].timeZone,
+      timezone: event.organizer.timeZone,
       //password: "string",       TODO: Should we use a password? Maybe generate a random one?
       agenda: event.description,
       settings: {
@@ -326,6 +325,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
 
 const handleZoomResponse = async (response: Response, credentialId: Credential["id"]) => {
   let _response = response.clone();
+  const responseClone = response.clone();
   if (_response.headers.get("content-encoding") === "gzip") {
     const responseString = await response.text();
     _response = JSON.parse(responseString);
@@ -338,8 +338,11 @@ const handleZoomResponse = async (response: Response, credentialId: Credential["
     }
     throw Error(response.statusText);
   }
-
-  return response.json();
+  // handle 204 response code with empty response (causes crash otherwise as "" is invalid JSON)
+  if (response.status === 204) {
+    return;
+  }
+  return responseClone.json();
 };
 
 const invalidateCredential = async (credentialId: Credential["id"]) => {

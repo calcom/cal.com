@@ -1,6 +1,7 @@
 require("dotenv").config({ path: "../../.env" });
 const CopyWebpackPlugin = require("copy-webpack-plugin");
-
+const { withSentryConfig } = require("@sentry/nextjs");
+const os = require("os");
 const withTM = require("next-transpile-modules")([
   "@calcom/app-store",
   "@calcom/core",
@@ -26,7 +27,8 @@ if (!process.env.CALENDSO_ENCRYPTION_KEY) throw new Error("Please set CALENDSO_E
 if (process.env.VERCEL_URL && !process.env.NEXT_PUBLIC_WEBAPP_URL) {
   process.env.NEXT_PUBLIC_WEBAPP_URL = "https://" + process.env.VERCEL_URL;
 }
-if (process.env.NEXT_PUBLIC_WEBAPP_URL) {
+// Check for configuration of NEXTAUTH_URL before overriding
+if (!process.env.NEXTAUTH_URL && process.env.NEXT_PUBLIC_WEBAPP_URL) {
   process.env.NEXTAUTH_URL = process.env.NEXT_PUBLIC_WEBAPP_URL + "/api/auth";
 }
 if (!process.env.NEXT_PUBLIC_WEBSITE_URL) {
@@ -78,6 +80,7 @@ plugins.push(withAxiom);
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   i18n,
+  productionBrowserSourceMaps: true,
   /* We already do type check on GH actions */
   typescript: {
     ignoreBuildErrors: !!process.env.CI,
@@ -86,10 +89,8 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: !!process.env.CI,
   },
-  experimental: {
-    images: {
-      unoptimized: true,
-    },
+  images: {
+    unoptimized: true,
   },
   webpack: (config) => {
     config.plugins.push(
@@ -98,6 +99,13 @@ const nextConfig = {
           {
             from: "../../packages/app-store/**/static/**",
             to({ context, absoluteFilename }) {
+              // Adds compatibility for windows path
+              if (os.platform() === "win32") {
+                const absoluteFilenameWin = absoluteFilename.replaceAll("\\", "/");
+                const contextWin = context.replaceAll("\\", "/");
+                const appName = /app-store\/(.*)\/static/.exec(absoluteFilenameWin);
+                return Promise.resolve(`${contextWin}/public/app-store/${appName[1]}/[name][ext]`);
+              }
               const appName = /app-store\/(.*)\/static/.exec(absoluteFilename);
               return Promise.resolve(`${context}/public/app-store/${appName[1]}/[name][ext]`);
             },
@@ -230,4 +238,21 @@ const nextConfig = {
   },
 };
 
-module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
+const sentryWebpackPluginOptions = {
+  silent: true, // Suppresses all logs
+};
+
+const moduleExports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
+
+if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+  nextConfig.sentry = {
+    hideSourceMaps: true,
+    // Prevents Sentry from running on this Edge function, where Sentry doesn't work yet (build whould crash the api route).
+    excludeServerRoutes: [/\/api\/social\/og\/image\/?/],
+  };
+}
+
+// Sentry should be the last thing to export to catch everything right
+module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
+  ? withSentryConfig(moduleExports, sentryWebpackPluginOptions)
+  : moduleExports;

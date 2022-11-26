@@ -4,7 +4,6 @@ import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/Icon";
 import {
   Avatar,
   Button,
@@ -12,7 +11,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@calcom/ui/v2";
+  Icon,
+} from "@calcom/ui";
 
 interface Props {
   team: {
@@ -37,10 +37,10 @@ export default function TeamInviteListItem(props: Props) {
   const utils = trpc.useContext();
   const team = props.team;
 
-  const acceptOrLeaveMutation = trpc.useMutation("viewer.teams.acceptOrLeave", {
+  const acceptOrLeaveMutation = trpc.viewer.teams.acceptOrLeave.useMutation({
     onSuccess: async () => {
-      await utils.invalidateQueries(["viewer.teams.get"]);
-      await utils.invalidateQueries(["viewer.teams.list"]);
+      await utils.viewer.teams.get.invalidate();
+      await utils.viewer.teams.list.invalidate();
     },
   });
 
@@ -54,10 +54,7 @@ export default function TeamInviteListItem(props: Props) {
   const acceptInvite = () => acceptOrLeave(true);
   const declineInvite = () => acceptOrLeave(false);
 
-  const isOwner = props.team.role === MembershipRole.OWNER;
   const isInvitee = !props.team.accepted;
-  const isAdmin = props.team.role === MembershipRole.OWNER || props.team.role === MembershipRole.ADMIN;
-  const { hideDropdown, setHideDropdown } = props;
 
   if (!team) return <></>;
 

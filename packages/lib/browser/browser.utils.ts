@@ -7,7 +7,7 @@ type BrowserInfo = {
 };
 
 export const getBrowserInfo = (): Partial<BrowserInfo> => {
-  if (!process.browser) {
+  if (typeof window === "undefined") {
     return {};
   }
   return {

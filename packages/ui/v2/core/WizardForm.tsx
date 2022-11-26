@@ -1,8 +1,8 @@
 import { useRouter } from "next/router";
 
 import classNames from "@calcom/lib/classNames";
-import Button from "@calcom/ui/v2/core/Button";
-import Stepper from "@calcom/ui/v2/core/Stepper";
+
+import { Button, Stepper } from "../..";
 
 type DefaultStep = {
   title: string;
@@ -52,8 +52,8 @@ function WizardForm<T extends DefaultStep>(props: { href: string; steps: T[]; co
               loading={currentStep.isLoading}
               type="submit"
               color="primary"
-              form={`setup-step-${step}`}
-              className="relative">
+              form={`wizard-step-${step}`}
+              className="relative ml-3">
               {step < steps.length ? "Next" : "Finish"}
             </Button>
           </div>
