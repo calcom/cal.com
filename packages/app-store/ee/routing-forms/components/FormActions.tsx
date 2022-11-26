@@ -1,6 +1,6 @@
-import { useRouter } from "next/router";
 import type { NextRouter } from "next/router";
-import { useState, createContext, useContext, forwardRef } from "react";
+import { useRouter } from "next/router";
+import { createContext, forwardRef, useContext, useState } from "react";
 import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
@@ -9,19 +9,24 @@ import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
-import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
-import { Button, ButtonProps } from "@calcom/ui/components/button";
-import { Form, TextField, TextAreaField } from "@calcom/ui/components/form";
 import {
+  Button,
+  ButtonProps,
+  ConfirmationDialogContent,
+  Dialog,
+  DialogClose,
+  DialogContent,
   Dropdown,
-  DropdownMenuItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
+  Form,
+  Icon,
   showToast,
   Switch,
-} from "@calcom/ui/v2";
+  TextAreaField,
+  TextField,
+} from "@calcom/ui";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 
@@ -136,7 +141,6 @@ export const FormActionsDropdown = ({ form, children }: { form: RoutingForm; chi
           <Button
             type="button"
             size="icon"
-            combined
             color="secondary"
             className={classNames("radix-state-open:rounded-r-md", disabled && "opacity-30")}
             StartIcon={Icon.FiMoreHorizontal}

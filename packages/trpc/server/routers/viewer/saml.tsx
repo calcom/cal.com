@@ -30,7 +30,7 @@ export const samlRouter = router({
       }
 
       // Retrieve the SP SAML Config
-      const SPConfig = samlSPConfig.get();
+      const SPConfig = await samlSPConfig.get();
 
       const response = {
         provider: "",

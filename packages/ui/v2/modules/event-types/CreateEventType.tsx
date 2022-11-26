@@ -13,21 +13,27 @@ import { HttpError } from "@calcom/lib/http-error";
 import slugify from "@calcom/lib/slugify";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
-import { Alert } from "@calcom/ui/Alert";
-import { Icon } from "@calcom/ui/Icon";
-import { Avatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
-import { Form, TextAreaField, TextField } from "@calcom/ui/components/form";
-import { Dialog, DialogClose, DialogContent } from "@calcom/ui/v2/core/Dialog";
-import Dropdown, {
+
+import {
+  Alert,
+  Avatar,
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@calcom/ui/v2/core/Dropdown";
-import * as RadioArea from "@calcom/ui/v2/core/form/radio-area/RadioAreaGroup";
-import showToast from "@calcom/ui/v2/core/notifications";
+  Form,
+  Icon,
+  RadioGroup as RadioArea,
+  showToast,
+  TextAreaField,
+  TextField,
+} from "../../..";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
 export interface EventTypeParent {
@@ -45,6 +51,15 @@ interface CreateEventTypeBtnProps {
   // EventTypeParent can be a profile (as first option) or a team for the rest.
   options: EventTypeParent[];
 }
+
+const isValidJSONString = (str: string) => {
+  try {
+    JSON.parse(str);
+  } catch (e) {
+    return false;
+  }
+  return true;
+};
 
 export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
   const { t } = useLocale();
@@ -76,7 +91,13 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
         ? router.query.description
         : "";
     const slug: string = typeof router.query.slug === "string" && router.query.slug ? router.query.slug : "";
+    const locations =
+      typeof router.query.locations === "string" &&
+      isValidJSONString(decodeURIComponent(router.query.locations))
+        ? JSON.parse(decodeURIComponent(router.query.locations))
+        : [];
 
+    setValue("locations", locations);
     setValue("title", title);
     setValue("length", length);
     setValue("description", description);
@@ -131,7 +152,16 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
   return (
     <Dialog
       name="new-eventtype"
-      clearQueryParamsOnClose={["eventPage", "teamId", "type", "description", "title", "length", "slug"]}>
+      clearQueryParamsOnClose={[
+        "eventPage",
+        "teamId",
+        "type",
+        "description",
+        "title",
+        "length",
+        "slug",
+        "locations",
+      ]}>
       {!hasTeams || props.isIndividualTeam ? (
         <Button
           onClick={() => openModal(props.options[0])}

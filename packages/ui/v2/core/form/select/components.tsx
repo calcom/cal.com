@@ -12,7 +12,8 @@ import {
 } from "react-select";
 
 import { classNames } from "@calcom/lib";
-import { Icon } from "@calcom/ui/Icon";
+
+import { Icon } from "../../../..";
 
 export const InputComponent = <
   Option,

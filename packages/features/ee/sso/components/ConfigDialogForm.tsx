@@ -4,10 +4,7 @@ import LicenseRequired from "@calcom/ee/common/components/v2/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { DialogFooter } from "@calcom/ui/Dialog";
-import { Button } from "@calcom/ui/components/button";
-import { Form, TextArea } from "@calcom/ui/components/form";
-import { showToast } from "@calcom/ui/v2";
+import { Button, DialogFooter, Form, showToast, TextArea } from "@calcom/ui";
 
 interface TeamSSOValues {
   metadata: string;

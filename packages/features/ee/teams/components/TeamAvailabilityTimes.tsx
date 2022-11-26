@@ -5,7 +5,7 @@ import { ITimezone } from "react-timezone-select";
 import { Dayjs } from "@calcom/dayjs";
 import getSlots from "@calcom/lib/slots";
 import { trpc } from "@calcom/trpc/react";
-import Loader from "@calcom/ui/Loader";
+import { Loader } from "@calcom/ui";
 
 interface Props {
   teamId: number;

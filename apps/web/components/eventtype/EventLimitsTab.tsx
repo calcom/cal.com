@@ -10,11 +10,7 @@ import findDurationType from "@calcom/lib/findDurationType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { PeriodType } from "@calcom/prisma/client";
 import type { BookingLimit } from "@calcom/types/Calendar";
-import { Icon } from "@calcom/ui";
-import { Button } from "@calcom/ui/components";
-import { Input, InputField, Label } from "@calcom/ui/components/form";
-import { Select, SettingsToggle } from "@calcom/ui/v2";
-import DateRangePicker from "@calcom/ui/v2/core/form/date-range-picker/DateRangePicker";
+import { Button, DateRangePicker, Icon, Input, InputField, Label, Select, SettingsToggle } from "@calcom/ui";
 
 export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupInfered, "eventType">) => {
   const { t } = useLocale();
@@ -289,7 +285,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupInfered, "event
           <SettingsToggle
             title={t("limit_future_bookings")}
             description={t("limit_future_bookings_description")}
-            checked={value !== "UNLIMITED"}
+            checked={value && value !== "UNLIMITED"}
             onCheckedChange={(bool) => formMethods.setValue("periodType", bool ? "ROLLING" : "UNLIMITED")}>
             <RadioGroup.Root
               defaultValue={watchPeriodType}
