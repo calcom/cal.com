@@ -19,6 +19,7 @@ export const metadata = {
       linkType: "static",
     },
   },
+  dirName: "riverside",
   ...config,
 } as AppMeta;
 

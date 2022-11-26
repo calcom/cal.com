@@ -28,6 +28,7 @@ export const metadata = {
       label: "Zoom Video",
     },
   },
+  dirName: "zoomvideo",
 } as AppMeta;
 
 export default metadata;

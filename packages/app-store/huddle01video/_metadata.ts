@@ -30,6 +30,7 @@ export const metadata = {
     },
   },
   key: { apikey: randomString(12) },
+  dirName: "huddle01video",
 } as AppMeta;
 
 export default metadata;

@@ -29,6 +29,7 @@ export const metadata = {
     },
   },
   key: { apikey: process.env.DAILY_API_KEY },
+  dirName: "dailyvideo",
 } as AppMeta;
 
 export default metadata;

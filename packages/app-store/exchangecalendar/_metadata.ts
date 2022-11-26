@@ -9,6 +9,7 @@ export const metadata = {
   reviews: 0,
   trending: true,
   verified: true,
+  dirName: "exchangecalendar",
   ...config,
 } as App;
 

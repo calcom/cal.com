@@ -28,6 +28,7 @@ export const metadata = {
       label: "Jitsi Video",
     },
   },
+  dirName: "jitsivideo",
 } as AppMeta;
 
 export default metadata;
