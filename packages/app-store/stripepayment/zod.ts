@@ -9,4 +9,11 @@ export const appDataSchema = eventTypeAppCardZod.merge(
   })
 );
 
-export const appKeysSchema = z.object({});
+export const appKeysSchema = z.object({
+  client_id: z.string(),
+  client_secret: z.string(),
+  public_key: z.string(),
+  webhook_secret: z.string(),
+  payment_fee_fixed: z.number(),
+  payment_fee_percentage: z.number(),
+});
