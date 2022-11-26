@@ -152,7 +152,7 @@ export default function AllApps({ apps, searchText }: AllAppsPropsType) {
           : app.category === selectedCategory
         : true
     )
-    .filter((app) => (searchText ? app.name.toLowerCase().includes(searchText) : true));
+    .filter((app) => (searchText ? app.name.toLowerCase().includes(searchText.toLowerCase()) : true));
 
   return (
     <div className="mb-16">
