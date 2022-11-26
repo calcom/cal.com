@@ -30,7 +30,7 @@ export const EventTypeMetaDataSchema = z
     smartContractAddress: z.string().optional(),
     blockchainId: z.number().optional(),
     giphyThankYouPage: z.string().optional(),
-    apps: z.object(appDataSchemas).partial().optional(),
+    apps: z.object(appDataSchemas).deepPartial().optional(),
     additionalNotesRequired: z.boolean().optional(),
     config: z
       .object({
