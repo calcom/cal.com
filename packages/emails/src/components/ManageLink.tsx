@@ -28,16 +28,15 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
             width: "100%",
             gap: "8px",
           }}>
-          <>{t("need_to_make_a_change")}</>
+          <>{t("need_to_make_a_change")}</>{" "}
           {!props.calEvent.recurringEvent && (
             <>
               <a href={getRescheduleLink(props.calEvent)} style={{ color: "#3e3e3e" }}>
-                <>{t("reschedule")}</>
+                <>{t("reschedule")}</>{" "}
               </a>
-              <>{t("or_lowercase")}</>
+              <>{t("or_lowercase")}</>{" "}
             </>
           )}
-
           <a href={getCancelLink(props.calEvent)} style={{ color: "#3e3e3e" }}>
             <>{t("cancel")}</>
           </a>
