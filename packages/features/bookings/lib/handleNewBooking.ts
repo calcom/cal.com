@@ -815,7 +815,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     evt.appsStatus = Object.values(calcAppsStatus);
   }
 
-  let videoCallUrl = evt.videoCallData && evt.videoCallData.url ? evt.videoCallData.url : null;
+  let videoCallUrl;
 
   if (originalRescheduledBooking?.uid) {
     // Use EventManager to conditionally use all needed integrations.
@@ -875,6 +875,9 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
     results = createManager.results;
     referencesToCreate = createManager.referencesToCreate;
+
+    videoCallUrl = evt.videoCallData && evt.videoCallData.url ? evt.videoCallData.url : null;
+
     if (results.length > 0 && results.every((res) => !res.success)) {
       const error = {
         errorCode: "BookingCreatingMeetingFailed",

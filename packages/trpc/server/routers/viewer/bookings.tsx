@@ -787,12 +787,15 @@ export const bookingsRouter = router({
       // count changed, parsing again to get the new value in
       evt.recurringEvent = parseRecurringEvent(recurringEvent);
     }
+    let videoCallUrl;
 
     if (confirmed) {
       const eventManager = new EventManager(user);
       const scheduleResult = await eventManager.create(evt);
 
       const results = scheduleResult.results;
+
+      videoCallUrl = evt.videoCallData && evt.videoCallData.url ? evt.videoCallData.url : null;
 
       if (results.length > 0 && results.every((res) => !res.success)) {
         const error = {
@@ -809,6 +812,7 @@ export const bookingsRouter = router({
           metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
           metadata.conferenceData = results[0].createdEvent?.conferenceData;
           metadata.entryPoints = results[0].createdEvent?.entryPoints;
+          videoCallUrl = metadata.hangoutLink || videoCallUrl;
         }
         try {
           await sendScheduledEmails({ ...evt, additionalInformation: metadata });
@@ -831,6 +835,7 @@ export const bookingsRouter = router({
           })[];
         } | null;
       }[] = [];
+      const metadata = videoCallUrl ? { videoCallUrl } : undefined;
 
       if (recurringEventId) {
         // The booking to confirm is a recurring event and comes from /booking/recurring, proceeding to mark all related
@@ -849,6 +854,7 @@ export const bookingsRouter = router({
             },
             data: {
               status: BookingStatus.ACCEPTED,
+              metadata,
               references: {
                 create: scheduleResult.referencesToCreate,
               },
@@ -887,6 +893,7 @@ export const bookingsRouter = router({
           },
           data: {
             status: BookingStatus.ACCEPTED,
+            metadata,
             references: {
               create: scheduleResult.referencesToCreate,
             },
