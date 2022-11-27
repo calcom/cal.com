@@ -8,8 +8,8 @@ import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { baseEventTypeSelect } from "@calcom/prisma";
 import { EventTypeModel } from "@calcom/prisma/zod";
-import { Icon } from "@calcom/ui";
-import { Badge } from "@calcom/ui/components/badge";
+
+import { Badge, Icon } from "../../..";
 
 export type EventTypeDescriptionProps = {
   eventType: Pick<

@@ -1,16 +1,12 @@
-import { forwardRef, ReactElement, ReactNode, Ref, useCallback, useId, useState } from "react";
-import React from "react";
+import React, { forwardRef, ReactElement, ReactNode, Ref, useCallback, useId, useState } from "react";
 import { Eye, EyeOff } from "react-feather";
 import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn } from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert } from "@calcom/ui/v2/core/Alert";
-import { Tooltip } from "@calcom/ui/v2/core/Tooltip";
-import showToast from "@calcom/ui/v2/core/notifications";
-import { Skeleton } from "@calcom/ui/v2/core/skeleton";
 
+import { Alert, showToast, Skeleton, Tooltip } from "../../..";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 
@@ -67,7 +63,7 @@ const Addon = ({ isFilled, children, className, error }: AddonProps) => (
       isFilled && "bg-gray-100",
       className
     )}>
-    <div className={classNames("flex h-full flex-col justify-center px-1 text-sm", error && "text-red-900")}>
+    <div className={classNames("flex h-full flex-col justify-center text-sm", error && "text-red-900")}>
       <span className="whitespace-nowrap py-2.5">{children}</span>
     </div>
   </div>
@@ -170,7 +166,7 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
         addOnSuffix={
           <Tooltip content={textLabel}>
             <button
-              className="absolute right-3 bottom-0 h-9 text-gray-900"
+              className="absolute bottom-0 right-3 h-9 text-gray-900"
               type="button"
               onClick={() => toggleIsPasswordVisible()}>
               {isPasswordVisible ? (
@@ -223,7 +219,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
       ref={ref}
       {...props}
       className={classNames(
-        "block w-full rounded-md border border-gray-300 py-2 px-3 hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 sm:text-sm",
+        "block w-full rounded-md border border-gray-300 py-2 px-3 text-sm hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
         props.className
       )}
     />
@@ -296,25 +292,7 @@ const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLForm
             });
         }}
         {...passThrough}>
-        {
-          /* @see https://react-hook-form.com/advanced-usage/#SmartFormComponent */
-          React.Children.map(props.children, (child) => {
-            return typeof child !== "string" &&
-              typeof child !== "number" &&
-              typeof child !== "boolean" &&
-              child &&
-              "props" in child &&
-              child.props.name
-              ? React.createElement(child.type, {
-                  ...{
-                    ...child.props,
-                    register: form.register,
-                    key: child.props.name,
-                  },
-                })
-              : child;
-          })
-        }
+        {props.children}
       </form>
     </FormProvider>
   );

@@ -11,27 +11,30 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
+import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { JOIN_SLACK, ROADMAP, DESKTOP_APP_LINK, WEBAPP_URL } from "@calcom/lib/constants";
+import { DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import isCalcom from "@calcom/lib/isCalcom";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
-import Dropdown, {
+
+import {
+  Button,
+  Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuPortal,
-} from "@calcom/ui/Dropdown";
-import { Icon } from "@calcom/ui/Icon";
-import TimezoneChangeDialog from "@calcom/ui/TimezoneChangeDialog";
-import { Button } from "@calcom/ui/components/button";
-import showToast from "@calcom/ui/v2/core/notifications";
-import Tips from "@calcom/ui/v2/modules/tips/Tips";
+  Icon,
+  showToast,
+  TimezoneChangeDialog,
+  Tips,
+} from "../..";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
@@ -147,6 +150,7 @@ const Layout = (props: LayoutProps) => {
         <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
           {props.SidebarContainer || <SideBarContainer />}
           <div className="flex w-0 flex-1 flex-col overflow-hidden">
+            <TeamsUpgradeBanner />
             <ImpersonatingBanner />
             <MainContainer {...props} />
           </div>

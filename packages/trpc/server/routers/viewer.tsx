@@ -1,4 +1,4 @@
-import { AppCategories, BookingStatus, IdentityProvider, MembershipRole, Prisma } from "@prisma/client";
+import { AppCategories, BookingStatus, IdentityProvider, Prisma } from "@prisma/client";
 import _ from "lodash";
 import { authenticator } from "otplib";
 import z from "zod";
@@ -8,7 +8,7 @@ import ethRouter from "@calcom/app-store/rainbow/trpc/router";
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
 import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
 import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
-import getApps, { getLocationOptions } from "@calcom/app-store/utils";
+import getApps, { getLocationGroupedOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { DailyLocationType } from "@calcom/core/location";
@@ -23,18 +23,18 @@ import getStripeAppData from "@calcom/lib/getStripeAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import slugify from "@calcom/lib/slugify";
 import {
   deleteWebUser as syncServicesDeleteWebUser,
   updateWebUser as syncServicesUpdateWebUser,
 } from "@calcom/lib/sync/SyncServiceManager";
-import prisma, { baseEventTypeSelect, baseUserSelect, bookingMinimalSelect } from "@calcom/prisma";
+import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
-import { resizeBase64Image } from "@calcom/web/server/lib/resizeBase64Image";
 
 import { TRPCError } from "@trpc/server";
 
-import { router, publicProcedure, authedProcedure, mergeRouters } from "../trpc";
+import { authedProcedure, mergeRouters, publicProcedure, router } from "../trpc";
 import { apiKeysRouter } from "./viewer/apiKeys";
 import { authRouter } from "./viewer/auth";
 import { availabilityRouter } from "./viewer/availability";
@@ -769,12 +769,11 @@ const loggedInViewerRouter = router({
         appId: true,
       },
     });
-
     const integrations = getApps(credentials);
 
     const t = await getTranslation(ctx.user.locale ?? "en", "common");
 
-    const locationOptions = getLocationOptions(integrations, t);
+    const locationOptions = getLocationGroupedOptions(integrations, t);
 
     return locationOptions;
   }),

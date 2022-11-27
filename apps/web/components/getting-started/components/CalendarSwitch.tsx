@@ -1,8 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 
 import { trpc } from "@calcom/trpc/react";
-import { Switch } from "@calcom/ui/v2";
-import showToast from "@calcom/ui/v2/core/notifications";
+import { showToast, Switch } from "@calcom/ui";
 
 import classNames from "@lib/classNames";
 

@@ -6,7 +6,8 @@ import classNames from "@calcom/lib/classNames";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
-import { SkeletonText } from "@calcom/ui/v2";
+
+import { SkeletonText } from "../../..";
 
 export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
@@ -104,10 +105,12 @@ const Days = ({
               date={day}
               onClick={() => {
                 props.onChange(day);
-                window.scrollTo({
-                  top: 360,
-                  behavior: "smooth",
-                });
+                setTimeout(() => {
+                  window.scrollTo({
+                    top: 360,
+                    behavior: "smooth",
+                  });
+                }, 500);
               }}
               disabled={
                 (includedDates && !includedDates.includes(yyyymmdd(day))) ||
@@ -138,9 +141,10 @@ const DatePicker = ({
       onMonthChange(browsingDate.add(newMonth, "month"));
     }
   };
-
   const month = browsingDate
-    ? new Intl.DateTimeFormat(i18n.language, { month: "long" }).format(new Date(browsingDate.toISOString()))
+    ? new Intl.DateTimeFormat(i18n.language, { month: "long" }).format(
+        new Date(browsingDate.year(), browsingDate.month())
+      )
     : null;
 
   return (

@@ -1,9 +1,7 @@
 import { Trans } from "react-i18next";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
-import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
-import { Icon, BadgeCheckIcon } from "@calcom/ui/Icon";
+import { BadgeCheckIcon, ConfirmationDialogContent, Dialog, DialogTrigger, Icon } from "@calcom/ui";
 
 export default function LicenseBanner() {
   const { t } = useLocale();

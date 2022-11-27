@@ -8,10 +8,7 @@ import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Avatar, Badge, Button } from "@calcom/ui/components";
-import { showToast } from "@calcom/ui/v2/core";
-import { SkeletonContainer, SkeletonText } from "@calcom/ui/v2/core/skeleton";
+import { Avatar, Badge, Button, Icon, showToast, SkeletonContainer, SkeletonText } from "@calcom/ui";
 
 const querySchema = z.object({
   id: z.string().transform((val) => parseInt(val)),
@@ -80,7 +77,7 @@ const AddNewTeamMembersForm = ({ defaultValues, teamId }: { defaultValues: FormV
           inviteMemberMutation.mutate({
             teamId,
             language: i18n.language,
-            role: values.role.value,
+            role: values.role,
             usernameOrEmail: values.emailOrUsername,
             sendEmailInvitation: values.sendInviteEmail,
           });

@@ -6,17 +6,14 @@ import { useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
-import { getEventLocationType, EventLocationType } from "@calcom/app-store/locations";
+import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components";
-import { Label, TextField } from "@calcom/ui/components/form";
-import { Select, Skeleton } from "@calcom/ui/v2";
+import { Button, Icon, Label, Select, Skeleton, TextField } from "@calcom/ui";
 
 import { slugify } from "@lib/slugify";
 
-import { EditLocationDialog } from "@components/eventtype/EditLocationDialog";
+import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 
 type OptionTypeBase = {
   label: string;
@@ -31,6 +28,7 @@ export const EventSetupTab = (
   const formMethods = useFormContext<FormValues>();
   const { eventType, locationOptions, team } = props;
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const [editingLocationType, setEditingLocationType] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
 
   const openLocationModal = (type: EventLocationType["type"]) => {
@@ -46,14 +44,23 @@ export const EventSetupTab = (
     );
   };
 
-  const addLocation = (newLocationType: EventLocationType["type"], details = {}) => {
-    const existingIdx = formMethods.getValues("locations").findIndex((loc) => newLocationType === loc.type);
+  const saveLocation = (newLocationType: EventLocationType["type"], details = {}) => {
+    const locationType = editingLocationType !== "" ? editingLocationType : newLocationType;
+    const existingIdx = formMethods.getValues("locations").findIndex((loc) => locationType === loc.type);
     if (existingIdx !== -1) {
       const copy = formMethods.getValues("locations");
-      copy[existingIdx] = {
-        ...formMethods.getValues("locations")[existingIdx],
-        ...details,
-      };
+      if (editingLocationType !== "") {
+        copy[existingIdx] = {
+          ...details,
+          type: newLocationType,
+        };
+      } else {
+        copy[existingIdx] = {
+          ...formMethods.getValues("locations")[existingIdx],
+          ...details,
+        };
+      }
+
       formMethods.setValue("locations", copy);
     } else {
       formMethods.setValue(
@@ -61,6 +68,8 @@ export const EventSetupTab = (
         formMethods.getValues("locations").concat({ type: newLocationType, ...details })
       );
     }
+
+    setEditingLocationType("");
     setShowLocationModal(false);
   };
 
@@ -118,7 +127,7 @@ export const EventSetupTab = (
                   if (eventLocationType.organizerInputType) {
                     openLocationModal(newLocationType);
                   } else {
-                    addLocation(newLocationType);
+                    saveLocation(newLocationType);
                   }
                 }
               }}
@@ -138,10 +147,10 @@ export const EventSetupTab = (
                     <div key={index} className="flex flex-grow items-center">
                       <img
                         src={eventLocationType.iconUrl}
-                        className="h-6 w-6"
+                        className="h-4 w-4"
                         alt={`${eventLocationType.label} logo`}
                       />
-                      <span className="truncate text-sm ltr:ml-2 rtl:mr-2">
+                      <span className="truncate text-sm ltr:ml-1 rtl:mr-1">
                         {location[eventLocationType.defaultValueVariable] || eventLocationType.label}
                       </span>
                     </div>
@@ -153,6 +162,7 @@ export const EventSetupTab = (
                           locationFormMethods.unregister("locationLink");
                           locationFormMethods.unregister("locationAddress");
                           locationFormMethods.unregister("locationPhoneNumber");
+                          setEditingLocationType(location.type);
                           openLocationModal(location.type);
                         }}
                         aria-label={t("edit")}
@@ -237,12 +247,13 @@ export const EventSetupTab = (
       <EditLocationDialog
         isOpenDialog={showLocationModal}
         setShowLocationModal={setShowLocationModal}
-        saveLocation={addLocation}
+        saveLocation={saveLocation}
         defaultValues={formMethods.getValues("locations")}
         selection={
           selectedLocation ? { value: selectedLocation.value, label: selectedLocation.label } : undefined
         }
         setSelectedLocation={setSelectedLocation}
+        setEditingLocationType={setEditingLocationType}
       />
     </div>
   );

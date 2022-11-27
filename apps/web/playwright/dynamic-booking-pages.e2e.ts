@@ -48,16 +48,20 @@ test("dynamic booking", async ({ page, users }) => {
     await page.locator('[data-testid="cancel"]').first().click();
     await page.waitForNavigation({
       url: (url) => {
-        return url.pathname.startsWith("/cancel");
+        return url.pathname.startsWith("/success");
       },
     });
     // --- fill form
     await page.locator('[data-testid="cancel"]').click();
+
     await page.waitForNavigation({
-      url(url) {
-        return url.pathname === "/cancel/success";
+      url: (url) => {
+        return url.pathname.startsWith("/success");
       },
     });
+    const successHeadling = await page.locator('[data-testid="success-headline"]').innerText();
+
+    await expect(successHeadling).toBe("This event is cancelled");
   });
 
   await users.deleteAll();
