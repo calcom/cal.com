@@ -196,6 +196,8 @@ To remove this limitation, we need to ensure that on local endpoints are request
 
 ## Hosted api through cal.com
 
+> _❗ WARNING: This is still experimental and not fully implemented yet❗_
+
 Go to console.cal.com
 Add a deployment or go to an existing one.
 Activate API or Admin addon
