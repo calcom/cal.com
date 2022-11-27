@@ -1,10 +1,11 @@
-import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
-import { InstallAppButton } from "@calcom/app-store/components";
 import { classNames } from "@calcom/lib";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Icon, showToast } from "@calcom/ui";
+
+import useAddAppMutation from "../_utils/useAddAppMutation";
+import { InstallAppButton } from "../components";
 
 /**
  * Use this component to allow installing an app from anywhere on the app.
