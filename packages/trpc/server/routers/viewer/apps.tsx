@@ -121,7 +121,7 @@ export const appsRouter = router({
         create: {
           slug: input.slug,
           dirName: appMetadata?.dirName || "",
-          categories: appMetadata?.categories || undefined,
+          categories: appMetadata?.categories || appMetadata?.category || undefined,
           keys: undefined,
         },
       });
