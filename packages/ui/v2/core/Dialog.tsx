@@ -155,7 +155,7 @@ export function DialogClose(
   props: {
     dialogCloseProps?: React.ComponentProps<typeof DialogPrimitive["Close"]>;
     children?: ReactNode;
-    onClick?: (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => void;
+    onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
     disabled?: boolean;
     color?: ButtonProps["color"];
   } & React.ComponentProps<typeof Button>

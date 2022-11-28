@@ -65,7 +65,7 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
         {confirmBtn ? (
           confirmBtn
         ) : (
-          <DialogClose color="primary" loading={isLoading} onClick={() => onConfirm}>
+          <DialogClose color="primary" loading={isLoading} onClick={(e) => onConfirm && onConfirm(e)}>
             {isLoading ? loadingText : confirmBtnText}
           </DialogClose>
         )}
