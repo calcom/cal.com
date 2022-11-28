@@ -53,6 +53,7 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
     uid,
     originalEvent: calEvent,
     success: false,
+    createdMeeting: null,
   };
   try {
     // Check to see if video app is enabled
