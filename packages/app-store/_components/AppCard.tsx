@@ -16,7 +16,7 @@ export default function AppCard({
   children,
   setAppData,
 }: {
-  app: RouterOutputs["viewer"]["apps"][number] & { slug: string };
+  app: RouterOutputs["viewer"]["apps"][number];
   description?: React.ReactNode;
   switchChecked?: boolean;
   switchOnClick?: (e: boolean) => void;

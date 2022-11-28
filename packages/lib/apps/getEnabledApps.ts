@@ -8,10 +8,8 @@ const getEnabledApps = async (userCredentials: CredentialData[]) => {
   const apps = getApps(userCredentials);
 
   const filteredApps = enabledApps.map((app) => {
-    if (apps.slug) {
-      const appMetadata = apps.find((metadata) => metadata.slug === app.slug);
-      return { ...appMetadata, enabled: app.enabled };
-    }
+    const appMetadata = apps.find((metadata) => metadata.slug === app.slug);
+    return { ...appMetadata, enabled: app.enabled };
   });
 
   return filteredApps;

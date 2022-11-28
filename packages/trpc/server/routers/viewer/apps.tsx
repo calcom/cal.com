@@ -122,7 +122,10 @@ export const appsRouter = router({
         create: {
           slug: input.slug,
           dirName: appMetadata?.dirName || "",
-          categories: appMetadata?.categories || appMetadata?.category || undefined,
+          categories:
+            (appMetadata?.categories as AppCategories[]) ||
+            ([appMetadata?.category] as AppCategories[]) ||
+            undefined,
           keys: undefined,
         },
       });
@@ -188,10 +191,15 @@ export const appsRouter = router({
                 },
                 data: {
                   metadata: {
-                    ...eventType.metadata,
+                    ...(eventType.metadata as object),
                     apps: {
-                      ...eventType.metadata.apps,
-                      [app.slug]: { ...eventType.metadata.apps[app.slug], enabled: false },
+                      // From this comment we can not type JSON fields in Prisma https://github.com/prisma/prisma/issues/3219#issuecomment-670202980
+                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                      //@ts-ignore
+                      ...eventType.metadata?.apps,
+                      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                      //@ts-ignore
+                      [app.slug]: { ...eventType.metadata?.apps[app.slug], enabled: false },
                     },
                   },
                 },
@@ -202,7 +210,7 @@ export const appsRouter = router({
 
                 await sendDisabledAppEmail({
                   email: user.email,
-                  appName: appMetadata?.name,
+                  appName: appMetadata?.name || app.slug,
                   appType: app.categories,
                   t,
                   title: eventType.title,

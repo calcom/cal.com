@@ -444,16 +444,18 @@ const loggedInViewerRouter = router({
         };
       });
 
-      if (exclude) {
-        // exclusion filter
-        apps = apps.filter((item) => (exclude ? !exclude.includes(item.variant) : true));
-      }
       if (variant) {
         // `flatMap()` these work like `.filter()` but infers the types correctly
         apps = apps
           // variant check
           .flatMap((item) => (item.variant.startsWith(variant) ? [item] : []));
       }
+
+      if (exclude) {
+        // exclusion filter
+        apps = apps.filter((item) => (exclude ? !exclude.includes(item.variant) : true));
+      }
+
       if (onlyInstalled) {
         apps = apps.flatMap((item) => (item.credentialIds.length > 0 || item.isGlobal ? [item] : []));
       }
