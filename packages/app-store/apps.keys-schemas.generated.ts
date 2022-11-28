@@ -7,6 +7,7 @@ import { appKeysSchema as routing_forms_keys_schema } from "./ee/routing-forms/z
 import { appKeysSchema as fathom_keys_schema } from "./fathom/zod";
 import { appKeysSchema as ga4_keys_schema } from "./ga4/zod";
 import { appKeysSchema as giphy_keys_schema } from "./giphy/zod";
+import { appKeysSchema as googlecalendar_keys_schema } from "./googlecalendar/zod";
 import { appKeysSchema as hubspot_keys_schema } from "./hubspot/zod";
 import { appKeysSchema as larkcalendar_keys_schema } from "./larkcalendar/zod";
 import { appKeysSchema as office365calendar_keys_schema } from "./office365calendar/zod";
@@ -26,6 +27,7 @@ export const appKeysSchemas = {
   fathom: fathom_keys_schema,
   ga4: ga4_keys_schema,
   giphy: giphy_keys_schema,
+  googlecalendar: googlecalendar_keys_schema,
   hubspot: hubspot_keys_schema,
   larkcalendar: larkcalendar_keys_schema,
   office365calendar: office365calendar_keys_schema,

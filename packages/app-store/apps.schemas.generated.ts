@@ -7,6 +7,7 @@ import { appDataSchema as routing_forms_schema } from "./ee/routing-forms/zod";
 import { appDataSchema as fathom_schema } from "./fathom/zod";
 import { appDataSchema as ga4_schema } from "./ga4/zod";
 import { appDataSchema as giphy_schema } from "./giphy/zod";
+import { appDataSchema as googlecalendar_schema } from "./googlecalendar/zod";
 import { appDataSchema as hubspot_schema } from "./hubspot/zod";
 import { appDataSchema as larkcalendar_schema } from "./larkcalendar/zod";
 import { appDataSchema as office365calendar_schema } from "./office365calendar/zod";
@@ -26,6 +27,7 @@ export const appDataSchemas = {
   fathom: fathom_schema,
   ga4: ga4_schema,
   giphy: giphy_schema,
+  googlecalendar: googlecalendar_schema,
   hubspot: hubspot_schema,
   larkcalendar: larkcalendar_schema,
   office365calendar: office365calendar_schema,
