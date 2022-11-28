@@ -105,10 +105,12 @@ const Days = ({
               date={day}
               onClick={() => {
                 props.onChange(day);
-                window.scrollTo({
-                  top: 360,
-                  behavior: "smooth",
-                });
+                setTimeout(() => {
+                  window.scrollTo({
+                    top: 360,
+                    behavior: "smooth",
+                  });
+                }, 500);
               }}
               disabled={
                 (includedDates && !includedDates.includes(yyyymmdd(day))) ||
