@@ -266,7 +266,7 @@ export const updateEvent = async (
           })
       : undefined;
 
-  if (Array.isArray(updatedResult) && updatedResult?.additionalInfo) {
+  if (Array.isArray(updatedResult)) {
     calWarnings = updatedResult.flatMap((res) => res.additionalInfo?.calWarnings ?? []);
   } else {
     calWarnings = updatedResult?.additionalInfo?.calWarnings || [];
