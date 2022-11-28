@@ -79,6 +79,7 @@ test.describe("pro user", () => {
 
     await pro.login();
     await page.goto("/bookings/upcoming");
+    await page.waitForSelector('[data-testid="bookings"]');
     await page.locator('[data-testid="edit_booking"]').nth(0).click();
     await page.locator('[data-testid="reschedule"]').click();
     await page.waitForNavigation({
