@@ -54,11 +54,6 @@ test("dynamic booking", async ({ page, users }) => {
     // --- fill form
     await page.locator('[data-testid="cancel"]').click();
 
-    await page.waitForNavigation({
-      url: (url) => {
-        return url.pathname.startsWith("/success");
-      },
-    });
     const cancelledHeadline = await page.locator('[data-testid="cancelled-headline"]').innerText();
 
     await expect(cancelledHeadline).toBe("This event is cancelled");
