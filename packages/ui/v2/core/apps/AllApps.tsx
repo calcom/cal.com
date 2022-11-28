@@ -128,13 +128,17 @@ export default function AllApps({ apps, searchText }: AllAppsPropsType) {
   const router = useRouter();
   const { t } = useLocale();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [appsContainerRef] = useAutoAnimate<HTMLDivElement>();
+  const [appsContainerRef, enableAnimation] = useAutoAnimate<HTMLDivElement>();
 
   const categories = apps
     .map((app) => app.category)
     .filter((cat, pos, self) => {
       return self.indexOf(cat) === pos;
     });
+
+  if (searchText) {
+    enableAnimation(false);
+  }
 
   useEffect(() => {
     const queryCategory =

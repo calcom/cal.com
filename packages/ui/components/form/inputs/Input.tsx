@@ -150,7 +150,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           )}
           {type === "search" && inputValue !== "" && (
             <Icon.FiX
-              className="absolute right-2 top-2.5 h-4 w-4 text-gray-500"
+              className="absolute right-2 top-2.5 h-4 w-4 cursor-pointer text-gray-500"
               onClick={(e) => {
                 setInputValue("");
                 onChange && onChange(e as unknown as React.ChangeEvent<HTMLInputElement>);
