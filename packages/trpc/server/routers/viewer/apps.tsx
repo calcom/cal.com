@@ -76,7 +76,7 @@ export const appsRouter = router({
             } = {};
 
             if (typeof keysSchema !== "undefined") {
-              keysSchema.keyof()._def.values.reduce(
+              Object.values(keysSchema.keyof()._def.values).reduce(
                 (
                   keysObject: {
                     [key: string]: string;
