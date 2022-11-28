@@ -68,7 +68,17 @@ export const appsRouter = router({
             });
           } else {
             const appKey = deriveAppDictKeyFromType(app.type, appKeysSchemas);
-            const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas] || null;
+            const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
+
+            const keys = {};
+
+            if (typeof keysSchema !== "undefined") {
+              keysSchema.keyof()._def.values.reduce((keysObject, key) => {
+                keys[key] = "";
+                return keysObject;
+              }, {});
+            }
+
             filteredApps.push({
               name: app.name,
               slug: app.slug,
@@ -77,7 +87,7 @@ export const appsRouter = router({
               title: app.title,
               description: app.description,
               enabled: dbData?.enabled || false,
-              keys: keysSchema ? keysSchema.keyof()._def.values : null,
+              keys: Object.keys(keys).length === 0 ? null : keys,
             });
           }
         }

@@ -76,18 +76,21 @@ const IntegrationContainer = ({ app, lastEntry, category }) => {
                   }
                 }}
               />
+              {app.keys && (
+                <>
+                  <VerticalDivider className="h-10" />
 
-              <VerticalDivider className="h-10" />
-
-              <CollapsibleTrigger>
-                <Button
-                  color="secondary"
-                  size="icon"
-                  tooltip={t("edit_keys")}
-                  onClick={() => setShowKeys(!showKeys)}>
-                  <Icon.FiEdit />
-                </Button>
-              </CollapsibleTrigger>
+                  <CollapsibleTrigger>
+                    <Button
+                      color="secondary"
+                      size="icon"
+                      tooltip={t("edit_keys")}
+                      onClick={() => setShowKeys(!showKeys)}>
+                      <Icon.FiEdit />
+                    </Button>
+                  </CollapsibleTrigger>
+                </>
+              )}
             </div>
           </div>
           <CollapsibleContent>
@@ -154,9 +157,6 @@ const AdminAppsList = ({ baseURL }: { baseURL: string }) => {
     { category },
     {
       enabled: router.isReady,
-      onSuccess: () => {
-        console.log("Fetched");
-      },
     }
   );
 
