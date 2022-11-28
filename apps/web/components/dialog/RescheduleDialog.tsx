@@ -62,9 +62,7 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
             />
 
             <DialogFooter>
-              <DialogClose asChild>
-                <Button color="secondary">{t("cancel")}</Button>
-              </DialogClose>
+              <DialogClose />
               <Button
                 data-testid="send_request"
                 disabled={isLoading}
