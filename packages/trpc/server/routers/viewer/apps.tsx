@@ -1,4 +1,5 @@
 import { AppCategories } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import z from "zod";
 
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
@@ -235,7 +236,7 @@ export const appsRouter = router({
           slug: input.slug,
         },
         data: {
-          keys: input.keys,
+          keys: input.keys as Prisma.InputJsonValue,
         },
       });
 
