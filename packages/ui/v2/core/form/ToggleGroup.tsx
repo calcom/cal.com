@@ -6,7 +6,7 @@ import { classNames } from "@calcom/lib";
 export const ToggleGroupItem = () => <div>hi</div>;
 
 interface ToggleGroupProps extends Omit<RadixToggleGroup.ToggleGroupSingleProps, "type"> {
-  options: { value: string; label: string }[];
+  options: { value: string; label: string; disabled?: boolean }[];
   isFullWidth?: boolean;
 }
 
@@ -44,7 +44,7 @@ export const ToggleGroup = ({ options, onValueChange, isFullWidth, ...props }: T
               "relative rounded-[4px] px-3 py-1 text-sm",
               option.disabled
                 ? "text-gray-400 hover:cursor-not-allowed dark:text-neutral-100"
-                : "dark:text-neutral-200 [&[aria-checked='false']]:hover:font-medium"
+                : "dark:text-neutral-200 [&[aria-checked='false']]:hover:font-medium",
               isFullWidth && "w-full"
             )}
             ref={(node) => {
