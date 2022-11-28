@@ -19,13 +19,11 @@ export function Calendar(props: CalendarComponentProps) {
   const containerOffset = useRef<HTMLDivElement | null>(null);
   const initalState = useCalendarStore((state) => state.initState);
 
-  const { startDate } = useCalendarStore((state) => ({ startDate: state.startDate }));
-  const { endDate } = useCalendarStore((state) => ({ endDate: state.endDate }));
-  const { startHour } = useCalendarStore((state) => ({ startHour: state.startHour || 0 }));
-  const { endHour } = useCalendarStore((state) => ({ endHour: state.endHour || 23 }));
-  const { usersCellsStopsPerHour } = useCalendarStore((state) => ({
-    usersCellsStopsPerHour: state.gridCellsPerHour || 4,
-  }));
+  const startDate = useCalendarStore((state) => state.startDate);
+  const endDate = useCalendarStore((state) => state.endDate);
+  const startHour = useCalendarStore((state) => state.startHour || 0);
+  const endHour = useCalendarStore((state) => state.endHour || 23);
+  const usersCellsStopsPerHour = useCalendarStore((state) => state.gridCellsPerHour || 4);
 
   const days = useMemo(() => getDaysBetweenDates(startDate, endDate), [startDate, endDate]);
 
