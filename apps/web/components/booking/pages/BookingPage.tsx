@@ -131,7 +131,7 @@ const BookingPage = ({
       }
 
       return router.push({
-        pathname: "/success",
+        pathname: "/manage",
         query: {
           uid,
           isSuccessBookingPage: true,
@@ -147,7 +147,7 @@ const BookingPage = ({
       const { uid } = responseData[0] || {};
 
       return router.push({
-        pathname: "/success",
+        pathname: "/manage",
         query: {
           uid,
           allRemainingBookings: true,

@@ -93,7 +93,7 @@ test.describe("pro user", () => {
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
     await page.waitForNavigation({
       url(url) {
-        return url.pathname === "/success";
+        return url.pathname === "/manage";
       },
     });
   });
@@ -108,7 +108,7 @@ test.describe("pro user", () => {
     await page.locator('[data-testid="cancel"]').first().click();
     await page.waitForNavigation({
       url: (url) => {
-        return url.pathname.startsWith("/success");
+        return url.pathname.startsWith("/manage");
       },
     });
     // --- fill form
@@ -116,7 +116,7 @@ test.describe("pro user", () => {
 
     await page.waitForNavigation({
       url: (url) => {
-        return url.pathname.startsWith("/success");
+        return url.pathname.startsWith("/manage");
       },
     });
     const successHeadling = await page.locator('[data-testid="success-headline"]').innerText();

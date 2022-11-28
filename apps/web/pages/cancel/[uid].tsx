@@ -18,7 +18,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   return {
     redirect: {
       permanent: false,
-      destination: `/success?uid=${uid}&allRemainingBookings=${allRemainingBookings}&cancel=true`,
+      destination: `/manage?uid=${uid}&allRemainingBookings=${allRemainingBookings}&cancel=true`,
     },
   };
 };

@@ -94,7 +94,7 @@ export default function PaymentComponent(props: Props) {
       }
 
       const query = stringify(params);
-      const successUrl = `/success?${query}`;
+      const successUrl = `/manage?${query}`;
 
       await router.push(successUrl);
     }

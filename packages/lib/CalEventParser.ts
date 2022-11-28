@@ -130,14 +130,14 @@ export const getUid = (calEvent: CalendarEvent): string => {
 export const getManageLink = (calEvent: CalendarEvent) => {
   return `
 ${calEvent.organizer.language.translate("need_to_reschedule_or_cancel")}
-${WEBAPP_URL + "/success?uid=" + getUid(calEvent) + "&changes=true"}
+${WEBAPP_URL + "/manage?uid=" + getUid(calEvent) + "&changes=true"}
   `;
 };
 
 export const getCancelLink = (calEvent: CalendarEvent): string => {
   return (
     WEBAPP_URL +
-    `/success?uid=${getUid(calEvent)}&cancel=true&allRemainingBookings=${!!calEvent.recurringEvent}`
+    `/manage?uid=${getUid(calEvent)}&cancel=true&allRemainingBookings=${!!calEvent.recurringEvent}`
   );
 };
 
