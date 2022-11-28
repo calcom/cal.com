@@ -79,6 +79,7 @@ test.describe("pro user", () => {
 
     await pro.login();
     await page.goto("/bookings/upcoming");
+    await page.waitForSelector('[data-testid="bookings"]');
     await page.locator('[data-testid="edit_booking"]').nth(0).click();
     await page.locator('[data-testid="reschedule"]').click();
     await page.waitForNavigation({
@@ -112,11 +113,16 @@ test.describe("pro user", () => {
     });
     // --- fill form
     await page.locator('[data-testid="cancel"]').click();
+
     await page.waitForNavigation({
-      url(url) {
-        return url.pathname === "/cancel/success";
+      url: (url) => {
+        return url.pathname.startsWith("/success");
       },
     });
+    const successHeadling = await page.locator('[data-testid="success-headline"]').innerText();
+
+    await expect(successHeadling).toBe("This event is cancelled");
+
     await page.goto(`/${pro.username}`);
     await bookFirstEvent(page);
   });

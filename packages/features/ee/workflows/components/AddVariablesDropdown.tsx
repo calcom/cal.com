@@ -2,8 +2,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Icon } from "@calcom/ui";
 
 interface IAddVariablesDropdown {
-  addVariable: (isEmailSubject: boolean, variable: string) => void;
-  isEmailSubject: boolean;
+  addVariable: (variable: string, isEmailSubject?: boolean) => void;
+  isEmailSubject?: boolean;
+  isTextEditor?: boolean;
 }
 
 const variables = [
@@ -23,9 +24,21 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
   return (
     <Dropdown>
       <DropdownMenuTrigger className="pt-[6px] focus:bg-gray-50">
-        <div className="flex items-center ">
-          {t("add_variable")}
-          <Icon.FiChevronDown className="ml-1 h-4 w-4" />
+        <div className="items-center ">
+          {props.isTextEditor ? (
+            <>
+              <div className="hidden sm:flex">
+                {t("add_variable")}
+                <Icon.FiChevronDown className="ml-1 h-4 w-4" />
+              </div>
+              <div className="block sm:hidden">+</div>
+            </>
+          ) : (
+            <div className="flex">
+              {t("add_variable")}
+              <Icon.FiChevronDown className="ml-1 h-4 w-4" />
+            </div>
+          )}
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="h-40 overflow-scroll">
@@ -39,7 +52,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
                 key={variable}
                 type="button"
                 className="w-full px-4 py-2"
-                onClick={() => props.addVariable(props.isEmailSubject, t(`${variable}_workflow`))}>
+                onClick={() => props.addVariable(t(`${variable}_workflow`), props.isEmailSubject)}>
                 <div className="sm:grid sm:grid-cols-2">
                   <div className="mr-3 text-left md:col-span-1">
                     {`{${t(`${variable}_workflow`).toUpperCase().replace(/ /g, "_")}}`}

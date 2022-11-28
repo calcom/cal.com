@@ -4,5 +4,9 @@
   "description": "Cal.com's main collocation of features",
   "authors": "Cal.com, Inc.",
   "version": "1.0.0",
-  "main": "index.ts"
+  "main": "index.ts",
+  "dependencies": {
+    "@lexical/react": "^0.5.0",
+    "lexical": "^0.5.0"
+  }
 }
