@@ -32,7 +32,8 @@ export function CurrentTime({ containerOffsetRef }: Props) {
 
   return (
     <div
-      className="absoulte z-40 ml-3 flex h-1 items-center justify-center border-gray-800"
+      className="absolute z-40 ml-3 flex h-1 items-center justify-center border-gray-800"
+      aria-hidden="true"
       style={{ top: `calc(${currentTimePos}*var(--one-minute-height))`, zIndex: 100 }}>
       {dayjs().format("HH:mm")}
       <div className="ml-1 h-3 w-1 bg-gray-800" />

@@ -95,10 +95,6 @@ export function BlockedList({ day }: Props) {
           const eventEnd = dayjs(event.end);
 
           const eventStart = dayStart.isAfter(blockingStart) ? dayStart : blockingStart;
-          const eventDuration = eventEnd.diff(eventStart, "minutes");
-
-          const eventStartHour = eventStart.hour();
-          const eventStartDiff = (eventStartHour - (startHour || 0)) * 60;
 
           if (!eventStart.isSame(day, "day")) {
             return null;
@@ -109,6 +105,11 @@ export function BlockedList({ day }: Props) {
               return null;
             }
           }
+
+          const eventDuration = eventEnd.diff(eventStart, "minutes");
+
+          const eventStartHour = eventStart.hour();
+          const eventStartDiff = (eventStartHour - (startHour || 0)) * 60;
 
           return (
             <div

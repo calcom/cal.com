@@ -43,7 +43,6 @@ export function EventList({ day }: Props) {
 
           // Check for overlapping events since this is sorted it should just work.
           if (nextEvent) {
-            console.log("Next" + nextEvent.title);
             const nextEventStart = dayjs(nextEvent.start);
             const nextEventEnd = dayjs(nextEvent.end);
             // check if next event starts before this event ends
