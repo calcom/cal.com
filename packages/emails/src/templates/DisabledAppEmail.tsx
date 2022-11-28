@@ -15,14 +15,15 @@ export const DisabledAppEmail = (
   } & Partial<React.ComponentProps<typeof BaseEmailHtml>>
 ) => {
   const { title, appName, eventTypeId, t, appType } = props;
-  console.log("🚀 ~ file: DisabledAppEmail.tsx ~ line 18 ~ props", props);
 
   return (
     <BaseEmailHtml subject={t("app_disabled", { appName: appName })}>
       {appType.some((type) => type === "payment") ? (
         <>
           <p>{t("disabled_app_affects_event_type", { appName: appName, eventType: title })}</p>
-          <p style={{ fontWeight: 400, lineHeight: "24px" }}>{t("payment_disabled_still_able_to_book")}</p>
+          <p style={{ fontWeight: 400, lineHeight: "24px" }}>
+            <>{t("payment_disabled_still_able_to_book")}</>
+          </p>
 
           <hr style={{ marginBottom: "24px" }} />
 
@@ -33,7 +34,9 @@ export const DisabledAppEmail = (
         </>
       ) : title && eventTypeId ? (
         <>
-          <p>{(t("app_disabled_with_event_type"), { appName, title })}</p>
+          <p>
+            <>{(t("app_disabled_with_event_type"), { appName, title })}</>
+          </p>
 
           <hr style={{ marginBottom: "24px" }} />
 
@@ -44,7 +47,9 @@ export const DisabledAppEmail = (
         </>
       ) : appType.some((type) => type === "video") ? (
         <>
-          <p>{(t("app_disabled_video"), { appName })}</p>
+          <p>
+            <>{(t("app_disabled_video"), { appName })}</>
+          </p>
 
           <hr style={{ marginBottom: "24px" }} />
 
@@ -52,7 +57,9 @@ export const DisabledAppEmail = (
         </>
       ) : appType.some((type) => type === "calendar") ? (
         <>
-          <p>{t("admin_has_disabled", { appName })}</p>
+          <p>
+            <>{t("admin_has_disabled", { appName })}</>
+          </p>
           <p style={{ fontWeight: 400, lineHeight: "24px" }}>{t("disabled_calendar")}</p>
 
           <hr style={{ marginBottom: "24px" }} />
@@ -61,7 +68,9 @@ export const DisabledAppEmail = (
         </>
       ) : (
         <>
-          <p>{t("admin_has_disabled", { appName })}</p>
+          <p>
+            <>{t("admin_has_disabled", { appName })}</>
+          </p>
 
           <hr style={{ marginBottom: "24px" }} />
 

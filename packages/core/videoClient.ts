@@ -64,7 +64,7 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
       },
     });
 
-    if (!enabledApp.enabled) throw "Current location app is not enabled";
+    if (!enabledApp?.enabled) throw "Current location app is not enabled";
 
     createdMeeting = await firstVideoAdapter?.createMeeting(calEvent);
 
