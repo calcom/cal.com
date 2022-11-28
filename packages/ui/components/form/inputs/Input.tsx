@@ -44,7 +44,6 @@ type InputFieldProps = {
   addOnLeading?: ReactNode;
   addOnSuffix?: ReactNode;
   inputIsFullWidth?: boolean;
-  addOnPadding?: number;
   addOnFilled?: boolean;
   addOnClassname?: string;
   error?: string;
