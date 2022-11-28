@@ -59,9 +59,9 @@ test("dynamic booking", async ({ page, users }) => {
         return url.pathname.startsWith("/success");
       },
     });
-    const successHeadling = await page.locator('[data-testid="success-headline"]').innerText();
+    const cancelledHeadline = await page.locator('[data-testid="cancelled-headline"]').innerText();
 
-    await expect(successHeadling).toBe("This event is cancelled");
+    await expect(cancelledHeadline).toBe("This event is cancelled");
   });
 
   await users.deleteAll();
