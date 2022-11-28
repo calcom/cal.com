@@ -147,6 +147,7 @@ function getApps(userCredentials: CredentialData[]) {
         key: appMeta.key!,
         userId: +new Date().getTime(),
         appId: appMeta.slug,
+        invalid: false,
       });
     }
 
