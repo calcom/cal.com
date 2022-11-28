@@ -3,10 +3,10 @@ import Link from "next/link";
 
 import { RouterOutputs } from "@calcom/trpc/react";
 import { Switch } from "@calcom/ui";
-import OmniInstallAppButton from "@calcom/web/components/apps/OmniInstallAppButton";
 
 import { SetAppDataGeneric } from "../EventTypeAppContext";
 import { eventTypeAppCardZod } from "../eventTypeAppCardZod";
+import OmniInstallAppButton from "./OmniInstallAppButton";
 
 export default function AppCard({
   app,
