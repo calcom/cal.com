@@ -44,7 +44,6 @@ type InputFieldProps = {
   addOnLeading?: ReactNode;
   addOnSuffix?: ReactNode;
   inputIsFullWidth?: boolean;
-  /**@Default paddingX 12px  */
   addOnPadding?: number;
   addOnFilled?: boolean;
   addOnClassname?: string;
@@ -62,13 +61,15 @@ type AddonProps = {
   isFilled?: boolean;
   className?: string;
   error?: boolean;
-  paddingX?: number;
 };
 
-const Addon = ({ isFilled, children, className, error, paddingX = 12 }: AddonProps) => (
+const Addon = ({ isFilled, children, className, error }: AddonProps) => (
   <div
-    style={{ padding: `0 ${paddingX}px` }}
-    className={classNames("addon-wrapper h-9 border border-gray-300", isFilled && "bg-gray-100", className)}>
+    className={classNames(
+      "addon-wrapper h-9 border border-gray-300 px-3",
+      isFilled && "bg-gray-100",
+      className
+    )}>
     <div className={classNames("flex h-full flex-col justify-center text-sm", error && "text-red-900")}>
       <span className="whitespace-nowrap py-2.5">{children}</span>
     </div>
@@ -91,7 +92,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     addOnSuffix,
     addOnFilled = true,
     addOnClassname,
-    addOnPadding,
     inputIsFullWidth,
     hint,
     type,
@@ -119,10 +119,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
       {addOnLeading || addOnSuffix ? (
         <div className="relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1">
           {addOnLeading && (
-            <Addon
-              isFilled={addOnFilled}
-              className={classNames("rounded-l-md border-r-0", addOnClassname)}
-              paddingX={addOnPadding}>
+            <Addon isFilled={addOnFilled} className={classNames("rounded-l-md border-r-0", addOnClassname)}>
               {addOnLeading}
             </Addon>
           )}
@@ -147,10 +144,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             ref={ref}
           />
           {addOnSuffix && (
-            <Addon
-              isFilled={addOnFilled}
-              className={classNames("rounded-r-md border-l-0", addOnClassname)}
-              paddingX={addOnPadding}>
+            <Addon isFilled={addOnFilled} className={classNames("rounded-r-md border-l-0", addOnClassname)}>
               {addOnSuffix}
             </Addon>
           )}
@@ -371,7 +365,7 @@ export const InputFieldWithSelect = forwardRef<
       ref={ref}
       {...props}
       inputIsFullWidth={false}
-      addOnPadding={0}
+      addOnClassname="!px-0"
       addOnSuffix={<UnstyledSelect {...props.selectProps} />}
     />
   );
