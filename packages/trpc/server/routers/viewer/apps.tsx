@@ -71,13 +71,23 @@ export const appsRouter = router({
             const appKey = deriveAppDictKeyFromType(app.type, appKeysSchemas);
             const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
 
-            const keys = {};
+            const keys: {
+              [key: string]: string;
+            } = {};
 
             if (typeof keysSchema !== "undefined") {
-              keysSchema.keyof()._def.values.reduce((keysObject, key) => {
-                keys[key] = "";
-                return keysObject;
-              }, {});
+              keysSchema.keyof()._def.values.reduce(
+                (
+                  keysObject: {
+                    [key: string]: string;
+                  },
+                  key: string
+                ) => {
+                  keys[key] = "";
+                  return keysObject;
+                },
+                {}
+              );
             }
 
             filteredApps.push({

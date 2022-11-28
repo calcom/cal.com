@@ -3,14 +3,18 @@ import type { CredentialData } from "@calcom/app-store/utils";
 import { prisma } from "@calcom/prisma";
 
 const getEnabledApps = async (userCredentials: CredentialData[]) => {
-  const enabledApps = await prisma.app.findMany();
+  const enabledApps = await prisma.app.findMany({ select: { slug: true, enabled: true } });
 
   const apps = getApps(userCredentials);
 
-  const filteredApps = enabledApps.map((app) => {
+  const filteredApps = enabledApps.reduce((reducedArray, app) => {
     const appMetadata = apps.find((metadata) => metadata.slug === app.slug);
-    return { ...appMetadata, enabled: app.enabled };
-  });
+    if (appMetadata) {
+      reducedArray.push({ ...appMetadata, enabled: app.enabled });
+    }
+    return reducedArray;
+    // return { ...appMetadata, enabled: app.enabled };
+  }, [] as (ReturnType<typeof getApps>[number] & { enabled: boolean })[]);
 
   return filteredApps;
 };

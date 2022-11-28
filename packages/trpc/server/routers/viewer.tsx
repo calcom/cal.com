@@ -429,10 +429,9 @@ const loggedInViewerRouter = router({
       const { variant, exclude, onlyInstalled } = input;
       const { credentials } = user;
 
-      let apps = await getEnabledApps(credentials);
-      apps = credentials.map(({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => {
-        console.log("🚀 ~ file: viewer.tsx ~ line 444 ~ apps=credentials.map ~ app", app);
+      const enabledApps = await getEnabledApps(credentials);
 
+      let apps = enabledApps.map(({ credentials: _, credential: _1, ...app }) => {
         const credentialIds = credentials.filter((c) => c.type === app.type).map((c) => c.id);
         const invalidCredentialIds = credentials
           .filter((c) => c.type === app.type && c.invalid)
@@ -787,6 +786,7 @@ const loggedInViewerRouter = router({
         key: true,
         userId: true,
         appId: true,
+        invalid: true,
       },
     });
 
