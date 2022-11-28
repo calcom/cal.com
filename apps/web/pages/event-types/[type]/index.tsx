@@ -266,7 +266,17 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
           if (bookingLimits) {
             const isValid = validateBookingLimitOrder(bookingLimits);
-            if (!isValid) throw new Error("Booking limits must be in accending order. [day,week,month,year]");
+            if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
+          }
+
+          if (metadata?.multipleDuration !== undefined) {
+            if (metadata?.multipleDuration.length < 1) {
+              throw new Error(t("event_setup_multiple_duration_error"));
+            } else {
+              if (!metadata?.multipleDuration?.includes(input.length)) {
+                throw new Error(t("event_setup_multiple_duration_default_error"));
+              }
+            }
           }
 
           updateMutation.mutate({
