@@ -19,7 +19,7 @@ interface FilteredApp {
   title?: string;
   type: string;
   description: string;
-  keys: unknown;
+  keys: Prisma.JsonObject | null;
   enabled: boolean;
 }
 
@@ -64,6 +64,9 @@ export const appsRouter = router({
               title: app.title,
               type: app.type,
               description: app.description,
+              // We know that keys are going to be an object or null. Prisma can not type check against JSON fields
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              //@ts-ignore
               keys: dbData.keys,
               enabled: dbData?.enabled || false,
             });

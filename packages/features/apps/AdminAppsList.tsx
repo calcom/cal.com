@@ -7,11 +7,12 @@ import { z } from "zod";
 
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
+import { trpc, RouterOutputs } from "@calcom/trpc/react";
 import {
   Button,
   Dialog,
   DialogContent,
+  ConfirmationDialogContent,
   Form,
   KeyField,
   showToast,
@@ -24,7 +25,15 @@ import {
   TextField,
 } from "@calcom/ui";
 
-const IntegrationContainer = ({ app, lastEntry, category }) => {
+const IntegrationContainer = ({
+  app,
+  lastEntry,
+  category,
+}: {
+  app: RouterOutputs["viewer"]["appsRouter"]["listLocal"][number];
+  lastEntry: boolean;
+  category: string;
+}) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const [disableDialog, setDisableDialog] = useState(false);
@@ -65,32 +74,34 @@ const IntegrationContainer = ({ app, lastEntry, category }) => {
               <p className="truncate text-sm text-gray-500">{app.description}</p>
             </div>
             <div className="flex justify-self-end">
-              <Switch
-                checked={app.enabled}
-                onClick={() => {
-                  if (app.enabled) {
-                    setDisableDialog(true);
-                  } else {
-                    enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
-                    setShowKeys(true);
-                  }
-                }}
-              />
-              {app.keys && (
-                <>
-                  <VerticalDivider className="h-10" />
+              <>
+                <Switch
+                  checked={app.enabled}
+                  onClick={() => {
+                    if (app.enabled) {
+                      setDisableDialog(true);
+                    } else {
+                      enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
+                      setShowKeys(true);
+                    }
+                  }}
+                />
+                {app.keys && (
+                  <>
+                    <VerticalDivider className="h-10" />
 
-                  <CollapsibleTrigger>
-                    <Button
-                      color="secondary"
-                      size="icon"
-                      tooltip={t("edit_keys")}
-                      onClick={() => setShowKeys(!showKeys)}>
-                      <Icon.FiEdit />
-                    </Button>
-                  </CollapsibleTrigger>
-                </>
-              )}
+                    <CollapsibleTrigger>
+                      <Button
+                        color="secondary"
+                        size="icon"
+                        tooltip={t("edit_keys")}
+                        onClick={() => setShowKeys(!showKeys)}>
+                        <Icon.FiEdit />
+                      </Button>
+                    </CollapsibleTrigger>
+                  </>
+                )}
+              </>
             </div>
           </div>
           <CollapsibleContent>
@@ -101,25 +112,26 @@ const IntegrationContainer = ({ app, lastEntry, category }) => {
                   saveKeysMutation.mutate({ slug: app.slug, type: app.type, keys: values })
                 }
                 className="px-4 pb-4">
-                {Object.keys(app.keys)?.map((key) => (
-                  <Controller
-                    name={key}
-                    key={key}
-                    control={formMethods.control}
-                    defaultValue={app.keys[key]}
-                    render={({ field: { value } }) => (
-                      <TextField
-                        label={key}
-                        key={key}
-                        name={key}
-                        value={value}
-                        onChange={(e) => {
-                          formMethods.setValue(key, e?.target.value);
-                        }}
-                      />
-                    )}
-                  />
-                ))}
+                {typeof app.keys === "object" &&
+                  Object.keys(app.keys)?.map((key) => (
+                    <Controller
+                      name={key}
+                      key={key}
+                      control={formMethods.control}
+                      defaultValue={app?.keys ? [key] : ""}
+                      render={({ field: { value } }) => (
+                        <TextField
+                          label={key}
+                          key={key}
+                          name={key}
+                          value={value}
+                          onChange={(e) => {
+                            formMethods.setValue(key, e?.target.value);
+                          }}
+                        />
+                      )}
+                    />
+                  ))}
                 <Button type="submit">Save</Button>
               </Form>
             )}
@@ -128,15 +140,14 @@ const IntegrationContainer = ({ app, lastEntry, category }) => {
       </Collapsible>
 
       <Dialog open={disableDialog} onOpenChange={setDisableDialog}>
-        <DialogContent
+        <ConfirmationDialogContent
           title={t("disable_app")}
-          type="confirmation"
-          description={t("disable_app_description")}
-          actionText={t("disable")}
-          actionOnClick={() => {
+          variety="danger"
+          onConfirm={() => {
             enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
-          }}
-        />
+          }}>
+          {t("disable_app_description")}
+        </ConfirmationDialogContent>
       </Dialog>
     </>
   );
