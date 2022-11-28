@@ -649,11 +649,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               </div>
             </div>
             <div className="flex flex-row-reverse">
-              <DialogClose asChild>
-                <Button color="primary" type="button">
-                  {t("close")}
-                </Button>
-              </DialogClose>
+              <DialogClose color="primary" />
             </div>
           </DialogContent>
         </Dialog>
