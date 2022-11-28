@@ -47,13 +47,20 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
   const videoAdapters = getVideoAdapters([credential]);
   const [firstVideoAdapter] = videoAdapters;
   let createdMeeting;
-  let returnObject = {
+  let returnObject: {
+    appName: string;
+    type: string;
+    uid: string;
+    originalEvent: CalendarEvent;
+    success: boolean;
+    createdEvent: VideoCallData | undefined;
+  } = {
     appName: credential.appName,
     type: credential.type,
     uid,
     originalEvent: calEvent,
     success: false,
-    createdMeeting: null,
+    createdEvent: undefined,
   };
   try {
     // Check to see if video app is enabled
@@ -81,7 +88,7 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
       calEvent.location = "integrations:dailyvideo";
     }
 
-    returnObject = { ...returnObject, errorMessage: err, createdEvent: defaultMeeting };
+    returnObject = { ...returnObject, createdEvent: defaultMeeting };
   }
 
   return returnObject;

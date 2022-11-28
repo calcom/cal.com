@@ -497,7 +497,7 @@ const loggedInViewerRouter = router({
 
       const apps = await getEnabledApps(credentials);
       return apps
-        .filter((app) => app.extendsFeature?.includes(input.extendsFeature) && app.slug)
+        .filter((app) => app.extendsFeature?.includes(input.extendsFeature))
         .map((app) => ({
           ...app,
           isInstalled: !!app.credentials?.length,
