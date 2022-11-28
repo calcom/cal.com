@@ -47,7 +47,7 @@ let isSafariBrowser = false;
 const isBrowser = typeof window !== "undefined";
 
 if (isBrowser) {
-  window.CalEmbed = window.CalEmbed || {};
+  window.CalEmbed = window?.CalEmbed || {};
   window.CalEmbed.embedStore = embedStore;
   const ua = navigator.userAgent.toLowerCase();
   isSafariBrowser = ua.includes("safari") && !ua.includes("chrome");
@@ -201,7 +201,7 @@ function getNamespace() {
     return embedStore.namespace;
   }
   if (isBrowser) {
-    const namespace = window.getEmbedNamespace();
+    const namespace = window?.getEmbedNamespace?.() || null;
     embedStore.namespace = namespace;
     return namespace;
   }
@@ -228,7 +228,7 @@ export const useIsEmbed = (embedSsr?: boolean) => {
         "Looks like you have iframed cal.com but not using Embed Snippet. Directly using an iframe isn't recommended."
       );
     }
-    setIsEmbed(window.isEmbed());
+    setIsEmbed(window?.isEmbed?.() || false);
   }, []);
   return isEmbed;
 };
@@ -254,7 +254,7 @@ export const methods = {
 
     // In case where parent gives instructions before CalComPlan is set.
     // This is easily possible as React takes time to initialize and render components where this variable is set.
-    if (!window.CalComPlan) {
+    if (!window?.CalComPlan) {
       return requestAnimationFrame(() => {
         style(uiConfig);
       });
@@ -364,10 +364,10 @@ function keepParentInformedAboutDimensionChanges() {
 }
 
 if (isBrowser) {
-  log("Embed SDK loaded", { isEmbed: window.isEmbed() });
+  log("Embed SDK loaded", { isEmbed: window?.isEmbed?.() || false });
   const url = new URL(document.URL);
-  embedStore.theme = (window.getEmbedTheme() || "auto") as UiConfig["theme"];
-  if (url.searchParams.get("prerender") !== "true" && window.isEmbed()) {
+  embedStore.theme = (window?.getEmbedTheme?.() || "auto") as UiConfig["theme"];
+  if (url.searchParams.get("prerender") !== "true" && window?.isEmbed?.()) {
     log("Initializing embed-iframe");
     // HACK
     const pageStatus = window.CalComPageStatus;
