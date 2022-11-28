@@ -127,7 +127,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             placeholder={placeholder}
             value={inputValue}
             onChange={(e) => {
-              console.log("entrooo");
               setInputValue(e.target.value);
               onChange && onChange(e);
             }}
