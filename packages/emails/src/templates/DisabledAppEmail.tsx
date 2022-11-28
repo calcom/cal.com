@@ -20,7 +20,9 @@ export const DisabledAppEmail = (
     <BaseEmailHtml subject={t("app_disabled", { appName: appName })}>
       {appType.some((type) => type === "payment") ? (
         <>
-          <p>{t("disabled_app_affects_event_type", { appName: appName, eventType: title })}</p>
+          <p>
+            <>{t("disabled_app_affects_event_type", { appName: appName, eventType: title })}</>
+          </p>
           <p style={{ fontWeight: 400, lineHeight: "24px" }}>
             <>{t("payment_disabled_still_able_to_book")}</>
           </p>
@@ -60,7 +62,9 @@ export const DisabledAppEmail = (
           <p>
             <>{t("admin_has_disabled", { appName })}</>
           </p>
-          <p style={{ fontWeight: 400, lineHeight: "24px" }}>{t("disabled_calendar")}</p>
+          <p style={{ fontWeight: 400, lineHeight: "24px" }}>
+            <>{t("disabled_calendar")}</>
+          </p>
 
           <hr style={{ marginBottom: "24px" }} />
 

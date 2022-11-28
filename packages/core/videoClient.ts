@@ -38,7 +38,7 @@ const getBusyVideoTimes = (withCredentials: CredentialPayload[]) =>
 const createMeeting = async (credential: CredentialWithAppName, calEvent: CalendarEvent) => {
   const uid: string = getUid(calEvent);
 
-  if (!credential) {
+  if (!credential || !credential.appId) {
     throw new Error(
       "Credentials must be set! Video platforms are optional, so this method shouldn't even be called when no video credentials are set."
     );
@@ -52,6 +52,7 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
     type: credential.type,
     uid,
     originalEvent: calEvent,
+    success: false,
   };
   try {
     // Check to see if video app is enabled
@@ -71,7 +72,7 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
     returnObject = { ...returnObject, createdEvent: createdMeeting, success: true };
 
     if (!createdMeeting) {
-      returnObject = { ...returnObject, success: false };
+      returnObject = { ...returnObject };
     }
   } catch (err) {
     await sendBrokenIntegrationEmail(calEvent, "video");
@@ -80,11 +81,10 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
     // Default to calVideo
     const defaultMeeting = await createMeetingWithCalVideo(calEvent);
     if (defaultMeeting) {
-      createdMeeting = defaultMeeting;
       calEvent.location = "integrations:dailyvideo";
     }
 
-    returnObject = { ...returnObject, success: false, errorMessage: err };
+    returnObject = { ...returnObject, errorMessage: err, createdEvent: defaultMeeting };
   }
 
   return returnObject;
