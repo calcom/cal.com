@@ -163,7 +163,7 @@ export default function ImageUploader({
           {buttonMsg}
         </Button>
       </DialogTrigger>
-      <DialogContent useOwnActionButtons>
+      <DialogContent>
         <div className="mb-4 sm:flex sm:items-start">
           <div className="mt-3 text-center sm:mt-0 sm:text-left">
             <h3 className="font-cal text-lg leading-6 text-gray-900" id="modal-title">
@@ -201,12 +201,8 @@ export default function ImageUploader({
           </div>
         </div>
         <div className="mt-5 flex flex-row-reverse gap-x-2 sm:mt-4">
-          <DialogClose asChild>
-            <Button onClick={() => showCroppedImage(croppedAreaPixels)}>{t("save")}</Button>
-          </DialogClose>
-          <DialogClose asChild>
-            <Button color="secondary">{t("cancel")}</Button>
-          </DialogClose>
+          <DialogClose onClick={() => showCroppedImage(croppedAreaPixels)}>{t("save")}</DialogClose>
+          <DialogClose color="secondary">{t("cancel")}</DialogClose>
         </div>
       </DialogContent>
     </Dialog>

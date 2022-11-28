@@ -205,7 +205,6 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
       <DialogContent
         type="creation"
         className="overflow-y-auto"
-        useOwnActionButtons
         title={teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
         description={t("new_event_type_to_book_description")}>
         <Form
@@ -315,9 +314,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
             <Button type="submit" loading={createMutation.isLoading}>
               {t("continue")}
             </Button>
-            <DialogClose asChild>
-              <Button color="secondary">{t("cancel")}</Button>
-            </DialogClose>
+            <DialogClose />
           </div>
         </Form>
       </DialogContent>
