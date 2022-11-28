@@ -163,7 +163,7 @@ export default function ImageUploader({
           {buttonMsg}
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent useOwnActionButtons>
         <div className="mb-4 sm:flex sm:items-start">
           <div className="mt-3 text-center sm:mt-0 sm:text-left">
             <h3 className="font-cal text-lg leading-6 text-gray-900" id="modal-title">
