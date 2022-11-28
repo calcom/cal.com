@@ -14,5 +14,6 @@ export {
   TextArea,
   TextAreaField,
   TextField,
+  InputFieldWithSelect,
 } from "./inputs/Input";
 export { Label } from "./inputs/Label";

@@ -23,6 +23,7 @@ export {
   TextArea,
   TextAreaField,
   TextField,
+  InputFieldWithSelect,
 } from "./form";
 export { TopBanner } from "./top-banner";
 export type { TopBannerProps } from "./top-banner";
