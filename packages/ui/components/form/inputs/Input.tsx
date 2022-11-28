@@ -6,19 +6,23 @@ import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Alert, Icon, showToast, Skeleton, Tooltip } from "../../..";
+import { Alert, showToast, Icon, Skeleton, Tooltip, UnstyledSelect } from "../../..";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 
-type InputProps = JSX.IntrinsicElements["input"];
+type InputProps = JSX.IntrinsicElements["input"] & { isFullWidth?: boolean };
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(props, ref) {
+export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
+  { isFullWidth = true, ...props },
+  ref
+) {
   return (
     <input
       {...props}
       ref={ref}
       className={classNames(
-        "mb-2 block h-9 w-full rounded-md border border-gray-300 py-2 px-3 text-sm placeholder:text-gray-400 hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
+        "mb-2 block h-9 rounded-md border border-gray-300 py-2 px-3 text-sm placeholder:text-gray-400 hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
+        isFullWidth && "w-full",
         props.className
       )}
     />
@@ -39,6 +43,9 @@ type InputFieldProps = {
   hintErrors?: string[];
   addOnLeading?: ReactNode;
   addOnSuffix?: ReactNode;
+  inputIsFullWidth?: boolean;
+  /**@Default paddingX 12px  */
+  addOnPadding?: number;
   addOnFilled?: boolean;
   addOnClassname?: string;
   error?: string;
@@ -55,15 +62,13 @@ type AddonProps = {
   isFilled?: boolean;
   className?: string;
   error?: boolean;
+  paddingX?: number;
 };
 
-const Addon = ({ isFilled, children, className, error }: AddonProps) => (
+const Addon = ({ isFilled, children, className, error, paddingX = 12 }: AddonProps) => (
   <div
-    className={classNames(
-      "addon-wrapper h-9 border border-gray-300 px-3",
-      isFilled && "bg-gray-100",
-      className
-    )}>
+    style={{ padding: `0 ${paddingX}px` }}
+    className={classNames("addon-wrapper h-9 border border-gray-300", isFilled && "bg-gray-100", className)}>
     <div className={classNames("flex h-full flex-col justify-center text-sm", error && "text-red-900")}>
       <span className="whitespace-nowrap py-2.5">{children}</span>
     </div>
@@ -86,6 +91,8 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     addOnSuffix,
     addOnFilled = true,
     addOnClassname,
+    addOnPadding,
+    inputIsFullWidth,
     hint,
     type,
     onChange,
@@ -112,7 +119,10 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
       {addOnLeading || addOnSuffix ? (
         <div className="relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1">
           {addOnLeading && (
-            <Addon isFilled={addOnFilled} className={classNames("rounded-l-md border-r-0", addOnClassname)}>
+            <Addon
+              isFilled={addOnFilled}
+              className={classNames("rounded-l-md border-r-0", addOnClassname)}
+              paddingX={addOnPadding}>
               {addOnLeading}
             </Addon>
           )}
@@ -125,6 +135,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               setInputValue(e.target.value);
               onChange && onChange(e);
             }}
+            isFullWidth={inputIsFullWidth}
             className={classNames(
               className,
               addOnLeading && "rounded-l-none",
@@ -136,7 +147,10 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             ref={ref}
           />
           {addOnSuffix && (
-            <Addon isFilled={addOnFilled} className={classNames("rounded-r-md border-l-0", addOnClassname)}>
+            <Addon
+              isFilled={addOnFilled}
+              className={classNames("rounded-r-md border-l-0", addOnClassname)}
+              paddingX={addOnPadding}>
               {addOnSuffix}
             </Addon>
           )}
@@ -151,7 +165,14 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           )}
         </div>
       ) : (
-        <Input id={id} placeholder={placeholder} className={className} {...passThrough} ref={ref} />
+        <Input
+          id={id}
+          placeholder={placeholder}
+          className={className}
+          {...passThrough}
+          ref={ref}
+          isFullWidth={inputIsFullWidth}
+        />
       )}
       <HintsOrErrors hintErrors={hintErrors} fieldName={name} t={t} />
       {hint && <div className="text-gray mt-2 flex items-center text-sm text-gray-700">{hint}</div>}
@@ -340,3 +361,18 @@ export function InputGroupBox(props: JSX.IntrinsicElements["div"]) {
     </div>
   );
 }
+
+export const InputFieldWithSelect = forwardRef<
+  HTMLInputElement,
+  InputFieldProps & { selectProps: typeof UnstyledSelect }
+>(function EmailField(props, ref) {
+  return (
+    <InputField
+      ref={ref}
+      {...props}
+      inputIsFullWidth={false}
+      addOnPadding={0}
+      addOnSuffix={<UnstyledSelect {...props.selectProps} />}
+    />
+  );
+});
