@@ -155,6 +155,7 @@ const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
       type: "daily_video",
       userId: null,
       key: await getDailyAppKeys(),
+      invalid: false,
     },
   ]);
   return videoAdapter?.createMeeting(calEvent);

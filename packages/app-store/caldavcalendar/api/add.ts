@@ -28,6 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       ),
       userId: user.id,
       appId: "caldav-calendar",
+      invalid: false,
     };
 
     try {

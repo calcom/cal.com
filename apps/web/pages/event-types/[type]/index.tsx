@@ -472,6 +472,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       key: true,
       userId: true,
       appId: true,
+      invalid: true,
     },
   });
 
