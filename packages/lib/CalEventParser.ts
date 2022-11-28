@@ -123,15 +123,15 @@ export const getProviderName = (calEvent: CalendarEvent): string => {
   return "";
 };
 
+export const getUid = (calEvent: CalendarEvent): string => {
+  return calEvent.uid ?? translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
+};
+
 export const getManageLink = (calEvent: CalendarEvent) => {
   return `
 ${calEvent.organizer.language.translate("need_to_reschedule_or_cancel")}
-${getCancelLink(calEvent)}
+${WEBAPP_URL + "/success?uid=" + getUid(calEvent) + "&changes=true"}
   `;
-};
-
-export const getUid = (calEvent: CalendarEvent): string => {
-  return calEvent.uid ?? translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
 };
 
 export const getCancelLink = (calEvent: CalendarEvent): string => {

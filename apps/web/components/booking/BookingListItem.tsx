@@ -199,7 +199,6 @@ function BookingListItem(booking: BookingItemProps) {
       query: {
         uid: booking.uid,
         allRemainingBookings: isTabRecurring,
-        listingStatus: booking.listingStatus,
         email: booking.attendees[0] ? booking.attendees[0].email : undefined,
       },
     });
