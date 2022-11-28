@@ -19,18 +19,22 @@ import {
   SkeletonContainer,
   SkeletonText,
   Switch,
+  VerticalDivider,
+  Icon,
+  TextField,
 } from "@calcom/ui";
 
 const IntegrationContainer = ({ app, lastEntry, category }) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const [disableDialog, setDisableDialog] = useState(false);
+  const [showKeys, setShowKeys] = useState(false);
 
   const formMethods = useForm();
 
   const enableAppMutation = trpc.viewer.appsRouter.toggle.useMutation({
     onSuccess: (enabled) => {
-      utils.viewer.appsRouter.listLocal.invalidate({ variant: category });
+      utils.viewer.appsRouter.listLocal.invalidate({ category });
       setDisableDialog(false);
       showToast(
         enabled ? t("app_is_enabled", { appName: app.name }) : t("app_is_disabled", { appName: app.name }),
@@ -47,7 +51,7 @@ const IntegrationContainer = ({ app, lastEntry, category }) => {
 
   return (
     <>
-      <Collapsible key={app.name} open={app.enabled}>
+      <Collapsible key={app.name} open={showKeys}>
         <div className={`${!lastEntry && "border-b"}`}>
           <div className="flex w-full flex-1 items-center justify-between space-x-3 p-4 rtl:space-x-reverse md:max-w-3xl">
             {
@@ -60,18 +64,29 @@ const IntegrationContainer = ({ app, lastEntry, category }) => {
               </h3>
               <p className="truncate text-sm text-gray-500">{app.description}</p>
             </div>
-            <div className="justify-self-end">
+            <div className="flex justify-self-end">
+              <Switch
+                checked={app.enabled}
+                onClick={() => {
+                  if (app.enabled) {
+                    setDisableDialog(true);
+                  } else {
+                    enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
+                    setShowKeys(true);
+                  }
+                }}
+              />
+
+              <VerticalDivider className="h-10" />
+
               <CollapsibleTrigger>
-                <Switch
-                  checked={app.enabled}
-                  onClick={() => {
-                    if (app.enabled) {
-                      setDisableDialog(true);
-                    } else {
-                      enableAppMutation.mutate({ slug: app.slug, enabled: app.enabled });
-                    }
-                  }}
-                />
+                <Button
+                  color="secondary"
+                  size="icon"
+                  tooltip={t("edit_keys")}
+                  onClick={() => setShowKeys(!showKeys)}>
+                  <Icon.FiEdit />
+                </Button>
               </CollapsibleTrigger>
             </div>
           </div>
@@ -90,7 +105,7 @@ const IntegrationContainer = ({ app, lastEntry, category }) => {
                     control={formMethods.control}
                     defaultValue={app.keys[key]}
                     render={({ field: { value } }) => (
-                      <KeyField
+                      <TextField
                         label={key}
                         key={key}
                         name={key}
@@ -137,7 +152,12 @@ const AdminAppsList = ({ baseURL }: { baseURL: string }) => {
 
   const { data: apps, isLoading } = trpc.viewer.appsRouter.listLocal.useQuery(
     { category },
-    { enabled: router.isReady }
+    {
+      enabled: router.isReady,
+      onSuccess: () => {
+        console.log("Fetched");
+      },
+    }
   );
 
   return (

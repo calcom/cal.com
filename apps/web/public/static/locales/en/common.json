@@ -1394,5 +1394,6 @@
   "keys_have_been_saved": "Keys have been saved",
   "disable_app": "Disable App",
   "disable_app_description": "Disabling this app could cause problems with how your users interact with Cal",
-  "fill_this_field": "Please fill in this field"
+  "fill_this_field": "Please fill in this field",
+  "edit_keys": "Edit Keys"
 }

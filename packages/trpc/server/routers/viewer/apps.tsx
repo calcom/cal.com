@@ -94,6 +94,8 @@ export const appsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { prisma } = ctx;
 
+      console.log(input);
+
       // Get app name from metadata
       const localApps = getLocalAppMetadata();
       const appMetadata = localApps.find((localApp) => localApp.slug === input.slug);
@@ -115,6 +117,7 @@ export const appsRouter = router({
           keys: undefined,
         },
       });
+      console.log("🚀 ~ file: apps.tsx ~ line 120 ~ .mutation ~ app", app);
 
       // If disabling an app then we need to alert users basesd on the app type
       if (input.enabled) {
