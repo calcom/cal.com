@@ -237,9 +237,7 @@ function BookingListItem(booking: BookingItemProps) {
           />
 
           <DialogFooter>
-            <DialogClose>
-              <Button color="secondary">{t("cancel")}</Button>
-            </DialogClose>
+            <DialogClose />
 
             <Button
               disabled={mutation.isLoading}
