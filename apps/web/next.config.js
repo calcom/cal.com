@@ -149,6 +149,10 @@ const nextConfig = {
         source: "/router",
         destination: "/apps/routing-forms/router",
       },
+      {
+        source: "/success/:path*",
+        destination: "/manage/:path*",
+      },
       /* TODO: have these files being served from another deployment or CDN {
         source: "/embed/embed.js",
         destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
