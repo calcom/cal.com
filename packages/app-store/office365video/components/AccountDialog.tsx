@@ -15,13 +15,13 @@ export function AccountDialog(props: DialogProps) {
 
         <DialogFooter>
           <DialogClose
+            type="button"
+            color="secondary"
+            tabIndex={-1}
             onClick={() => {
               props.onOpenChange?.(false);
-            }}
-            asChild>
-            <Button type="button" color="secondary" tabIndex={-1}>
-              Cancel
-            </Button>
+            }}>
+            Cancel
           </DialogClose>
 
           <Button type="button" onClick={() => mutation.mutate("")}>

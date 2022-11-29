@@ -211,7 +211,6 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
       <DialogContent
         type="creation"
         Icon={Icon.FiMapPin}
-        useOwnActionButtons
         title={t("edit_location")}
         description={!booking ? t("this_input_will_shown_booking_this_event") : undefined}>
         {booking && (
