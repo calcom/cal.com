@@ -5,7 +5,9 @@ import { trpc } from "@calcom/trpc/react";
 import {
   Button,
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogFooter,
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -111,10 +113,14 @@ const ConferencingLayout = () => {
           title={t("Remove app")}
           description={t("are_you_sure_you_want_to_remove_this_app")}
           type="confirmation"
-          actionText={t("yes_remove_app")}
-          Icon={Icon.FiAlertCircle}
-          actionOnClick={() => deleteAppMutation.mutate({ id: deleteCredentialId })}
-        />
+          Icon={Icon.FiAlertCircle}>
+          <DialogFooter>
+            <Button color="primary" onClick={() => deleteAppMutation.mutate({ id: deleteCredentialId })}>
+              {t("yes_remove_app")}
+            </Button>
+            <DialogClose />
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </div>
   );

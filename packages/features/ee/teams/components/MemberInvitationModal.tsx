@@ -66,7 +66,6 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
       }}>
       <DialogContent
         type="creation"
-        useOwnActionButtons
         title={t("invite_new_member")}
         description={
           IS_TEAM_BILLING_ENABLED ? (
