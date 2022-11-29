@@ -227,7 +227,7 @@ export const createEvent = async (
     createdEvent: creationResult,
     originalEvent: calEvent,
     calError,
-    calWarnings: creationResult?.additionalInfo.calWarnings,
+    calWarnings: creationResult?.additionalInfo?.calWarnings || [],
   };
 };
 
