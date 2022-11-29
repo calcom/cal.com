@@ -11,19 +11,25 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
-import { Alert } from "@calcom/ui/Alert";
-import { Button } from "@calcom/ui/Button";
-import { Dialog, DialogClose, DialogContent } from "@calcom/ui/Dialog";
-import Dropdown, {
+import {
+  Alert,
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@calcom/ui/Dropdown";
-import { Icon } from "@calcom/ui/Icon";
-import { Form, InputLeading, TextAreaField, TextField } from "@calcom/ui/form/fields";
-import showToast from "@calcom/ui/v2/core/notifications";
+  Form,
+  Icon,
+  InputLeading,
+  showToast,
+  TextAreaField,
+  TextField,
+} from "@calcom/ui";
 
 import { HttpError } from "@lib/core/http/error";
 import { slugify } from "@lib/slugify";
@@ -258,9 +264,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
             <Button type="submit" loading={createMutation.isLoading}>
               {t("continue")}
             </Button>
-            <DialogClose asChild>
-              <Button color="secondary">{t("cancel")}</Button>
-            </DialogClose>
+            <DialogClose />
           </div>
         </Form>
       </DialogContent>

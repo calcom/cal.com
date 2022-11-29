@@ -2,10 +2,18 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Button, ButtonProps } from "@calcom/ui/components/button";
-import { Dialog, DialogTrigger, DialogContent } from "@calcom/ui/v2/core/Dialog";
-import showToast from "@calcom/ui/v2/core/notifications";
+
+import {
+  Button,
+  ButtonProps,
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  Icon,
+  showToast,
+  DialogFooter,
+  DialogClose,
+} from "../../..";
 
 export default function DisconnectIntegration({
   credentialId,
@@ -54,10 +62,14 @@ export default function DisconnectIntegration({
           title={t("remove_app")}
           description={t("are_you_sure_you_want_to_remove_this_app")}
           type="confirmation"
-          actionText={t("yes_remove_app")}
-          Icon={Icon.FiAlertCircle}
-          actionOnClick={() => mutation.mutate({ id: credentialId })}
-        />
+          Icon={Icon.FiAlertCircle}>
+          <DialogFooter>
+            <DialogClose onClick={() => setModalOpen(false)} />
+            <DialogClose color="primary" onClick={() => mutation.mutate({ id: credentialId })}>
+              {t("yes_remove_app")}
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </>
   );

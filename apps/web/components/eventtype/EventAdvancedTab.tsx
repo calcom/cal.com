@@ -10,9 +10,21 @@ import DestinationCalendarSelector from "@calcom/features/calendars/DestinationC
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Checkbox, Button, TextField, Label } from "@calcom/ui/components";
-import { CustomInputItem, Dialog, DialogContent, SettingsToggle, showToast, Tooltip } from "@calcom/ui/v2";
+import {
+  Button,
+  Checkbox,
+  CustomInputItem,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  Icon,
+  Label,
+  SettingsToggle,
+  showToast,
+  TextField,
+  Tooltip,
+} from "@calcom/ui";
 
 import CustomInputTypeForm from "@components/eventtype/CustomInputTypeForm";
 
@@ -342,11 +354,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
           <DialogContent
             title={t("custom_event_name")}
             description={t("custom_event_name_description")}
-            type="creation"
-            actionText="Create"
-            // Set event name back to what it was on close
-            actionOnClose={() => formMethods.setValue("eventName", eventType.eventName ?? "")}
-            actionOnClick={() => setShowEventNameTip(false)}>
+            type="creation">
             <TextField
               label={t("event_name")}
               type="text"
@@ -360,6 +368,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               <p>{`{HOST/ATTENDEE} = ${t("dynamically_display_attendee_or_organizer")}`}</p>
               <p>{`{LOCATION} = ${t("event_location")}`}</p>
             </div>
+            <DialogFooter>
+              <Button color="primary" onClick={() => setShowEventNameTip(false)}>
+                {t("create")}
+              </Button>
+              <DialogClose onClick={() => formMethods.setValue("eventName", eventType.eventName ?? "")} />
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
@@ -373,7 +387,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               type="creation"
               Icon={Icon.FiPlus}
               title={t("add_new_custom_input_field")}
-              useOwnActionButtons
               description={t("this_input_will_shown_booking_this_event")}>
               <CustomInputTypeForm
                 selectedCustomInput={selectedCustomInput}

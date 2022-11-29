@@ -9,8 +9,8 @@ import { z } from "zod";
 
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import getApps, { getEventTypeAppData, getLocationOptions } from "@calcom/app-store/utils";
-import { LocationObject, EventLocationType } from "@calcom/core/location";
-import { parseRecurringEvent, parseBookingLimit, validateBookingLimitOrder } from "@calcom/lib";
+import { EventLocationType, LocationObject } from "@calcom/core/location";
+import { parseBookingLimit, parseRecurringEvent, validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
 import findDurationType from "@calcom/lib/findDurationType";
@@ -20,8 +20,7 @@ import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { BookingLimit, RecurringEvent } from "@calcom/types/Calendar";
-import { Form } from "@calcom/ui/form/fields";
-import { showToast } from "@calcom/ui/v2";
+import { Form, showToast } from "@calcom/ui";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
@@ -151,6 +150,21 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
 
+  const metadata = eventType.metadata;
+  // fallback to !!eventType.schedule when 'useHostSchedulesForTeamEvent' is undefined
+  if (!!team) {
+    metadata.config = {
+      ...metadata.config,
+      useHostSchedulesForTeamEvent:
+        typeof eventType.metadata.config?.useHostSchedulesForTeamEvent !== "undefined"
+          ? eventType.metadata.config?.useHostSchedulesForTeamEvent === true
+          : !!eventType.schedule,
+    };
+  } else {
+    // Make sure non-team events NEVER have this config key;
+    delete metadata.config?.useHostSchedulesForTeamEvent;
+  }
+
   const formMethods = useForm<FormValues>({
     defaultValues: {
       title: eventType.title,
@@ -164,6 +178,8 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
       },
+      periodType: eventType.periodType,
+      periodCountCalendarDays: eventType.periodCountCalendarDays ? "1" : "0",
       schedulingType: eventType.schedulingType,
       minimumBookingNotice: eventType.minimumBookingNotice,
       minimumBookingNoticeInDurationType: convertToNewDurationType(
@@ -171,7 +187,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         findDurationType(eventType.minimumBookingNotice),
         eventType.minimumBookingNotice
       ),
-      metadata: eventType.metadata,
+      metadata,
     },
   });
 
@@ -255,7 +271,17 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
           if (bookingLimits) {
             const isValid = validateBookingLimitOrder(bookingLimits);
-            if (!isValid) throw new Error("Booking limits must be in accending order. [day,week,month,year]");
+            if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
+          }
+
+          if (metadata?.multipleDuration !== undefined) {
+            if (metadata?.multipleDuration.length < 1) {
+              throw new Error(t("event_setup_multiple_duration_error"));
+            } else {
+              if (!metadata?.multipleDuration?.includes(input.length)) {
+                throw new Error(t("event_setup_multiple_duration_default_error"));
+              }
+            }
           }
 
           updateMutation.mutate({

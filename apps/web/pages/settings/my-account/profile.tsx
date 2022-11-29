@@ -1,7 +1,7 @@
 import { IdentityProvider } from "@prisma/client";
 import crypto from "crypto";
 import { signOut } from "next-auth/react";
-import { useRef, useState, BaseSyntheticEvent, useEffect } from "react";
+import { BaseSyntheticEvent, useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/lib/auth";
@@ -9,17 +9,29 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
-import { Icon } from "@calcom/ui";
-import { Alert } from "@calcom/ui/Alert";
-import { Avatar } from "@calcom/ui/components/avatar";
-import { Button } from "@calcom/ui/components/button";
-import { Form, Label, TextField, PasswordField } from "@calcom/ui/components/form";
-import { Dialog, DialogContent, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
-import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
-import Meta from "@calcom/ui/v2/core/Meta";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
-import showToast from "@calcom/ui/v2/core/notifications";
-import { SkeletonContainer, SkeletonText, SkeletonButton, SkeletonAvatar } from "@calcom/ui/v2/core/skeleton";
+import {
+  Alert,
+  Avatar,
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogTrigger,
+  Form,
+  getSettingsLayout as getLayout,
+  Icon,
+  ImageUploader,
+  Label,
+  Meta,
+  PasswordField,
+  showToast,
+  SkeletonAvatar,
+  SkeletonButton,
+  SkeletonContainer,
+  SkeletonText,
+  TextField,
+} from "@calcom/ui";
 
 import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailability } from "@components/ui/UsernameAvailability";
@@ -223,7 +235,7 @@ const ProfileView = () => {
                     id="avatar-upload"
                     buttonMsg={t("change_avatar")}
                     handleAvatarChange={(newAvatar) => {
-                      formMethods.setValue("avatar", newAvatar);
+                      formMethods.setValue("avatar", newAvatar, { shouldDirty: true });
                     }}
                     imageSrc={value}
                   />
@@ -288,13 +300,7 @@ const ProfileView = () => {
             title={t("delete_account_modal_title")}
             description={t("confirm_delete_account_modal")}
             type="creation"
-            actionText={t("delete_my_account")}
-            actionProps={{
-              // @ts-expect-error data attributes aren't typed
-              "data-testid": "delete-account-confirm",
-            }}
-            Icon={Icon.FiAlertTriangle}
-            actionOnClick={(e) => e && onConfirmButton(e)}>
+            Icon={Icon.FiAlertTriangle}>
             <>
               <p className="mb-7">{t("delete_account_confirmation_message")}</p>
               {isCALIdentityProviver && (
@@ -316,6 +322,15 @@ const ProfileView = () => {
               )}
 
               {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
+              <DialogFooter>
+                <Button
+                  color="primary"
+                  data-testid="delete-account-confirm"
+                  onClick={(e) => onConfirmButton(e)}>
+                  {t("delete_my_account")}
+                </Button>
+                <DialogClose />
+              </DialogFooter>
             </>
           </DialogContent>
         </Dialog>
@@ -327,9 +342,7 @@ const ProfileView = () => {
           title={t("confirm_password")}
           description={t("confirm_password_change_email")}
           type="creation"
-          actionText={t("confirm")}
-          Icon={Icon.FiAlertTriangle}
-          actionOnClick={(e) => e && onConfirmPassword(e)}>
+          Icon={Icon.FiAlertTriangle}>
           <>
             <PasswordField
               data-testid="password"
@@ -342,6 +355,12 @@ const ProfileView = () => {
             />
 
             {confirmPasswordErrorMessage && <Alert severity="error" title={confirmPasswordErrorMessage} />}
+            <DialogFooter>
+              <Button color="primary" onClick={(e) => onConfirmPassword(e)}>
+                {t("confirm")}
+              </Button>
+              <DialogClose />
+            </DialogFooter>
           </>
         </DialogContent>
       </Dialog>

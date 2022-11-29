@@ -8,8 +8,8 @@ import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { baseEventTypeSelect } from "@calcom/prisma";
 import { EventTypeModel } from "@calcom/prisma/zod";
-import { Icon } from "@calcom/ui";
-import { Badge } from "@calcom/ui/components/badge";
+
+import { Badge, Icon } from "../../..";
 
 export type EventTypeDescriptionProps = {
   eventType: Pick<
@@ -41,11 +41,21 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
           </p>
         )}
         <ul className="mt-2 flex flex-wrap space-x-2 sm:flex-nowrap">
-          <li>
-            <Badge variant="gray" size="lg" StartIcon={Icon.FiClock}>
-              {eventType.length}m
-            </Badge>
-          </li>
+          {eventType.metadata?.multipleDuration ? (
+            eventType.metadata.multipleDuration.map((dur, idx) => (
+              <li key={idx}>
+                <Badge variant="gray" size="lg" StartIcon={Icon.FiClock}>
+                  {dur}m
+                </Badge>
+              </li>
+            ))
+          ) : (
+            <li>
+              <Badge variant="gray" size="lg" StartIcon={Icon.FiClock}>
+                {eventType.length}m
+              </Badge>
+            </li>
+          )}
           {eventType.schedulingType ? (
             <li>
               <Badge variant="gray" size="lg" StartIcon={Icon.FiUser}>

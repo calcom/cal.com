@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Close.com",
+  "title": "Close.com",
+  "slug": "closecom",
+  "type": "closecom_other_calendar",
+  "imageSrc": "/api/app-store/closecom/icon.svg",
+  "logo": "/api/app-store/closecom/icon.svg",
+  "url": "https://cal.com/apps/closecom",
+  "variant": "other",
+  "categories": ["other"],
+  "publisher": "Cal.com",
+  "email": "help@cal.com",
+  "description": "Close is the inside sales CRM of choice for startups and SMBs. Make more calls, send more emails and close more deals starting today.",
+  "__createdUsingCli": true
+}

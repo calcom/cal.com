@@ -1,14 +1,10 @@
 import { MembershipRole } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React from "react";
 
 import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { trpc } from "@calcom/trpc/react";
-import ConfirmationDialogContent from "@calcom/ui/ConfirmationDialogContent";
-import { Dialog, DialogTrigger } from "@calcom/ui/Dialog";
-import { Icon } from "@calcom/ui/Icon";
-import showToast from "@calcom/ui/v2/core/notifications";
+import { ConfirmationDialogContent, Dialog, DialogTrigger, Icon, showToast } from "@calcom/ui";
 
 import { useLocale } from "@lib/hooks/useLocale";
 

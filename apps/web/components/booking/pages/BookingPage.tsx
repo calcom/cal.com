@@ -5,7 +5,7 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useMemo, useState, useReducer } from "react";
+import { useEffect, useMemo, useReducer, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
@@ -14,11 +14,11 @@ import { z } from "zod";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import {
-  locationKeyToString,
-  getEventLocationValue,
-  getEventLocationType,
   EventLocationType,
+  getEventLocationType,
+  getEventLocationValue,
   getHumanReadableLocationValue,
+  locationKeyToString,
 } from "@calcom/app-store/locations";
 import { createPaymentLink } from "@calcom/app-store/stripepayment/lib/client";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
@@ -37,17 +37,13 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { Icon } from "@calcom/ui/Icon";
-import { Tooltip } from "@calcom/ui/Tooltip";
-import { Button } from "@calcom/ui/components";
-import AddressInput from "@calcom/ui/form/AddressInputLazy";
-import PhoneInput from "@calcom/ui/form/PhoneInputLazy";
-import { EmailInput, Form } from "@calcom/ui/form/fields";
+import { AddressInput, Button, EmailInput, Form, Icon, PhoneInput, Tooltip } from "@calcom/ui";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
 import useMeQuery from "@lib/hooks/useMeQuery";
+import useRouterQuery from "@lib/hooks/useRouterQuery";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
@@ -90,9 +86,7 @@ const BookingPage = ({
   ...restProps
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
-  // Get user so we can determine 12/24 hour format preferences
-  const query = useMeQuery();
-  const user = query.data;
+  const { duration: queryDuration } = useRouterQuery("duration");
   const isEmbed = useIsEmbed(restProps.isEmbed);
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
@@ -108,6 +102,12 @@ const BookingPage = ({
     {}
   );
   const stripeAppData = getStripeAppData(eventType);
+
+  // Define duration now that we support multiple duration eventTypes
+  let duration = eventType.length;
+  if (queryDuration && !isNaN(Number(queryDuration))) {
+    duration = Number(queryDuration);
+  }
 
   useEffect(() => {
     if (top !== window) {
@@ -136,9 +136,8 @@ const BookingPage = ({
       }
 
       return router.push({
-        pathname: "/success",
+        pathname: `/booking/${uid}`,
         query: {
-          uid,
           isSuccessBookingPage: true,
           email: bookingForm.getValues("email"),
           eventTypeSlug: eventType.slug,
@@ -152,9 +151,8 @@ const BookingPage = ({
       const { uid } = responseData[0] || {};
 
       return router.push({
-        pathname: "/success",
+        pathname: `/booking/${uid}`,
         query: {
-          uid,
           allRemainingBookings: true,
           email: bookingForm.getValues("email"),
           eventTypeSlug: eventType.slug,
@@ -323,7 +321,7 @@ const BookingPage = ({
       const recurringBookings = recurringDates.map((recurringDate) => ({
         ...booking,
         start: dayjs(recurringDate).format(),
-        end: dayjs(recurringDate).add(eventType.length, "minute").format(),
+        end: dayjs(recurringDate).add(duration, "minute").format(),
         eventTypeId: eventType.id,
         eventTypeSlug: eventType.slug,
         recurringEventId,
@@ -356,7 +354,7 @@ const BookingPage = ({
       mutation.mutate({
         ...booking,
         start: dayjs(date).format(),
-        end: dayjs(date).add(eventType.length, "minute").format(),
+        end: dayjs(date).add(duration, "minute").format(),
         eventTypeId: eventType.id,
         eventTypeSlug: eventType.slug,
         timeZone: timeZone(),
@@ -627,7 +625,7 @@ const BookingPage = ({
                   )}
                 </>
                 {/* TODO: Change name and id ="phone" to something generic */}
-                {AttendeeInput && (
+                {AttendeeInput && !disableInput && (
                   <div className="mb-4">
                     <label
                       htmlFor={
@@ -664,7 +662,6 @@ const BookingPage = ({
                             : ""
                         }
                         required
-                        disabled={disableInput}
                       />
                     </div>
                     {bookingForm.formState.errors.phone && (
@@ -845,7 +842,7 @@ const BookingPage = ({
                   ) : (
                     <textarea
                       {...bookingForm.register("notes")}
-                      required={!!eventType.metadata.additionalNotesRequired}
+                      required={!!eventType.metadata?.additionalNotesRequired}
                       id="notes"
                       name="notes"
                       rows={3}
@@ -860,7 +857,7 @@ const BookingPage = ({
                   {!eventType.disableGuests && !guestToggle && (
                     <Button
                       type="button"
-                      color="minimalSecondary"
+                      color="minimal"
                       size="icon"
                       tooltip={t("additional_guests")}
                       StartIcon={Icon.FiUserPlus}
@@ -878,7 +875,6 @@ const BookingPage = ({
                   </Button>
                   <Button
                     type="submit"
-                    className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast dark:hover:border-darkmodebrandcontrast mr-auto dark:border-transparent"
                     data-testid={rescheduleUid ? "confirm-reschedule-button" : "confirm-book-button"}
                     loading={mutation.isLoading || recurringMutation.isLoading}>
                     {rescheduleUid ? t("reschedule") : t("confirm")}
@@ -911,7 +907,7 @@ function ErrorMessage({ error }: { error: unknown }) {
         <div className="ltr:ml-3 rtl:mr-3">
           <p className="text-sm text-yellow-700">
             {rescheduleUid ? t("reschedule_fail") : t("booking_fail")}{" "}
-            {error instanceof HttpError || error instanceof Error ? error.message : "Unknown error"}
+            {error instanceof HttpError || error instanceof Error ? t(error.message) : "Unknown error"}
           </p>
         </div>
       </div>

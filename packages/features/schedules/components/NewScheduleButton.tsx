@@ -4,11 +4,17 @@ import { useForm } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/form/fields";
-import showToast from "@calcom/ui/v2/core/notifications";
+import {
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogTrigger,
+  Form,
+  Icon,
+  showToast,
+} from "@calcom/ui";
 
 export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) {
   const router = useRouter();
@@ -82,14 +88,12 @@ export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) 
               />
             </div>
           </div>
-          <div className="mt-8 flex flex-row-reverse gap-x-2">
+          <DialogFooter>
             <Button type="submit" loading={createMutation.isLoading}>
               {t("continue")}
             </Button>
-            <DialogClose asChild>
-              <Button color="secondary">{t("cancel")}</Button>
-            </DialogClose>
-          </div>
+            <DialogClose />
+          </DialogFooter>
         </Form>
       </DialogContent>
     </Dialog>
