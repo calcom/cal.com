@@ -931,7 +931,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   }
 
   log.debug(`Booking ${organizerUser.username} completed`);
-
+  const metadata = videoCallUrl ? { videoCallUrl } : undefined;
   if (isConfirmedByDefault) {
     const eventTrigger: WebhookTriggerEvents = rescheduleUid
       ? WebhookTriggerEvents.BOOKING_RESCHEDULED
@@ -962,7 +962,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     } catch (error) {
       log.error("Error while running scheduledJobs for booking", error);
     }
-    const metadata = videoCallUrl ? { videoCallUrl } : undefined;
 
     try {
       // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
