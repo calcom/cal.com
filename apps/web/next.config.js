@@ -160,6 +160,10 @@ const nextConfig = {
         ],
         destination: "/booking/:uid/:path*",
       },
+      {
+        source: "/cancel/:path*",
+        destination: "/booking/:path*",
+      },
       /* TODO: have these files being served from another deployment or CDN {
         source: "/embed/embed.js",
         destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
