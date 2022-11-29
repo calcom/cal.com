@@ -143,7 +143,7 @@ const stringToBoolean = z
   .optional()
   .transform((val) => val === "true");
 
-export const querySchema = z.object({
+const querySchema = z.object({
   uid: z.string(),
   allRemainingBookings: stringToBoolean,
   cancel: stringToBoolean,
