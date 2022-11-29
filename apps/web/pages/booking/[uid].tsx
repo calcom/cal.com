@@ -222,7 +222,7 @@ export default function Success(props: SuccessProps) {
   useEffect(() => {
     if (top !== window) {
       //page_view will be collected automatically by _middleware.ts
-      telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/manage"));
+      telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/booking"));
     }
   }, [telemetry]);
 

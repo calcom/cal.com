@@ -37,7 +37,7 @@ test("dynamic booking", async ({ page, users }) => {
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
     await page.waitForNavigation({
       url(url) {
-        return url.pathname === "/manage";
+        return url.pathname.startsWith("/booking");
       },
     });
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
@@ -48,7 +48,7 @@ test("dynamic booking", async ({ page, users }) => {
     await page.locator('[data-testid="cancel"]').first().click();
     await page.waitForNavigation({
       url: (url) => {
-        return url.pathname.startsWith("/manage");
+        return url.pathname.startsWith("/booking");
       },
     });
     await page.locator('[data-testid="cancel"]').click();
