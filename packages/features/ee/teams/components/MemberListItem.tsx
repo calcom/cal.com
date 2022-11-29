@@ -13,6 +13,7 @@ import {
   ConfirmationDialogContent,
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogTrigger,
   Dropdown,
   DropdownItem,
@@ -258,11 +259,11 @@ export default function MemberListItem(props: Props) {
       )}
       {showTeamAvailabilityModal && (
         <Dialog open={showTeamAvailabilityModal} onOpenChange={() => setShowTeamAvailabilityModal(false)}>
-          <DialogContent type="creation" useOwnActionButtons size="md">
+          <DialogContent type="creation" size="md">
             <TeamAvailabilityModal team={props.team} member={props.member} />
-            <div className="flex justify-end border-t pt-5">
+            <DialogFooter>
               <Button onClick={() => setShowTeamAvailabilityModal(false)}>{t("done")}</Button>
-            </div>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       )}

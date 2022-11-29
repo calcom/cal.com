@@ -174,7 +174,7 @@ export default function SAMLConfiguration({ teamId }: { teamId: number | null })
 
         {/* Add/Update SAML Connection */}
         <Dialog open={configModal} onOpenChange={setConfigModal}>
-          <DialogContent type="creation" useOwnActionButtons>
+          <DialogContent type="creation">
             <ConfigDialogForm handleClose={() => setConfigModal(false)} teamId={teamId} />
           </DialogContent>
         </Dialog>

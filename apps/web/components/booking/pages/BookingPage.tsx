@@ -43,6 +43,7 @@ import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
 import useMeQuery from "@lib/hooks/useMeQuery";
+import useRouterQuery from "@lib/hooks/useRouterQuery";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
 import { parseDate, parseRecurringDates } from "@lib/parseDate";
@@ -85,9 +86,7 @@ const BookingPage = ({
   ...restProps
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
-  // Get user so we can determine 12/24 hour format preferences
-  const query = useMeQuery();
-  const user = query.data;
+  const { duration: queryDuration } = useRouterQuery("duration");
   const isEmbed = useIsEmbed(restProps.isEmbed);
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
@@ -103,6 +102,12 @@ const BookingPage = ({
     {}
   );
   const stripeAppData = getStripeAppData(eventType);
+
+  // Define duration now that we support multiple duration eventTypes
+  let duration = eventType.length;
+  if (queryDuration && !isNaN(Number(queryDuration))) {
+    duration = Number(queryDuration);
+  }
 
   useEffect(() => {
     if (top !== window) {
@@ -318,7 +323,7 @@ const BookingPage = ({
       const recurringBookings = recurringDates.map((recurringDate) => ({
         ...booking,
         start: dayjs(recurringDate).format(),
-        end: dayjs(recurringDate).add(eventType.length, "minute").format(),
+        end: dayjs(recurringDate).add(duration, "minute").format(),
         eventTypeId: eventType.id,
         eventTypeSlug: eventType.slug,
         recurringEventId,
@@ -351,7 +356,7 @@ const BookingPage = ({
       mutation.mutate({
         ...booking,
         start: dayjs(date).format(),
-        end: dayjs(date).add(eventType.length, "minute").format(),
+        end: dayjs(date).add(duration, "minute").format(),
         eventTypeId: eventType.id,
         eventTypeSlug: eventType.slug,
         timeZone: timeZone(),
@@ -839,7 +844,7 @@ const BookingPage = ({
                   ) : (
                     <textarea
                       {...bookingForm.register("notes")}
-                      required={!!eventType.metadata.additionalNotesRequired}
+                      required={!!eventType.metadata?.additionalNotesRequired}
                       id="notes"
                       name="notes"
                       rows={3}
