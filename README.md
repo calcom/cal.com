@@ -210,13 +210,19 @@ We recommend deploying API in vercel.
 
 There's some settings that you'll need to setup.
 
-Under Vercel > Your API Deployment > Settings
+Under Vercel > Your API Project > Settings
 
 In General > Build & Development Settings
 BUILD COMMAND: `yarn turbo run build --scope=@calcom/api --include-dependencies --no-deps`
 OUTPUT DIRECTORY: `apps/api/.next`
 
+In Git > Ignored Build Step
+
+Add this command: `./scripts/vercel-deploy.sh`
+
 See `scripts/vercel-deploy.sh` for more info on how the deployment is done.
+
+> _❗ IMORTANT: If you're forking the API repo you will need to update the URLs in both the main repo [`.gitmodules`](https://github.com/calcom/cal.com/blob/main/.gitmodules#L7) and this repo [`./scripts/vercel-deploy.sh`](https://github.com/calcom/api/blob/main/scripts/vercel-deploy.sh#L3) ❗_
 
 ## Environment variables
 
