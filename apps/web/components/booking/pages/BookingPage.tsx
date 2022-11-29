@@ -139,6 +139,8 @@ const BookingPage = ({
         pathname: `/booking/${uid}`,
         query: {
           isSuccessBookingPage: true,
+          email: bookingForm.getValues("email"),
+          eventTypeSlug: eventType.slug,
         },
       });
     },
@@ -152,6 +154,8 @@ const BookingPage = ({
         pathname: `/booking/${uid}`,
         query: {
           allRemainingBookings: true,
+          email: bookingForm.getValues("email"),
+          eventTypeSlug: eventType.slug,
         },
       });
     },
