@@ -962,6 +962,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     } catch (error) {
       log.error("Error while running scheduledJobs for booking", error);
     }
+    const metadata = videoCallUrl ? { videoCallUrl } : undefined;
 
     try {
       // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
@@ -987,7 +988,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           ...eventTypeInfo,
           bookingId,
           rescheduleUid,
-          metadata: reqBody.metadata,
+          metadata: { ...metadata, ...reqBody.metadata },
           eventTypeId,
           status: "ACCEPTED",
         }).catch((e) => {
@@ -1023,7 +1024,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   if (!booking) throw new HttpError({ statusCode: 400, message: "Booking failed" });
 
   try {
-    const metadata = videoCallUrl ? { videoCallUrl } : undefined;
     await prisma.booking.update({
       where: {
         uid: booking.uid,
