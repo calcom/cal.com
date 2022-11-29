@@ -481,7 +481,7 @@ export default function Success(props: SuccessProps) {
                     )}
                   </div>
                 </div>
-                {!needsConfirmation &&
+                {(!needsConfirmation || !userIsOwner) &&
                   !isCancelled &&
                   (!isCancellationMode ? (
                     <>
