@@ -34,6 +34,11 @@ const getScheduleSchema = z
     // or list of users (for dynamic events)
     usernameList: z.array(z.string()).optional(),
     debug: z.boolean().optional(),
+    // to handle event types with multiple duration options
+    duration: z
+      .string()
+      .optional()
+      .transform((val) => val && parseInt(val)),
   })
   .refine(
     (data) => !!data.eventTypeId || !!data.usernameList,
@@ -277,10 +282,10 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     // get slots retrieves the available times for a given day
     const timeSlots = getTimeSlots({
       inviteeDate: currentCheckedTime,
-      eventLength: eventType.length,
+      eventLength: input.duration || eventType.length,
       workingHours,
       minimumBookingNotice: eventType.minimumBookingNotice,
-      frequency: eventType.slotInterval || eventType.length,
+      frequency: eventType.slotInterval || input.duration || eventType.length,
     });
 
     const endGetSlots = performance.now();

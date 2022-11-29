@@ -79,7 +79,7 @@ const ApiKeysView = () => {
       </LicenseRequired>
 
       <Dialog open={apiKeyModal} onOpenChange={setApiKeyModal}>
-        <DialogContent type="creation" useOwnActionButtons>
+        <DialogContent type="creation">
           <ApiKeyDialogForm handleClose={() => setApiKeyModal(false)} defaultValues={apiKeyToEdit} />
         </DialogContent>
       </Dialog>

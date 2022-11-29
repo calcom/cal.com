@@ -41,11 +41,21 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
           </p>
         )}
         <ul className="mt-2 flex flex-wrap space-x-2 sm:flex-nowrap">
-          <li>
-            <Badge variant="gray" size="lg" StartIcon={Icon.FiClock}>
-              {eventType.length}m
-            </Badge>
-          </li>
+          {eventType.metadata?.multipleDuration ? (
+            eventType.metadata.multipleDuration.map((dur, idx) => (
+              <li key={idx}>
+                <Badge variant="gray" size="lg" StartIcon={Icon.FiClock}>
+                  {dur}m
+                </Badge>
+              </li>
+            ))
+          ) : (
+            <li>
+              <Badge variant="gray" size="lg" StartIcon={Icon.FiClock}>
+                {eventType.length}m
+              </Badge>
+            </li>
+          )}
           {eventType.schedulingType ? (
             <li>
               <Badge variant="gray" size="lg" StartIcon={Icon.FiUser}>
