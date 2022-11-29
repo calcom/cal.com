@@ -514,16 +514,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         id: true,
         attendees: true,
         userId: true,
-        references: {
-          select: {
-            type: true,
-            uid: true,
-            meetingId: true,
-            meetingPassword: true,
-            meetingUrl: true,
-            externalCalendarId: true,
-          },
-        },
+        references: true,
+        startTime: true,
       },
     });
     if (!booking) {
@@ -573,6 +565,21 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     const credentials = await refreshCredentials(organizerUser.credentials);
     const eventManager = new EventManager({ ...organizerUser, credentials });
     await eventManager.updateCalendarAttendees(evt, booking);
+
+    if (!Number.isNaN(stripeAppData.price) && stripeAppData.price > 0 && !!booking) {
+      const [firstStripeCredential] = organizerUser.credentials.filter(
+        (cred) => cred.type == "stripe_payment"
+      );
+
+      if (!firstStripeCredential)
+        throw new HttpError({ statusCode: 400, message: "Missing payment credentials" });
+
+      if (!booking.user) booking.user = organizerUser;
+      const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
+
+      req.statusCode = 201;
+      return { ...booking, message: "Payment required", paymentUid: payment.uid };
+    }
 
     req.statusCode = 201;
     return booking;
