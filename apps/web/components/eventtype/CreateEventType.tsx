@@ -264,9 +264,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
             <Button type="submit" loading={createMutation.isLoading}>
               {t("continue")}
             </Button>
-            <DialogClose asChild>
-              <Button color="secondary">{t("cancel")}</Button>
-            </DialogClose>
+            <DialogClose />
           </div>
         </Form>
       </DialogContent>
