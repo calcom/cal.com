@@ -132,7 +132,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               formMethods.setValue("customInputs", []);
             }
           }}>
-          <ul className="my-4">
+          <ul className="my-4 rounded-md border">
             {customInputs.map((customInput: EventTypeCustomInput, idx: number) => (
               <CustomInputItem
                 key={idx}
@@ -390,6 +390,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               description={t("this_input_will_shown_booking_this_event")}>
               <CustomInputTypeForm
                 selectedCustomInput={selectedCustomInput}
+                {...formMethods.register("customInputs")}
                 onSubmit={(values) => {
                   const customInput: EventTypeCustomInput = {
                     id: -1,
