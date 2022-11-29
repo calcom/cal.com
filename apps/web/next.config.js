@@ -151,7 +151,14 @@ const nextConfig = {
       },
       {
         source: "/success/:path*",
-        destination: "/manage/:path*",
+        has: [
+          {
+            type: "query",
+            key: "uid",
+            value: "(?<uid>.*)",
+          },
+        ],
+        destination: "/booking/:uid/:path*",
       },
       /* TODO: have these files being served from another deployment or CDN {
         source: "/embed/embed.js",
