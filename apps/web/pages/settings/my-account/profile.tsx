@@ -235,7 +235,7 @@ const ProfileView = () => {
                     id="avatar-upload"
                     buttonMsg={t("change_avatar")}
                     handleAvatarChange={(newAvatar) => {
-                      formMethods.setValue("avatar", newAvatar);
+                      formMethods.setValue("avatar", newAvatar, { shouldDirty: true });
                     }}
                     imageSrc={value}
                   />
