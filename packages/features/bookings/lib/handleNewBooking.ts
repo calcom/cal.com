@@ -516,6 +516,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         userId: true,
         references: true,
         startTime: true,
+        user: true,
       },
     });
     if (!booking) {
@@ -574,7 +575,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       if (!firstStripeCredential)
         throw new HttpError({ statusCode: 400, message: "Missing payment credentials" });
 
-      if (!booking.user) booking.user = organizerUser;
       const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
 
       req.statusCode = 201;
