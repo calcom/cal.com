@@ -29,8 +29,7 @@
     "react-feather": "^2.0.10",
     "react-hook-form": "^7.34.2",
     "react-icons": "^4.4.0",
-    "react-select": "^5.4.0",
-    "zustand": "^4.1.4"
+    "react-select": "^5.4.0"
   },
   "devDependencies": {
     "@calcom/config": "*",

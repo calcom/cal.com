@@ -1,8 +1,6 @@
 import dayjs from "@calcom/dayjs";
+import { Icon, Button, ButtonGroup } from "@calcom/ui";
 
-import { Icon } from "../../../../Icon";
-import { Button } from "../../../button";
-import { ButtonGroup } from "../../../buttonGroup";
 import { useCalendarStore } from "../../state/store";
 
 export function SchedulerHeading() {
