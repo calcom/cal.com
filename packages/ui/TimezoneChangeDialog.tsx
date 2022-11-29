@@ -6,6 +6,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
 import { Dialog, DialogContent, showToast } from ".";
+import { DialogClose, DialogFooter } from "./Dialog";
 
 export default function TimezoneChangeDialog() {
   const { t } = useLocale();
@@ -58,20 +59,23 @@ export default function TimezoneChangeDialog() {
 
   if (data?.user.impersonatedByUID) return null;
 
+  const ONE_DAY = 60 * 60 * 24; // 1 day in seconds (60 seconds * 60 minutes * 24 hours)
+  const THREE_MONTHS = ONE_DAY * 90; // 90 days in seconds (90 days * 1 day in seconds)
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
         title={t("update_timezone_question")}
         description={t("update_timezone_description", { formattedCurrentTz })}
         type="creation"
-        actionText={t("update_timezone")}
-        actionOnClick={() => updateTimezone()}
-        closeText={t("dont_update")}
-        onInteractOutside={() => onCancel(86400, false) /* 1 day expire */}
-        actionOnClose={() => onCancel(7776000, true) /* 3 months expire */}>
-        {/* todo: save this in db and auto-update when timezone changes (be able to disable??? if yes, /settings) 
+        onInteractOutside={() => onCancel(ONE_DAY, false) /* 1 day expire */}>
+        {/* todo: save this in db and auto-update when timezone changes (be able to disable??? if yes, /settings)
         <Checkbox description="Always update timezone" />
         */}
+        <DialogFooter>
+          <DialogClose onClick={() => onCancel(THREE_MONTHS, true)}>{t("dont_update")}</DialogClose>
+          <DialogClose onClick={() => updateTimezone()}>{t("update_timezone")}</DialogClose>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

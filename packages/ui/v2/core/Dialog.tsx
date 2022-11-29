@@ -1,12 +1,12 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useRouter } from "next/router";
-import React, { ReactNode, useState } from "react";
+import React, { forwardRef, HTMLProps, ReactNode, useState } from "react";
 import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Button } from "../../components/button";
+import { Button, ButtonProps } from "../../components/button";
 
 export type DialogProps = React.ComponentProps<typeof DialogPrimitive["Root"]> & {
   name?: string;
@@ -70,20 +70,11 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
   description?: string | JSX.Element | undefined;
   closeText?: string;
   actionDisabled?: boolean;
-  actionText?: string;
   Icon?: Icon;
-  // If this is set it allows you to overide the action buttons. Usefull if you need to use formcontext
-  useOwnActionButtons?: boolean;
-  actionOnClick?: (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => void;
-  actionOnClose?: () => void;
-  actionProps?: React.ComponentProps<typeof Button>;
 };
 
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
-  (
-    { children, title, Icon, actionProps, useOwnActionButtons, type = "creation", ...props },
-    forwardedRef
-  ) => {
+  ({ children, title, Icon, type = "creation", ...props }, forwardedRef) => {
     const { t } = useLocale();
 
     return (
@@ -125,31 +116,6 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               </div>
             </div>
           )}
-          {!useOwnActionButtons && (
-            <DialogFooter>
-              <div className="mt-2 flex space-x-2">
-                <DialogClose asChild>
-                  {/* This will require the i18n string passed in */}
-                  <Button color="minimal" onClick={props.actionOnClose}>
-                    {props.closeText ?? t("close")}
-                  </Button>
-                </DialogClose>
-                {props.actionOnClick ? (
-                  <Button
-                    color="primary"
-                    disabled={props.actionDisabled}
-                    onClick={props.actionOnClick}
-                    {...actionProps}>
-                    {props.actionText}
-                  </Button>
-                ) : (
-                  <Button color="primary" type="submit" disabled={props.actionDisabled} {...actionProps}>
-                    {props.actionText}
-                  </Button>
-                )}
-              </div>
-            </DialogFooter>
-          )}
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     );
@@ -175,7 +141,7 @@ export function DialogHeader(props: DialogHeaderProps) {
 export function DialogFooter(props: { children: ReactNode }) {
   return (
     <div>
-      <div className="mt-5 flex justify-end space-x-2 rtl:space-x-reverse">{props.children}</div>
+      <div className="mt-7 flex justify-end space-x-2 rtl:space-x-reverse ">{props.children}</div>
     </div>
   );
 }
@@ -183,4 +149,24 @@ export function DialogFooter(props: { children: ReactNode }) {
 DialogContent.displayName = "DialogContent";
 
 export const DialogTrigger = DialogPrimitive.Trigger;
-export const DialogClose = DialogPrimitive.Close;
+// export const DialogClose = DialogPrimitive.Close;
+
+export function DialogClose(
+  props: {
+    dialogCloseProps?: React.ComponentProps<typeof DialogPrimitive["Close"]>;
+    children?: ReactNode;
+    onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+    disabled?: boolean;
+    color?: ButtonProps["color"];
+  } & React.ComponentProps<typeof Button>
+) {
+  const { t } = useLocale();
+  return (
+    <DialogPrimitive.Close asChild {...props.dialogCloseProps}>
+      {/* This will require the i18n string passed in */}
+      <Button color={props.color || "minimal"} {...props}>
+        {props.children ? props.children : t("Close")}
+      </Button>
+    </DialogPrimitive.Close>
+  );
+}
