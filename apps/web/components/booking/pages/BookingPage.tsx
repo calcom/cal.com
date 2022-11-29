@@ -136,9 +136,8 @@ const BookingPage = ({
       }
 
       return router.push({
-        pathname: "/success",
+        pathname: `/booking/${uid}`,
         query: {
-          uid,
           isSuccessBookingPage: true,
           email: bookingForm.getValues("email"),
           eventTypeSlug: eventType.slug,
@@ -152,9 +151,8 @@ const BookingPage = ({
       const { uid } = responseData[0] || {};
 
       return router.push({
-        pathname: "/success",
+        pathname: `/booking/${uid}`,
         query: {
-          uid,
           allRemainingBookings: true,
           email: bookingForm.getValues("email"),
           eventTypeSlug: eventType.slug,

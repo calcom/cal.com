@@ -147,6 +147,7 @@ const querySchema = z.object({
   uid: z.string(),
   allRemainingBookings: stringToBoolean,
   cancel: stringToBoolean,
+  changes: stringToBoolean,
   reschedule: stringToBoolean,
   isSuccessBookingPage: z.string().optional(),
 });
@@ -159,9 +160,10 @@ export default function Success(props: SuccessProps) {
     allRemainingBookings,
     isSuccessBookingPage,
     cancel: isCancellationMode,
+    changes,
   } = querySchema.parse(router.query);
 
-  if (isCancellationMode && typeof window !== "undefined") {
+  if ((isCancellationMode || changes) && typeof window !== "undefined") {
     window.scrollTo(0, document.body.scrollHeight);
   }
   const location: ReturnType<typeof getEventLocationValue> = Array.isArray(props.bookingInfo.location)
@@ -221,7 +223,7 @@ export default function Success(props: SuccessProps) {
   useEffect(() => {
     if (top !== window) {
       //page_view will be collected automatically by _middleware.ts
-      telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/success"));
+      telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/booking"));
     }
   }, [telemetry]);
 
