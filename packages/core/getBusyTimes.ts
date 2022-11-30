@@ -7,6 +7,34 @@ import { performance } from "@calcom/lib/server/perfObserver";
 import prisma from "@calcom/prisma";
 import type { EventBusyDetails } from "@calcom/types/Calendar";
 
+export async function getBufferedBusyTimes(params: {
+  credentials: Credential[];
+  userId: number;
+  eventTypeId?: number;
+  startTime: string;
+  endTime: string;
+  selectedCalendars: SelectedCalendar[];
+  userBufferTime: number;
+  afterEventBuffer?: number;
+}): Promise<EventBusyDetails[]> {
+  const busy = await getBusyTimes({
+    credentials: params.credentials,
+    userId: params.userId,
+    eventTypeId: params.eventTypeId,
+    startTime: params.startTime,
+    endTime: params.endTime,
+    selectedCalendars: params.selectedCalendars,
+  });
+  return busy.map((a) => ({
+    ...a,
+    start: dayjs(a.start).subtract(params.userBufferTime, "minute").toISOString(),
+    end: dayjs(a.end)
+      .add(params.userBufferTime + (params.afterEventBuffer || 0), "minute")
+      .toISOString(),
+    title: a.title,
+  }));
+}
+
 export async function getBusyTimes(params: {
   credentials: Credential[];
   userId: number;

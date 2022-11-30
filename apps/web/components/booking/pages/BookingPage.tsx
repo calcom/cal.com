@@ -83,6 +83,7 @@ const BookingPage = ({
   recurringEventCount,
   hasHashedBookingLink,
   hashedLink,
+  userToBeBooked,
   ...restProps
 }: BookingPageProps) => {
   const { t, i18n } = useLocale();
@@ -332,7 +333,7 @@ const BookingPage = ({
         timeZone: timeZone(),
         language: i18n.language,
         rescheduleUid,
-        user: router.query.user,
+        user: router.query.username,
         location: getEventLocationValue(locations, {
           type: booking.locationType ? booking.locationType : selectedLocationType || "",
           phone: booking.phone,
@@ -363,7 +364,7 @@ const BookingPage = ({
         language: i18n.language,
         rescheduleUid,
         bookingUid: router.query.bookingUid as string,
-        user: router.query.user,
+        user: router.query.username,
         location: getEventLocationValue(locations, {
           type: (booking.locationType ? booking.locationType : selectedLocationType) || "",
           phone: booking.phone,
@@ -451,7 +452,7 @@ const BookingPage = ({
           )}>
           <div className="sm:flex">
             <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
-              <BookingDescription isBookingPage profile={profile} eventType={eventType}>
+              <BookingDescription isBookingPage profile={profile} eventType={eventType} user={userToBeBooked}>
                 {stripeAppData.price > 0 && (
                   <p className="text-bookinglight -ml-2 px-2 text-sm ">
                     <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
@@ -678,12 +679,22 @@ const BookingPage = ({
                   .sort((a, b) => a.id - b.id)
                   .map((input) => (
                     <div className="mb-4" key={input.id}>
-                      {input.type !== EventTypeCustomInputType.BOOL && (
-                        <label
-                          htmlFor={"custom_" + input.id}
-                          className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                          {input.label}
-                        </label>
+                      {input.type !== EventTypeCustomInputType.BOOL &&
+                        input.type !== EventTypeCustomInputType.HIDDEN && (
+                          <label
+                            htmlFor={"custom_" + input.id}
+                            className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
+                            {input.label}
+                          </label>
+                        )}
+                      {input.type === EventTypeCustomInputType.HIDDEN && (
+                        <input
+                          type="hidden"
+                          {...bookingForm.register(`customInputs.${input.id}`, {
+                            required: input.required,
+                          })}
+                          id={"custom_" + input.id}
+                        />
                       )}
                       {input.type === EventTypeCustomInputType.TEXTLONG && (
                         <textarea
@@ -826,7 +837,7 @@ const BookingPage = ({
                     )}
                   </div>
                 )}
-                <div className="mb-4">
+                <div className="mb-4 hidden">
                   <label
                     htmlFor="notes"
                     className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">

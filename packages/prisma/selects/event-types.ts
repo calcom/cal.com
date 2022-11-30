@@ -14,6 +14,13 @@ export const baseEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   requiresConfirmation: true,
 });
 
+export const minimalEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+  id: true,
+  title: true,
+  length: true,
+  slug: true,
+});
+
 export const bookEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   id: true,
   title: true,
