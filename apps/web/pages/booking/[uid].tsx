@@ -147,6 +147,7 @@ const querySchema = z.object({
   uid: z.string(),
   allRemainingBookings: stringToBoolean,
   cancel: stringToBoolean,
+  changes: stringToBoolean,
   reschedule: stringToBoolean,
   isSuccessBookingPage: z.string().optional(),
 });
@@ -159,9 +160,10 @@ export default function Success(props: SuccessProps) {
     allRemainingBookings,
     isSuccessBookingPage,
     cancel: isCancellationMode,
+    changes,
   } = querySchema.parse(router.query);
 
-  if (isCancellationMode && typeof window !== "undefined") {
+  if ((isCancellationMode || changes) && typeof window !== "undefined") {
     window.scrollTo(0, document.body.scrollHeight);
   }
   const location: ReturnType<typeof getEventLocationValue> = Array.isArray(props.bookingInfo.location)
@@ -221,7 +223,7 @@ export default function Success(props: SuccessProps) {
   useEffect(() => {
     if (top !== window) {
       //page_view will be collected automatically by _middleware.ts
-      telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/success"));
+      telemetry.event(telemetryEventTypes.embedView, collectPageParameters("/booking"));
     }
   }, [telemetry]);
 
@@ -409,7 +411,7 @@ export default function Success(props: SuccessProps) {
                     {(bookingInfo?.user || bookingInfo?.attendees) && (
                       <>
                         <div className="font-medium">{t("who")}</div>
-                        <div className="col-span-2 mb-6 last:mb-0">
+                        <div className="col-span-2 last:mb-0">
                           <>
                             {bookingInfo?.user && (
                               <div className="mb-3">
@@ -456,8 +458,8 @@ export default function Success(props: SuccessProps) {
                           <>
                             {customInput !== "" && (
                               <>
-                                <div className="mt-2 pr-3 font-medium">{key}</div>
-                                <div className="col-span-2 mt-2 mb-2">
+                                <div className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">{key}</div>
+                                <div className="col-span-3 mt-2 mb-2">
                                   {typeof customInput === "boolean" ? (
                                     <p>{customInput ? "true" : "false"}</p>
                                   ) : (
@@ -479,7 +481,7 @@ export default function Success(props: SuccessProps) {
                     )}
                   </div>
                 </div>
-                {!needsConfirmation &&
+                {(!needsConfirmation || !userIsOwner) &&
                   !isCancelled &&
                   (!isCancellationMode ? (
                     <>

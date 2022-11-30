@@ -150,6 +150,21 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
 
+  const metadata = eventType.metadata;
+  // fallback to !!eventType.schedule when 'useHostSchedulesForTeamEvent' is undefined
+  if (!!team) {
+    metadata.config = {
+      ...metadata.config,
+      useHostSchedulesForTeamEvent:
+        typeof eventType.metadata.config?.useHostSchedulesForTeamEvent !== "undefined"
+          ? eventType.metadata.config?.useHostSchedulesForTeamEvent === true
+          : !!eventType.schedule,
+    };
+  } else {
+    // Make sure non-team events NEVER have this config key;
+    delete metadata.config?.useHostSchedulesForTeamEvent;
+  }
+
   const formMethods = useForm<FormValues>({
     defaultValues: {
       title: eventType.title,
@@ -172,17 +187,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         findDurationType(eventType.minimumBookingNotice),
         eventType.minimumBookingNotice
       ),
-      // fallback to !!eventType.schedule when 'useHostSchedulesForTeamEvent' is undefined
-      metadata: {
-        ...eventType.metadata,
-        config: {
-          ...eventType.metadata.config,
-          useHostSchedulesForTeamEvent:
-            typeof eventType.metadata.config?.useHostSchedulesForTeamEvent !== "undefined"
-              ? eventType.metadata.config?.useHostSchedulesForTeamEvent === true
-              : !!eventType.schedule,
-        },
-      },
+      metadata,
     },
   });
 

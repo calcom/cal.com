@@ -18,6 +18,7 @@ import { appKeysSchema as salesforce_keys_schema } from "./salesforce/zod";
 import { appKeysSchema as stripepayment_keys_schema } from "./stripepayment/zod";
 import { appKeysSchema as tandemvideo_keys_schema } from "./tandemvideo/zod";
 import { appKeysSchema as vital_keys_schema } from "./vital/zod";
+import { appKeysSchema as wordpress_keys_schema } from "./wordpress/zod";
 import { appKeysSchema as zapier_keys_schema } from "./zapier/zod";
 import { appKeysSchema as zoomvideo_keys_schema } from "./zoomvideo/zod";
 
@@ -38,6 +39,7 @@ export const appKeysSchemas = {
   stripe: stripepayment_keys_schema,
   tandemvideo: tandemvideo_keys_schema,
   vital: vital_keys_schema,
+  wordpress: wordpress_keys_schema,
   zapier: zapier_keys_schema,
   zoomvideo: zoomvideo_keys_schema,
 };

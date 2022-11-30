@@ -18,6 +18,7 @@ import { appDataSchema as salesforce_schema } from "./salesforce/zod";
 import { appDataSchema as stripepayment_schema } from "./stripepayment/zod";
 import { appDataSchema as tandemvideo_schema } from "./tandemvideo/zod";
 import { appDataSchema as vital_schema } from "./vital/zod";
+import { appDataSchema as wordpress_schema } from "./wordpress/zod";
 import { appDataSchema as zapier_schema } from "./zapier/zod";
 import { appDataSchema as zoomvideo_schema } from "./zoomvideo/zod";
 
@@ -38,6 +39,7 @@ export const appDataSchemas = {
   stripe: stripepayment_schema,
   tandemvideo: tandemvideo_schema,
   vital: vital_schema,
+  wordpress: wordpress_schema,
   zapier: zapier_schema,
   zoomvideo: zoomvideo_schema,
 };
