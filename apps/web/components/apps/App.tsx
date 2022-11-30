@@ -4,20 +4,13 @@ import React, { useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
+import { default as DisconnectIntegration } from "@calcom/features/apps/components/DisconnectIntegration";
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
-import {
-  Button,
-  DisconnectIntegration,
-  Icon,
-  Shell,
-  showToast,
-  SkeletonButton,
-  SkeletonText,
-} from "@calcom/ui";
+import { Button, Icon, Shell, showToast, SkeletonButton, SkeletonText } from "@calcom/ui";
 
 import HeadSeo from "@components/seo/head-seo";
 

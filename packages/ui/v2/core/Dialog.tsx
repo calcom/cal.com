@@ -75,8 +75,6 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
 
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
   ({ children, title, Icon, type = "creation", ...props }, forwardedRef) => {
-    const { t } = useLocale();
-
     return (
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-40 bg-gray-500 bg-opacity-75 transition-opacity" />
@@ -98,8 +96,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
           ref={forwardedRef}>
           {type === "creation" && (
             <div>
-              {title && <DialogHeader title={title} />}
-              {props.description && <p className="pb-5 text-sm text-gray-500">{props.description}</p>}
+              <DialogHeader title={title} subtitle={props.description} />
               <div className="flex flex-col space-y-6">{children}</div>
             </div>
           )}
@@ -110,9 +107,9 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
                   <Icon className="h-4 w-4 text-black" />
                 </div>
               )}
-              <div>
-                {title && <DialogHeader title={title} />}
-                {props.description && <p className="mb-6 text-sm text-gray-500">{props.description}</p>}
+              <div className="w-full">
+                <DialogHeader title={title} subtitle={props.description} />
+                <div className="flex flex-col space-y-6">{children}</div>
               </div>
             </div>
           )}
@@ -128,13 +125,15 @@ type DialogHeaderProps = {
 };
 
 export function DialogHeader(props: DialogHeaderProps) {
+  if (!props.title) return null;
+
   return (
-    <>
+    <div className="mb-4">
       <h3 className="leading-20 text-semibold font-cal pb-1 text-xl text-gray-900" id="modal-title">
         {props.title}
       </h3>
-      {props.subtitle && <div className="text-sm text-gray-400">{props.subtitle}</div>}
-    </>
+      {props.subtitle && <div className="text-sm text-gray-500">{props.subtitle}</div>}
+    </div>
   );
 }
 
