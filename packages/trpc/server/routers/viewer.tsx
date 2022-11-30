@@ -516,19 +516,9 @@ const loggedInViewerRouter = router({
     }
 
     const metadata = userMetadata.parse(user.metadata);
-    const checkoutSessionId = metadata?.checkoutSessionId;
-    //TODO: Rename checkoutSessionId to premiumUsernameCheckoutSessionId
-    if (!checkoutSessionId) return { isPremium: false };
-
-    const { stripeCustomer, checkoutSession } = await getCustomerAndCheckoutSession(checkoutSessionId);
-    if (!stripeCustomer) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "Stripe User not found" });
-    }
 
     return {
-      isPremium: true,
-      paidForPremium: checkoutSession.payment_status === "paid",
-      username: stripeCustomer.metadata.username,
+      isPremium: !!metadata?.isPremium,
     };
   }),
   updateProfile: authedProcedure

@@ -197,7 +197,6 @@ export const userMetadata = z
     stripeCustomerId: z.string().optional(),
     vitalSettings: vitalSettingsUpdateSchema.optional(),
     isPremium: z.boolean().optional(),
-    checkoutSessionId: z.string().nullable().optional(),
   })
   .nullable();
 
