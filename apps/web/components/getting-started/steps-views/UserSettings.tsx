@@ -42,7 +42,7 @@ const UserSettings = (props: IUserSettingsProps) => {
     onSuccess: onSuccess,
   });
   const { data: stripeCustomer } = trpc.viewer.stripeCustomer.useQuery();
-  const paymentRequired = stripeCustomer?.isPremium ? !stripeCustomer?.paidForPremium : false;
+  const paymentRequired = stripeCustomer?.isPremium;
   const onSubmit = handleSubmit((data) => {
     if (paymentRequired) {
       return;

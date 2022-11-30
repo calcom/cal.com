@@ -6,19 +6,19 @@ export async function getCustomerAndCheckoutSession(checkoutSessionId: string) {
   let customerId = null;
 
   if (!customerOrCustomerId) {
-    return { checkoutSession, customer: null };
+    return { checkoutSession, stripeCustomer: null };
   }
 
   if (typeof customerOrCustomerId === "string") {
     customerId = customerOrCustomerId;
   } else if (customerOrCustomerId.deleted) {
-    return { checkoutSession, customer: null };
+    return { checkoutSession, stripeCustomer: null };
   } else {
     customerId = customerOrCustomerId.id;
   }
   const stripeCustomer = await stripe.customers.retrieve(customerId);
   if (stripeCustomer.deleted) {
-    return { checkoutSession, customer: null };
+    return { checkoutSession, stripeCustomer: null };
   }
   return { stripeCustomer, checkoutSession };
 }
