@@ -165,7 +165,7 @@ const querySchema = z.object({
     .default(AppCategories.calendar),
 });
 
-const AdminAppsList = ({ baseURL }: { baseURL: string }) => {
+const AdminAppsList = ({ baseURL, className }: { baseURL: string; className?: string }) => {
   const router = useRouter();
   const { category } = querySchema.parse(router.query);
 
@@ -177,7 +177,10 @@ const AdminAppsList = ({ baseURL }: { baseURL: string }) => {
   );
 
   return (
-    <AppCategoryNavigation baseURL={baseURL} containerClassname="w-full xl:mx-5 xl:w-2/3 xl:pr-5">
+    <AppCategoryNavigation
+      baseURL={baseURL}
+      containerClassname="w-full xl:mx-5 xl:w-2/3 xl:pr-5"
+      className={className}>
       {(() => {
         if (isLoading) return <SkeletonLoader />;
         if (!apps) {

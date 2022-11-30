@@ -5,7 +5,7 @@ function AdminAppsView() {
   return (
     <>
       <Meta title="Apps" description="apps_description" />
-      <AdminAppsList baseURL="/settings/admin/apps" />
+      <AdminAppsList baseURL="/settings/admin/apps" className="w-0" />
     </>
   );
 }

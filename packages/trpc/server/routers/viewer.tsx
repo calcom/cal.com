@@ -428,17 +428,19 @@ const loggedInViewerRouter = router({
 
       const enabledApps = await getEnabledApps(credentials);
 
-      let apps = enabledApps.map(({ credentials: _, credential: _1, ...app }) => {
-        const credentialIds = credentials.filter((c) => c.type === app.type).map((c) => c.id);
-        const invalidCredentialIds = credentials
-          .filter((c) => c.type === app.type && c.invalid)
-          .map((c) => c.id);
-        return {
-          ...app,
-          credentialIds,
-          invalidCredentialIds,
-        };
-      });
+      let apps = enabledApps.map(
+        ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => {
+          const credentialIds = credentials.filter((c) => c.type === app.type).map((c) => c.id);
+          const invalidCredentialIds = credentials
+            .filter((c) => c.type === app.type && c.invalid)
+            .map((c) => c.id);
+          return {
+            ...app,
+            credentialIds,
+            invalidCredentialIds,
+          };
+        }
+      );
 
       if (variant) {
         // `flatMap()` these work like `.filter()` but infers the types correctly

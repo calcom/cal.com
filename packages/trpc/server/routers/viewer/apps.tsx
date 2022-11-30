@@ -31,7 +31,7 @@ export const appsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const localApps = getLocalAppMetadata();
+      const localApps = getLocalAppMetadata().filter((app) => app.variant === input.category);
       const dbApps = await ctx.prisma.app.findMany({
         where: {
           categories: {
@@ -51,49 +51,47 @@ export const appsRouter = router({
       const filteredApps: FilteredApp[] = [];
 
       for (const app of localApps) {
-        if (app.variant === input.category) {
-          // Find app metadata
-          const dbData = dbApps.find((dbApp) => dbApp.slug === app.slug);
+        // Find app metadata
+        const dbData = dbApps.find((dbApp) => dbApp.slug === app.slug);
 
-          // If the app already contains keys then return
-          if (dbData?.keys) {
-            filteredApps.push({
-              name: app.name,
-              slug: app.slug,
-              logo: app.logo,
-              title: app.title,
-              type: app.type,
-              description: app.description,
-              // We know that keys are going to be an object or null. Prisma can not type check against JSON fields
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              //@ts-ignore
-              keys: dbData.keys,
-              enabled: dbData?.enabled || false,
-            });
-          } else {
-            const appKey = deriveAppDictKeyFromType(app.type, appKeysSchemas);
-            const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
+        // If the app already contains keys then return
+        if (dbData?.keys) {
+          filteredApps.push({
+            name: app.name,
+            slug: app.slug,
+            logo: app.logo,
+            title: app.title,
+            type: app.type,
+            description: app.description,
+            // We know that keys are going to be an object or null. Prisma can not type check against JSON fields
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            //@ts-ignore
+            keys: dbData.keys,
+            enabled: dbData?.enabled || false,
+          });
+        } else {
+          const appKey = deriveAppDictKeyFromType(app.type, appKeysSchemas);
+          const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
 
-            const keys: Record<string, string> = {};
+          const keys: Record<string, string> = {};
 
-            if (typeof keysSchema !== "undefined") {
-              Object.values(keysSchema.keyof()._def.values).reduce((keysObject, key) => {
-                keys[key as string] = "";
-                return keysObject;
-              }, {} as Record<string, string>);
-            }
-
-            filteredApps.push({
-              name: app.name,
-              slug: app.slug,
-              logo: app.logo,
-              type: app.type,
-              title: app.title,
-              description: app.description,
-              enabled: dbData?.enabled || false,
-              keys: Object.keys(keys).length === 0 ? null : keys,
-            });
+          if (typeof keysSchema !== "undefined") {
+            Object.values(keysSchema.keyof()._def.values).reduce((keysObject, key) => {
+              keys[key as string] = "";
+              return keysObject;
+            }, {} as Record<string, string>);
           }
+
+          filteredApps.push({
+            name: app.name,
+            slug: app.slug,
+            logo: app.logo,
+            type: app.type,
+            title: app.title,
+            description: app.description,
+            enabled: dbData?.enabled || false,
+            keys: Object.keys(keys).length === 0 ? null : keys,
+          });
         }
       }
       return filteredApps;
@@ -135,7 +133,7 @@ export const appsRouter = router({
 
       // If disabling an app then we need to alert users basesd on the app type
       if (input.enabled) {
-        if (app.categories.some((category) => category === "calendar" || category === "video")) {
+        if (app.categories.some((category) => ["calendar", "video"].includes(category))) {
           // Find all users with the app credentials
           const appCredentials = await prisma.credential.findMany({
             where: {
@@ -247,7 +245,5 @@ export const appsRouter = router({
         },
         data: { keys },
       });
-
-      return;
     }),
 });

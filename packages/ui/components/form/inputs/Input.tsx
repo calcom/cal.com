@@ -200,40 +200,6 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
   );
 });
 
-export const KeyField = forwardRef<HTMLInputElement, InputFieldProps>(function KeyField(props, ref) {
-  const [hideKey, setHideKey] = useState(true);
-  const { t } = useLocale();
-
-  return (
-    <div className="relative [&_.group:hover_.addon-wrapper]:border-gray-400 [&_.group:focus-within_.addon-wrapper]:border-neutral-300">
-      <InputField
-        type={hideKey ? "password" : "text"}
-        placeholder={props.placeholder || "•••••••••••••"}
-        ref={ref}
-        {...props}
-        className={classNames("mb-0 border-r-0 pr-10", props.className)}
-        readOnly={hideKey}
-        addOnFilled={false}
-        addOnSuffix={
-          <Tooltip content="edit">
-            <button
-              className="absolute right-3 bottom-0 h-9 text-gray-900"
-              type="button"
-              onClick={() => setHideKey(false)}>
-              {hideKey && (
-                <>
-                  <Edit2 className="h-4 stroke-[2.5px]" />
-                  <span className="sr-only">{t("edit")}</span>
-                </>
-              )}
-            </button>
-          </Tooltip>
-        }
-      />
-    </div>
-  );
-});
-
 export const EmailInput = forwardRef<HTMLInputElement, InputFieldProps>(function EmailInput(props, ref) {
   return (
     <Input
