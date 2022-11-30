@@ -4,12 +4,13 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
+import { MultiValue } from "react-select";
 import { z } from "zod";
 
 import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon, Label, Select, Skeleton, TextField } from "@calcom/ui";
+import { Button, Icon, Label, Select, Skeleton, TextField, SettingsToggle } from "@calcom/ui";
 
 import { slugify } from "@lib/slugify";
 
@@ -30,6 +31,34 @@ export const EventSetupTab = (
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [editingLocationType, setEditingLocationType] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
+  const [multipleDuration, setMultipleDuration] = useState(eventType.metadata.multipleDuration);
+
+  const multipleDurationOptions = [
+    { value: 5, label: t("multiple_duration_mins", { count: 5 }) },
+    { value: 10, label: t("multiple_duration_mins", { count: 10 }) },
+    { value: 15, label: t("multiple_duration_mins", { count: 15 }) },
+    { value: 20, label: t("multiple_duration_mins", { count: 20 }) },
+    { value: 25, label: t("multiple_duration_mins", { count: 25 }) },
+    { value: 30, label: t("multiple_duration_mins", { count: 30 }) },
+    { value: 45, label: t("multiple_duration_mins", { count: 45 }) },
+    { value: 50, label: t("multiple_duration_mins", { count: 50 }) },
+    { value: 60, label: t("multiple_duration_mins", { count: 60 }) },
+    { value: 75, label: t("multiple_duration_mins", { count: 75 }) },
+    { value: 80, label: t("multiple_duration_mins", { count: 80 }) },
+    { value: 90, label: t("multiple_duration_mins", { count: 90 }) },
+    { value: 120, label: t("multiple_duration_mins", { count: 120 }) },
+    { value: 180, label: t("multiple_duration_mins", { count: 180 }) },
+  ];
+
+  const [selectedMultipleDuration, setSelectedMultipleDuration] = useState<
+    MultiValue<{
+      value: number;
+      label: string;
+    }>
+  >(multipleDurationOptions.filter((mdOpt) => multipleDuration?.includes(mdOpt.value)));
+  const [defaultDuration, setDefaultDuration] = useState(
+    selectedMultipleDuration.find((opt) => opt.value === eventType.length) ?? null
+  );
 
   const openLocationModal = (type: EventLocationType["type"]) => {
     setSelectedLocation(locationOptions.find((option) => option.value === type));
@@ -219,17 +248,91 @@ export const EventSetupTab = (
             setValueAs: (v) => slugify(v),
           })}
         />
-        <TextField
-          required
-          name="length"
-          type="number"
-          label={t("duration")}
-          addOnSuffix={<>{t("minutes")}</>}
-          defaultValue={eventType.length ?? 15}
-          onChange={(e) => {
-            formMethods.setValue("length", Number(e.target.value));
-          }}
-        />
+        {multipleDuration ? (
+          <div className="space-y-4">
+            <div>
+              <Skeleton as={Label} loadingClassName="w-16">
+                {t("available_durations")}
+              </Skeleton>
+              <Select
+                isMulti
+                defaultValue={selectedMultipleDuration}
+                name="metadata.multipleDuration"
+                isSearchable={false}
+                className="h-auto !min-h-[36px] text-sm"
+                options={multipleDurationOptions}
+                onChange={(options) => {
+                  const values = options
+                    .map((opt) => opt.value)
+                    .sort(function (a, b) {
+                      return a - b;
+                    });
+                  setMultipleDuration(values);
+                  setSelectedMultipleDuration(options);
+                  if (!options.find((opt) => opt.value === defaultDuration?.value)) {
+                    if (options.length > 0) {
+                      setDefaultDuration(options[0]);
+                    } else {
+                      setDefaultDuration(null);
+                    }
+                  }
+                  if (options.length === 1 && defaultDuration === null) {
+                    setDefaultDuration(options[0]);
+                  }
+                  formMethods.setValue("metadata.multipleDuration", values);
+                }}
+              />
+            </div>
+            <div>
+              <Skeleton as={Label} loadingClassName="w-16">
+                {t("default_duration")}
+              </Skeleton>
+              <Select
+                value={defaultDuration}
+                isSearchable={false}
+                name="length"
+                className="text-sm"
+                noOptionsMessage={() => t("default_duration_no_options")}
+                options={selectedMultipleDuration}
+                onChange={(option) => {
+                  setDefaultDuration(
+                    selectedMultipleDuration.find((opt) => opt.value === option?.value) ?? null
+                  );
+                  formMethods.setValue("length", Number(option?.value));
+                }}
+              />
+            </div>
+          </div>
+        ) : (
+          <TextField
+            required
+            name="length"
+            type="number"
+            label={t("duration")}
+            addOnSuffix={<>{t("minutes")}</>}
+            defaultValue={eventType.length ?? 15}
+            onChange={(e) => {
+              formMethods.setValue("length", Number(e.target.value));
+            }}
+          />
+        )}
+        <div className="!mt-4 [&_label]:my-1 [&_label]:font-normal">
+          <SettingsToggle
+            title={t("allow_booker_to_select_duration")}
+            checked={multipleDuration !== undefined}
+            onCheckedChange={() => {
+              if (multipleDuration !== undefined) {
+                setMultipleDuration(undefined);
+                formMethods.setValue("metadata.multipleDuration", undefined);
+                formMethods.setValue("length", eventType.length);
+              } else {
+                setMultipleDuration([]);
+                formMethods.setValue("metadata.multipleDuration", []);
+                formMethods.setValue("length", 0);
+              }
+            }}
+          />
+        </div>
         <div>
           <Skeleton as={Label} loadingClassName="w-16">
             {t("location")}

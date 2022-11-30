@@ -150,6 +150,21 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
 
+  const metadata = eventType.metadata;
+  // fallback to !!eventType.schedule when 'useHostSchedulesForTeamEvent' is undefined
+  if (!!team) {
+    metadata.config = {
+      ...metadata.config,
+      useHostSchedulesForTeamEvent:
+        typeof eventType.metadata.config?.useHostSchedulesForTeamEvent !== "undefined"
+          ? eventType.metadata.config?.useHostSchedulesForTeamEvent === true
+          : !!eventType.schedule,
+    };
+  } else {
+    // Make sure non-team events NEVER have this config key;
+    delete metadata.config?.useHostSchedulesForTeamEvent;
+  }
+
   const formMethods = useForm<FormValues>({
     defaultValues: {
       title: eventType.title,
@@ -172,17 +187,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         findDurationType(eventType.minimumBookingNotice),
         eventType.minimumBookingNotice
       ),
-      // fallback to !!eventType.schedule when 'useHostSchedulesForTeamEvent' is undefined
-      metadata: {
-        ...eventType.metadata,
-        config: {
-          ...eventType.metadata.config,
-          useHostSchedulesForTeamEvent:
-            typeof eventType.metadata.config?.useHostSchedulesForTeamEvent !== "undefined"
-              ? eventType.metadata.config?.useHostSchedulesForTeamEvent === true
-              : !!eventType.schedule,
-        },
-      },
+      metadata,
     },
   });
 
@@ -266,7 +271,17 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
 
           if (bookingLimits) {
             const isValid = validateBookingLimitOrder(bookingLimits);
-            if (!isValid) throw new Error("Booking limits must be in accending order. [day,week,month,year]");
+            if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
+          }
+
+          if (metadata?.multipleDuration !== undefined) {
+            if (metadata?.multipleDuration.length < 1) {
+              throw new Error(t("event_setup_multiple_duration_error"));
+            } else {
+              if (!metadata?.multipleDuration?.includes(input.length)) {
+                throw new Error(t("event_setup_multiple_duration_default_error"));
+              }
+            }
           }
 
           updateMutation.mutate({
