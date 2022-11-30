@@ -168,10 +168,11 @@ export default function Success(props: SuccessProps) {
   }
 
   const location: ReturnType<typeof getEventLocationValue> = Array.isArray(props.bookingInfo.location)
-    ? props.bookingInfo.location[0] || ""
+    ? props.bookingInfo.location[0]
     : props.bookingInfo.location
-    ? props.bookingInfo.location || ""
-    : props.bookingInfo.references[0].type;
+    ? props.bookingInfo.location
+    : // If there is no location set then we default to Cal Video
+      "integrations:daily";
 
   if (!location) {
     // Can't use logger.error because it throws error on client. stdout isn't available to it.
