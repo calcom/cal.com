@@ -137,8 +137,8 @@ const CalendarsView = () => {
                       />
                     )}
                     {item?.error === undefined && item.calendars && (
-                      <ListItem expanded className="flex-col">
-                        <div className="flex w-full flex-1 items-center space-x-3 pb-5 pl-1 pt-1 rtl:space-x-reverse">
+                      <ListItem className="flex-col">
+                        <div className="flex w-full flex-1 items-center space-x-3 p-4 rtl:space-x-reverse">
                           {
                             // eslint-disable-next-line @next/next/no-img-element
                             item.integration.logo && (
