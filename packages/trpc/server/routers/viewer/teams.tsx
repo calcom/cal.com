@@ -393,6 +393,7 @@ export const viewerTeamsRouter = router({
           });
 
           // TODO: disable if not hosted by Cal
+          // @TODO: Update with new logic
           // if (teamOwner) await removeSeat(teamOwner.userId, input.teamId, ctx.user.id);
 
           const membership = await ctx.prisma.membership.delete({
