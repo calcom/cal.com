@@ -30,7 +30,6 @@ export const purchaseTeamSubscription = async (input: { teamId: number; seats: n
     mode: "subscription",
     success_url: `${WEBAPP_URL}/api/teams/${teamId}/upgrade?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${WEBAPP_URL}/settings/profile`,
-    locale: "en",
     line_items: [
       {
         /** We only need to set the base price and we can upsell it directly on Stripe's checkout  */
