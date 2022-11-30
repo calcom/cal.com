@@ -891,7 +891,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       location: true,
       status: true,
       cancellationReason: true,
-      references: true,
       user: {
         select: {
           id: true,
