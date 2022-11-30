@@ -52,7 +52,6 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
       if (defaultMeeting) {
         createdMeeting = defaultMeeting;
         calEvent.location = "integrations:dailyvideo";
-        return;
       }
     }
 

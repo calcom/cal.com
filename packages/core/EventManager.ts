@@ -109,7 +109,7 @@ export default class EventManager {
     if (isDedicated) {
       const result = await this.createVideoEvent(evt);
 
-      if (result.createdEvent) {
+      if (result?.createdEvent) {
         evt.videoCallData = result.createdEvent;
         evt.location = result.originalEvent.location;
         result.type = result.createdEvent.type;
