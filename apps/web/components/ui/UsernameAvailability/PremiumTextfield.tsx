@@ -3,6 +3,7 @@ import { debounce, noop } from "lodash";
 import { useRouter } from "next/router";
 import { RefCallback, useEffect, useMemo, useState } from "react";
 
+import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -194,7 +195,9 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   };
 
   let paymentMsg = !currentUsername ? (
-    <span className="text-xs text-orange-400">You need to reserve your premium username for $29.00</span>
+    <span className="text-xs text-orange-400">
+      You need to reserve your premium username for {getPremiumPlanPriceValue()}
+    </span>
   ) : null;
 
   if (recentAttemptPaymentStatus && recentAttemptPaymentStatus !== "paid") {
