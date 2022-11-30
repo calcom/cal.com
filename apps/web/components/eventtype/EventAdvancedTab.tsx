@@ -132,7 +132,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               formMethods.setValue("customInputs", []);
             }
           }}>
-          <ul className="my-4">
+          <ul className="my-4 rounded-md border">
             {customInputs.map((customInput: EventTypeCustomInput, idx: number) => (
               <CustomInputItem
                 key={idx}
@@ -156,7 +156,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                 setSelectedCustomInput(undefined);
                 setSelectedCustomInputModalOpen(true);
               }}>
-              Add an input
+              {t("add_input")}
             </Button>
           )}
         </SettingsToggle>

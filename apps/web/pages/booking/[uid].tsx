@@ -411,7 +411,7 @@ export default function Success(props: SuccessProps) {
                     {(bookingInfo?.user || bookingInfo?.attendees) && (
                       <>
                         <div className="font-medium">{t("who")}</div>
-                        <div className="col-span-2 mb-6 last:mb-0">
+                        <div className="col-span-2 last:mb-0">
                           <>
                             {bookingInfo?.user && (
                               <div className="mb-3">
@@ -458,8 +458,8 @@ export default function Success(props: SuccessProps) {
                           <>
                             {customInput !== "" && (
                               <>
-                                <div className="mt-2 pr-3 font-medium">{key}</div>
-                                <div className="col-span-2 mt-2 mb-2">
+                                <div className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">{key}</div>
+                                <div className="col-span-3 mt-2 mb-2">
                                   {typeof customInput === "boolean" ? (
                                     <p>{customInput ? "true" : "false"}</p>
                                   ) : (

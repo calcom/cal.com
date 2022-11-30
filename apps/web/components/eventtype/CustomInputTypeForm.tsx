@@ -40,7 +40,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
   };
 
   return (
-    <form onSubmit={handleSubmit(props.onSubmit)} className="flex flex-col space-y-4">
+    <form className="flex flex-col space-y-4">
       <div>
         <label htmlFor="type" className="block text-sm font-medium text-gray-700">
           {t("input_type")}
@@ -111,7 +111,9 @@ const CustomInputTypeForm: FC<Props> = (props) => {
         <Button onClick={onCancel} type="button" color="secondary" className="ltr:mr-2">
           {t("cancel")}
         </Button>
-        <Button type="submit">{t("save")}</Button>
+        <Button onClick={handleSubmit(props.onSubmit)} form="custom-input">
+          {t("save")}
+        </Button>
       </div>
     </form>
   );
