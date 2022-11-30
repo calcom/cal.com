@@ -166,9 +166,12 @@ export default function Success(props: SuccessProps) {
   if ((isCancellationMode || changes) && typeof window !== "undefined") {
     window.scrollTo(0, document.body.scrollHeight);
   }
+
   const location: ReturnType<typeof getEventLocationValue> = Array.isArray(props.bookingInfo.location)
     ? props.bookingInfo.location[0] || ""
-    : props.bookingInfo.location || "";
+    : props.bookingInfo.location
+    ? props.bookingInfo.location || ""
+    : props.bookingInfo.references[0].type;
 
   if (!location) {
     // Can't use logger.error because it throws error on client. stdout isn't available to it.
@@ -889,6 +892,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       location: true,
       status: true,
       cancellationReason: true,
+      references: true,
       user: {
         select: {
           id: true,
