@@ -108,6 +108,16 @@ const BookingDescription: FC<Props> = (props) => {
         <AvailableEventLocations
           locations={eventType.locations as AvailabilityPageProps["eventType"]["locations"]}
         />
+        {user && (
+          <p
+            className={classNames(
+              "text-sm font-medium",
+              isBookingPage && "dark:text-darkgray-600 text-gray-600"
+            )}>
+            <Icon.FiUser className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
+            {user.name}
+          </p>
+        )}
         <div
           className={classNames(
             "flex flex-nowrap text-sm font-medium",
@@ -119,16 +129,6 @@ const BookingDescription: FC<Props> = (props) => {
               isBookingPage && "mt-[2px]"
             )}
           />
-          {user && (
-            <p
-              className={classNames(
-                "text-sm font-medium",
-                isBookingPage && "dark:text-darkgray-600 text-gray-600"
-              )}>
-              <Icon.FiUser className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
-              {user.name}
-            </p>
-          )}
           {eventType.metadata?.multipleDuration !== undefined ? (
             !isBookingPage ? (
               <ul className="-mt-1 flex flex-wrap gap-1">
