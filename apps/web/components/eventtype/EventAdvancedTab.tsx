@@ -9,6 +9,7 @@ import { v5 as uuidv5 } from "uuid";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { customInputOptionSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
@@ -35,6 +36,10 @@ const generateHashedLink = (id: number) => {
   return uid;
 };
 
+export type CustomInputParsed = Omit<EventTypeCustomInput, "options"> & {
+  options?: { label: string; type?: string }[];
+};
+
 export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered, "eventType" | "team">) => {
   const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
   const formMethods = useFormContext<FormValues>();
@@ -46,7 +51,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
   const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
-  const [selectedCustomInput, setSelectedCustomInput] = useState<EventTypeCustomInput | undefined>(undefined);
+  const [selectedCustomInput, setSelectedCustomInput] = useState<CustomInputParsed | undefined>(undefined);
   const [selectedCustomInputModalOpen, setSelectedCustomInputModalOpen] = useState(false);
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
 
@@ -140,7 +145,11 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                 type={customInput.type}
                 required={customInput.required}
                 editOnClick={() => {
-                  setSelectedCustomInput(customInput);
+                  const parsdOptions = customInputOptionSchema.safeParse(customInput.options);
+                  setSelectedCustomInput({
+                    ...customInput,
+                    options: parsdOptions.success ? parsdOptions.data : undefined,
+                  });
                   setSelectedCustomInputModalOpen(true);
                 }}
                 deleteOnClick={() => removeCustom(idx)}
@@ -391,13 +400,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               <CustomInputTypeForm
                 selectedCustomInput={selectedCustomInput}
                 onSubmit={(values) => {
-                  const customInput: EventTypeCustomInput = {
+                  const customInput: CustomInputParsed = {
                     id: -1,
                     eventTypeId: -1,
                     label: values.label,
                     placeholder: values.placeholder,
                     required: values.required,
                     type: values.type,
+                    options: values.options,
                   };
 
                   if (selectedCustomInput) {
@@ -405,9 +415,10 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                     selectedCustomInput.placeholder = customInput.placeholder;
                     selectedCustomInput.required = customInput.required;
                     selectedCustomInput.type = customInput.type;
+                    selectedCustomInput.options = customInput.options;
                   } else {
-                    setCustomInputs(customInputs.concat(customInput));
-                    formMethods.setValue("customInputs", customInputs.concat(customInput));
+                    // setCustomInputs(customInputs.concat(customInput));
+                    // formMethods.setValue("customInputs", customInputs.concat(customInput));
                   }
                   setSelectedCustomInputModalOpen(false);
                 }}

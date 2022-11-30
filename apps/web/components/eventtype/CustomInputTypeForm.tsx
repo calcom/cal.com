@@ -1,23 +1,27 @@
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
-import { FC } from "react";
-import { Controller, SubmitHandler, useForm, useWatch } from "react-hook-form";
+import { FC, useState } from "react";
+import { Controller, SubmitHandler, useFieldArray, useForm, useWatch } from "react-hook-form";
 
-import { Button, Select, TextField } from "@calcom/ui";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { customInputOptionSchema } from "@calcom/prisma/zod-utils";
+import { Button, Icon, Input, Label, Select, TextField } from "@calcom/ui";
 
-import { useLocale } from "@lib/hooks/useLocale";
+import { CustomInputParsed } from "@components/eventtype/EventAdvancedTab";
 
 interface OptionTypeBase {
   label: string;
   value: EventTypeCustomInputType;
+  options?: { label: string; type: string }[];
 }
 
 interface Props {
   onSubmit: SubmitHandler<IFormInput>;
   onCancel: () => void;
-  selectedCustomInput?: EventTypeCustomInput;
+  selectedCustomInput?: CustomInputParsed;
 }
 
-type IFormInput = EventTypeCustomInput;
+type IFormInput = CustomInputParsed;
 
 const CustomInputTypeForm: FC<Props> = (props) => {
   const { t } = useLocale();
@@ -26,12 +30,18 @@ const CustomInputTypeForm: FC<Props> = (props) => {
     { value: EventTypeCustomInputType.TEXTLONG, label: t("multiline_text") },
     { value: EventTypeCustomInputType.NUMBER, label: t("number") },
     { value: EventTypeCustomInputType.BOOL, label: t("checkbox") },
+    {
+      value: EventTypeCustomInputType.RADIO,
+      label: t("radio"),
+    },
   ];
   const { selectedCustomInput } = props;
   const defaultValues = selectedCustomInput || { type: inputOptions[0].value };
+
   const { register, control, handleSubmit } = useForm<IFormInput>({
     defaultValues,
   });
+
   const selectedInputType = useWatch({ name: "type", control });
   const selectedInputOption = inputOptions.find((e) => selectedInputType === e.value);
 
@@ -83,6 +93,8 @@ const CustomInputTypeForm: FC<Props> = (props) => {
           {...register("placeholder")}
         />
       )}
+      {selectedInputType === EventTypeCustomInputType.RADIO && <RadioInputHandler />}
+
       <div className="flex h-5 items-center">
         <input
           id="required"
@@ -116,5 +128,64 @@ const CustomInputTypeForm: FC<Props> = (props) => {
     </form>
   );
 };
+
+function removeItem<T>(arr: Array<T>, value: T): Array<T> {
+  const index = arr.indexOf(value);
+  if (index > -1) {
+    arr.splice(index, 1);
+  }
+  return arr;
+}
+
+function RadioInputHandler() {
+  const { t } = useLocale();
+  const { register, control, getValues, setValue } = useForm<IFormInput>();
+  const watchedOptions = useWatch({ name: "options", control });
+  const { fields, append, prepend, remove, swap, move, insert } = useFieldArray({
+    control,
+    name: "options",
+  });
+  const [animateRef] = useAutoAnimate<HTMLUListElement>();
+
+  return (
+    <div className="flex flex-col ">
+      <Label htmlFor="radio_options">{t("options")}</Label>
+      <ul className="flex w-full flex-col space-y-1 rounded-md bg-gray-50 p-4" ref={animateRef}>
+        <>
+          {fields.map((option, index) => (
+            <li key={`${option.label}-${index}`}>
+              <TextField
+                placeholder={t("enter_option", { index: index + 1 })}
+                addOnFilled={false}
+                label={t("option", { index: index + 1 })}
+                labelSrOnly
+                {...register(`options.${index}.label` as const)}
+                addOnSuffix={
+                  <Button
+                    size="icon"
+                    color="minimal"
+                    StartIcon={Icon.FiX}
+                    onClick={() => {
+                      remove(index);
+                    }}
+                  />
+                }
+              />
+            </li>
+          ))}
+          <Button
+            color="minimal"
+            StartIcon={Icon.FiPlus}
+            className="!text-sm !font-medium"
+            onClick={() => {
+              append({ label: "" });
+            }}>
+            {t("add_an_option")}
+          </Button>
+        </>
+      </ul>
+    </div>
+  );
+}
 
 export default CustomInputTypeForm;

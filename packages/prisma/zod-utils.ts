@@ -212,6 +212,13 @@ export const teamMetadataSchema = z
   .partial()
   .nullable();
 
+export const customInputOptionSchema = z.array(
+  z.object({
+    label: z.string(),
+    type: z.string(),
+  })
+);
+
 /**
  * Ensures that it is a valid HTTP URL
  * It automatically avoids
