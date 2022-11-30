@@ -37,6 +37,12 @@ export const purchaseTeamSubscription = async (input: { teamId: number; seats: n
         quantity: seats,
       },
     ],
+    customer_update: {
+      address: "auto",
+    },
+    automatic_tax: {
+      enabled: true,
+    },
     metadata: {
       teamId,
     },
