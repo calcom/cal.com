@@ -183,6 +183,8 @@ type LayoutProps = {
   withoutMain?: boolean;
   // Gives you the option to skip HeadSEO and render your own.
   withoutSeo?: boolean;
+  // Gives the ability to include actions to the right of the heading
+  actions?: JSX.Element;
 };
 
 const CustomBrandingContainer = () => {
@@ -840,6 +842,7 @@ export function ShellMain(props: LayoutProps) {
                 {props.CTA}
               </div>
             )}
+            {props.actions && props.actions}
           </header>
         )}
       </div>
