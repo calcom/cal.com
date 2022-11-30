@@ -1,6 +1,7 @@
 import { TFunction } from "next-i18next";
 
 import { getRichDescription } from "@calcom/lib/CalEventParser";
+import { APP_NAME } from "@calcom/lib/constants";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { renderEmail } from "..";
@@ -31,7 +32,7 @@ export default class BrokenIntegrationEmail extends BaseEmail {
     }
 
     return {
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `[Action Required] ${this.t("confirmed_event_type_subject", {
         eventType: this.calEvent.type,
