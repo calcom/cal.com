@@ -12,12 +12,13 @@ import StepDone from "./steps/StepDone";
 export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const [isLoadingStep1, setIsLoadingStep1] = useState(false);
+  const shouldDisable = props.userCount !== 0;
 
   const steps = [
     {
       title: t("administrator_user"),
       description: t("lets_create_first_administrator_user"),
-      content: props.userCount !== 0 ? <StepDone /> : <SetupFormStep1 setIsLoading={setIsLoadingStep1} />,
+      content: shouldDisable ? <StepDone /> : <SetupFormStep1 setIsLoading={setIsLoadingStep1} />,
       isLoading: isLoadingStep1,
     },
     {
@@ -31,7 +32,7 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   return (
     <>
       <main className="flex items-center bg-gray-100 print:h-full">
-        <WizardForm href="/auth/setup" steps={steps} disableNavigation={props.userCount !== 0} />
+        <WizardForm href="/auth/setup" steps={steps} disableNavigation={shouldDisable} />
       </main>
     </>
   );

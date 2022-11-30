@@ -8,9 +8,10 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
-import getApps, { getEventTypeAppData, getLocationOptions } from "@calcom/app-store/utils";
+import { getEventTypeAppData, getLocationOptions } from "@calcom/app-store/utils";
 import { EventLocationType, LocationObject } from "@calcom/core/location";
 import { parseBookingLimit, parseRecurringEvent, validateBookingLimitOrder } from "@calcom/lib";
+import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { CAL_URL } from "@calcom/lib/constants";
 import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
 import findDurationType from "@calcom/lib/findDurationType";
@@ -527,11 +528,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
   const currentUser = eventType.users.find((u) => u.id === session.user.id);
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
-  const integrations = getApps(credentials);
-  const locationOptions = await getLocationOptions(
-    integrations.filter((integration) => enabledApps.some((app) => app.slug === integration.slug)),
-    t
-  );
+  const integrations = await getEnabledApps(credentials);
+  const locationOptions = getLocationOptions(integrations, t);
 
   const eventTypeObject = Object.assign({}, eventType, {
     periodStartDate: eventType.periodStartDate?.toString() ?? null,

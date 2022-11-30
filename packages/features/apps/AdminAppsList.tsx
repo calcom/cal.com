@@ -7,22 +7,20 @@ import { z } from "zod";
 
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc, RouterOutputs } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import {
   Button,
-  Dialog,
-  DialogContent,
   ConfirmationDialogContent,
+  Dialog,
   Form,
-  KeyField,
+  Icon,
   showToast,
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
   Switch,
-  VerticalDivider,
-  Icon,
   TextField,
+  VerticalDivider,
 } from "@calcom/ui";
 
 const IntegrationContainer = ({
@@ -63,10 +61,7 @@ const IntegrationContainer = ({
       <Collapsible key={app.name} open={showKeys}>
         <div className={`${!lastEntry && "border-b"}`}>
           <div className="flex w-full flex-1 items-center justify-between space-x-3 p-4 rtl:space-x-reverse md:max-w-3xl">
-            {
-              // eslint-disable-next-line @next/next/no-img-element
-              app.logo && <img className="h-10 w-10" src={app.logo} alt={app.title} />
-            }
+            {app.logo && <img className="h-10 w-10" src={app.logo} alt={app.title} />}
             <div className="flex-grow truncate pl-2">
               <h3 className="truncate text-sm font-medium text-neutral-900">
                 <p>{app.name || app.title}</p>

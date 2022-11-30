@@ -1,35 +1,14 @@
-import { CheckIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import classNames from "classnames";
-import { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import * as z from "zod";
 
 import { isPasswordValid } from "@calcom/lib/auth";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import prisma from "@calcom/prisma";
-import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { EmailField, Label, PasswordField, TextField, WizardForm } from "@calcom/ui";
-
-import { ssrInit } from "@server/lib/ssr";
-
-const StepDone = () => {
-  const { t } = useLocale();
-
-  return (
-    <div className="min-h-36 my-6 flex flex-col items-center justify-center">
-      <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-gray-600 dark:bg-white">
-        <CheckIcon className="inline-block h-10 w-10 text-white dark:bg-white dark:text-gray-600" />
-      </div>
-      <div className="max-w-[420px] text-center">
-        <h2 className="mt-6 mb-1 text-lg font-medium dark:text-gray-300">{t("all_done")}</h2>
-      </div>
-    </div>
-  );
-};
+import { EmailField, Label, PasswordField, TextField } from "@calcom/ui";
 
 const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
   const router = useRouter();
@@ -84,7 +63,7 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
       },
     });
     if (response.status === 200) {
-      signIn("credentials", {
+      await signIn("credentials", {
         redirect: false,
         callbackUrl: "/",
         email: data.email_address.toLowerCase(),
@@ -96,7 +75,7 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
     }
   }, onError);
 
-  const longWebsiteUrl = process.env.NEXT_PUBLIC_WEBSITE_URL.length > 30;
+  const longWebsiteUrl = WEBSITE_URL.length > 30;
 
   return (
     <FormProvider {...formMethods}>

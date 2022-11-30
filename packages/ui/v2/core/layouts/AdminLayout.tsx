@@ -23,7 +23,7 @@ export default function AdminLayout({
 
   return (
     <SettingsLayout {...rest}>
-      <div className="mx-auto flex max-w-4xl flex-row divide-y divide-gray-200 md:px-12">
+      <div className="mx-auto flex max-w-4xl flex-row divide-y divide-gray-200">
         <div className="flex flex-1 [&>*]:flex-1">
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
