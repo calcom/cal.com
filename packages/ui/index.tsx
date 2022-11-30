@@ -31,7 +31,7 @@ export { default as CheckboxField } from "./components/form/checkbox/Checkbox";
 export { default as ErrorBoundary } from "./ErrorBoundary";
 export { default as AddressInput } from "./form/AddressInputLazy";
 export { default as PhoneInput } from "./form/PhoneInputLazy";
-export { default as Select, UnstyledSelect } from "./form/Select";
+export { UnstyledSelect } from "./form/Select";
 export { BadgeCheckIcon, ClipboardCopyIcon, Icon, ShieldCheckIcon, StarIconSolid } from "./Icon";
 export { default as Loader } from "./Loader";
 export { default as Shell, ShellMain } from "./Shell";
@@ -43,6 +43,7 @@ export {
   CustomInputItem,
   EmptyScreen,
   HorizontalTabs,
+  Select,
   SelectField,
   SelectWithValidation,
   SettingsToggle,
