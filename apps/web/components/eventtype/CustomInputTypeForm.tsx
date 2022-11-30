@@ -1,8 +1,17 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventTypeCustomInputType } from "@prisma/client";
 import type { CustomInputParsed } from "pages/event-types/[type]";
-import { FC } from "react";
-import { Controller, SubmitHandler, useFieldArray, useForm, useWatch } from "react-hook-form";
+import { FC, useId } from "react";
+import {
+  Control,
+  Controller,
+  SubmitHandler,
+  useFieldArray,
+  useForm,
+  useFormContext,
+  UseFormRegister,
+  useWatch,
+} from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Icon, Label, Select, TextField } from "@calcom/ui";
@@ -21,6 +30,12 @@ interface Props {
 
 type IFormInput = CustomInputParsed;
 
+// Getting a random ID gives us the option to know WHICH field is changed
+// when the user edits a custom field.
+// This UUID is only used to check for changes in the UI and not the ID we use in the DB
+// There is very very very slim chance that this will cause a collision
+const randomId = () => Math.floor(Math.random() * 1000000 + new Date().getTime());
+
 const CustomInputTypeForm: FC<Props> = (props) => {
   const { t } = useLocale();
   const inputOptions: OptionTypeBase[] = [
@@ -33,13 +48,21 @@ const CustomInputTypeForm: FC<Props> = (props) => {
       label: t("radio"),
     },
   ];
+
   const { selectedCustomInput } = props;
-  const defaultValues = selectedCustomInput || { type: inputOptions[0].value };
+
+  const defaultValues = selectedCustomInput
+    ? { ...selectedCustomInput, id: selectedCustomInput?.id || randomId() }
+    : {
+        id: randomId(),
+        type: EventTypeCustomInputType.TEXT,
+      };
 
   const { register, control, getValues } = useForm<IFormInput>({
     defaultValues,
   });
-
+  console.log("defaultvalues", defaultValues);
+  console.log(getValues());
   const selectedInputType = useWatch({ name: "type", control });
   const selectedInputOption = inputOptions.find((e) => selectedInputType === e.value);
 
@@ -48,7 +71,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
   };
 
   return (
-    <form id="custom-input-form" className="flex flex-col space-y-4">
+    <div className="flex flex-col space-y-4">
       <div>
         <label htmlFor="type" className="block text-sm font-medium text-gray-700">
           {t("input_type")}
@@ -91,7 +114,9 @@ const CustomInputTypeForm: FC<Props> = (props) => {
           {...register("placeholder")}
         />
       )}
-      {selectedInputType === EventTypeCustomInputType.RADIO && <RadioInputHandler />}
+      {selectedInputType === EventTypeCustomInputType.RADIO && (
+        <RadioInputHandler control={control} register={register} />
+      )}
 
       <div className="flex h-5 items-center">
         <input
@@ -125,20 +150,27 @@ const CustomInputTypeForm: FC<Props> = (props) => {
           type="button"
           onClick={() => {
             props.onSubmit(getValues());
+            console.log({ values: getValues() });
           }}>
           {t("save")}
         </Button>
       </div>
-    </form>
+    </div>
   );
 };
 
-function RadioInputHandler() {
+function RadioInputHandler({
+  register,
+  control,
+}: {
+  register: UseFormRegister<IFormInput>;
+  control: Control<IFormInput>;
+}) {
   const { t } = useLocale();
-  const { register, control } = useForm<IFormInput>();
   const { fields, append, remove } = useFieldArray<IFormInput>({
     control,
     name: "options",
+    shouldUnregister: true,
   });
   const [animateRef] = useAutoAnimate<HTMLUListElement>();
 
@@ -150,8 +182,9 @@ function RadioInputHandler() {
         ref={animateRef}>
         <>
           {fields.map((option, index) => (
-            <li key={`${option.label}-${index}`}>
+            <li key={`${option.id}`}>
               <TextField
+                id={option.id}
                 placeholder={t("enter_option", { index: index + 1 })}
                 addOnFilled={false}
                 label={t("option", { index: index + 1 })}

@@ -1,3 +1,4 @@
+import { EventTypeCustomInputType } from "@prisma/client";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 
 /* eslint-disable no-underscore-dangle */
@@ -218,6 +219,18 @@ export const customInputOptionSchema = z.array(
     type: z.string(),
   })
 );
+
+export const customInputSchema = z.object({
+  id: z.number(),
+  eventTypeId: z.number(),
+  label: z.string(),
+  type: z.nativeEnum(EventTypeCustomInputType),
+  options: customInputOptionSchema.optional().nullable(),
+  required: z.boolean(),
+  placeholder: z.string(),
+});
+
+export type CustomInputSchema = z.infer<typeof customInputSchema>;
 
 /**
  * Ensures that it is a valid HTTP URL

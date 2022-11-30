@@ -23,7 +23,11 @@ import findDurationType from "@calcom/lib/findDurationType";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
-import { customInputOptionSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import {
+  customInputOptionSchema,
+  customInputSchema,
+  EventTypeMetaDataSchema,
+} from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { BookingLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form, showToast } from "@calcom/ui";
@@ -92,16 +96,6 @@ export type FormValues = {
   successRedirectUrl: string;
   bookingLimits?: BookingLimit;
 };
-
-const customInputSchema = z.object({
-  id: z.number(),
-  eventTypeId: z.number(),
-  label: z.string(),
-  type: z.nativeEnum(EventTypeCustomInputType),
-  options: customInputOptionSchema.optional(),
-  required: z.boolean(),
-  placeholder: z.string(),
-});
 
 export type CustomInputParsed = typeof customInputSchema._output;
 
@@ -317,6 +311,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             seatsPerTimeSlot,
             seatsShowAttendees,
             metadata,
+            customInputs,
           });
         }}>
         <div ref={animationParentRef} className="space-y-6">
@@ -514,7 +509,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   // const parsedMetaData = _EventTypeModel.parse(newMetadata);
   const parsedMetaData = newMetadata;
 
-  const parsedCustomInputs = rawEventType.customInputs.map((input) => customInputSchema.parse(input));
+  const parsedCustomInputs = (rawEventType.customInputs || []).map((input) => customInputSchema.parse(input));
 
   const eventType = {
     ...restEventType,
