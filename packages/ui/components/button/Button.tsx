@@ -104,7 +104,7 @@ const buttonClasses = cva(
         className:
           "bg-gray-100 text-gray-900/30 dark:bg-darkgray-100 dark:text-darkgray-900/30 dark:border-darkgray-200",
       },
-      applyStyleToMultipleVariants({
+      ...applyStyleToMultipleVariants({
         disabled: [undefined, false],
         color: "minimal",
         className:
