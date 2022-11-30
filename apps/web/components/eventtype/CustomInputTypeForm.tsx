@@ -1,13 +1,11 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { EventTypeCustomInput, EventTypeCustomInputType } from "@prisma/client";
-import { FC, useState } from "react";
+import { EventTypeCustomInputType } from "@prisma/client";
+import type { CustomInputParsed } from "pages/event-types/[type]";
+import { FC } from "react";
 import { Controller, SubmitHandler, useFieldArray, useForm, useWatch } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { customInputOptionSchema } from "@calcom/prisma/zod-utils";
-import { Button, Icon, Input, Label, Select, TextField } from "@calcom/ui";
-
-import { CustomInputParsed } from "@components/eventtype/EventAdvancedTab";
+import { Button, Icon, Label, Select, TextField } from "@calcom/ui";
 
 interface OptionTypeBase {
   label: string;
@@ -50,7 +48,13 @@ const CustomInputTypeForm: FC<Props> = (props) => {
   };
 
   return (
-    <form onSubmit={handleSubmit(props.onSubmit)} className="flex flex-col space-y-4">
+    <form
+      id="custom-input-form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleSubmit(props.onSubmit)(e);
+      }}
+      className="flex flex-col space-y-4">
       <div>
         <label htmlFor="type" className="block text-sm font-medium text-gray-700">
           {t("input_type")}
@@ -123,25 +127,18 @@ const CustomInputTypeForm: FC<Props> = (props) => {
         <Button onClick={onCancel} type="button" color="secondary" className="ltr:mr-2">
           {t("cancel")}
         </Button>
-        <Button type="submit">{t("save")}</Button>
+        <Button type="submit" id="custom-input-form">
+          {t("save")}
+        </Button>
       </div>
     </form>
   );
 };
 
-function removeItem<T>(arr: Array<T>, value: T): Array<T> {
-  const index = arr.indexOf(value);
-  if (index > -1) {
-    arr.splice(index, 1);
-  }
-  return arr;
-}
-
 function RadioInputHandler() {
   const { t } = useLocale();
-  const { register, control, getValues, setValue } = useForm<IFormInput>();
-  const watchedOptions = useWatch({ name: "options", control });
-  const { fields, append, prepend, remove, swap, move, insert } = useFieldArray({
+  const { register, control } = useForm<IFormInput>();
+  const { fields, append, remove } = useFieldArray<IFormInput>({
     control,
     name: "options",
   });
@@ -150,7 +147,9 @@ function RadioInputHandler() {
   return (
     <div className="flex flex-col ">
       <Label htmlFor="radio_options">{t("options")}</Label>
-      <ul className="flex w-full flex-col space-y-1 rounded-md bg-gray-50 p-4" ref={animateRef}>
+      <ul
+        className="flex max-h-80 w-full flex-col space-y-1 overflow-y-scroll rounded-md bg-gray-50 p-4"
+        ref={animateRef}>
         <>
           {fields.map((option, index) => (
             <li key={`${option.label}-${index}`}>
@@ -159,7 +158,7 @@ function RadioInputHandler() {
                 addOnFilled={false}
                 label={t("option", { index: index + 1 })}
                 labelSrOnly
-                {...register(`options.${index}.label` as const)}
+                {...register(`options.${index}.label` as const, { required: true })}
                 addOnSuffix={
                   <Button
                     size="icon"
@@ -178,7 +177,7 @@ function RadioInputHandler() {
             StartIcon={Icon.FiPlus}
             className="!text-sm !font-medium"
             onClick={() => {
-              append({ label: "" });
+              append({ label: "", type: "text" });
             }}>
             {t("add_an_option")}
           </Button>

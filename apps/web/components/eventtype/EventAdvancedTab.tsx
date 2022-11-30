@@ -1,6 +1,6 @@
 import { EventTypeCustomInput } from "@prisma/client/";
 import Link from "next/link";
-import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
+import type { CustomInputParsed, EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import short from "short-uuid";
@@ -36,10 +36,6 @@ const generateHashedLink = (id: number) => {
   return uid;
 };
 
-export type CustomInputParsed = Omit<EventTypeCustomInput, "options"> & {
-  options?: { label: string; type?: string }[];
-};
-
 export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered, "eventType" | "team">) => {
   const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
   const formMethods = useFormContext<FormValues>();
@@ -48,7 +44,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!eventType.successRedirectUrl);
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
-  const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
+  const [customInputs, setCustomInputs] = useState<CustomInputParsed[]>(
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
   const [selectedCustomInput, setSelectedCustomInput] = useState<CustomInputParsed | undefined>(undefined);
@@ -138,18 +134,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
             }
           }}>
           <ul className="my-4">
-            {customInputs.map((customInput: EventTypeCustomInput, idx: number) => (
+            {customInputs.map((customInput, idx: number) => (
               <CustomInputItem
                 key={idx}
                 question={customInput.label}
                 type={customInput.type}
                 required={customInput.required}
                 editOnClick={() => {
-                  const parsdOptions = customInputOptionSchema.safeParse(customInput.options);
-                  setSelectedCustomInput({
-                    ...customInput,
-                    options: parsdOptions.success ? parsdOptions.data : undefined,
-                  });
+                  setSelectedCustomInput(customInput);
                   setSelectedCustomInputModalOpen(true);
                 }}
                 deleteOnClick={() => removeCustom(idx)}
@@ -417,9 +409,11 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                     selectedCustomInput.type = customInput.type;
                     selectedCustomInput.options = customInput.options;
                   } else {
-                    // setCustomInputs(customInputs.concat(customInput));
-                    // formMethods.setValue("customInputs", customInputs.concat(customInput));
+                    const concatted = customInputs.concat(customInput);
+                    setCustomInputs(concatted);
+                    formMethods.setValue("customInputs", concatted);
                   }
+
                   setSelectedCustomInputModalOpen(false);
                 }}
                 onCancel={() => {
