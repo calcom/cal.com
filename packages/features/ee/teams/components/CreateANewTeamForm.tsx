@@ -1,5 +1,6 @@
 import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
@@ -8,9 +9,18 @@ import { Avatar, Button, Form, Icon, ImageUploader, TextField } from "@calcom/ui
 
 import { NewTeamFormValues } from "../lib/types";
 
+const querySchema = z.optional(z.string());
+
 export const CreateANewTeamForm = () => {
   const { t } = useLocale();
   const router = useRouter();
+  const {
+    query: { returnTo },
+  } = router;
+  const returnToParsed = querySchema.safeParse(returnTo);
+
+  const returnToParam = returnToParsed.success ? returnToParsed.data : "/settings/teams";
+
   const newTeamFormMethods = useForm<NewTeamFormValues>();
 
   const createTeamMutation = trpc.viewer.teams.create.useMutation({
@@ -119,7 +129,7 @@ export const CreateANewTeamForm = () => {
           <Button
             disabled={createTeamMutation.isLoading}
             color="secondary"
-            href="/settings"
+            href={returnToParam}
             className="w-full justify-center">
             {t("cancel")}
           </Button>
