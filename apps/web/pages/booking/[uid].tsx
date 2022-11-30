@@ -169,8 +169,6 @@ export default function Success(props: SuccessProps) {
 
   const location: ReturnType<typeof getEventLocationValue> = Array.isArray(props.bookingInfo.location)
     ? props.bookingInfo.location[0]
-    : props.bookingInfo.location
-    ? props.bookingInfo.location
     : // If there is no location set then we default to Cal Video
       "integrations:daily";
 
