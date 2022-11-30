@@ -40,7 +40,6 @@ export const purchaseTeamSubscription = async (input: { teamId: number; seats: n
     metadata: {
       teamId,
     },
-    payment_method_types: ["card"],
     subscription_data: {
       metadata: {
         teamId,
