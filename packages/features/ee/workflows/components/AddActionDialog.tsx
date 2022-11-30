@@ -102,7 +102,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent type="creation" useOwnActionButtons={true} title={t("add_action")}>
+      <DialogContent type="creation" title={t("add_action")}>
         <div className="space-x-3 ">
           <div className="pt-1">
             <Form
@@ -188,21 +188,17 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                 </div>
               )}
               <DialogFooter>
-                <DialogClose asChild>
-                  <Button
-                    color="secondary"
-                    onClick={() => {
-                      setIsOpenDialog(false);
-                      form.unregister("sendTo");
-                      form.unregister("action");
-                      form.unregister("numberRequired");
-                      setIsPhoneNumberNeeded(false);
-                      setIsEmailAddressNeeded(false);
-                      setIsSenderIdNeeded(false);
-                    }}>
-                    {t("cancel")}
-                  </Button>
-                </DialogClose>
+                <DialogClose
+                  onClick={() => {
+                    setIsOpenDialog(false);
+                    form.unregister("sendTo");
+                    form.unregister("action");
+                    form.unregister("numberRequired");
+                    setIsPhoneNumberNeeded(false);
+                    setIsEmailAddressNeeded(false);
+                    setIsSenderIdNeeded(false);
+                  }}
+                />
                 <Button type="submit">{t("add")}</Button>
               </DialogFooter>
             </Form>

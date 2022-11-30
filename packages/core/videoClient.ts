@@ -134,13 +134,19 @@ const deleteMeeting = (credential: CredentialPayload, uid: string): Promise<unkn
 
 // @TODO: This is a temporary solution to create a meeting with cal.com video as fallback url
 const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
+  let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
+  try {
+    dailyAppKeys = await getDailyAppKeys();
+  } catch (e) {
+    return;
+  }
   const [videoAdapter] = getVideoAdapters([
     {
       id: 0,
       appId: "daily-video",
       type: "daily_video",
       userId: null,
-      key: await getDailyAppKeys(),
+      key: dailyAppKeys,
     },
   ]);
   return videoAdapter?.createMeeting(calEvent);

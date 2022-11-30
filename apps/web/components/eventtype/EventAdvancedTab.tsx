@@ -15,7 +15,9 @@ import {
   Checkbox,
   CustomInputItem,
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogFooter,
   Icon,
   Label,
   SettingsToggle,
@@ -130,7 +132,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               formMethods.setValue("customInputs", []);
             }
           }}>
-          <ul className="my-4">
+          <ul className="my-4 rounded-md border">
             {customInputs.map((customInput: EventTypeCustomInput, idx: number) => (
               <CustomInputItem
                 key={idx}
@@ -154,7 +156,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                 setSelectedCustomInput(undefined);
                 setSelectedCustomInputModalOpen(true);
               }}>
-              Add an input
+              {t("add_input")}
             </Button>
           )}
         </SettingsToggle>
@@ -352,11 +354,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
           <DialogContent
             title={t("custom_event_name")}
             description={t("custom_event_name_description")}
-            type="creation"
-            actionText="Create"
-            // Set event name back to what it was on close
-            actionOnClose={() => formMethods.setValue("eventName", eventType.eventName ?? "")}
-            actionOnClick={() => setShowEventNameTip(false)}>
+            type="creation">
             <TextField
               label={t("event_name")}
               type="text"
@@ -370,6 +368,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               <p>{`{HOST/ATTENDEE} = ${t("dynamically_display_attendee_or_organizer")}`}</p>
               <p>{`{LOCATION} = ${t("event_location")}`}</p>
             </div>
+            <DialogFooter>
+              <Button color="primary" onClick={() => setShowEventNameTip(false)}>
+                {t("create")}
+              </Button>
+              <DialogClose onClick={() => formMethods.setValue("eventName", eventType.eventName ?? "")} />
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
@@ -383,7 +387,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               type="creation"
               Icon={Icon.FiPlus}
               title={t("add_new_custom_input_field")}
-              useOwnActionButtons
               description={t("this_input_will_shown_booking_this_event")}>
               <CustomInputTypeForm
                 selectedCustomInput={selectedCustomInput}

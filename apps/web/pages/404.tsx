@@ -38,7 +38,7 @@ export default function Custom404() {
     setUrl(`${WEBSITE_URL}/signup?username=${username.replace("/", "")}`);
   }, [username]);
 
-  const isSuccessPage = router.asPath.startsWith("/success");
+  const isSuccessPage = router.asPath.startsWith("/booking");
   const isSubpage = router.asPath.includes("/", 2) || isSuccessPage;
   const isSignup = router.asPath.startsWith("/signup");
   const isCalcom = process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com";
