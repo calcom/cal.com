@@ -156,7 +156,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                 setSelectedCustomInput(undefined);
                 setSelectedCustomInputModalOpen(true);
               }}>
-              Add an input
+              {t("add_input")}
             </Button>
           )}
         </SettingsToggle>
@@ -390,7 +390,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               description={t("this_input_will_shown_booking_this_event")}>
               <CustomInputTypeForm
                 selectedCustomInput={selectedCustomInput}
-                {...formMethods.register("customInputs")}
                 onSubmit={(values) => {
                   const customInput: EventTypeCustomInput = {
                     id: -1,
