@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { objectKeys } from "@calcom/lib/objectKeys";
 import { TeamWithMembers } from "@calcom/lib/server/queries/teams";
@@ -187,9 +188,13 @@ export default function TeamSettings(props: Props) {
                   </div>
                   <div className="text-sm ltr:ml-3 rtl:mr-3">
                     <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                      {t("disable_cal_branding")}
+                      {t("disable_cal_branding", { appName: APP_NAME })}
                     </label>
-                    <p className="text-gray-500">{t("disable_cal_branding_description")}</p>
+                    <p className="text-gray-500">
+                      {t("disable_cal_branding_description", {
+                        appName: APP_NAME,
+                      })}
+                    </p>
                   </div>
                 </div>
               </div>
