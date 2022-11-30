@@ -14,7 +14,7 @@ interface OptionTypeBase {
 }
 
 interface Props {
-  onSubmit: SubmitHandler<IFormInput>;
+  onSubmit: (output: CustomInputParsed) => void;
   onCancel: () => void;
   selectedCustomInput?: CustomInputParsed;
 }
@@ -36,7 +36,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
   const { selectedCustomInput } = props;
   const defaultValues = selectedCustomInput || { type: inputOptions[0].value };
 
-  const { register, control, handleSubmit } = useForm<IFormInput>({
+  const { register, control, getValues } = useForm<IFormInput>({
     defaultValues,
   });
 
@@ -48,13 +48,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
   };
 
   return (
-    <form
-      id="custom-input-form"
-      onSubmit={(e) => {
-        e.preventDefault();
-        handleSubmit(props.onSubmit)(e);
-      }}
-      className="flex flex-col space-y-4">
+    <form id="custom-input-form" className="flex flex-col space-y-4">
       <div>
         <label htmlFor="type" className="block text-sm font-medium text-gray-700">
           {t("input_type")}
@@ -127,7 +121,11 @@ const CustomInputTypeForm: FC<Props> = (props) => {
         <Button onClick={onCancel} type="button" color="secondary" className="ltr:mr-2">
           {t("cancel")}
         </Button>
-        <Button type="submit" id="custom-input-form">
+        <Button
+          type="button"
+          onClick={() => {
+            props.onSubmit(getValues());
+          }}>
           {t("save")}
         </Button>
       </div>

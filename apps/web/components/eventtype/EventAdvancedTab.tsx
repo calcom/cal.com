@@ -1,4 +1,3 @@
-import { EventTypeCustomInput } from "@prisma/client/";
 import Link from "next/link";
 import type { CustomInputParsed, EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
@@ -9,7 +8,6 @@ import { v5 as uuidv5 } from "uuid";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { customInputOptionSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
@@ -126,10 +124,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
           onCheckedChange={(e) => {
             if (e && customInputs.length === 0) {
               // Push a placeholders
-              setSelectedCustomInput(undefined);
               setSelectedCustomInputModalOpen(true);
             } else if (!e) {
-              setCustomInputs([]);
               formMethods.setValue("customInputs", []);
             }
           }}>

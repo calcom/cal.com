@@ -98,7 +98,7 @@ const customInputSchema = z.object({
   eventTypeId: z.number(),
   label: z.string(),
   type: z.nativeEnum(EventTypeCustomInputType),
-  options: customInputOptionSchema,
+  options: customInputOptionSchema.optional(),
   required: z.boolean(),
   placeholder: z.string(),
 });
