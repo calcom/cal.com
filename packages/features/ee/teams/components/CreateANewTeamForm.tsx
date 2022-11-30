@@ -63,7 +63,7 @@ export const CreateANewTeamForm = () => {
                   className="mt-2"
                   name="name"
                   label={t("team_name")}
-                  value={value}
+                  defaultValue={value}
                   onChange={(e) => {
                     newTeamFormMethods.setValue("name", e?.target.value);
                     if (newTeamFormMethods.formState.touchedFields["slug"] === undefined) {
@@ -91,7 +91,7 @@ export const CreateANewTeamForm = () => {
                   "http://",
                   ""
                 )}/`}
-                value={value}
+                defaultValue={value}
                 onChange={(e) => {
                   newTeamFormMethods.setValue("slug", slugify(e?.target.value), {
                     shouldTouch: true,

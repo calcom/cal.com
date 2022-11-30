@@ -80,7 +80,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
   const { t: _t, isLocaleReady, i18n } = useLocale();
   const t = props.t || _t;
   const name = props.name || "";
-  const [inputValue, setInputValue] = useState<string>("");
   const {
     label = t(name),
     labelProps,
@@ -94,7 +93,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     inputIsFullWidth,
     hint,
     type,
-    onChange,
     hintErrors,
     labelSrOnly,
     containerClassName,
@@ -102,6 +100,8 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     t: __t,
     ...passThrough
   } = props;
+
+  const [inputValue, setInputValue] = useState<string>("");
 
   return (
     <div className={classNames(containerClassName)}>
@@ -125,11 +125,14 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           <Input
             id={id}
             placeholder={placeholder}
-            value={inputValue}
-            onChange={(e) => {
-              setInputValue(e.target.value);
-              onChange && onChange(e);
-            }}
+            {...passThrough}
+            {...(type == "search" && {
+              onChange: (e) => {
+                setInputValue(e.target.value);
+                props.onChange && props.onChange(e);
+              },
+              value: inputValue,
+            })}
             isFullWidth={inputIsFullWidth}
             className={classNames(
               className,
@@ -138,7 +141,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               type === "search" && "pr-8",
               "!my-0 !ring-0"
             )}
-            {...passThrough}
             ref={ref}
           />
           {addOnSuffix && (
@@ -146,12 +148,12 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               {addOnSuffix}
             </Addon>
           )}
-          {type === "search" && inputValue !== "" && (
+          {type === "search" && inputValue?.toString().length > 0 && (
             <Icon.FiX
               className="absolute right-2 top-2.5 h-4 w-4 cursor-pointer text-gray-500"
               onClick={(e) => {
                 setInputValue("");
-                onChange && onChange(e as unknown as React.ChangeEvent<HTMLInputElement>);
+                props.onChange && props.onChange(e as unknown as React.ChangeEvent<HTMLInputElement>);
               }}
             />
           )}
