@@ -304,20 +304,17 @@ const loggedInViewerRouter = router({
   connectedCalendars: authedProcedure.query(async ({ ctx }) => {
     const { user, prisma } = ctx;
 
-    const enabledCalendarSlugs = await prisma.app.findMany({
+    const userCredentials = await prisma.credential.findMany({
       where: {
-        categories: { has: "calendar" as AppCategories },
-        enabled: true,
-      },
-      select: {
-        slug: true,
+        app: {
+          categories: { has: AppCategories.calendar },
+          enabled: true,
+        },
       },
     });
 
     // get user's credentials + their connected integrations
-    const calendarCredentials = getCalendarCredentials(user.credentials).filter((calendar) =>
-      enabledCalendarSlugs.some((slug) => calendar.integration.slug === slug.slug)
-    );
+    const calendarCredentials = getCalendarCredentials(userCredentials);
 
     // get all the connected integrations' calendars (from third party)
     const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);

@@ -74,23 +74,13 @@ export const appsRouter = router({
             const appKey = deriveAppDictKeyFromType(app.type, appKeysSchemas);
             const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
 
-            const keys: {
-              [key: string]: string;
-            } = {};
+            const keys: Record<string, string> = {};
 
             if (typeof keysSchema !== "undefined") {
-              Object.values(keysSchema.keyof()._def.values).reduce(
-                (
-                  keysObject: {
-                    [key: string]: string;
-                  },
-                  key: string
-                ) => {
-                  keys[key] = "";
-                  return keysObject;
-                },
-                {}
-              );
+              Object.values(keysSchema.keyof()._def.values).reduce((keysObject, key) => {
+                keys[key as string] = "";
+                return keysObject;
+              }, {} as Record<string, string>);
             }
 
             filteredApps.push({
@@ -249,16 +239,13 @@ export const appsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const appKey = deriveAppDictKeyFromType(input.type, appKeysSchemas);
       const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
-
-      const parse = keysSchema.parse(input.keys);
+      const keys = keysSchema.parse(input.keys);
 
       await ctx.prisma.app.update({
         where: {
           slug: input.slug,
         },
-        data: {
-          keys: input.keys as Prisma.InputJsonValue,
-        },
+        data: { keys },
       });
 
       return;

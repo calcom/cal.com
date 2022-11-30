@@ -1,3 +1,4 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { AppCategories } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useRouter } from "next/router";
@@ -12,6 +13,7 @@ import {
   Button,
   ConfirmationDialogContent,
   Dialog,
+  EmptyScreen,
   Form,
   Icon,
   showToast,
@@ -37,7 +39,16 @@ const IntegrationContainer = ({
   const [disableDialog, setDisableDialog] = useState(false);
   const [showKeys, setShowKeys] = useState(false);
 
-  const formMethods = useForm();
+  // TODO: THIS IS AN EXMAPLE! DON'T SHIP THIS Find a way to conditionally get each app schema to validate forms here
+  const formMethods = useForm({
+    resolver: zodResolver(
+      z.object({
+        client_id: z.string().min(1),
+        client_secret: z.string().min(1),
+        redirect_uris: z.string().min(1),
+      })
+    ),
+  });
 
   const enableAppMutation = trpc.viewer.appsRouter.toggle.useMutation({
     onSuccess: (enabled) => {
@@ -100,33 +111,32 @@ const IntegrationContainer = ({
             </div>
           </div>
           <CollapsibleContent>
-            {app.keys && (
+            {!!app.keys && typeof app.keys === "object" && (
               <Form
                 form={formMethods}
                 handleSubmit={(values) =>
                   saveKeysMutation.mutate({ slug: app.slug, type: app.type, keys: values })
                 }
                 className="px-4 pb-4">
-                {typeof app.keys === "object" &&
-                  Object.keys(app.keys)?.map((key) => (
-                    <Controller
-                      name={key}
-                      key={key}
-                      control={formMethods.control}
-                      defaultValue={app?.keys ? [key] : ""}
-                      render={({ field: { value } }) => (
-                        <TextField
-                          label={key}
-                          key={key}
-                          name={key}
-                          value={value}
-                          onChange={(e) => {
-                            formMethods.setValue(key, e?.target.value);
-                          }}
-                        />
-                      )}
-                    />
-                  ))}
+                {Object.keys(app.keys).map((key) => (
+                  <Controller
+                    name={key}
+                    key={key}
+                    control={formMethods.control}
+                    defaultValue={app?.keys ? app.keys[key] : ""}
+                    render={({ field: { value } }) => (
+                      <TextField
+                        label={key}
+                        key={key}
+                        name={key}
+                        value={value}
+                        onChange={(e) => {
+                          formMethods.setValue(key, e?.target.value);
+                        }}
+                      />
+                    )}
+                  />
+                ))}
                 <Button type="submit">Save</Button>
               </Form>
             )}
@@ -168,20 +178,26 @@ const AdminAppsList = ({ baseURL }: { baseURL: string }) => {
 
   return (
     <AppCategoryNavigation baseURL={baseURL} containerClassname="w-full xl:mx-5 xl:w-2/3 xl:pr-5">
-      {isLoading ? (
-        <SkeletonLoader />
-      ) : (
-        <div className="rounded-md border border-gray-200">
-          {apps?.map((app, index) => (
-            <IntegrationContainer
-              app={app}
-              lastEntry={index === apps?.length - 1}
-              key={app.name}
-              category={category}
-            />
-          ))}
-        </div>
-      )}
+      {(() => {
+        if (isLoading) return <SkeletonLoader />;
+        if (!apps) {
+          return (
+            <EmptyScreen Icon={Icon.FiAlertCircle} headline="There's no available apps" description="" />
+          );
+        }
+        return (
+          <div className="rounded-md border border-gray-200">
+            {apps.map((app, index) => (
+              <IntegrationContainer
+                app={app}
+                lastEntry={index === apps.length - 1}
+                key={app.name}
+                category={category}
+              />
+            ))}
+          </div>
+        );
+      })()}
     </AppCategoryNavigation>
   );
 };
