@@ -61,3 +61,45 @@ function Select<
 }
 
 export default Select;
+
+export function UnstyledSelect<
+  Option,
+  IsMulti extends boolean = false,
+  Group extends GroupBase<Option> = GroupBase<Option>
+>({ className, ...props }: SelectProps<Option, IsMulti, Group>) {
+  return (
+    <ReactSelect
+      {...props}
+      isSearchable={false}
+      theme={(theme) => ({ ...theme, borderRadius: 0, border: "none" })}
+      components={{
+        IndicatorSeparator: () => null,
+        Input: InputComponent,
+      }}
+      styles={{
+        container: (provided) => ({
+          ...provided,
+          width: "100%",
+        }),
+        control: (provided) => ({
+          ...provided,
+          backgroundColor: " transparent",
+          border: "none",
+          boxShadow: "none",
+        }),
+        option: (provided, state) => ({
+          ...provided,
+          color: state.isSelected ? "var(--brand-text-color)" : "black",
+          ":active": {
+            backgroundColor: state.isSelected ? "" : "var(--brand-color)",
+            color: "var(--brand-text-color)",
+          },
+        }),
+        indicatorSeparator: () => ({
+          display: "hidden",
+          color: "black",
+        }),
+      }}
+    />
+  );
+}

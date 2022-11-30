@@ -23,7 +23,7 @@ export function TopBanner(props: TopBannerProps) {
     <div
       data-testid="banner"
       className={classNames(
-        " z-50 flex min-h-[40px] w-full items-start justify-between gap-8 bg-gray-50 px-4 text-center sm:items-center",
+        " z-30 flex min-h-[40px] w-full items-start justify-between gap-8 bg-gray-50 px-4 text-center sm:items-center",
         variantClassName[variant]
       )}>
       <div className="flex flex-1 items-center justify-center gap-2 p-1">

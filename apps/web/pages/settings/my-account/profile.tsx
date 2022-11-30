@@ -14,7 +14,9 @@ import {
   Avatar,
   Button,
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogFooter,
   DialogTrigger,
   Form,
   getSettingsLayout as getLayout,
@@ -298,13 +300,7 @@ const ProfileView = () => {
             title={t("delete_account_modal_title")}
             description={t("confirm_delete_account_modal")}
             type="creation"
-            actionText={t("delete_my_account")}
-            actionProps={{
-              // @ts-expect-error data attributes aren't typed
-              "data-testid": "delete-account-confirm",
-            }}
-            Icon={Icon.FiAlertTriangle}
-            actionOnClick={(e) => e && onConfirmButton(e)}>
+            Icon={Icon.FiAlertTriangle}>
             <>
               <p className="mb-7">{t("delete_account_confirmation_message")}</p>
               {isCALIdentityProviver && (
@@ -326,6 +322,15 @@ const ProfileView = () => {
               )}
 
               {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
+              <DialogFooter>
+                <Button
+                  color="primary"
+                  data-testid="delete-account-confirm"
+                  onClick={(e) => onConfirmButton(e)}>
+                  {t("delete_my_account")}
+                </Button>
+                <DialogClose />
+              </DialogFooter>
             </>
           </DialogContent>
         </Dialog>
@@ -337,9 +342,7 @@ const ProfileView = () => {
           title={t("confirm_password")}
           description={t("confirm_password_change_email")}
           type="creation"
-          actionText={t("confirm")}
-          Icon={Icon.FiAlertTriangle}
-          actionOnClick={(e) => e && onConfirmPassword(e)}>
+          Icon={Icon.FiAlertTriangle}>
           <>
             <PasswordField
               data-testid="password"
@@ -352,6 +355,12 @@ const ProfileView = () => {
             />
 
             {confirmPasswordErrorMessage && <Alert severity="error" title={confirmPasswordErrorMessage} />}
+            <DialogFooter>
+              <Button color="primary" onClick={(e) => onConfirmPassword(e)}>
+                {t("confirm")}
+              </Button>
+              <DialogClose />
+            </DialogFooter>
           </>
         </DialogContent>
       </Dialog>

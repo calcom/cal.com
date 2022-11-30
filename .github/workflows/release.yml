@@ -11,6 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
+          ref: main # Always checkout main even for tagged releases
           fetch-depth: 0
           token: ${{ secrets.GH_ACCESS_TOKEN }}
       - run: git push origin +main:production
