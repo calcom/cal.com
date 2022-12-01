@@ -403,7 +403,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                     selectedCustomInput.placeholder = customInput.placeholder;
                     selectedCustomInput.required = customInput.required;
                     selectedCustomInput.type = customInput.type;
-                    selectedCustomInput.options = customInput.options || null;
+                    selectedCustomInput.options = customInput.options;
                     // Update by id
                     const inputIndex = customInputs.findIndex((input) => input.id === values.id);
                     customInputs[inputIndex] = selectedCustomInput;
@@ -412,7 +412,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                   } else {
                     const concatted = customInputs.concat({
                       ...customInput,
-                      options: customInput.options || null,
+                      options: customInput.options,
                     });
                     console.log(concatted);
                     setCustomInputs(concatted);

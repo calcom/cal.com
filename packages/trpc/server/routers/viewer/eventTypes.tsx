@@ -43,8 +43,8 @@ function handleCustomInputs(customInputs: CustomInputSchema[], eventTypeId: numb
       type: input.type,
       label: input.label,
       required: input.required,
-      options: input.options,
       placeholder: input.placeholder,
+      options: input.options || undefined,
     }));
   const cInputsToUpdate = customInputs
     .filter((input) => input.id > 0)
@@ -54,7 +54,7 @@ function handleCustomInputs(customInputs: CustomInputSchema[], eventTypeId: numb
         label: input.label,
         required: input.required,
         placeholder: input.placeholder,
-        options: input.options,
+        options: input.options || undefined,
       },
       where: {
         id: input.id,
@@ -78,7 +78,7 @@ function handleCustomInputs(customInputs: CustomInputSchema[], eventTypeId: numb
 const EventTypeUpdateInput = _EventTypeModel
   /** Optional fields */
   .extend({
-    customInputs: z.array(customInputSchema),
+    customInputs: z.array(customInputSchema).optional(),
     destinationCalendar: _DestinationCalendarModel.pick({
       integration: true,
       externalId: true,
