@@ -459,12 +459,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
-  const enabledApps = await prisma.app.findMany({
-    where: {
-      enabled: true,
-    },
-  });
-
   const credentials = await prisma.credential.findMany({
     where: {
       userId: session.user.id,
