@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
 
+import CreateEventTypeButton from "@calcom/features/eventtypes/components/CreateEventTypeButton";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc, TRPCClientError } from "@calcom/trpc/react";
@@ -12,7 +13,6 @@ import {
   Button,
   ButtonGroup,
   ConfirmationDialogContent,
-  CreateEventTypeButton,
   Dialog,
   Dropdown,
   DropdownItem,
