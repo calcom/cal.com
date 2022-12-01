@@ -1,17 +1,8 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventTypeCustomInputType } from "@prisma/client";
 import type { CustomInputParsed } from "pages/event-types/[type]";
-import { FC, useId } from "react";
-import {
-  Control,
-  Controller,
-  SubmitHandler,
-  useFieldArray,
-  useForm,
-  useFormContext,
-  UseFormRegister,
-  useWatch,
-} from "react-hook-form";
+import { FC } from "react";
+import { Control, Controller, useFieldArray, useForm, UseFormRegister, useWatch } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Icon, Label, Select, TextField } from "@calcom/ui";

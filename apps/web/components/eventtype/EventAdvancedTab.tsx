@@ -397,13 +397,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                     type: values.type,
                     options: values.options,
                   };
-                  console.log(values);
                   if (selectedCustomInput) {
                     selectedCustomInput.label = customInput.label;
                     selectedCustomInput.placeholder = customInput.placeholder;
                     selectedCustomInput.required = customInput.required;
                     selectedCustomInput.type = customInput.type;
-                    selectedCustomInput.options = customInput.options;
+                    selectedCustomInput.options = customInput.options || undefined;
                     // Update by id
                     const inputIndex = customInputs.findIndex((input) => input.id === values.id);
                     customInputs[inputIndex] = selectedCustomInput;
