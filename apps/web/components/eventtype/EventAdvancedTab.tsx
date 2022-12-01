@@ -6,7 +6,7 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
-import { CAL_URL } from "@calcom/lib/constants";
+import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -129,8 +129,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               formMethods.setValue("customInputs", []);
             }
           }}>
-          <ul className="my-4">
-            {customInputs.map((customInput, idx: number) => (
+          <ul className="my-4 rounded-md border">
+            {customInputs.map((customInput, idx) => (
               <CustomInputItem
                 key={idx}
                 question={customInput.label}
@@ -153,7 +153,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                 setSelectedCustomInput(undefined);
                 setSelectedCustomInputModalOpen(true);
               }}>
-              Add an input
+              {t("add_input")}
             </Button>
           )}
         </SettingsToggle>
@@ -253,7 +253,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
       <SettingsToggle
         data-testid="hashedLinkCheck"
         title={t("private_link")}
-        description={t("private_link_description")}
+        description={t("private_link_description", { appName: APP_NAME })}
         checked={hashedLinkVisible}
         onCheckedChange={(e) => {
           formMethods.setValue("hashedLink", e ? hashedUrl : undefined);

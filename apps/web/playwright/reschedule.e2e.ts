@@ -150,7 +150,7 @@ test.describe("Reschedule Tests", async () => {
 
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
-    await expect(page).toHaveURL(/.*success/);
+    await expect(page).toHaveURL(/.*booking/);
 
     await payment.delete();
   });
@@ -168,7 +168,7 @@ test.describe("Reschedule Tests", async () => {
 
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
-    await expect(page).toHaveURL(/.*success/);
+    await expect(page).toHaveURL(/.*booking/);
 
     const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } });
     expect(newBooking).not.toBeNull();
@@ -189,7 +189,7 @@ test.describe("Reschedule Tests", async () => {
 
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
-    await expect(page).toHaveURL(/.*success/);
+    await expect(page).toHaveURL(/.*booking/);
 
     const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } });
     expect(newBooking).not.toBeNull();
