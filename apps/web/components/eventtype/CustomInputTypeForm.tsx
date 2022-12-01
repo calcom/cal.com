@@ -21,10 +21,12 @@ interface Props {
 
 type IFormInput = CustomInputParsed;
 
-// Getting a random ID gives us the option to know WHICH field is changed
-// when the user edits a custom field.
-// This UUID is only used to check for changes in the UI and not the ID we use in the DB
-// There is very very very slim chance that this will cause a collision
+/**
+ *  Getting a random ID gives us the option to know WHICH field is changed
+ *  when the user edits a custom field.
+ *  This UUID is only used to check for changes in the UI and not the ID we use in the DB
+ *  There is very very very slim chance that this will cause a collision
+ * */
 const randomId = () => Math.floor(Math.random() * 1000000 + new Date().getTime());
 
 const CustomInputTypeForm: FC<Props> = (props) => {
