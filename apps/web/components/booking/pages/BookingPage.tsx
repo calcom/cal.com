@@ -31,6 +31,7 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
+import { APP_NAME } from "@calcom/lib/constants";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -136,9 +137,8 @@ const BookingPage = ({
       }
 
       return router.push({
-        pathname: "/success",
+        pathname: `/booking/${uid}`,
         query: {
-          uid,
           isSuccessBookingPage: true,
           email: bookingForm.getValues("email"),
           eventTypeSlug: eventType.slug,
@@ -152,9 +152,8 @@ const BookingPage = ({
       const { uid } = responseData[0] || {};
 
       return router.push({
-        pathname: "/success",
+        pathname: `/booking/${uid}`,
         query: {
-          uid,
           allRemainingBookings: true,
           email: bookingForm.getValues("email"),
           eventTypeSlug: eventType.slug,
@@ -431,7 +430,7 @@ const BookingPage = ({
                 eventTypeTitle: eventType.title,
                 profileName: profile.name,
               })}{" "}
-          | Cal.com
+          | {APP_NAME}
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
