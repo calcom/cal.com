@@ -454,6 +454,8 @@ export default function Success(props: SuccessProps) {
                     )}
                     {customInputs &&
                       Object.keys(customInputs).map((key) => {
+                        // This breaks if you have two label that are the same.
+                        // TODO: Fix this in another PR
                         const customInput = customInputs[key as keyof typeof customInputs];
                         const eventTypeCustomFound = eventType.customInputs?.find((ci) => ci.label === key);
                         return (
@@ -482,7 +484,7 @@ export default function Success(props: SuccessProps) {
                                 </div>
                               </>
                             )}
-                            {customInput !== "" && (
+                            {eventTypeCustomFound?.type !== "RADIO" && customInput !== "" && (
                               <>
                                 <div className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">{key}</div>
                                 <div className="col-span-3 mt-2 mb-2">
