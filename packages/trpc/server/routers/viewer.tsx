@@ -517,8 +517,21 @@ const loggedInViewerRouter = router({
 
     const metadata = userMetadata.parse(user.metadata);
 
+    if (!metadata?.stripeCustomerId) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "No stripe customer id" });
+    }
+    // Fetch stripe customer
+    const stripeCustomerId = metadata?.stripeCustomerId;
+    const customer = await stripe.customers.retrieve(stripeCustomerId);
+    if (customer.deleted) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "No stripe customer found" });
+    }
+
+    const username = customer?.metadata?.username || null;
+
     return {
       isPremium: !!metadata?.isPremium,
+      username,
     };
   }),
   updateProfile: authedProcedure

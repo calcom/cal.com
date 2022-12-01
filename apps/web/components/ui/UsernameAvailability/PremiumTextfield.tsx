@@ -129,7 +129,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   });
 
   // when current username isn't set - Go to stripe to check what username he wanted to buy and was it a premium and was it paid for
-  const paymentRequired = !currentUsername && stripeCustomer?.isPremium && !stripeCustomer?.paidForPremium;
+  const paymentRequired = !currentUsername && stripeCustomer?.isPremium;
 
   const usernameChangeCondition = obtainNewUsernameChangeCondition({
     userIsPremium: isCurrentUsernamePremium,
@@ -272,7 +272,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       {markAsError && <p className="mt-1 text-xs text-red-500">Username is already taken</p>}
 
       <Dialog open={openDialogSaveUsername}>
-        <DialogContent useOwnActionButtons>
+        <DialogContent>
           <div className="flex flex-row">
             <div className="xs:hidden flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
               <Icon.FiEdit2 className="m-auto h-6 w-6" />

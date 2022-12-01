@@ -1,8 +1,7 @@
 import { expect } from "@playwright/test";
 import { UserPlan } from "@prisma/client";
 
-import { getFreePlanPrice, getProPlanPrice } from "@calcom/app-store/stripepayment/lib/utils";
-import dayjs from "@calcom/dayjs";
+import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
@@ -50,28 +49,13 @@ test.describe("Change username on settings", () => {
     expect(newUpdatedUser.username).toBe("demousernamex");
   });
 
-  test("User trial can update to PREMIUM username", async ({ page, users }, testInfo) => {
+  test("User can update to PREMIUM username", async ({ page, users }, testInfo) => {
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
     test.skip(IS_SELF_HOSTED, "It shouldn't run on self hosted");
 
-    const user = await users.create({ plan: UserPlan.TRIAL });
-    const customer = await stripe.customers.create({ email: `${user?.username}@example.com` });
-    await stripe.subscriptionSchedules.create({
-      customer: customer.id,
-      start_date: "now",
-      end_behavior: "release",
-      phases: [
-        {
-          items: [{ price: getProPlanPrice() }],
-          trial_end: dayjs().add(14, "day").unix(),
-          end_date: dayjs().add(14, "day").unix(),
-        },
-        {
-          items: [{ price: getFreePlanPrice() }],
-        },
-      ],
-    });
+    const user = await users.create();
+    await stripe.customers.create({ email: `${user?.username}@example.com` });
 
     await user.login();
     await page.goto("/settings/my-account/profile");
@@ -98,11 +82,11 @@ test.describe("Change username on settings", () => {
     await expect(page).toHaveURL(/.*checkout.stripe.com/);
   });
 
-  test("User PRO can update to PREMIUM username", async ({ page, users }, testInfo) => {
+  test("User can update to PREMIUM username", async ({ page, users }, testInfo) => {
     // eslint-disable-next-line playwright/no-skipped-test
     test.skip(!IS_STRIPE_ENABLED, "It should only run if Stripe is installed");
     test.skip(IS_SELF_HOSTED, "It shouldn't run on self hosted");
-    const user = await users.create({ plan: UserPlan.PRO });
+    const user = await users.create();
     const customer = await stripe.customers.create({ email: `${user?.username}@example.com` });
     const paymentMethod = await stripe.paymentMethods.create({
       type: "card",
@@ -116,7 +100,7 @@ test.describe("Change username on settings", () => {
     await stripe.paymentMethods.attach(paymentMethod.id, { customer: customer.id });
     await stripe.subscriptions.create({
       customer: customer.id,
-      items: [{ price: getProPlanPrice() }],
+      items: [{ price: getPremiumMonthlyPlanPriceId() }],
     });
 
     await user.login();
