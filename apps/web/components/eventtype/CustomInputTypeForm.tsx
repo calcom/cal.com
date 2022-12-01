@@ -139,7 +139,6 @@ const CustomInputTypeForm: FC<Props> = (props) => {
           type="button"
           onClick={() => {
             props.onSubmit(getValues());
-            console.log({ values: getValues() });
           }}>
           {t("save")}
         </Button>
