@@ -219,7 +219,7 @@ const ProfileView = () => {
 
   return (
     <>
-      <Meta title={t("profile")} description={t("profile_description")} />
+      <Meta title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
       <Form
         form={formMethods}
         handleSubmit={(values) => {
