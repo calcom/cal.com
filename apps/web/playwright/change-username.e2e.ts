@@ -26,7 +26,7 @@ test.describe("Change username on settings", () => {
 
   /** TODO: Find out why it's timing out */
   test.fixme("User can change username", async ({ page, users, prisma }) => {
-    const user = await users.create({ plan: UserPlan.TRIAL });
+    const user = await users.create();
 
     await user.login();
     // Try to go homepage
