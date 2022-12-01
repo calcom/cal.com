@@ -118,7 +118,5 @@ export { default as WizardForm } from "./v2/core/WizardForm";
 export { default as SAMLLogin } from "./v2/modules/auth/SAMLLogin";
 export { default as DatePicker } from "./v2/modules/booker/DatePicker";
 export { EventTypeDescriptionLazy } from "./v2/modules/event-types";
-export { default as CreateEventTypeButton } from "./v2/modules/event-types/CreateEventType";
 export { EventTypeDescription } from "./v2/modules/event-types/EventTypeDescription";
-export { default as DisconnectIntegration } from "./v2/modules/integrations/DisconnectIntegration";
 export { default as Tips } from "./v2/modules/tips/Tips";
