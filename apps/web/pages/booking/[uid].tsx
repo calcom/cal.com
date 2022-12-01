@@ -23,6 +23,7 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import { parseRecurringEvent } from "@calcom/lib";
 import CustomBranding from "@calcom/lib/CustomBranding";
+import { APP_NAME } from "@calcom/lib/constants";
 import { formatTime } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -166,9 +167,11 @@ export default function Success(props: SuccessProps) {
   if ((isCancellationMode || changes) && typeof window !== "undefined") {
     window.scrollTo(0, document.body.scrollHeight);
   }
+
   const location: ReturnType<typeof getEventLocationValue> = Array.isArray(props.bookingInfo.location)
-    ? props.bookingInfo.location[0] || ""
-    : props.bookingInfo.location || "";
+    ? props.bookingInfo.location[0]
+    : // If there is no location set then we default to Cal Video
+      "integrations:daily";
 
   if (!location) {
     // Can't use logger.error because it throws error on client. stdout isn't available to it.
@@ -641,7 +644,9 @@ export default function Success(props: SuccessProps) {
                   <>
                     <hr className="border-bookinglightest dark:border-darkgray-300 mt-8" />
                     <div className="border-bookinglightest text-booking-lighter dark:border-darkgray-300 pt-8 text-center text-xs dark:text-white">
-                      <a href="https://cal.com/signup">{t("create_booking_link_with_calcom")}</a>
+                      <a href="https://cal.com/signup">
+                        {t("create_booking_link_with_calcom", { appName: APP_NAME })}
+                      </a>
 
                       <form
                         onSubmit={(e) => {
