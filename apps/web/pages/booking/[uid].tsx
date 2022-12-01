@@ -973,7 +973,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       select: baseUserSelect,
     });
     if (user) {
-      eventTypeRaw.users.push(user);
+      eventTypeRaw.users.push({
+        ...user,
+        avatar: "",
+        allowDynamicBooking: true,
+      });
     }
   }
 
