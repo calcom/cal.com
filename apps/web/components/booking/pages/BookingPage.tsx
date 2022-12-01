@@ -29,6 +29,7 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
@@ -123,6 +124,15 @@ const BookingPage = ({
 
   const mutation = useMutation(createBooking, {
     onSuccess: async (responseData) => {
+      if (sdkActionManager) {
+        const payload = {
+          date: responseData.startTime.toString(),
+          bookingInfo: responseData,
+          duration,
+          confirmed: !eventType.requiresConfirmation,
+        };
+        sdkActionManager.fire("bookingSuccessful", payload);
+      }
       const { uid, paymentUid } = responseData;
       if (paymentUid) {
         return await router.push(
