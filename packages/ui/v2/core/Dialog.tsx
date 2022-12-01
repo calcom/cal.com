@@ -139,11 +139,7 @@ export function DialogHeader(props: DialogHeaderProps) {
 }
 
 export function DialogFooter(props: { children: ReactNode }) {
-  return (
-    <div>
-      <div className="mt-7 flex justify-end space-x-2 rtl:space-x-reverse ">{props.children}</div>
-    </div>
-  );
+  return <div className="mt-7 flex justify-end space-x-2 rtl:space-x-reverse ">{props.children}</div>;
 }
 
 DialogContent.displayName = "DialogContent";
