@@ -226,6 +226,9 @@ export default function Success(props: SuccessProps) {
   }, [telemetry]);
 
   useEffect(() => {
+    if (!calculatedDuration) {
+      return;
+    }
     const users = eventType.users;
     if (!sdkActionManager) return;
     // TODO: We should probably make it consistent with Webhook payload. Some data is not available here, as and when requirement comes we can add
@@ -245,7 +248,7 @@ export default function Success(props: SuccessProps) {
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
     setIs24h(!!getIs24hClockFromLocalStorage());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventType, needsConfirmation]);
+  }, [eventType, needsConfirmation, calculatedDuration]);
 
   useEffect(() => {
     setCalculatedDuration(
