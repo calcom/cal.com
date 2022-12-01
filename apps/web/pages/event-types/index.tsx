@@ -5,7 +5,7 @@ import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
 
 import { default as CreateEventTypeButton } from "@calcom/features/eventtypes/components/CreateEventTypeButton";
-import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
@@ -440,7 +440,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 navigator
                                   .share({
                                     title: t("share"),
-                                    text: t("share_event"),
+                                    text: t("share_event", { appName: APP_NAME }),
                                     url: calLink,
                                   })
                                   .then(() => showToast(t("link_shared"), "success"))
@@ -582,7 +582,7 @@ const EventTypesPage = () => {
   return (
     <div>
       <Head>
-        <title>Home | Cal.com</title>
+        <title>Home | {APP_NAME}</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Shell
