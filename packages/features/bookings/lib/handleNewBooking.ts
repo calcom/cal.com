@@ -42,7 +42,11 @@ import { checkBookingLimits, getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { userSelect } from "@calcom/prisma";
-import { EventTypeMetaDataSchema, extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
+import {
+  customInputSchema,
+  EventTypeMetaDataSchema,
+  extendedBookingCreateBody,
+} from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
@@ -203,6 +207,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
+    customInputs: customInputSchema.array().parse(eventType.customInputs),
     locations: (eventType.locations ?? []) as LocationObject[],
   };
 };
@@ -310,7 +315,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   const stripeAppData = getStripeAppData(eventType);
 
   // Check if required custom inputs exist
-  handleCustomInputs(eventType.customInputs, reqBody.customInputs);
+  handleCustomInputs(eventType.customInputs as EventTypeCustomInput[], reqBody.customInputs);
 
   let timeOutOfBounds = false;
   try {
