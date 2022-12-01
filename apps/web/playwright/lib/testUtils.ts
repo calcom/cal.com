@@ -112,7 +112,7 @@ async function bookEventOnThisPage(page: Page) {
   // Make sure we're navigated to the success page
   await page.waitForNavigation({
     url(url) {
-      return url.pathname.endsWith("/success");
+      return url.pathname.startsWith("/booking");
     },
   });
   await expect(page.locator("[data-testid=success-page]")).toBeVisible();

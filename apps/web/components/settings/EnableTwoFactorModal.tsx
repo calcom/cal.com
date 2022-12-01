@@ -130,11 +130,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        title={t("enable_2fa")}
-        description={setupDescriptions[step]}
-        type="creation"
-        useOwnActionButtons>
+      <DialogContent title={t("enable_2fa")} description={setupDescriptions[step]} type="creation">
         <WithStep step={SetupStep.ConfirmPassword} current={step}>
           <form onSubmit={handleSetup}>
             <div className="mb-4">

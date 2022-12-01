@@ -85,6 +85,7 @@ const sendPayload = async (
       rescheduleUid?: string;
       bookingId?: number;
       status?: string;
+      smsReminderNumber?: string;
     }
 ) => {
   const { appId, payloadTemplate: template } = webhook;
