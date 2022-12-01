@@ -1,7 +1,6 @@
 import { faker } from "@faker-js/faker";
 
 import { getLocation, getPublicVideoCallUrl, getVideoCallPassword, getVideoCallUrl } from "../CalEventParser";
-import { APP_NAME } from "../constants";
 import { buildCalendarEvent, buildVideoCallData } from "./builder";
 
 jest.mock("@calcom/lib/constants", () => ({
@@ -24,7 +23,7 @@ describe("getLocation", () => {
     expect(getLocation(calEvent)).toEqual(getVideoCallUrl(calEvent));
   });
   it("should return an integration provider name from event", () => {
-    const provideName = APP_NAME;
+    const provideName = "Cal.com";
     const calEvent = buildCalendarEvent({
       videoCallData: undefined,
       location: `integrations:${provideName}`,
