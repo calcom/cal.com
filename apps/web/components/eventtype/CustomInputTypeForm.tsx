@@ -52,8 +52,6 @@ const CustomInputTypeForm: FC<Props> = (props) => {
   const { register, control, getValues } = useForm<IFormInput>({
     defaultValues,
   });
-  console.log("defaultvalues", defaultValues);
-  console.log(getValues());
   const selectedInputType = useWatch({ name: "type", control });
   const selectedInputOption = inputOptions.find((e) => selectedInputType === e.value);
 
