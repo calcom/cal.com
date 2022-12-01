@@ -7,6 +7,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
+import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import {
@@ -39,15 +40,11 @@ const IntegrationContainer = ({
   const [disableDialog, setDisableDialog] = useState(false);
   const [showKeys, setShowKeys] = useState(false);
 
+  const appKeySchema = appKeysSchemas[app.dirName as keyof typeof appKeysSchemas];
+
   // TODO: THIS IS AN EXMAPLE! DON'T SHIP THIS Find a way to conditionally get each app schema to validate forms here
   const formMethods = useForm({
-    resolver: zodResolver(
-      z.object({
-        client_id: z.string().min(1),
-        client_secret: z.string().min(1),
-        redirect_uris: z.string().min(1),
-      })
-    ),
+    resolver: zodResolver(appKeySchema),
   });
 
   const enableAppMutation = trpc.viewer.appsRouter.toggle.useMutation({
@@ -64,6 +61,9 @@ const IntegrationContainer = ({
   const saveKeysMutation = trpc.viewer.appsRouter.saveKeys.useMutation({
     onSuccess: () => {
       showToast(t("keys_have_been_saved"), "success");
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
     },
   });
 
@@ -115,29 +115,39 @@ const IntegrationContainer = ({
               <Form
                 form={formMethods}
                 handleSubmit={(values) =>
-                  saveKeysMutation.mutate({ slug: app.slug, type: app.type, keys: values })
+                  saveKeysMutation.mutate({
+                    slug: app.slug,
+                    type: app.type,
+                    keys: values,
+                    dirName: app.dirName,
+                  })
                 }
                 className="px-4 pb-4">
-                {Object.keys(app.keys).map((key) => (
-                  <Controller
-                    name={key}
-                    key={key}
-                    control={formMethods.control}
-                    defaultValue={app?.keys ? app.keys[key] : ""}
-                    render={({ field: { value } }) => (
-                      <TextField
-                        label={key}
-                        key={key}
-                        name={key}
-                        value={value}
-                        onChange={(e) => {
-                          formMethods.setValue(key, e?.target.value);
-                        }}
-                      />
-                    )}
-                  />
-                ))}
-                <Button type="submit">Save</Button>
+                {Object.keys(app.keys).map((key) => {
+                  console.log(app.keys[key]);
+                  return (
+                    <Controller
+                      name={key}
+                      key={key}
+                      control={formMethods.control}
+                      defaultValue={app.keys[key]}
+                      render={({ field: { value } }) => (
+                        <TextField
+                          label={key}
+                          key={key}
+                          name={key}
+                          value={value}
+                          onChange={(e) => {
+                            formMethods.setValue(key, e?.target.value);
+                          }}
+                        />
+                      )}
+                    />
+                  );
+                })}
+                <Button type="submit" loading={saveKeysMutation.isLoading}>
+                  {t("save")}
+                </Button>
               </Form>
             )}
           </CollapsibleContent>
