@@ -19,6 +19,7 @@ interface FilteredApp {
   title?: string;
   type: string;
   description: string;
+  dirName: string;
   keys: Prisma.JsonObject | null;
   enabled: boolean;
 }
@@ -45,6 +46,7 @@ export const appsRouter = router({
           slug: true,
           keys: true,
           enabled: true,
+          dirName: true,
         },
       });
 
@@ -67,11 +69,11 @@ export const appsRouter = router({
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             //@ts-ignore
             keys: dbData.keys,
+            dirName: app.dirName,
             enabled: dbData?.enabled || false,
           });
         } else {
-          const appKey = deriveAppDictKeyFromType(app.type, appKeysSchemas);
-          const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
+          const keysSchema = appKeysSchemas[app.dirName as keyof typeof appKeysSchemas];
 
           const keys: Record<string, string> = {};
 
@@ -90,6 +92,7 @@ export const appsRouter = router({
             title: app.title,
             description: app.description,
             enabled: dbData?.enabled || false,
+            dirName: app.dirName,
             keys: Object.keys(keys).length === 0 ? null : keys,
           });
         }
@@ -229,6 +232,7 @@ export const appsRouter = router({
     .input(
       z.object({
         slug: z.string(),
+        dirName: z.string(),
         type: z.string(),
         // Validate w/ app specific schema
         keys: z.unknown(),
@@ -239,11 +243,27 @@ export const appsRouter = router({
       const keysSchema = appKeysSchemas[appKey as keyof typeof appKeysSchemas];
       const keys = keysSchema.parse(input.keys);
 
-      await ctx.prisma.app.update({
+      // Get app name from metadata
+      const localApps = getLocalAppMetadata();
+      const appMetadata = localApps.find((localApp) => localApp.slug === input.slug);
+
+      if (!appMetadata?.dirName && appMetadata?.categories)
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "App metadata could not be found" });
+
+      await ctx.prisma.app.upsert({
         where: {
           slug: input.slug,
         },
-        data: { keys },
+        update: { keys },
+        create: {
+          slug: input.slug,
+          dirName: appMetadata?.dirName || "",
+          categories:
+            (appMetadata?.categories as AppCategories[]) ||
+            ([appMetadata?.category] as AppCategories[]) ||
+            undefined,
+          keys: input.keys,
+        },
       });
     }),
 });
