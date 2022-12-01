@@ -28,6 +28,11 @@ const getAppCategories = (baseURL: string) => {
       icon: Icon.FiBarChart,
     },
     {
+      name: "web3",
+      href: `${baseURL}/web3`,
+      icon: Icon.FiBarChart,
+    },
+    {
       name: "other",
       href: `${baseURL}/other`,
       icon: Icon.FiGrid,
