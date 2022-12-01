@@ -32,7 +32,12 @@ export const appsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const localApps = getLocalAppMetadata().filter((app) => app.variant === input.category);
+      const localApps = getLocalAppMetadata().filter(
+        (app) =>
+          app.categories?.some((category) => category === input.category) || app.category === input.category
+      );
+
+      console.log("🚀 ~ file: apps.tsx:36 ~ .query ~ localApps", localApps);
       const dbApps = await ctx.prisma.app.findMany({
         where: {
           categories: {
