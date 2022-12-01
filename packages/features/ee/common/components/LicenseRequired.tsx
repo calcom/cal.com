@@ -7,7 +7,7 @@ import DOMPurify from "dompurify";
 import { useSession } from "next-auth/react";
 import React, { AriaRole, ComponentType, Fragment } from "react";
 
-import { CONSOLE_URL } from "@calcom/lib/constants";
+import { APP_NAME, CONSOLE_URL, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { EmptyScreen, Icon } from "@calcom/ui";
 
@@ -43,10 +43,10 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
                 __html: DOMPurify.sanitize(
                   t("enterprise_license_description", {
                     consoleUrl: `<a href="${CONSOLE_URL}" target="_blank" rel="noopener noreferrer" class="underline">
-                Cal.com console
+                ${APP_NAME}
               </a>`,
-                    supportMail: `<a href="mailto:peer@cal.com" class="underline">
-                peer@cal.com
+                    supportMail: `<a href="mailto:${SUPPORT_MAIL_ADDRESS}" class="underline">
+                ${SUPPORT_MAIL_ADDRESS}
               </a>`,
                   })
                 ),

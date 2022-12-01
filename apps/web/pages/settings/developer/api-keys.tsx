@@ -5,6 +5,7 @@ import { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/v2/LicenseRequired";
 import ApiKeyDialogForm from "@calcom/features/ee/api-keys/components/ApiKeyDialogForm";
 import ApiKeyListItem from "@calcom/features/ee/api-keys/components/ApiKeyListItem";
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -46,7 +47,10 @@ const ApiKeysView = () => {
 
   return (
     <>
-      <Meta title={t("api_keys")} description={t("create_first_api_key_description")} />
+      <Meta
+        title={t("api_keys")}
+        description={t("create_first_api_key_description", { appName: APP_NAME })}
+      />
 
       <LicenseRequired>
         <>
@@ -73,7 +77,7 @@ const ApiKeysView = () => {
               <EmptyScreen
                 Icon={Icon.FiLink}
                 headline={t("create_first_api_key")}
-                description={t("create_first_api_key_description")}
+                description={t("create_first_api_key_description", { appName: APP_NAME })}
                 buttonRaw={<NewApiKeyButton />}
               />
             )}

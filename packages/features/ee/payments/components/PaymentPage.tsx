@@ -8,7 +8,7 @@ import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -58,7 +58,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
     <div className="h-screen">
       <Head>
         <title>
-          {t("payment")} | {eventName} | Cal.com
+          {t("payment")} | {eventName} | {APP_NAME}
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -146,7 +146,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                 </div>
                 {!props.profile.hideBranding && (
                   <div className="mt-4 border-t pt-4 text-center text-xs text-gray-400 dark:border-gray-900 dark:text-white">
-                    <a href={`${WEBSITE_URL}/signup`}>{t("create_booking_link_with_calcom")}</a>
+                    <a href={`${WEBSITE_URL}/signup`}>
+                      {t("create_booking_link_with_calcom", { appName: APP_NAME })}
+                    </a>
                   </div>
                 )}
               </div>

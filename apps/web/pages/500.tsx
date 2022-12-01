@@ -1,6 +1,6 @@
 import Head from "next/head";
 
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 
@@ -10,7 +10,7 @@ export default function Error500() {
   return (
     <div className="flex h-screen">
       <Head>
-        <title>Something unexpected occurred | Cal.com</title>
+        <title>Something unexpected occurred | {APP_NAME}</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="m-auto text-center">

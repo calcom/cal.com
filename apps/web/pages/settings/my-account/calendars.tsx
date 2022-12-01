@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
 
+import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -11,7 +12,6 @@ import {
   Alert,
   Badge,
   Button,
-  DisconnectIntegration,
   EmptyScreen,
   getSettingsLayout as getLayout,
   Icon,
@@ -136,8 +136,8 @@ const CalendarsView = () => {
                       />
                     )}
                     {item?.error === undefined && item.calendars && (
-                      <ListItem expanded className="flex-col">
-                        <div className="flex w-full flex-1 items-center space-x-3 pb-5 pl-1 pt-1 rtl:space-x-reverse">
+                      <ListItem className="flex-col">
+                        <div className="flex w-full flex-1 items-center space-x-3 p-4 rtl:space-x-reverse">
                           {
                             // eslint-disable-next-line @next/next/no-img-element
                             item.integration.logo && (

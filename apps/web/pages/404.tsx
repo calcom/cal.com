@@ -1,9 +1,9 @@
 import { GetStaticPropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
-import { DEVELOPER_DOCS, DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
+import { COMPANY_NAME, DEVELOPER_DOCS, DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
 import { Icon } from "@calcom/ui";
 
 import { useLocale } from "@lib/hooks/useLocale";
@@ -64,7 +64,7 @@ export default function Custom404() {
                 <h1 className="font-cal mt-2 text-3xl font-extrabold text-gray-900">
                   {t("signup_requires")}
                 </h1>
-                <p className="mt-4">{t("signup_requires_description")}</p>
+                <p className="mt-4">{t("signup_requires_description", { companyName: COMPANY_NAME })}</p>
               </div>
               <div className="mt-12">
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
@@ -191,7 +191,11 @@ export default function Custom404() {
                   </span>
                 ) : isCalcom ? (
                   <a target="_blank" href={url} className="mt-2 inline-block text-lg" rel="noreferrer">
-                    {t("the_username")} <strong className="text-blue-500">cal.com{username}</strong>{" "}
+                    {t("the_username")}{" "}
+                    <strong className="text-blue-500">
+                      {new URL(WEBSITE_URL).hostname}
+                      {username}
+                    </strong>{" "}
                     {t("is_still_available")} <span className="text-blue-500">{t("register_now")}</span>.
                   </a>
                 ) : (

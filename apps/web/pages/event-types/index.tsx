@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
 
-import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import CreateEventTypeButton from "@calcom/features/eventtypes/components/CreateEventTypeButton";
+import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
@@ -12,7 +13,6 @@ import {
   Button,
   ButtonGroup,
   ConfirmationDialogContent,
-  CreateEventTypeButton,
   Dialog,
   Dropdown,
   DropdownItem,
@@ -442,7 +442,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 navigator
                                   .share({
                                     title: t("share"),
-                                    text: t("share_event"),
+                                    text: t("share_event", { appName: APP_NAME }),
                                     url: calLink,
                                   })
                                   .then(() => showToast(t("link_shared"), "success"))

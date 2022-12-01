@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import ConfigDialogForm from "@calcom/features/ee/sso/components/ConfigDialogForm";
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -166,7 +167,7 @@ export default function SAMLConfiguration({ teamId }: { teamId: number | null })
                 title={t("delete_saml_configuration")}
                 confirmBtnText={t("confirm_delete_saml_configuration")}
                 onConfirm={deleteConnection}>
-                {t("delete_saml_configuration_confirmation_message")}
+                {t("delete_saml_configuration_confirmation_message", { appName: APP_NAME })}
               </ConfirmationDialogContent>
             </Dialog>
           </>

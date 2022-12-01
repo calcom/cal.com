@@ -59,6 +59,8 @@ const AvailabilitySelect = ({
   onChange: (value: AvailabilityOption | null) => void;
 }) => {
   const { data, isLoading } = trpc.viewer.availability.list.useQuery();
+  const { t } = useLocale();
+
   if (isLoading) {
     return <SelectSkeletonLoader />;
   }
@@ -79,6 +81,7 @@ const AvailabilitySelect = ({
 
   return (
     <Select
+      placeholder={t("select")}
       options={options}
       isSearchable={false}
       onChange={props.onChange}
