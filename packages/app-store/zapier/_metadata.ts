@@ -1,3 +1,4 @@
+import { APP_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import type { AppMeta } from "@calcom/types/App";
 
 import _package from "./package.json";
@@ -9,7 +10,7 @@ export const metadata = {
   category: "automation",
   imageSrc: "/api/app-store/zapier/icon.svg",
   logo: "/api/app-store/zapier/icon.svg",
-  publisher: "Cal.com",
+  publisher: APP_NAME,
   rating: 0,
   reviews: 0,
   slug: "zapier",
@@ -19,7 +20,7 @@ export const metadata = {
   url: "https://cal.com/apps/zapier",
   variant: "automation",
   verified: true,
-  email: "help@cal.com",
+  email: SUPPORT_MAIL_ADDRESS,
 } as AppMeta;
 
 export default metadata;

@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Icon } from "@calcom/ui";
 
@@ -13,7 +14,7 @@ export default function HowToUse() {
             <img className="w-11" src="/api/app-store/typeform/icon.svg" alt="Zapier Logo" />
           </div>
           <div className="ml-5">
-            <div className="text-md text-gray-800">How to route a Typeform with Cal.com Routing</div>
+            <div className="text-md text-gray-800">How to route a Typeform with {APP_NAME} Routing</div>
             <ol className="mt-5 mb-5 ml-5 mr-5 list-decimal">
               <li>
                 Make sure that you have{" "}
@@ -36,7 +37,7 @@ export default function HowToUse() {
                   </a>
                 </Link>
               </li>
-              <li>Create a Typeform that you want to route through Cal.com form&apos;s routing</li>
+              <li>Create a Typeform that you want to route through {APP_NAME} form&apos;s routing</li>
               <li>
                 Add the copied URL as{" "}
                 <Link href="https://www.typeform.com/help/a/end-screens-and-redirects-360051791392/#h_01G0CFXF21W2EQ8PXKSB4KSC8P">
@@ -63,7 +64,7 @@ export default function HowToUse() {
                 to add values to query params.
               </li>
               <li>
-                You&apos;re set! Now, when the Typeform gets responses they would be routed through Cal.com
+                You&apos;re set! Now, when the Typeform gets responses they would be routed through {APP_NAME}
                 routing
               </li>
             </ol>

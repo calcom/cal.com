@@ -1,6 +1,7 @@
 import Head from "next/head";
 import z from "zod";
 
+import { APP_NAME } from "@calcom/lib/constants";
 import { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 
@@ -13,7 +14,9 @@ export default function Router({ form, message }: inferSSRProps<typeof getServer
   return (
     <>
       <Head>
-        <title>{form.name} | Cal.com Forms</title>
+        <title>
+          {form.name} | {APP_NAME} Forms
+        </title>
       </Head>
       <div className="mx-auto my-0 max-w-3xl md:my-24">
         <div className="w-full max-w-4xl ltr:mr-2 rtl:ml-2">

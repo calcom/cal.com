@@ -1,3 +1,4 @@
+import { APP_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import { validJson } from "@calcom/lib/jsonUtils";
 import type { AppMeta } from "@calcom/types/App";
 
@@ -14,14 +15,14 @@ export const metadata = {
   imageSrc: "/api/app-store/googlevideo/logo.webp",
   variant: "conferencing",
   logo: "/api/app-store/googlevideo/logo.webp",
-  publisher: "Cal.com",
+  publisher: APP_NAME,
   rating: 5,
   reviews: 69,
   trending: false,
   url: "https://cal.com/",
   verified: true,
   isGlobal: true,
-  email: "help@cal.com",
+  email: SUPPORT_MAIL_ADDRESS,
   appData: {
     location: {
       linkType: "dynamic",

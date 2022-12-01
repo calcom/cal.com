@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { Trans } from "react-i18next";
 import { configureChains, createClient, useAccount, useSignMessage, WagmiConfig } from "wagmi";
 
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Icon, showToast, SkeletonText } from "@calcom/ui";
@@ -21,7 +22,7 @@ import { ETH_MESSAGE, getProviders, SUPPORTED_CHAINS } from "../utils/ethereum";
 const { chains, provider } = configureChains(SUPPORTED_CHAINS, getProviders());
 
 const { connectors } = getDefaultWallets({
-  appName: "Cal.com",
+  appName: APP_NAME,
   chains,
 });
 

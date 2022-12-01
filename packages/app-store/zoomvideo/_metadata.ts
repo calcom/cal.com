@@ -1,3 +1,4 @@
+import { APP_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import type { AppMeta } from "@calcom/types/App";
 
 import _package from "./package.json";
@@ -10,7 +11,7 @@ export const metadata = {
   imageSrc: "/api/app-store/zoomvideo/icon.svg",
   variant: "conferencing",
   logo: "/api/app-store/zoomvideo/icon.svg",
-  publisher: "Cal.com",
+  publisher: APP_NAME,
   url: "https://zoom.us/",
   verified: true,
   rating: 4.3, // TODO: placeholder for now, pull this from TrustPilot or G2
@@ -19,7 +20,7 @@ export const metadata = {
   slug: "zoom",
   title: "Zoom Video",
   trending: true,
-  email: "help@cal.com",
+  email: SUPPORT_MAIL_ADDRESS,
   appData: {
     location: {
       default: false,

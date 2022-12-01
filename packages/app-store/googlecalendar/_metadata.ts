@@ -1,3 +1,4 @@
+import { APP_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import { validJson } from "@calcom/lib/jsonUtils";
 import type { AppMeta } from "@calcom/types/App";
 
@@ -13,14 +14,14 @@ export const metadata = {
   variant: "calendar",
   category: "calendar",
   logo: "/api/app-store/googlecalendar/icon.svg",
-  publisher: "Cal.com",
+  publisher: APP_NAME,
   rating: 5,
   reviews: 69,
   slug: "google-calendar",
   trending: false,
   url: "https://cal.com/",
   verified: true,
-  email: "help@cal.com",
+  email: SUPPORT_MAIL_ADDRESS,
 } as AppMeta;
 
 export default metadata;

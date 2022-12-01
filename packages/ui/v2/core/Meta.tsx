@@ -1,6 +1,8 @@
 import Head from "next/head";
 import React, { createContext, useContext, useState, useEffect } from "react";
 
+import { APP_NAME } from "@calcom/lib/constants";
+
 type MetaType = {
   title: string;
   description: string;
@@ -54,7 +56,9 @@ export default function Meta({ title, description, backButton, CTA }: MetaType) 
 
   return (
     <Head>
-      <title>{title} | Cal.com</title>
+      <title>
+        {title} | {APP_NAME}
+      </title>
       <meta name="description" content={description} />
     </Head>
   );

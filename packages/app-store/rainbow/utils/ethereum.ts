@@ -5,11 +5,12 @@ import { alchemyProvider } from "wagmi/providers/alchemy";
 import { infuraProvider } from "wagmi/providers/infura";
 import { publicProvider } from "wagmi/providers/public";
 
+import { APP_NAME } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 
 import abi from "./abi.json";
 
-export const ETH_MESSAGE = "Connect to Cal.com";
+export const ETH_MESSAGE = `Connect to ${APP_NAME}`;
 export const SUPPORTED_CHAINS = [chain.mainnet, chain.polygon, chain.optimism, chain.arbitrum];
 
 export const SUPPORTED_CHAINS_FOR_FORM = SUPPORTED_CHAINS.map((chain) => {

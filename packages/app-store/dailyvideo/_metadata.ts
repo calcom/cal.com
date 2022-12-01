@@ -1,3 +1,4 @@
+import { APP_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import type { AppMeta } from "@calcom/types/App";
 
 import _package from "./package.json";
@@ -12,7 +13,7 @@ export const metadata = {
   url: "https://daily.co",
   trending: true,
   logo: "/api/app-store/dailyvideo/icon.svg",
-  publisher: "Cal.com",
+  publisher: APP_NAME,
   verified: true,
   rating: 4.3, // TODO: placeholder for now, pull this from TrustPilot or G2
   reviews: 69, // TODO: placeholder for now, pull this from TrustPilot or G2
@@ -20,7 +21,7 @@ export const metadata = {
   slug: "daily-video",
   title: "Cal Video",
   isGlobal: true,
-  email: "help@cal.com",
+  email: SUPPORT_MAIL_ADDRESS,
   appData: {
     location: {
       linkType: "dynamic",
