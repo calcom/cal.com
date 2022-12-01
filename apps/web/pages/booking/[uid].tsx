@@ -34,7 +34,7 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma, { baseUserSelect } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Button, EmailInput, Icon } from "@calcom/ui";
 
 import { timeZone } from "@lib/clock";
@@ -456,10 +456,37 @@ export default function Success(props: SuccessProps) {
                     )}
                     {customInputs &&
                       Object.keys(customInputs).map((key) => {
+                        // This breaks if you have two label that are the same.
+                        // TODO: Fix this in another PR
                         const customInput = customInputs[key as keyof typeof customInputs];
+                        const eventTypeCustomFound = eventType.customInputs?.find((ci) => ci.label === key);
                         return (
                           <>
-                            {customInput !== "" && (
+                            {eventTypeCustomFound?.type === "RADIO" && (
+                              <>
+                                <div className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
+                                  {eventTypeCustomFound.label}
+                                </div>
+                                <div className="col-span-3 mt-1 mb-2">
+                                  {eventTypeCustomFound.options &&
+                                    eventTypeCustomFound.options.map((option) => {
+                                      const selected = option.label == customInput;
+                                      return (
+                                        <div
+                                          key={option.label}
+                                          className={classNames(
+                                            "flex space-x-1",
+                                            !selected && "text-gray-500"
+                                          )}>
+                                          <p>{option.label}</p>
+                                          <span>{option.label === customInput && "✅"}</span>
+                                        </div>
+                                      );
+                                    })}
+                                </div>
+                              </>
+                            )}
+                            {eventTypeCustomFound?.type !== "RADIO" && customInput !== "" && (
                               <>
                                 <div className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">{key}</div>
                                 <div className="col-span-3 mt-2 mb-2">
@@ -787,6 +814,7 @@ const getEventTypesFromDB = async (id: number) => {
       requiresConfirmation: true,
       userId: true,
       successRedirectUrl: true,
+      customInputs: true,
       locations: true,
       price: true,
       currency: true,
@@ -947,7 +975,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       select: baseUserSelect,
     });
     if (user) {
-      eventTypeRaw.users.push(user);
+      eventTypeRaw.users.push({
+        ...user,
+        avatar: "",
+        allowDynamicBooking: true,
+      });
     }
   }
 
@@ -963,6 +995,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     periodEndDate: eventTypeRaw.periodEndDate?.toString() ?? null,
     metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
+    customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
   };
 
   const profile = {
