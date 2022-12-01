@@ -356,6 +356,7 @@ export const bookingsRouter = router({
           dynamicEventSlugRef: true,
           dynamicGroupSlugRef: true,
           destinationCalendar: true,
+          smsReminderNumber: true,
         },
         where: {
           uid: bookingId,
@@ -528,7 +529,10 @@ export const bookingsRouter = router({
         };
         const webhooks = await getWebhooks(subscriberOptions);
         const promises = webhooks.map((webhook) =>
-          sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, evt).catch((e) => {
+          sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
+            ...evt,
+            smsReminderNumber: bookingToReschedule.smsReminderNumber || undefined,
+          }).catch((e) => {
             console.error(
               `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}`,
               e
@@ -982,6 +986,7 @@ export const bookingsRouter = router({
             bookingId,
             eventTypeId: booking.eventType?.id,
             status: "ACCEPTED",
+            smsReminderNumber: booking.smsReminderNumber || undefined,
           }).catch((e) => {
             console.error(
               `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}`,
