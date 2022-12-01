@@ -1,3 +1,5 @@
+import { APP_NAME } from "@calcom/lib/constants";
+
 import { renderEmail } from "../";
 import OrganizerRequestEmail from "./organizer-request-email";
 
