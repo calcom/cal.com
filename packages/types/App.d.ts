@@ -81,7 +81,8 @@ export interface App {
     | "other"
     | "other_calendar"
     | "web3"
-    | "automation";
+    | "automation"
+    | "analytics";
   /** The slug for the app store public page inside `/apps/[slug] */
   slug: string;
 
@@ -122,8 +123,6 @@ export interface App {
   /** A contact email, mainly to ask for support */
   email: string;
 
-  /** Needed API Keys (usually for global apps) */
-  key?: Prisma.JsonValue;
   /** Needed API Keys (usually for global apps) */
   key?: Prisma.JsonValue;
   /** If not free, what kind of fees does the app have */

@@ -1,6 +1,5 @@
+import { APP_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import type { AppMeta } from "@calcom/types/App";
-
-import config from "./config.json";
 
 export const metadata = {
   category: "other",
@@ -19,7 +18,20 @@ export const metadata = {
       linkType: "static",
     },
   },
-  ...config,
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  name: "Riverside",
+  slug: "riverside",
+  type: "riverside_video",
+  imageSrc: "/api/app-store/riverside/icon-dark.svg",
+  logo: "/api/app-store/riverside/icon-dark.svg",
+  url: "https://cal.com/apps/riverside",
+  variant: "conferencing",
+  categories: ["video"],
+  publisher: APP_NAME,
+  email: SUPPORT_MAIL_ADDRESS,
+  description:
+    "Your online recording studio. The easiest way to record podcasts and videos in studio quality from anywhere. All from the browser.",
+  __createdUsingCli: true,
 } as AppMeta;
 
 export default metadata;
