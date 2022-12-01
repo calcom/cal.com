@@ -749,7 +749,6 @@ const BookingPage = ({
                           <div className="flex">
                             <Group
                               onValueChange={(e) => {
-                                console.log(e);
                                 bookingForm.setValue(`customInputs.${input.id}`, e);
                               }}>
                               <>
