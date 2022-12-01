@@ -984,6 +984,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           metadata: reqBody.metadata,
           eventTypeId,
           status: "ACCEPTED",
+          smsReminderNumber: booking?.smsReminderNumber || undefined,
         }).catch((e) => {
           console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
         })
