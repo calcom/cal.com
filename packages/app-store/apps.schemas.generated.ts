@@ -9,6 +9,7 @@ import { appDataSchema as giphy_schema } from "./giphy/zod";
 import { appDataSchema as qr_code_schema } from "./qr_code/zod";
 import { appDataSchema as rainbow_schema } from "./rainbow/zod";
 import { appDataSchema as stripepayment_schema } from "./stripepayment/zod";
+import { appDataSchema as wordpress_schema } from "./wordpress/zod";
 
 export const appDataSchemas = {
   "routing-forms": routing_forms_schema,
@@ -18,4 +19,5 @@ export const appDataSchemas = {
   qr_code: qr_code_schema,
   rainbow: rainbow_schema,
   stripe: stripepayment_schema,
+  wordpress: wordpress_schema,
 };

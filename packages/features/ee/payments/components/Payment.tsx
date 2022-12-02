@@ -95,7 +95,7 @@ export default function PaymentComponent(props: Props) {
       }
 
       const query = stringify(params);
-      const successUrl = `/success?${query}`;
+      const successUrl = `/booking/${props.bookingUid}?${query}`;
 
       await router.push(successUrl);
     }

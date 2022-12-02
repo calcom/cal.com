@@ -5,6 +5,7 @@ import { BaseSyntheticEvent, useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/lib/auth";
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
@@ -221,7 +222,7 @@ const ProfileView = () => {
             mutation.mutate(values);
           }
         }}>
-        <Meta title="Profile" description="Manage settings for your cal profile" />
+        <Meta title="Profile" description={t("profile_description", { appName: APP_NAME })} />
         <div className="flex items-center">
           <Controller
             control={formMethods.control}
@@ -298,11 +299,11 @@ const ProfileView = () => {
           </DialogTrigger>
           <DialogContent
             title={t("delete_account_modal_title")}
-            description={t("confirm_delete_account_modal")}
+            description={t("confirm_delete_account_modal", { appName: APP_NAME })}
             type="creation"
             Icon={Icon.FiAlertTriangle}>
             <>
-              <p className="mb-7">{t("delete_account_confirmation_message")}</p>
+              <p className="mb-7">{t("delete_account_confirmation_message", { appName: APP_NAME })}</p>
               {isCALIdentityProviver && (
                 <PasswordField
                   data-testid="password"
