@@ -1,10 +1,8 @@
-import type { EventTypeCustomInput } from "@prisma/client";
 import { PeriodType, Prisma, SchedulingType, UserPlan } from "@prisma/client";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { userSelect } from "@calcom/prisma/selects";
-import { _EventTypeModel } from "@calcom/prisma/zod";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { CustomInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 
@@ -50,7 +48,7 @@ const user: User = {
   allowDynamicBooking: true,
 };
 
-const customInputs: EventTypeCustomInput[] = [];
+const customInputs: CustomInputSchema[] = [];
 
 const commons = {
   isDynamic: true,

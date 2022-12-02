@@ -66,7 +66,7 @@ export default function PaymentComponent(props: Props) {
   const handleSubmit = async (ev: SyntheticEvent) => {
     ev.preventDefault();
 
-    if (!stripe || !elements) return;
+    if (!stripe || !elements || !router.isReady) return;
     const card = elements.getElement(CardElement);
     if (!card) return;
     setState({ status: "processing" });
@@ -81,7 +81,10 @@ export default function PaymentComponent(props: Props) {
         error: new Error(`Payment failed: ${payload.error.message}`),
       });
     } else {
-      const params: { [k: string]: any } = {};
+      const params: { [k: string]: any } = {
+        uid: props.bookingUid,
+        email: router.query.email,
+      };
 
       if (props.location) {
         if (props.location.includes("integration")) {
