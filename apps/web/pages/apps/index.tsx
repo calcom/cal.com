@@ -31,8 +31,7 @@ function AppsSearch({
   );
 }
 
-export default function Apps({ appStore, categories }: InferGetStaticPropsType<typeof getServerSideProps>) {
-  console.log("🚀 ~ file: index.tsx:35 ~ Apps ~ appStore", appStore);
+export default function Apps({ categories, appStore }: InferGetStaticPropsType<typeof getServerSideProps>) {
   const { t } = useLocale();
   const [searchText, setSearchText] = useState<string | undefined>(undefined);
 
