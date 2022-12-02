@@ -270,7 +270,7 @@ export const appsRouter = router({
             (appMetadata?.categories as AppCategories[]) ||
             ([appMetadata?.category] as AppCategories[]) ||
             undefined,
-          keys: input.keys | undefined,
+          keys: input.keys || undefined,
         },
       });
     }),
