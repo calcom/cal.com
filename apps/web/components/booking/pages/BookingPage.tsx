@@ -744,7 +744,7 @@ const BookingPage = ({
                           </div>
                         </div>
                       )}
-                      {input.options && input.type === EventTypeCustomInputType.RADIO && (
+                      {input.options && input.type === EventTypeCustomInputType.BOOL && (
                         <div className="">
                           <div className="flex">
                             <Group
