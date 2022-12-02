@@ -130,7 +130,7 @@ const IntegrationContainer = ({
                     name={key}
                     key={key}
                     control={formMethods.control}
-                    defaultValue={app.keys[key] ? app.keys[key] : ""}
+                    defaultValue={app.keys && app.keys[key] ? app?.keys[key] : ""}
                     render={({ field: { value } }) => (
                       <TextField
                         label={key}
