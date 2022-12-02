@@ -47,6 +47,14 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
   const [firstVideoAdapter] = videoAdapters;
   let createdMeeting;
   try {
+    if (!calEvent.location) {
+      const defaultMeeting = await createMeetingWithCalVideo(calEvent);
+      if (defaultMeeting) {
+        createdMeeting = defaultMeeting;
+        calEvent.location = "integrations:dailyvideo";
+      }
+    }
+
     createdMeeting = await firstVideoAdapter?.createMeeting(calEvent);
 
     if (!createdMeeting) {
