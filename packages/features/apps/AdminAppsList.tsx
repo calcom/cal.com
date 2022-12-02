@@ -56,6 +56,9 @@ const IntegrationContainer = ({
         "success"
       );
     },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
   });
 
   const saveKeysMutation = trpc.viewer.appsRouter.saveKeys.useMutation({

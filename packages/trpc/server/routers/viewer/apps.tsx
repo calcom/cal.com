@@ -37,7 +37,6 @@ export const appsRouter = router({
           app.categories?.some((category) => category === input.category) || app.category === input.category
       );
 
-      console.log("🚀 ~ file: apps.tsx:36 ~ .query ~ localApps", localApps);
       const dbApps = await ctx.prisma.app.findMany({
         where: {
           categories: {
@@ -74,7 +73,7 @@ export const appsRouter = router({
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             //@ts-ignore
             keys: dbData.keys,
-            dirName: app.dirName,
+            dirName: app.dirName || app.slug,
             enabled: dbData?.enabled || false,
           });
         } else {
@@ -97,11 +96,13 @@ export const appsRouter = router({
             title: app.title,
             description: app.description,
             enabled: dbData?.enabled || false,
-            dirName: app.dirName,
+            dirName: app.dirName || app.slug,
             keys: Object.keys(keys).length === 0 ? null : keys,
           });
         }
       }
+      console.log("🚀 ~ file: apps.tsx:105 ~ .query ~ filteredApps", filteredApps);
+
       return filteredApps;
     }),
   toggle: authedAdminProcedure
@@ -112,13 +113,19 @@ export const appsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      console.log("🚀 ~ file: apps.tsx:114 ~ .mutation ~ input", input);
       const { prisma } = ctx;
 
       // Get app name from metadata
       const localApps = getLocalAppMetadata();
-      const appMetadata = localApps.find((localApp) => localApp.slug === input.slug);
+      // console.log("🚀 ~ file: apps.tsx:118 ~ .mutation ~ localApps", localApps);
+      const appMetadata = localApps.find((localApp) => {
+        console.log("🚀 ~ file: apps.tsx:124 ~ appMetadata ~ localApp", localApp.slug);
 
-      if (!appMetadata?.dirName && appMetadata?.categories)
+        return localApp.slug === input.slug;
+      });
+
+      if (!appMetadata)
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "App metadata could not be found" });
 
       const app = await prisma.app.upsert({
@@ -267,7 +274,7 @@ export const appsRouter = router({
             (appMetadata?.categories as AppCategories[]) ||
             ([appMetadata?.category] as AppCategories[]) ||
             undefined,
-          keys: input.keys,
+          keys: input.keys | undefined,
         },
       });
     }),
