@@ -5,7 +5,7 @@ import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, TextField } from "@calcom/ui/v2";
+import { Alert, TextField } from "@calcom/ui";
 
 import { appDataSchema } from "../zod";
 

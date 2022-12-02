@@ -4,7 +4,7 @@ import React from "react";
 
 import classNames from "@calcom/lib/classNames";
 
-import Button from "./Button";
+import { Button } from "../../components/button";
 
 export type BaseCardProps = {
   image?: string;
@@ -93,6 +93,7 @@ export function Card({
       )}
       {variant === "SidebarCard" && (
         <a
+          onClick={actionButton?.onClick}
           target="_blank"
           rel="noreferrer"
           href={mediaLink}
@@ -129,7 +130,11 @@ export function Card({
         <div className="mt-2 flex items-center justify-between">
           {learnMore && (
             <Link href={learnMore.href}>
-              <a target="_blank" rel="noreferrer" className="text-xs font-medium">
+              <a
+                onClick={actionButton?.onClick}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs font-medium">
                 {learnMore.text}
               </a>
             </Link>

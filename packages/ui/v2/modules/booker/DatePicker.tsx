@@ -4,8 +4,10 @@ import dayjs, { Dayjs } from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
-import { SkeletonText } from "@calcom/ui/v2";
+
+import { SkeletonText } from "../../..";
 
 export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
@@ -103,10 +105,12 @@ const Days = ({
               date={day}
               onClick={() => {
                 props.onChange(day);
-                window.scrollTo({
-                  top: 360,
-                  behavior: "smooth",
-                });
+                setTimeout(() => {
+                  window.scrollTo({
+                    top: 360,
+                    behavior: "smooth",
+                  });
+                }, 500);
               }}
               disabled={
                 (includedDates && !includedDates.includes(yyyymmdd(day))) ||
@@ -130,12 +134,18 @@ const DatePicker = ({
   ...passThroughProps
 }: DatePickerProps & Partial<React.ComponentProps<typeof Days>>) => {
   const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
+  const { i18n } = useLocale();
 
   const changeMonth = (newMonth: number) => {
     if (onMonthChange) {
       onMonthChange(browsingDate.add(newMonth, "month"));
     }
   };
+  const month = browsingDate
+    ? new Intl.DateTimeFormat(i18n.language, { month: "long" }).format(
+        new Date(browsingDate.year(), browsingDate.month())
+      )
+    : null;
 
   return (
     <div className={className}>
@@ -143,9 +153,7 @@ const DatePicker = ({
         <span className="w-1/2 dark:text-white">
           {browsingDate ? (
             <>
-              <strong className="text-bookingdarker text-base font-semibold dark:text-white">
-                {browsingDate.format("MMMM")}
-              </strong>{" "}
+              <strong className="text-bookingdarker text-base font-semibold dark:text-white">{month}</strong>{" "}
               <span className="text-bookinglight text-sm font-medium">{browsingDate.format("YYYY")}</span>
             </>
           ) : (

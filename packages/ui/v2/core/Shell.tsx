@@ -11,32 +11,43 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
+import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { JOIN_SLACK, ROADMAP, DESKTOP_APP_LINK, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  COMPANY_NAME,
+  DESKTOP_APP_LINK,
+  JOIN_SLACK,
+  ROADMAP,
+  WEBAPP_URL,
+} from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import isCalcom from "@calcom/lib/isCalcom";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
-import Dropdown, {
+
+import {
+  Button,
+  Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuPortal,
-} from "@calcom/ui/Dropdown";
-import { Icon } from "@calcom/ui/Icon";
-import TimezoneChangeDialog from "@calcom/ui/TimezoneChangeDialog";
-import Button from "@calcom/ui/v2/core/Button";
+  Icon,
+  showToast,
+  TimezoneChangeDialog,
+  Tips,
+} from "../..";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
-import Tips from "../modules/tips/Tips";
 import HeadSeo from "./head-seo";
 import { SkeletonText } from "./skeleton";
 
@@ -128,7 +139,7 @@ const Layout = (props: LayoutProps) => {
     <>
       {!props.withoutSeo && (
         <HeadSeo
-          title={pageTitle ?? "Cal.com"}
+          title={pageTitle ?? APP_NAME}
           description={props.subtitle ? props.subtitle?.toString() : ""}
           nextSeoProps={{
             nofollow: true,
@@ -142,12 +153,14 @@ const Layout = (props: LayoutProps) => {
 
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
-
-      <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
-        {props.SidebarContainer || <SideBarContainer />}
-        <div className="flex w-0 flex-1 flex-col overflow-hidden">
-          <ImpersonatingBanner />
-          <MainContainer {...props} />
+      <div className="h-screen overflow-hidden">
+        <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
+          {props.SidebarContainer || <SideBarContainer />}
+          <div className="flex w-0 flex-1 flex-col overflow-hidden">
+            <TeamsUpgradeBanner />
+            <ImpersonatingBanner />
+            <MainContainer {...props} />
+          </div>
         </div>
       </div>
     </>
@@ -177,6 +190,8 @@ type LayoutProps = {
   withoutMain?: boolean;
   // Gives you the option to skip HeadSEO and render your own.
   withoutSeo?: boolean;
+  // Gives the ability to include actions to the right of the heading
+  actions?: JSX.Element;
 };
 
 const CustomBrandingContainer = () => {
@@ -215,9 +230,9 @@ function UserDropdown({ small }: { small?: boolean }) {
         screenResolution: `${screen.width}x${screen.height}`,
       });
   });
-  const mutation = trpc.useMutation("viewer.away", {
+  const mutation = trpc.viewer.away.useMutation({
     onSettled() {
-      utils.invalidateQueries("viewer.me");
+      utils.viewer.me.invalidate();
     },
   });
   const utils = trpc.useContext();
@@ -239,10 +254,10 @@ function UserDropdown({ small }: { small?: boolean }) {
   return (
     <Dropdown open={menuOpen}>
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
-        <button className="group flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-100 sm:pl-3 md:rounded-none lg:pl-2">
+        <button className="group flex w-full cursor-pointer appearance-none items-center  rounded-full p-2 text-left outline-none hover:bg-gray-200 sm:pl-3 md:rounded lg:pl-2">
           <span
             className={classNames(
-              small ? "h-8 w-8" : "h-9 w-9 ltr:mr-2 rtl:ml-3",
+              small ? "h-6 w-6" : "h-8 w-8 ltr:mr-2 rtl:ml-3",
               "relative flex-shrink-0 rounded-full bg-gray-300 "
             )}>
             {
@@ -266,7 +281,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 <span className="block truncate font-medium text-gray-900">
                   {user.name || "Nameless User"}
                 </span>
-                <span className="block truncate font-normal text-neutral-500">
+                <span className="block truncate font-normal text-gray-900">
                   {user.username
                     ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
                       ? `cal.com/${user.username}`
@@ -297,7 +312,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 <button
                   onClick={() => {
                     mutation.mutate({ away: !user?.away });
-                    utils.invalidateQueries("viewer.me");
+                    utils.viewer.me.invalidate();
                   }}
                   className="flex min-w-max cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
                   <Icon.FiMoon
@@ -314,16 +329,33 @@ function UserDropdown({ small }: { small?: boolean }) {
               </DropdownMenuItem>
               <DropdownMenuSeparator className="h-px bg-gray-200" />
               {user.username && (
-                <DropdownMenuItem>
-                  <a
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
-                    className="flex items-center px-4 py-2 text-sm text-gray-700">
-                    <Icon.FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
-                    {t("view_public_page")}
-                  </a>
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem>
+                    <a
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
+                      className="flex items-center px-4 py-2 text-sm text-gray-700">
+                      <Icon.FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                      {t("view_public_page")}
+                    </a>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <a
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        navigator.clipboard.writeText(
+                          `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`
+                        );
+                        showToast(t("link_copied"), "success");
+                      }}
+                      className="flex items-center px-4 py-2 text-sm text-gray-700">
+                      <Icon.FiLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                      {t("copy_public_page_link")}
+                    </a>
+                  </DropdownMenuItem>
+                </>
               )}
               <DropdownMenuSeparator className="h-px bg-gray-200" />
               <DropdownMenuItem>
@@ -428,6 +460,10 @@ const navigation: NavigationItemType[] = [
     href: "/bookings/upcoming",
     icon: Icon.FiCalendar,
     badge: <UnconfirmedBookingBadge />,
+    isCurrent: ({ router }) => {
+      const path = router.asPath.split("?")[0];
+      return path.startsWith("/bookings");
+    },
   },
   {
     name: "availability",
@@ -495,7 +531,7 @@ const navigation: NavigationItemType[] = [
   },
   {
     name: "settings",
-    href: "/settings",
+    href: "/settings/my-account/profile",
     icon: Icon.FiSettings,
   },
 ];
@@ -532,9 +568,13 @@ const Navigation = () => {
 
 function useShouldDisplayNavigationItem(item: NavigationItemType) {
   const { status } = useSession();
-  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing-forms" }], {
-    enabled: status === "authenticated" && requiredCredentialNavigationItems.includes(item.name),
-  });
+  const { data: routingForms } = trpc.viewer.appById.useQuery(
+    { appId: "routing-forms" },
+    {
+      enabled: status === "authenticated" && requiredCredentialNavigationItems.includes(item.name),
+      trpc: {},
+    }
+  );
   return !requiredCredentialNavigationItems.includes(item.name) || routingForms?.isInstalled;
 }
 
@@ -685,7 +725,7 @@ function DeploymentInfo() {
         fontSize: "0.5rem",
       }}
       className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
-      &copy; {new Date().getFullYear()} Cal.com, Inc. v.{pkg.version + "-"}
+      &copy; {new Date().getFullYear()} {COMPANY_NAME} v.{pkg.version + "-"}
       {process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"}
       <span className="lowercase" data-testid={`plan-${user?.plan.toLowerCase()}`}>
         -{user?.plan}
@@ -785,12 +825,12 @@ export function ShellMain(props: LayoutProps) {
           <header
             className={classNames(
               props.large && "py-8",
-              "mb-4 flex w-full items-center pt-4 md:p-0 lg:mb-10"
+              "mb-4 flex w-full max-w-full items-center pt-4 md:p-0 lg:mb-10"
             )}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className="w-full ltr:mr-4 rtl:ml-4 sm:block">
               {props.heading && (
-                <h1 className="font-cal mb-1 text-xl font-bold tracking-wide text-black">
+                <h1 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 mb-1 hidden truncate text-xl font-bold tracking-wide text-black sm:block xl:max-w-full">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
               )}
@@ -804,11 +844,12 @@ export function ShellMain(props: LayoutProps) {
               <div
                 className={classNames(
                   props.backPath ? "relative" : "fixed right-4 bottom-[75px] z-40 ",
-                  "cta mb-4 flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto"
+                  "flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto"
                 )}>
                 {props.CTA}
               </div>
             )}
+            {props.actions && props.actions}
           </header>
         )}
       </div>
@@ -830,7 +871,7 @@ function MainContainer({
   const [sideContainerOpen, setSideContainerOpen] = props.drawerState || [false, noop];
 
   return (
-    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none ">
+    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
       {/* The following is used for settings navigation on medium and smaller screens */}
@@ -844,7 +885,7 @@ function MainContainer({
         }}
       />
       {SettingsSidebarContainerProp}
-      <div className="px-4 py-2 lg:py-8 lg:px-12">
+      <div className="max-w-full px-4 py-2 lg:py-8 lg:px-12">
         <ErrorBoundary>
           {/* add padding to top for mobile when App Bar is fixed */}
           <div className="pt-14 sm:hidden" />

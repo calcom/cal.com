@@ -10,7 +10,10 @@ const handler: AppDeclarativeHandler = {
   slug: appConfig.slug,
   supportsMultipleInstalls: false,
   handlerType: "add",
-  redirectUrl: "https://n8n.io/integrations/cal-trigger/",
+  redirect: {
+    url: "https://n8n.io/integrations/cal-trigger/",
+    newTab: true,
+  },
   createCredential: ({ appType, user, slug }) =>
     createDefaultInstallation({ appType, userId: user.id, slug, key: {} }),
 };

@@ -3,22 +3,30 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { Fragment } from "react";
 
+import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Alert, Button } from "@calcom/ui/v2";
-import Badge from "@calcom/ui/v2/core/Badge";
-import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
-import Meta from "@calcom/ui/v2/core/Meta";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
-import { SkeletonContainer, SkeletonText, SkeletonButton } from "@calcom/ui/v2/core/skeleton";
-import { List, ListItem, ListItemText, ListItemTitle } from "@calcom/ui/v2/modules/List";
-import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
+import {
+  Alert,
+  Badge,
+  Button,
+  EmptyScreen,
+  getSettingsLayout as getLayout,
+  Icon,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemTitle,
+  Meta,
+  SkeletonButton,
+  SkeletonContainer,
+  SkeletonText,
+} from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
 
-import { CalendarSwitch } from "@components/v2/settings/CalendarSwitch";
+import { CalendarSwitch } from "@components/settings/CalendarSwitch";
 
 const SkeletonLoader = () => {
   return (
@@ -53,10 +61,10 @@ const CalendarsView = () => {
 
   const utils = trpc.useContext();
 
-  const query = trpc.useQuery(["viewer.connectedCalendars"]);
-  const mutation = trpc.useMutation("viewer.setDestinationCalendar", {
+  const query = trpc.viewer.connectedCalendars.useQuery();
+  const mutation = trpc.viewer.setDestinationCalendar.useMutation({
     async onSettled() {
-      await utils.invalidateQueries(["viewer.connectedCalendars"]);
+      await utils.viewer.connectedCalendars.invalidate();
     },
   });
 
@@ -129,8 +137,8 @@ const CalendarsView = () => {
                       />
                     )}
                     {item?.error === undefined && item.calendars && (
-                      <ListItem expanded className="flex-col">
-                        <div className="flex w-full flex-1 items-center space-x-3 pb-5 pl-1 pt-1 rtl:space-x-reverse">
+                      <ListItem className="flex-col">
+                        <div className="flex w-full flex-1 items-center space-x-3 p-4 rtl:space-x-reverse">
                           {
                             // eslint-disable-next-line @next/next/no-img-element
                             item.integration.logo && (

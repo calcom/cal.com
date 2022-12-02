@@ -1,11 +1,11 @@
-import { Credential } from "@prisma/client";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { handleErrorsJson } from "@calcom/lib/errors";
 import prisma from "@calcom/prisma";
+import { Credential } from "@calcom/prisma/client";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
@@ -69,7 +69,7 @@ const zoomRefreshedTokenSchema = z.object({
   scope: z.string(),
 });
 
-const zoomAuth = (credential: Credential) => {
+const zoomAuth = (credential: CredentialPayload) => {
   const refreshAccessToken = async (refreshToken: string) => {
     const { client_id, client_secret } = await getZoomAppKeys();
     const authHeader = "Basic " + Buffer.from(client_id + ":" + client_secret).toString("base64");
@@ -86,8 +86,13 @@ const zoomAuth = (credential: Credential) => {
       }),
     });
 
-    const responseBody = await handleZoomResponse(response);
+    const responseBody = await handleZoomResponse(response, credential.id);
 
+    if (responseBody.error) {
+      if (responseBody.error === "invalid_grant") {
+        return Promise.reject(new Error("Invalid grant for Cal.com zoom app"));
+      }
+    }
     // We check the if the new credentials matches the expected response structure
     const parsedToken = zoomRefreshedTokenSchema.safeParse(responseBody);
 
@@ -138,7 +143,7 @@ type ZoomRecurrence = {
   monthly_day?: number; // 1-31
 };
 
-const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
+const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
   const translateEvent = (event: CalendarEvent) => {
     const getRecurrence = ({
       recurringEvent,
@@ -191,7 +196,6 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
     };
 
     const recurrence = getRecurrence(event);
-
     // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
     return {
       topic: event.title,
@@ -199,7 +203,7 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
       start_time: event.startTime,
       duration: (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 60000,
       //schedule_for: "string",   TODO: Used when scheduling the meeting for someone else (needed?)
-      timezone: event.attendees[0].timeZone,
+      timezone: event.organizer.timeZone,
       //password: "string",       TODO: Should we use a password? Maybe generate a random one?
       agenda: event.description,
       settings: {
@@ -232,7 +236,7 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
         ...options?.headers,
       },
     });
-    const responseBody = await handleErrorsJson(response);
+    const responseBody = await handleZoomResponse(response, credential.id);
     return responseBody;
   };
 
@@ -241,6 +245,7 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
       try {
         // TODO Possibly implement pagination for cases when there are more than 300 meetings already scheduled.
         const responseBody = await fetchZoomApi("users/me/meetings?type=scheduled&page_size=300");
+
         const data = zoomMeetingsSchema.parse(responseBody);
         return data.meetings.map((meeting) => ({
           start: meeting.start_time,
@@ -254,13 +259,19 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
       try {
-        const response: ZoomEventResult = await fetchZoomApi("users/me/meetings", {
+        const response = await fetchZoomApi("users/me/meetings", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(translateEvent(event)),
         });
+        if (response.error) {
+          if (response.error === "invalid_grant") {
+            await invalidateCredential(credential.id);
+            return Promise.reject(new Error("Invalid grant for Cal.com zoom app"));
+          }
+        }
 
         const result = zoomEventResultSchema.parse(response);
 
@@ -280,42 +291,77 @@ const ZoomVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
       }
     },
     deleteMeeting: async (uid: string): Promise<void> => {
-      await fetchZoomApi(`meetings/${uid}`, {
-        method: "DELETE",
-      });
-
-      return Promise.resolve();
+      try {
+        await fetchZoomApi(`meetings/${uid}`, {
+          method: "DELETE",
+        });
+        return Promise.resolve();
+      } catch (err) {
+        return Promise.reject(new Error("Failed to delete meeting"));
+      }
     },
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
-      await fetchZoomApi(`meetings/${bookingRef.uid}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(translateEvent(event)),
-      });
+      try {
+        await fetchZoomApi(`meetings/${bookingRef.uid}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(translateEvent(event)),
+        });
 
-      return Promise.resolve({
-        type: "zoom_video",
-        id: bookingRef.meetingId as string,
-        password: bookingRef.meetingPassword as string,
-        url: bookingRef.meetingUrl as string,
-      });
+        return Promise.resolve({
+          type: "zoom_video",
+          id: bookingRef.meetingId as string,
+          password: bookingRef.meetingPassword as string,
+          url: bookingRef.meetingUrl as string,
+        });
+      } catch (err) {
+        return Promise.reject(new Error("Failed to update meeting"));
+      }
     },
   };
 };
 
-const handleZoomResponse = async (response: Response) => {
-  if (response.headers.get("content-encoding") === "gzip") {
+const handleZoomResponse = async (response: Response, credentialId: Credential["id"]) => {
+  let _response = response.clone();
+  const responseClone = response.clone();
+  if (_response.headers.get("content-encoding") === "gzip") {
     const responseString = await response.text();
-    return JSON.parse(responseString);
+    _response = JSON.parse(responseString);
   }
-  if (!response.ok && response.status < 200 && response.status >= 300) {
-    response.json().then(console.log);
+  if (!response.ok || (response.status < 200 && response.status >= 300)) {
+    const responseBody = await _response.json();
+
+    if ((response && response.status === 124) || responseBody.error === "invalid_grant") {
+      await invalidateCredential(credentialId);
+    }
     throw Error(response.statusText);
   }
+  // handle 204 response code with empty response (causes crash otherwise as "" is invalid JSON)
+  if (response.status === 204) {
+    return;
+  }
+  return responseClone.json();
+};
 
-  return response.json();
+const invalidateCredential = async (credentialId: Credential["id"]) => {
+  const credential = await prisma.credential.findUnique({
+    where: {
+      id: credentialId,
+    },
+  });
+
+  if (credential) {
+    await prisma.credential.update({
+      where: {
+        id: credentialId,
+      },
+      data: {
+        invalid: true,
+      },
+    });
+  }
 };
 
 export default ZoomVideoApiAdapter;

@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import "../../../packages/ui/styles/shared-globals.css";
+
 body  {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -147,6 +149,9 @@ select:focus {
   --tw-ring-color: var(--brand-color);
   border-color: var(--brand-color);
 }
+/*  https://stackoverflow.com/a/69308190 */
+input[type='text']:focus { box-shadow: none; }
+
 
 button[role="switch"][data-state="checked"] {
   @apply bg-gray-900;
@@ -496,3 +501,6 @@ hr {
   }
 }
 
+::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}

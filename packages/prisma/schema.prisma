@@ -100,6 +100,7 @@ model Credential {
   // How to make it a required column?
   appId                String?
   destinationCalendars DestinationCalendar[]
+  invalid              Boolean?
 }
 
 enum UserPlan {
@@ -201,12 +202,15 @@ model Team {
   /// @zod.min(1)
   name         String
   /// @zod.min(1)
-  slug         String       @unique
+  slug         String?      @unique
   logo         String?
   bio          String?
   hideBranding Boolean      @default(false)
   members      Membership[]
   eventTypes   EventType[]
+  createdAt    DateTime     @default(now())
+  /// @zod.custom(imports.teamMetadataSchema)
+  metadata     Json?
 }
 
 enum MembershipRole {
@@ -517,6 +521,8 @@ model App_RoutingForms_Form {
   userId      Int
   responses   App_RoutingForms_FormResponse[]
   disabled    Boolean                         @default(false)
+  /// @zod.custom(imports.RoutingFormSettings)
+  settings    Json?
 }
 
 model App_RoutingForms_FormResponse {
@@ -567,6 +573,7 @@ model WorkflowStep {
   template          WorkflowTemplates  @default(REMINDER)
   workflowReminders WorkflowReminder[]
   numberRequired    Boolean?
+  sender            String?
 }
 
 model Workflow {

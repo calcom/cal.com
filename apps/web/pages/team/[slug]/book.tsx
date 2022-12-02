@@ -4,6 +4,7 @@ import { JSONObject } from "superjson/dist/types";
 import { LocationObject, privacyFilteredLocations } from "@calcom/app-store/locations";
 import { parseRecurringEvent } from "@calcom/lib";
 import prisma from "@calcom/prisma";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import getBooking, { GetBookingType } from "@lib/getBooking";
@@ -85,14 +86,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const eventType = {
     ...eventTypeRaw,
     //TODO: Use zodSchema to verify it instead of using Type Assertion
-    locations: privacyFilteredLocations(eventTypeRaw.locations as LocationObject[]),
+    locations: privacyFilteredLocations((eventTypeRaw.locations || []) as LocationObject[]),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
   };
 
   const eventTypeObject = [eventType].map((e) => {
     return {
       ...e,
-      metadata: (eventType.metadata || {}) as JSONObject,
+      metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
       periodStartDate: e.periodStartDate?.toString() ?? null,
       periodEndDate: e.periodEndDate?.toString() ?? null,
       users: eventType.users.map((u) => ({

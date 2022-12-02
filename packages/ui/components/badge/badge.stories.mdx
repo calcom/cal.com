@@ -1,0 +1,83 @@
+import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
+import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable, VariantRow } from '@calcom/storybook/components'
+import { Icon } from "@calcom/ui";
+import { Badge } from './Badge';
+
+<Meta title="UI/Badge" component={Badge} />
+
+<Title title="Bages" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022"/>
+
+
+## Definition
+Badges are small status descriptors for UI elements. A badge consists of a small circle, typically containing a number or other short set of characters, that appears in proximity to another object. We provide three different type of badge such as status, alert, and brand badge.
+
+Status badge communicate status information.  It is generally used within a container such as accordion and tables to label status for easy scanning.
+## Structure
+
+<CustomArgsTable of={Badge} />
+
+
+<Examples title="Badge style">
+  <Example title="Gray">
+    <Badge variant="gray" >Badge text</Badge>
+  </Example>
+  <Example title="Green/Success">
+    <Badge variant="success">Badge text</Badge>
+  </Example>
+  <Example title="Orange/Default">
+    <Badge variant="default">Badge text</Badge>
+  </Example>
+  <Example title="Red/Error">
+    <Badge variant="red">Badge text</Badge>
+  </Example>
+</Examples>
+
+<Examples title="Variants">
+  <Example title="Default">
+    <Badge>Button text</Badge>
+  </Example>
+  <Example title="With Dot">
+    <Badge withDot>Button Text</Badge>
+  </Example>
+  <Example title="With Icon">
+    <Badge StartIcon={Icon.FiPlus}>Button Text</Badge>
+  </Example>
+</Examples>
+
+
+## Alert Badges
+
+
+## Usage
+Alet badge is used in conjunction with an item, profile or label to indicate numeric value and messages assocciated with them.
+
+
+
+<Title offset title="Badge" suffix="Variants" />
+
+<Canvas>
+  <Story name="All Variants">
+    <VariantsTable titles={['Default','With Dot', 'With Icon']} columnMinWidth={150}>
+      <VariantRow variant="Default">
+        <Badge variant="default" >Badge text</Badge>
+        <Badge variant="default" withDot>Badge text</Badge>
+        <Badge variant="default" StartIcon={Icon.FiPlus}>Badge text</Badge>
+      </VariantRow>
+      <VariantRow variant="Success">
+        <Badge variant="success" >Badge text</Badge>
+        <Badge variant="success" withDot>Badge text</Badge>
+        <Badge variant="success" StartIcon={Icon.FiPlus}>Badge text</Badge>
+      </VariantRow>
+      <VariantRow variant="gray">
+        <Badge variant="gray" >Badge text</Badge>
+        <Badge variant="gray" withDot>Badge text</Badge>
+        <Badge variant="gray" StartIcon={Icon.FiPlus}>Badge text</Badge>
+      </VariantRow>
+      <VariantRow variant="error">
+        <Badge variant="error" >Badge text</Badge>
+        <Badge variant="error" withDot>Badge text</Badge>
+        <Badge variant="error" StartIcon={Icon.FiPlus}>Badge text</Badge>
+      </VariantRow>
+    </VariantsTable>
+  </Story>
+</Canvas>

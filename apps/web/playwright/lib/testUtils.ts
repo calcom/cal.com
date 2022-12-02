@@ -105,21 +105,28 @@ export async function selectSecondAvailableTimeSlotNextMonth(page: Page) {
   await page.locator('[data-testid="time"]').nth(1).click();
 }
 
-export async function bookFirstEvent(page: Page) {
-  // Click first event type
-
-  await page.click('[data-testid="event-type-link"]');
-
+async function bookEventOnThisPage(page: Page) {
   await selectFirstAvailableTimeSlotNextMonth(page);
   await bookTimeSlot(page);
 
   // Make sure we're navigated to the success page
   await page.waitForNavigation({
     url(url) {
-      return url.pathname.endsWith("/success");
+      return url.pathname.startsWith("/booking");
     },
   });
   await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+}
+
+export async function bookOptinEvent(page: Page) {
+  await page.locator('[data-testid="event-type-link"]:has-text("Opt in")').click();
+  await bookEventOnThisPage(page);
+}
+
+export async function bookFirstEvent(page: Page) {
+  // Click first event type
+  await page.click('[data-testid="event-type-link"]');
+  await bookEventOnThisPage(page);
 }
 
 export const bookTimeSlot = async (page: Page) => {

@@ -4,14 +4,16 @@ import { useState } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Icon } from "@calcom/ui/Icon";
 import {
+  Avatar,
   Button,
   ButtonGroup,
+  ConfirmationDialogContent,
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogTrigger,
   Dropdown,
   DropdownItem,
@@ -19,19 +21,18 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  Icon,
   showToast,
   Tooltip,
-} from "@calcom/ui/v2/core";
-import Avatar from "@calcom/ui/v2/core/Avatar";
-import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
+} from "@calcom/ui";
 
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamPill, { TeamRole } from "./TeamPill";
 import TeamAvailabilityModal from "./v2/TeamAvailabilityModal";
 
 interface Props {
-  team: inferQueryOutput<"viewer.teams.get">;
-  member: inferQueryOutput<"viewer.teams.get">["members"][number];
+  team: RouterOutputs["viewer"]["teams"]["get"];
+  member: RouterOutputs["viewer"]["teams"]["get"]["members"][number];
 }
 
 /** TODO: Migrate the one in apps/web to tRPC package */
@@ -47,11 +48,10 @@ export default function MemberListItem(props: Props) {
   const utils = trpc.useContext();
   const [showChangeMemberRoleModal, setShowChangeMemberRoleModal] = useState(false);
   const [showTeamAvailabilityModal, setShowTeamAvailabilityModal] = useState(false);
-  const [showImpersonateModal, setShowImpersonateModal] = useState(false);
 
-  const removeMemberMutation = trpc.useMutation("viewer.teams.removeMember", {
+  const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
+      await utils.viewer.teams.get.invalidate();
       showToast(t("success"), "success");
     },
     async onError(err) {
@@ -128,7 +128,6 @@ export default function MemberListItem(props: Props) {
                   color="secondary"
                   size="icon"
                   StartIcon={Icon.FiClock}
-                  combined
                 />
               </Tooltip>
               <Tooltip content={t("view_public_page")}>
@@ -139,18 +138,18 @@ export default function MemberListItem(props: Props) {
                   className={classNames(!editMode ? "rounded-r-md" : "")}
                   size="icon"
                   StartIcon={Icon.FiExternalLink}
-                  combined
                 />
               </Tooltip>
               {editMode && (
                 <Dropdown>
-                  <DropdownMenuTrigger className="h-[36px] w-[36px] bg-transparent px-0 py-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-0">
+                  <DropdownMenuTrigger
+                    asChild
+                    className="h-[36px] w-[36px] bg-transparent px-0 py-0 hover:bg-transparent focus:bg-transparent focus:outline-none focus:ring-0 focus:ring-offset-0">
                     <Button
                       color="secondary"
                       size="icon"
                       className="rounded-r-md"
                       StartIcon={Icon.FiMoreHorizontal}
-                      combined
                     />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
@@ -262,11 +261,11 @@ export default function MemberListItem(props: Props) {
       )}
       {showTeamAvailabilityModal && (
         <Dialog open={showTeamAvailabilityModal} onOpenChange={() => setShowTeamAvailabilityModal(false)}>
-          <DialogContent type="creation" useOwnActionButtons size="md">
+          <DialogContent type="creation" size="md">
             <TeamAvailabilityModal team={props.team} member={props.member} />
-            <div className="flex justify-end border-t pt-5">
+            <DialogFooter>
               <Button onClick={() => setShowTeamAvailabilityModal(false)}>{t("done")}</Button>
-            </div>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
