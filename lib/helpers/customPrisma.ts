@@ -2,9 +2,10 @@ import { hash } from "bcryptjs";
 import cache from "memory-cache";
 import { NextMiddleware } from "next-api-middleware";
 
-import { PRISMA_CLIENT_CACHING_TIME } from "@calcom/api/lib/constants";
 import { CONSOLE_URL } from "@calcom/lib/constants";
 import { prisma, customPrisma } from "@calcom/prisma";
+
+import { PRISMA_CLIENT_CACHING_TIME } from "../../lib/constants";
 
 // This replaces the prisma client for the cusotm one if the key is valid
 export const customPrismaClient: NextMiddleware = async (req, res, next) => {
@@ -18,9 +19,7 @@ export const customPrismaClient: NextMiddleware = async (req, res, next) => {
     return;
   }
   // If we have a key, we check if the deployment matching the key, has a databaseUrl value set.
-  const databaseUrl = await fetch(
-    `${process.env.NEXT_PUBLIC_CONSOLE_URL || CONSOLE_URL}/api/deployments/database?key=${key}`
-  )
+  const databaseUrl = await fetch(`${CONSOLE_URL}/api/deployments/database?key=${key}`)
     .then((res) => res.json())
     .then((res) => res.databaseUrl);
 
