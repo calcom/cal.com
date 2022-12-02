@@ -881,22 +881,25 @@ const handleSeatsEventTypeOnBooking = (
     seatsShowAttendees: boolean | null;
     [x: string | number | symbol]: unknown;
   },
-  booking: Partial<
+  bookingInfo: Partial<
     Prisma.BookingGetPayload<{ include: { attendees: { select: { name: true; email: true } } } }>
   >,
   email: string
 ) => {
   if (eventType?.seatsPerTimeSlot !== null) {
     // @TODO: right now bookings with seats doesn't save every description that its entered by every user
-    delete booking.description;
+    delete bookingInfo.description;
   } else {
     return;
   }
   if (!eventType.seatsShowAttendees) {
-    const attendee = booking?.attendees?.find((a) => a.email === email);
-    booking["attendees"] = attendee ? [attendee] : [];
+    const attendee = bookingInfo?.attendees?.find((a) => {
+      return a.email === email;
+    });
+
+    bookingInfo["attendees"] = attendee ? [attendee] : [];
   }
-  return;
+  return bookingInfo;
 };
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
@@ -1007,7 +1010,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
 
-  if (bookingInfo !== null && email) {
+  if (bookingInfo !== null && email && eventType.seatsPerTimeSlot) {
     handleSeatsEventTypeOnBooking(eventType, bookingInfo, email);
   }
 
