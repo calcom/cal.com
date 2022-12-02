@@ -1115,7 +1115,6 @@
   "error_updating_settings": "Chyba při aktualizaci nastavení",
   "personal_cal_url": "Moje osobní adresa URL {{appName}}",
   "bio_hint": "Několik vět o vás. Obsah se zobrazí se na vaší osobní stránce URL.",
-  "timeformat_profile_hint": "Jedná se o interní nastavení, které nemá vliv na to, jak se vám nebo komukoli, kdo vás rezervuje, na veřejných rezervačních stránkách zobrazují časy.",
   "delete_account_modal_title": "Odstranit účet",
   "confirm_delete_account_modal": "Opravdu chcete odstranit svůj účet {{appName}}?",
   "delete_my_account": "Odstranit můj účet",
