@@ -179,6 +179,7 @@ const querySchema = z.object({
 });
 
 const AdminAppsList = ({ baseURL, className }: { baseURL: string; className?: string }) => {
+  const { t } = useLocale();
   const router = useRouter();
   const { category } = querySchema.parse(router.query);
 
@@ -198,7 +199,11 @@ const AdminAppsList = ({ baseURL, className }: { baseURL: string; className?: st
         if (isLoading) return <SkeletonLoader />;
         if (!apps) {
           return (
-            <EmptyScreen Icon={Icon.FiAlertCircle} headline="There's no available apps" description="" />
+            <EmptyScreen
+              Icon={Icon.FiAlertCircle}
+              headline={t("no_available_apps")}
+              description={t("no_available_apps_description")}
+            />
           );
         }
         return (

@@ -32,18 +32,15 @@ export const appsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
+      const category = input.category === "conferencing" ? "video" : input.category;
       const localApps = getLocalAppMetadata().filter(
-        (app) =>
-          app.categories?.some((category) => category === input.category) || app.category === input.category
+        (app) => app.categories?.some((appCategory) => appCategory === category) || app.category === category
       );
 
       const dbApps = await ctx.prisma.app.findMany({
         where: {
           categories: {
-            has:
-              input.category === "conferencing"
-                ? AppCategories.video
-                : AppCategories[input.category as keyof typeof AppCategories],
+            has: AppCategories[category as keyof typeof AppCategories],
           },
         },
         select: {
@@ -101,7 +98,6 @@ export const appsRouter = router({
           });
         }
       }
-      console.log("🚀 ~ file: apps.tsx:105 ~ .query ~ filteredApps", filteredApps);
 
       return filteredApps;
     }),

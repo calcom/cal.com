@@ -32,6 +32,7 @@ function AppsSearch({
 }
 
 export default function Apps({ appStore, categories }: InferGetStaticPropsType<typeof getServerSideProps>) {
+  console.log("🚀 ~ file: index.tsx:35 ~ Apps ~ appStore", appStore);
   const { t } = useLocale();
   const [searchText, setSearchText] = useState<string | undefined>(undefined);
 
@@ -42,7 +43,8 @@ export default function Apps({ appStore, categories }: InferGetStaticPropsType<t
       subtitle={t("app_store_description")}
       actions={(className) => (
         <AppsSearch className={className} onChange={(e) => setSearchText(e.target.value)} />
-      )}>
+      )}
+      emptyStore={!appStore.length}>
       {!searchText && (
         <>
           <AppStoreCategories categories={categories} />
