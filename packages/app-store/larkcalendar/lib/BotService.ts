@@ -1,4 +1,3 @@
-import { APP_NAME } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 
 import { LARK_HOST } from "../common";
@@ -8,12 +7,12 @@ const log = logger.getChildLogger({ prefix: [`[[LarkTenantCredential]`] });
 
 const msg = {
   en_us: {
-    title: `Welcome to ${APP_NAME}!`,
+    title: "Welcome to Cal.com!",
     content: [
       [
         {
           tag: "text",
-          text: `${APP_NAME} is an open source scheduling infrastructure.`,
+          text: "Cal.com is an open source scheduling infrastructure.",
         },
       ],
       [

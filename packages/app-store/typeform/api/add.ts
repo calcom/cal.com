@@ -1,13 +1,13 @@
 import { AppDeclarativeHandler } from "@calcom/types/AppHandler";
 
 import { createDefaultInstallation } from "../../_utils/installation";
-import metadata from "../_metadata";
+import appConfig from "../config.json";
 
 const handler: AppDeclarativeHandler = {
   // Instead of passing appType and slug from here, api/integrations/[..args] should be able to derive and pass these directly to createCredential
-  appType: metadata.type,
-  slug: metadata.slug,
-  variant: metadata.variant,
+  appType: appConfig.type,
+  slug: appConfig.slug,
+  variant: appConfig.variant,
   supportsMultipleInstalls: false,
   handlerType: "add",
   redirect: {

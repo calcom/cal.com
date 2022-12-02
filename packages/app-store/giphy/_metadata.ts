@@ -1,4 +1,3 @@
-import { APP_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import type { AppMeta } from "@calcom/types/App";
 
 import _package from "./package.json";
@@ -11,7 +10,7 @@ export const metadata = {
   // If using static next public folder, can then be referenced from the base URL (/).
   imageSrc: "/api/app-store/giphy/icon.svg",
   logo: "/api/app-store/giphy/icon.svg",
-  publisher: APP_NAME,
+  publisher: "Cal.com",
   rating: 0,
   reviews: 0,
   slug: "giphy",
@@ -22,7 +21,7 @@ export const metadata = {
   variant: "other",
   verified: true,
   extendsFeature: "EventType",
-  email: SUPPORT_MAIL_ADDRESS,
+  email: "help@cal.com",
 } as AppMeta;
 
 export default metadata;

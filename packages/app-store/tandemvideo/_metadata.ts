@@ -1,4 +1,3 @@
-import { APP_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import type { AppMeta } from "@calcom/types/App";
 
 import _package from "./package.json";
@@ -13,14 +12,14 @@ export const metadata = {
   slug: "tandem",
   category: "video",
   logo: "/api/app-store/tandemvideo/icon.svg",
-  publisher: APP_NAME,
+  publisher: "",
   url: "",
   verified: true,
   trending: true,
   rating: 0,
   reviews: 0,
   isGlobal: false,
-  email: SUPPORT_MAIL_ADDRESS,
+  email: "help@cal.com",
   appData: {
     location: {
       linkType: "dynamic",

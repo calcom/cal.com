@@ -1,0 +1,14 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Typeform",
+  "slug": "typeform",
+  "type": "typeform_other",
+  "logo": "/api/app-store/typeform/icon.svg",
+  "url": "https://cal.com/apps/typeform",
+  "variant": "other",
+  "categories": ["other"],
+  "publisher": "Cal.com",
+  "email": "help@cal.com",
+  "description": "Adds a link to copy Typeform Redirect URL",
+  "__createdUsingCli": true
+}

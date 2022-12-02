@@ -1,4 +1,3 @@
-import { APP_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import type { AppMeta } from "@calcom/types/App";
 
 import _package from "./package.json";
@@ -14,14 +13,14 @@ export const metadata = {
   category: "calendar",
   label: "Exchange Calendar",
   logo: "/api/app-store/exchange2016calendar/icon.svg",
-  publisher: APP_NAME,
+  publisher: "Cal.com",
   rating: 5,
   reviews: 69,
   slug: "exchange2016-calendar",
   trending: false,
   url: "https://cal.com/",
   verified: true,
-  email: SUPPORT_MAIL_ADDRESS,
+  email: "help@cal.com",
 } as AppMeta;
 
 export default metadata;

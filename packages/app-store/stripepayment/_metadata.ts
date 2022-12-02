@@ -1,4 +1,3 @@
-import { APP_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import type { AppMeta } from "@calcom/types/App";
 
 import _package from "./package.json";
@@ -18,7 +17,7 @@ export const metadata = {
   trending: true,
   reviews: 69,
   imageSrc: "/api/app-store/stripepayment/icon.svg",
-  publisher: APP_NAME,
+  publisher: "Cal.com",
   title: "Stripe",
   type: "stripe_payment",
   url: "https://cal.com/",
@@ -26,7 +25,7 @@ export const metadata = {
   variant: "payment",
   extendsFeature: "EventType",
   verified: true,
-  email: SUPPORT_MAIL_ADDRESS,
+  email: "help@cal.com",
 } as AppMeta;
 
 export default metadata;
