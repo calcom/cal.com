@@ -1,6 +1,6 @@
 import { DefaultSeoProps, NextSeoProps } from "next-seo";
 
-import { SEO_IMG_DEFAULT, SEO_IMG_OGIMG } from "@calcom/lib/constants";
+import { APP_NAME, SEO_IMG_DEFAULT, SEO_IMG_OGIMG } from "@calcom/lib/constants";
 
 export type HeadSeoProps = {
   title: string;
@@ -27,7 +27,7 @@ export const seoConfig: {
   defaultNextSeo: DefaultSeoProps;
 } = {
   headSeo: {
-    siteName: "Cal.com",
+    siteName: APP_NAME,
   },
   defaultNextSeo: {
     twitter: {

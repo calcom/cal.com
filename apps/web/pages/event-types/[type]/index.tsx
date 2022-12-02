@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { EventTypeCustomInput, PeriodType, Prisma, SchedulingType } from "@prisma/client";
+import { PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -16,15 +16,15 @@ import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
 import findDurationType from "@calcom/lib/findDurationType";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { BookingLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form, showToast } from "@calcom/ui";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
-import { HttpError } from "@lib/core/http/error";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { AvailabilityTab } from "@components/eventtype/AvailabilityTab";
@@ -63,7 +63,7 @@ export type FormValues = {
     displayLocationPublicly?: boolean;
     phone?: string;
   }[];
-  customInputs: EventTypeCustomInput[];
+  customInputs: CustomInputParsed[];
   users: string[];
   schedule: number;
   periodType: PeriodType;
@@ -86,6 +86,8 @@ export type FormValues = {
   successRedirectUrl: string;
   bookingLimits?: BookingLimit;
 };
+
+export type CustomInputParsed = typeof customInputSchema._output;
 
 const querySchema = z.object({
   tabName: z
@@ -261,6 +263,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             recurringEvent,
             locations,
             metadata,
+            customInputs,
             // We don't need to send send these values to the backend
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             seatsPerTimeSlotEnabled,
@@ -298,6 +301,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             seatsPerTimeSlot,
             seatsShowAttendees,
             metadata,
+            customInputs,
           });
         }}>
         <div ref={animationParentRef} className="space-y-6">
@@ -495,6 +499,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   // const parsedMetaData = _EventTypeModel.parse(newMetadata);
   const parsedMetaData = newMetadata;
 
+  const parsedCustomInputs = (rawEventType.customInputs || []).map((input) => customInputSchema.parse(input));
+
   const eventType = {
     ...restEventType,
     schedule: rawEventType.schedule?.id || rawEventType.users[0]?.defaultScheduleId || null,
@@ -502,6 +508,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     bookingLimits: parseBookingLimit(restEventType.bookingLimits),
     locations: locations as unknown as LocationObject[],
     metadata: parsedMetaData,
+    customInputs: parsedCustomInputs,
   };
 
   // backwards compat
