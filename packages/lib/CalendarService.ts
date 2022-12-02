@@ -312,8 +312,10 @@ export default abstract class BaseCalendarService implements Calendar {
 
       const event = new ICAL.Event(vevent);
       const dtstart: { [key: string]: string } | undefined = vevent?.getFirstPropertyValue("dtstart");
+      // We check if the dtstart timezone is in UTC which is actually represented by Z instead, but not recognized as that in ICAL.js as UTC
+      const isUTC = dtstart["timezone"] === "Z";
       const timezone = dtstart ? dtstart["timezone"] : undefined;
-      const tzid: string | undefined = vevent?.getFirstPropertyValue("tzid") || timezone;
+      const tzid: string | undefined = vevent?.getFirstPropertyValue("tzid") || isUTC ? "UTC" : timezone;
       // In case of icalendar, when only tzid is available without vtimezone, we need to add vtimezone explicitly to take care of timezone diff
       if (!vcalendar.getFirstSubcomponent("vtimezone") && tzid) {
         const timezoneComp = new ICAL.Component("vtimezone");
