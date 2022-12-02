@@ -16,7 +16,6 @@ import { getEventTypeAppData } from "@calcom/app-store/utils";
 import { getEventName } from "@calcom/core/event";
 import dayjs, { ConfigType } from "@calcom/dayjs";
 import {
-  sdkActionManager,
   useEmbedNonStylesConfig,
   useIsBackgroundTransparent,
   useIsEmbed,
@@ -226,22 +225,6 @@ export default function Success(props: SuccessProps) {
   }, [telemetry]);
 
   useEffect(() => {
-    const users = eventType.users;
-    if (!sdkActionManager) return;
-    // TODO: We should probably make it consistent with Webhook payload. Some data is not available here, as and when requirement comes we can add
-    sdkActionManager.fire("bookingSuccessful", {
-      eventType,
-      bookingInfo,
-      date: date.toString(),
-      duration: calculatedDuration,
-      organizer: {
-        name: users[0].name || "Nameless",
-        email: users[0].email || "Email-less",
-        timeZone: users[0].timeZone,
-      },
-      confirmed: !needsConfirmation,
-      // TODO: Add payment details
-    });
     setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
     setIs24h(!!getIs24hClockFromLocalStorage());
     // eslint-disable-next-line react-hooks/exhaustive-deps
