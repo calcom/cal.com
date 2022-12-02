@@ -101,7 +101,7 @@
   "team_info": "Información del equipo",
   "request_another_invitation_email": "Si prefiere no utilizar {{toEmail}} como su correo electrónico de {{appName}} o ya tiene una cuenta de {{appName}}, por favor solicite otra invitación a ese email.",
   "you_have_been_invited": "Has sido invitado a unirte al equipo {{teamName}}",
-  "user_invited_you": "{{user}} te invitó a unirte al equipo {{teamName}}",
+  "user_invited_you": "{{user}} te invitó a unirte al equipo {{team}}",
   "hidden_team_member_title": "Estás oculto en este equipo",
   "hidden_team_member_message": "No está paga tu plaza, actualiza a PRO o infórmale al propietario del equipo para que pague tu plaza.",
   "hidden_team_owner_message": "Necesitas una cuenta Pro para gestionar equipos, permanecerás oculto hasta que se realice la mejora.",
