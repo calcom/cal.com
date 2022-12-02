@@ -42,7 +42,6 @@ const IntegrationContainer = ({
 
   const appKeySchema = appKeysSchemas[app.dirName as keyof typeof appKeysSchemas];
 
-  // TODO: THIS IS AN EXMAPLE! DON'T SHIP THIS Find a way to conditionally get each app schema to validate forms here
   const formMethods = useForm({
     resolver: zodResolver(appKeySchema),
   });
@@ -126,28 +125,25 @@ const IntegrationContainer = ({
                   })
                 }
                 className="px-4 pb-4">
-                {Object.keys(app.keys).map((key) => {
-                  console.log(app.keys[key]);
-                  return (
-                    <Controller
-                      name={key}
-                      key={key}
-                      control={formMethods.control}
-                      defaultValue={app.keys[key]}
-                      render={({ field: { value } }) => (
-                        <TextField
-                          label={key}
-                          key={key}
-                          name={key}
-                          value={value}
-                          onChange={(e) => {
-                            formMethods.setValue(key, e?.target.value);
-                          }}
-                        />
-                      )}
-                    />
-                  );
-                })}
+                {Object.keys(app.keys).map((key) => (
+                  <Controller
+                    name={key}
+                    key={key}
+                    control={formMethods.control}
+                    defaultValue={app?.keys[key]}
+                    render={({ field: { value } }) => (
+                      <TextField
+                        label={key}
+                        key={key}
+                        name={key}
+                        value={value}
+                        onChange={(e) => {
+                          formMethods.setValue(key, e?.target.value);
+                        }}
+                      />
+                    )}
+                  />
+                ))}
                 <Button type="submit" loading={saveKeysMutation.isLoading}>
                   {t("save")}
                 </Button>

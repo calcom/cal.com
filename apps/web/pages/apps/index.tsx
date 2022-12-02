@@ -43,6 +43,8 @@ export default function Apps({ categories, appStore }: InferGetStaticPropsType<t
       actions={(className) => (
         <AppsSearch className={className} onChange={(e) => setSearchText(e.target.value)} />
       )}
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore this def exists but Next is saying it's never?
       emptyStore={!appStore.length}>
       {!searchText && (
         <>
