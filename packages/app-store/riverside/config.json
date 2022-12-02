@@ -1,1 +1,15 @@
-{}
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Riverside",
+  "slug": "riverside",
+  "type": "riverside_video",
+  "imageSrc": "/api/app-store/riverside/icon-dark.svg",
+  "logo": "/api/app-store/riverside/icon-dark.svg",
+  "url": "https://cal.com/apps/riverside",
+  "variant": "conferencing",
+  "categories": ["video"],
+  "publisher": "Cal.com",
+  "email": "help@cal.com",
+  "description": "Your online recording studio. The easiest way to record podcasts and videos in studio quality from anywhere. All from the browser.",
+  "__createdUsingCli": true
+}

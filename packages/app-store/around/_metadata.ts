@@ -1,5 +1,6 @@
-import { APP_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import type { AppMeta } from "@calcom/types/App";
+
+import config from "./config.json";
 
 export const metadata = {
   category: "other",
@@ -12,21 +13,7 @@ export const metadata = {
       organizerInputPlaceholder: "https://www.around.co/rick",
     },
   },
-  "/*": "Don't modify slug - If required, do it using cli edit command",
-  name: "Around",
-  title: "Around",
-  slug: "around",
-  type: "around_video",
-  imageSrc: "/api/app-store/around/icon.svg",
-  logo: "/api/app-store/around/icon.svg",
-  url: "https://cal.com/apps/around",
-  variant: "conferencing",
-  categories: ["video"],
-  publisher: APP_NAME,
-  email: SUPPORT_MAIL_ADDRESS,
-  description:
-    "Discover radically unique video calls designed to help hybrid-remote teams create, collaborate and celebrate together.",
-  __createdUsingCli: true,
+  ...config,
 } as AppMeta;
 
 export default metadata;

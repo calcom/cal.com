@@ -1,5 +1,5 @@
 import { APP_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
-import type { AppMeta } from "@calcom/types/App";
+import type { App } from "@calcom/types/App";
 
 import _package from "./package.json";
 
@@ -21,7 +21,7 @@ export const metadata = {
   url: "https://cal.com/",
   verified: true,
   email: SUPPORT_MAIL_ADDRESS,
-} as AppMeta;
+} as App;
 
 export * as api from "./api";
 export * as lib from "./lib";
