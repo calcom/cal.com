@@ -1388,5 +1388,9 @@
   "test_preview_description": "Test your routing form without submitting any data",
   "test_routing": "Test Routing",
   "booking_limit_reached":"Booking Limit for this event type has been reached",
-  "fill_this_field": "Please fill in this field"
+  "fill_this_field": "Please fill in this field",
+  "options": "Options",
+  "enter_option": "Enter Option {{index}}",
+  "add_an_option": "Add an option",
+  "radio": "Radio"
 }
