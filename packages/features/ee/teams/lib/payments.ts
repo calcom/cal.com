@@ -38,7 +38,6 @@ export const purchaseTeamSubscription = async (input: { teamId: number; seats: n
         quantity: seats,
       },
     ],
-    allow_promotion_codes: true,
     customer_update: {
       address: "auto",
     },
