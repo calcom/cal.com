@@ -229,6 +229,7 @@ function EventTypeSingleLayout({
               tooltip={t("delete")}
               disabled={!hasPermsToDelete}
               onClick={() => setDeleteDialogOpen(true)}
+              className="hover:rounded-r-md"
             />
           </ButtonGroup>
 
