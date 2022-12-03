@@ -31,6 +31,7 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
+import { APP_NAME } from "@calcom/lib/constants";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -38,11 +39,11 @@ import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { AddressInput, Button, EmailInput, Form, Icon, PhoneInput, Tooltip } from "@calcom/ui";
+import { Group, RadioField } from "@calcom/ui";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
-import useMeQuery from "@lib/hooks/useMeQuery";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
@@ -102,7 +103,6 @@ const BookingPage = ({
     {}
   );
   const stripeAppData = getStripeAppData(eventType);
-
   // Define duration now that we support multiple duration eventTypes
   let duration = eventType.length;
   if (queryDuration && !isNaN(Number(queryDuration))) {
@@ -429,7 +429,7 @@ const BookingPage = ({
                 eventTypeTitle: eventType.title,
                 profileName: profile.name,
               })}{" "}
-          | Cal.com
+          | {APP_NAME}
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -741,6 +741,27 @@ const BookingPage = ({
                               className="-mt-px block text-sm font-medium text-gray-700 dark:text-white">
                               {input.label}
                             </label>
+                          </div>
+                        </div>
+                      )}
+                      {input.options && input.type === EventTypeCustomInputType.RADIO && (
+                        <div className="">
+                          <div className="flex">
+                            <Group
+                              onValueChange={(e) => {
+                                bookingForm.setValue(`customInputs.${input.id}`, e);
+                              }}>
+                              <>
+                                {input.options.map((option, i) => (
+                                  <RadioField
+                                    label={option.label}
+                                    key={`option.${i}.radio`}
+                                    value={option.label}
+                                    id={`option.${i}.radio`}
+                                  />
+                                ))}
+                              </>
+                            </Group>
                           </div>
                         </div>
                       )}

@@ -500,3 +500,7 @@ hr {
     height: -webkit-fill-available;
   }
 }
+
+::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+}
