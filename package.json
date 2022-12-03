@@ -23,6 +23,7 @@
     "deploy": "turbo run deploy",
     "dev:all": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/website\" --scope=\"@calcom/console\"",
     "dev:api": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/api\"",
+    "dev:api:console": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/api\" --scope=\"@calcom/console\"",
     "dev:console": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/console\"",
     "dev:swagger": "turbo run dev --scope=\"@calcom/api\" --scope=\"@calcom/swagger\"",
     "dev:website": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/website\"",
