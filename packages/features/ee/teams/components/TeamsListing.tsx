@@ -87,15 +87,15 @@ export function TeamsListing() {
                 </div>
               ))}
             </div>
-          </div>
 
-          <iframe
-            className="mb-16 aspect-video w-full rounded-md"
-            src="https://www.youtube.com/embed/EAc46SPL6iA"
-            title="YouTube video player"
-            frameBorder={0}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          />
+            <iframe
+              className="mb-16 aspect-video w-full rounded-md"
+              src="https://www.youtube.com/embed/EAc46SPL6iA"
+              title="YouTube video player"
+              frameBorder={0}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            />
+          </div>
         </>
       )}
       {teams.length > 0 && <TeamList teams={teams} />}
