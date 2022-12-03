@@ -178,11 +178,15 @@ export default function Success(props: SuccessProps) {
     console.error(`No location found `);
   }
 
-  const name = props.bookingInfo?.user?.name;
   const email = props.bookingInfo?.user?.email;
   const status = props.bookingInfo?.status;
   const reschedule = props.bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = props.bookingInfo.cancellationReason;
+
+  const attendeeName =
+    typeof props?.bookingInfo?.attendees?.[0]?.name === "string"
+      ? props?.bookingInfo?.attendees?.[0]?.name
+      : "Nameless";
 
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const { data: session } = useSession();
@@ -204,8 +208,6 @@ export default function Success(props: SuccessProps) {
       query: { ...router.query },
     });
   }
-
-  const attendeeName = typeof name === "string" ? name : "Nameless";
 
   const eventNameObject = {
     attendeeName,
