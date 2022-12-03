@@ -1,5 +1,7 @@
 import type { TFunction } from "next-i18next";
 
+import { APP_NAME } from "@calcom/lib/constants";
+
 import { BaseEmailHtml, CallToAction } from "../components";
 
 export type PasswordReset = {
@@ -14,7 +16,7 @@ export const ForgotPasswordEmail = (
   props: PasswordReset & Partial<React.ComponentProps<typeof BaseEmailHtml>>
 ) => {
   return (
-    <BaseEmailHtml subject={props.language("reset_password_subject")}>
+    <BaseEmailHtml subject={props.language("reset_password_subject", { appName: APP_NAME })}>
       <p>
         <>{props.language("hi_user_name", { name: props.user.name })}!</>
       </p>

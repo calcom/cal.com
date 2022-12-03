@@ -379,16 +379,14 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                 )}
               </div>
               <DialogFooter>
-                <DialogClose asChild>
-                  <Button
-                    color="secondary"
-                    onClick={() => {
-                      setIsTestPreviewOpen(false);
-                      setDecidedAction(null);
-                      setResponse({});
-                    }}>
-                    {t("close")}
-                  </Button>
+                <DialogClose
+                  color="secondary"
+                  onClick={() => {
+                    setIsTestPreviewOpen(false);
+                    setDecidedAction(null);
+                    setResponse({});
+                  }}>
+                  {t("close")}
                 </DialogClose>
                 <Button type="submit" data-testid="test-routing">
                   {t("test_routing")}

@@ -35,7 +35,7 @@ test.describe("Teams", () => {
       await page.locator('[placeholder="email\\@example\\.com"]').fill(inviteeEmail);
       // Click [data-testid="invite-new-member-button"]
       await page.locator('[data-testid="invite-new-member-button"]').click();
-      await expect(page.locator(`li:has-text("${inviteeEmail}PendingMemberNot on Cal.com")`)).toBeVisible();
+      await expect(page.locator(`li:has-text("${inviteeEmail}")`)).toBeVisible();
       expect(await page.locator('[data-testid="pending-member-item"]').count()).toBe(2);
     });
 

@@ -5,7 +5,9 @@ import { trpc } from "@calcom/trpc/react";
 import {
   Button,
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogFooter,
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -69,7 +71,7 @@ const ConferencingLayout = () => {
             .map((app) => ({ ...app, title: app.title || app.name }))
             .map((app) => (
               <ListItem className="flex-col border-0" key={app.title}>
-                <div className="flex w-full flex-1 items-center space-x-3 pl-1 pt-1 rtl:space-x-reverse">
+                <div className="flex w-full flex-1 items-center space-x-2 p-4 rtl:space-x-reverse">
                   {
                     // eslint-disable-next-line @next/next/no-img-element
                     app.logo && <img className="h-10 w-10" src={app.logo} alt={app.title} />
@@ -111,10 +113,14 @@ const ConferencingLayout = () => {
           title={t("Remove app")}
           description={t("are_you_sure_you_want_to_remove_this_app")}
           type="confirmation"
-          actionText={t("yes_remove_app")}
-          Icon={Icon.FiAlertCircle}
-          actionOnClick={() => deleteAppMutation.mutate({ id: deleteCredentialId })}
-        />
+          Icon={Icon.FiAlertCircle}>
+          <DialogFooter>
+            <Button color="primary" onClick={() => deleteAppMutation.mutate({ id: deleteCredentialId })}>
+              {t("yes_remove_app")}
+            </Button>
+            <DialogClose />
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </div>
   );
