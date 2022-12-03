@@ -5,8 +5,8 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 
-import { Dialog, DialogContent, showToast } from ".";
-import { DialogClose, DialogFooter } from "./Dialog";
+import { showToast } from ".";
+import { Dialog, DialogClose, DialogContent, DialogFooter } from "../ui/v2";
 
 export default function TimezoneChangeDialog() {
   const { t } = useLocale();
@@ -73,8 +73,12 @@ export default function TimezoneChangeDialog() {
         <Checkbox description="Always update timezone" />
         */}
         <DialogFooter>
-          <DialogClose onClick={() => onCancel(THREE_MONTHS, true)}>{t("dont_update")}</DialogClose>
-          <DialogClose onClick={() => updateTimezone()}>{t("update_timezone")}</DialogClose>
+          <DialogClose onClick={() => onCancel(THREE_MONTHS, true)} color="secondary">
+            {t("dont_update")}
+          </DialogClose>
+          <DialogClose onClick={() => updateTimezone()} color="primary">
+            {t("update_timezone")}
+          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>
