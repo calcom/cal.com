@@ -4,21 +4,20 @@ import { FormEvent, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Button, ImageUploader, showToast, TextArea } from "@calcom/ui";
+import { Avatar } from "@calcom/ui";
 
-import { AvatarSSR } from "@components/ui/AvatarSSR";
-
-interface IUserProfile {
-  user?: User;
-}
+import type { IOnboardingPageProps } from "../../../pages/getting-started/[[...step]]";
 
 type FormData = {
   bio: string;
 };
+interface IUserProfileProps {
+  user: IOnboardingPageProps["user"];
+}
 
-const UserProfile = (props: IUserProfile) => {
+const UserProfile = (props: IUserProfileProps) => {
   const { user } = props;
   const { t } = useLocale();
   const avatarRef = useRef<HTMLInputElement>(null!);
@@ -100,7 +99,14 @@ const UserProfile = (props: IUserProfile) => {
   return (
     <form onSubmit={onSubmit}>
       <div className="flex flex-row items-center justify-start rtl:justify-end">
-        {user && <AvatarSSR user={user} alt="Profile picture" className="h-16 w-16" />}
+        {user && (
+          <Avatar
+            alt={user.username || "user avatar"}
+            gravatarFallbackMd5={user.emailMd5}
+            size="lg"
+            imageSrc={imageSrc}
+          />
+        )}
         <input
           ref={avatarRef}
           type="hidden"

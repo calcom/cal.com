@@ -4,14 +4,15 @@ import { Controller, useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Button, TimezoneSelect } from "@calcom/ui";
 
 import { UsernameAvailability } from "@components/ui/UsernameAvailability";
 
+import type { IOnboardingPageProps } from "../../../pages/getting-started/[[...step]]";
+
 interface IUserSettingsProps {
-  user: User;
+  user: IOnboardingPageProps["user"];
   nextStep: () => void;
 }
 
