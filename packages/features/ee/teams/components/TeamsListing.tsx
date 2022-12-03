@@ -53,12 +53,16 @@ export function TeamsListing() {
         <>
           <div className="max-w-[1118px]">
             <div
-              className="flex w-full justify-between overflow-hidden rounded-lg bg-no-repeat pt-4 pb-10 md:min-h-[295px] md:pt-10"
-              style={{ background: "url(/team-banner-background.svg)" }}>
+              className="flex w-full justify-between overflow-hidden rounded-lg pt-4 pb-10 md:min-h-[295px] md:pt-10"
+              style={{
+                background: "url(/team-banner-background.jpg)",
+                backgroundSize: "cover",
+                backgroundRepeat: "no-repeat",
+              }}>
               <div className="mt-3 px-14">
                 <h1 className="font-cal text-3xl">{t("calcom_is_better_with_team")}</h1>
                 <p className="my-4 max-w-sm text-gray-600">{t("add_your_team_members")}</p>
-                <div className="space-x-2">
+                <div className="space-y-2 sm:space-x-2">
                   <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
                     {t("create_team")}
                   </Button>
