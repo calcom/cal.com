@@ -18,8 +18,11 @@ export const customPrismaClient: NextMiddleware = async (req, res, next) => {
     await next();
     return;
   }
+
   // If we have a key, we check if the deployment matching the key, has a databaseUrl value set.
-  const databaseUrl = await fetch(`${CONSOLE_URL}/api/deployments/database?key=${key}`)
+  const databaseUrl = await fetch(
+    `${process.env.NEXT_PUBLIC_CONSOLE_URL || CONSOLE_URL}/api/deployments/database?key=${key}`
+  )
     .then((res) => res.json())
     .then((res) => res.databaseUrl);
 
