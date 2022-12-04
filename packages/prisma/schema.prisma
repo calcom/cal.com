@@ -84,6 +84,7 @@ model EventType {
   workflows               WorkflowsOnEventTypes[]
   /// @zod.custom(imports.bookingLimitsType)
   bookingLimits           Json?
+  duplicatedFromEventId   Int?
 
   @@unique([userId, slug])
   @@unique([teamId, slug])

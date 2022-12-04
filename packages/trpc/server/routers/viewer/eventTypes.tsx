@@ -353,17 +353,69 @@ export const eventTypesRouter = router({
     });
   }),
   create: authedProcedure.input(createEventTypeInput).mutation(async ({ ctx, input }) => {
-    const { schedulingType, teamId, ...rest } = input;
+    const { schedulingType, teamId, duplicatedFromEventId, ...rest } = input;
     const userId = ctx.user.id;
+    let duplicatedEvent;
+    if (duplicatedFromEventId && duplicatedFromEventId !== -1 && !Number.isNaN(duplicatedFromEventId)) {
+      duplicatedEvent = await ctx.prisma.eventType.findFirst({
+        where: {
+          id: duplicatedFromEventId,
+        },
+      });
+    }
+
+    const {
+      hidden,
+      periodType,
+      periodStartDate,
+      periodEndDate,
+      periodDays,
+      periodCountCalendarDays,
+      requiresConfirmation,
+      disableGuests,
+      hideCalendarNotes,
+      minimumBookingNotice,
+      beforeEventBuffer,
+      afterEventBuffer,
+      seatsPerTimeSlot,
+      seatsShowAttendees,
+      price,
+      currency,
+      slotInterval,
+      metadata,
+      bookingLimits,
+    } = duplicatedEvent || {};
+    const updatedData = {
+      hidden,
+      periodType,
+      periodStartDate,
+      periodEndDate,
+      periodDays,
+      periodCountCalendarDays,
+      requiresConfirmation,
+      disableGuests,
+      hideCalendarNotes,
+      minimumBookingNotice,
+      beforeEventBuffer,
+      afterEventBuffer,
+      seatsPerTimeSlot,
+      seatsShowAttendees,
+      price,
+      currency,
+      slotInterval,
+      metadata,
+      bookingLimits,
+    };
 
     const data: Prisma.EventTypeCreateInput = {
-      ...rest,
       owner: teamId ? undefined : { connect: { id: userId } },
       users: {
         connect: {
           id: userId,
         },
       },
+      ...(duplicatedFromEventId !== -1 && updatedData),
+      ...rest,
     };
 
     const appKeys = await getAppKeysFromSlug("daily-video");

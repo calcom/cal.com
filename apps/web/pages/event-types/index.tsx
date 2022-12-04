@@ -185,6 +185,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       description: type.description,
       length: type.length,
       type: type.schedulingType,
+      duplicatedFromEventId: type?.id,
       teamId: group.teamId,
       locations: encodeURIComponent(JSON.stringify(type.locations)),
     };

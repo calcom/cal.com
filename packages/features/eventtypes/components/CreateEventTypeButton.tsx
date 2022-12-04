@@ -69,6 +69,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
     typeof router.query.teamId === "string" && router.query.teamId
       ? parseInt(router.query.teamId)
       : undefined;
+  const duplicatedFromEventId = Number(router.query.duplicatedFromEventId) || null;
   const pageSlug = router.query.eventPage || props.options[0].slug;
   const hasTeams = !!props.options.find((option) => option.teamId);
   const type: string = typeof router.query.type == "string" && router.query.type ? router.query.type : "";
@@ -209,7 +210,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
         <Form
           form={form}
           handleSubmit={(values) => {
-            createMutation.mutate(values);
+            createMutation.mutate({ ...values, duplicatedFromEventId: duplicatedFromEventId });
           }}>
           <div className="mt-3 space-y-6">
             {teamId && (
