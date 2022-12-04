@@ -11,15 +11,14 @@ import { User } from "@calcom/prisma/client";
 import { Button, StepCard, Steps } from "@calcom/ui";
 
 import prisma from "@lib/prisma";
+import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { ConnectedCalendars } from "@components/getting-started/steps-views/ConnectCalendars";
 import { SetupAvailability } from "@components/getting-started/steps-views/SetupAvailability";
 import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
 
-interface IOnboardingPageProps {
-  user: User;
-}
+export type IOnboardingPageProps = inferSSRProps<typeof getServerSideProps>;
 
 const INITIAL_STEP = "user-settings";
 const steps = ["user-settings", "connected-calendar", "setup-availability", "user-profile"] as const;
