@@ -1367,7 +1367,7 @@
   "sender_id": "ID expeditor",
   "sender_id_error_message": "Sunt permise doar litere, numere și spații (maxim 11 caractere)",
   "test_routing_form": "Formular de redirecționare test",
-  "test_preview": "Previzualizare test",
+  "test_preview": "Testați previzualizarea",
   "route_to": "Direcționați către",
   "test_preview_description": "Testați-vă formularul de redirecționare fără a trimite date",
   "test_routing": "Redirecționare test",
