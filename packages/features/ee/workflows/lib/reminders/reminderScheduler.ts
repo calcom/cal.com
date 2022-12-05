@@ -18,7 +18,7 @@ export const scheduleWorkflowReminders = async (
     };
   })[],
   smsReminderNumber: string | null,
-  evt: CalendarEvent,
+  evt: CalendarEvent & { metadata?: { videoCallUrl: string } },
   needsConfirmation: boolean,
   isRescheduleEvent: boolean,
   isFirstRecurringEvent: boolean
@@ -70,6 +70,7 @@ export const scheduleWorkflowReminders = async (
               case WorkflowActions.EMAIL_ADDRESS:
                 sendTo = step.sendTo || "";
             }
+
             scheduleEmailReminder(
               evt,
               workflow.trigger,

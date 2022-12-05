@@ -27,7 +27,7 @@ if (process.env.SENDGRID_API_KEY) {
 }
 
 export const scheduleEmailReminder = async (
-  evt: BookingInfo & { metadata: { videoCallUrl: string } },
+  evt: BookingInfo,
   triggerEvent: WorkflowTriggerEvents,
   action: WorkflowActions,
   timeSpan: {
