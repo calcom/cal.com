@@ -1,3 +1,4 @@
+import { EventTypeCustomInputType } from "@prisma/client";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 
 /* eslint-disable no-underscore-dangle */
@@ -29,6 +30,7 @@ export const EventTypeMetaDataSchema = z
   .object({
     smartContractAddress: z.string().optional(),
     blockchainId: z.number().optional(),
+    multipleDuration: z.number().array().optional(),
     giphyThankYouPage: z.string().optional(),
     apps: z.object(appDataSchemas).partial().optional(),
     additionalNotesRequired: z.boolean().optional(),
@@ -153,7 +155,7 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
     allRecurringDates: z.string().array().optional(),
     currentRecurringIndex: z.number().optional(),
     rescheduleReason: z.string().optional(),
-    smsReminderNumber: z.string().optional(),
+    smsReminderNumber: z.string().optional().nullable(),
     appsStatus: z
       .array(
         z.object({
@@ -161,6 +163,8 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
           success: z.number(),
           failures: z.number(),
           type: z.string(),
+          errors: z.string().array(),
+          warnings: z.string().array().optional(),
         })
       )
       .optional(),
@@ -208,6 +212,25 @@ export const teamMetadataSchema = z
   })
   .partial()
   .nullable();
+
+export const customInputOptionSchema = z.array(
+  z.object({
+    label: z.string(),
+    type: z.string(),
+  })
+);
+
+export const customInputSchema = z.object({
+  id: z.number(),
+  eventTypeId: z.number(),
+  label: z.string(),
+  type: z.nativeEnum(EventTypeCustomInputType),
+  options: customInputOptionSchema.optional().nullable(),
+  required: z.boolean(),
+  placeholder: z.string(),
+});
+
+export type CustomInputSchema = z.infer<typeof customInputSchema>;
 
 /**
  * Ensures that it is a valid HTTP URL

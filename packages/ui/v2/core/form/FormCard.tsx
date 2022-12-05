@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 import { classNames } from "@calcom/lib";
-import { Icon } from "@calcom/ui/Icon";
 
+import { Icon } from "../../..";
 import { Badge, BadgeProps } from "../../../components";
 import Divider from "../Divider";
 

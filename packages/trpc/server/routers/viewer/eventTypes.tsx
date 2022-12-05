@@ -11,7 +11,12 @@ import { validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
 import { _DestinationCalendarModel, _EventTypeCustomInputModel, _EventTypeModel } from "@calcom/prisma/zod";
-import { EventTypeMetaDataSchema, stringOrNumber } from "@calcom/prisma/zod-utils";
+import {
+  customInputSchema,
+  EventTypeMetaDataSchema,
+  stringOrNumber,
+  CustomInputSchema,
+} from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 
 import { TRPCError } from "@trpc/server";
@@ -30,7 +35,7 @@ function handlePeriodType(periodType: string | undefined): PeriodType | undefine
   return PeriodType[passedPeriodType];
 }
 
-function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: number) {
+function handleCustomInputs(customInputs: CustomInputSchema[], eventTypeId: number) {
   const cInputsIdsToDelete = customInputs.filter((input) => input.id > 0).map((e) => e.id);
   const cInputsToCreate = customInputs
     .filter((input) => input.id < 0)
@@ -39,6 +44,7 @@ function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: n
       label: input.label,
       required: input.required,
       placeholder: input.placeholder,
+      options: input.options || undefined,
     }));
   const cInputsToUpdate = customInputs
     .filter((input) => input.id > 0)
@@ -48,6 +54,7 @@ function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: n
         label: input.label,
         required: input.required,
         placeholder: input.placeholder,
+        options: input.options || undefined,
       },
       where: {
         id: input.id,
@@ -71,7 +78,7 @@ function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: n
 const EventTypeUpdateInput = _EventTypeModel
   /** Optional fields */
   .extend({
-    customInputs: z.array(_EventTypeCustomInputModel),
+    customInputs: z.array(customInputSchema).optional(),
     destinationCalendar: _DestinationCalendarModel.pick({
       integration: true,
       externalId: true,
@@ -156,6 +163,7 @@ export const eventTypesRouter = router({
       // Position is required by lodash to sort on it. Don't remove it, TS won't complain but it would silently break reordering
       position: true,
       hashedLink: true,
+      locations: true,
       destinationCalendar: true,
       team: {
         select: {
@@ -359,7 +367,8 @@ export const eventTypesRouter = router({
     };
 
     const appKeys = await getAppKeysFromSlug("daily-video");
-    if (typeof appKeys.api_key === "string") {
+    // Shouldn't override input locations
+    if (rest.locations?.length === 0 && typeof appKeys.api_key === "string") {
       data.locations = [{ type: DailyLocationType }];
     }
 
@@ -502,7 +511,8 @@ export const eventTypesRouter = router({
       };
     }
 
-    if (input?.price) {
+    if (input?.price || input.metadata?.apps?.stripe?.price) {
+      data.price = input.price || input.metadata?.apps?.stripe?.price;
       const paymentCredential = await ctx.prisma.credential.findFirst({
         where: {
           userId: ctx.user.id,

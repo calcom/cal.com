@@ -1,22 +1,28 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { App_RoutingForms_Form } from "@prisma/client";
 import Link from "next/link";
-import React, { useState, useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { Query, Config, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
 import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
-import { z } from "zod";
 
 import { trpc } from "@calcom/trpc/react";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Icon } from "@calcom/ui";
-import { Button, TextField, TextArea, Badge } from "@calcom/ui/components";
-import { SelectField, SelectWithValidation as Select, Shell } from "@calcom/ui/v2";
-import FormCard from "@calcom/ui/v2/core/form/FormCard";
+import {
+  Button,
+  FormCard,
+  Icon,
+  SelectWithValidation as Select,
+  Shell,
+  TextArea,
+  TextField,
+  Badge,
+} from "@calcom/ui";
 
 import { zodGlobalRouteView, zodLocalRoute } from "../..//zod";
-import { getServerSidePropsForSingleFormView as getServerSideProps } from "../../components/SingleForm";
-import SingleForm from "../../components/SingleForm";
+import SingleForm, {
+  getServerSidePropsForSingleFormView as getServerSideProps,
+} from "../../components/SingleForm";
 import QueryBuilderInitialConfig from "../../components/react-awesome-query-builder/config/config";
 import "../../components/react-awesome-query-builder/styles.css";
 import isRouter from "../../isRouter";

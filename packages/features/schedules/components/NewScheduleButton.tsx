@@ -4,11 +4,17 @@ import { useForm } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components/button";
-import { Form } from "@calcom/ui/form/fields";
-import showToast from "@calcom/ui/v2/core/notifications";
+import {
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogTrigger,
+  Form,
+  Icon,
+  showToast,
+} from "@calcom/ui";
 
 export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) {
   const router = useRouter();
@@ -56,18 +62,13 @@ export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) 
           {t("new")}
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <div className="mb-8">
-          <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
-            {t("add_new_schedule")}
-          </h3>
-        </div>
+      <DialogContent title={t("add_new_schedule")}>
         <Form
           form={form}
           handleSubmit={(values) => {
             createMutation.mutate(values);
           }}>
-          <div className="mt-3 space-y-2">
+          <div className="space-y-2">
             <label htmlFor="label" className="block text-sm font-medium text-gray-700">
               {t("name")}
             </label>
@@ -82,14 +83,12 @@ export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) 
               />
             </div>
           </div>
-          <div className="mt-8 flex flex-row-reverse gap-x-2">
+          <DialogFooter>
+            <DialogClose />
             <Button type="submit" loading={createMutation.isLoading}>
               {t("continue")}
             </Button>
-            <DialogClose asChild>
-              <Button color="secondary">{t("cancel")}</Button>
-            </DialogClose>
-          </div>
+          </DialogFooter>
         </Form>
       </DialogContent>
     </Dialog>

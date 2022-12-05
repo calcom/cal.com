@@ -4,16 +4,14 @@ import React, { useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
+import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import classNames from "@calcom/lib/classNames";
+import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components";
-import { showToast, SkeletonText } from "@calcom/ui/v2";
-import { SkeletonButton, Shell } from "@calcom/ui/v2";
-import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
+import { Button, Icon, Shell, showToast, SkeletonButton, SkeletonText } from "@calcom/ui";
 
 import HeadSeo from "@components/seo/head-seo";
 
@@ -123,6 +121,7 @@ const Component = ({
                   render={({ useDefaultComponent, ...props }) => {
                     if (useDefaultComponent) {
                       props = {
+                        ...props,
                         onClick: () => {
                           mutation.mutate({ type, variant, slug });
                         },
@@ -161,6 +160,7 @@ const Component = ({
               render={({ useDefaultComponent, ...props }) => {
                 if (useDefaultComponent) {
                   props = {
+                    ...props,
                     onClick: () => {
                       mutation.mutate({ type, variant, slug });
                     },
@@ -273,8 +273,10 @@ const Component = ({
           )}
         </ul>
         <hr className="my-8" />
-        <span className="leading-1 block text-xs text-gray-500">{t("every_app_published")}</span>
-        <a className="mt-2 block text-xs text-red-500" href="mailto:help@cal.com">
+        <span className="leading-1 block text-xs text-gray-500">
+          {t("every_app_published", { appName: APP_NAME, companyName: COMPANY_NAME })}
+        </span>
+        <a className="mt-2 block text-xs text-red-500" href={`mailto:${SUPPORT_MAIL_ADDRESS}`}>
           <Icon.FiFlag className="inline h-3 w-3" /> {t("report_app")}
         </a>
       </div>

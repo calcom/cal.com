@@ -1,11 +1,9 @@
 import { useRouter } from "next/router";
 
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { SkeletonContainer } from "@calcom/ui/v2";
-import Meta from "@calcom/ui/v2/core/Meta";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
-import showToast from "@calcom/ui/v2/core/notifications";
+import { getSettingsLayout as getLayout, Meta, showToast, SkeletonContainer } from "@calcom/ui";
 
 import WebhookForm, { WebhookFormSubmitData } from "../components/WebhookForm";
 
@@ -65,7 +63,7 @@ const NewWebhookView = () => {
     <>
       <Meta
         title="Add Webhook"
-        description="Receive meeting data in real-time when something happens in Cal.com"
+        description={t("add_webhook_description", { appName: APP_NAME })}
         backButton
       />
 

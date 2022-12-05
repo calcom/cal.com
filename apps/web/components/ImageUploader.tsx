@@ -1,8 +1,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Cropper from "react-easy-crop";
 
-import Button from "@calcom/ui/Button";
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui/Dialog";
+import { Button, Dialog, DialogClose, DialogContent, DialogTrigger } from "@calcom/ui";
 
 import { Area, getCroppedImg } from "@lib/cropImage";
 import { useFileReader } from "@lib/hooks/useFileReader";
@@ -157,12 +156,8 @@ export default function ImageUploader({
           </div>
         </div>
         <div className="mt-5 gap-x-2 sm:mt-4 sm:flex sm:flex-row-reverse">
-          <DialogClose asChild>
-            <Button onClick={() => showCroppedImage(croppedAreaPixels)}>{t("save")}</Button>
-          </DialogClose>
-          <DialogClose asChild>
-            <Button color="secondary">{t("cancel")}</Button>
-          </DialogClose>
+          <DialogClose onClick={() => showCroppedImage(croppedAreaPixels)}>{t("save")}</DialogClose>
+          <DialogClose color="secondary">{t("cancel")}</DialogClose>
         </div>
       </DialogContent>
     </Dialog>

@@ -1,13 +1,10 @@
-import React from "react";
 import { OptionProps } from "react-select";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
-import { Button } from "@calcom/ui";
-import { Icon } from "@calcom/ui/Icon";
-import { Select } from "@calcom/ui/v2";
+import { Button, Icon, Select } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -64,12 +61,10 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
           <Select
             name="additionalCalendar"
             placeholder={
-              <div className="flex justify-start text-black">
-                <Icon.FiPlus className="-ml-1 h-4 w-4 ltr:mr-2 rtl:ml-2 rtl:-mr-1" />
-                <p>{t("add")}</p>
-              </div>
+              <Button StartIcon={Icon.FiPlus} color="secondary">
+                {t("add")}
+              </Button>
             }
-            className="min-w-44"
             options={options}
             isSearchable={false}
             isLoading={isLoading}
@@ -83,11 +78,16 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
                 width: "max-content",
                 right: "0",
               }),
+              indicatorSeparator: (defaultStyles) => ({
+                ...defaultStyles,
+                display: "none",
+              }),
               control: (defaultStyles) => ({
                 ...defaultStyles,
                 padding: "0",
                 border: "0",
-                borderRadius: "inherit",
+                borderRadius: "6px",
+                minHeight: "auto",
               }),
               dropdownIndicator: (defaultStyles) => ({
                 ...defaultStyles,

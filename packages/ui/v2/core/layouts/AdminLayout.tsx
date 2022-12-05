@@ -16,8 +16,8 @@ export default function AdminLayout({
 
   // Force redirect on component level
   useEffect(() => {
-    if (session.data?.user.role !== UserPermissionRole.ADMIN) {
-      router.replace("/settings");
+    if (session.data && session.data.user.role !== UserPermissionRole.ADMIN) {
+      router.replace("/settings/my-account/profile");
     }
   }, [session, router]);
 

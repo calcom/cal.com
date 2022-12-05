@@ -4,6 +4,7 @@ import { JSONObject } from "superjson/dist/types";
 import { parseRecurringEvent } from "@calcom/lib";
 import prisma from "@calcom/prisma";
 import { bookEventTypeSelect } from "@calcom/prisma/selects";
+import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -69,7 +70,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (!eventTypeRaw) return { notFound: true };
   const eventType = {
     ...eventTypeRaw,
-    metadata: (eventTypeRaw.metadata || {}) as JSONObject,
+    metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata || {}),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
   };
 
@@ -78,6 +79,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ...e,
       periodStartDate: e.periodStartDate?.toString() ?? null,
       periodEndDate: e.periodEndDate?.toString() ?? null,
+      customInputs: customInputSchema.array().parse(e.customInputs || []),
       schedulingType: null,
       users: users.map((u) => ({
         id: u.id,

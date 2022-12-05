@@ -5,12 +5,18 @@ import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma, AppUser } from "@calcom/types/AppGetServerSideProps";
-import { Icon } from "@calcom/ui/Icon";
-import { Badge, ButtonGroup } from "@calcom/ui/components";
-import { DropdownMenuSeparator, Tooltip } from "@calcom/ui/v2";
-import { EmptyScreen } from "@calcom/ui/v2";
-import { List, ListLinkItem } from "@calcom/ui/v2/core/List";
-import Shell, { ShellMain } from "@calcom/ui/v2/core/Shell";
+import {
+  Badge,
+  ButtonGroup,
+  DropdownMenuSeparator,
+  EmptyScreen,
+  Icon,
+  List,
+  ListLinkItem,
+  Shell,
+  ShellMain,
+  Tooltip,
+} from "@calcom/ui";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
@@ -78,7 +84,6 @@ export default function RoutingForms({
                                   target="_blank"
                                   StartIcon={Icon.FiExternalLink}
                                   color="secondary"
-                                  combined
                                   size="icon"
                                   disabled={disabled}
                                 />
@@ -87,7 +92,6 @@ export default function RoutingForms({
                                 routingForm={form}
                                 action="copyLink"
                                 color="secondary"
-                                combined
                                 size="icon"
                                 StartIcon={Icon.FiLink}
                                 disabled={disabled}

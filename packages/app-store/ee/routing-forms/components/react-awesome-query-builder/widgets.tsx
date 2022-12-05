@@ -1,18 +1,16 @@
 import { ChangeEvent } from "react";
 import {
-  FieldProps,
-  ConjsProps,
-  ButtonProps,
   ButtonGroupProps,
+  ButtonProps,
+  ConjsProps,
+  FieldProps,
+  NumberWidgetProps,
   ProviderProps,
   SelectWidgetProps,
-  NumberWidgetProps,
   TextWidgetProps,
 } from "react-awesome-query-builder";
 
-import { Icon } from "@calcom/ui/Icon";
-import { Button as CalButton, TextArea, TextField } from "@calcom/ui/components";
-import { SelectWithValidation as Select } from "@calcom/ui/v2";
+import { Button as CalButton, Icon, SelectWithValidation as Select, TextArea, TextField } from "@calcom/ui";
 
 // import { mapListValues } from "../../../../utils/stuff";
 

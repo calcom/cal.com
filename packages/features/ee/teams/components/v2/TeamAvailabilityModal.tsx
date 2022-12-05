@@ -1,12 +1,11 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Avatar, Label } from "@calcom/ui/components";
-import TimezoneSelect, { ITimezone } from "@calcom/ui/form/TimezoneSelect";
-import { Select, DatePicker } from "@calcom/ui/v2";
+import type { ITimezone } from "@calcom/ui";
+import { Avatar, DatePickerField as DatePicker, Label, Select, TimezoneSelect } from "@calcom/ui";
 
 import LicenseRequired from "../../../common/components/LicenseRequired";
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";

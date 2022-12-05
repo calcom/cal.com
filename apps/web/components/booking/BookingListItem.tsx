@@ -1,6 +1,6 @@
 import { BookingStatus } from "@prisma/client";
 import { useRouter } from "next/router";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 
 import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
@@ -9,14 +9,20 @@ import { formatTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { RouterInputs, RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
-import { Icon } from "@calcom/ui/Icon";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import { TextArea } from "@calcom/ui/form/fields";
-import MeetingTimeInTimezones from "@calcom/ui/v2/core/MeetingTimeInTimezones";
-import Tooltip from "@calcom/ui/v2/core/Tooltip";
-import showToast from "@calcom/ui/v2/core/notifications";
+import {
+  Badge,
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  Icon,
+  MeetingTimeInTimezones,
+  showToast,
+  TextArea,
+  Tooltip,
+} from "@calcom/ui";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
@@ -112,7 +118,7 @@ function BookingListItem(booking: BookingItemProps) {
       label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel"),
       /* When cancelling we need to let the UI and the API know if the intention is to
          cancel all remaining bookings or just that booking instance. */
-      href: `/success?uid=${booking.uid}&cancel=true${
+      href: `/booking/${booking.uid}?cancel=true${
         isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
       }`,
       icon: Icon.FiX,
@@ -189,11 +195,9 @@ function BookingListItem(booking: BookingItemProps) {
 
   const onClickTableData = () => {
     router.push({
-      pathname: "/success",
+      pathname: `/booking/${booking.uid}`,
       query: {
-        uid: booking.uid,
         allRemainingBookings: isTabRecurring,
-        listingStatus: booking.listingStatus,
         email: booking.attendees[0] ? booking.attendees[0].email : undefined,
       },
     });
@@ -231,9 +235,7 @@ function BookingListItem(booking: BookingItemProps) {
           />
 
           <DialogFooter>
-            <DialogClose>
-              <Button color="secondary">{t("cancel")}</Button>
-            </DialogClose>
+            <DialogClose />
 
             <Button
               disabled={mutation.isLoading}
@@ -276,6 +278,11 @@ function BookingListItem(booking: BookingItemProps) {
             {!!booking?.eventType?.price && !booking.paid && (
               <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
                 {t("pending_payment")}
+              </Badge>
+            )}
+            {booking.paid && (
+              <Badge className="ltr:mr-2 rtl:ml-2" variant="green">
+                {t("paid")}
               </Badge>
             )}
             {recurringDates !== undefined && (

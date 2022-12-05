@@ -4,24 +4,26 @@ import z from "zod";
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { InstalledAppVariants } from "@calcom/app-store/utils";
+import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { App } from "@calcom/types/App";
 import { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components/button";
-import { Alert } from "@calcom/ui/v2/core/Alert";
-import EmptyScreen from "@calcom/ui/v2/core/EmptyScreen";
-import { List } from "@calcom/ui/v2/core/List";
-import { ShellSubHeading } from "@calcom/ui/v2/core/Shell";
-import InstalledAppsLayout from "@calcom/ui/v2/core/layouts/InstalledAppsLayout";
-import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
+import {
+  Alert,
+  Button,
+  EmptyScreen,
+  Icon,
+  InstalledAppsLayout,
+  List,
+  ShellSubHeading,
+  SkeletonLoader,
+} from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
 
 import { CalendarListContainer } from "@components/apps/CalendarListContainer";
 import IntegrationListItem from "@components/apps/IntegrationListItem";
-import SkeletonLoader from "@components/availability/SkeletonLoader";
 
 function ConnectOrDisconnectIntegrationButton(props: {
   credentialIds: number[];

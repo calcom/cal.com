@@ -1,6 +1,6 @@
 import { FormValues } from "pages/event-types/[type]";
 import { Controller, useFormContext } from "react-hook-form";
-import { SingleValueProps, OptionProps, components } from "react-select";
+import { components, OptionProps, SingleValueProps } from "react-select";
 
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
@@ -8,12 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Icon } from "@calcom/ui";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import { SettingsToggle } from "@calcom/ui/v2";
-import Select from "@calcom/ui/v2/core/form/select";
-import { SkeletonText } from "@calcom/ui/v2/core/skeleton";
+import { Badge, Button, Icon, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
 
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 
@@ -62,6 +57,8 @@ const AvailabilitySelect = ({
   onChange: (value: AvailabilityOption | null) => void;
 }) => {
   const { data, isLoading } = trpc.viewer.availability.list.useQuery();
+  const { t } = useLocale();
+
   if (isLoading) {
     return <SelectSkeletonLoader />;
   }
@@ -82,6 +79,7 @@ const AvailabilitySelect = ({
 
   return (
     <Select
+      placeholder={t("select")}
       options={options}
       isSearchable={false}
       onChange={props.onChange}

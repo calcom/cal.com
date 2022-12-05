@@ -2,12 +2,10 @@ import { MembershipRole } from "@prisma/client";
 import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
 
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Form } from "@calcom/ui/components";
-import { showToast, Switch } from "@calcom/ui/v2/core";
-import Meta from "@calcom/ui/v2/core/Meta";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
+import { Button, Form, getSettingsLayout as getLayout, Meta, showToast, Switch } from "@calcom/ui";
 
 interface TeamAppearanceValues {
   hideBranding: boolean;
@@ -66,9 +64,11 @@ const ProfileView = () => {
               <div className="relative flex items-start">
                 <div className="flex-grow text-sm">
                   <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                    {t("disable_cal_branding")}
+                    {t("disable_cal_branding", { appName: APP_NAME })}
                   </label>
-                  <p className="text-gray-500">{t("team_disable_cal_branding_description")}</p>
+                  <p className="text-gray-500">
+                    {t("team_disable_cal_branding_description", { appName: APP_NAME })}
+                  </p>
                 </div>
                 <div className="flex-none">
                   <Controller

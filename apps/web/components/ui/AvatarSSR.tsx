@@ -15,6 +15,7 @@ export type AvatarProps = (
   className?: string;
   size?: number;
   title?: string;
+  href?: string;
   alt: string;
 };
 
@@ -49,7 +50,7 @@ export function AvatarSSR(props: AvatarProps) {
   const avatar = imgSrc ? <img alt={alt} className={className} src={imgSrc} /> : null;
   return title ? (
     <Tooltip.Tooltip delayDuration={300}>
-      <Tooltip.TooltipTrigger className="cursor-default">{avatar}</Tooltip.TooltipTrigger>
+      <Tooltip.TooltipTrigger asChild>{avatar}</Tooltip.TooltipTrigger>
       <Tooltip.Content className="rounded-sm bg-black p-2 text-sm text-white">
         <Tooltip.Arrow />
         {title}

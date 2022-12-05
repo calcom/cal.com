@@ -30,6 +30,7 @@ export async function handleErrorsJson<Type>(response: Response): Promise<Type> 
 
 export function handleErrorsRaw(response: Response) {
   if (response.status === 204) {
+    console.error({ response });
     return "{}";
   }
   if (!response.ok && response.status < 200 && response.status >= 300) {
