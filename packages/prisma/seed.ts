@@ -242,6 +242,14 @@ async function main() {
             endTime: dayjs().add(2, "day").add(30, "minutes").toDate(),
             status: BookingStatus.PENDING,
           },
+          {
+            // hardcode UID so that we can easily test rescheduling in embed
+            uid: "qm3kwt3aTnVD7vmP9tiT2f",
+            title: "30min Seeded Booking",
+            startTime: dayjs().add(3, "day").toDate(),
+            endTime: dayjs().add(3, "day").add(30, "minutes").toDate(),
+            status: BookingStatus.PENDING,
+          },
         ],
       },
       {
