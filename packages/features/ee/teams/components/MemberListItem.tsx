@@ -16,7 +16,6 @@ import {
   DialogClose,
   DialogContent,
   DialogFooter,
-  DialogTrigger,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
@@ -265,12 +264,13 @@ export default function MemberListItem(props: Props) {
                   username: props.member.username,
                   teamId: props.team.id,
                 });
+                setShowImpersonateModal(false);
               }}>
               <DialogFooter>
                 <DialogClose color="secondary">{t("cancel")}</DialogClose>
-                <DialogClose color="primary" type="submit">
+                <Button color="primary" type="submit">
                   {t("impersonate")}
-                </DialogClose>
+                </Button>
               </DialogFooter>
             </form>
           </DialogContent>
