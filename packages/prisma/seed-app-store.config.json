@@ -137,5 +137,11 @@
     "categories": ["video"],
     "slug": "signal",
     "type": "signal_video"
+  },
+  {
+    "dirName": "bitcoin",
+    "categories": ["payment"],
+    "slug": "bitcoin",
+    "type": "bitcoin_payment"
   }
 ]

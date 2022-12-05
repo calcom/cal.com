@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Bitcoin",
+  "slug": "bitcoin",
+  "type": "bitcoin_payment",
+  "imageSrc": "/api/app-store/bitcoin/icon.svg",
+  "logo": "/api/app-store/bitcoin/icon.svg",
+  "url": "https://cal.com/apps/bitcoin",
+  "variant": "payment",
+  "categories": ["payment"],
+  "publisher": "CoinKit",
+  "email": "support@coinkit.de",
+  "description": "Accept Bitcoin with Lightning. The Lightning Network is a layer 2 payment protocol that operates on top of Bitcoin. It is designed to enable fast and cheap transactions between participating nodes by creating a network of bi-directional payment channels that allow users to conduct multiple transactions without committing each one to the blockchain.",
+  "extendsFeature": "EventType",
+  "__createdUsingCli": true
+}

@@ -4,6 +4,7 @@
 **/
 import { metadata as applecalendar_meta } from "./applecalendar/_metadata";
 import { metadata as around_meta } from "./around/_metadata";
+import { metadata as bitcoin_meta } from "./bitcoin/_metadata";
 import { metadata as caldavcalendar_meta } from "./caldavcalendar/_metadata";
 import { metadata as campfire_meta } from "./campfire/_metadata";
 import { metadata as closecom_meta } from "./closecom/_metadata";
@@ -50,6 +51,7 @@ import { metadata as zoomvideo_meta } from "./zoomvideo/_metadata";
 export const appStoreMetadata = {
   applecalendar: applecalendar_meta,
   around: around_meta,
+  bitcoin: bitcoin_meta,
   caldavcalendar: caldavcalendar_meta,
   campfire: campfire_meta,
   closecom: closecom_meta,

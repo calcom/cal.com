@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/bitcoin",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Accept Bitcoin with Lightning. The Lightning Network is a layer 2 payment protocol that operates on top of Bitcoin. It is designed to enable fast and cheap transactions between participating nodes by creating a network of bi-directional payment channels that allow users to conduct multiple transactions without committing each one to the blockchain.",
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}

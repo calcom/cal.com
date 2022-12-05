@@ -5,6 +5,7 @@
 export const apiHandlers = {
   applecalendar: import("./applecalendar/api"),
   around: import("./around/api"),
+  bitcoin: import("./bitcoin/api"),
   caldavcalendar: import("./caldavcalendar/api"),
   campfire: import("./campfire/api"),
   closecom: import("./closecom/api"),
