@@ -13,6 +13,7 @@ export type VariablesType = {
   location?: string | null;
   additionalNotes?: string | null;
   customInputs?: Prisma.JsonValue;
+  meetingUrl?: string;
 };
 
 const customTemplate = async (text: string, variables: VariablesType, locale: string) => {
@@ -33,7 +34,8 @@ const customTemplate = async (text: string, variables: VariablesType, locale: st
     .replaceAll("{EVENT_TIME}", timeWithTimeZone)
     .replaceAll("{LOCATION}", locationString)
     .replaceAll("{ADDITIONAL_NOTES}", variables.additionalNotes || "")
-    .replaceAll("{ATTENDEE_EMAIL}", variables.attendeeEmail || "");
+    .replaceAll("{ATTENDEE_EMAIL}", variables.attendeeEmail || "")
+    .replaceAll("{MEETING_URL}", variables.meetingUrl || "");
 
   const customInputvariables = dynamicText.match(/\{(.+?)}/g)?.map((variable) => {
     return variable.replace("{", "").replace("}", "");
