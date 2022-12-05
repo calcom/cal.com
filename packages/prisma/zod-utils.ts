@@ -178,6 +178,12 @@ export const schemaBookingCancelParams = z.object({
   cancellationReason: z.string().optional(),
 });
 
+export const BookingMetaDataSchema = z
+  .object({
+    meetingUrl: z.string().optional(),
+  })
+  .nullable();
+
 export const vitalSettingsUpdateSchema = z.object({
   connected: z.boolean().optional(),
   selectedParam: z.string().optional(),
