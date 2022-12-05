@@ -1,4 +1,5 @@
 import { EventTypeCustomInputType } from "@prisma/client";
+import { UnitTypeLongPlural } from "dayjs";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 
 /* eslint-disable no-underscore-dangle */
@@ -26,6 +27,8 @@ export enum Frequency {
   SECONDLY = 6,
 }
 
+export const RequiresConfirmationThresholdUnits: z.ZodType<UnitTypeLongPlural> = z.enum(["hours", "minutes"]);
+
 export const EventTypeMetaDataSchema = z
   .object({
     smartContractAddress: z.string().optional(),
@@ -34,6 +37,12 @@ export const EventTypeMetaDataSchema = z
     giphyThankYouPage: z.string().optional(),
     apps: z.object(appDataSchemas).partial().optional(),
     additionalNotesRequired: z.boolean().optional(),
+    requiresConfirmationThreshold: z
+      .object({
+        time: z.number(),
+        unit: RequiresConfirmationThresholdUnits,
+      })
+      .optional(),
     config: z
       .object({
         useHostSchedulesForTeamEvent: z.boolean().optional(),
