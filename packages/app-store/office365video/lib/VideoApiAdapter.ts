@@ -152,8 +152,9 @@ const TeamsVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       }).then(handleErrorsRaw);
 
       const resultObject = JSON.parse(resultString);
+      console.log("🚀 ~ file: VideoApiAdapter.ts ~ line 155 ~ createMeeting: ~ resultObject", resultObject);
 
-      if (!resultObject.id || !resultObject.joinUrl) {
+      if (!resultObject.id || !resultObject.joinUrl || !resultObject.joinWebUrl) {
         throw new HttpError({ statusCode: 500, message: "Error creating MS Teams meeting" });
       }
 
@@ -161,7 +162,7 @@ const TeamsVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
         type: "office365_video",
         id: resultObject.id,
         password: "",
-        url: resultObject.joinUrl,
+        url: resultObject.joinWebUrl || resultObject.joinUrl,
       });
     },
   };
