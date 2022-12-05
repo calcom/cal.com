@@ -16,6 +16,7 @@ const variables = [
   "attendee_name",
   "attendee_email",
   "additional_notes",
+  "meeting_url",
 ];
 
 export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
