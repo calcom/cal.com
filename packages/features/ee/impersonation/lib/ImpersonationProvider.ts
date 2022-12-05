@@ -55,7 +55,6 @@ const ImpersonationProvider = CredentialsProvider({
     const session = await getSession({ req });
     // If teamId is present -> parse the teamId and throw error itn ot number. If not present teamId is set to undefined
     const teamId = creds?.teamId ? teamIdschema.parse({ teamId: creds.teamId }).teamId : undefined;
-    console.log({ creds, teamId });
 
     if (session?.user.username === creds?.username) {
       throw new Error("You cannot impersonate yourself.");
