@@ -13,6 +13,7 @@ import { Ensure } from "@calcom/types/utils";
 import ResponseEmail from "./emails/templates/response-email";
 import isRouter from "./isRouter";
 import { jsonLogicToPrisma } from "./jsonLogicToPrisma";
+import getFormsUsingTheForm from "./lib/getFormsUsingTheForm";
 import { getSerializableForm } from "./lib/getSerializableForm";
 import { isFormEditAllowed } from "./lib/isAllowed";
 import { Response, SerializableForm } from "./types/types";
@@ -270,6 +271,7 @@ const appRoutingForms = router({
             message: `Form to duplicate: ${duplicateFrom} not found`,
           });
         }
+        //TODO: Instead of parsing separately, use getSerializableForm. That would automatically remove deleted fields as well.
         const fieldParsed = zodFields.safeParse(sourceForm.fields);
         const routesParsed = zodRoutes.safeParse(sourceForm.routes);
         if (!fieldParsed.success || !routesParsed.success) {
@@ -281,15 +283,26 @@ const appRoutingForms = router({
 
         if (shouldConnect) {
           routes = [
+            // This connected route would automatically link the fields
             zodGlobalRoute.parse({
               id: sourceForm.id,
               routerType: "global",
             }),
           ];
+          fields = fieldParsed.data
+            // Deleted fields in the form shouldn't be added to the new form
+            ?.filter((f) => !f.deleted)
+            .map((f) => {
+              return {
+                id: f.id,
+                globalRouterId: sourceForm.id,
+              };
+            });
         } else {
           // Duplicate just routes and fields
           // We don't want name, description and responses to be copied
           routes = routesParsed.data;
+          // FIXME: Deleted fields shouldn't come in duplicate
           fields = fieldParsed.data;
         }
       }
@@ -328,6 +341,25 @@ const appRoutingForms = router({
             return f;
           })
         );
+
+        for (let i = 0; i < fields.length; i++) {
+          const field = fields[i];
+          if (
+            !serializedForm.routes?.some((route) => {
+              route.id === field.globalRouterId;
+            })
+          ) {
+            const globalRouterField = (
+              await prisma.app_RoutingForms_Form.findFirst({
+                where: {
+                  id: field.globalRouterId,
+                  userId: user.id,
+                },
+              })
+            )?.fields?.find((f) => f.id === field.id);
+            Object.assign(field, globalRouterField);
+          }
+        }
       }
 
       if (addFallback) {
@@ -392,6 +424,19 @@ const appRoutingForms = router({
       if (!(await isFormEditAllowed({ userId: user.id, formId: input.id }))) {
         throw new TRPCError({
           code: "FORBIDDEN",
+        });
+      }
+
+      const areFormsUsingIt = (
+        await getFormsUsingTheForm(prisma, {
+          id: input.id,
+          userId: user.id,
+        })
+      ).length;
+      if (areFormsUsingIt) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "This form is being used by other forms. Please remove it's usage from there first.",
         });
       }
       return await prisma.app_RoutingForms_Form.deleteMany({

@@ -60,6 +60,7 @@ function Field({
   fieldIndex,
   moveUp,
   moveDown,
+  appUrl,
 }: {
   fieldIndex: number;
   hookForm: HookForm;
@@ -76,6 +77,7 @@ function Field({
     check: () => boolean;
     fn: () => void;
   };
+  appUrl: string;
 }) {
   const [identifier, _setIdentifier] = useState(hookForm.getValues(`${hookFieldNamespace}.identifier`));
 
@@ -93,6 +95,7 @@ function Field({
     }
   }, [label, hookFieldNamespace, hookForm]);
   const globalRouter = hookForm.getValues(`${hookFieldNamespace}.globalRouter`);
+  const globalRouterField = hookForm.getValues(`${hookFieldNamespace}.globalRouterField`);
   return (
     <div
       data-testid="field"
@@ -101,7 +104,11 @@ function Field({
         label={label || `Field ${fieldIndex + 1}`}
         moveUp={moveUp}
         moveDown={moveDown}
-        badge={globalRouter ? { text: globalRouter.name, variant: "gray" } : null}
+        badge={
+          globalRouter
+            ? { text: globalRouter.name, variant: "gray", href: `${appUrl}/form-edit/${globalRouter.id}` }
+            : null
+        }
         deleteField={globalRouter ? null : deleteField}>
         <div className="w-full">
           <div className="mb-6 w-full">
@@ -110,6 +117,11 @@ function Field({
               label="Label"
               type="text"
               placeholder="This is what your users would see"
+              /**
+               * This is a bit of a hack to make sure that for globalRouterField, label is shown from there.
+               * For other fields, value property because it exists would take precedence
+               */
+              defaultValue={globalRouterField?.label}
               required
               {...hookForm.register(`${hookFieldNamespace}.label`)}
               className="block w-full rounded-sm border-gray-300 text-sm"
@@ -123,6 +135,7 @@ function Field({
               required
               placeholder="Identifies field by this name."
               value={identifier}
+              defaultValue={globalRouterField?.identifier || globalRouterField?.label}
               onChange={(e) => setUserChangedIdentifier(e.target.value)}
               className="block w-full rounded-sm border-gray-300 text-sm"
             />
@@ -131,6 +144,7 @@ function Field({
             <Controller
               name={`${hookFieldNamespace}.type`}
               control={hookForm.control}
+              defaultValue={globalRouterField?.type}
               render={({ field: { value, onChange } }) => {
                 const defaultValue = FieldTypes.find((fieldType) => fieldType.value === value);
                 return (
@@ -158,6 +172,7 @@ function Field({
                   disabled={!!globalRouter}
                   rows={3}
                   label="Options"
+                  defaultValue={globalRouterField?.selectText}
                   placeholder="Add 1 option per line"
                   {...hookForm.register(`${hookFieldNamespace}.selectText`)}
                 />
@@ -169,6 +184,7 @@ function Field({
             <Controller
               name={`${hookFieldNamespace}.required`}
               control={hookForm.control}
+              defaultValue={globalRouterField?.required}
               render={({ field: { value, onChange } }) => {
                 return <BooleanToggleGroupField label="Required" value={value} onValueChange={onChange} />;
               }}
@@ -183,9 +199,11 @@ function Field({
 const FormEdit = ({
   hookForm,
   form,
+  appUrl,
 }: {
   hookForm: HookForm;
   form: inferSSRProps<typeof getServerSideProps>["form"];
+  appUrl: string;
 }) => {
   const fieldsNamespace = "fields";
   const {
@@ -224,6 +242,7 @@ const FormEdit = ({
           {hookFormFields.map((field, key) => {
             return (
               <Field
+                appUrl={appUrl}
                 fieldIndex={key}
                 hookForm={hookForm}
                 hookFieldNamespace={`${fieldsNamespace}.${key}`}
@@ -287,7 +306,7 @@ export default function FormEditPage({
     <SingleForm
       form={form}
       appUrl={appUrl}
-      Page={({ hookForm, form }) => <FormEdit hookForm={hookForm} form={form} />}
+      Page={({ hookForm, form }) => <FormEdit appUrl={appUrl} hookForm={hookForm} form={form} />}
     />
   );
 }

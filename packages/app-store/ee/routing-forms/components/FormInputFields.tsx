@@ -18,6 +18,9 @@ export default function FormInputFields(props: Props) {
   return (
     <>
       {form.fields?.map((field) => {
+        if (field.globalRouterField) {
+          field = field.globalRouterField;
+        }
         const widget = queryBuilderConfig.widgets[field.type];
         if (!("factory" in widget)) {
           return null;

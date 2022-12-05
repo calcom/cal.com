@@ -115,21 +115,23 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
                 placeholder="Form Description"
               />
             </div>
-            <Controller
-              name="shouldConnect"
-              render={({ field: { value, onChange } }) => {
-                return (
-                  <SettingsToggle
-                    title="Keep me connected with the form"
-                    description="Any changes in Router and Fields of the form being duplicated, would reflect in the duplicate."
-                    checked={value}
-                    onCheckedChange={(checked) => {
-                      onChange(checked);
-                    }}
-                  />
-                );
-              }}
-            />
+            {action === "duplicate" && (
+              <Controller
+                name="shouldConnect"
+                render={({ field: { value, onChange } }) => {
+                  return (
+                    <SettingsToggle
+                      title="Keep me connected with the form"
+                      description="Any changes in Router and Fields of the form being duplicated, would reflect in the duplicate."
+                      checked={value}
+                      onCheckedChange={(checked) => {
+                        onChange(checked);
+                      }}
+                    />
+                  );
+                }}
+              />
+            )}
           </div>
           <div className="mt-8 flex flex-row-reverse gap-x-2">
             <Button loading={mutation.isLoading} data-testid="add-form" type="submit">
@@ -204,7 +206,7 @@ function Dialogs({
       if (context?.previousValue) {
         utils.viewer.appRoutingForms.forms.setData(undefined, context.previousValue);
       }
-      showToast("Something went wrong", "error");
+      showToast(err.message || "Something went wrong", "error");
     },
   });
   return (

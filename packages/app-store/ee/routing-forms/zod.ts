@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const zodField = z.object({
+export const zodLocalField = z.object({
   id: z.string(),
   label: z.string(),
   identifier: z.string().optional(),
@@ -10,24 +10,23 @@ const zodField = z.object({
   deleted: z.boolean().optional(),
 });
 
-export const zodLocalField = zodField;
-export const zodLocalFieldView = zodLocalField;
-
 export const zodGlobalField = z.object({
   id: z.string(),
   globalRouterId: z.string(),
 });
 
-export const zodGlobalFieldView = zodLocalField.extend(zodGlobalField.shape).extend({
+const zodField = z.union([zodLocalField, zodGlobalField]);
+export const zodFields = z.array(zodField).optional();
+
+export const zodLocalFieldView = zodLocalField;
+export const zodGlobalFieldView = zodGlobalField.extend({
+  globalRouterField: zodLocalFieldView,
   globalRouter: z.object({
     name: z.string(),
     description: z.string(),
     id: z.string(),
   }),
 });
-
-export const zodFields = z.array(zodField).optional();
-
 /**
  * Has some additional fields that are not supposed to be saved to DB but are required for the UI
  */

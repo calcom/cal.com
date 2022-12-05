@@ -49,6 +49,9 @@ export function getQueryBuilderConfig(form: RoutingForm, forReporting = false) {
     }
   > = {};
   form.fields?.forEach((field) => {
+    if (field.globalRouterField) {
+      field = field.globalRouterField;
+    }
     if (FieldTypes.map((f) => f.value).includes(field.type)) {
       const optionValues = field.selectText?.trim().split("\n");
       const options = optionValues?.map((value) => {

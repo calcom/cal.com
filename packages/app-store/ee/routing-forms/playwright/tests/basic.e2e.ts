@@ -1,6 +1,7 @@
 import { expect, Page } from "@playwright/test";
 
 import { Fixtures, test } from "@calcom/web/playwright/lib/fixtures";
+import { todo } from "@calcom/web/playwright/lib/testUtils";
 
 async function gotoRoutingLink(page: Page, formId: string) {
   await page.goto(`/forms/${formId}`);
@@ -84,6 +85,42 @@ async function fillForm(
   };
 }
 
+async function selectNewRoute(page: Page) {
+  await selectOption({
+    selector: {
+      selector: ".data-testid-select-router",
+      nth: 0,
+    },
+    option: 1,
+    page,
+  });
+}
+
+async function fillSeededForm(page: Page, routingFormId: string) {
+  await gotoRoutingLink(page, routingFormId);
+  await page.fill('[data-testid="form-field"]', "event-routing");
+  page.click('button[type="submit"]');
+  await page.waitForNavigation({
+    url(url) {
+      return url.pathname.endsWith("/pro/30min");
+    },
+  });
+
+  await gotoRoutingLink(page, routingFormId);
+  await page.fill('[data-testid="form-field"]', "external-redirect");
+  page.click('button[type="submit"]');
+  await page.waitForNavigation({
+    url(url) {
+      return url.hostname.includes("google.com");
+    },
+  });
+
+  await gotoRoutingLink(page, routingFormId);
+  await page.fill('[data-testid="form-field"]', "custom-page");
+  await page.click('button[type="submit"]');
+  await page.isVisible("text=Custom Page Result");
+}
+
 test.describe("Routing Forms", () => {
   test.afterEach(async ({ users }) => {
     // This also delete forms on cascade
@@ -160,6 +197,8 @@ test.describe("Routing Forms", () => {
       );
     });
   });
+
+  todo("should be able to duplicate form");
 
   test.describe("Seeded Routing Form ", () => {
     const createUserAndLoginAndInstallApp = async function ({
@@ -342,39 +381,3 @@ test.describe("Routing Forms", () => {
     });
   });
 });
-
-async function selectNewRoute(page: Page) {
-  await selectOption({
-    selector: {
-      selector: ".data-testid-select-router",
-      nth: 0,
-    },
-    option: 1,
-    page,
-  });
-}
-
-async function fillSeededForm(page: Page, routingFormId: string) {
-  await gotoRoutingLink(page, routingFormId);
-  await page.fill('[data-testid="form-field"]', "event-routing");
-  page.click('button[type="submit"]');
-  await page.waitForNavigation({
-    url(url) {
-      return url.pathname.endsWith("/pro/30min");
-    },
-  });
-
-  await gotoRoutingLink(page, routingFormId);
-  await page.fill('[data-testid="form-field"]', "external-redirect");
-  page.click('button[type="submit"]');
-  await page.waitForNavigation({
-    url(url) {
-      return url.hostname.includes("google.com");
-    },
-  });
-
-  await gotoRoutingLink(page, routingFormId);
-  await page.fill('[data-testid="form-field"]', "custom-page");
-  await page.click('button[type="submit"]');
-  await page.isVisible("text=Custom Page Result");
-}
