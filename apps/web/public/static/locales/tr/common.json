@@ -1311,7 +1311,7 @@
   "how_long_after": "Etkinlik sona erdikten ne kadar sonra?",
   "no_available_slots": "Uygun yer yok",
   "time_available": "Uygun zaman",
-  "cant_find_the_right_video_app_visit_our_app_store": "Doğru video uygulamasını bulamıyor musunuz? <1>App Store</1> sayfamızı ziyaret edin.",
+  "cant_find_the_right_video_app_visit_our_app_store": "Doğru video uygulamasını bulamıyor musunuz? <1>Uygulama Mağazamızı</1> ziyaret edin.",
   "install_new_calendar_app": "Yeni takvim uygulamasını yükleyin",
   "make_phone_number_required": "Rezervasyon etkinliği için telefon numarasını gerekli hale getirin",
   "new_event_type_availability": "{{eventTypeTitle}} Müsaitlik Durumu",
