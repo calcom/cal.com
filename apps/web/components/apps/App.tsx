@@ -42,7 +42,7 @@ const Component = ({
 
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
-      if (data.setupPending) return;
+      if (data?.setupPending) return;
       showToast(t("app_successfully_installed"), "success");
     },
     onError: (error) => {
