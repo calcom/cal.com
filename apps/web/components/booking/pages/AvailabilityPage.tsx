@@ -237,7 +237,7 @@ function TimezoneDropdown({
 
   return (
     <Popover.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
-      <Popover.Trigger className="min-w-32 dark:text-darkgray-600 radix-state-open:bg-gray-200 dark:radix-state-open:bg-darkgray-200 group relative mb-2 -ml-2 inline-block rounded-md px-2 py-2 text-left text-gray-600">
+      <Popover.Trigger className="min-w-32 dark:text-darkgray-600 radix-state-open:bg-gray-200 dark:radix-state-open:bg-darkgray-200 group relative mb-2 -ml-2 !mt-2 inline-block self-start rounded-md px-2 py-2 text-left text-gray-600">
         <p className="flex items-center text-sm font-medium">
           <Icon.FiGlobe className="min-h-4 min-w-4 mr-[10px] ml-[2px] -mt-[2px] inline-block" />
           {timeZone}
