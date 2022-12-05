@@ -909,7 +909,7 @@
   "impersonate": "Impersonate",
   "user_impersonation_heading": "User Impersonation",
   "user_impersonation_description": "Allows our support team to temporarily sign in as you to help us quickly resolve any issues you report to us.",
-  "team_impersonation_description": "Allows your team members to temporarily sign in as you.",
+  "team_impersonation_description": "Allows your team Owners/Admins to temporarily sign in as you.",
   "allow_booker_to_select_duration": "Allow booker to select duration",
   "impersonate_user_tip": "All uses of this feature is audited.",
   "impersonating_user_warning": "Impersonating username \"{{user}}\".",
