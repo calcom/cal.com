@@ -38,5 +38,4 @@ export const EventTypeAddonMap = {
   qr_code: dynamic(() => import("./qr_code/extensions/EventTypeAppCard")),
   rainbow: dynamic(() => import("./rainbow/extensions/EventTypeAppCard")),
   stripepayment: dynamic(() => import("./stripepayment/extensions/EventTypeAppCard")),
-  wordpress: dynamic(() => import("./wordpress/extensions/EventTypeAppCard")),
 };
