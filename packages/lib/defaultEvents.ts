@@ -164,7 +164,7 @@ export const getUsernameList = (users: string | string[] | undefined): string[] 
 
   const allUsers = users.map((user) =>
     user
-      .toLowerCase()
+      //.toLowerCase() // This was causing 404s for mixed-case usernames
       .replace(/( |%20)/g, "+")
       .split("+")
   );

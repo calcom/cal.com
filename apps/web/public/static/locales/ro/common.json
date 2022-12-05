@@ -101,7 +101,7 @@
   "team_info": "Informații echipă",
   "request_another_invitation_email": "Dacă preferați să nu utilizați {{toEmail}} ca e-mail {{appName}} sau aveți deja un cont {{appName}}, vă rugăm să solicitați o altă invitație la acel e-mail.",
   "you_have_been_invited": "Ați fost invitat să vă alăturați echipei {{teamName}}",
-  "user_invited_you": "{{user}} v-a invitat să vă alăturați echipei {{teamName}}",
+  "user_invited_you": "{{user}} v-a invitat să vă alăturați echipei {{team}}",
   "hidden_team_member_title": "Sunteți ascuns în această echipă",
   "hidden_team_member_message": "Licența dvs. nu este plătită. Fie faceți upgrade la Pro, fie anunțați proprietarul echipei că vă poate plăti licența.",
   "hidden_team_owner_message": "Aveți nevoie de un cont Pro pentru a utiliza echipe. Sunteți ascuns până când faceți upgrade.",
