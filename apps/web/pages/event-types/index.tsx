@@ -581,10 +581,6 @@ const EventTypesPage = () => {
   const { t } = useLocale();
   return (
     <div>
-      <Head>
-        <title>Home | {APP_NAME}</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <Shell
         heading={t("event_types_page_title") as string}
         subtitle={t("event_types_page_subtitle") as string}
