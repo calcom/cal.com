@@ -33,22 +33,10 @@ export const EventSetupTab = (
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
   const [multipleDuration, setMultipleDuration] = useState(eventType.metadata.multipleDuration);
 
-  const multipleDurationOptions = [
-    { value: 5, label: t("multiple_duration_mins", { count: 5 }) },
-    { value: 10, label: t("multiple_duration_mins", { count: 10 }) },
-    { value: 15, label: t("multiple_duration_mins", { count: 15 }) },
-    { value: 20, label: t("multiple_duration_mins", { count: 20 }) },
-    { value: 25, label: t("multiple_duration_mins", { count: 25 }) },
-    { value: 30, label: t("multiple_duration_mins", { count: 30 }) },
-    { value: 45, label: t("multiple_duration_mins", { count: 45 }) },
-    { value: 50, label: t("multiple_duration_mins", { count: 50 }) },
-    { value: 60, label: t("multiple_duration_mins", { count: 60 }) },
-    { value: 75, label: t("multiple_duration_mins", { count: 75 }) },
-    { value: 80, label: t("multiple_duration_mins", { count: 80 }) },
-    { value: 90, label: t("multiple_duration_mins", { count: 90 }) },
-    { value: 120, label: t("multiple_duration_mins", { count: 120 }) },
-    { value: 180, label: t("multiple_duration_mins", { count: 180 }) },
-  ];
+  const multipleDurationOptions = [5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 180].map((mins) => ({
+    value: mins,
+    label: t("multiple_duration_mins", { count: mins }),
+  }));
 
   const [selectedMultipleDuration, setSelectedMultipleDuration] = useState<
     MultiValue<{
