@@ -1340,7 +1340,7 @@
   "limit_future_bookings": "הגבלת הזמנות עתידיות",
   "limit_future_bookings_description": "הגבלת התאריך הרחוק ביותר בעתיד שעד אליו ניתן להזמין את האירוע הזה",
   "no_event_types": "לא הוגדר אף סוג אירוע",
-  "no_event_types_description": "{{name}} לא הגדיר/ה אף סוג אירוע שבאפשרותך להזמין.",
+  "no_event_types_description": "לא הוגדר על ידי {{name}} אף סוג אירוע שבאפשרותך להזמין.",
   "billing_frequency": "תדירות חיוב",
   "monthly": "אחת לחודש",
   "yearly": "אחת לשנה",
@@ -1366,7 +1366,7 @@
   "sender_id": "מזהה שולח/ת",
   "sender_id_error_message": "מותר להשתמש רק באותיות, במספרים וברווחים (לכל היותר 11 תווים)",
   "test_routing_form": "בדיקת טופס ניתוב",
-  "test_preview": "תצוגה מקדימה של הבדיקה",
+  "test_preview": "בדיקת התצוגה המקדימה",
   "route_to": "ניתוב אל",
   "test_preview_description": "בדיקת טופס הניתוב שלך בלי לשלוח נתונים",
   "test_routing": "בדיקת ניתוב"
