@@ -180,7 +180,7 @@ export const schemaBookingCancelParams = z.object({
 
 export const BookingMetaDataSchema = z
   .object({
-    meetingUrl: z.string().optional(),
+    videoCallUrl: z.string().optional(),
   })
   .nullable();
 

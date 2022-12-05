@@ -35,6 +35,7 @@ export type BookingInfo = {
   location?: string | null;
   additionalNotes?: string | null;
   customInputs?: Prisma.JsonValue;
+  metaData?: Prisma.JsonValue;
 };
 
 export const scheduleSMSReminder = async (
