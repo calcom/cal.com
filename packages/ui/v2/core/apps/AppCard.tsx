@@ -23,7 +23,7 @@ export default function AppCard({ app, credentials, searchText }: AppCardProps) 
     onSuccess: (data) => {
       // Refresh SSR page content without actual reload
       router.replace(router.asPath);
-      if (data.setupPending) return;
+      if (data?.setupPending) return;
       showToast(t("app_successfully_installed"), "success");
     },
     onError: (error) => {
