@@ -74,7 +74,7 @@ export function TeamsListing() {
             </div>
             <div className="mt-6 grid-cols-3 md:grid md:gap-6">
               {features.map((feature) => (
-                <div key={feature.title} className="mb-6 min-h-[180px] w-full rounded-md bg-gray-100 p-8">
+                <div key={feature.title} className="mb-6 min-h-[180px] w-full rounded-md bg-gray-50 p-8">
                   {feature.icon}
                   <h2 className="font-cal mt-4 text-lg">{feature.title}</h2>
                   <p className="text-gray-700">{feature.description}</p>
