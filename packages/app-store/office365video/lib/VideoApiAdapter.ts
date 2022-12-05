@@ -152,7 +152,6 @@ const TeamsVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       }).then(handleErrorsRaw);
 
       const resultObject = JSON.parse(resultString);
-      console.log("🚀 ~ file: VideoApiAdapter.ts ~ line 155 ~ createMeeting: ~ resultObject", resultObject);
 
       if (!resultObject.id || !resultObject.joinUrl || !resultObject.joinWebUrl) {
         throw new HttpError({ statusCode: 500, message: "Error creating MS Teams meeting" });
