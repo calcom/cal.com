@@ -3,7 +3,7 @@ import { useState } from "react";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, EmptyScreen, Icon } from "@calcom/ui";
+import { Alert, Button, Icon } from "@calcom/ui";
 
 import SkeletonLoaderTeamList from "./SkeletonloaderTeamList";
 import TeamList from "./TeamList";
