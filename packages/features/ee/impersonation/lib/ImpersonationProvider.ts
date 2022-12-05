@@ -6,7 +6,7 @@ import { z } from "zod";
 import prisma from "@calcom/prisma";
 
 const teamIdschema = z.object({
-  teamId: z.number(),
+  teamId: z.preprocess((a) => parseInt(z.string().parse(a), 10), z.number().positive()),
 });
 
 const auditAndReturnNextUser = async (
@@ -54,7 +54,7 @@ const ImpersonationProvider = CredentialsProvider({
     // @ts-ignore need to figure out how to correctly type this
     const session = await getSession({ req });
     // If teamId is present -> parse the teamId and throw error itn ot number. If not present teamId is set to undefined
-    const teamId = creds?.teamId ? teamIdschema.parse(creds).teamId : undefined;
+    const teamId = creds?.teamId ? teamIdschema.parse({ teamId: creds.teamId }).teamId : undefined;
 
     if (session?.user.username === creds?.username) {
       throw new Error("You cannot impersonate yourself.");
