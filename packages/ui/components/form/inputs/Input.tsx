@@ -124,6 +124,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           )}
           <Input
             id={id}
+            type={type}
             placeholder={placeholder}
             {...passThrough}
             {...(type == "search" && {
@@ -161,6 +162,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
       ) : (
         <Input
           id={id}
+          type={type}
           placeholder={placeholder}
           className={className}
           {...passThrough}
