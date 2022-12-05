@@ -18,13 +18,14 @@ type CustomUseMutationOptions =
   | Omit<UseMutationOptions<unknown, unknown, unknown, unknown>, "mutationKey" | "mutationFn" | "onSuccess">
   | undefined;
 
+type AddAppMutationData = { setupPending: boolean } | void;
 type UseAddAppMutationOptions = CustomUseMutationOptions & {
-  onSuccess: (data: { setupPending: boolean }) => void;
+  onSuccess: (data: AddAppMutationData) => void;
 };
 
 function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutationOptions) {
   const mutation = useMutation<
-    { setupPending: boolean },
+    AddAppMutationData,
     Error,
     { type?: App["type"]; variant?: string; slug?: string; isOmniInstall?: boolean } | ""
   >(async (variables) => {
@@ -62,6 +63,7 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
 
     if (!isOmniInstall) {
       gotoUrl(json.url, json.newTab);
+      return;
     }
 
     // Skip redirection only if it is an OmniInstall and redirect URL isn't of some other origin
@@ -71,6 +73,7 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
     if (externalUrl) {
       // TODO: For Omni installation to authenticate and come back to the page where installation was initiated, some changes need to be done in all apps' add callbacks
       gotoUrl(json.url, json.newTab);
+      return;
     }
 
     return { setupPending: externalUrl || json.url.endsWith("/setup") };
