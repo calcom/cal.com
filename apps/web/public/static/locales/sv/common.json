@@ -504,7 +504,7 @@
   "add_team_members_description": "Bjud in andra att gå med i ditt team",
   "add_team_member": "Lägg till teammedlem",
   "invite_new_member": "Bjud in en ny teammedlem",
-  "invite_new_member_description": "Notera: Detta kommer att <1>kosta en extra plats ($15/m)</1> på ditt abonnemang.",
+  "invite_new_member_description": "Notera: Detta kommer att <1>kosta en extra plats (150 kr/mån)</1> på ditt abonnemang.",
   "invite_new_team_member": "Bjud in någon till ditt team.",
   "change_member_role": "Ändra teammedlemmens roll",
   "disable_cal_branding": "Inaktivera {{appName}}-varumärke",
