@@ -7,11 +7,9 @@ import { baseApiParams } from "./baseApiParams";
 
 // Extracted out as utility function so can be reused
 // at different endpoints that require this validation.
-export const schemaQueryUserId = baseApiParams
-  .extend({
-    userId: stringOrNumber,
-  })
-  .strict();
+export const schemaQueryUserId = baseApiParams.extend({
+  userId: stringOrNumber,
+});
 
 export const schemaQuerySingleOrMultipleUserIds = z.object({
   userId: z.union([stringOrNumber, z.array(stringOrNumber)]),
