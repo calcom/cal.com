@@ -16,7 +16,7 @@ export const metadata = {
       type: "integrations:whereby_video",
       label: "Whereby Video",
       organizerInputPlaceholder: "https://www.whereby.com/cal",
-      urlRegExp: "^http(s)?:\\/\\/(www\\.)?whereby.com\\/[a-zA-Z0-9]*",
+      urlRegExp: "^http(s)?:\\/\\/(www\\.)?(team.)?whereby.com\\/[a-zA-Z0-9]*",
     },
   },
   ...config,

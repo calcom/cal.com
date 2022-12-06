@@ -28,9 +28,9 @@ export const purchaseTeamSubscription = async (input: { teamId: number; seats: n
   const session = await stripe.checkout.sessions.create({
     customer,
     mode: "subscription",
+    allow_promotion_codes: true,
     success_url: `${WEBAPP_URL}/api/teams/${teamId}/upgrade?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${WEBAPP_URL}/settings/profile`,
-    locale: "en",
     line_items: [
       {
         /** We only need to set the base price and we can upsell it directly on Stripe's checkout  */
@@ -38,10 +38,15 @@ export const purchaseTeamSubscription = async (input: { teamId: number; seats: n
         quantity: seats,
       },
     ],
+    customer_update: {
+      address: "auto",
+    },
+    automatic_tax: {
+      enabled: true,
+    },
     metadata: {
       teamId,
     },
-    payment_method_types: ["card"],
     subscription_data: {
       metadata: {
         teamId,
