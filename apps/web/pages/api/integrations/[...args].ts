@@ -2,11 +2,11 @@ import { NextApiRequest, NextApiResponse } from "next";
 import type { Session } from "next-auth";
 
 import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
+import { getSession } from "@calcom/lib/auth";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import prisma from "@calcom/prisma";
 import type { AppDeclarativeHandler, AppHandler } from "@calcom/types/AppHandler";
 
-import { getSession } from "@lib/auth";
 import { HttpError } from "@lib/core/http/error";
 
 const defaultIntegrationAddHandler = async ({
