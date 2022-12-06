@@ -461,7 +461,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             className="w-full rounded-none"
                             data-testid={"event-type-duplicate-" + type.id}
                             StartIcon={Icon.FiCopy}
-                            onClick={() => openDuplicateModal()}>
+                            onClick={() => openDuplicateModal(type)}>
                             {t("duplicate") as string}
                           </Button>
                         </DropdownMenuItem>

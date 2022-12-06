@@ -656,6 +656,8 @@ export const eventTypesRouter = router({
       bookingLimits,
       metadata,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      id: _id,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       workflows: _workflows,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       webhooks: _webhooks,
