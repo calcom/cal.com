@@ -9,5 +9,5 @@ export const appDataSchema = eventTypeAppCardZod.merge(
 );
 
 export const appKeysSchema = z.object({
-  app_key: z.string().nonempty(),
+  app_key: z.string().min(1),
 });
