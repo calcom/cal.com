@@ -107,7 +107,7 @@ test.describe("Event Types tests", () => {
       const formSlug = await page.inputValue("[name=slug]");
 
       expect(formTitle).toBe(firstTitle);
-      expect(formSlug).toBe(firstSlug);
+      expect(formSlug).toContain(firstSlug);
     });
     test("edit first event", async ({ page }) => {
       const $eventTypes = page.locator("[data-testid=event-types] > li a");
