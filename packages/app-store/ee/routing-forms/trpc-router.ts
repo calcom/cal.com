@@ -244,6 +244,9 @@ const appRoutingForms = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { user, prisma } = ctx;
+      const log = logger.getChildLogger({
+        prefix: ["formMutation", input.id],
+      });
       const { name, id, description, settings, disabled, addFallback, duplicateFrom, shouldConnect } = input;
       if (!(await isFormEditAllowed({ userId: user.id, formId: id }))) {
         throw new TRPCError({
@@ -341,14 +344,19 @@ const appRoutingForms = router({
             return f;
           })
         );
-
+        const fieldsFoundForGlobalRouters = {};
         for (let i = 0; i < fields.length; i++) {
           const field = fields[i];
+          if (field.globalRouterId) {
+            fieldsFoundForGlobalRouters[field.globalRouterId] = true;
+          }
           if (
+            field.globalRouterId &&
             !serializedForm.routes?.some((route) => {
               route.id === field.globalRouterId;
             })
           ) {
+            // There is a field from some global router available, make sure that the field has up-to-date info from the global router
             const globalRouterField = (
               await prisma.app_RoutingForms_Form.findFirst({
                 where: {
@@ -357,7 +365,32 @@ const appRoutingForms = router({
                 },
               })
             )?.fields?.find((f) => f.id === field.id);
+            // Update local field(cache) with global router field on every mutation
             Object.assign(field, globalRouterField);
+          }
+        }
+
+        for (let j = 0; j < routes?.length; j++) {
+          const route = routes[j];
+          log.silly("fieldsFoundForGlobalRouters", fieldsFoundForGlobalRouters, route);
+
+          if (route.routerType === "global") {
+            // If there are no fields for a global router, add all fields from that global router - This is the case when someone adds a global router and fields are supposed to be automatically added
+            if (!fieldsFoundForGlobalRouters[route.id]) {
+              log.silly("Global Route found and the fields need to be added from it", JSON.stringify(route));
+              const fieldsFromGlobalRouter = (
+                await prisma.app_RoutingForms_Form.findFirst({
+                  where: {
+                    id: route.id,
+                    userId: user.id,
+                  },
+                })
+              )?.fields.map((f) => {
+                f.globalRouterId = route.id;
+                return f;
+              });
+              fields = fields.concat(fieldsFromGlobalRouter);
+            }
           }
         }
       }
@@ -385,6 +418,8 @@ const appRoutingForms = router({
           });
         }
       }
+
+      log.silly("Fields to be updated", JSON.stringify(fields));
 
       return await prisma.app_RoutingForms_Form.upsert({
         where: {

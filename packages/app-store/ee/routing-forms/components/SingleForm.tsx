@@ -13,6 +13,7 @@ import {
   AppUser,
 } from "@calcom/types/AppGetServerSideProps";
 import {
+  Button,
   Banner,
   Badge,
   ButtonGroup,
@@ -297,10 +298,11 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                       }}
                     />
                   </div>
+
                   {form.usingForms.length ? (
                     <div className="mt-6">
                       <div className="mb-2 block text-sm font-medium leading-none text-gray-700">
-                        Using Forms
+                        Connected to forms
                       </div>
                       {form.usingForms.map((router) => {
                         return (
@@ -334,7 +336,6 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                       })}
                     </div>
                   ) : null}
-
                   <div className="mt-6">
                     <Button
                       color="secondary"

@@ -13,9 +13,16 @@ export const zodLocalField = z.object({
 export const zodGlobalField = z.object({
   id: z.string(),
   globalRouterId: z.string(),
+  label: z.string(),
+  identifier: z.string().optional(),
+  type: z.string(),
+  selectText: z.string().optional(),
+  required: z.boolean().optional(),
+  deleted: z.boolean().optional(),
 });
 
-const zodField = z.union([zodLocalField, zodGlobalField]);
+// This ordering is important - If globalRouterId is present then it should be in the parsed object. Moving zodLocalField to first position doesn't do that
+const zodField = z.union([zodGlobalField, zodLocalField]);
 export const zodFields = z.array(zodField).optional();
 
 export const zodLocalFieldView = zodLocalField;

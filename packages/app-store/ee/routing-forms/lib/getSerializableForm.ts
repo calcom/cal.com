@@ -6,7 +6,7 @@ import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
 import isRouter from "../isRouter";
 import { SerializableForm } from "../types/types";
-import { zodFields, zodRoutes, zodRoutesView, zodFieldsView } from "../zod";
+import { zodFields, zodRoutes, zodRoutesView, zodFieldsView, zodGlobalField, zodLocalField } from "../zod";
 import getFormsUsingTheForm from "./getFormsUsingTheForm";
 
 /**
@@ -17,12 +17,15 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
   form: TForm,
   withDeletedFields = false
 ) {
+  const log = logger.getChildLogger({ prefix: [`getSerializableForm`, form.id] });
+
   const routesParsed = zodRoutes.safeParse(form.routes);
   if (!routesParsed.success) {
     throw new Error("Error parsing routes");
   }
 
   const fieldsParsed = zodFields.safeParse(form.fields);
+
   if (!fieldsParsed.success) {
     throw new Error("Error parsing fields" + fieldsParsed.error);
   }
@@ -37,10 +40,9 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
   const parsedFields =
     (withDeletedFields ? fieldsParsed.data : fieldsParsed.data?.filter((f) => !f.deleted)) || [];
   const parsedRoutes = routesParsed.data;
-
   const fields = parsedFields as NonNullable<z.infer<typeof zodFieldsView>>;
 
-  logger.silly("Parsed Form Fields", parsedFields);
+  log.silly("Parsed Form Fields", JSON.stringify(parsedFields));
 
   const routes: z.infer<typeof zodRoutesView> = [];
 
@@ -88,7 +90,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
           // Happens when the form is created and not saved.
           // Once the form is saved the link b/w Global Router field and Form is saved in the form, so that it can now be reordered
           if (!fieldsExistInForm[field.id]) {
-            throw new Error("This case should never happen. Remove the code");
+            // throw new Error("This case should never happen. Remove the code");
             // const newField = {
             //   ...field,
             //   globalRouterId: parsedRouter.id,
@@ -102,10 +104,10 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
             //   },
             //   ...newField,
             // });
-
-            // logger.silly("Added  field from other Form:", newField);
+            // log.silly("Added  field from other Form:", newField);
           } else {
             const currentFormField = fields.find((f) => f.id === field.id);
+            log.silly("Trying to enriching Form Field", currentFormField);
             if (!currentFormField || !("globalRouterId" in currentFormField)) {
               return;
             }
@@ -115,6 +117,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
               name: router.name,
               description: router.description || "",
             };
+            log.silly("Enriched Form Field", currentFormField, fields);
           }
         });
       } else {
@@ -128,12 +131,14 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
     name: f.name,
     description: f.description,
   }));
+  // const finalFields = fields.map((f) => (f.globalRouterField ? f.globalRouterField : f));
+  const finalFields = fields;
 
   // Ideally we should't have needed to explicitly type it but due to some reason it's not working reliably with VSCode TypeCheck
   const serializableForm: SerializableForm<TForm> = {
     ...form,
     settings,
-    fields: fields.map((f) => (f.globalRouterField ? f.globalRouterField : f)),
+    fields: finalFields,
     routes,
     usingForms,
     usedByForms,

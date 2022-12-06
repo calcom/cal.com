@@ -123,7 +123,7 @@ function Field({
               placeholder="This is what your users would see"
               /**
                * This is a bit of a hack to make sure that for globalRouterField, label is shown from there.
-               * For other fields, value property because it exists would take precedence
+               * For other fields, value property is used because it exists and would take precedence
                */
               defaultValue={globalRouterField?.label}
               required
