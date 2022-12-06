@@ -630,7 +630,22 @@ export const eventTypesRouter = router({
     if (!eventType) {
       throw new TRPCError({ code: "NOT_FOUND" });
     }
+
     // Validate user is owner of event type or in the team
+    if (eventType.userId !== ctx.user.id) {
+      if (eventType.teamId) {
+        const isMember = await ctx.prisma.membership.findFirst({
+          where: {
+            userId: ctx.user.id,
+            teamId: eventType.teamId,
+          },
+        });
+        if (!isMember) {
+          throw new TRPCError({ code: "FORBIDDEN" });
+        }
+      }
+      throw new TRPCError({ code: "FORBIDDEN" });
+    }
 
     const {
       customInputs,
