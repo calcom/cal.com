@@ -42,7 +42,11 @@ import { checkBookingLimits, getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { userSelect } from "@calcom/prisma";
-import { EventTypeMetaDataSchema, extendedBookingCreateBody } from "@calcom/prisma/zod-utils";
+import {
+  customInputSchema,
+  EventTypeMetaDataSchema,
+  extendedBookingCreateBody,
+} from "@calcom/prisma/zod-utils";
 import type { BufferedBusyTime } from "@calcom/types/BufferedBusyTime";
 import type { AdditionalInformation, AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
@@ -203,6 +207,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
     ...eventType,
     metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
+    customInputs: customInputSchema.array().parse(eventType.customInputs),
     locations: (eventType.locations ?? []) as LocationObject[],
   };
 };
@@ -310,7 +315,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   const stripeAppData = getStripeAppData(eventType);
 
   // Check if required custom inputs exist
-  handleCustomInputs(eventType.customInputs, reqBody.customInputs);
+  handleCustomInputs(eventType.customInputs as EventTypeCustomInput[], reqBody.customInputs);
 
   let timeOutOfBounds = false;
   try {
@@ -475,6 +480,14 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   const additionalNotes = reqBody.notes;
 
+  let requiresConfirmation = eventType?.requiresConfirmation;
+  const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
+  if (rcThreshold) {
+    if (dayjs(dayjs(reqBody.start).utc().format()).diff(dayjs(), rcThreshold.unit) > rcThreshold.time) {
+      requiresConfirmation = false;
+    }
+  }
+
   let evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
@@ -494,7 +507,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || organizerUser.destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
-    requiresConfirmation: eventType.requiresConfirmation ?? false,
+    requiresConfirmation: requiresConfirmation ?? false,
     eventTypeId: eventType.id,
     seatsShowAttendees: !!eventType.seatsShowAttendees,
   };
@@ -514,16 +527,9 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         id: true,
         attendees: true,
         userId: true,
-        references: {
-          select: {
-            type: true,
-            uid: true,
-            meetingId: true,
-            meetingPassword: true,
-            meetingUrl: true,
-            externalCalendarId: true,
-          },
-        },
+        references: true,
+        startTime: true,
+        user: true,
       },
     });
     if (!booking) {
@@ -573,6 +579,20 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     const credentials = await refreshCredentials(organizerUser.credentials);
     const eventManager = new EventManager({ ...organizerUser, credentials });
     await eventManager.updateCalendarAttendees(evt, booking);
+
+    if (!Number.isNaN(stripeAppData.price) && stripeAppData.price > 0 && !!booking) {
+      const [firstStripeCredential] = organizerUser.credentials.filter(
+        (cred) => cred.type == "stripe_payment"
+      );
+
+      if (!firstStripeCredential)
+        throw new HttpError({ statusCode: 400, message: "Missing payment credentials" });
+
+      const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
+
+      req.statusCode = 201;
+      return { ...booking, message: "Payment required", paymentUid: payment.uid };
+    }
 
     req.statusCode = 201;
     return booking;
@@ -639,8 +659,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   // Otherwise, an owner rescheduling should be always accepted.
   // Before comparing make sure that userId is set, otherwise undefined === undefined
   const userReschedulingIsOwner = userId && originalRescheduledBooking?.user?.id === userId;
-  const isConfirmedByDefault =
-    (!eventType.requiresConfirmation && !stripeAppData.price) || userReschedulingIsOwner;
+  const isConfirmedByDefault = (!requiresConfirmation && !stripeAppData.price) || userReschedulingIsOwner;
 
   async function createBooking() {
     if (originalRescheduledBooking) {
@@ -863,7 +882,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
-  } else if (!eventType.requiresConfirmation && !stripeAppData.price) {
+  } else if (!requiresConfirmation && !stripeAppData.price) {
     // Use EventManager to conditionally use all needed integrations.
     const createManager = await eventManager.create(evt);
 
@@ -969,7 +988,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       const eventTypeInfo: EventTypeInfo = {
         eventTitle: eventType.title,
         eventDescription: eventType.description,
-        requiresConfirmation: eventType.requiresConfirmation || null,
+        requiresConfirmation: requiresConfirmation || null,
         price: stripeAppData.price,
         currency: eventType.currency,
         length: eventType.length,
@@ -984,6 +1003,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           metadata: reqBody.metadata,
           eventTypeId,
           status: "ACCEPTED",
+          smsReminderNumber: booking?.smsReminderNumber || undefined,
         }).catch((e) => {
           console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${sub.subscriberUrl}`, e);
         })

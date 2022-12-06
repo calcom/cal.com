@@ -9,7 +9,9 @@ import {
   useMatches,
 } from "kbar";
 import { useRouter } from "next/router";
+import { useMemo } from "react";
 
+import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 
@@ -19,11 +21,25 @@ type shortcutArrayType = {
   shortcuts?: string[];
 };
 
+const getApps = Object.values(appStoreMetadata).map(({ name, slug }) => ({
+  id: slug,
+  name,
+  section: "Installable Apps",
+  keywords: `app ${name}`,
+}));
+
 export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
 
   // grab link to events
   // quick nested actions would be extremely useful
+
+  const appStoreActions = useMemo(
+    () => getApps.map((item) => ({ ...item, perform: () => router.push(`/apps/${item.id}`) })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
   const actions = [
     // {
     //   id: "toggle-idle",
@@ -120,7 +136,7 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       section: "Profile Settings",
       shortcut: ["c", "t"],
       keywords: "change modify timezone",
-      perform: () => router.push("/settings/profile"),
+      perform: () => router.push("/settings/my-account/general"),
     },
     {
       id: "brand-color",
@@ -128,7 +144,7 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       section: "Profile Settings",
       shortcut: ["b", "c"],
       keywords: "change modify brand color",
-      perform: () => router.push("/settings/profile"),
+      perform: () => router.push("/settings/my-account/appearance"),
     },
     {
       id: "teams",
@@ -185,6 +201,7 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       keywords: "billing view manage",
       perform: () => router.push("/settings/billing"),
     },
+    ...appStoreActions,
   ];
 
   return <KBarProvider actions={actions}>{children}</KBarProvider>;
@@ -199,7 +216,10 @@ export const KBarContent = () => {
         <KBarAnimator className="z-10 w-full max-w-screen-sm overflow-hidden rounded-md bg-white shadow-lg">
           <div className="flex items-center justify-center border-b">
             <Icon.FiSearch className="mx-3 h-4 w-4 text-gray-500" />
-            <KBarSearch className="w-full rounded-sm py-2.5 focus-visible:outline-none" />
+            <KBarSearch
+              defaultPlaceholder={t("kbar_search_placeholder")}
+              className="w-full rounded-sm py-2.5 focus-visible:outline-none"
+            />
           </div>
           <RenderResults />
           <div className="hidden items-center space-x-1 border-t px-2 py-1.5 text-xs text-gray-500 sm:flex">

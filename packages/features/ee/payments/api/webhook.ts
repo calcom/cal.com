@@ -65,7 +65,10 @@ async function handlePaymentSuccess(event: Stripe.Event) {
 
   if (!booking) throw new HttpCode({ statusCode: 204, message: "No booking found" });
 
-  const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({ recurringEvent: true });
+  const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+    recurringEvent: true,
+    requiresConfirmation: true,
+  });
   const eventTypeData = Prisma.validator<Prisma.EventTypeArgs>()({ select: eventTypeSelect });
   type EventTypeRaw = Prisma.EventTypeGetPayload<typeof eventTypeData>;
   let eventTypeRaw: EventTypeRaw | null = null;
@@ -128,6 +131,10 @@ async function handlePaymentSuccess(event: Stripe.Event) {
     const eventManager = new EventManager(user);
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };
+  }
+
+  if (eventTypeRaw?.requiresConfirmation) {
+    delete bookingData.status;
   }
 
   const paymentUpdate = prisma.payment.update({

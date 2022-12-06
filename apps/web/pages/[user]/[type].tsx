@@ -224,7 +224,7 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
 
   const locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
   const eventTypeObject = Object.assign({}, eventType, {
-    metadata: (eventType.metadata || {}) as JSONObject,
+    metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
     locations: privacyFilteredLocations(locations),
     users: users.map((user) => {

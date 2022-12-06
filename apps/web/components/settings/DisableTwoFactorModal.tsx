@@ -72,11 +72,7 @@ const DisableTwoFactorAuthModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        title={t("disable_2fa")}
-        description={t("disable_2fa_recommendation")}
-        type="creation"
-        useOwnActionButtons>
+      <DialogContent title={t("disable_2fa")} description={t("disable_2fa_recommendation")} type="creation">
         <Form form={form} handleSubmit={handleDisable}>
           <div className="mb-4">
             <PasswordField
