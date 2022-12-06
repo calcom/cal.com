@@ -13,7 +13,6 @@ const getEnabledApps = async (userCredentials: CredentialData[]) => {
       reducedArray.push({ ...appMetadata, enabled: app.enabled });
     }
     return reducedArray;
-    // return { ...appMetadata, enabled: app.enabled };
   }, [] as (ReturnType<typeof getApps>[number] & { enabled: boolean })[]);
 
   return filteredApps;

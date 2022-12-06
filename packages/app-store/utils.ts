@@ -3,7 +3,6 @@ import { TFunction } from "next-i18next";
 import { z } from "zod";
 
 import { defaultLocations, EventLocationType } from "@calcom/app-store/locations";
-import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import { EventTypeModel } from "@calcom/prisma/zod";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { App, AppMeta } from "@calcom/types/App";
