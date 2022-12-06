@@ -1,4 +1,4 @@
-import { EventTypeCustomInput, MembershipRole, PeriodType, Prisma } from "@prisma/client";
+import { MembershipRole, PeriodType, Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 // REVIEW: From lint error
 import _ from "lodash";
@@ -10,7 +10,7 @@ import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import { validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
-import { _DestinationCalendarModel, _EventTypeCustomInputModel, _EventTypeModel } from "@calcom/prisma/zod";
+import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import {
   customInputSchema,
   EventTypeMetaDataSchema,
@@ -98,6 +98,14 @@ const EventTypeUpdateInput = _EventTypeModel
         id: true,
       })
   );
+
+const EventTypeDuplicateInput = z.object({
+  id: z.number(),
+  slug: z.string(),
+  title: z.string(),
+  description: z.string(),
+  length: z.number(),
+});
 
 const eventOwnerProcedure = authedProcedure.use(async ({ ctx, rawInput, next }) => {
   // Prevent non-owners to update/delete a team event
@@ -603,4 +611,78 @@ export const eventTypesRouter = router({
         id,
       };
     }),
+  duplicate: eventOwnerProcedure.input(EventTypeDuplicateInput.strict()).mutation(async ({ ctx, input }) => {
+    const { id: originalEventTypeId, title: newEventTitle, slug: newSlug } = input;
+    const eventType = await ctx.prisma.eventType.findUnique({
+      where: {
+        id: originalEventTypeId,
+      },
+      include: {
+        customInputs: true,
+        schedule: true,
+        users: true,
+        team: true,
+        workflows: true,
+        webhooks: true,
+      },
+    });
+
+    if (!eventType) {
+      throw new TRPCError({ code: "NOT_FOUND" });
+    }
+    // Validate user is owner of event type or in the team
+
+    const {
+      customInputs,
+      users,
+      locations,
+      team,
+      recurringEvent,
+      bookingLimits,
+      metadata,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      workflows: _workflows,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      webhooks: _webhooks,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      schedule: _schedule,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore - not typed correctly as its set on SSR
+      descriptionAsSafeHTML: _descriptionAsSafeHTML,
+      ...rest
+    } = eventType;
+
+    const data: Prisma.EventTypeCreateInput = {
+      ...rest,
+      title: newEventTitle,
+      slug: newSlug,
+      locations: locations ?? undefined,
+      team: team ? { connect: { id: team.id } } : undefined,
+      users: users ? { connect: users.map((user) => ({ id: user.id })) } : undefined,
+      recurringEvent: recurringEvent || undefined,
+      bookingLimits: bookingLimits ?? undefined,
+      metadata: metadata === null ? Prisma.DbNull : metadata,
+    };
+
+    const newEventType = await ctx.prisma.eventType.create({ data });
+
+    // Create custom inputs
+    if (customInputs) {
+      const customInputsData = customInputs.map((customInput) => {
+        const { id: _, options, ...rest } = customInput;
+        return {
+          options: options ?? undefined,
+          ...rest,
+          eventTypeId: newEventType.id,
+        };
+      });
+      await ctx.prisma.eventTypeCustomInput.createMany({
+        data: customInputsData,
+      });
+    }
+
+    return {
+      eventType: newEventType,
+    };
+  }),
 });
