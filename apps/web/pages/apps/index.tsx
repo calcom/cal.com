@@ -1,5 +1,4 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { InferGetStaticPropsType, NextPageContext } from "next";
+import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { ChangeEventHandler, useState } from "react";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
@@ -31,7 +30,10 @@ function AppsSearch({
   );
 }
 
-export default function Apps({ categories, appStore }: InferGetStaticPropsType<typeof getServerSideProps>) {
+export default function Apps({
+  categories,
+  appStore,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const { t } = useLocale();
   const [searchText, setSearchText] = useState<string | undefined>(undefined);
 
@@ -43,8 +45,6 @@ export default function Apps({ categories, appStore }: InferGetStaticPropsType<t
       actions={(className) => (
         <AppsSearch className={className} onChange={(e) => setSearchText(e.target.value)} />
       )}
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore this def exists but Next is saying it's never?
       emptyStore={!appStore.length}>
       {!searchText && (
         <>
@@ -57,7 +57,7 @@ export default function Apps({ categories, appStore }: InferGetStaticPropsType<t
   );
 }
 
-export const getServerSideProps = async (context: NextPageContext) => {
+export const getServerSideProps: GetServerSideProps = async (context) => {
   const ssg = await ssgInit(context);
 
   const session = await getSession(context);
@@ -80,7 +80,6 @@ export const getServerSideProps = async (context: NextPageContext) => {
   }, {} as Record<string, number>);
   return {
     props: {
-      trpcState: ssg.dehydrate(),
       categories: Object.entries(categories)
         .map(([name, count]): { name: AppCategories; count: number } => ({
           name: name as AppCategories,
@@ -90,6 +89,7 @@ export const getServerSideProps = async (context: NextPageContext) => {
           return b.count - a.count;
         }),
       appStore,
+      trpcState: ssg.dehydrate(),
     },
   };
 };
