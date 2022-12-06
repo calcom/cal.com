@@ -101,7 +101,7 @@ test.describe("Event Types tests", () => {
       const params = new URLSearchParams(url);
 
       expect(params.get("title")).toBe(firstTitle);
-      expect(params.get("slug")).toBe(firstSlug);
+      expect(params.get("slug")).toContain(firstSlug);
 
       const formTitle = await page.inputValue("[name=title]");
       const formSlug = await page.inputValue("[name=slug]");
