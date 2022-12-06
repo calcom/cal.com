@@ -26,6 +26,7 @@ import { metadata as office365calendar_meta } from "./office365calendar/_metadat
 import { metadata as office365video_meta } from "./office365video/_metadata";
 import { metadata as ping_meta } from "./ping/_metadata";
 import { metadata as pipedream_meta } from "./pipedream/_metadata";
+import { metadata as plausible_meta } from "./plausible/_metadata";
 import { metadata as qr_code_meta } from "./qr_code/_metadata";
 import { metadata as rainbow_meta } from "./rainbow/_metadata";
 import { metadata as raycast_meta } from "./raycast/_metadata";
@@ -72,6 +73,7 @@ export const appStoreMetadata = {
   office365video: office365video_meta,
   ping: ping_meta,
   pipedream: pipedream_meta,
+  plausible: plausible_meta,
   qr_code: qr_code_meta,
   rainbow: rainbow_meta,
   raycast: raycast_meta,
