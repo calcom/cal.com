@@ -1,4 +1,5 @@
 import { GetServerSidePropsContext } from "next";
+import { useSession } from "next-auth/react";
 import { Controller, useForm } from "react-hook-form";
 
 import { APP_NAME } from "@calcom/lib/constants";
@@ -45,7 +46,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
 
 const AppearanceView = () => {
   const { t } = useLocale();
-
+  const session = useSession();
   const utils = trpc.useContext();
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
 
@@ -184,6 +185,7 @@ const AppearanceView = () => {
               <div className="flex-none">
                 <Switch
                   id="hideBranding"
+                  disabled={!session.data?.user.belongsToActiveTeam}
                   onCheckedChange={(checked) =>
                     formMethods.setValue("hideBranding", checked, { shouldDirty: true })
                   }

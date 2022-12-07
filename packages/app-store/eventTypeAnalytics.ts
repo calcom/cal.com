@@ -21,6 +21,17 @@ export const trackingApps: Partial<
       },
     ],
   },
+  plausible: {
+    scripts: [
+      {
+        src: "https://plausible.io/js/script.js",
+        content: undefined,
+        attrs: {
+          "data-domain": "{TRACKED_DOMAIN}",
+        },
+      },
+    ],
+  },
   ga4: {
     scripts: [
       {

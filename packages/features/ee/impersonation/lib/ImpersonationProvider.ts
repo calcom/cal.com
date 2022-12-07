@@ -6,12 +6,13 @@ import { z } from "zod";
 import prisma from "@calcom/prisma";
 
 const teamIdschema = z.object({
-  teamId: z.number(),
+  teamId: z.preprocess((a) => parseInt(z.string().parse(a), 10), z.number().positive()),
 });
 
 const auditAndReturnNextUser = async (
   impersonatedUser: Pick<User, "id" | "username" | "email" | "name" | "role">,
-  impersonatedByUID: number
+  impersonatedByUID: number,
+  hasTeam?: boolean
 ) => {
   // Log impersonations for audit purposes
   await prisma.impersonations.create({
@@ -36,6 +37,7 @@ const auditAndReturnNextUser = async (
     name: impersonatedUser.name,
     role: impersonatedUser.role,
     impersonatedByUID,
+    belongsToActiveTeam: hasTeam,
   };
 
   return obj;
@@ -54,7 +56,7 @@ const ImpersonationProvider = CredentialsProvider({
     // @ts-ignore need to figure out how to correctly type this
     const session = await getSession({ req });
     // If teamId is present -> parse the teamId and throw error itn ot number. If not present teamId is set to undefined
-    const teamId = creds?.teamId ? teamIdschema.parse(creds).teamId : undefined;
+    const teamId = creds?.teamId ? teamIdschema.parse({ teamId: creds.teamId }).teamId : undefined;
 
     if (session?.user.username === creds?.username) {
       throw new Error("You cannot impersonate yourself.");
@@ -103,7 +105,11 @@ const ImpersonationProvider = CredentialsProvider({
       if (impersonatedUser.disableImpersonation) {
         throw new Error("This user has disabled Impersonation.");
       }
-      return auditAndReturnNextUser(impersonatedUser, session?.user.id as number);
+      return auditAndReturnNextUser(
+        impersonatedUser,
+        session?.user.id as number,
+        impersonatedUser.teams.length > 0 // If the user has any teams, they belong to an active team and we can set the hasActiveTeam ctx to true
+      );
     }
 
     if (!teamId) throw new Error("You do not have permission to do this.");
@@ -137,7 +143,11 @@ const ImpersonationProvider = CredentialsProvider({
       throw new Error("You do not have permission to do this.");
     }
 
-    return auditAndReturnNextUser(impersonatedUser, session?.user.id as number);
+    return auditAndReturnNextUser(
+      impersonatedUser,
+      session?.user.id as number,
+      impersonatedUser.teams.length > 0 // If the user has any teams, they belong to an active team and we can set the hasActiveTeam ctx to true
+    );
   },
 });
 

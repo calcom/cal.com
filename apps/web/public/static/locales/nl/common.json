@@ -1108,6 +1108,7 @@
   "incorrect_2fa": "Onjuiste tweestapsverificatiecode",
   "which_event_type_apply": "Op welk type gebeurtenis is dit van toepassing?",
   "no_workflows_description": "Werkstromen maken eenvoudige automatisering van het versturen van meldingen en herinneringen mogelijk, zodat u processen rond uw gebeurtenissen kunt opbouwen.",
+  "timeformat_profile_hint": "Dit is een interne instelling en heeft geen invloed op hoe de tijden worden weergegeven op de openbare boekingspagina's voor u of voor iemand die u boekt.",
   "create_workflow": "Maak een werkstroom",
   "do_this": "Doe dit",
   "turn_off": "Uitschakelen",

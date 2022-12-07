@@ -23,6 +23,7 @@ import {
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
+  showToast,
 } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -69,6 +70,12 @@ const CalendarsView = () => {
     async onSettled() {
       await utils.viewer.connectedCalendars.invalidate();
     },
+    onSuccess: async () => {
+      showToast(t("calendar_updated_successfully"), "success");
+    },
+    onError: () => {
+      showToast(t("unexpected_error_try_again"), "error");
+    },
   });
 
   return (
@@ -109,7 +116,7 @@ const CalendarsView = () => {
                 {t("check_for_conflicts")}
               </h4>
               <p className="pb-2 text-sm leading-5 text-gray-600">{t("select_calendars")}</p>
-              <List>
+              <List className="flex flex-col gap-6" noBorderTreatment>
                 {data.connectedCalendars.map((item) => (
                   <Fragment key={item.credentialId}>
                     {item.error && item.error.message && (
@@ -136,7 +143,7 @@ const CalendarsView = () => {
                       />
                     )}
                     {item?.error === undefined && item.calendars && (
-                      <ListItem className="flex-col">
+                      <ListItem className="flex-col rounded-md">
                         <div className="flex w-full flex-1 items-center space-x-3 p-4 rtl:space-x-reverse">
                           {
                             // eslint-disable-next-line @next/next/no-img-element
@@ -163,7 +170,7 @@ const CalendarsView = () => {
                             <DisconnectIntegration
                               trashIcon
                               credentialId={item.credentialId}
-                              buttonProps={{ size: "icon", color: "secondary" }}
+                              buttonProps={{ className: "border border-gray-300" }}
                             />
                           </div>
                         </div>
@@ -171,7 +178,7 @@ const CalendarsView = () => {
                           <p className="px-2 pt-4 text-sm text-neutral-500">
                             {t("toggle_calendars_conflict")}
                           </p>
-                          <ul className="space-y-2 px-2 pt-4">
+                          <ul className="space-y-2 p-4">
                             {item.calendars.map((cal) => (
                               <CalendarSwitch
                                 key={cal.externalId}

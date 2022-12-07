@@ -9,7 +9,9 @@ import {
   useMatches,
 } from "kbar";
 import { useRouter } from "next/router";
+import { useMemo } from "react";
 
+import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 
@@ -19,11 +21,25 @@ type shortcutArrayType = {
   shortcuts?: string[];
 };
 
+const getApps = Object.values(appStoreMetadata).map(({ name, slug }) => ({
+  id: slug,
+  name,
+  section: "Installable Apps",
+  keywords: `app ${name}`,
+}));
+
 export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
 
   // grab link to events
   // quick nested actions would be extremely useful
+
+  const appStoreActions = useMemo(
+    () => getApps.map((item) => ({ ...item, perform: () => router.push(`/apps/${item.id}`) })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
   const actions = [
     // {
     //   id: "toggle-idle",
@@ -185,6 +201,7 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       keywords: "billing view manage",
       perform: () => router.push("/settings/billing"),
     },
+    ...appStoreActions,
   ];
 
   return <KBarProvider actions={actions}>{children}</KBarProvider>;
