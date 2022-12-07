@@ -85,6 +85,12 @@
     "type": "fathom_analytics"
   },
   {
+    "dirName": "plausible",
+    "categories": ["analytics"],
+    "slug": "plausible",
+    "type": "plausible_analytics"
+  },
+  {
     "dirName": "wordpress",
     "categories": ["other"],
     "slug": "wordpress",
