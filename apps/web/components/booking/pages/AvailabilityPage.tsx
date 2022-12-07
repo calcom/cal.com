@@ -1,7 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventType } from "@prisma/client";
 import * as Popover from "@radix-ui/react-popover";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useReducer, useEffect, useMemo, useState } from "react";
 import { Toaster } from "react-hot-toast";
