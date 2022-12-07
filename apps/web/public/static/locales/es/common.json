@@ -1108,6 +1108,7 @@
   "incorrect_2fa": "Código de autenticación de dos factores incorrecto",
   "which_event_type_apply": "¿A qué tipo de evento se aplicará esto?",
   "no_workflows_description": "Los flujos de trabajo permiten una automatización simple para enviar notificaciones y recordatorios que le permiten crear procesos para sus eventos.",
+  "timeformat_profile_hint": "Esta es una configuración interna y no afectará la manera en que se muestran los horarios en las páginas de reservas públicas para usted o para cualquier persona que lo solicite.",
   "create_workflow": "Crear un flujo de trabajo",
   "do_this": "Hacer esto",
   "turn_off": "Apagar",

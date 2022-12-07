@@ -1108,6 +1108,7 @@
   "incorrect_2fa": "两步验证代码不正确",
   "which_event_type_apply": "这将适用于哪种活动类型？",
   "no_workflows_description": "工作流程可实现简单的自动化来发送通知和提醒，让您可以围绕活动构建流程。",
+  "timeformat_profile_hint": "这是一项内部设置，不会影响公开预约页面上向您或向预约您的任何人显示时间的方式。",
   "create_workflow": "创建工作流程",
   "do_this": "执行此操作",
   "turn_off": "关闭",
