@@ -251,7 +251,6 @@ export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicA
 const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const router = useRouter();
   const isEmbed = useIsEmbed(restProps.isEmbed);
-  const session = useSession();
   const query = dateQuerySchema.parse(router.query);
   const { rescheduleUid } = query;
   useTheme(profile.theme);
