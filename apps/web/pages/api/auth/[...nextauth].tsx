@@ -122,7 +122,7 @@ const providers: Provider[] = [
         intervalInMs: 60 * 1000, // 1 minute
       });
       await limiter.check(10, user.email); // 10 requests per minute
-
+// Check if the user you are logging into has any active teams
       const hasActiveTeams =
         user.teams.filter((m) => {
           const metadata = teamMetadataSchema.safeParse(m.team.metadata);
