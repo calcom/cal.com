@@ -8,6 +8,7 @@ import ethRouter from "@calcom/app-store/rainbow/trpc/router";
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
 import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
 import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
+import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
 import getApps, { getLocationGroupedOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
@@ -515,19 +516,22 @@ const loggedInViewerRouter = router({
     }
 
     const metadata = userMetadata.parse(user.metadata);
-    const checkoutSessionId = metadata?.checkoutSessionId;
-    //TODO: Rename checkoutSessionId to premiumUsernameCheckoutSessionId
-    if (!checkoutSessionId) return { isPremium: false };
 
-    const { stripeCustomer, checkoutSession } = await getCustomerAndCheckoutSession(checkoutSessionId);
-    if (!stripeCustomer) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "Stripe User not found" });
+    if (!metadata?.stripeCustomerId) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "No stripe customer id" });
+    }
+    // Fetch stripe customer
+    const stripeCustomerId = metadata?.stripeCustomerId;
+    const customer = await stripe.customers.retrieve(stripeCustomerId);
+    if (customer.deleted) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "No stripe customer found" });
     }
 
+    const username = customer?.metadata?.username || null;
+
     return {
-      isPremium: true,
-      paidForPremium: checkoutSession.payment_status === "paid",
-      username: stripeCustomer.metadata.username,
+      isPremium: !!metadata?.isPremium,
+      username,
     };
   }),
   updateProfile: authedProcedure
@@ -582,23 +586,35 @@ const loggedInViewerRouter = router({
         throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
       }
       const metadata = userMetadata.parse(userToUpdate.metadata);
-      // Checking the status of payment directly from stripe allows to avoid the situation where the user has got the refund or maybe something else happened asyncly at stripe but our DB thinks it's still paid for
-      // TODO: Test the case where one time payment is refunded.
-      const premiumUsernameCheckoutSessionId = metadata?.checkoutSessionId;
+
+      const isPremium = metadata?.isPremium;
       if (isPremiumUsername) {
-        // You can't have premium username without every going to a checkout session
-        if (!premiumUsernameCheckoutSessionId) {
+        const stripeCustomerId = metadata?.stripeCustomerId;
+        if (!isPremium || !stripeCustomerId) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "User is not premium" });
+        }
+
+        const stripeSubscriptions = await stripe.subscriptions.list({ customer: stripeCustomerId });
+
+        if (!stripeSubscriptions || !stripeSubscriptions.data.length) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "No stripeSubscription found",
+          });
+        }
+
+        // Iterate over subscriptions and look for premium product id and status active
+        // @TODO: iterate if stripeSubscriptions.hasMore is true
+        const isPremiumUsernameSubscriptionActive = stripeSubscriptions.data.some(
+          (subscription) =>
+            subscription.items.data[0].price.product === getPremiumPlanProductId() &&
+            subscription.status === "active"
+        );
+
+        if (!isPremiumUsernameSubscriptionActive) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "You need to pay for premium username",
-          });
-        }
-        const checkoutSession = await stripe.checkout.sessions.retrieve(premiumUsernameCheckoutSessionId);
-        const canUserHavePremiumUsername = checkoutSession.payment_status == "paid";
-        if (!canUserHavePremiumUsername) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Your last checkout session for premium username is not paid",
           });
         }
       }

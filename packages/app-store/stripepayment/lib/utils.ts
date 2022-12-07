@@ -1,46 +1,22 @@
+// @NOTE: should we remove this? It's just a wrapper of env vars
 import {
-  FREE_PLAN_PRICE,
-  FREE_PLAN_PRODUCT_ID,
-  PREMIUM_PLAN_PRICE,
   PREMIUM_PLAN_PRODUCT_ID,
-  PRO_PLAN_PRICE,
-  PREMIUM_NEW_PLAN_PRICE,
-  IS_PREMIUM_NEW_PLAN,
-  PRO_PLAN_PRODUCT_ID,
+  STRIPE_TEAM_MONTHLY_PRICE_ID,
+  PREMIUM_MONTHLY_PLAN_PRICE,
 } from "./constants";
 
-export function getPremiumPlanMode() {
-  return IS_PREMIUM_NEW_PLAN ? "payment" : "subscription";
-}
-
-export function getPremiumPlanPriceValue() {
-  return IS_PREMIUM_NEW_PLAN ? "$499" : "$29/mo";
-}
-
-export function getPremiumPlanPrice(): string {
-  return IS_PREMIUM_NEW_PLAN ? PREMIUM_NEW_PLAN_PRICE : PREMIUM_PLAN_PRICE;
-}
-
-export function getPerSeatProPlanPrice(): string {
-  return PRO_PLAN_PRICE;
-}
-
-export function getProPlanPrice(): string {
-  return PRO_PLAN_PRICE;
-}
-
-export function getFreePlanPrice(): string {
-  return FREE_PLAN_PRICE;
-}
-
-export function getProPlanProductId(): string {
-  return PRO_PLAN_PRODUCT_ID;
-}
+export const getPremiumMonthlyPlanPriceId = (): string => {
+  return PREMIUM_MONTHLY_PLAN_PRICE;
+};
 
 export function getPremiumPlanProductId(): string {
   return PREMIUM_PLAN_PRODUCT_ID;
 }
 
-export function getFreePlanProductId(): string {
-  return FREE_PLAN_PRODUCT_ID;
+export function getPerSeatPlanPrice(): string {
+  return STRIPE_TEAM_MONTHLY_PRICE_ID;
+}
+
+export function getPremiumPlanPriceValue() {
+  return "$29/mo";
 }

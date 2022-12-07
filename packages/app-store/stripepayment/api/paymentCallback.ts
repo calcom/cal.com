@@ -5,6 +5,7 @@ import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/l
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import { prisma } from "@calcom/prisma";
+import { Prisma } from "@calcom/prisma/client";
 
 const querySchema = z.object({
   callbackUrl: z.string().transform((url) => {
@@ -16,22 +17,46 @@ const querySchema = z.object({
   checkoutSessionId: z.string(),
 });
 
-// It handles premium user payment success/failure. Can be modified to handle other PRO upgrade payment as well.
+// It handles premium user payment success/failure
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const { callbackUrl, checkoutSessionId } = querySchema.parse(req.query);
   const { stripeCustomer, checkoutSession } = await getCustomerAndCheckoutSession(checkoutSessionId);
 
   if (!stripeCustomer) return { message: "Stripe customer not found or deleted" };
 
-  if (checkoutSession.payment_status === "paid") {
-    console.log("Found payment ");
+  // first let's try to find user by metadata stripeCustomerId
+  let user = await prisma.user.findFirst({
+    where: {
+      metadata: {
+        path: ["stripeCustomerId"],
+        equals: stripeCustomer.id,
+      },
+    },
+  });
+
+  if (!user && stripeCustomer.email) {
+    // if user not found, let's try to find user by email
+    user = await prisma.user.findFirst({
+      where: {
+        email: stripeCustomer.email,
+      },
+    });
+  }
+
+  if (checkoutSession.payment_status === "paid" && stripeCustomer.metadata.username) {
     try {
+      if (!user) return { message: "User not found" };
+
       await prisma.user.update({
         data: {
           username: stripeCustomer.metadata.username,
+          metadata: {
+            ...(user.metadata as Prisma.JsonObject),
+            isPremium: true,
+          },
         },
         where: {
-          email: stripeCustomer.metadata.email,
+          id: user.id,
         },
       });
     } catch (error) {
