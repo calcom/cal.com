@@ -45,6 +45,24 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
     },
   });
 
+  const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
+    onSuccess: async ({ schedule }) => {
+      await utils.viewer.availability.list.invalidate();
+      showToast(
+        t("availability_updated_successfully", {
+          scheduleName: schedule.name,
+        }),
+        "success"
+      );
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+      }
+    },
+  });
+
   // Adds smooth delete button - item fades and old item slides into place
 
   const [animationParentRef] = useAutoAnimate<HTMLUListElement>();
@@ -71,6 +89,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
                 }}
                 key={schedule.id}
                 schedule={schedule}
+                updateDefault={updateMutation.mutate}
                 deleteFunction={deleteMutation.mutate}
               />
             ))}
