@@ -1,6 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventType } from "@prisma/client";
 import * as Popover from "@radix-ui/react-popover";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useReducer, useEffect, useMemo, useState } from "react";
 import { Toaster } from "react-hot-toast";
@@ -251,6 +252,7 @@ export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicA
 const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const router = useRouter();
   const isEmbed = useIsEmbed(restProps.isEmbed);
+  const session = useSession();
   const query = dateQuerySchema.parse(router.query);
   const { rescheduleUid } = query;
   useTheme(profile.theme);
@@ -315,6 +317,18 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
       ? ("rainbow" as Gate)
       : undefined,
   ];
+
+  const showBranding = () => {
+    if (restProps.isBrandingHidden.type == "TEAM") {
+      return !restProps.isBrandingHidden.value;
+    } else if (restProps.isBrandingHidden.type == "USER") {
+      return !isBrandingHidden(
+        restProps.isBrandingHidden.value,
+        session.data?.user.belongsToActiveTeam || false
+      );
+    }
+    return true;
+  };
 
   return (
     <Gates gates={gates} appData={rainbowAppData} dispatch={gateDispatcher}>
@@ -442,7 +456,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                 />
               </div>
             </div>
-            {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && !isEmbed && <PoweredByCal />}
+            {(showBranding() || isEmbed) && <PoweredByCal />}
           </div>
         </main>
       </div>

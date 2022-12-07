@@ -43,7 +43,6 @@ const SkeletonLoader = () => {
 const AppearanceView = () => {
   const { t } = useLocale();
   const session = useSession();
-  console.log({ session });
   const utils = trpc.useContext();
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
 
@@ -182,6 +181,7 @@ const AppearanceView = () => {
               <div className="flex-none">
                 <Switch
                   id="hideBranding"
+                  disabled={!session.data?.user.belongsToActiveTeam}
                   onCheckedChange={(checked) =>
                     formMethods.setValue("hideBranding", checked, { shouldDirty: true })
                   }

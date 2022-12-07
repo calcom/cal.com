@@ -167,6 +167,10 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       away: user?.away,
       isDynamic: false,
       trpcState: ssg.dehydrate(),
+      isBrandingHidden: {
+        type: "USER",
+        value: user.hideBranding,
+      },
     },
     revalidate: 10, // seconds
   };
@@ -262,6 +266,10 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
       isDynamic: true,
       away: false,
       trpcState: ssg.dehydrate(),
+      isBrandingHidden: {
+        type: "DYNAMIC",
+        value: users[0].hideBranding,
+      },
     },
     revalidate: 10, // seconds
   };

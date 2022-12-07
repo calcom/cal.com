@@ -43,6 +43,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       name: true,
       slug: true,
       logo: true,
+      hideBranding: true,
       eventTypes: {
         where: {
           slug: typeParam,
@@ -160,6 +161,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       previousPage: context.req.headers.referer ?? null,
       booking,
       trpcState: ssg.dehydrate(),
+      isBrandingHidden: {
+        type: "TEAM",
+        value: team.hideBranding,
+      },
     },
   };
 };
