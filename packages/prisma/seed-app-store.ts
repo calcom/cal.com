@@ -158,8 +158,8 @@ async function createApp(
 ) {
   await prisma.app.upsert({
     where: { slug },
-    create: { slug, dirName, categories, keys },
-    update: { dirName, categories, keys },
+    create: { slug, dirName, categories, keys, enabled: true },
+    update: { dirName, categories, keys, enabled: true },
   });
   await prisma.credential.updateMany({
     where: { type },

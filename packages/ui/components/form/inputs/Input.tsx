@@ -1,5 +1,5 @@
 import React, { forwardRef, ReactElement, ReactNode, Ref, useCallback, useId, useState } from "react";
-import { Eye, EyeOff } from "react-feather";
+import { Edit2, Eye, EyeOff } from "react-feather";
 import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn } from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
@@ -96,6 +96,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     hintErrors,
     labelSrOnly,
     containerClassName,
+    readOnly,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     t: __t,
     ...passThrough
@@ -142,6 +143,8 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               type === "search" && "pr-8",
               "!my-0 !ring-0"
             )}
+            {...passThrough}
+            readOnly={readOnly}
             ref={ref}
           />
           {addOnSuffix && (

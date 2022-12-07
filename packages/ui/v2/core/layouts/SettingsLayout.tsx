@@ -73,7 +73,7 @@ const tabs: VerticalTabItemProps[] = [
     children: [
       //
       { name: "impersonation", href: "/settings/admin/impersonation" },
-      { name: "apps", href: "/settings/admin/apps" },
+      { name: "apps", href: "/settings/admin/apps/calendar" },
       { name: "users", href: "/settings/admin/users" },
     ],
   },
@@ -141,7 +141,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
           return tab.name !== "teams" ? (
             <React.Fragment key={tab.href}>
               <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
-                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
+                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 text-sm font-medium leading-none text-gray-600 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
                   {tab && tab.icon && (
                     <tab.icon className="mr-[12px] h-[16px] w-[16px] stroke-[2px] md:mt-0" />
                   )}

@@ -26,7 +26,7 @@ export default function AppCard({
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
   return (
-    <div className="mb-4 mt-2 rounded-md border border-gray-200">
+    <div className={`mb-4 mt-2 rounded-md border border-gray-200 ${!app.enabled && "grayscale"}`}>
       <div className="p-4 text-sm sm:p-8">
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-0">
           {/* Don't know why but w-[42px] isn't working, started happening when I started using next/dynamic */}
@@ -44,6 +44,7 @@ export default function AppCard({
           {app?.isInstalled ? (
             <div className="ml-auto flex items-center">
               <Switch
+                disabled={!app.enabled}
                 onCheckedChange={(enabled) => {
                   if (switchOnClick) {
                     switchOnClick(enabled);
@@ -54,7 +55,7 @@ export default function AppCard({
               />
             </div>
           ) : (
-            <OmniInstallAppButton className="ml-auto flex items-center" appId={app?.slug} />
+            <OmniInstallAppButton className="ml-auto flex items-center" appId={app.slug} />
           )}
         </div>
       </div>
