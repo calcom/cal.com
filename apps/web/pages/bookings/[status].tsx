@@ -5,9 +5,10 @@ import { Fragment } from "react";
 import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
+import BookingLayout from "@calcom/features/bookings/layout/BookingLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterInputs, RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Alert, BookingLayout, Button, EmptyScreen, Icon } from "@calcom/ui";
+import { Alert, Button, EmptyScreen, Icon } from "@calcom/ui";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
@@ -163,7 +164,7 @@ export default function Bookings() {
           </>
         )}
         {query.status === "success" && isEmpty && (
-          <div className="flex items-center justify-center pt-2 xl:mx-6 xl:pt-0">
+          <div className="flex items-center justify-center pt-2 xl:pt-0">
             <EmptyScreen
               Icon={Icon.FiCalendar}
               headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}

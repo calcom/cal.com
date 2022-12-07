@@ -24,6 +24,7 @@ export {
   TextAreaField,
   TextField,
   TopBanner,
+  AnimatedPopover,
 } from "./components";
 export type { AvatarProps, BadgeProps, ButtonBaseProps, ButtonProps, TopBannerProps } from "./components";
 export { default as CheckboxField } from "./components/form/checkbox/Checkbox";
@@ -97,7 +98,6 @@ export { ToggleGroup } from "./v2/core/form/ToggleGroup";
 export { default as ImageUploader } from "./v2/core/ImageUploader";
 export { default as AdminLayout, getLayout as getAdminLayout } from "./v2/core/layouts/AdminLayout";
 export { default as AppsLayout } from "./v2/core/layouts/AppsLayout";
-export { default as BookingLayout } from "./v2/core/layouts/BookingLayout";
 export { default as InstalledAppsLayout } from "./v2/core/layouts/InstalledAppsLayout";
 export { default as SettingsLayout, getLayout as getSettingsLayout } from "./v2/core/layouts/SettingsLayout";
 export { default as WizardLayout, getLayout as getWizardLayout } from "./v2/core/layouts/WizardLayout";
