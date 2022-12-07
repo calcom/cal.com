@@ -1108,6 +1108,7 @@
   "incorrect_2fa": "잘못된 2단계 인증 코드",
   "which_event_type_apply": "이것은 어떤 이벤트 유형에 적용될까요?",
   "no_workflows_description": "워크플로를 사용하면 이벤트와 관련된 프로세스를 구축할 수 있도록 알림 및 미리 알림을 보내는 간단한 자동화가 가능합니다.",
+  "timeformat_profile_hint": "이것은 내부 설정이며 귀하 또는 귀하를 예약하는 모든 사람의 공개 예약 페이지에 시간이 표시되는 방식에는 영향을 미치지 않습니다.",
   "create_workflow": "워크플로를 만듭니다",
   "do_this": "이렇게 하세요",
   "turn_off": "끄기",

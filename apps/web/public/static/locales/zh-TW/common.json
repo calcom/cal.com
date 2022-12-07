@@ -1108,6 +1108,7 @@
   "incorrect_2fa": "兩階段認證代碼不正確",
   "which_event_type_apply": "這將套用哪一種活動類型？",
   "no_workflows_description": "工作流程可啟用簡易的自動化流程來傳送通知與提醒，讓您為活動打造流程。",
+  "timeformat_profile_hint": "此為內部設定，您或要預約您時間的使用者在公開預約頁面上看見的時間並不會受到影響。",
   "create_workflow": "建立工作流程",
   "do_this": "執行此操作",
   "turn_off": "關閉",

@@ -1108,6 +1108,7 @@
   "incorrect_2fa": "Netačan kôd za dvostruku potvrdu identiteta",
   "which_event_type_apply": "Na koji tip događaja će se ovo primeniti?",
   "no_workflows_description": "Radni tokovi omogućavaju jednostavnu automatizaciju slanja obaveštenja i podsetnika što vam omogućava da izgradite procese oko vaših događaja.",
+  "timeformat_profile_hint": "Ovo je interno podešavanje i neće uticati koliko puta će biti prikazano na javnim stranicama za rezervisanje, za vas ili bilo koga ko vas rezerviše.",
   "create_workflow": "Kreirajte radni tok",
   "do_this": "Uradi ovo",
   "turn_off": "Isključi",

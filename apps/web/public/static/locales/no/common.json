@@ -1125,6 +1125,7 @@
   "incorrect_2fa": "Feil to-faktor autentiseringskode",
   "which_event_type_apply": "Hvilken hendelsestype vil dette gjelde for?",
   "no_workflows_description": "Arbeidsflyter muliggjør enkel automatisering for å sende varsler og påminnelser slik at du kan bygge prosesser rundt hendelsene dine.",
+  "timeformat_profile_hint": "Dette er en intern innstilling og vil ikke påvirke hvordan tidspunkt vises på offentlige bookingsider for deg eller noen som booker deg.",
   "create_workflow": "Lag en arbeidsflyt",
   "do_this": "Gjør dette",
   "turn_off": "Slå av",

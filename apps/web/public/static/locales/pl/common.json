@@ -1108,6 +1108,7 @@
   "incorrect_2fa": "Nieprawidłowy kod uwierzytelnienia dwuskładnikowego",
   "which_event_type_apply": "Do jakiego rodzaju wydarzenia będzie się to odnosić?",
   "no_workflows_description": "Przepływy pracy umożliwiają prostą automatyzację wysyłania powiadomień i przypomnień, dzięki czemu możesz tworzyć procesy dotyczące Twoich wydarzeń.",
+  "timeformat_profile_hint": "To jest ustawienie wewnętrzne, które nie będzie miało wpływu na to, jak godziny będą wyświetlane Tobie lub komuś, kto dokonuje u Ciebie rezerwacji, na publicznych stronach rezerwacji.",
   "create_workflow": "Utwórz przepływ pracy",
   "do_this": "Zrób to",
   "turn_off": "Wyłącz",
