@@ -1,13 +1,13 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
 import { useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, TimezoneSelect } from "@calcom/ui";
 
-import { UsernameAvailability } from "@components/ui/UsernameAvailability";
+import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
 import type { IOnboardingPageProps } from "../../../pages/getting-started/[[...step]]";
 
@@ -24,11 +24,9 @@ const UserSettings = (props: IUserSettingsProps) => {
     register,
     handleSubmit,
     formState: { errors },
-    control,
   } = useForm({
     defaultValues: {
       name: user?.name || "",
-      username: user?.username || "",
     },
     reValidateMode: "onChange",
   });
@@ -42,39 +40,19 @@ const UserSettings = (props: IUserSettingsProps) => {
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: onSuccess,
   });
-  const { data: stripeCustomer } = trpc.viewer.stripeCustomer.useQuery();
-  const paymentRequired = stripeCustomer?.isPremium ? !stripeCustomer?.paidForPremium : false;
+
   const onSubmit = handleSubmit((data) => {
-    if (paymentRequired) {
-      return;
-    }
     mutation.mutate({
       name: data.name,
       timeZone: selectedTimeZone,
     });
   });
 
-  const [currentUsername, setCurrentUsername] = useState(user.username || "");
-
   return (
     <form onSubmit={onSubmit}>
       <div className="space-y-6">
         {/* Username textfield */}
-        <Controller
-          control={control}
-          name="username"
-          render={({ field: { value, ref, onChange } }) => (
-            <UsernameAvailability
-              readonly={true}
-              currentUsername={currentUsername}
-              setCurrentUsername={setCurrentUsername}
-              inputUsernameValue={value}
-              usernameRef={ref}
-              setInputUsernameValue={onChange}
-              user={user}
-            />
-          )}
-        />
+        <UsernameAvailabilityField user={user} />
 
         {/* Full name textfield */}
         <div className="w-full">

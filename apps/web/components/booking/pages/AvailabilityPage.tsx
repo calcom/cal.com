@@ -442,7 +442,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                 />
               </div>
             </div>
-            {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && !isEmbed && <PoweredByCal />}
+            {(!restProps.isBrandingHidden || isEmbed) && <PoweredByCal />}
           </div>
         </main>
       </div>
