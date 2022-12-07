@@ -156,6 +156,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
     locations: privacyFilteredLocations(locations),
     descriptionAsSafeHTML: eventType.description ? md.render(eventType.description) : null,
   });
+  // Check if the user you are logging into has any active teams
   const hasActiveTeam =
     user.teams.filter((m) => {
       const metadata = teamMetadataSchema.safeParse(m.team.metadata);
