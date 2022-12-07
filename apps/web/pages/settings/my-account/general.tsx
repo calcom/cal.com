@@ -66,6 +66,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
 
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: () => {
+      reset(getValues());
       showToast(t("settings_updated_successfully"), "success");
     },
     onError: () => {
@@ -117,6 +118,8 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
   });
   const {
     formState: { isDirty, isSubmitting },
+    reset,
+    getValues,
   } = formMethods;
   const isDisabled = isSubmitting || !isDirty;
   return (
