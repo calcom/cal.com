@@ -1130,6 +1130,7 @@
   "incorrect_2fa": "Incorrect two factor authentication code",
   "which_event_type_apply": "Which event type will this apply to?",
   "no_workflows_description": "Workflows enable simple automation to send notifications & reminders enabling you to build processes around your events.",
+  "timeformat_profile_hint": "This is an internal setting and will not affect how times are displayed on public booking pages for you or anyone booking you.",
   "create_workflow": "Create a workflow",
   "do_this": "Do this",
   "turn_off": "Turn off",
