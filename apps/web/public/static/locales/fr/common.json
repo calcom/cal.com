@@ -1108,6 +1108,7 @@
   "incorrect_2fa": "Code d'authentification à deux facteurs incorrect",
   "which_event_type_apply": "À quel type d'événement s'appliquera-t-il ?",
   "no_workflows_description": "Les workflows permettent une automatisation simple pour envoyer des notifications et des rappels vous permettant de construire des processus autour de vos événements.",
+  "timeformat_profile_hint": "Ceci est un paramètre interne et n'affectera pas la façon dont les heures sont affichées sur les pages publiques de réservation pour vous ou toute personne qui réserve votre temps.",
   "create_workflow": "Créer un workflow",
   "do_this": "Effectuer ceci",
   "turn_off": "Désactiver",

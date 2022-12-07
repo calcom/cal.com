@@ -1108,6 +1108,7 @@
   "incorrect_2fa": "Felaktig tvåfaktorsautentiseringskod",
   "which_event_type_apply": "Vilken händelsetyp kommer detta att gälla?",
   "no_workflows_description": "Arbetsflöden möjliggör enkel automatisering för att skicka meddelanden och påminnelser så att du kan bygga processer kring dina händelser.",
+  "timeformat_profile_hint": "Detta är en intern inställning och kommer inte att påverka hur tider visas på offentliga bokningssidor för dig eller någon som bokar dig.",
   "create_workflow": "Skapa ett arbetsflöde",
   "do_this": "Gör detta",
   "turn_off": "Stäng av",

@@ -1076,6 +1076,7 @@
   "incorrect_2fa": "Falscher Zwei-Faktor-Authentifizierungscode",
   "which_event_type_apply": "Auf welchen Termintyp wird dies angewandt?",
   "no_workflows_description": "Workflows ermöglichen die einfache Automatisierung des Versands von Benachrichtigungen und Erinnerungen, so dass Sie Prozesse rund um Ihre Ereignisse erstellen können.",
+  "timeformat_profile_hint": "Dies ist eine interne Einstellung und hat keinen Einfluss darauf, wie die Zeiten auf den öffentlichen Buchungsseiten für Sie oder jemanden, der Sie buchen möchte, angezeigt werden.",
   "create_workflow": "Einen Workflow erstellen",
   "do_this": "Mache dies",
   "turn_off": "Abschalten",
