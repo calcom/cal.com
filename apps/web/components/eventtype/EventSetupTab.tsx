@@ -255,11 +255,8 @@ export const EventSetupTab = (
                   newOptions = newOptions.sort((a, b) => {
                     return a?.value - b?.value;
                   });
-                  const values = options
-                    .map((opt) => opt.value)
-                    .sort(function (a, b) {
-                      return a - b;
-                    });
+                  const values = newOptions.map((opt) => opt.value);
+                  console.log(values);
                   setMultipleDuration(values);
                   setSelectedMultipleDuration(newOptions);
                   if (!newOptions.find((opt) => opt.value === defaultDuration?.value)) {
