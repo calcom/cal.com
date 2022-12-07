@@ -325,6 +325,13 @@ export const EventSetupTab = (
           <Skeleton as={Label} loadingClassName="w-16">
             {t("location")}
           </Skeleton>
+          <div className="flex">
+            <Icon.FiAlertTriangle className="mr-4 text-red-900" />
+            <p className="text-sm text-red-900">
+              In order to use Google Meet you must set the destination calendar to Google Calendar
+            </p>
+          </div>
+
           <Controller
             name="locations"
             control={formMethods.control}
