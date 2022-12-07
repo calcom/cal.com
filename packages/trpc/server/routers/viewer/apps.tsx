@@ -109,7 +109,6 @@ export const appsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      console.log("🚀 ~ file: apps.tsx:114 ~ .mutation ~ input", input);
       const { prisma } = ctx;
 
       // Get app name from metadata

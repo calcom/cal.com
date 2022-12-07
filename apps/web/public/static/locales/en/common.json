@@ -1404,7 +1404,7 @@
   "admin_has_disabled": "An admin has disabled {{appName}}",
   "disabled_app_affects_event_type": "An admin has disabled {{appName}} which affects your event type {{eventType}}",
   "disable_payment_app": "The admin has disabled {{appName}} which affects your event type {{title}}. Attendees are still able to book this type of event but will not be prompted to pay. You may hide hide the event type to prevent this until your admin renables your payment method.",
-  "payment_disabled_still_able_to_book": "Attendees are still able to book this type of event but will not be prompted to pay. You may hide hide the event type to prevent this until your admin renables your payment method.",
+  "payment_disabled_still_able_to_book": "Attendees are still able to book this type of event but will not be prompted to pay. You may hide hide the event type to prevent this until your admin reenables your payment method.",
   "app_disabled_with_event_type": "The admin has disabled {{appName}} which affects your event type {{title}}.",
   "app_disabled_video": "The admin has disabled {{appName}} which may affect your event types. If you have event types with {{appName}} as the location then it will default to Cal Video.",
   "app_disabled_subject": "{{appName}} has been disabled",

@@ -1,6 +1,4 @@
-import { TFunction, Trans } from "next-i18next";
-
-import { getRichDescription } from "@calcom/lib/CalEventParser";
+import { TFunction } from "next-i18next";
 
 import { renderEmail } from "..";
 import BaseEmail from "./_base-email";
@@ -31,11 +29,6 @@ export default class DisabledAppEmail extends BaseEmail {
   }
 
   protected getNodeMailerPayload(): Record<string, unknown> {
-    console.log(
-      "🚀 ~ file: disabled-app-email.ts ~ line 46 ~ DisabledAppEmail ~ getNodeMailerPayload ~ this.appType",
-      this.appType
-    );
-
     return {
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: this.email,
