@@ -1109,6 +1109,7 @@
   "incorrect_2fa": "Cod incorect de autentificare cu doi factori",
   "which_event_type_apply": "La ce tip de eveniment se va aplica aceasta?",
   "no_workflows_description": "Fluxurile de lucru permit automatizarea simplă pentru a trimite notificări și mementouri, care vă permit să construiți procese în jurul evenimentelor dvs.",
+  "timeformat_profile_hint": "Aceasta este o setare internă și nu va afecta modul în care sunt afișate orele pe paginile publice de rezervare pentru dvs. sau pentru oricine vă face rezervarea.",
   "create_workflow": "Creați un flux de lucru",
   "do_this": "Faceți acest lucru",
   "turn_off": "Dezactivați",
