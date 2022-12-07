@@ -480,6 +480,14 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   const additionalNotes = reqBody.notes;
 
+  let requiresConfirmation = eventType?.requiresConfirmation;
+  const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
+  if (rcThreshold) {
+    if (dayjs(dayjs(reqBody.start).utc().format()).diff(dayjs(), rcThreshold.unit) > rcThreshold.time) {
+      requiresConfirmation = false;
+    }
+  }
+
   let evt: CalendarEvent = {
     type: eventType.title,
     title: getEventName(eventNameObject), //this needs to be either forced in english, or fetched for each attendee and organizer separately
@@ -499,7 +507,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     /** For team events & dynamic collective events, we will need to handle each member destinationCalendar eventually */
     destinationCalendar: eventType.destinationCalendar || organizerUser.destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
-    requiresConfirmation: eventType.requiresConfirmation ?? false,
+    requiresConfirmation: requiresConfirmation ?? false,
     eventTypeId: eventType.id,
     seatsShowAttendees: !!eventType.seatsShowAttendees,
   };
@@ -651,8 +659,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   // Otherwise, an owner rescheduling should be always accepted.
   // Before comparing make sure that userId is set, otherwise undefined === undefined
   const userReschedulingIsOwner = userId && originalRescheduledBooking?.user?.id === userId;
-  const isConfirmedByDefault =
-    (!eventType.requiresConfirmation && !stripeAppData.price) || userReschedulingIsOwner;
+  const isConfirmedByDefault = (!requiresConfirmation && !stripeAppData.price) || userReschedulingIsOwner;
 
   async function createBooking() {
     if (originalRescheduledBooking) {
@@ -875,7 +882,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
-  } else if (!eventType.requiresConfirmation && !stripeAppData.price) {
+  } else if (!requiresConfirmation && !stripeAppData.price) {
     // Use EventManager to conditionally use all needed integrations.
     const createManager = await eventManager.create(evt);
 
@@ -981,7 +988,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       const eventTypeInfo: EventTypeInfo = {
         eventTitle: eventType.title,
         eventDescription: eventType.description,
-        requiresConfirmation: eventType.requiresConfirmation || null,
+        requiresConfirmation: requiresConfirmation || null,
         price: stripeAppData.price,
         currency: eventType.currency,
         length: eventType.length,

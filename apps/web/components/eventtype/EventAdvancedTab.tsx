@@ -27,6 +27,8 @@ import {
 
 import CustomInputTypeForm from "@components/eventtype/CustomInputTypeForm";
 
+import RequiresConfirmationController from "./RequiresConfirmationController";
+
 const generateHashedLink = (id: number) => {
   const translator = short();
   const seed = `${id}:${new Date().getTime()}`;
@@ -47,6 +49,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
   );
   const [selectedCustomInput, setSelectedCustomInput] = useState<CustomInputParsed | undefined>(undefined);
   const [selectedCustomInputModalOpen, setSelectedCustomInputModalOpen] = useState(false);
+  const [requiresConfirmation, setRequiresConfirmation] = useState(eventType.requiresConfirmation);
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
 
   const seatsEnabled = formMethods.getValues("seatsPerTimeSlotEnabled");
@@ -159,18 +162,11 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
         </SettingsToggle>
       </div>
       <hr />
-      <Controller
-        name="requiresConfirmation"
-        defaultValue={eventType.requiresConfirmation}
-        render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            title={t("requires_confirmation")}
-            description={t("requires_confirmation_description")}
-            checked={value}
-            onCheckedChange={(e) => onChange(e)}
-            disabled={seatsEnabled}
-          />
-        )}
+      <RequiresConfirmationController
+        seatsEnabled={seatsEnabled}
+        metadata={eventType.metadata}
+        requiresConfirmation={requiresConfirmation}
+        onRequiresConfirmation={setRequiresConfirmation}
       />
       <hr />
       <Controller
@@ -306,6 +302,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               if (e) {
                 formMethods.setValue("disableGuests", true);
                 formMethods.setValue("requiresConfirmation", false);
+                setRequiresConfirmation(false);
                 formMethods.setValue("seatsPerTimeSlot", 2);
               } else {
                 formMethods.setValue("seatsPerTimeSlot", null);
