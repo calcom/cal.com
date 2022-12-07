@@ -6,11 +6,12 @@ import dayjs from "@calcom/dayjs";
 import { TRIAL_LIMIT_DAYS } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
-// import { isPremiumUserName } from "../../apps/website/lib/username";
 import { getStripeCustomerIdFromUserId } from "./customer";
 import stripe from "./server";
-import { getPremiumPlanPrice, getProPlanPrice, getProPlanProduct } from "./utils";
 
+/**
+ * Deprecated or should be updated
+ */
 export async function downgradeIllegalProUsers() {
   const illegalProUsers = await prisma.user.findMany({
     where: {
@@ -64,14 +65,6 @@ export async function downgradeIllegalProUsers() {
       await downgrade(suspectUser);
       continue;
     }
-
-    const hasProPlan = !!subscription.items.data.find(
-      (item) =>
-        item.plan.product === getProPlanProduct() ||
-        [getProPlanPrice(), getPremiumPlanPrice()].includes(item.plan.id)
-    );
-    // if they're pro, do not downgrade
-    if (hasProPlan) continue;
 
     // If they already have a premium username, do not downgrade
     // if (suspectUser.username && isPremiumUserName(suspectUser.username)) continue;

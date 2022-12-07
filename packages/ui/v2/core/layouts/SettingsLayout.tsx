@@ -122,7 +122,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
       <>
         <div className="desktop-only pt-4" />
         <VerticalTabItem
-          name="Back"
+          name={t("back")}
           href="/."
           icon={Icon.FiArrowLeft}
           textClassNames="text-md font-medium leading-none text-black"
@@ -327,6 +327,7 @@ export default function SettingsLayout({
 
   return (
     <Shell
+      withoutSeo={true}
       flexChildrenContainer
       {...rest}
       SidebarContainer={<SettingsSidebarContainer className="hidden lg:flex" />}

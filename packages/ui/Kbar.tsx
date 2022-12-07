@@ -52,151 +52,151 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
 
     {
       id: "workflows",
-      name: "Workflows",
-      section: "Workflows",
+      name: "workflows",
+      section: "workflows",
       shortcut: ["w", "f"],
       keywords: "workflows automation",
       perform: () => router.push("/workflows"),
     },
     {
       id: "event-types",
-      name: "Event Types",
-      section: "Event Types",
+      name: "event_types_page_title",
+      section: "event_types_page_title",
       shortcut: ["e", "t"],
       keywords: "event types",
       perform: () => router.push("/event-types"),
     },
     {
       id: "app-store",
-      name: "App Store",
-      section: "Apps",
+      name: "app_store",
+      section: "apps",
       shortcut: ["a", "s"],
       keywords: "app store",
       perform: () => router.push("/apps"),
     },
     {
       id: "upcoming-bookings",
-      name: "Upcoming Bookings",
-      section: "Bookings",
+      name: "upcoming",
+      section: "bookings",
       shortcut: ["u", "b"],
       keywords: "upcoming bookings",
       perform: () => router.push("/bookings/upcoming"),
     },
     {
       id: "recurring-bookings",
-      name: "Recurring Bookings",
-      section: "Bookings",
+      name: "recurring",
+      section: "bookings",
       shortcut: ["r", "b"],
       keywords: "recurring bookings",
       perform: () => router.push("/bookings/recurring"),
     },
     {
       id: "past-bookings",
-      name: "Past Bookings",
-      section: "Bookings",
+      name: "past",
+      section: "bookings",
       shortcut: ["p", "b"],
       keywords: "past bookings",
       perform: () => router.push("/bookings/past"),
     },
     {
       id: "cancelled-bookings",
-      name: "Cancelled Bookings",
-      section: "Bookings",
+      name: "cancelled",
+      section: "bookings",
       shortcut: ["c", "b"],
       keywords: "cancelled bookings",
       perform: () => router.push("/bookings/cancelled"),
     },
     {
       id: "schedule",
-      name: "Schedule",
-      section: "Availability",
+      name: "availability",
+      section: "availability",
       shortcut: ["s", "a"],
       keywords: "schedule availability",
       perform: () => router.push("/availability"),
     },
     {
       id: "profile",
-      name: "Profile",
-      section: "Profile Settings",
+      name: "profile",
+      section: "profile",
       shortcut: ["p", "s"],
       keywords: "setting profile",
-      perform: () => router.push("/settings/profile"),
+      perform: () => router.push("/settings/my-account/profile"),
     },
     {
       id: "avatar",
-      name: "Change Avatar",
-      section: "Profile Settings",
+      name: "change_avatar",
+      section: "profile",
       shortcut: ["c", "a"],
       keywords: "remove change modify avatar",
-      perform: () => router.push("/settings/profile"),
+      perform: () => router.push("/settings/my-account/profile"),
     },
     {
       id: "timezone",
-      name: "Change Timezone",
-      section: "Profile Settings",
+      name: "timezone",
+      section: "profile",
       shortcut: ["c", "t"],
       keywords: "change modify timezone",
       perform: () => router.push("/settings/my-account/general"),
     },
     {
       id: "brand-color",
-      name: "Change Brand Color",
-      section: "Profile Settings",
+      name: "brand_color",
+      section: "profile",
       shortcut: ["b", "c"],
       keywords: "change modify brand color",
       perform: () => router.push("/settings/my-account/appearance"),
     },
     {
       id: "teams",
-      name: "Teams",
+      name: "teams",
       shortcut: ["t", "s"],
       keywords: "add manage modify team",
       perform: () => router.push("/settings/teams"),
     },
     {
       id: "password",
-      name: "Change Password",
-      section: "Security Settings",
+      name: "change_password",
+      section: "security",
       shortcut: ["c", "p"],
       keywords: "change modify password",
-      perform: () => router.push("/settings/security"),
+      perform: () => router.push("/settings/security/password"),
     },
     {
       id: "two-factor",
-      name: "Two Factor Authentication",
-      section: "Security Settings",
+      name: "two_factor_auth",
+      section: "security",
       shortcut: ["t", "f", "a"],
       keywords: "two factor authentication",
       perform: () => router.push("/settings/security/two-factor-auth"),
     },
     {
       id: "impersonation",
-      name: "User Impersonation",
-      section: "Security Settings",
+      name: "user_impersonation_heading",
+      section: "security",
       shortcut: ["u", "i"],
       keywords: "user impersonation",
       perform: () => router.push("/settings/security/impersonation"),
     },
     {
       id: "webhooks",
-      name: "Webhook",
-      section: "Developer Settings",
+      name: "Webhooks",
+      section: "developer",
       shortcut: ["w", "h"],
       keywords: "webhook automation",
       perform: () => router.push("/settings/developer/webhooks"),
     },
     {
       id: "api-keys",
-      name: "API Keys",
-      section: "Developer Settings",
+      name: "api_keys",
+      section: "developer",
       shortcut: ["a", "p", "i"],
       keywords: "api keys",
       perform: () => router.push("/settings/developer/api-keys"),
     },
     {
       id: "billing",
-      name: "View and Manage Billing",
-      section: "Billing",
+      name: "manage_billing",
+      section: "billing",
       shortcut: ["m", "b"],
       keywords: "billing view manage",
       perform: () => router.push("/settings/billing"),
@@ -272,13 +272,14 @@ const DisplayShortcuts = (item: shortcutArrayType) => {
 
 function RenderResults() {
   const { results } = useMatches();
+  const { t } = useLocale();
 
   return (
     <KBarResults
       items={results}
       onRender={({ item, active }) =>
         typeof item === "string" ? (
-          <div className="bg-white p-4 text-xs uppercase text-gray-500">{item}</div>
+          <div className="bg-white p-4 text-xs uppercase text-gray-500">{t(item)}</div>
         ) : (
           <div
             // For seeing keyboard up & down navigation in action, we need visual feedback based on "active" prop
@@ -287,7 +288,7 @@ function RenderResults() {
               borderLeft: active ? "2px solid black" : "2px solid transparent",
             }}
             className="flex items-center justify-between px-4 py-2.5 text-sm hover:cursor-pointer">
-            <span>{item.name}</span>
+            <span>{t(item.name)}</span>
             <DisplayShortcuts shortcuts={item.shortcut} />
           </div>
         )
