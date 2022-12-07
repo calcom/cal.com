@@ -504,7 +504,7 @@
   "add_team_members_description": "Convidar outros a juntarem-se à sua equipa",
   "add_team_member": "Adicionar membro da equipa",
   "invite_new_member": "Convidar um Novo Membro",
-  "invite_new_member_description": "Nota: isto irá ter o <1>custo de um lugar adicional ($15/m)</1> na sua subscrição.",
+  "invite_new_member_description": "Nota: isto vai ter o <1>custo de um lugar adicional ($15/m)</1> na sua subscrição.",
   "invite_new_team_member": "Convide alguém para a sua equipa.",
   "change_member_role": "Alterar função de membro da equipa",
   "disable_cal_branding": "Desativar a marca {{appName}}",
