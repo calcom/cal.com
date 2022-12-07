@@ -2,7 +2,7 @@ import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 
-import { addSeat, getRequestedSlugError, removeSeat } from "@calcom/app-store/stripepayment/lib/team-billing";
+import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
 import {
@@ -244,8 +244,8 @@ export const viewerTeamsRouter = router({
 
       // Sync Services
       closeComDeleteTeamMembership(membership.user);
-
-      if (HOSTED_CAL_FEATURES) await removeSeat(ctx.user.id, input.teamId, input.memberId);
+      // @TODO: Update with new logic
+      // if (HOSTED_CAL_FEATURES) await removeSeat(ctx.user.id, input.teamId, input.memberId);
     }),
   inviteMember: authedProcedure
     .input(
@@ -356,11 +356,13 @@ export const viewerTeamsRouter = router({
           });
         }
       }
-      try {
-        if (HOSTED_CAL_FEATURES) await addSeat(ctx.user.id, team.id, inviteeUserId);
-      } catch (e) {
-        console.log(e);
-      }
+
+      // @TODO: Update with new logic
+      // try {
+      //   if (HOSTED_CAL_FEATURES) await addSeat(ctx.user.id, team.id, inviteeUserId);
+      // } catch (e) {
+      //   console.log(e);
+      // }
     }),
   acceptOrLeave: authedProcedure
     .input(
@@ -393,7 +395,8 @@ export const viewerTeamsRouter = router({
           });
 
           // TODO: disable if not hosted by Cal
-          if (teamOwner) await removeSeat(teamOwner.userId, input.teamId, ctx.user.id);
+          // @TODO: Update with new logic
+          // if (teamOwner) await removeSeat(teamOwner.userId, input.teamId, ctx.user.id);
 
           const membership = await ctx.prisma.membership.delete({
             where: {
@@ -633,7 +636,7 @@ export const viewerTeamsRouter = router({
 
       return {
         url: `${WEBAPP_URL}/settings/teams/${updatedTeam.id}/profile`,
-        message: "Team published succesfully",
+        message: "Team published successfully",
       };
     }),
   /** This is a temporal endpoint so we can progressively upgrade teams to the new billing system. */
