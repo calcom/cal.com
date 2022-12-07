@@ -133,7 +133,7 @@ const TeamsVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
         type: "office365_video",
         id: resultObject.id,
         password: "",
-        url: resultObject.joinUrl,
+        url: resultObject.joinUrl || resultObject.joinWebUrl,
       });
     },
     deleteMeeting: () => {
