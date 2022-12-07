@@ -1,5 +1,6 @@
 import { IdentityProvider } from "@prisma/client";
 import crypto from "crypto";
+import { GetServerSidePropsContext } from "next";
 import { signOut } from "next-auth/react";
 import { BaseSyntheticEvent, useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -37,9 +38,12 @@ import {
 import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
-const SkeletonLoader = () => {
+import { ssrInit } from "@server/lib/ssr";
+
+const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
+      <Meta title={title} description={description} />
       <div className="mt-6 mb-8 space-y-6 divide-y">
         <div className="flex items-center">
           <SkeletonAvatar className=" h-12 w-12 px-4" />
@@ -208,11 +212,14 @@ const ProfileView = () => {
     showToast(t("error_updating_settings"), "error");
   };
 
-  if (isLoading || !user) return <SkeletonLoader />;
+  if (isLoading || !user)
+    return <SkeletonLoader title={t("profile")} description={t("profile_description")} />;
+
   const isDisabled = isSubmitting || !isDirty;
 
   return (
     <>
+      <Meta title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
       <Form
         form={formMethods}
         handleSubmit={(values) => {
@@ -222,7 +229,6 @@ const ProfileView = () => {
             mutation.mutate(values);
           }
         }}>
-        <Meta title="Profile" description={t("profile_description", { appName: APP_NAME })} />
         <div className="flex items-center">
           <Controller
             control={formMethods.control}
@@ -358,5 +364,15 @@ const ProfileView = () => {
 };
 
 ProfileView.getLayout = getLayout;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
+};
 
 export default ProfileView;

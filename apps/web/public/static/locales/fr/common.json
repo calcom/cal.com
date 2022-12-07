@@ -653,7 +653,7 @@
   "show_advanced_settings": "Afficher les paramètres avancés",
   "event_name": "Nom de l'événement",
   "event_name_tooltip": "Le nom qui apparaîtra dans les calendriers",
-  "meeting_with_user": "Rendez-vous avec {ATTENDEE}",
+  "meeting_with_user": "Rendez-vous avec {{attendeeName}}",
   "additional_inputs": "Entrées additionnelles",
   "additional_input_description": "Exiger que le planificateur saisisse des entrées supplémentaires avant que la réservation soit confirmée",
   "label": "Libellé",

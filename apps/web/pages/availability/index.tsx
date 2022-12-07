@@ -1,4 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { GetServerSidePropsContext } from "next";
 
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -9,6 +10,8 @@ import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 
 import SkeletonLoader from "@components/availability/SkeletonLoader";
+
+import { ssrInit } from "@server/lib/ssr";
 
 export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availability"]["list"]) {
   const { t } = useLocale();
@@ -112,3 +115,13 @@ export default function AvailabilityPage() {
     </div>
   );
 }
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
+};

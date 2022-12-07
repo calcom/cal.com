@@ -653,7 +653,7 @@
   "show_advanced_settings": "Pokaż ustawienia zaawansowane",
   "event_name": "Nazwa wydarzenia",
   "event_name_tooltip": "Nazwa, która pojawi się w kalendarzach",
-  "meeting_with_user": "Spotkanie z {ATTENDEE}",
+  "meeting_with_user": "Spotkanie z {{attendeeName}}",
   "additional_inputs": "Dodatkowe Wejścia",
   "additional_input_description": "Wymagaj od osoby układającej harmonogram wprowadzania dodatkowych danych przed potwierdzeniem rezerwacji",
   "label": "Etykieta",

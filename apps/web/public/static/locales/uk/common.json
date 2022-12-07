@@ -653,7 +653,7 @@
   "show_advanced_settings": "Показати додаткові параметри",
   "event_name": "Тип заходу",
   "event_name_tooltip": "Ім’я, яке показуватиметься в календарях",
-  "meeting_with_user": "Нарада з користувачем {ATTENDEE}",
+  "meeting_with_user": "Нарада з користувачем {{attendeeName}}",
   "additional_inputs": "Додаткові поля введення",
   "additional_input_description": "Вимагати від особи, що хоче створити бронювання, надавати додаткові відомості",
   "label": "Мітка",

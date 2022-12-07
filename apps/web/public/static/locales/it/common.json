@@ -653,7 +653,7 @@
   "show_advanced_settings": "Mostra impostazioni avanzate",
   "event_name": "Nome Dell'Evento",
   "event_name_tooltip": "Il nome che apparirà nei calendari",
-  "meeting_with_user": "Riunione con {ATTENDEE}",
+  "meeting_with_user": "Riunione con {{attendeeName}}",
   "additional_inputs": "Input Aggiuntivi",
   "additional_input_description": "Chiedi al creatore del programma di inserire dei campi di input aggiuntivi prima che la prenotazione sia confermata",
   "label": "Etichetta",

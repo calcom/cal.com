@@ -653,7 +653,7 @@
   "show_advanced_settings": "Gelişmiş ayarları göster",
   "event_name": "Etkinlik Adı",
   "event_name_tooltip": "Takvimlerde görünecek isim",
-  "meeting_with_user": "{ATTENDEE} ile toplantı",
+  "meeting_with_user": "{{attendeeName}} ile toplantı",
   "additional_inputs": "Ek Girişler",
   "additional_input_description": "Rezervasyon onaylanmadan önce planlayıcının ek veri girişi yapması gereklidir",
   "label": "Etiket",
