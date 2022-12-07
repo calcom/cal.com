@@ -190,7 +190,14 @@ function Field({
               control={hookForm.control}
               defaultValue={globalRouterField?.required}
               render={({ field: { value, onChange } }) => {
-                return <BooleanToggleGroupField label="Required" value={value} onValueChange={onChange} />;
+                return (
+                  <BooleanToggleGroupField
+                    disabled={!!globalRouter}
+                    label="Required"
+                    value={value}
+                    onValueChange={onChange}
+                  />
+                );
               }}
             />
           </div>

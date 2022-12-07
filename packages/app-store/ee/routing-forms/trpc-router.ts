@@ -256,6 +256,105 @@ const appRoutingForms = router({
       let { routes } = input;
       let { fields } = input;
 
+      /**
+       * If global router fields exist, enrich them with the latest info from the global router fields
+       * If global router fields don't exist, create them
+       */
+      const updateFieldsFromGlobalRouter = async () => {
+        const fieldsFoundForGlobalRouters = {};
+
+        for (let i = 0; i < fields.length; i++) {
+          const field = fields[i];
+          if (field.globalRouterId) {
+            fieldsFoundForGlobalRouters[field.globalRouterId] = true;
+          }
+          if (
+            field.globalRouterId /*&&
+              !serializedForm.routes?.some((route) => {
+                route.id === field.globalRouterId;
+              })*/
+          ) {
+            // If the field is from a global router that is not available anymore, mark it as deleted
+            if (!routes.some((route) => route.id === field.globalRouterId)) {
+              field.deleted = true;
+              continue;
+            }
+            // Get back deleted field as now the Router is there for it.
+            if (field.deleted) field.deleted = false;
+            // There is a field from some global router available, make sure that the field has up-to-date info from the global router
+            const globalRouterField = (
+              await prisma.app_RoutingForms_Form.findFirst({
+                where: {
+                  id: field.globalRouterId,
+                  userId: user.id,
+                },
+              })
+            )?.fields?.find((f) => f.id === field.id);
+            // Update local field(cache) with global router field on every mutation
+            log.silly("Updating local field with global router field", JSON.stringify(globalRouterField));
+            Object.assign(field, globalRouterField);
+          }
+        }
+        for (let j = 0; j < routes?.length; j++) {
+          const route = routes[j];
+          log.silly("fieldsFoundForGlobalRouters", fieldsFoundForGlobalRouters, route);
+
+          if (route.routerType === "global") {
+            // If there are no fields for a global router, add all fields from that global router - This is the case when someone adds a global router and fields are supposed to be automatically added
+            if (!fieldsFoundForGlobalRouters[route.id]) {
+              log.silly("Global Route found and the fields need to be added from it", JSON.stringify(route));
+              const fieldsFromGlobalRouter = (
+                await prisma.app_RoutingForms_Form.findFirst({
+                  where: {
+                    id: route.id,
+                    userId: user.id,
+                  },
+                })
+              )?.fields
+                .filter((f) => !f.deleted)
+                .map((f) => {
+                  f.globalRouterId = route.id;
+                  return f;
+                });
+              fields = fields.concat(fieldsFromGlobalRouter);
+            }
+          }
+        }
+      };
+
+      const findFieldWithId = (id, fields) => {
+        return fields.find((field) => field.id === id);
+      };
+
+      const updateFieldsInConnectedForms = async (serializedForm) => {
+        for (let i = 0; i < serializedForm.usedByForms.length; i++) {
+          const connectedForm = serializedForm.usedByForms[i];
+          const connectedFormFields = (
+            await prisma.app_RoutingForms_Form.findFirst({
+              where: {
+                id: connectedForm.id,
+              },
+            })
+          )?.fields;
+          const updatedConnectedFormFields = [];
+
+          connectedFormFields.forEach((field) => {
+            if (field.globalRouterId === serializedForm.id) {
+              Object.assign(field, findFieldWithId(field.id, fields));
+            }
+            updatedConnectedFormFields.push(field);
+          });
+          await prisma.app_RoutingForms_Form.update({
+            where: {
+              id: connectedForm.id,
+            },
+            data: {
+              fields: updatedConnectedFormFields,
+            },
+          });
+        }
+      };
+
       if (duplicateFrom) {
         const sourceForm = await prisma.app_RoutingForms_Form.findFirst({
           where: {
@@ -275,9 +374,9 @@ const appRoutingForms = router({
           });
         }
         //TODO: Instead of parsing separately, use getSerializableForm. That would automatically remove deleted fields as well.
-        const fieldParsed = zodFields.safeParse(sourceForm.fields);
+        const fieldsParsed = zodFields.safeParse(sourceForm.fields);
         const routesParsed = zodRoutes.safeParse(sourceForm.routes);
-        if (!fieldParsed.success || !routesParsed.success) {
+        if (!fieldsParsed.success || !routesParsed.success) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Could not parse source form's fields or routes",
@@ -292,7 +391,7 @@ const appRoutingForms = router({
               routerType: "global",
             }),
           ];
-          fields = fieldParsed.data
+          fields = fieldsParsed.data
             // Deleted fields in the form shouldn't be added to the new form
             ?.filter((f) => !f.deleted)
             .map((f) => {
@@ -306,7 +405,7 @@ const appRoutingForms = router({
           // We don't want name, description and responses to be copied
           routes = routesParsed.data;
           // FIXME: Deleted fields shouldn't come in duplicate
-          fields = fieldParsed.data;
+          fields = fieldsParsed.data;
         }
       }
 
@@ -331,69 +430,23 @@ const appRoutingForms = router({
         },
       });
 
-      // Add back deleted fields in the end. Fields can't be deleted, to make sure columns never decrease which hugely simplifies CSV generation
       if (form) {
         const serializedForm = await getSerializableForm(prisma, form, true);
         // Find all fields that are in DB(including deleted) but not in the mutation
         const deletedFields =
           serializedForm.fields?.filter((f) => !fields!.find((field) => field.id === f.id)) || [];
 
+        // Add back deleted fields in the end. Fields can't be deleted, to make sure columns never decrease which hugely simplifies CSV generation
         fields = fields.concat(
           deletedFields.map((f) => {
             f.deleted = true;
             return f;
           })
         );
-        const fieldsFoundForGlobalRouters = {};
-        for (let i = 0; i < fields.length; i++) {
-          const field = fields[i];
-          if (field.globalRouterId) {
-            fieldsFoundForGlobalRouters[field.globalRouterId] = true;
-          }
-          if (
-            field.globalRouterId &&
-            !serializedForm.routes?.some((route) => {
-              route.id === field.globalRouterId;
-            })
-          ) {
-            // There is a field from some global router available, make sure that the field has up-to-date info from the global router
-            const globalRouterField = (
-              await prisma.app_RoutingForms_Form.findFirst({
-                where: {
-                  id: field.globalRouterId,
-                  userId: user.id,
-                },
-              })
-            )?.fields?.find((f) => f.id === field.id);
-            // Update local field(cache) with global router field on every mutation
-            Object.assign(field, globalRouterField);
-          }
-        }
-
-        for (let j = 0; j < routes?.length; j++) {
-          const route = routes[j];
-          log.silly("fieldsFoundForGlobalRouters", fieldsFoundForGlobalRouters, route);
-
-          if (route.routerType === "global") {
-            // If there are no fields for a global router, add all fields from that global router - This is the case when someone adds a global router and fields are supposed to be automatically added
-            if (!fieldsFoundForGlobalRouters[route.id]) {
-              log.silly("Global Route found and the fields need to be added from it", JSON.stringify(route));
-              const fieldsFromGlobalRouter = (
-                await prisma.app_RoutingForms_Form.findFirst({
-                  where: {
-                    id: route.id,
-                    userId: user.id,
-                  },
-                })
-              )?.fields.map((f) => {
-                f.globalRouterId = route.id;
-                return f;
-              });
-              fields = fields.concat(fieldsFromGlobalRouter);
-            }
-          }
-        }
+        await updateFieldsInConnectedForms(serializedForm);
       }
+
+      await updateFieldsFromGlobalRouter();
 
       if (addFallback) {
         const uuid = uuidv4();

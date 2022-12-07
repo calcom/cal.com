@@ -301,39 +301,49 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
 
                   {form.usingForms.length ? (
                     <div className="mt-6">
-                      <div className="mb-2 block text-sm font-medium leading-none text-gray-700">
-                        Connected to forms
+                      <div className="mb-2 block text-sm  font-semibold leading-none text-black ">
+                        Routers
                       </div>
-                      {form.usingForms.map((router) => {
-                        return (
-                          <div key={router.id}>
-                            <Link href={`/${appUrl}/route-builder/${router.id}`}>
-                              <a>
-                                <Badge variant="gray">{router.name}</Badge>
-                              </a>
-                            </Link>
-                          </div>
-                        );
-                      })}
+                      <p className="-mt-1 text-xs leading-normal text-gray-600">
+                        Modifications in fields and routes of following forms will be reflected in this form.
+                      </p>
+                      <div className="flex">
+                        {form.usingForms.map((router) => {
+                          return (
+                            <div key={router.id} className="mr-2">
+                              <Link href={`/${appUrl}/route-builder/${router.id}`}>
+                                <a>
+                                  <Badge variant="gray">{router.name}</Badge>
+                                </a>
+                              </Link>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   ) : null}
 
                   {usedByForms?.length ? (
                     <div className="mt-6">
-                      <div className="mb-2 block text-sm font-medium leading-none text-gray-700">
-                        Used by Forms
+                      <div className="mb-2 block text-sm  font-semibold leading-none text-black ">
+                        Connected Forms
                       </div>
-                      {usedByForms.map((router) => {
-                        return (
-                          <div key={router.id}>
-                            <Link href={`/${appUrl}/route-builder/${router.id}`}>
-                              <a>
-                                <Badge variant="default">{router.name}</Badge>
-                              </a>
-                            </Link>
-                          </div>
-                        );
-                      })}
+                      <p className="-mt-1 text-xs leading-normal text-gray-600">
+                        Following forms would be affected when you modify fields or routes here
+                      </p>
+                      <div className="flex">
+                        {usedByForms.map((router) => {
+                          return (
+                            <div key={router.id} className="mr-2">
+                              <Link href={`/${appUrl}/route-builder/${router.id}`}>
+                                <a>
+                                  <Badge variant="default">{router.name}</Badge>
+                                </a>
+                              </Link>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   ) : null}
                   <div className="mt-6">

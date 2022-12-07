@@ -236,17 +236,21 @@ const Route = ({
           label={
             <div>
               <span className="mr-2">{`Route ${index + 1}`}</span>
-              <Link href={`/${appUrl}/route-builder/${route.id}`}>
-                <a>
-                  <Badge variant="gray">
-                    <span className="font-semibold">{route.name}</span>
-                  </Badge>
-                </a>
-              </Link>
             </div>
           }
           className="mb-6">
-          <div>{route.description || ""}</div>
+          <div className="-mt-3">
+            <Link href={`/${appUrl}/route-builder/${route.id}`}>
+              <a>
+                <Badge variant="gray">
+                  <span className="font-semibold">{route.name}</span>
+                </Badge>
+              </a>
+            </Link>
+            <p className="mt-2 text-sm text-gray-500">
+              Fields available in <span className="font-bold">{route.name}</span> will be added to this form.
+            </p>
+          </div>
         </FormCard>
       </div>
     );
