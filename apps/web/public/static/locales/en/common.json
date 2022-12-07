@@ -747,6 +747,7 @@
   "toggle_calendars_conflict": "Toggle the calendars you want to check for conflicts to prevent double bookings.",
   "select_destination_calendar": "Create events on",
   "connect_additional_calendar": "Connect additional calendar",
+  "calendar_updated_successfully":"Calendar updated successfully",
   "conferencing": "Conferencing",
   "calendar": "Calendar",
   "payments": "Payments",

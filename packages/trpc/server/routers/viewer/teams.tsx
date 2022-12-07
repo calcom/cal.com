@@ -85,7 +85,9 @@ export const viewerTeamsRouter = router({
       const { slug, name, logo } = input;
 
       const nameCollisions = await ctx.prisma.team.findFirst({
-        where: { OR: [{ name }, { slug }] },
+        where: {
+          slug: slug,
+        },
       });
 
       if (nameCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "Team name already taken." });
