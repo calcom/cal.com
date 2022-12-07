@@ -256,7 +256,6 @@ export const EventSetupTab = (
                     return a?.value - b?.value;
                   });
                   const values = newOptions.map((opt) => opt.value);
-                  console.log(values);
                   setMultipleDuration(values);
                   setSelectedMultipleDuration(newOptions);
                   if (!newOptions.find((opt) => opt.value === defaultDuration?.value)) {
