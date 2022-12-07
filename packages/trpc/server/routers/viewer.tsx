@@ -230,26 +230,24 @@ const loggedInViewerRouter = router({
           throw new Error(ErrorCode.InternalServerError);
         }
 
+        // If user has 2fa enabled, check if input.totpCode is correct
         const isValidToken = authenticator.check(input.totpCode, secret);
         if (!isValidToken) {
           throw new Error(ErrorCode.IncorrectTwoFactorCode);
         }
-        // If user has 2fa enabled, check if input.totpCode is correct
-        // If it is, delete the user from stripe and database
-
-        // Remove me from Stripe
-        await deleteStripeCustomer(user).catch(console.warn);
-
-        // Remove my account
-        const deletedUser = await ctx.prisma.user.delete({
-          where: {
-            id: ctx.user.id,
-          },
-        });
-        // Sync Services
-        syncServicesDeleteWebUser(deletedUser);
       }
 
+      // If 2FA is disabled or totpCode is valid then delete the user from stripe and database
+      await deleteStripeCustomer(user).catch(console.warn);
+      // Remove my account
+      const deletedUser = await ctx.prisma.user.delete({
+        where: {
+          id: ctx.user.id,
+        },
+      });
+
+      // Sync Services
+      syncServicesDeleteWebUser(deletedUser);
       return;
     }),
   deleteMeWithoutPassword: authedProcedure.mutation(async ({ ctx }) => {
