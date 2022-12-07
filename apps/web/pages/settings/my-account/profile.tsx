@@ -35,7 +35,7 @@ import {
 } from "@calcom/ui";
 
 import TwoFactor from "@components/auth/TwoFactor";
-import { UsernameAvailability } from "@components/ui/UsernameAvailability";
+import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
 const SkeletonLoader = () => {
   return (
@@ -246,22 +246,10 @@ const ProfileView = () => {
           />
         </div>
         <div className="mt-8">
-          <Controller
-            control={formMethods.control}
-            name="username"
-            render={({ field: { ref, onChange, value } }) => {
-              return (
-                <UsernameAvailability
-                  currentUsername={user?.username || ""}
-                  inputUsernameValue={value}
-                  usernameRef={ref}
-                  setInputUsernameValue={onChange}
-                  onSuccessMutation={onSuccessfulUsernameUpdate}
-                  onErrorMutation={onErrorInUsernameUpdate}
-                  user={user}
-                />
-              );
-            }}
+          <UsernameAvailabilityField
+            user={user}
+            onSuccessMutation={onSuccessfulUsernameUpdate}
+            onErrorMutation={onErrorInUsernameUpdate}
           />
         </div>
         <div className="mt-8">
