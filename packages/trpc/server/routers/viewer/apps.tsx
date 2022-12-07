@@ -114,12 +114,7 @@ export const appsRouter = router({
 
       // Get app name from metadata
       const localApps = getLocalAppMetadata();
-      // console.log("🚀 ~ file: apps.tsx:118 ~ .mutation ~ localApps", localApps);
-      const appMetadata = localApps.find((localApp) => {
-        console.log("🚀 ~ file: apps.tsx:124 ~ appMetadata ~ localApp", localApp.slug);
-
-        return localApp.slug === input.slug;
-      });
+      const appMetadata = localApps.find((localApp) => localApp.slug === input.slug);
 
       if (!appMetadata)
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "App metadata could not be found" });
