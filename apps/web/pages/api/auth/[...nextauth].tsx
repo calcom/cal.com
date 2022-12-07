@@ -20,6 +20,7 @@ import { defaultCookies } from "@calcom/lib/default-cookies";
 import rateLimit from "@calcom/lib/rateLimit";
 import { serverConfig } from "@calcom/lib/serverConfig";
 import prisma from "@calcom/prisma";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import CalComAdapter from "@lib/auth/next-auth-custom-adapter";
 import { randomString } from "@lib/random";
@@ -63,6 +64,11 @@ const providers: Provider[] = [
           password: true,
           twoFactorEnabled: true,
           twoFactorSecret: true,
+          teams: {
+            include: {
+              team: true,
+            },
+          },
         },
       });
 
@@ -116,6 +122,13 @@ const providers: Provider[] = [
         intervalInMs: 60 * 1000, // 1 minute
       });
       await limiter.check(10, user.email); // 10 requests per minute
+      // Check if the user you are logging into has any active teams
+      const hasActiveTeams =
+        user.teams.filter((m) => {
+          const metadata = teamMetadataSchema.safeParse(m.team.metadata);
+          if (metadata.success && metadata.data?.subscriptionId) return false;
+          return true;
+        }).length > 0;
 
       // authentication success- but does it meet the minimum password requirements?
       if (user.role === "ADMIN" && !isPasswordValid(credentials.password, false, true)) {
@@ -125,6 +138,7 @@ const providers: Provider[] = [
           email: user.email,
           name: user.name,
           role: "USER",
+          belongsToActiveTeam: hasActiveTeams,
         };
       }
 
@@ -134,6 +148,7 @@ const providers: Provider[] = [
         email: user.email,
         name: user.name,
         role: user.role,
+        belongsToActiveTeam: hasActiveTeams,
       };
     },
   }),
@@ -272,6 +287,7 @@ export default NextAuth({
           email: user.email,
           role: user.role,
           impersonatedByUID: user?.impersonatedByUID,
+          belongsToActiveTeam: user?.belongsToActiveTeam,
         };
       }
 
@@ -307,6 +323,7 @@ export default NextAuth({
           email: existingUser.email,
           role: existingUser.role,
           impersonatedByUID: token.impersonatedByUID as number,
+          belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
         };
       }
 
@@ -324,6 +341,7 @@ export default NextAuth({
           username: token.username as string,
           role: token.role as UserPermissionRole,
           impersonatedByUID: token.impersonatedByUID as number,
+          belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
         },
       };
       return calendsoSession;

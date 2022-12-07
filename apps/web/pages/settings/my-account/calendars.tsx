@@ -22,6 +22,7 @@ import {
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
+  showToast,
 } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -65,6 +66,12 @@ const CalendarsView = () => {
   const mutation = trpc.viewer.setDestinationCalendar.useMutation({
     async onSettled() {
       await utils.viewer.connectedCalendars.invalidate();
+    },
+    onSuccess: async () => {
+      showToast(t("calendar_updated_successfully"), "success");
+    },
+    onError: () => {
+      showToast(t("unexpected_error_try_again"), "error");
     },
   });
 

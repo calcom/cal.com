@@ -1108,6 +1108,7 @@
   "incorrect_2fa": "Sai mã xác thực hai yếu tố",
   "which_event_type_apply": "Cái này sẽ áp dụng cho loại sự kiện nào?",
   "no_workflows_description": "Tiến độ công việc giúp đơn giản hoá việc tạo tự động chức năng gửi thông báo & lời nhắc, nhằm giúp bạn có thể lập nên các quy trình xử lí xung quanh các sự kiện.",
+  "timeformat_profile_hint": "Đây là cài đặt nội bộ và sẽ không ảnh hưởng đến cách hiển thị thời gian trên trang lịch hẹn công cộng cho bạn hoặc cho bất kỳ ai đặt lịch hẹn với bạn.",
   "create_workflow": "Tạo một tiến độ công việc",
   "do_this": "Làm cái này",
   "turn_off": "Tắt",

@@ -1109,6 +1109,7 @@
   "incorrect_2fa": "Código de autenticação de dois fatores incorreto",
   "which_event_type_apply": "A que tipo de evento isto se aplica?",
   "no_workflows_description": "Fluxo de trabalho permitem uma simples automação para enviar notificações e lembretes que permitem que você crie processos em torno de seus eventos.",
+  "timeformat_profile_hint": "Esta é uma configuração interna e não afetará a quantidade de exibições em páginas públicas de reservas para você ou outra pessoa que estiver fazendo reserva.",
   "create_workflow": "Criar fluxo de trabalho",
   "do_this": "Faça isso",
   "turn_off": "Desligar",

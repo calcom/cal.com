@@ -747,6 +747,7 @@
   "toggle_calendars_conflict": "Toggle the calendars you want to check for conflicts to prevent double bookings.",
   "select_destination_calendar": "Create events on",
   "connect_additional_calendar": "Connect additional calendar",
+  "calendar_updated_successfully":"Calendar updated successfully",
   "conferencing": "Conferencing",
   "calendar": "Calendar",
   "payments": "Payments",
@@ -1129,6 +1130,7 @@
   "incorrect_2fa": "Incorrect two factor authentication code",
   "which_event_type_apply": "Which event type will this apply to?",
   "no_workflows_description": "Workflows enable simple automation to send notifications & reminders enabling you to build processes around your events.",
+  "timeformat_profile_hint": "This is an internal setting and will not affect how times are displayed on public booking pages for you or anyone booking you.",
   "create_workflow": "Create a workflow",
   "do_this": "Do this",
   "turn_off": "Turn off",
@@ -1406,5 +1408,6 @@
   "enter_option": "Enter Option {{index}}",
   "add_an_option": "Add an option",
   "radio": "Radio",
-  "kbar_search_placeholder" : "Start typing to search"
+  "kbar_search_placeholder" : "Start typing to search",
+  "set_as_default": "Set as default"
 }
