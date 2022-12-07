@@ -240,7 +240,7 @@ const BookingPage = ({
   const bookingFormSchema = z
     .object({
       name: z.string().min(1),
-      email: z.string().email(),
+      email: z.string().trim().email(),
       phone: z
         .string()
         .refine((val) => isValidPhoneNumber(val))
