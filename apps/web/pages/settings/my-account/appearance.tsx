@@ -1,3 +1,4 @@
+import { useSession } from "next-auth/react";
 import { Controller, useForm } from "react-hook-form";
 
 import { APP_NAME } from "@calcom/lib/constants";
@@ -41,7 +42,8 @@ const SkeletonLoader = () => {
 
 const AppearanceView = () => {
   const { t } = useLocale();
-
+  const session = useSession();
+  console.log({ session });
   const utils = trpc.useContext();
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
 
