@@ -88,6 +88,7 @@
       <button data-cal-namespace="popupTeamLinkLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="team/seeded-team/collective-seeded-team-event">Book with Test Team[Light Theme]</button>
       <button data-cal-namespace="popupTeamLinkDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="team/seeded-team/collective-seeded-team-event">Book with Test Team[Dark Theme]</button>
       <button data-cal-namespace="popupTeamLinksList" data-cal-link="team/seeded-team/">See Team Links [Auto Theme]</button>
+      <button data-cal-namespace="popupReschedule" data-cal-link="reschedule/qm3kwt3aTnVD7vmP9tiT2f">Reschedule Event[Auto Theme]</button>
       <button data-cal-namespace="popupPaidEvent" data-cal-link="pro/paid">Book Paid Event [Auto Theme]</button>
       <button data-cal-namespace="routingFormAuto" data-cal-link="forms/948ae412-d995-4865-875a-48302588de03">Book through Routing Form [Auto Theme]</button>
       <button data-cal-namespace="routingFormDark" data-cal-config='{"theme":"dark"}' data-cal-link="forms/948ae412-d995-4865-875a-48302588de03">Book through Routing Form [Dark Theme]</button>
@@ -430,6 +431,12 @@
         debug: 1,
         origin: "http://localhost:3000",
       })
+      
+      Cal('init', 'popupReschedule', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      })
+
       Cal('init', 'popupAutoTheme', {
         debug: 1,
         origin: "http://localhost:3000",
