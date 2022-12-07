@@ -318,18 +318,6 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
       : undefined,
   ];
 
-  const showBranding = () => {
-    if (restProps.isBrandingHidden.type == "TEAM") {
-      return !restProps.isBrandingHidden.value;
-    } else if (restProps.isBrandingHidden.type == "USER") {
-      return !isBrandingHidden(
-        restProps.isBrandingHidden.value,
-        session.data?.user.belongsToActiveTeam || false
-      );
-    }
-    return true;
-  };
-
   return (
     <Gates gates={gates} appData={rainbowAppData} dispatch={gateDispatcher}>
       <HeadSeo
@@ -456,7 +444,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                 />
               </div>
             </div>
-            {(showBranding() || isEmbed) && <PoweredByCal />}
+            {(!restProps.isBrandingHidden || isEmbed) && <PoweredByCal />}
           </div>
         </main>
       </div>

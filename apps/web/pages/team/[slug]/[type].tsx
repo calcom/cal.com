@@ -161,10 +161,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       previousPage: context.req.headers.referer ?? null,
       booking,
       trpcState: ssg.dehydrate(),
-      isBrandingHidden: {
-        type: "TEAM",
-        value: team.hideBranding,
-      },
+      isBrandingHidden: team.hideBranding,
     },
   };
 };

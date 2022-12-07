@@ -166,10 +166,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       previousPage: context.req.headers.referer ?? null,
       booking,
       users: [user.username],
-      isBrandingHidden: {
-        type: "DYNAMIC",
-        value: user.hideBranding,
-      },
+      isBrandingHidden: user.hideBranding,
     },
   };
 };

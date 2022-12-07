@@ -10,8 +10,9 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import prisma from "@calcom/prisma";
 import { User } from "@calcom/prisma/client";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EmbedProps } from "@lib/withEmbedSsr";
 
@@ -110,6 +111,11 @@ async function getUserPageProps(context: GetStaticPropsContext) {
           },
         ],
       },
+      teams: {
+        include: {
+          team: true,
+        },
+      },
     },
   });
 
@@ -150,6 +156,12 @@ async function getUserPageProps(context: GetStaticPropsContext) {
     locations: privacyFilteredLocations(locations),
     descriptionAsSafeHTML: eventType.description ? md.render(eventType.description) : null,
   });
+  const hasActiveTeam =
+    user.teams.filter((m) => {
+      const metadata = teamMetadataSchema.safeParse(m.team.metadata);
+      if (metadata.success && metadata.data?.subscriptionId) return false;
+      return true;
+    }).length > 0;
 
   return {
     props: {
@@ -167,10 +179,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       away: user?.away,
       isDynamic: false,
       trpcState: ssg.dehydrate(),
-      isBrandingHidden: {
-        type: "USER",
-        value: user.hideBranding,
-      },
+      isBrandingHidden: isBrandingHidden(user.hideBranding, hasActiveTeam),
     },
     revalidate: 10, // seconds
   };
@@ -266,10 +275,7 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
       isDynamic: true,
       away: false,
       trpcState: ssg.dehydrate(),
-      isBrandingHidden: {
-        type: "DYNAMIC",
-        value: users[0].hideBranding,
-      },
+      isBrandingHidden: false, // I think we should always show branding for dynamic groups - saves us checking every single user
     },
     revalidate: 10, // seconds
   };
