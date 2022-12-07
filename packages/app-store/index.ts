@@ -15,6 +15,7 @@ import * as jitsivideo from "./jitsivideo";
 import * as larkcalendar from "./larkcalendar";
 import * as office365calendar from "./office365calendar";
 import * as office365video from "./office365video";
+import * as plausible from "./plausible";
 import * as salesforce from "./salesforce";
 import * as sendgrid from "./sendgrid";
 import * as stripepayment from "./stripepayment";
@@ -38,6 +39,7 @@ const appStore = {
   larkcalendar,
   office365calendar,
   office365video,
+  plausible,
   salesforce,
   sendgrid,
   stripepayment,
