@@ -1321,7 +1321,7 @@
   "reason": "Grund",
   "sender_id": "Absender-ID",
   "sender_id_error_message": "Nur Buchstaben, Zahlen und Leerzeichen erlaubt (max. 11 Zeichen)",
-  "test_routing_form": "Testleitungsformular",
+  "test_routing_form": "Testweiterleitungsformular",
   "test_preview": "Vorschau testen",
   "route_to": "Route zu",
   "test_preview_description": "Testen Sie Ihr Leitungsformular, ohne Daten zu senden",

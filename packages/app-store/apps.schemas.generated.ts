@@ -12,6 +12,7 @@ import { appDataSchema as hubspot_schema } from "./hubspot/zod";
 import { appDataSchema as larkcalendar_schema } from "./larkcalendar/zod";
 import { appDataSchema as office365calendar_schema } from "./office365calendar/zod";
 import { appDataSchema as office365video_schema } from "./office365video/zod";
+import { appDataSchema as plausible_schema } from "./plausible/zod";
 import { appDataSchema as qr_code_schema } from "./qr_code/zod";
 import { appDataSchema as rainbow_schema } from "./rainbow/zod";
 import { appDataSchema as salesforce_schema } from "./salesforce/zod";
@@ -33,6 +34,7 @@ export const appDataSchemas = {
   larkcalendar: larkcalendar_schema,
   office365calendar: office365calendar_schema,
   office365video: office365video_schema,
+  plausible: plausible_schema,
   qr_code: qr_code_schema,
   rainbow: rainbow_schema,
   salesforce: salesforce_schema,
