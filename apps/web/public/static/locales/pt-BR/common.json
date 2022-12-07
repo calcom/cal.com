@@ -654,7 +654,7 @@
   "show_advanced_settings": "Mostrar Configurações Avançadas",
   "event_name": "Nome do Evento",
   "event_name_tooltip": "O nome que aparecerá nos calendários",
-  "meeting_with_user": "Reunião com {ATTENDEE}",
+  "meeting_with_user": "Reunião com {{attendeeName}}",
   "additional_inputs": "Campos adicionais",
   "additional_input_description": "Solicitar que o agendador insira entradas adicionais antes que o pedido seja confirmado",
   "label": "Etiqueta",

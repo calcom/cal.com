@@ -653,7 +653,7 @@
   "show_advanced_settings": "詳細設定を表示",
   "event_name": "イベント名",
   "event_name_tooltip": "カレンダーに表示される名前",
-  "meeting_with_user": "{ATTENDEE} とのミーティング",
+  "meeting_with_user": "{{attendeeName}} とのミーティング",
   "additional_inputs": "追加入力",
   "additional_input_description": "予約確認前にスケジュール設定者の追加入力が必要です",
   "label": "ラベル",

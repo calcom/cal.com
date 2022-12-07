@@ -654,7 +654,7 @@
   "show_advanced_settings": "Показать дополнительные параметры",
   "event_name": "Название события",
   "event_name_tooltip": "Название, которое будет отображаться в календарях",
-  "meeting_with_user": "Встреча с {ATTENDEE}",
+  "meeting_with_user": "Встреча с {{attendeeName}}",
   "additional_inputs": "Дополнительные вопросы",
   "additional_input_description": "Необходимо ввести в планировщик дополнительную информацию до подтверждения бронирования",
   "label": "Название",

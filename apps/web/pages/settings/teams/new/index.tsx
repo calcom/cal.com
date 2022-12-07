@@ -1,14 +1,19 @@
+import { GetServerSidePropsContext } from "next";
 import Head from "next/head";
 
 import { CreateANewTeamForm } from "@calcom/features/ee/teams/components";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getWizardLayout as getLayout } from "@calcom/ui";
 
+import { ssrInit } from "@server/lib/ssr";
+
 const CreateNewTeamPage = () => {
+  const { t } = useLocale();
   return (
     <>
       <Head>
-        <title>Create a new Team</title>
-        <meta name="description" content="Create a new team to ease your organisational booking" />
+        <title>{t("create_new_team")}</title>
+        <meta name="description" content={t("create_new_team_description")} />
       </Head>
       <CreateANewTeamForm />
     </>
@@ -16,5 +21,15 @@ const CreateNewTeamPage = () => {
 };
 
 CreateNewTeamPage.getLayout = getLayout;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
+};
 
 export default CreateNewTeamPage;

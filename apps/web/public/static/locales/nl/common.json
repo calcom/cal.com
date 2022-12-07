@@ -653,7 +653,7 @@
   "show_advanced_settings": "Toon geavanceerde instellingen",
   "event_name": "Naam van evenement",
   "event_name_tooltip": "De naam die in kalenders wordt weergegeven",
-  "meeting_with_user": "Afspraak met {ATTENDEE}",
+  "meeting_with_user": "Afspraak met {{attendeeName}}",
   "additional_inputs": "Extra invoer",
   "additional_input_description": "Planner vereist om extra gegevens in te voeren voordat de boeking wordt bevestigd",
   "label": "Omschrijving",

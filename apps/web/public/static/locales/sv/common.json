@@ -653,7 +653,7 @@
   "show_advanced_settings": "Visa avancerade inställningar",
   "event_name": "Händelsenamn",
   "event_name_tooltip": "Namnet som kommer visas i kalendrar",
-  "meeting_with_user": "Möte med {ATTENDEE}",
+  "meeting_with_user": "Möte med {{attendeeName}}",
   "additional_inputs": "Ytterligare inmatningar",
   "additional_input_description": "Kräv schemaläggaren att mata in ytterligare ingångar innan bokningen bekräftas",
   "label": "Etikett",

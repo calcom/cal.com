@@ -653,7 +653,7 @@
   "show_advanced_settings": "Zobrazit pokročilá nastavení",
   "event_name": "Název události",
   "event_name_tooltip": "Název, který se zobrazí v kalendářích",
-  "meeting_with_user": "Schůzka s {ATTENDEE}",
+  "meeting_with_user": "Schůzka s {{attendeeName}}",
   "additional_inputs": "Další pole",
   "additional_input_description": "Před potvrzením rezervace vyžadovat od plánující osoby zadání dalších vstupů",
   "label": "Popisek",

@@ -653,7 +653,7 @@
   "show_advanced_settings": "Hiển thị cài đặt nâng cao",
   "event_name": "Tên sự kiện",
   "event_name_tooltip": "Tên sẽ xuất hiện trong lịch",
-  "meeting_with_user": "Gặp gỡ với {ATTENDEE}",
+  "meeting_with_user": "Gặp gỡ với {{attendeeName}}",
   "additional_inputs": "Trường bổ sung",
   "additional_input_description": "Yêu cầu người đặt lịch hãy nhập thông tin đầu vào bổ sung trước khi lịch hẹn được xác nhận",
   "label": "Label",

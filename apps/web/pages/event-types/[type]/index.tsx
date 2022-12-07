@@ -39,6 +39,7 @@ import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayo
 import EventWorkflowsTab from "@components/eventtype/EventWorkfowsTab";
 
 import { getTranslation } from "@server/lib/i18n";
+import { ssrInit } from "@server/lib/ssr";
 
 export type FormValues = {
   title: string;
@@ -316,6 +317,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { req, query } = context;
   const session = await getSession({ req });
   const typeParam = parseInt(asStringOrThrow(query.type));
+  const ssr = await ssrInit(context);
 
   if (Number.isNaN(typeParam)) {
     return {
@@ -553,6 +555,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       team: eventTypeObject.team || null,
       teamMembers,
       currentUserMembership,
+      trpcState: ssr.dehydrate(),
     },
   };
 };

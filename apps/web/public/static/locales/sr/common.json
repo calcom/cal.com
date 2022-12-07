@@ -653,7 +653,7 @@
   "show_advanced_settings": "Pokaži napredna podešavanja",
   "event_name": "Ime Događaja",
   "event_name_tooltip": "Ime koje će se pojaviti u kalendarima",
-  "meeting_with_user": "Sastanak sa {ATTENDEE}",
+  "meeting_with_user": "Sastanak sa {{attendeeName}}",
   "additional_inputs": "Dodatni unosi",
   "additional_input_description": "Zahtevaj od planera da unese dodatne unose pre potvrde rezervacije",
   "label": "Oznaka",

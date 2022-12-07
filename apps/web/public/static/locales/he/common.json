@@ -653,7 +653,7 @@
   "show_advanced_settings": "הצגת הגדרות מתקדמות",
   "event_name": "שם האירוע",
   "event_name_tooltip": "השם שיופיע בלוחות השנה",
-  "meeting_with_user": "פגישה עם {ATTENDEE}",
+  "meeting_with_user": "פגישה עם {{attendeeName}}",
   "additional_inputs": "אפשרויות קלט נוספות",
   "additional_input_description": "לדרוש מכלי התזמון להוסיף פרטים לפני אישור ההזמנה",
   "label": "תווית",

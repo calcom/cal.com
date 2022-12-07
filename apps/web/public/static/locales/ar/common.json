@@ -653,7 +653,7 @@
   "show_advanced_settings": "عرض الإعدادات المتقدمة",
   "event_name": "اسم الحدث",
   "event_name_tooltip": "الاسم الذي سيظهر في التقاويم",
-  "meeting_with_user": "الاجتماع مع {ATTENDEE}",
+  "meeting_with_user": "الاجتماع مع {{attendeeName}}",
   "additional_inputs": "مدخلات إضافية",
   "additional_input_description": "يتطلب من المجدول إدخال مدخلات إضافية قبل تأكيد الحجز",
   "label": "العلامة",
