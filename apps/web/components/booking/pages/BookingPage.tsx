@@ -299,21 +299,14 @@ const BookingPage = ({
   const bookEvent = (booking: BookingFormValues) => {
     const bookingCustomInputs = Object.keys(booking.customInputs || {}).map((inputId) => ({
       label: eventType.customInputs.find((input) => input.id === parseInt(inputId))?.label || "",
-      value:
-        booking.customInputs && inputId in booking.customInputs && booking.customInputs[inputId]
-          ? booking.customInputs[inputId]
-          : "",
+      value: booking.customInputs && booking.customInputs[inputId] ? booking.customInputs[inputId] : "",
     }));
 
-    // Check if custom input of type Phone number is valid
-    const customInputsWithPhoneNumberType = eventType.customInputs.filter(
-      (customInput) => customInput.type === EventTypeCustomInputType.PHONE
-    );
-
-    if (customInputsWithPhoneNumberType.length) {
+    // Checking if custom inputs of type Phone number are valid to display error message on UI
+    if (eventType.customInputs.length) {
       let isErrorFound = false;
-      customInputsWithPhoneNumberType.forEach((customInput) => {
-        if (customInput.required) {
+      eventType.customInputs.forEach((customInput) => {
+        if (customInput.required && customInput.type === EventTypeCustomInputType.PHONE) {
           const input = bookingCustomInputs.find((i) => i.label === customInput.label);
           try {
             z.string({
