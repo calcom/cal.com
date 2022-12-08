@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const userData = await prisma.user.findFirst({
       where: { id: userId },
-      select: { id: true, plan: true, metadata: true },
+      select: { id: true, metadata: true },
     });
     if (!userData) {
       res.status(404).json({ message: "Missing user data" });
