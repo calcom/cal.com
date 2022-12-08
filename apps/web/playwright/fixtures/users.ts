@@ -1,6 +1,6 @@
 import type { Page, WorkerInfo } from "@playwright/test";
 import type Prisma from "@prisma/client";
-import { Prisma as PrismaType, UserPlan } from "@prisma/client";
+import { Prisma as PrismaType } from "@prisma/client";
 import { hash } from "bcryptjs";
 
 import dayjs from "@calcom/dayjs";
@@ -238,7 +238,7 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
   };
 };
 
-type CustomUserOptsKeys = "username" | "password" | "plan" | "completedOnboarding" | "locale" | "name";
+type CustomUserOptsKeys = "username" | "password" | "completedOnboarding" | "locale" | "name";
 type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & { timeZone?: TimeZoneEnum };
 
 // creates the actual user in the db.
@@ -247,13 +247,10 @@ const createUser = async (
   opts?: CustomUserOpts | null
 ): Promise<PrismaType.UserCreateInput> => {
   // build a unique name for our user
-  const uname = `${opts?.username ?? opts?.plan?.toLocaleLowerCase() ?? UserPlan.PRO.toLowerCase()}-${
-    workerInfo.workerIndex
-  }-${Date.now()}`;
+  const uname = `${opts?.username}-${workerInfo.workerIndex}-${Date.now()}`;
   return {
     username: uname,
-    name: opts?.name === undefined ? (opts?.plan ?? UserPlan.PRO).toUpperCase() : opts?.name,
-    plan: opts?.plan ?? UserPlan.PRO,
+    name: opts?.name,
     email: `${uname}@example.com`,
     password: await hashPassword(uname),
     emailVerified: new Date(),
