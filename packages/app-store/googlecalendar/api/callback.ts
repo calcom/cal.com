@@ -1,7 +1,7 @@
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, CAL_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
@@ -13,7 +13,10 @@ let client_id = "";
 let client_secret = "";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  console.log("🚀 ~ file: callback.ts:16 ~ handler ~ req", req.query.state);
   const { code } = req.query;
+  const state = decodeOAuthState(req);
+
   if (code && typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });
     return;
@@ -47,7 +50,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       appId: "google-calendar",
     },
   });
-  const state = decodeOAuthState(req);
+
+  if (state?.installGoogleVideo) {
+    const existingGoogleMeetCredential = await prisma.credential.findFirst({
+      where: {
+        userId: req.session.user.id,
+        type: "google_video",
+      },
+    });
+
+    if (!existingGoogleMeetCredential) {
+      await prisma.credential.create({
+        data: {
+          type: "google_video",
+          key: {},
+          userId: req.session.user.id,
+          appId: "google-meet",
+        },
+      });
+
+      res.redirect(
+        getSafeRedirectUrl(CAL_URL + "/apps/installed/conferencing?hl=google-meet") ??
+          getInstalledAppPath({ variant: "conferencing", slug: "google-meet" })
+      );
+    }
+  }
   res.redirect(
     getSafeRedirectUrl(state?.returnTo) ??
       getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })

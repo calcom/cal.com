@@ -20,7 +20,8 @@ type CustomUseMutationOptions =
 
 type AddAppMutationData = { setupPending: boolean } | void;
 type UseAddAppMutationOptions = CustomUseMutationOptions & {
-  onSuccess: (data: AddAppMutationData) => void;
+  onSuccess?: (data: AddAppMutationData) => void;
+  installGoogleVideo?: boolean;
 };
 
 function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutationOptions) {
@@ -40,6 +41,10 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
     if (type?.endsWith("_other_calendar")) {
       type = type.split("_other_calendar")[0];
     }
+
+    if (options?.installGoogleVideo && type !== "google_calendar")
+      throw new Error("Could not install Google Meet");
+
     const state: IntegrationOAuthCallbackState = {
       returnTo:
         WEBAPP_URL +
@@ -47,11 +52,13 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
           { variant: variables && variables.variant, slug: variables && variables.slug },
           location.search
         ),
+      ...(type === "google_calendar" && { installGoogleVideo: options?.installGoogleVideo }),
     };
     const stateStr = encodeURIComponent(JSON.stringify(state));
     const searchParams = `?state=${stateStr}`;
 
     const res = await fetch(`/api/integrations/${type}/add` + searchParams);
+    console.log("🚀 ~ file: useAddAppMutation.ts:65 ~ > ~ res", res);
 
     if (!res.ok) {
       const errorBody = await res.json();
