@@ -47,7 +47,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     select: {
       username: true,
       id: true,
-      plan: true,
       createdDate: true,
     },
   });
@@ -81,7 +80,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ? new Date(lastBooking.booking.createdAt).toLocaleDateString("en-US")
             : "No info"
         }</li>
-        <li><b>Plan:</b>&nbsp;${user.plan}</li>
         <li><b>Account created:</b>&nbsp;${new Date(user.createdDate).toLocaleDateString("en-US")}</li>
       </ul>
     `,
