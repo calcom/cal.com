@@ -36,7 +36,6 @@ const CtaRow = ({ title, description, className, children }: CtaRowProps) => {
 const BillingView = () => {
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.useQuery();
-  const isPro = user?.plan === "PRO";
   const [, loadChat] = useChat();
   const [showChat, setShowChat] = useState(false);
   const router = useRouter();
@@ -53,14 +52,9 @@ const BillingView = () => {
       <Meta title={t("billing")} description={t("manage_billing_description")} />
       <div className="space-y-6 text-sm sm:space-y-8">
         <CtaRow
-          className={classNames(!isPro && "pointer-events-none opacity-30")}
           title={t("billing_manage_details_title")}
           description={t("billing_manage_details_description")}>
-          <Button
-            color={isPro ? "primary" : "secondary"}
-            href={billingHref}
-            target="_blank"
-            EndIcon={Icon.FiExternalLink}>
+          <Button color="primary" href={billingHref} target="_blank" EndIcon={Icon.FiExternalLink}>
             {t("billing_portal")}
           </Button>
         </CtaRow>
