@@ -1,3 +1,4 @@
+import { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import { Controller, useForm } from "react-hook-form";
 
@@ -18,9 +19,12 @@ import {
   Switch,
 } from "@calcom/ui";
 
-const SkeletonLoader = () => {
+import { ssrInit } from "@server/lib/ssr";
+
+const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
+      <Meta title={title} description={description} />
       <div className="mt-6 mb-8 space-y-6 divide-y">
         <div className="flex items-center">
           <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
@@ -69,7 +73,7 @@ const AppearanceView = () => {
     },
   });
 
-  if (isLoading) return <SkeletonLoader />;
+  if (isLoading) return <SkeletonLoader title={t("appearance")} description={t("appearance_description")} />;
 
   if (!user) return null;
 
@@ -86,7 +90,7 @@ const AppearanceView = () => {
           theme: values.theme || null,
         });
       }}>
-      <Meta title="Appearance" description="Manage settings for your booking appearance" />
+      <Meta title={t("appearance")} description={t("appearance_description")} />
       <div className="mb-6 flex items-center text-sm">
         <div>
           <p className="font-semibold">{t("theme")}</p>
@@ -205,6 +209,16 @@ const AppearanceView = () => {
 };
 
 AppearanceView.getLayout = getLayout;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
+};
 
 export default AppearanceView;
 interface ThemeLabelProps {

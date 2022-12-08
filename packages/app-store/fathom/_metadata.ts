@@ -4,6 +4,7 @@ import config from "./config.json";
 
 export const metadata = {
   category: "analytics",
+  dirName: "fathom",
   ...config,
 } as AppMeta;
 

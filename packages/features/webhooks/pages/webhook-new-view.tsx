@@ -62,7 +62,7 @@ const NewWebhookView = () => {
   return (
     <>
       <Meta
-        title="Add Webhook"
+        title={t("add_webhook")}
         description={t("add_webhook_description", { appName: APP_NAME })}
         backButton
       />
