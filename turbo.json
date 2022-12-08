@@ -170,7 +170,7 @@
   "globalDependencies": [
     "$ANALYZE",
     "$API_KEY_PREFIX",
-    "$API_URL",
+    "$NEXT_PUBLIC_API_URL",
     "$APP_USER_NAME",
     "$CALCOM_LICENSE_KEY",
     "$CALCOM_TELEMETRY_DISABLED",
