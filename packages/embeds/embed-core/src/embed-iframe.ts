@@ -4,6 +4,7 @@ import { useState, useEffect, CSSProperties } from "react";
 import { sdkActionManager } from "./sdk-event";
 
 export interface UiConfig {
+  hideEventTypeDetails?: boolean;
   theme?: "dark" | "light" | "auto";
   styles?: EmbedStyles;
 }
@@ -40,7 +41,9 @@ const embedStore = {
   parentInformedAboutContentHeight: boolean;
   windowLoadEventFired: boolean;
   theme?: UiConfig["theme"];
+  uiConfig?: Omit<UiConfig, "styles" | "theme">;
   setTheme: (arg0: string) => void;
+  setUiConfig: (arg0: UiConfig) => void;
 };
 
 let isSafariBrowser = false;
@@ -145,6 +148,12 @@ export const useEmbedTheme = () => {
   }, [router.events]);
   embedStore.setTheme = setTheme;
   return theme === "auto" ? null : theme;
+};
+
+export const useEmbedUiConfig = () => {
+  const [uiConfig, setUiConfig] = useState(embedStore.uiConfig || {});
+  embedStore.setUiConfig = setUiConfig;
+  return uiConfig;
 };
 
 // TODO: Make it usable as an attribute directly instead of styles value. It would allow us to go beyond styles e.g. for debugging we can add a special attribute indentifying the element on which UI config has been applied
@@ -268,6 +277,11 @@ export const methods = {
     if (uiConfig.theme) {
       embedStore.theme = uiConfig.theme as UiConfig["theme"];
       embedStore.setTheme(uiConfig.theme);
+    }
+
+    if (embedStore.setUiConfig) {
+      embedStore.uiConfig = uiConfig;
+      embedStore.setUiConfig(uiConfig);
     }
 
     setEmbedStyles(stylesConfig || {});
