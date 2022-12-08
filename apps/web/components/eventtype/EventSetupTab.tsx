@@ -1,6 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
+import { useRouter } from "next/router";
 import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
@@ -28,6 +29,7 @@ export const EventSetupTab = (
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const { eventType, locationOptions, team } = props;
+  console.log("🚀 ~ file: EventSetupTab.tsx:31 ~ eventType", eventType);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [editingLocationType, setEditingLocationType] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
@@ -113,6 +115,7 @@ export const EventSetupTab = (
 
   const Locations = () => {
     const { t } = useLocale();
+    const router = useRouter();
 
     const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
@@ -202,6 +205,28 @@ export const EventSetupTab = (
               </li>
             )}
           </ul>
+        )}
+        {validLocations.some((location) => location.type === "integrations:google:meet") && (
+          <div className="flex">
+            <Icon.FiAlertTriangle className="mr-4" />
+            <p className="text-sm">
+              In order to use Google Meet you must set your{" "}
+              <a
+                href="javascript:;"
+                onClick={() => router.push(`/apps/installed/calendar`)}
+                className="underline">
+                default destination calendar{" "}
+              </a>
+              or the{" "}
+              <a
+                href="javascript:;"
+                onClick={() => router.push(`/event-types/${eventType.id}/?tabName=advanced`)}
+                className="underline">
+                event type&#39;s destination calendar
+              </a>{" "}
+              to Google Calendar. If not, the event type will fallback to Cal Video.
+            </p>
+          </div>
         )}
       </div>
     );
@@ -325,12 +350,6 @@ export const EventSetupTab = (
           <Skeleton as={Label} loadingClassName="w-16">
             {t("location")}
           </Skeleton>
-          <div className="flex">
-            <Icon.FiAlertTriangle className="mr-4 text-red-900" />
-            <p className="text-sm text-red-900">
-              In order to use Google Meet you must set the destination calendar to Google Calendar
-            </p>
-          </div>
 
           <Controller
             name="locations"

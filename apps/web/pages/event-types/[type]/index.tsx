@@ -342,6 +342,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     plan: true,
     locale: true,
     defaultScheduleId: true,
+    destinationCalendar: true,
   });
 
   const rawEventType = await prisma.eventType.findFirst({
