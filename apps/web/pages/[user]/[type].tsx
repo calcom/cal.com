@@ -72,7 +72,6 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       id: true,
       username: true,
       away: true,
-      plan: true,
       name: true,
       hideBranding: true,
       timeZone: true,
@@ -130,7 +129,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
   if (!user || !user.eventTypes.length) return { notFound: true };
 
   const [eventType]: (typeof user.eventTypes[number] & {
-    users: Pick<User, "name" | "username" | "hideBranding" | "plan" | "timeZone">[];
+    users: Pick<User, "name" | "username" | "hideBranding" | "timeZone">[];
   })[] = [
     {
       ...user.eventTypes[0],
@@ -139,7 +138,6 @@ async function getUserPageProps(context: GetStaticPropsContext) {
           name: user.name,
           username: user.username,
           hideBranding: user.hideBranding,
-          plan: user.plan,
           timeZone: user.timeZone,
         },
       ],
@@ -226,7 +224,6 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
         },
       },
       theme: true,
-      plan: true,
     },
   });
 
@@ -246,7 +243,6 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
         name: user.name,
         username: user.username,
         hideBranding: user.hideBranding,
-        plan: user.plan,
         timeZone: user.timeZone,
       };
     }),

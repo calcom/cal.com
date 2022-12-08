@@ -725,9 +725,6 @@ function DeploymentInfo() {
       className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
       &copy; {new Date().getFullYear()} {COMPANY_NAME} v.{pkg.version + "-"}
       {process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"}
-      <span className="lowercase" data-testid={`plan-${user?.plan.toLowerCase()}`}>
-        -{user?.plan}
-      </span>
     </small>
   );
 }

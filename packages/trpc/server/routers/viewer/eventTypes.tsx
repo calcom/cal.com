@@ -13,9 +13,9 @@ import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import {
   customInputSchema,
+  CustomInputSchema,
   EventTypeMetaDataSchema,
   stringOrNumber,
-  CustomInputSchema,
 } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 
@@ -201,7 +201,6 @@ export const eventTypesRouter = router({
         startTime: true,
         endTime: true,
         bufferTime: true,
-        plan: true,
         teams: {
           where: {
             accepted: true,
@@ -329,9 +328,6 @@ export const eventTypesRouter = router({
       }))
     );
     return {
-      viewer: {
-        plan: user.plan,
-      },
       // don't display event teams without event types,
       eventTypeGroups: eventTypeGroups.filter((groupBy) => !!groupBy.eventTypes?.length),
       // so we can show a dropdown when the user has teams
@@ -433,7 +429,6 @@ export const eventTypesRouter = router({
           endTime: true,
           bufferTime: true,
           avatar: true,
-          plan: true,
         },
       });
       if (!user) {

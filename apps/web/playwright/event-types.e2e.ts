@@ -120,37 +120,7 @@ test.describe("Event Types tests", () => {
       });
       await page.locator("[data-testid=update-eventtype]").click();
       const toast = await page.waitForSelector("div[class*='data-testid-toast-success']");
-      await expect(toast).toBeTruthy();
-    });
-  });
-
-  test.describe("free user", () => {
-    test.beforeEach(async ({ page, users }) => {
-      const free = await users.create({ plan: "FREE" });
-      await free.login();
-      await page.goto("/event-types");
-      // We wait until loading is finished
-      await page.waitForSelector('[data-testid="event-types"]');
-    });
-
-    test("has at least 2 events where first is enabled", async ({ page }) => {
-      const $eventTypes = page.locator("[data-testid=event-types] > li a");
-      const count = await $eventTypes.count();
-      expect(count).toBeGreaterThanOrEqual(2);
-    });
-
-    test("edit first event", async ({ page }) => {
-      const $eventTypes = page.locator("[data-testid=event-types] > li a");
-      const firstEventTypeElement = $eventTypes.first();
-      await firstEventTypeElement.click();
-      await page.waitForNavigation({
-        url: (url) => {
-          return !!url.pathname.match(/\/event-types\/.+/);
-        },
-      });
-      await page.locator("[data-testid=update-eventtype]").click();
-      const toast = await page.waitForSelector("div[class*='data-testid-toast-success']");
-      await expect(toast).toBeTruthy();
+      expect(toast).toBeTruthy();
     });
   });
 });
