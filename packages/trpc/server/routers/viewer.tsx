@@ -6,7 +6,6 @@ import z from "zod";
 import app_RoutingForms from "@calcom/app-store/ee/routing-forms/trpc-router";
 import ethRouter from "@calcom/app-store/rainbow/trpc/router";
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
-import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
 import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
 import getApps, { getLocationGroupedOptions } from "@calcom/app-store/utils";
@@ -19,7 +18,6 @@ import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
-import { CAL_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -160,7 +158,7 @@ const loggedInViewerRouter = router({
       locale: user.locale,
       timeFormat: user.timeFormat,
       timeZone: user.timeZone,
-      avatar: `${CAL_URL}/${user.username}/avatar.png`,
+      avatar: user.avatar,
       createdDate: user.createdDate,
       trialEndsAt: user.trialEndsAt,
       completedOnboarding: user.completedOnboarding,
@@ -178,6 +176,9 @@ const loggedInViewerRouter = router({
       metadata: user.metadata,
     };
   }),
+  avatar: authedProcedure.query(({ ctx }) => ({
+    avatar: ctx.user.rawAvatar,
+  })),
   deleteMe: authedProcedure
     .input(
       z.object({

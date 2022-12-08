@@ -14,23 +14,7 @@ export const UsernameAvailability = IS_SELF_HOSTED ? UsernameTextfield : Premium
 interface UsernameAvailabilityFieldProps {
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
-  user: Pick<
-    User,
-    | "username"
-    | "name"
-    | "email"
-    | "bio"
-    | "avatar"
-    | "timeZone"
-    | "weekStart"
-    | "hideBranding"
-    | "theme"
-    | "plan"
-    | "brandColor"
-    | "darkBrandColor"
-    | "timeFormat"
-    | "metadata"
-  >;
+  user: Pick<User, "username" | "metadata">;
 }
 export const UsernameAvailabilityField = ({
   onSuccessMutation,
