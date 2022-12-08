@@ -940,7 +940,7 @@
   "generate_api_key_description": "Generate an API key to use with {{appName}} at",
   "your_unique_api_key": "Your unique API key",
   "copy_safe_api_key": "Copy this API key and save it somewhere safe. If you lose this key you have to generate a new one.",
-  "zapier_setup_instructions": "<0>Log into your Zapier account and create a new Zap.</0><1>Select {{appName}} as your Trigger app. Also choose a Trigger event.</1><2>Choose your account and then enter your Unique API Key.</2><3>Test your Trigger.</3><4>You're set!</4>",
+  "zapier_setup_instructions": "<0>Log into your Zapier account and create a new Zap.</0><1>Select Cal.com as your Trigger app. Also choose a Trigger event.</1><2>Choose your account and then enter your Unique API Key.</2><3>Test your Trigger.</3><4>You're set!</4>",
   "install_zapier_app": "Please first install the Zapier App in the app store.",
   "connect_apple_server": "Connect to Apple Server",
   "connect_caldav_server": "Connect to CalDav (Beta)",
