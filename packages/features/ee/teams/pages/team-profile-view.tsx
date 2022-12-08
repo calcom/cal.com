@@ -132,7 +132,7 @@ const ProfileView = () => {
 
   return (
     <>
-      <Meta title="Profile" description="Manage settings for your team profile" />
+      <Meta title={t("profile")} description={t("profile_team_description")} />
       {!isLoading && (
         <>
           {isAdmin ? (
