@@ -655,10 +655,9 @@ export const eventTypesRouter = router({
       recurringEvent,
       bookingLimits,
       metadata,
+      workflows,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       id: _id,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      workflows: _workflows,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       webhooks: _webhooks,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -695,6 +694,24 @@ export const eventTypesRouter = router({
       });
       await ctx.prisma.eventTypeCustomInput.createMany({
         data: customInputsData,
+      });
+    }
+
+    if (workflows.length > 0) {
+      const workflowIds = workflows.map((workflow) => {
+        return { id: workflow.workflowId };
+      });
+
+      const eventUpdateData: Prisma.EventTypeUpdateInput = {
+        workflows: {
+          connect: workflowIds,
+        },
+      };
+      await ctx.prisma.eventType.update({
+        where: {
+          id: newEventType.id,
+        },
+        data: eventUpdateData,
       });
     }
 
