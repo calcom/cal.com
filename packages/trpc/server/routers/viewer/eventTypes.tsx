@@ -320,7 +320,6 @@ export const eventTypesRouter = router({
       }))
     );
     return {
-      viewer: {},
       // don't display event teams without event types,
       eventTypeGroups: eventTypeGroups.filter((groupBy) => !!groupBy.eventTypes?.length),
       // so we can show a dropdown when the user has teams
