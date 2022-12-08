@@ -1,34 +1,14 @@
-import { CheckIcon } from "@heroicons/react/solid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import classNames from "classnames";
-import { GetServerSidePropsContext } from "next";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import * as z from "zod";
 
 import { isPasswordValid } from "@calcom/lib/auth";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import prisma from "@calcom/prisma";
-import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { EmailField, Label, PasswordField, TextField, WizardForm } from "@calcom/ui";
-
-import { ssrInit } from "@server/lib/ssr";
-
-const StepDone = () => {
-  const { t } = useLocale();
-
-  return (
-    <div className="min-h-36 my-6 flex flex-col items-center justify-center">
-      <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-gray-600 dark:bg-white">
-        <CheckIcon className="inline-block h-10 w-10 text-white dark:bg-white dark:text-gray-600" />
-      </div>
-      <div className="max-w-[420px] text-center">
-        <h2 className="mt-6 mb-1 text-lg font-medium dark:text-gray-300">{t("all_done")}</h2>
-      </div>
-    </div>
-  );
-};
+import { EmailField, Label, PasswordField, TextField } from "@calcom/ui";
 
 const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
   const router = useRouter();
@@ -83,13 +63,19 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
       },
     });
     if (response.status === 200) {
-      router.replace(`/auth/login?email=${data.email_address.toLowerCase()}`);
+      await signIn("credentials", {
+        redirect: false,
+        callbackUrl: "/",
+        email: data.email_address.toLowerCase(),
+        password: data.password,
+      });
+      router.replace(`/auth/setup?step=2&category=calendar`);
     } else {
       router.replace("/auth/setup");
     }
   }, onError);
 
-  const longWebsiteUrl = process.env.NEXT_PUBLIC_WEBSITE_URL.length > 30;
+  const longWebsiteUrl = WEBSITE_URL.length > 30;
 
   return (
     <FormProvider {...formMethods}>
@@ -201,37 +187,4 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
   );
 };
 
-export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
-  const { t } = useLocale();
-  const [isLoadingStep1, setIsLoadingStep1] = useState(false);
-
-  const steps = [
-    {
-      title: t("administrator_user"),
-      description: t("lets_create_first_administrator_user"),
-      content: props.userCount !== 0 ? <StepDone /> : <SetupFormStep1 setIsLoading={setIsLoadingStep1} />,
-      enabled: props.userCount === 0, // to check if the wizard should show buttons to navigate through more steps
-      isLoading: isLoadingStep1,
-    },
-  ];
-
-  return (
-    <>
-      <main className="flex h-screen items-center bg-gray-100 print:h-full">
-        <WizardForm href="/auth/setup" steps={steps} containerClassname="max-w-sm" />
-      </main>
-    </>
-  );
-}
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-  const userCount = await prisma.user.count();
-
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-      userCount,
-    },
-  };
-};
+export default SetupFormStep1;

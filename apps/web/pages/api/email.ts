@@ -60,9 +60,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Content-Type", "text/html");
   res.setHeader("Cache-Control", "no-cache, no-store, private, must-revalidate");
   res.write(
-    renderEmail("AttendeeScheduledEmail", {
-      attendee: evt.attendees[0],
-      calEvent: evt,
+    renderEmail("DisabledAppEmail", {
+      appName: "Stripe",
+      appType: ["payment"],
+      t,
     })
   );
   res.end();

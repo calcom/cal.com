@@ -1,14 +1,13 @@
 import React, { ComponentProps } from "react";
 
+import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
 import { InstalledAppVariants } from "@calcom/app-store/utils";
 import { trpc } from "@calcom/trpc/react";
 
 import { Icon } from "../../../Icon";
 import Shell from "../Shell";
 import type { HorizontalTabItemProps } from "../navigation/tabs/HorizontalTabItem";
-import HorizontalTabs from "../navigation/tabs/HorizontalTabs";
 import type { VerticalTabItemProps } from "../navigation/tabs/VerticalTabItem";
-import VerticalTabs from "../navigation/tabs/VerticalTabs";
 
 const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
   {
@@ -57,15 +56,9 @@ export default function InstalledAppsLayout({
   }
   return (
     <Shell {...rest}>
-      <div className="flex flex-col p-2 md:p-0 xl:flex-row">
-        <div className="hidden xl:block">
-          <VerticalTabs tabs={actualTabs} sticky linkProps={{ shallow: true }} />
-        </div>
-        <div className="block xl:hidden">
-          <HorizontalTabs tabs={actualTabs} linkProps={{ shallow: true }} />
-        </div>
-        <main className="w-full xl:mx-5 xl:w-4/5 xl:pr-5">{children}</main>
-      </div>
+      <AppCategoryNavigation baseURL="/apps/installed" containerClassname="w-full xl:mx-5 xl:w-4/5 xl:pr-5">
+        {children}
+      </AppCategoryNavigation>
     </Shell>
   );
 }

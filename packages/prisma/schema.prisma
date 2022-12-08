@@ -100,7 +100,7 @@ model Credential {
   // How to make it a required column?
   appId                String?
   destinationCalendars DestinationCalendar[]
-  invalid              Boolean?
+  invalid              Boolean?              @default(false)
 }
 
 enum UserPlan {
@@ -511,6 +511,7 @@ model App {
   credentials Credential[]
   Webhook     Webhook[]
   ApiKey      ApiKey[]
+  enabled     Boolean         @default(false)
 }
 
 model App_RoutingForms_Form {

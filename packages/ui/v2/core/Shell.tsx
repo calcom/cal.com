@@ -203,8 +203,6 @@ export default function Shell(props: LayoutProps) {
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
   useTheme("light");
-  const { session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
-  if (!session && !props.isPublic) return null;
 
   return (
     <KBarRoot>

@@ -75,6 +75,7 @@ async function getUserFromSession({
       timeFormat: true,
       trialEndsAt: true,
       metadata: true,
+      role: true,
     },
   });
 

@@ -1,9 +1,12 @@
 import Head from "next/head";
 
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button } from "@calcom/ui";
 
 export default function Error500() {
+  const { t } = useLocale();
+
   return (
     <div className="flex h-screen">
       <Head>
@@ -24,7 +27,7 @@ export default function Error500() {
           Something went wrong on our end. Get in touch with our support team, and we’ll get it fixed right
           away for you.
         </p>
-        <Button href={`${WEBSITE_URL}/support`}>Contact support</Button>
+        <Button href={`${WEBSITE_URL}/support`}>{t("contact_support")}</Button>
         <Button color="secondary" href="javascript:history.back()" className="ml-2">
           Go back
         </Button>
