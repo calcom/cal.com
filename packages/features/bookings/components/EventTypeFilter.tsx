@@ -7,8 +7,8 @@ import { AnimatedPopover } from "@calcom/ui";
 
 import { groupBy } from "../groupBy";
 
-type EventTypes = RouterOutputs["viewer"]["eventTypes"]["listWithTeam"];
-type EventType = EventTypes[0];
+export type IEventTypesFilters = RouterOutputs["viewer"]["eventTypes"]["listWithTeam"];
+export type IEventTypeFilter = IEventTypesFilters[0];
 
 type GroupedEventTypeState = Record<
   string,
@@ -32,7 +32,7 @@ export const EventTypeFilter = () => {
   useEffect(() => {
     if (eventTypes.data) {
       // Group event types by team
-      const grouped = groupBy<EventType>(
+      const grouped = groupBy<IEventTypeFilter>(
         eventTypes.data.filter((el) => el.team),
         (item) => item?.team?.name || ""
       ); // Add the team name
