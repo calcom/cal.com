@@ -1,10 +1,11 @@
 import { LinkIcon } from "./LinkIcon";
 
-export const CallToAction = (props: { label: string; href: string }) => (
+export const CallToAction = (props: { label: string; href: string; secondary?: boolean }) => (
   <p
     style={{
       display: "inline-block",
-      background: "#292929",
+      background: props.secondary ? "#FFFFFF" : "#292929",
+      border: props.secondary ? "1px solid #292929" : "",
       color: "#ffffff",
       fontFamily: "Roboto, Helvetica, sans-serif",
       fontSize: "16px",
@@ -18,9 +19,10 @@ export const CallToAction = (props: { label: string; href: string }) => (
       // @ts-ignore
       msoPaddingAlt: "0px",
       borderRadius: "3px",
+      boxSizing: "border-box",
     }}>
     <a
-      style={{ color: "#FFFFFF", textDecoration: "none" }}
+      style={{ color: props.secondary ? "#292929" : "#FFFFFF", textDecoration: "none" }}
       href={props.href}
       target="_blank"
       rel="noreferrer">
