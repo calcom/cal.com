@@ -62,7 +62,6 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
   const members = team.members.map((obj) => {
     return {
       ...obj.user,
-      isMissingSeat: obj.user.plan === UserPlan.FREE,
       role: obj.role,
       accepted: obj.accepted,
       disableImpersonation: obj.disableImpersonation,
