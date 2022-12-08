@@ -48,7 +48,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     location: "Zoom video",
     destinationCalendar: null,
     hideCalendarNotes: false,
-    uid: "bwPWLpjYrx4rZf6MCZdKgE",
+    uid: "xxyPr4cg2xx4XoS2KeMEQy",
     metadata: {},
     cancellationReason: "It got late",
     paymentInfo: { id: "pi_12312", link: "https://cal.com", reason: "no reason" },
@@ -60,10 +60,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Content-Type", "text/html");
   res.setHeader("Cache-Control", "no-cache, no-store, private, must-revalidate");
   res.write(
-    renderEmail("DisabledAppEmail", {
-      appName: "Stripe",
-      appType: ["payment"],
-      t,
+    renderEmail("OrganizerRequestEmail", {
+      attendee: evt.attendees[0],
+      calEvent: evt,
     })
   );
   res.end();
