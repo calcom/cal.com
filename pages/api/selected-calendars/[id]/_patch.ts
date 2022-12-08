@@ -46,7 +46,7 @@ import {
  *        description: Authorization information is missing or invalid.
  */
 export async function patchHandler(req: NextApiRequest) {
-  const { prisma, query, userId, isAdmin } = req;
+  const { prisma, query, isAdmin } = req;
   const userId_integration_externalId = selectedCalendarIdSchema.parse(query);
   const { userId: bodyUserId, ...data } = schemaSelectedCalendarUpdateBodyParams.parse(req.body);
   const args: Prisma.SelectedCalendarUpdateArgs = { where: { userId_integration_externalId }, data };

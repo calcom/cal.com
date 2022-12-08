@@ -3,7 +3,6 @@ import type { NextApiRequest } from "next";
 import { defaultResponder } from "@calcom/lib/server";
 
 import { membershipIdSchema } from "~/lib/validations/membership";
-import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
 
 /**
  * @swagger
