@@ -858,7 +858,6 @@ const getEventTypesFromDB = async (id: number) => {
           name: true,
           username: true,
           hideBranding: true,
-          plan: true,
           theme: true,
           brandColor: true,
           darkBrandColor: true,
