@@ -53,6 +53,7 @@ const requestSchema = z.object({
         console.log(signedData, data, data[3], "==", sig);
       }
     }),
+  reason: z.string().optional(),
 });
 
 function bookingContent(status: BookingStatus | undefined | null) {
@@ -212,6 +213,14 @@ export default function Directlink({ booking, reason, status }: inferSSRProps<ty
                           </div>
                         </>
                       )}
+                      {status === BookingStatus.REJECTED && reason !== undefined && (
+                        <>
+                          <div className="mt-9 font-medium">{t("rejection_reason")}</div>
+                          <div className="col-span-2 mb-2 mt-9">
+                            <p>{reason}</p>
+                          </div>
+                        </>
+                      )}
                     </div>
                     {status === BookingStatus.PENDING && reason === undefined && (
                       <>
@@ -274,6 +283,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const {
     link: [action, email, bookingUid],
+    reason,
   } = parsedQuery.data;
 
   const isAccept = action === DirectAction.accept;
@@ -369,7 +379,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 
   // Trying to reject booking without reason
-  if (!isAccept && context.query.reason === undefined) {
+  if (!isAccept && reason === undefined) {
     return {
       props: {
         booking,
@@ -385,6 +395,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       user: booking.user,
       recurringEventId: booking.recurringEventId,
       confirmed: action === DirectAction.accept,
+      rejectionReason: reason,
     },
     prisma
   );
