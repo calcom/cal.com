@@ -14,6 +14,8 @@ import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
+import { ssgInit } from "@server/lib/ssg";
+
 type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["status"];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
 
@@ -179,14 +181,16 @@ export default function Bookings() {
   );
 }
 
-export const getStaticProps: GetStaticProps = (ctx) => {
+export const getStaticProps: GetStaticProps = async (ctx) => {
   const params = querySchema.safeParse(ctx.params);
+  const ssg = await ssgInit(ctx);
 
   if (!params.success) return { notFound: true };
 
   return {
     props: {
       status: params.data.status,
+      trpcState: ssg.dehydrate(),
     },
   };
 };

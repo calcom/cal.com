@@ -3,10 +3,9 @@ import Document, { DocumentContext, Head, Html, Main, NextScript, DocumentProps 
 type Props = Record<string, unknown> & DocumentProps;
 
 function toRunBeforeReactOnClient() {
-  const calEmbedMode =
-    location.search.includes("embed=") ||
-    /* Iframe Name */
-    window.name.includes("cal-embed");
+  const calEmbedMode = typeof new URL(document.URL).searchParams.get("embed") === "string";
+  /* Iframe Name */
+  window.name.includes("cal-embed");
 
   window.isEmbed = () => {
     // Once an embed mode always an embed mode

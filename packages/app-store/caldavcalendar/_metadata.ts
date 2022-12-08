@@ -20,6 +20,7 @@ export const metadata = {
   url: "https://cal.com/",
   verified: true,
   email: "ali@cal.com",
+  dirName: "caldavcalendar",
 } as AppMeta;
 
 export default metadata;

@@ -11,7 +11,8 @@ const teamIdschema = z.object({
 
 const auditAndReturnNextUser = async (
   impersonatedUser: Pick<User, "id" | "username" | "email" | "name" | "role">,
-  impersonatedByUID: number
+  impersonatedByUID: number,
+  hasTeam?: boolean
 ) => {
   // Log impersonations for audit purposes
   await prisma.impersonations.create({
@@ -36,6 +37,7 @@ const auditAndReturnNextUser = async (
     name: impersonatedUser.name,
     role: impersonatedUser.role,
     impersonatedByUID,
+    belongsToActiveTeam: hasTeam,
   };
 
   return obj;
@@ -103,7 +105,11 @@ const ImpersonationProvider = CredentialsProvider({
       if (impersonatedUser.disableImpersonation) {
         throw new Error("This user has disabled Impersonation.");
       }
-      return auditAndReturnNextUser(impersonatedUser, session?.user.id as number);
+      return auditAndReturnNextUser(
+        impersonatedUser,
+        session?.user.id as number,
+        impersonatedUser.teams.length > 0 // If the user has any teams, they belong to an active team and we can set the hasActiveTeam ctx to true
+      );
     }
 
     if (!teamId) throw new Error("You do not have permission to do this.");
@@ -137,7 +143,11 @@ const ImpersonationProvider = CredentialsProvider({
       throw new Error("You do not have permission to do this.");
     }
 
-    return auditAndReturnNextUser(impersonatedUser, session?.user.id as number);
+    return auditAndReturnNextUser(
+      impersonatedUser,
+      session?.user.id as number,
+      impersonatedUser.teams.length > 0 // If the user has any teams, they belong to an active team and we can set the hasActiveTeam ctx to true
+    );
   },
 });
 

@@ -54,7 +54,7 @@ const EditWebhook = () => {
     return (
       <>
         <Meta
-          title="Edit Webhook"
+          title={t("edit_webhook")}
           description={t("add_webhook_description", { appName: APP_NAME })}
           backButton
         />
