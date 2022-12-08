@@ -5,8 +5,7 @@ import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
 import { applyStyleToMultipleVariants } from "@calcom/lib/cva";
-
-import Tooltip from "../../v2/core/Tooltip";
+import { Tooltip } from "@calcom/ui";
 
 type InferredVariantProps = VariantProps<typeof buttonClasses>;
 
