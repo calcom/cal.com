@@ -35,23 +35,7 @@ interface ICustomUsernameProps {
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
-  user: Pick<
-    User,
-    | "username"
-    | "name"
-    | "email"
-    | "bio"
-    | "avatar"
-    | "timeZone"
-    | "weekStart"
-    | "hideBranding"
-    | "theme"
-    | "plan"
-    | "brandColor"
-    | "darkBrandColor"
-    | "timeFormat"
-    | "metadata"
-  >;
+  user: Pick<User, "username" | "metadata">;
   readonly?: boolean;
 }
 
