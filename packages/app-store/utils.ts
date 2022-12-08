@@ -26,10 +26,10 @@ const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
 }, {} as Record<string, AppMeta>);
 
 const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
-  select: { id: true, type: true, key: true, userId: true, appId: true },
+  select: { id: true, type: true, key: true, userId: true, appId: true, invalid: true },
 });
 
-type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
+export type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
 
 export enum InstalledAppVariants {
   "conferencing" = "conferencing",
@@ -146,6 +146,7 @@ function getApps(userCredentials: CredentialData[]) {
         key: appMeta.key!,
         userId: +new Date().getTime(),
         appId: appMeta.slug,
+        invalid: false,
       });
     }
 
@@ -172,6 +173,10 @@ function getApps(userCredentials: CredentialData[]) {
   });
 
   return apps;
+}
+
+export function getLocalAppMetadata() {
+  return ALL_APPS;
 }
 
 export function hasIntegrationInstalled(type: App["type"]): boolean {

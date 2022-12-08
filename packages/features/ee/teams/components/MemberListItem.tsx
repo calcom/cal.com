@@ -1,5 +1,6 @@
 import { MembershipRole } from "@prisma/client";
 import classNames from "classnames";
+import { signIn } from "next-auth/react";
 import { useState } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -12,9 +13,9 @@ import {
   ButtonGroup,
   ConfirmationDialogContent,
   Dialog,
+  DialogClose,
   DialogContent,
   DialogFooter,
-  DialogTrigger,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
@@ -48,6 +49,8 @@ export default function MemberListItem(props: Props) {
   const utils = trpc.useContext();
   const [showChangeMemberRoleModal, setShowChangeMemberRoleModal] = useState(false);
   const [showTeamAvailabilityModal, setShowTeamAvailabilityModal] = useState(false);
+  const [showImpersonateModal, setShowImpersonateModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
@@ -83,6 +86,11 @@ export default function MemberListItem(props: Props) {
         ownersInTeam() > 1 ||
         props.member.id !== currentUserId)) ||
     (props.team.membership.role === MembershipRole.ADMIN && props.member.role !== MembershipRole.OWNER);
+  const impersonationMode =
+    editMode &&
+    !props.member.disableImpersonation &&
+    props.member.accepted &&
+    process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true";
 
   return (
     <li className="divide-y px-5">
@@ -161,28 +169,28 @@ export default function MemberListItem(props: Props) {
                         {t("edit") as string}
                       </DropdownItem>
                     </DropdownMenuItem>
-
-                    <DropdownMenuItem>
-                      <Dialog>
-                        <DialogTrigger asChild className="p-0">
+                    {impersonationMode && (
+                      <>
+                        <DropdownMenuItem>
                           <Button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
-                            color="destructive"
-                            StartIcon={Icon.FiTrash}
-                            className="px-3 py-2 font-normal">
-                            {t("delete")}
+                            onClick={() => setShowImpersonateModal(true)}
+                            color="minimal"
+                            StartIcon={Icon.FiLock}
+                            className="w-full flex-shrink-0 font-normal">
+                            {t("impersonate")}
                           </Button>
-                        </DialogTrigger>
-                        <ConfirmationDialogContent
-                          variety="danger"
-                          title={t("remove_member")}
-                          confirmBtnText={t("confirm_remove_member")}
-                          onConfirm={removeMember}>
-                          {t("remove_member_confirmation_message")}
-                        </ConfirmationDialogContent>
-                      </Dialog>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="h-px bg-gray-200" />
+                      </>
+                    )}
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        type="button"
+                        onClick={() => setShowDeleteModal(true)}
+                        color="destructive"
+                        StartIcon={Icon.FiTrash}>
+                        {t("delete")}
+                      </DropdownItem>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </Dropdown>
@@ -216,30 +224,14 @@ export default function MemberListItem(props: Props) {
                           {t("edit") as string}
                         </DropdownItem>
                       </DropdownMenuItem>
-
-                      <DropdownMenuSeparator className="h-px bg-gray-200" />
-
                       <DropdownMenuItem>
-                        <Dialog>
-                          <DialogTrigger asChild className="p-0">
-                            <Button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                              }}
-                              color="destructive"
-                              StartIcon={Icon.FiTrash}
-                              className="px-3 py-2 font-normal">
-                              {t("delete")}
-                            </Button>
-                          </DialogTrigger>
-                          <ConfirmationDialogContent
-                            variety="danger"
-                            title={t("remove_member")}
-                            confirmBtnText={t("confirm_remove_member")}
-                            onConfirm={removeMember}>
-                            {t("remove_member_confirmation_message")}
-                          </ConfirmationDialogContent>
-                        </Dialog>
+                        <DropdownItem
+                          type="button"
+                          color="destructive"
+                          onClick={() => setShowDeleteModal(true)}
+                          StartIcon={Icon.FiTrash}>
+                          {t("edit") as string}
+                        </DropdownItem>
                       </DropdownMenuItem>
                     </>
                   )}
@@ -249,6 +241,42 @@ export default function MemberListItem(props: Props) {
           </div>
         )}
       </div>
+
+      {editMode && (
+        <Dialog open={showDeleteModal} onOpenChange={() => setShowDeleteModal(false)}>
+          <ConfirmationDialogContent
+            variety="danger"
+            title={t("remove_member")}
+            confirmBtnText={t("confirm_remove_member")}
+            onConfirm={removeMember}>
+            {t("remove_member_confirmation_message")}
+          </ConfirmationDialogContent>
+        </Dialog>
+      )}
+
+      {showImpersonateModal && props.member.username && (
+        <Dialog open={showImpersonateModal} onOpenChange={() => setShowImpersonateModal(false)}>
+          <DialogContent type="creation" title={t("impersonate")} description={t("impersonation_user_tip")}>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                await signIn("impersonation-auth", {
+                  username: props.member.username,
+                  teamId: props.team.id,
+                });
+                setShowImpersonateModal(false);
+              }}>
+              <DialogFooter>
+                <DialogClose color="secondary">{t("cancel")}</DialogClose>
+                <Button color="primary" type="submit">
+                  {t("impersonate")}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
+
       {showChangeMemberRoleModal && (
         <MemberChangeRoleModal
           isOpen={showChangeMemberRoleModal}
