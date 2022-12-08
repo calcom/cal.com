@@ -13,7 +13,6 @@ let client_id = "";
 let client_secret = "";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  console.log("🚀 ~ file: callback.ts:16 ~ handler ~ req", req.query.state);
   const { code } = req.query;
   const state = decodeOAuthState(req);
 

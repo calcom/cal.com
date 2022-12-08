@@ -801,6 +801,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     results: EventResult<AdditionalInformation>[],
     booking: (Booking & { appsStatus?: AppsStatus[] }) | null
   ) {
+    console.log("🚀 ~ file: handleNewBooking.ts:804 ~ handler ~ results", results);
+
     // Taking care of apps status
     const resultStatus: AppsStatus[] = results.map((app) => ({
       appName: app.appName,
@@ -903,6 +905,40 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       const metadata: AdditionalInformation = {};
 
       if (results.length) {
+        console.log("🚀 ~ file: handleNewBooking.ts:946 ~ handler ~ bookingLocation", bookingLocation);
+
+        // Handle Google Meet results
+        // We use the original booking location since the evt location changes to daily
+        if (bookingLocation === "integrations:google:meet") {
+          const googleMeetResult = {
+            appName: "Google Meet",
+            type: "conferencing",
+          };
+
+          const googleCalResult = results.find((result) => result.type === "google_calendar");
+
+          if (!googleCalResult) {
+            results.push({
+              ...googleMeetResult,
+              success: false,
+              calWarnings: [
+                "In order to use Google Meet you must set your destination calendar to a Google Calendar",
+              ],
+            });
+          }
+
+          if (googleCalResult?.createdEvent?.hangoutLink) {
+            results.push({
+              ...googleMeetResult,
+              success: true,
+            });
+          } else if (googleCalResult && !googleCalResult.createdEvent.hangoutLink) {
+            results.push({
+              ...googleMeetResult,
+              success: false,
+            });
+          }
+        }
         // TODO: Handle created event metadata more elegantly
         metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
         metadata.conferenceData = results[0].createdEvent?.conferenceData;

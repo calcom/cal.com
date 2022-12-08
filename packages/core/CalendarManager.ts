@@ -187,6 +187,7 @@ export const createEvent = async (
   credential: CredentialWithAppName,
   calEvent: CalendarEvent
 ): Promise<EventResult<NewCalendarEventType>> => {
+  console.log("🚀 ~ file: CalendarManager.ts:190 ~ calEvent", calEvent);
   const uid: string = getUid(calEvent);
   const calendar = getCalendar(credential);
   let success = true;
@@ -218,6 +219,8 @@ export const createEvent = async (
         return undefined;
       })
     : undefined;
+
+  console.log("🚀 ~ file: CalendarManager.ts:203 ~ creationResult", creationResult);
 
   return {
     appName: credential.appName,

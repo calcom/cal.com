@@ -58,7 +58,6 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
     const searchParams = `?state=${stateStr}`;
 
     const res = await fetch(`/api/integrations/${type}/add` + searchParams);
-    console.log("🚀 ~ file: useAddAppMutation.ts:65 ~ > ~ res", res);
 
     if (!res.ok) {
       const errorBody = await res.json();
