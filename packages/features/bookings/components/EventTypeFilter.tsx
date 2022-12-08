@@ -3,29 +3,12 @@ import { Fragment, useState, useEffect } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc, RouterOutputs } from "@calcom/trpc/react";
-import { Avatar, AnimatedPopover } from "@calcom/ui";
+import { AnimatedPopover } from "@calcom/ui";
+
+import { groupBy } from "../groupBy";
 
 type EventTypes = RouterOutputs["viewer"]["eventTypes"]["listWithTeam"];
 type EventType = EventTypes[0];
-
-type KeySelector<T> = (item: T) => string;
-
-function groupBy<T>(array: Iterable<T>, keySelector: KeySelector<T>): Record<string, T[]> {
-  return Array.from(array).reduce(
-    (acc: Record<string, T[]>, item: T) => {
-      const key = keySelector(item);
-      if (key in acc) {
-        // found key, push new item into existing array
-        acc[key].push(item);
-      } else {
-        // did not find key, create new array
-        acc[key] = [item];
-      }
-      return acc;
-    },
-    {} // start with empty object
-  );
-}
 
 type GroupedEventTypeState = Record<
   string,
@@ -73,7 +56,9 @@ export const EventTypeFilter = () => {
               {groupedEventTypes[teamName].map((eventType) => (
                 <Fragment key={eventType.id}>
                   <div className="item-center flex px-4 py-[6px]">
-                    <p className="block self-center text-sm font-medium text-gray-700">{eventType.title}</p>
+                    <p className="block self-center truncate text-sm font-medium text-gray-700">
+                      {eventType.title}
+                    </p>
                     <div className="ml-auto">
                       <input
                         type="checkbox"

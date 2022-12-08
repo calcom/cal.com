@@ -4,6 +4,7 @@ import { HorizontalTabs, Shell } from "@calcom/ui";
 import { VerticalTabItemProps, HorizontalTabItemProps } from "@calcom/ui/v2";
 
 import { EventTypeFilter } from "../components/EventTypeFilter";
+import { TeamsMemberFilter } from "../components/TeamsMemberFilter";
 
 const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
   {
@@ -38,6 +39,7 @@ export default function BookingLayout({
         <div className="flex  flex-col lg:flex-row">
           <HorizontalTabs tabs={tabs} />
           <div className="flex space-x-2">
+            <TeamsMemberFilter />
             <EventTypeFilter />
           </div>
         </div>

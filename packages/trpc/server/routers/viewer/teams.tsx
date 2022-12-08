@@ -654,4 +654,38 @@ export const viewerTeamsRouter = router({
     });
     return teams;
   }),
+  listTeamsandMembers: authedProcedure.query(async ({ ctx }) => {
+    const teams = await ctx.prisma.team.findMany({
+      where: {
+        members: {
+          some: {
+            user: {
+              id: ctx.user.id,
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        members: {
+          select: {
+            team: {
+              select: {
+                id: true,
+              },
+            },
+            user: {
+              select: {
+                id: true,
+                name: true,
+                avatar: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    return teams;
+  }),
 });
