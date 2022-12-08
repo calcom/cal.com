@@ -80,6 +80,7 @@ export const schemaUserBaseBodyParams = User.pick({
   darkBrandColor: true,
   allowDynamicBooking: true,
   away: true,
+  role: true,
   // @note: disallowing avatar changes via API for now. We can add it later if needed. User should upload image via UI.
   // avatar: true,
 }).partial();
