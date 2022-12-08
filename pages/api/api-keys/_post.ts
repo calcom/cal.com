@@ -6,7 +6,7 @@ import { generateUniqueAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { apiKeyCreateBodySchema, apiKeyPublicSchema } from "@lib/validations/api-key";
+import { apiKeyCreateBodySchema, apiKeyPublicSchema } from "~/lib/validations/api-key";
 
 async function postHandler(req: NextApiRequest) {
   const { userId, isAdmin, prisma } = req;

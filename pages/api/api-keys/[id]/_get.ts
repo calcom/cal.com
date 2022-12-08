@@ -2,8 +2,8 @@ import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
 
-import { apiKeyPublicSchema } from "@lib/validations/api-key";
-import { schemaQueryIdAsString } from "@lib/validations/shared/queryIdString";
+import { apiKeyPublicSchema } from "~/lib/validations/api-key";
+import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
 
 async function getHandler(req: NextApiRequest) {
   const { prisma, query } = req;

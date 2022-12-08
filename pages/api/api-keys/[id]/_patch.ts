@@ -2,8 +2,8 @@ import type { NextApiRequest } from "next";
 
 import { defaultResponder } from "@calcom/lib/server";
 
-import { apiKeyEditBodySchema, apiKeyPublicSchema } from "@lib/validations/api-key";
-import { schemaQueryIdAsString } from "@lib/validations/shared/queryIdString";
+import { apiKeyEditBodySchema, apiKeyPublicSchema } from "~/lib/validations/api-key";
+import { schemaQueryIdAsString } from "~/lib/validations/shared/queryIdString";
 
 async function patchHandler(req: NextApiRequest) {
   const { prisma, body } = req;
