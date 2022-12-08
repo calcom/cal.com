@@ -1,6 +1,7 @@
 import { App_RoutingForms_Form } from "@prisma/client";
 import { Dispatch, SetStateAction } from "react";
 
+import isRouterLinkedField from "../lib/isRouterLinkedField";
 import { getQueryBuilderConfig } from "../pages/route-builder/[...appPages]";
 import { SerializableForm, Response } from "../types/types";
 
@@ -18,8 +19,8 @@ export default function FormInputFields(props: Props) {
   return (
     <>
       {form.fields?.map((field) => {
-        if (field.globalRouterField) {
-          field = field.globalRouterField;
+        if (isRouterLinkedField(field)) {
+          field = field.routerField;
         }
         const widget = queryBuilderConfig.widgets[field.type];
         if (!("factory" in widget)) {

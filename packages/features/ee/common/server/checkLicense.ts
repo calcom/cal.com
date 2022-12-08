@@ -19,7 +19,6 @@ const schemaLicenseKey = z
   });
 
 async function checkLicense(license: string): Promise<boolean> {
-  return true;
   if (!!process.env.NEXT_PUBLIC_IS_E2E) return true;
   if (!license) return false;
   const url = `${CONSOLE_URL}/api/license?key=${schemaLicenseKey.parse(license)}`;

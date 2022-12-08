@@ -68,7 +68,6 @@ export function getWorkingHours(
   if (!availability.length) {
     return [];
   }
-  console.log("Availability", JSON.stringify(availability));
   const utcOffset =
     relativeTimeUnit.utcOffset ??
     (relativeTimeUnit.timeZone ? dayjs().tz(relativeTimeUnit.timeZone).utcOffset() : 0);

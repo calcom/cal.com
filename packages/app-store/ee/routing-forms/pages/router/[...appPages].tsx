@@ -56,7 +56,7 @@ export const getServerSideProps = async function getServerSideProps(
       notFound: true,
     };
   }
-  const serializableForm = await getSerializableForm(prisma, form);
+  const serializableForm = await getSerializableForm(form);
 
   const response: Record<string, Pick<Response[string], "value">> = {};
   serializableForm.fields?.forEach((field) => {

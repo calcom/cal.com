@@ -122,10 +122,6 @@ async function fillSeededForm(page: Page, routingFormId: string) {
 }
 
 test.describe("Routing Forms", () => {
-  test.afterEach(async ({ users }) => {
-    // This also delete forms on cascade
-    await users.deleteAll();
-  });
   test.describe("Zero State Routing Forms", () => {
     test.beforeEach(async ({ page, users }) => {
       const user = await users.create({ username: "routing-forms" });
@@ -136,6 +132,10 @@ test.describe("Routing Forms", () => {
       await page.waitForNavigation({
         url: (url) => url.pathname === `/apps/routing-forms/forms`,
       });
+    });
+    test.afterEach(async ({ users }) => {
+      // This also delete forms on cascade
+      await users.deleteAll();
     });
 
     test("should be able to add a new form and view it", async ({ page }) => {
@@ -201,6 +201,10 @@ test.describe("Routing Forms", () => {
   todo("should be able to duplicate form");
 
   test.describe("Seeded Routing Form ", () => {
+    test.afterEach(async ({ users }) => {
+      // This also delete forms on cascade
+      await users.deleteAll();
+    });
     const createUserAndLoginAndInstallApp = async function ({
       users,
       page,

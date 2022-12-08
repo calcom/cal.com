@@ -9,10 +9,8 @@ import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-build
 import { trpc } from "@calcom/trpc/react";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import {
-  Button,
   SelectField,
   FormCard,
-  Icon,
   SelectWithValidation as Select,
   Shell,
   TextArea,
@@ -20,14 +18,14 @@ import {
   Badge,
 } from "@calcom/ui";
 
-import { zodGlobalRouteView, zodLocalRoute } from "../..//zod";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
 import QueryBuilderInitialConfig from "../../components/react-awesome-query-builder/config/config";
 import "../../components/react-awesome-query-builder/styles.css";
-import isRouter from "../../isRouter";
-import { SerializableForm } from "../../types/types";
+import { createFallbackRoute } from "../../lib/createFallbackRoute";
+import isRouter from "../../lib/isRouter";
+import { GlobalRoute, LocalRoute, SerializableForm, SerializableRoute } from "../../types/types";
 import { FieldTypes } from "../form-edit/[...appPages]";
 
 export { getServerSideProps };
@@ -56,8 +54,8 @@ export function getQueryBuilderConfig(form: RoutingForm, forReporting = false) {
     }
   > = {};
   form.fields?.forEach((field) => {
-    if (field.globalRouterField) {
-      field = field.globalRouterField;
+    if ("routerField" in field) {
+      field = field.routerField;
     }
     if (FieldTypes.map((f) => f.value).includes(field.type)) {
       const optionValues = field.selectText?.trim().split("\n");
@@ -112,22 +110,6 @@ const getEmptyRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
   };
 };
 
-const createFallbackRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
-  const uuid = QbUtils.uuid();
-  return {
-    id: uuid,
-    isFallback: true,
-    action: {
-      type: "customPageMessage",
-      value: "Thank you for your interest! We will be in touch soon.",
-    },
-    queryValue: { id: uuid, type: "group" },
-  };
-};
-
-type LocalRoute = z.infer<typeof zodLocalRoute>;
-type GlobalRoute = z.infer<typeof zodGlobalRouteView>;
-
 type Route =
   | (LocalRoute & {
       // This is what's persisted
@@ -137,13 +119,6 @@ type Route =
         tree: ImmutableTree;
         config: QueryBuilderUpdatedConfig;
       };
-    })
-  | GlobalRoute;
-
-type SerializableRoute =
-  | (LocalRoute & {
-      queryValue: LocalRoute["queryValue"];
-      isFallback?: LocalRoute["isFallback"];
     })
   | GlobalRoute;
 
@@ -574,7 +549,7 @@ const Routes = ({
               setRoutes([
                 ...routes,
                 {
-                  routerType: "global",
+                  isRouter: true,
                   id: routerId,
                   name: option.name,
                   description: option.description,

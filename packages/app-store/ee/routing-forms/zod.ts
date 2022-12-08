@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const zodLocalField = z.object({
+export const zodNonRouterField = z.object({
   id: z.string(),
   label: z.string(),
   identifier: z.string().optional(),
@@ -10,25 +10,18 @@ export const zodLocalField = z.object({
   deleted: z.boolean().optional(),
 });
 
-export const zodGlobalField = z.object({
-  id: z.string(),
-  globalRouterId: z.string(),
-  label: z.string(),
-  identifier: z.string().optional(),
-  type: z.string(),
-  selectText: z.string().optional(),
-  required: z.boolean().optional(),
-  deleted: z.boolean().optional(),
+export const zodRouterField = zodNonRouterField.extend({
+  routerId: z.string(),
 });
 
-// This ordering is important - If globalRouterId is present then it should be in the parsed object. Moving zodLocalField to first position doesn't do that
-const zodField = z.union([zodGlobalField, zodLocalField]);
+// This ordering is important - If routerId is present then it should be in the parsed object. Moving zodNonRouterField to first position doesn't do that
+export const zodField = z.union([zodRouterField, zodNonRouterField]);
 export const zodFields = z.array(zodField).optional();
 
-export const zodLocalFieldView = zodLocalField;
-export const zodGlobalFieldView = zodGlobalField.extend({
-  globalRouterField: zodLocalFieldView,
-  globalRouter: z.object({
+export const zodNonRouterFieldView = zodNonRouterField;
+export const zodRouterFieldView = zodRouterField.extend({
+  routerField: zodNonRouterFieldView,
+  router: z.object({
     name: z.string(),
     description: z.string(),
     id: z.string(),
@@ -37,11 +30,11 @@ export const zodGlobalFieldView = zodGlobalField.extend({
 /**
  * Has some additional fields that are not supposed to be saved to DB but are required for the UI
  */
-export const zodFieldView = z.union([zodLocalFieldView, zodGlobalFieldView]);
+export const zodFieldView = z.union([zodNonRouterFieldView, zodRouterFieldView]);
 
 export const zodFieldsView = z.array(zodFieldView).optional();
 
-export const zodLocalRoute = z.object({
+export const zodNonRouterRoute = z.object({
   id: z.string(),
   queryValue: z.object({
     id: z.string().optional(),
@@ -61,18 +54,17 @@ export const zodLocalRoute = z.object({
   }),
 });
 
-export const zodLocalRouteView = zodLocalRoute;
+export const zodNonRouterRouteView = zodNonRouterRoute;
 
-export const zodGlobalRoute = z.object({
+export const zodRouterRoute = z.object({
   // This is the id of the Form being used as router
   id: z.string(),
-  // TODO: Rename it to isGlobalRouter or isLinkedRouter
-  routerType: z.literal("global"),
+  isRouter: z.literal(true),
 });
 
-export const zodRoute = z.union([zodLocalRoute, zodGlobalRoute]);
+export const zodRoute = z.union([zodNonRouterRoute, zodRouterRoute]);
 
-export const zodGlobalRouteView = zodGlobalRoute.extend({
+export const zodRouterRouteView = zodRouterRoute.extend({
   //TODO: Extend it from form
   name: z.string(),
   description: z.string().nullable(),
@@ -81,7 +73,7 @@ export const zodGlobalRouteView = zodGlobalRoute.extend({
 
 export const zodRoutes = z.union([z.array(zodRoute), z.null()]).optional();
 
-export const zodRouteView = z.union([zodLocalRouteView, zodGlobalRouteView]);
+export const zodRouteView = z.union([zodNonRouterRouteView, zodRouterRouteView]);
 
 export const zodRoutesView = z.union([z.array(zodRouteView), z.null()]).optional();
 

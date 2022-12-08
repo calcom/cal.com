@@ -98,8 +98,8 @@ function Field({
       _setIdentifier(label);
     }
   }, [label, hookFieldNamespace, hookForm]);
-  const globalRouter = hookForm.getValues(`${hookFieldNamespace}.globalRouter`);
-  const globalRouterField = hookForm.getValues(`${hookFieldNamespace}.globalRouterField`);
+  const router = hookForm.getValues(`${hookFieldNamespace}.router`);
+  const routerField = hookForm.getValues(`${hookFieldNamespace}.routerField`);
   return (
     <div
       data-testid="field"
@@ -109,23 +109,21 @@ function Field({
         moveUp={moveUp}
         moveDown={moveDown}
         badge={
-          globalRouter
-            ? { text: globalRouter.name, variant: "gray", href: `${appUrl}/form-edit/${globalRouter.id}` }
-            : null
+          router ? { text: router.name, variant: "gray", href: `${appUrl}/form-edit/${router.id}` } : null
         }
-        deleteField={globalRouter ? null : deleteField}>
+        deleteField={router ? null : deleteField}>
         <div className="w-full">
           <div className="mb-6 w-full">
             <TextField
-              disabled={!!globalRouter}
+              disabled={!!router}
               label="Label"
               type="text"
               placeholder="This is what your users would see"
               /**
-               * This is a bit of a hack to make sure that for globalRouterField, label is shown from there.
+               * This is a bit of a hack to make sure that for routerField, label is shown from there.
                * For other fields, value property is used because it exists and would take precedence
                */
-              defaultValue={globalRouterField?.label}
+              defaultValue={routerField?.label}
               required
               {...hookForm.register(`${hookFieldNamespace}.label`)}
               className="block w-full rounded-sm border-gray-300 text-sm"
@@ -133,13 +131,13 @@ function Field({
           </div>
           <div className="mb-6 w-full">
             <TextField
-              disabled={!!globalRouter}
+              disabled={!!router}
               label="Identifier"
               name="identifier"
               required
               placeholder="Identifies field by this name."
               value={identifier}
-              defaultValue={globalRouterField?.identifier || globalRouterField?.label}
+              defaultValue={routerField?.identifier || routerField?.label}
               onChange={(e) => setUserChangedIdentifier(e.target.value)}
               className="block w-full rounded-sm border-gray-300 text-sm"
             />
@@ -148,13 +146,13 @@ function Field({
             <Controller
               name={`${hookFieldNamespace}.type`}
               control={hookForm.control}
-              defaultValue={globalRouterField?.type}
+              defaultValue={routerField?.type}
               render={({ field: { value, onChange } }) => {
                 const defaultValue = FieldTypes.find((fieldType) => fieldType.value === value);
                 return (
                   <SelectField
                     label="Type"
-                    isDisabled={!!globalRouter}
+                    isDisabled={!!router}
                     containerClassName="data-testid-field-type"
                     options={FieldTypes}
                     onChange={(option) => {
@@ -173,10 +171,10 @@ function Field({
             <div className="mt-2 block items-center sm:flex">
               <div className="w-full">
                 <TextAreaField
-                  disabled={!!globalRouter}
+                  disabled={!!router}
                   rows={3}
                   label="Options"
-                  defaultValue={globalRouterField?.selectText}
+                  defaultValue={routerField?.selectText}
                   placeholder="Add 1 option per line"
                   {...hookForm.register(`${hookFieldNamespace}.selectText`)}
                 />
@@ -188,11 +186,11 @@ function Field({
             <Controller
               name={`${hookFieldNamespace}.required`}
               control={hookForm.control}
-              defaultValue={globalRouterField?.required}
+              defaultValue={routerField?.required}
               render={({ field: { value, onChange } }) => {
                 return (
                   <BooleanToggleGroupField
-                    disabled={!!globalRouter}
+                    disabled={!!router}
                     label="Required"
                     value={value}
                     onValueChange={onChange}

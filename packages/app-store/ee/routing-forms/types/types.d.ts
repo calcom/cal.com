@@ -1,9 +1,9 @@
-import { App_RoutingForms_Form, App_RoutingForms_Router } from "@prisma/client";
+import { App_RoutingForms_Form } from "@prisma/client";
 import z from "zod";
 
-import { RoutingFormSettings, RoutingFormUsedByForms } from "@calcom/prisma/zod-utils";
+import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
-import { zodFieldsView, zodRoutesView } from "../zod";
+import { zodRouterRouteView, zodNonRouterRoute, zodFieldsView, zodRoutesView } from "../zod";
 
 export type Response = Record<
   // Field ID
@@ -27,16 +27,16 @@ export type SerializableForm<T extends App_RoutingForms_Form> = Omit<
   settings: z.infer<typeof RoutingFormSettings>;
   createdAt: string;
   updatedAt: string;
-  usedByForms: { name: string; description: string | null; id: string }[];
-  usingForms: { name: string; description: string | null; id: string }[];
+  connectedForms: { name: string; description: string | null; id: string }[];
+  routers: { name: string; description: string | null; id: string }[];
 };
 
-export type SerializableRouter<T extends App_RoutingForms_Router> = Omit<
-  T,
-  "fields" | "routes" | "createdAt" | "updatedAt" | "settings"
-> & {
-  routes: Routes;
-  fields: Fields;
-  createdAt: string;
-  updatedAt: string;
-};
+export type LocalRoute = z.infer<typeof zodNonRouterRoute>;
+export type GlobalRoute = z.infer<typeof zodRouterRouteView>;
+
+export type SerializableRoute =
+  | (LocalRoute & {
+      queryValue: LocalRoute["queryValue"];
+      isFallback?: LocalRoute["isFallback"];
+    })
+  | GlobalRoute;

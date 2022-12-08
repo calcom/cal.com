@@ -1,5 +1,4 @@
 import { App_RoutingForms_Form, Prisma, User, WebhookTriggerEvents } from "@prisma/client";
-import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -11,13 +10,16 @@ import { authedProcedure, publicProcedure, router } from "@calcom/trpc/server/tr
 import { Ensure } from "@calcom/types/utils";
 
 import ResponseEmail from "./emails/templates/response-email";
-import isRouter from "./isRouter";
 import { jsonLogicToPrisma } from "./jsonLogicToPrisma";
-import getFormsUsingTheForm from "./lib/getFormsUsingTheForm";
+import { createFallbackRoute } from "./lib/createFallbackRoute";
+import getConnectedForms from "./lib/getConnectedForms";
 import { getSerializableForm } from "./lib/getSerializableForm";
 import { isFormEditAllowed } from "./lib/isAllowed";
+import { isFallbackRoute } from "./lib/isFallbackRoute";
+import isRouter from "./lib/isRouter";
+import isRouterLinkedField from "./lib/isRouterLinkedField";
 import { Response, SerializableForm } from "./types/types";
-import { zodFields, zodGlobalRoute, zodRoutes } from "./zod";
+import { zodFields, zodRouterRoute, zodRoute, zodRoutes } from "./zod";
 
 async function onFormSubmission(
   form: Ensure<SerializableForm<App_RoutingForms_Form> & { user: User }, "fields">,
@@ -108,7 +110,7 @@ const appRoutingForms = router({
             });
           }
 
-          const serializableForm = await getSerializableForm(prisma, form);
+          const serializableForm = await getSerializableForm(form);
           if (!serializableForm.fields) {
             // There is no point in submitting a form that doesn't have fields defined
             throw new TRPCError({
@@ -195,7 +197,7 @@ const appRoutingForms = router({
 
     const serializableForms = [];
     for (let i = 0; i < forms.length; i++) {
-      serializableForms.push(await getSerializableForm(prisma, forms[i]));
+      serializableForms.push(await getSerializableForm(forms[i]));
     }
     return serializableForms;
   }),
@@ -225,7 +227,7 @@ const appRoutingForms = router({
         return null;
       }
 
-      return await getSerializableForm(prisma, form);
+      return await getSerializableForm(form);
     }),
   formMutation: authedProcedure
     .input(
@@ -244,105 +246,191 @@ const appRoutingForms = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { user, prisma } = ctx;
-      const log = logger.getChildLogger({
-        prefix: ["formMutation", input.id],
-      });
       const { name, id, description, settings, disabled, addFallback, duplicateFrom, shouldConnect } = input;
       if (!(await isFormEditAllowed({ userId: user.id, formId: id }))) {
         throw new TRPCError({
           code: "FORBIDDEN",
         });
       }
-      let { routes } = input;
-      let { fields } = input;
+      let { routes: inputRoutes } = input;
+      let { fields: inputFields } = input;
+      inputFields = inputFields || [];
+      inputRoutes = inputRoutes || [];
+      type InputFields = typeof inputFields;
+      type InputRoutes = typeof inputRoutes;
+      let routes: InputRoutes;
+      let fields: InputFields;
+      type DuplicateFrom = NonNullable<typeof duplicateFrom>;
+
+      const dbForm = await prisma.app_RoutingForms_Form.findUnique({
+        where: {
+          id: id,
+        },
+        select: {
+          id: true,
+          user: true,
+          name: true,
+          description: true,
+          userId: true,
+          disabled: true,
+          createdAt: true,
+          updatedAt: true,
+          routes: true,
+          fields: true,
+          settings: true,
+        },
+      });
+
+      const dbSerializedForm = dbForm ? await getSerializableForm(dbForm, true) : null;
+
+      if (duplicateFrom) {
+        ({ routes, fields } = await getRoutesAndFieldsForDuplication(duplicateFrom));
+      } else {
+        [fields, routes] = [inputFields, inputRoutes];
+        if (dbSerializedForm) {
+          fields = markMissingFieldsDeleted(dbSerializedForm, fields);
+        }
+      }
+
+      if (dbSerializedForm) {
+        // If it's an existing form being mutated, update fields in the connected forms(if any).
+        await updateFieldsInConnectedForms(dbSerializedForm, inputFields);
+      }
+
+      await updateRouterLinkedFields(fields, routes);
+
+      if (addFallback) {
+        // Add a fallback route if there is none
+        if (!routes.find(isFallbackRoute)) {
+          routes.push(createFallbackRoute());
+        }
+      }
+
+      return await prisma.app_RoutingForms_Form.upsert({
+        where: {
+          id: id,
+        },
+        create: {
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          fields,
+          name: name,
+          description,
+          // Prisma doesn't allow setting null value directly for JSON. It recommends using JsonNull for that case.
+          routes: routes === null ? Prisma.JsonNull : routes,
+          id: id,
+        },
+        update: {
+          disabled: disabled,
+          fields: inputFields,
+          name: name,
+          description,
+          settings: settings === null ? Prisma.JsonNull : settings,
+          routes: routes === null ? Prisma.JsonNull : routes,
+        },
+      });
 
       /**
-       * If global router fields exist, enrich them with the latest info from the global router fields
-       * If global router fields don't exist, create them
+       * If Form has Router Linked fields, enrich them with the latest info from the Router
+       * If Form doesn't have Router fields but there is a Router used in routes, add all the fields from the Router
        */
-      const updateFieldsFromGlobalRouter = async () => {
-        const fieldsFoundForGlobalRouters = {};
-
-        for (let i = 0; i < fields.length; i++) {
-          const field = fields[i];
-          if (field.globalRouterId) {
-            fieldsFoundForGlobalRouters[field.globalRouterId] = true;
+      async function updateRouterLinkedFields(fields: InputFields, routes: InputRoutes) {
+        const routerLinkedFields: Record<string, boolean> = {};
+        for (const [, field] of Object.entries(fields)) {
+          if (!isRouterLinkedField(field)) {
+            continue;
           }
-          if (
-            field.globalRouterId /*&&
-              !serializedForm.routes?.some((route) => {
-                route.id === field.globalRouterId;
-              })*/
-          ) {
-            // If the field is from a global router that is not available anymore, mark it as deleted
-            if (!routes.some((route) => route.id === field.globalRouterId)) {
-              field.deleted = true;
-              continue;
-            }
-            // Get back deleted field as now the Router is there for it.
-            if (field.deleted) field.deleted = false;
-            // There is a field from some global router available, make sure that the field has up-to-date info from the global router
-            const globalRouterField = (
-              await prisma.app_RoutingForms_Form.findFirst({
-                where: {
-                  id: field.globalRouterId,
-                  userId: user.id,
-                },
-              })
-            )?.fields?.find((f) => f.id === field.id);
-            // Update local field(cache) with global router field on every mutation
-            log.silly("Updating local field with global router field", JSON.stringify(globalRouterField));
-            Object.assign(field, globalRouterField);
+          routerLinkedFields[field.routerId] = true;
+
+          if (!routes.some((route) => route.id === field.routerId)) {
+            // If the field is from a router that is not available anymore, mark it as deleted
+            field.deleted = true;
+            continue;
+          }
+          // Get back deleted field as now the Router is there for it.
+          if (field.deleted) field.deleted = false;
+          const router = await prisma.app_RoutingForms_Form.findFirst({
+            where: {
+              id: field.routerId,
+              userId: user.id,
+            },
+          });
+          if (router) {
+            const parsedRouterFields = zodFields.parse(router.fields);
+            // There is a field from some router available, make sure that the field has up-to-date info from the router
+            const routerField = parsedRouterFields?.find((f) => f.id === field.id);
+            // Update local field(cache) with router field on every mutation
+            Object.assign(field, routerField);
           }
         }
-        for (let j = 0; j < routes?.length; j++) {
-          const route = routes[j];
-          log.silly("fieldsFoundForGlobalRouters", fieldsFoundForGlobalRouters, route);
 
-          if (route.routerType === "global") {
-            // If there are no fields for a global router, add all fields from that global router - This is the case when someone adds a global router and fields are supposed to be automatically added
-            if (!fieldsFoundForGlobalRouters[route.id]) {
-              log.silly("Global Route found and the fields need to be added from it", JSON.stringify(route));
-              const fieldsFromGlobalRouter = (
-                await prisma.app_RoutingForms_Form.findFirst({
-                  where: {
-                    id: route.id,
-                    userId: user.id,
-                  },
-                })
-              )?.fields
-                .filter((f) => !f.deleted)
-                .map((f) => {
-                  f.globalRouterId = route.id;
-                  return f;
-                });
-              fields = fields.concat(fieldsFromGlobalRouter);
+        for (const [, route] of Object.entries(routes)) {
+          if (!isRouter(route)) {
+            continue;
+          }
+
+          // If there is a field that belongs to router, then all fields must be there already. So, need to add Router fields
+          if (routerLinkedFields[route.id]) {
+            continue;
+          }
+
+          const router = await prisma.app_RoutingForms_Form.findFirst({
+            where: {
+              id: route.id,
+              userId: user.id,
+            },
+          });
+          if (router) {
+            const parsedRouterFields = zodFields.parse(router.fields);
+            const fieldsFromRouter = parsedRouterFields
+              ?.filter((f) => !f.deleted)
+              .map((f) => {
+                return {
+                  ...f,
+                  routerId: route.id,
+                };
+              });
+
+            if (fieldsFromRouter) {
+              fields = fields.concat(fieldsFromRouter);
             }
           }
         }
-      };
+      }
 
-      const findFieldWithId = (id, fields) => {
+      async function findFieldWithId(id: string, fields: InputFields) {
         return fields.find((field) => field.id === id);
-      };
+      }
 
-      const updateFieldsInConnectedForms = async (serializedForm) => {
-        for (let i = 0; i < serializedForm.usedByForms.length; i++) {
-          const connectedForm = serializedForm.usedByForms[i];
-          const connectedFormFields = (
-            await prisma.app_RoutingForms_Form.findFirst({
-              where: {
-                id: connectedForm.id,
-              },
-            })
-          )?.fields;
-          const updatedConnectedFormFields = [];
+      /**
+       * Update fields in connected forms as per the inputFields
+       */
+      async function updateFieldsInConnectedForms(
+        serializedForm: SerializableForm<App_RoutingForms_Form>,
+        inputFields: InputFields
+      ) {
+        for (const [, connectedForm] of Object.entries(serializedForm.connectedForms)) {
+          const connectedFormDb = await prisma.app_RoutingForms_Form.findFirst({
+            where: {
+              id: connectedForm.id,
+            },
+          });
+          if (!connectedFormDb) {
+            continue;
+          }
+          const connectedFormFields = zodFields.parse(connectedFormDb.fields);
 
-          connectedFormFields.forEach((field) => {
-            if (field.globalRouterId === serializedForm.id) {
-              Object.assign(field, findFieldWithId(field.id, fields));
+          const updatedConnectedFormFields = connectedFormFields?.map((field) => {
+            if (isRouterLinkedField(field) && field.routerId === serializedForm.id) {
+              return {
+                ...field,
+                ...findFieldWithId(field.id, inputFields || []),
+              };
             }
-            updatedConnectedFormFields.push(field);
+            return field;
           });
           await prisma.app_RoutingForms_Form.update({
             where: {
@@ -353,9 +441,9 @@ const appRoutingForms = router({
             },
           });
         }
-      };
+      }
 
-      if (duplicateFrom) {
+      async function getRoutesAndFieldsForDuplication(duplicateFrom: DuplicateFrom) {
         const sourceForm = await prisma.app_RoutingForms_Form.findFirst({
           where: {
             userId: user.id,
@@ -383,123 +471,56 @@ const appRoutingForms = router({
           });
         }
 
+        let fields, routes;
         if (shouldConnect) {
           routes = [
             // This connected route would automatically link the fields
-            zodGlobalRoute.parse({
+            zodRouterRoute.parse({
               id: sourceForm.id,
-              routerType: "global",
+              isRouter: true,
             }),
           ];
-          fields = fieldsParsed.data
-            // Deleted fields in the form shouldn't be added to the new form
-            ?.filter((f) => !f.deleted)
-            .map((f) => {
-              return {
-                id: f.id,
-                globalRouterId: sourceForm.id,
-              };
-            });
+          fields =
+            fieldsParsed.data
+              // Deleted fields in the form shouldn't be added to the new form
+              ?.filter((f) => !f.deleted)
+              .map((f) => {
+                return {
+                  id: f.id,
+                  routerId: sourceForm.id,
+                  label: "",
+                  type: "",
+                };
+              }) || [];
         } else {
           // Duplicate just routes and fields
           // We don't want name, description and responses to be copied
-          routes = routesParsed.data;
+          routes = routesParsed.data || [];
           // FIXME: Deleted fields shouldn't come in duplicate
-          fields = fieldsParsed.data;
+          fields = fieldsParsed.data || [];
         }
+        return { routes, fields };
       }
 
-      fields = fields || [];
-
-      const form = await prisma.app_RoutingForms_Form.findUnique({
-        where: {
-          id: id,
-        },
-        select: {
-          id: true,
-          user: true,
-          name: true,
-          description: true,
-          userId: true,
-          disabled: true,
-          createdAt: true,
-          updatedAt: true,
-          routes: true,
-          fields: true,
-          settings: true,
-        },
-      });
-
-      if (form) {
-        const serializedForm = await getSerializableForm(prisma, form, true);
+      function markMissingFieldsDeleted(
+        serializedForm: SerializableForm<App_RoutingForms_Form>,
+        fields: InputFields
+      ) {
         // Find all fields that are in DB(including deleted) but not in the mutation
+        // e.g. inputFields is [A,B,C]. DB is [A,B,C,D,E,F]. It means D,E,F got deleted
         const deletedFields =
-          serializedForm.fields?.filter((f) => !fields!.find((field) => field.id === f.id)) || [];
+          serializedForm.fields?.filter((f) => !fields.find((field) => field.id === f.id)) || [];
 
-        // Add back deleted fields in the end. Fields can't be deleted, to make sure columns never decrease which hugely simplifies CSV generation
+        // Add back deleted fields in the end and mark them deleted.
+        // Fields mustn't be deleted, to make sure columns never decrease which hugely simplifies CSV generation
         fields = fields.concat(
           deletedFields.map((f) => {
             f.deleted = true;
             return f;
           })
         );
-        await updateFieldsInConnectedForms(serializedForm);
+        return fields;
       }
-
-      await updateFieldsFromGlobalRouter();
-
-      if (addFallback) {
-        const uuid = uuidv4();
-        routes = routes || [];
-        // Add a fallback route if there is none
-        if (
-          !routes.find((route) => {
-            if (isRouter(route)) {
-              return false;
-            }
-            return route.isFallback;
-          })
-        ) {
-          routes.push({
-            id: uuid,
-            isFallback: true,
-            action: {
-              type: "customPageMessage",
-              value: "Thank you for your interest! We will be in touch soon.",
-            },
-            queryValue: { id: uuid, type: "group" },
-          });
-        }
-      }
-
-      log.silly("Fields to be updated", JSON.stringify(fields));
-
-      return await prisma.app_RoutingForms_Form.upsert({
-        where: {
-          id: id,
-        },
-        create: {
-          user: {
-            connect: {
-              id: user.id,
-            },
-          },
-          fields: fields,
-          name: name,
-          description,
-          // Prisma doesn't allow setting null value directly for JSON. It recommends using JsonNull for that case.
-          routes: routes === null ? Prisma.JsonNull : routes,
-          id: id,
-        },
-        update: {
-          disabled: disabled,
-          fields: fields,
-          name: name,
-          description,
-          settings: settings === null ? Prisma.JsonNull : settings,
-          routes: routes === null ? Prisma.JsonNull : routes,
-        },
-      });
     }),
   deleteForm: authedProcedure
     .input(
@@ -516,7 +537,7 @@ const appRoutingForms = router({
       }
 
       const areFormsUsingIt = (
-        await getFormsUsingTheForm(prisma, {
+        await getConnectedForms(prisma, {
           id: input.id,
           userId: user.id,
         })
@@ -571,7 +592,7 @@ const appRoutingForms = router({
         });
       }
       // TODO: Second argument is required to return deleted operators.
-      const serializedForm = await getSerializableForm(prisma, form, true);
+      const serializedForm = await getSerializableForm(form, true);
 
       const rows = await prisma.app_RoutingForms_FormResponse.findMany({
         where: {

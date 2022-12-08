@@ -244,7 +244,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
       utils.viewer.appRoutingForms.formQuery.invalidate({ id: form.id });
     },
   });
-  const usedByForms = form.usedByForms;
+  const connectedForms = form.connectedForms;
 
   return (
     <>
@@ -299,7 +299,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     />
                   </div>
 
-                  {form.usingForms.length ? (
+                  {form.routers.length ? (
                     <div className="mt-6">
                       <div className="mb-2 block text-sm  font-semibold leading-none text-black ">
                         Routers
@@ -308,7 +308,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                         Modifications in fields and routes of following forms will be reflected in this form.
                       </p>
                       <div className="flex">
-                        {form.usingForms.map((router) => {
+                        {form.routers.map((router) => {
                           return (
                             <div key={router.id} className="mr-2">
                               <Link href={`/${appUrl}/route-builder/${router.id}`}>
@@ -323,7 +323,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     </div>
                   ) : null}
 
-                  {usedByForms?.length ? (
+                  {connectedForms?.length ? (
                     <div className="mt-6">
                       <div className="mb-2 block text-sm  font-semibold leading-none text-black ">
                         Connected Forms
@@ -332,7 +332,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                         Following forms would be affected when you modify fields or routes here
                       </p>
                       <div className="flex">
-                        {usedByForms.map((router) => {
+                        {connectedForms.map((router) => {
                           return (
                             <div key={router.id} className="mr-2">
                               <Link href={`/${appUrl}/route-builder/${router.id}`}>
@@ -346,6 +346,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                       </div>
                     </div>
                   ) : null}
+
                   <div className="mt-6">
                     <Button
                       color="secondary"
@@ -503,8 +504,8 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
     };
   }
 
-  const isAllowed = (await import("../lib/isAllowed")).isFormEditAllowed;
-  if (!(await isAllowed({ userId: user.id, formId }))) {
+  const isFormEditAllowed = (await import("../lib/isAllowed")).isFormEditAllowed;
+  if (!(await isFormEditAllowed({ userId: user.id, formId }))) {
     return {
       notFound: true,
     };
@@ -531,7 +532,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
   return {
     props: {
       trpcState: ssr.dehydrate(),
-      form: await getSerializableForm(prisma, form),
+      form: await getSerializableForm(form),
     },
   };
 };
