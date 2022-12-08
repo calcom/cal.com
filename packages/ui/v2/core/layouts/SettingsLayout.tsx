@@ -73,7 +73,7 @@ const tabs: VerticalTabItemProps[] = [
     children: [
       //
       { name: "impersonation", href: "/settings/admin/impersonation" },
-      { name: "apps", href: "/settings/admin/apps" },
+      { name: "apps", href: "/settings/admin/apps/calendar" },
       { name: "users", href: "/settings/admin/users" },
     ],
   },
@@ -102,6 +102,7 @@ const useTabs = () => {
 
 const SettingsSidebarContainer = ({ className = "" }) => {
   const { t } = useLocale();
+  const router = useRouter();
   const tabsWithPermissions = useTabs();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
@@ -110,10 +111,19 @@ const SettingsSidebarContainer = ({ className = "" }) => {
 
   useEffect(() => {
     if (teams) {
-      const teamStates = teams?.map((team) => ({ teamId: team.id, teamMenuOpen: false }));
+      const teamStates = teams?.map((team) => ({
+        teamId: team.id,
+        teamMenuOpen: String(team.id) === router.query.id,
+      }));
       setTeamMenuState(teamStates);
+      setTimeout(() => {
+        const tabMembers = Array.from(document.getElementsByTagName("a")).filter(
+          (bottom) => bottom.dataset.testid === "vertical-tab-Members"
+        )[1];
+        tabMembers?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
     }
-  }, [teams]);
+  }, [router.query.id, teams]);
 
   return (
     <nav
@@ -122,7 +132,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
       <>
         <div className="desktop-only pt-4" />
         <VerticalTabItem
-          name="Back"
+          name={t("back")}
           href="/."
           icon={Icon.FiArrowLeft}
           textClassNames="text-md font-medium leading-none text-black"
@@ -131,7 +141,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
           return tab.name !== "teams" ? (
             <React.Fragment key={tab.href}>
               <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
-                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
+                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 text-sm font-medium leading-none text-gray-600 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
                   {tab && tab.icon && (
                     <tab.icon className="mr-[12px] h-[16px] w-[16px] stroke-[2px] md:mt-0" />
                   )}
@@ -327,6 +337,7 @@ export default function SettingsLayout({
 
   return (
     <Shell
+      withoutSeo={true}
       flexChildrenContainer
       {...rest}
       SidebarContainer={<SettingsSidebarContainer className="hidden lg:flex" />}

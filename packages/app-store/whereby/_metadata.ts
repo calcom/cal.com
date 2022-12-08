@@ -19,6 +19,7 @@ export const metadata = {
       urlRegExp: "^http(s)?:\\/\\/(www\\.)?(team.)?whereby.com\\/[a-zA-Z0-9]*",
     },
   },
+  dirName: "whereby",
   ...config,
 } as AppMeta;
 

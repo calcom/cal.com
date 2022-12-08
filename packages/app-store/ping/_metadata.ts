@@ -19,6 +19,7 @@ export const metadata = {
       urlRegExp: "^http(s)?:\\/\\/(www\\.)?ping.gg\\/call\\/[a-zA-Z0-9]*",
     },
   },
+  dirName: "ping",
   ...config,
 } as AppMeta;
 

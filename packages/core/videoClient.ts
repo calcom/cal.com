@@ -6,6 +6,7 @@ import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKey
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
+import { prisma } from "@calcom/prisma";
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
 import { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
@@ -37,7 +38,7 @@ const getBusyVideoTimes = (withCredentials: CredentialPayload[]) =>
 const createMeeting = async (credential: CredentialWithAppName, calEvent: CalendarEvent) => {
   const uid: string = getUid(calEvent);
 
-  if (!credential) {
+  if (!credential || !credential.appId) {
     throw new Error(
       "Credentials must be set! Video platforms are optional, so this method shouldn't even be called when no video credentials are set."
     );
@@ -46,26 +47,37 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
   const videoAdapters = getVideoAdapters([credential]);
   const [firstVideoAdapter] = videoAdapters;
   let createdMeeting;
+  let returnObject: {
+    appName: string;
+    type: string;
+    uid: string;
+    originalEvent: CalendarEvent;
+    success: boolean;
+    createdEvent: VideoCallData | undefined;
+  } = {
+    appName: credential.appName,
+    type: credential.type,
+    uid,
+    originalEvent: calEvent,
+    success: false,
+    createdEvent: undefined,
+  };
   try {
-    if (!calEvent.location) {
-      const defaultMeeting = await createMeetingWithCalVideo(calEvent);
-      if (defaultMeeting) {
-        createdMeeting = defaultMeeting;
-        calEvent.location = "integrations:dailyvideo";
-      }
-    }
+    // Check to see if video app is enabled
+    const enabledApp = await prisma.app.findFirst({
+      where: {
+        slug: credential.appId,
+      },
+      select: {
+        enabled: true,
+      },
+    });
+
+    if (!enabledApp?.enabled) throw "Current location app is not enabled";
 
     createdMeeting = await firstVideoAdapter?.createMeeting(calEvent);
 
-    if (!createdMeeting) {
-      return {
-        appName: credential.appName,
-        type: credential.type,
-        success: false,
-        uid,
-        originalEvent: calEvent,
-      };
-    }
+    returnObject = { ...returnObject, createdEvent: createdMeeting, success: true };
   } catch (err) {
     await sendBrokenIntegrationEmail(calEvent, "video");
     console.error("createMeeting failed", err, calEvent);
@@ -73,19 +85,13 @@ const createMeeting = async (credential: CredentialWithAppName, calEvent: Calend
     // Default to calVideo
     const defaultMeeting = await createMeetingWithCalVideo(calEvent);
     if (defaultMeeting) {
-      createdMeeting = defaultMeeting;
       calEvent.location = "integrations:dailyvideo";
     }
+
+    returnObject = { ...returnObject, createdEvent: defaultMeeting };
   }
 
-  return {
-    appName: credential.appName,
-    type: credential.type,
-    success: true,
-    uid,
-    createdEvent: createdMeeting,
-    originalEvent: calEvent,
-  };
+  return returnObject;
 };
 
 const updateMeeting = async (
@@ -155,6 +161,7 @@ const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
       type: "daily_video",
       userId: null,
       key: dailyAppKeys,
+      invalid: false,
     },
   ]);
   return videoAdapter?.createMeeting(calEvent);
