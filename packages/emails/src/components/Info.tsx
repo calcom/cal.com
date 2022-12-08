@@ -11,7 +11,7 @@ export const Info = (props: {
   return (
     <>
       {props.withSpacer && <Spacer />}
-      <div style={{ lineHeight: "6px" }} id="lala">
+      <div style={{ lineHeight: "6px" }}>
         <p style={{ color: "#494949" }}>{props.label}</p>
         <p
           style={{
