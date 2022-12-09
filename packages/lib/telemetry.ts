@@ -96,7 +96,6 @@ export const extendEventData = (
     ipAddress: "",
     queryString: "",
     page_url: pageUrl,
-    licenseConsent: !!process.env.NEXT_PUBLIC_LICENSE_CONSENT,
     licensekey: process.env.CALCOM_LICENSE_KEY,
     isTeamBooking:
       original?.isTeamBooking === undefined
