@@ -33,7 +33,6 @@ import { timeZone as localStorageTimeZone } from "@lib/clock";
 // import { timeZone } from "@lib/clock";
 import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
-import { isBrandingHidden } from "@lib/isBrandingHidden";
 
 import Gates, { Gate, GateState } from "@components/Gates";
 import AvailableTimes from "@components/booking/AvailableTimes";
@@ -358,7 +357,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                 isEmbed && "mx-auto"
               )}>
               <div className="overflow-hidden md:flex">
-                {!embedUiConfig.hideEventTypeDetails && (
+                {((isEmbed && !embedUiConfig.hideEventTypeDetails) || !isEmbed) && (
                   <div
                     className={classNames(
                       "sm:dark:border-darkgray-200 flex flex-col border-gray-200 p-5 sm:border-r",
