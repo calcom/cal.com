@@ -1,8 +1,9 @@
-import { useAutoAnimate } from "@formkit/auto-animate/react";
+//import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
+import { Button } from "@calcom/ui";
 
 import Card from "../../core/Card";
 
@@ -58,7 +59,7 @@ export const tips = [
 ];
 
 export default function Tips() {
-  const [animationRef] = useAutoAnimate<HTMLDivElement>();
+  //const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
   const { t } = useLocale();
 
@@ -122,6 +123,28 @@ export default function Tips() {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+export function TeamsBanner() {
+  const { t } = useLocale();
+  return (
+    <div
+      className="mb-4 min-h-[186px] rounded-md"
+      style={{ backgroundImage: "url(/team-banner-background-small.jpg)", backgroundSize: "cover" }}>
+      <div className="p-6 text-white">
+        <h1 className="font-cal text-lg">{t("calcom_is_better_with_team")}</h1>
+        <p className="my-4 max-w-xl text-sm">{t("add_your_team_members")}</p>
+        <div className="space-x-2">
+          <Button className="bg-white" color="secondary">
+            {t("create_team")}
+          </Button>
+          <Button className="!bg-transparent text-white" color="minimal">
+            {t("learn_more")}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

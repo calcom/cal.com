@@ -610,7 +610,6 @@ const EventTypesPage = () => {
                   />
                 </Fragment>
               ))}
-
               {data.eventTypeGroups.length === 0 && <CreateFirstEventTypeView />}
               <EmbedDialog />
             </>
