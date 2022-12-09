@@ -1210,7 +1210,7 @@
   "event_time_info": "The event start time",
   "location_info": "The event location",
   "organizer_name_info": "Your name",
-  "additional_notes_info": "The Additional notes of booking",
+  "additional_notes_info": "The additional notes of booking",
   "attendee_name_info": "The person booking's name",
   "to": "To",
   "workflow_turned_on_successfully": "{{workflowName}} workflow turned {{offOn}} successfully",
