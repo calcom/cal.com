@@ -408,6 +408,7 @@ const BookingPage = ({
       }
     });
   }
+  const showEventTypeDetails = (isEmbed && !embedUiConfig.hideEventTypeDetails) || !isEmbed;
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
 
   // Define conditional gates here
@@ -441,7 +442,7 @@ const BookingPage = ({
         className={classNames(
           shouldAlignCentrally ? "mx-auto" : "",
           isEmbed ? "" : "sm:my-24",
-          "my-0 max-w-3xl flex-col items-center"
+          "my-0 max-w-3xl"
         )}>
         <div
           className={classNames(
@@ -450,7 +451,7 @@ const BookingPage = ({
             "dark:border-darkgray-300 rounded-md sm:border"
           )}>
           <div className="sm:flex">
-            {((isEmbed && !embedUiConfig.hideEventTypeDetails) || !isEmbed) && (
+            {showEventTypeDetails && (
               <div className="sm:dark:border-darkgray-300 dark:text-darkgray-600 flex flex-col px-6 pt-6 pb-0 text-gray-600 sm:w-1/2 sm:border-r sm:pb-6">
                 <BookingDescription isBookingPage profile={profile} eventType={eventType}>
                   {stripeAppData.price > 0 && (
@@ -540,7 +541,7 @@ const BookingPage = ({
                 </BookingDescription>
               </div>
             )}
-            <div className="w-full p-6">
+            <div className={classNames("p-6", showEventTypeDetails ? "sm:w-1/2" : "w-full")}>
               <Form form={bookingForm} handleSubmit={bookEvent}>
                 <div className="mb-4">
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-white">

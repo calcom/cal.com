@@ -15,7 +15,6 @@ import {
   Icon,
   InputLeading,
   Label,
-  SettingsToggle,
   showToast,
   Switch,
   TextArea,
@@ -1011,10 +1010,8 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <div className="mt-6 text-sm">
-                    <div className="mb-2">
-                      <SettingsToggle
-                        title={t("hide_eventtype_details")}
-                        description={t("hide_eventtype_details_description")}
+                    <div className="mb-4 flex items-center justify-start space-x-2">
+                      <Switch
                         checked={previewState.hideEventTypeDetails}
                         onCheckedChange={(checked) => {
                           setPreviewState((previewState) => {
@@ -1025,6 +1022,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           });
                         }}
                       />
+                      <div className="text-sm">{t("hide_eventtype_details")}</div>
                     </div>
                     <Label className="">
                       <div className="mb-2">Theme</div>

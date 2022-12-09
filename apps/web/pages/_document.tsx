@@ -1,4 +1,5 @@
 import Document, { DocumentContext, Head, Html, Main, NextScript, DocumentProps } from "next/document";
+import Script from "next/script";
 
 type Props = Record<string, unknown> & DocumentProps;
 
@@ -69,7 +70,9 @@ class MyDocument extends Document<Props> {
           {/* Define isEmbed here so that it can be shared with App(embed-iframe) as well as the following code to change background and hide body
             Persist the embed mode in sessionStorage because query param might get lost during browsing.
           */}
-          <script
+          <Script
+            id="run-before-client"
+            strategy="beforeInteractive"
             dangerouslySetInnerHTML={{
               __html: `(${toRunBeforeReactOnClient.toString()})()`,
             }}

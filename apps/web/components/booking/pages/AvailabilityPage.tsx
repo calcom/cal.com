@@ -30,8 +30,6 @@ import { trpc } from "@calcom/trpc/react";
 import { Icon, DatePicker } from "@calcom/ui";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
-// import { timeZone } from "@lib/clock";
-import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
 import Gates, { Gate, GateState } from "@components/Gates";
@@ -281,9 +279,6 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
     setTimeZone(localStorageTimeZone() || dayjs.tz.guess());
   }, []);
 
-  // TODO: Improve this;
-  useExposePlanGlobally(eventType.users.length === 1 ? eventType.users[0].plan : "PRO");
-
   const [recurringEventCount, setRecurringEventCount] = useState(eventType.recurringEvent?.count);
 
   const telemetry = useTelemetry();
@@ -308,6 +303,8 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
+
+  const showEventTypeDetails = (isEmbed && !embedUiConfig.hideEventTypeDetails) || !isEmbed;
 
   // Define conditional gates here
   const gates = [
@@ -357,7 +354,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                 isEmbed && "mx-auto"
               )}>
               <div className="overflow-hidden md:flex">
-                {((isEmbed && !embedUiConfig.hideEventTypeDetails) || !isEmbed) && (
+                {showEventTypeDetails && (
                   <div
                     className={classNames(
                       "sm:dark:border-darkgray-200 flex flex-col border-gray-200 p-5 sm:border-r",

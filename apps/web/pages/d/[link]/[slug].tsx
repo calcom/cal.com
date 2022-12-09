@@ -90,7 +90,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         },
       },
       theme: true,
-      plan: true,
     },
   });
 
@@ -117,7 +116,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       name: u.name,
       username: u.username,
       hideBranding: u.hideBranding,
-      plan: u.plan,
       timeZone: u.timeZone,
     })),
   });
@@ -158,7 +156,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       away: user.away,
       isDynamicGroup: false,
       profile,
-      plan: user.plan,
       date,
       eventType: eventTypeObject,
       workingHours,
