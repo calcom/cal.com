@@ -34,11 +34,6 @@ const ProfileView = () => {
       onError: () => {
         router.push("/settings");
       },
-      onSuccess: (team) => {
-        if (team) {
-          form.setValue("hideBranding", team.hideBranding);
-        }
-      },
     }
   );
 
@@ -55,10 +50,7 @@ const ProfileView = () => {
               form={form}
               handleSubmit={(values) => {
                 if (team) {
-                  const hideBranding = form.getValues("hideBranding");
-                  if (team.hideBranding !== hideBranding) {
-                    mutation.mutate({ id: team.id, hideBranding });
-                  }
+                  mutation.mutate({ id: team.id, hideBranding: values.hideBranding });
                 }
               }}>
               <div className="relative flex items-start">
@@ -73,6 +65,7 @@ const ProfileView = () => {
                 <div className="flex-none">
                   <Controller
                     control={form.control}
+                    defaultValue={team?.hideBranding ?? false}
                     name="hideBranding"
                     render={({ field }) => (
                       <Switch
