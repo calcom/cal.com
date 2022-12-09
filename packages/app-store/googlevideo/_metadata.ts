@@ -20,7 +20,7 @@ export const metadata = {
   trending: false,
   url: "https://cal.com/",
   verified: true,
-  isGlobal: false,
+  isGlobal: true,
   email: "help@cal.com",
   appData: {
     location: {
