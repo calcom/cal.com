@@ -174,48 +174,47 @@ const querySchema = z.object({
     .default(AppCategories.calendar),
 });
 
-const AdminAppsList = ({ baseURL, className }: { baseURL: string; className?: string }) => {
+const AdminAppsList = ({ baseURL, className }: { baseURL: string; className?: string }) => (
+  <AppCategoryNavigation
+    baseURL={baseURL}
+    containerClassname="w-full xl:mx-5 xl:w-2/3 xl:pr-5"
+    className={className}>
+    <AdminAppsListContainer />
+  </AppCategoryNavigation>
+);
+
+const AdminAppsListContainer = () => {
   const { t } = useLocale();
   const router = useRouter();
   const { category } = querySchema.parse(router.query);
-
   const { data: apps, isLoading } = trpc.viewer.appsRouter.listLocal.useQuery(
     { category },
-    {
-      enabled: router.isReady,
-    }
+    { enabled: router.isReady }
   );
 
+  if (isLoading) return <SkeletonLoader />;
+
+  if (!apps) {
+    return (
+      <EmptyScreen
+        Icon={Icon.FiAlertCircle}
+        headline={t("no_available_apps")}
+        description={t("no_available_apps_description")}
+      />
+    );
+  }
+
   return (
-    <AppCategoryNavigation
-      baseURL={baseURL}
-      containerClassname="w-full xl:mx-5 xl:w-2/3 xl:pr-5"
-      className={className}>
-      {(() => {
-        if (isLoading) return <SkeletonLoader />;
-        if (!apps) {
-          return (
-            <EmptyScreen
-              Icon={Icon.FiAlertCircle}
-              headline={t("no_available_apps")}
-              description={t("no_available_apps_description")}
-            />
-          );
-        }
-        return (
-          <div className="rounded-md border border-gray-200">
-            {apps.map((app, index) => (
-              <IntegrationContainer
-                app={app}
-                lastEntry={index === apps.length - 1}
-                key={app.name}
-                category={category}
-              />
-            ))}
-          </div>
-        );
-      })()}
-    </AppCategoryNavigation>
+    <div className="rounded-md border border-gray-200">
+      {apps.map((app, index) => (
+        <IntegrationContainer
+          app={app}
+          lastEntry={index === apps.length - 1}
+          key={app.name}
+          category={category}
+        />
+      ))}
+    </div>
   );
 };
 

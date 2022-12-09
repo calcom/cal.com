@@ -230,7 +230,7 @@ export const getMessageForOrganizer = (location: string, t: TFunction) => {
   if (defaultLocation) {
     return t(defaultLocation.messageForOrganizer);
   }
-  if (videoLocation && videoLocation.linkType !== "static") {
+  if (videoLocation && videoLocation.linkType !== "static" && videoLocation.type !== "integrations:zoom") {
     return t(`Cal will provide a ${videoLocation.label} URL.`);
   }
   return "";

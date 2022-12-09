@@ -780,7 +780,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     await syncServicesUpdateWebUser(
       await prisma.user.findFirst({
         where: { id: userId },
-        select: { id: true, email: true, name: true, plan: true, username: true, createdDate: true },
+        select: { id: true, email: true, name: true, username: true, createdDate: true },
       })
     );
     evt.uid = booking?.uid ?? null;

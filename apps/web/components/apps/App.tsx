@@ -195,7 +195,7 @@ const Component = ({
         <h4 className="mt-8 font-semibold text-gray-900 ">{t("pricing")}</h4>
         <span>
           {price === 0 ? (
-            "Free"
+            t("free_to_use_apps")
           ) : (
             <>
               {Intl.NumberFormat("en-US", {

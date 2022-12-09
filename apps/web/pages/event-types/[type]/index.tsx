@@ -40,6 +40,7 @@ import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayo
 import EventWorkflowsTab from "@components/eventtype/EventWorkfowsTab";
 
 import { getTranslation } from "@server/lib/i18n";
+import { ssrInit } from "@server/lib/ssr";
 
 export type FormValues = {
   title: string;
@@ -282,7 +283,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             if (metadata?.multipleDuration.length < 1) {
               throw new Error(t("event_setup_multiple_duration_error"));
             } else {
-              if (!metadata?.multipleDuration?.includes(input.length)) {
+              if (input.length && !metadata?.multipleDuration?.includes(input.length)) {
                 throw new Error(t("event_setup_multiple_duration_default_error"));
               }
             }
@@ -317,6 +318,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { req, query } = context;
   const session = await getSession({ req });
   const typeParam = parseInt(asStringOrThrow(query.type));
+  const ssr = await ssrInit(context);
 
   if (Number.isNaN(typeParam)) {
     return {
@@ -339,7 +341,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     id: true,
     avatar: true,
     email: true,
-    plan: true,
     locale: true,
     defaultScheduleId: true,
     destinationCalendar: true,
@@ -559,6 +560,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       team: eventTypeObject.team || null,
       teamMembers,
       currentUserMembership,
+      trpcState: ssr.dehydrate(),
     },
   };
 };

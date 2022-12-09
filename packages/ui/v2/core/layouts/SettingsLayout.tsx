@@ -102,6 +102,7 @@ const useTabs = () => {
 
 const SettingsSidebarContainer = ({ className = "" }) => {
   const { t } = useLocale();
+  const router = useRouter();
   const tabsWithPermissions = useTabs();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
@@ -110,10 +111,19 @@ const SettingsSidebarContainer = ({ className = "" }) => {
 
   useEffect(() => {
     if (teams) {
-      const teamStates = teams?.map((team) => ({ teamId: team.id, teamMenuOpen: false }));
+      const teamStates = teams?.map((team) => ({
+        teamId: team.id,
+        teamMenuOpen: String(team.id) === router.query.id,
+      }));
       setTeamMenuState(teamStates);
+      setTimeout(() => {
+        const tabMembers = Array.from(document.getElementsByTagName("a")).filter(
+          (bottom) => bottom.dataset.testid === "vertical-tab-Members"
+        )[1];
+        tabMembers?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
     }
-  }, [teams]);
+  }, [router.query.id, teams]);
 
   return (
     <nav
@@ -122,7 +132,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
       <>
         <div className="desktop-only pt-4" />
         <VerticalTabItem
-          name="Back"
+          name={t("back")}
           href="/."
           icon={Icon.FiArrowLeft}
           textClassNames="text-md font-medium leading-none text-black"
@@ -327,6 +337,7 @@ export default function SettingsLayout({
 
   return (
     <Shell
+      withoutSeo={true}
       flexChildrenContainer
       {...rest}
       SidebarContainer={<SettingsSidebarContainer className="hidden lg:flex" />}

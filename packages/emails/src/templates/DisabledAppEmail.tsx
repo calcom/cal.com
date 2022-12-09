@@ -1,5 +1,4 @@
 import { TFunction } from "next-i18next";
-import { Trans } from "react-i18next";
 
 import { CAL_URL } from "@calcom/lib/constants";
 
@@ -37,7 +36,7 @@ export const DisabledAppEmail = (
       ) : title && eventTypeId ? (
         <>
           <p>
-            <>{(t("app_disabled_with_event_type"), { appName, title })}</>
+            <>{(t("app_disabled_with_event_type"), { appName: appName, title: title })}</>
           </p>
 
           <hr style={{ marginBottom: "24px" }} />
@@ -50,7 +49,7 @@ export const DisabledAppEmail = (
       ) : appType.some((type) => type === "video") ? (
         <>
           <p>
-            <>{(t("app_disabled_video"), { appName })}</>
+            <>{t("app_disabled_video", { appName: appName })}</>
           </p>
 
           <hr style={{ marginBottom: "24px" }} />
@@ -60,7 +59,7 @@ export const DisabledAppEmail = (
       ) : appType.some((type) => type === "calendar") ? (
         <>
           <p>
-            <>{t("admin_has_disabled", { appName })}</>
+            <>{t("admin_has_disabled", { appName: appName })}</>
           </p>
           <p style={{ fontWeight: 400, lineHeight: "24px" }}>
             <>{t("disabled_calendar")}</>
@@ -73,7 +72,7 @@ export const DisabledAppEmail = (
       ) : (
         <>
           <p>
-            <>{t("admin_has_disabled", { appName })}</>
+            <>{t("admin_has_disabled", { appName: appName })}</>
           </p>
 
           <hr style={{ marginBottom: "24px" }} />

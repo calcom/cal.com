@@ -6,7 +6,7 @@ import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Alert, showToast, Icon, Skeleton, Tooltip, UnstyledSelect } from "../../..";
+import { Alert, Icon, showToast, Skeleton, Tooltip, UnstyledSelect } from "../../..";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 
