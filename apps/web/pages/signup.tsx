@@ -7,9 +7,7 @@ import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseReq
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Alert } from "@calcom/ui/Alert";
-import { Button } from "@calcom/ui/components/button";
-import { EmailField, PasswordField, TextField } from "@calcom/ui/components/form";
+import { Alert, Button, EmailField, PasswordField, TextField } from "@calcom/ui";
 import { HeadSeo } from "@calcom/web/components/seo/head-seo";
 import { asStringOrNull } from "@calcom/web/lib/asStringOrNull";
 import { WEBAPP_URL } from "@calcom/web/lib/config/constants";

@@ -1,12 +1,12 @@
 import { ReactNode } from "react";
 
-import { Badge, badgeClassNameByVariant } from "../../components/badge";
+import { Badge, BadgeProps } from "../../components/badge";
 
 type Props = {
   title: string;
   description?: string;
   badgeText?: string;
-  badgeVariant?: keyof typeof badgeClassNameByVariant;
+  badgeVariant?: BadgeProps["variant"];
   infoIcon?: string;
   rightAlignedComponent?: ReactNode;
 };

@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import stripe from "@calcom/features/ee/payments/server/stripe";
-import { ensureSession } from "@calcom/lib/auth";
+import { getSession } from "@calcom/lib/auth";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
@@ -18,8 +18,6 @@ const querySchema = z.object({
 });
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  await ensureSession({ req });
-
   const { team: id, session_id } = querySchema.parse(req.query);
 
   const checkoutSession = await stripe.checkout.sessions.retrieve(session_id, {
@@ -39,13 +37,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!team) {
     const prevTeam = await prisma.team.findFirstOrThrow({ where: { id } });
     const metadata = teamMetadataSchema.parse(prevTeam.metadata);
-    if (!metadata?.requestedSlug) throw new HttpError({ statusCode: 400, message: "Missing requestedSlug" });
-
+    /** Legacy teams already have a slug, this will allow them to upgrade as well */
+    const slug = prevTeam.slug || metadata?.requestedSlug;
+    if (!slug) throw new HttpError({ statusCode: 400, message: "Missing team slug" });
     try {
-      team = await prisma.team.update({
+      /** We save the metadata first to prevent duplicate payments */
+      await prisma.team.update({
         where: { id },
         data: {
-          slug: metadata.requestedSlug,
           metadata: {
             paymentId: checkoutSession.id,
             subscriptionId: subscription.id || null,
@@ -53,14 +52,20 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           },
         },
       });
+      /** Then we try to upgrade the slug, which may fail if a conflict came up since team creation */
+      team = await prisma.team.update({ where: { id }, data: { slug } });
     } catch (error) {
-      const { message, statusCode } = getRequestedSlugError(error, metadata.requestedSlug);
+      const { message, statusCode } = getRequestedSlugError(error, slug);
       return res.status(statusCode).json({ message });
     }
 
     // Sync Services: Close.com
     closeComUpdateTeam(prevTeam, team);
   }
+
+  const session = await getSession({ req });
+
+  if (!session) return { message: "Team upgraded successfully" };
 
   // redirect to team screen
   res.redirect(302, `${WEBAPP_URL}/settings/teams/${team.id}/profile?upgraded=true`);

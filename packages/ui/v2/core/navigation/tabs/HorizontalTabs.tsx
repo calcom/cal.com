@@ -5,9 +5,10 @@ export { HorizontalTabItem };
 export interface NavTabProps {
   tabs: HorizontalTabItemProps[];
   linkProps?: HorizontalTabItemProps["linkProps"];
+  actions?: JSX.Element;
 }
 
-const HorizontalTabs = function ({ tabs, linkProps, ...props }: NavTabProps) {
+const HorizontalTabs = function ({ tabs, linkProps, actions, ...props }: NavTabProps) {
   return (
     <div className="-mx-6 mb-2 w-[calc(100%+40px)]">
       <nav
@@ -18,6 +19,7 @@ const HorizontalTabs = function ({ tabs, linkProps, ...props }: NavTabProps) {
           <HorizontalTabItem {...tab} key={idx} {...linkProps} />
         ))}
       </nav>
+      {actions && actions}
     </div>
   );
 };

@@ -1,6 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import Meta from "@calcom/ui/v2/core/Meta";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
+import { getSettingsLayout as getLayout, Meta } from "@calcom/ui";
 
 import { TeamsListing } from "../components";
 

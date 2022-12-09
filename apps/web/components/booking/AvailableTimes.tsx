@@ -7,8 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { nameOfDay } from "@calcom/lib/weekday";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots";
-import { SkeletonContainer, SkeletonText } from "@calcom/ui/v2";
-import { ToggleGroup } from "@calcom/ui/v2/core/form/ToggleGroup";
+import { SkeletonContainer, SkeletonText, ToggleGroup } from "@calcom/ui";
 
 import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";

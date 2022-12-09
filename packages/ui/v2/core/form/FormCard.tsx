@@ -1,6 +1,6 @@
 import { classNames } from "@calcom/lib";
-import { Icon } from "@calcom/ui/Icon";
 
+import { Icon } from "../../..";
 import Divider from "../Divider";
 
 type Action = { check: () => boolean; fn: () => void };

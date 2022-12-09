@@ -191,7 +191,7 @@ test.describe("Reschedule Tests", async () => {
 
   //   await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
-  //   await expect(page).toHaveURL(/.*success/);
+  // await expect(page).toHaveURL(/.*booking/);
 
   //   const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } });
   //   expect(newBooking).not.toBeNull();
@@ -312,7 +312,7 @@ test.describe("Reschedule Tests", async () => {
 
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
-    await expect(page).toHaveURL(/.*success/);
+    await expect(page).toHaveURL(/.*booking/);
 
     await page.goto(`/reschedule/${references[1].referenceUId}`);
 
@@ -320,7 +320,7 @@ test.describe("Reschedule Tests", async () => {
 
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
 
-    await expect(page).toHaveURL(/.*success/);
+    await expect(page).toHaveURL(/.*booking/);
 
     // Should expect old booking to be cancelled
 

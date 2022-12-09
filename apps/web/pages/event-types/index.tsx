@@ -1,28 +1,34 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import Head from "next/head";
+import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
 
-import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import CreateEventTypeButton from "@calcom/features/eventtypes/components/CreateEventTypeButton";
+import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { TRPCClientError } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Button, ButtonGroup, Badge } from "@calcom/ui/components";
-import { Dialog, EmptyScreen, showToast, Switch, Tooltip } from "@calcom/ui/v2";
-import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
-import Dropdown, {
+import { RouterOutputs, trpc, TRPCClientError } from "@calcom/trpc/react";
+import {
+  Badge,
+  Button,
+  ButtonGroup,
+  ConfirmationDialogContent,
+  Dialog,
+  Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuPortal,
-} from "@calcom/ui/v2/core/Dropdown";
-import Shell from "@calcom/ui/v2/core/Shell";
-import CreateEventTypeButton from "@calcom/ui/v2/modules/event-types/CreateEventType";
-import EventTypeDescription from "@calcom/ui/v2/modules/event-types/EventTypeDescription";
+  EmptyScreen,
+  EventTypeDescription,
+  Icon,
+  Shell,
+  showToast,
+  Switch,
+  Tooltip,
+} from "@calcom/ui";
 
 import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
@@ -31,6 +37,8 @@ import { EmbedButton, EmbedDialog } from "@components/Embed";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
+
+import { ssrInit } from "@server/lib/ssr";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
@@ -56,7 +64,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
   return (
     <Link href={`/event-types/${type.id}?tabName=setup`}>
       <a
-        className="w-full overflow-hidden pr-4 text-sm"
+        className="flex-1 overflow-hidden pr-4 text-sm"
         title={`${type.title} ${type.description ? `– ${type.description}` : ""}`}>
         <div>
           <span
@@ -180,6 +188,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
       length: type.length,
       type: type.schedulingType,
       teamId: group.teamId,
+      locations: encodeURIComponent(JSON.stringify(type.locations)),
     };
     if (!group.teamId) {
       delete query.teamId;
@@ -311,7 +320,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               size="icon"
                               href={calLink}
                               StartIcon={Icon.FiExternalLink}
-                              combined
                             />
                           </Tooltip>
 
@@ -324,7 +332,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 showToast(t("link_copied"), "success");
                                 navigator.clipboard.writeText(calLink);
                               }}
-                              combined
                             />
                           </Tooltip>
                           <Dropdown modal={false}>
@@ -336,7 +343,6 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 type="button"
                                 size="icon"
                                 color="secondary"
-                                combined
                                 StartIcon={Icon.FiMoreHorizontal}
                               />
                             </DropdownMenuTrigger>
@@ -436,7 +442,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                 navigator
                                   .share({
                                     title: t("share"),
-                                    text: t("share_event"),
+                                    text: t("share_event", { appName: APP_NAME }),
                                     url: calLink,
                                   })
                                   .then(() => showToast(t("link_shared"), "success"))
@@ -527,9 +533,9 @@ const EventTypeListHeading = ({
         <Link href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}>
           <a className="font-bold">{profile?.name || ""}</a>
         </Link>
-        {membershipCount && (
+        {membershipCount && teamId && (
           <span className="relative -top-px text-xs text-neutral-500 ltr:ml-2 rtl:mr-2">
-            <Link href="/settings/teams">
+            <Link href={`/settings/teams/${teamId}/members`}>
               <a>
                 <Badge variant="gray">
                   <Icon.FiUsers className="mr-1 -mt-px inline h-3 w-3" />
@@ -575,12 +581,9 @@ const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer);
 
 const EventTypesPage = () => {
   const { t } = useLocale();
+
   return (
     <div>
-      <Head>
-        <title>Home | Cal.com</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <Shell
         heading={t("event_types_page_title") as string}
         subtitle={t("event_types_page_subtitle") as string}
@@ -616,6 +619,16 @@ const EventTypesPage = () => {
       </Shell>
     </div>
   );
+};
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
 };
 
 export default EventTypesPage;

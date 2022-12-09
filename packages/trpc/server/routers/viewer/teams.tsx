@@ -1,8 +1,8 @@
-import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
+import { MembershipRole, Prisma } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 
-import { addSeat, getRequestedSlugError, removeSeat } from "@calcom/app-store/stripepayment/lib/team-billing";
+import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { sendTeamInviteEmail } from "@calcom/emails";
 import {
@@ -45,10 +45,8 @@ export const viewerTeamsRouter = router({
         ...team,
         membership: {
           role: membership?.role as MembershipRole,
-          isMissingSeat: membership?.plan === UserPlan.FREE,
           accepted: membership?.accepted,
         },
-        requiresUpgrade: HOSTED_CAL_FEATURES ? !!team.members.find((m) => m.plan !== UserPlan.PRO) : false,
       };
     }),
   // Returns teams I a member of
@@ -85,7 +83,9 @@ export const viewerTeamsRouter = router({
       const { slug, name, logo } = input;
 
       const nameCollisions = await ctx.prisma.team.findFirst({
-        where: { OR: [{ name }, { slug }] },
+        where: {
+          slug: slug,
+        },
       });
 
       if (nameCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "Team name already taken." });
@@ -242,8 +242,8 @@ export const viewerTeamsRouter = router({
 
       // Sync Services
       closeComDeleteTeamMembership(membership.user);
-
-      if (HOSTED_CAL_FEATURES) await removeSeat(ctx.user.id, input.teamId, input.memberId);
+      // @TODO: Update with new logic
+      // if (HOSTED_CAL_FEATURES) await removeSeat(ctx.user.id, input.teamId, input.memberId);
     }),
   inviteMember: authedProcedure
     .input(
@@ -354,11 +354,13 @@ export const viewerTeamsRouter = router({
           });
         }
       }
-      try {
-        if (HOSTED_CAL_FEATURES) await addSeat(ctx.user.id, team.id, inviteeUserId);
-      } catch (e) {
-        console.log(e);
-      }
+
+      // @TODO: Update with new logic
+      // try {
+      //   if (HOSTED_CAL_FEATURES) await addSeat(ctx.user.id, team.id, inviteeUserId);
+      // } catch (e) {
+      //   console.log(e);
+      // }
     }),
   acceptOrLeave: authedProcedure
     .input(
@@ -391,7 +393,8 @@ export const viewerTeamsRouter = router({
           });
 
           // TODO: disable if not hosted by Cal
-          if (teamOwner) await removeSeat(teamOwner.userId, input.teamId, ctx.user.id);
+          // @TODO: Update with new logic
+          // if (teamOwner) await removeSeat(teamOwner.userId, input.teamId, ctx.user.id);
 
           const membership = await ctx.prisma.membership.delete({
             where: {
@@ -589,8 +592,7 @@ export const viewerTeamsRouter = router({
 
       const metadata = teamMetadataSchema.safeParse(prevTeam.metadata);
 
-      if (!metadata.success || !metadata.data?.requestedSlug)
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Can't publish team without `requestedSlug`" });
+      if (!metadata.success) throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid team metadata" });
 
       // if payment needed, respond with checkout url
       if (IS_TEAM_BILLING_ENABLED) {
@@ -604,7 +606,11 @@ export const viewerTeamsRouter = router({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed retrieving a checkout session URL.",
           });
-        return { url: checkoutSession.url };
+        return { url: checkoutSession.url, message: "Payment required to publish team" };
+      }
+
+      if (!metadata.data?.requestedSlug) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Can't publish team without `requestedSlug`" });
       }
 
       const { requestedSlug, ...newMetadata } = metadata.data;
@@ -626,6 +632,24 @@ export const viewerTeamsRouter = router({
       // Sync Services: Close.com
       closeComUpdateTeam(prevTeam, updatedTeam);
 
-      return { url: `${WEBAPP_URL}/settings/teams/${updatedTeam.id}/profile` };
+      return {
+        url: `${WEBAPP_URL}/settings/teams/${updatedTeam.id}/profile`,
+        message: "Team published successfully",
+      };
     }),
+  /** This is a temporal endpoint so we can progressively upgrade teams to the new billing system. */
+  getUpgradeable: authedProcedure.query(async ({ ctx }) => {
+    if (!IS_TEAM_BILLING_ENABLED) return [];
+    let { teams } = await ctx.prisma.user.findUniqueOrThrow({
+      where: { id: ctx.user.id },
+      include: { teams: { where: { role: MembershipRole.OWNER }, include: { team: true } } },
+    });
+    /** We only need to return teams that don't have a `subscriptionId` on their metadata */
+    teams = teams.filter((m) => {
+      const metadata = teamMetadataSchema.safeParse(m.team.metadata);
+      if (metadata.success && metadata.data?.subscriptionId) return false;
+      return true;
+    });
+    return teams;
+  }),
 });

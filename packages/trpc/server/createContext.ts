@@ -3,7 +3,7 @@ import type { Session } from "next-auth";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { getSession } from "@calcom/lib/auth";
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getLocaleFromHeaders } from "@calcom/lib/i18n";
 import { defaultAvatarSrc } from "@calcom/lib/profile";
 import prisma from "@calcom/prisma";
@@ -49,7 +49,6 @@ async function getUserFromSession({
       identityProvider: true,
       brandColor: true,
       darkBrandColor: true,
-      plan: true,
       away: true,
       credentials: {
         select: {
@@ -76,6 +75,7 @@ async function getUserFromSession({
       timeFormat: true,
       trialEndsAt: true,
       metadata: true,
+      role: true,
     },
   });
 
@@ -87,15 +87,14 @@ async function getUserFromSession({
   if (!email) {
     return null;
   }
+  const rawAvatar = user.avatar;
   // This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url
-  // TODO: Setting avatar value to /avatar.png(which is a dynamic route) would actually reset the avatar because /avatar.png is supposed to return the value of user.avatar
-  // if (user.avatar) user.avatar = `${CAL_URL}/${user.username}/avatar.png`;
-  const avatar = user.avatar || defaultAvatarSrc({ email });
+  user.avatar = rawAvatar ? `${WEBAPP_URL}/${user.username}/avatar.png` : defaultAvatarSrc({ email });
 
   const locale = user.locale || getLocaleFromHeaders(req);
   return {
     ...user,
-    avatar,
+    rawAvatar,
     email,
     username,
     locale,
@@ -106,9 +105,9 @@ async function getUserFromSession({
  * Creates context for an incoming request
  * @link https://trpc.io/docs/context
  */
-export const createContext = async ({ req }: CreateContextOptions) => {
+export const createContext = async ({ req }: CreateContextOptions, sessionGetter = getSession) => {
   // for API-response caching see https://trpc.io/docs/caching
-  const session = await getSession({ req });
+  const session = await sessionGetter({ req });
 
   const user = await getUserFromSession({ session, req });
   const locale = user?.locale ?? getLocaleFromHeaders(req);

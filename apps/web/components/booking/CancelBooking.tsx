@@ -5,8 +5,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { Icon } from "@calcom/ui/Icon";
-import { Button, TextArea } from "@calcom/ui/components";
+import { Button, Icon, TextArea } from "@calcom/ui";
 
 type Props = {
   booking: {
@@ -38,7 +37,7 @@ export default function CancelBooking(props: Props) {
   return (
     <>
       {error && (
-        <div>
+        <div className="mt-8">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
             <Icon.FiX className="h-6 w-6 text-red-600" />
           </div>
@@ -90,11 +89,7 @@ export default function CancelBooking(props: Props) {
                   });
 
                   if (res.status >= 200 && res.status < 300) {
-                    await router.push(
-                      `/cancel/success?name=${props.profile.name}&title=${booking?.title}&eventPage=${
-                        profile.slug
-                      }&team=${team ? 1 : 0}&allRemainingBookings=${allRemainingBookings}`
-                    );
+                    await router.replace(router.asPath);
                   } else {
                     setLoading(false);
                     setError(

@@ -1,12 +1,12 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useRouter } from "next/router";
-import React, { ReactNode, useState } from "react";
+import React, { forwardRef, HTMLProps, ReactNode, useState } from "react";
 import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Button } from "../../components/button";
+import { Button, ButtonProps } from "../../components/button";
 
 export type DialogProps = React.ComponentProps<typeof DialogPrimitive["Root"]> & {
   name?: string;
@@ -65,24 +65,16 @@ export function Dialog(props: DialogProps) {
 }
 type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]> & {
   size?: "xl" | "lg" | "md";
-  type: "creation" | "confirmation";
+  type?: "creation" | "confirmation";
   title?: string;
   description?: string | JSX.Element | undefined;
   closeText?: string;
   actionDisabled?: boolean;
-  actionText?: string;
   Icon?: Icon;
-  // If this is set it allows you to overide the action buttons. Usefull if you need to use formcontext
-  useOwnActionButtons?: boolean;
-  actionOnClick?: (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => void;
-  actionOnClose?: () => void;
-  actionProps?: React.ComponentProps<typeof Button>;
 };
 
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
-  ({ children, title, Icon, actionProps, useOwnActionButtons, ...props }, forwardedRef) => {
-    const { t } = useLocale();
-
+  ({ children, title, Icon, type = "creation", ...props }, forwardedRef) => {
     return (
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fadeIn fixed inset-0 z-40 bg-gray-500 bg-opacity-75 transition-opacity" />
@@ -102,50 +94,24 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
             `${props.className || ""}`
           )}
           ref={forwardedRef}>
-          {props.type === "creation" && (
+          {type === "creation" && (
             <div>
-              {title && <DialogHeader title={title} />}
-              {props.description && <p className="pb-5 text-sm text-gray-500">{props.description}</p>}
+              <DialogHeader title={title} subtitle={props.description} />
               <div className="flex flex-col space-y-6">{children}</div>
             </div>
           )}
-          {props.type === "confirmation" && (
+          {type === "confirmation" && (
             <div className="flex">
               {Icon && (
                 <div className="mr-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-300">
                   <Icon className="h-4 w-4 text-black" />
                 </div>
               )}
-              <div>
-                {title && <DialogHeader title={title} />}
-                {props.description && <p className="mb-6 text-sm text-gray-500">{props.description}</p>}
+              <div className="w-full">
+                <DialogHeader title={title} subtitle={props.description} />
+                <div className="flex flex-col space-y-6">{children}</div>
               </div>
             </div>
-          )}
-          {!useOwnActionButtons && (
-            <DialogFooter>
-              <div className="mt-2 flex space-x-2">
-                <DialogClose asChild>
-                  {/* This will require the i18n string passed in */}
-                  <Button color="minimal" onClick={props.actionOnClose}>
-                    {props.closeText ?? t("close")}
-                  </Button>
-                </DialogClose>
-                {props.actionOnClick ? (
-                  <Button
-                    color="primary"
-                    disabled={props.actionDisabled}
-                    onClick={props.actionOnClick}
-                    {...actionProps}>
-                    {props.actionText}
-                  </Button>
-                ) : (
-                  <Button color="primary" type="submit" disabled={props.actionDisabled} {...actionProps}>
-                    {props.actionText}
-                  </Button>
-                )}
-              </div>
-            </DialogFooter>
           )}
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
@@ -159,25 +125,43 @@ type DialogHeaderProps = {
 };
 
 export function DialogHeader(props: DialogHeaderProps) {
+  if (!props.title) return null;
+
   return (
-    <>
+    <div className="mb-4">
       <h3 className="leading-20 text-semibold font-cal pb-1 text-xl text-gray-900" id="modal-title">
         {props.title}
       </h3>
-      {props.subtitle && <div className="text-sm text-gray-400">{props.subtitle}</div>}
-    </>
+      {props.subtitle && <div className="text-sm text-gray-500">{props.subtitle}</div>}
+    </div>
   );
 }
 
 export function DialogFooter(props: { children: ReactNode }) {
-  return (
-    <div>
-      <div className="mt-5 flex justify-end space-x-2 rtl:space-x-reverse">{props.children}</div>
-    </div>
-  );
+  return <div className="mt-7 flex justify-end space-x-2 rtl:space-x-reverse ">{props.children}</div>;
 }
 
 DialogContent.displayName = "DialogContent";
 
 export const DialogTrigger = DialogPrimitive.Trigger;
-export const DialogClose = DialogPrimitive.Close;
+// export const DialogClose = DialogPrimitive.Close;
+
+export function DialogClose(
+  props: {
+    dialogCloseProps?: React.ComponentProps<typeof DialogPrimitive["Close"]>;
+    children?: ReactNode;
+    onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
+    disabled?: boolean;
+    color?: ButtonProps["color"];
+  } & React.ComponentProps<typeof Button>
+) {
+  const { t } = useLocale();
+  return (
+    <DialogPrimitive.Close asChild {...props.dialogCloseProps}>
+      {/* This will require the i18n string passed in */}
+      <Button color={props.color || "minimal"} {...props}>
+        {props.children ? props.children : t("Close")}
+      </Button>
+    </DialogPrimitive.Close>
+  );
+}

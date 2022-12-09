@@ -5,11 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import { Form, Label, TextArea, TextField } from "@calcom/ui/components/form";
-import Switch from "@calcom/ui/v2/core/Switch";
-import { ToggleGroup } from "@calcom/ui/v2/core/form/ToggleGroup";
-import Select from "@calcom/ui/v2/core/form/select";
+import { Button, Form, Label, Select, Switch, TextArea, TextField, ToggleGroup } from "@calcom/ui";
 
 import customTemplate, { hasTemplateIntegration } from "../lib/integrationTemplate";
 import WebhookTestDisclosure from "./WebhookTestDisclosure";

@@ -1,4 +1,3 @@
-import { UserPlan } from "@prisma/client";
 import classNames from "classnames";
 import { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
@@ -27,9 +26,8 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { BadgeCheckIcon, Icon } from "@calcom/ui/Icon";
+import { BadgeCheckIcon, EventTypeDescriptionLazy as EventTypeDescription, Icon } from "@calcom/ui";
 
-import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EmbedProps } from "@lib/withEmbedSsr";
 
@@ -38,7 +36,6 @@ import { AvatarSSR } from "@components/ui/AvatarSSR";
 
 import { ssrInit } from "@server/lib/ssr";
 
-const EventTypeDescription = dynamic(() => import("@calcom/ui/v2/modules/event-types/EventTypeDescription"));
 const HeadSeo = dynamic(() => import("@components/seo/head-seo"));
 export default function User(props: inferSSRProps<typeof getServerSideProps> & EmbedProps) {
   const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
@@ -94,7 +91,6 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const query = { ...router.query };
   delete query.user; // So it doesn't display in the Link (and make tests fail)
-  useExposePlanGlobally("PRO");
   const nameOrUsername = user.name || user.username || "";
   const telemetry = useTelemetry();
 
@@ -274,7 +270,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       darkBrandColor: true,
       avatar: true,
       theme: true,
-      plan: true,
       away: true,
       verified: true,
       allowDynamicBooking: true,

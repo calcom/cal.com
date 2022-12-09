@@ -1,12 +1,18 @@
-import React, { useState, Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components/button";
-import { TextArea } from "@calcom/ui/form/fields";
-import showToast from "@calcom/ui/v2/core/notifications";
+import {
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  Icon,
+  showToast,
+  TextArea,
+} from "@calcom/ui";
 
 interface IRescheduleDialog {
   isOpenDialog: boolean;
@@ -41,8 +47,7 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
           </div>
           <div className="pt-1">
             <DialogHeader title={t("send_reschedule_request")} />
-
-            <p className="-mt-8 text-sm text-gray-500">{t("reschedule_modal_description")}</p>
+            <p className="text-sm text-gray-500">{t("reschedule_modal_description")}</p>
             <p className="mt-6 mb-2 text-sm font-bold text-black">
               {t("reason_for_reschedule_request")}
               <span className="font-normal text-gray-500"> (Optional)</span>
@@ -56,9 +61,7 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
             />
 
             <DialogFooter>
-              <DialogClose asChild>
-                <Button color="secondary">{t("cancel")}</Button>
-              </DialogClose>
+              <DialogClose />
               <Button
                 data-testid="send_request"
                 disabled={isLoading}
