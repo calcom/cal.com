@@ -401,7 +401,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                     selectedCustomInput.type = customInput.type;
                     selectedCustomInput.options = customInput.options || undefined;
                     // Update by id
-                    const inputIndex = customInputs.findIndex((input) => input.id === values.id);
+                    const inputIndex = customInputs.findIndex(
+                      (input) =>
+                        input.id === values.id &&
+                        input.label === values.label &&
+                        input.type === values.type &&
+                        input.placeholder === values.placeholder &&
+                        input.options === values.options
+                    );
                     customInputs[inputIndex] = selectedCustomInput;
                     setCustomInputs(customInputs);
                     formMethods.setValue("customInputs", customInputs);
