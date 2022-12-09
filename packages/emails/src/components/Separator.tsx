@@ -1,1 +1,3 @@
-export const Separator = () => <p style={{ margin: "0 10px", display: "inline-block" }}>&nbsp;</p>;
+export const Separator = () => (
+  <p style={{ width: "16px", height: "16px", display: "inline-block" }}>&nbsp;</p>
+);

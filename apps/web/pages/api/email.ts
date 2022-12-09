@@ -13,10 +13,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     title: "30min between Pro Example and pro@example.com",
     description: null,
     additionalNotes: "asdasdas",
-    customInputs: {
-      "Custom input 01": "sadasdasdsadasd",
-      "Custom input 02": "asdasdasd",
-    },
     startTime: "2022-06-03T09:00:00-06:00",
     endTime: "2022-06-03T09:30:00-06:00",
     organizer: {
@@ -27,20 +23,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     },
     attendees: [
       {
-        email: "pro@example.com",
-        name: "pro@example.com",
-        timeZone: "America/Chihuahua",
-        language,
-      },
-      {
-        email: "pro@example.com",
-        name: "pro@example.com",
-        timeZone: "America/Chihuahua",
-        language,
-      },
-      {
-        email: "pro@example.com",
-        name: "pro@example.com",
+        email: "john@example.com",
+        name: "John Doe",
         timeZone: "America/Chihuahua",
         language,
       },
@@ -50,8 +34,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     hideCalendarNotes: false,
     uid: "xxyPr4cg2xx4XoS2KeMEQy",
     metadata: {},
-    cancellationReason: "It got late",
-    paymentInfo: { id: "pi_12312", link: "https://cal.com", reason: "no reason" },
     recurringEvent: null,
   };
 

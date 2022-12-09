@@ -143,13 +143,12 @@ export default function Directlink({ booking, reason, status }: inferSSRProps<ty
                   aria-modal="true"
                   aria-labelledby="modal-headline">
                   <div
-                    className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-${content.iconColor}-100`}>
+                    className={`flex h-12 w-12 items-center justify-center rounded-full sm:mx-auto bg-${content.iconColor}-100`}>
                     <content.Icon className={`h-5 w-5 text-${content.iconColor}-600`} />
                   </div>
-                  <div className="mt-6 mb-8 text-center last:mb-0">
+                  <div className="mt-6 mb-8 last:mb-0 sm:text-center">
                     <h3
                       className="text-2xl font-semibold leading-6 text-neutral-900 dark:text-white"
-                      data-testid=""
                       id="modal-headline">
                       {t(content.titleKey)}
                     </h3>
@@ -159,10 +158,10 @@ export default function Directlink({ booking, reason, status }: inferSSRProps<ty
                       </div>
                     )}
                     <div className="dark:border-darkgray-300 mt-8 grid grid-cols-3 border-t border-[#e1e1e1] pt-8 text-left text-[#313131] dark:text-gray-300">
-                      <div className="font-medium">{t("what")}</div>
-                      <div className="col-span-2 mb-6 last:mb-0">{booking.title}</div>
-                      <div className="font-medium">{t("when")}</div>
-                      <div className="col-span-2 mb-6 last:mb-0">
+                      <div className="col-span-3 font-medium sm:col-span-1">{t("what")}</div>
+                      <div className="col-span-3 mb-6 last:mb-0 sm:col-span-2">{booking.title}</div>
+                      <div className="col-span-3 font-medium sm:col-span-1">{t("when")}</div>
+                      <div className="col-span-3 mb-6 last:mb-0 sm:col-span-2">
                         {recurringInfo !== "" && (
                           <>
                             {recurringInfo}
@@ -178,8 +177,8 @@ export default function Directlink({ booking, reason, status }: inferSSRProps<ty
                       </div>
                       {(booking?.user || booking?.attendees) && (
                         <>
-                          <div className="font-medium">{t("who")}</div>
-                          <div className="col-span-2 last:mb-0">
+                          <div className="col-span-3 font-medium sm:col-span-1">{t("who")}</div>
+                          <div className="col-span-3 last:mb-0 sm:col-span-2">
                             <>
                               {booking?.user && (
                                 <div className="mb-3">
@@ -199,8 +198,8 @@ export default function Directlink({ booking, reason, status }: inferSSRProps<ty
                       )}
                       {locationToDisplay && (
                         <>
-                          <div className="mt-3 font-medium">{t("where")}</div>
-                          <div className="col-span-2 mt-3">
+                          <div className="font-mediumcol-span-3 mt-6 sm:col-span-1">{t("where")}</div>
+                          <div className="col-span-3 sm:col-span-2">
                             {locationToDisplay.startsWith("http") ? (
                               <a title="Meeting Link" href={locationToDisplay}>
                                 {locationToDisplay}
@@ -213,16 +212,20 @@ export default function Directlink({ booking, reason, status }: inferSSRProps<ty
                       )}
                       {booking?.description && (
                         <>
-                          <div className="mt-9 font-medium">{t("additional_notes")}</div>
-                          <div className="col-span-2 mb-2 mt-9">
+                          <div className="col-span-3 mt-9 font-medium sm:col-span-1">
+                            {t("additional_notes")}
+                          </div>
+                          <div className="col-span-3 mb-2 mt-9 sm:col-span-2">
                             <p>{booking.description}</p>
                           </div>
                         </>
                       )}
                       {status === BookingStatus.REJECTED && reason && (
                         <>
-                          <div className="mt-9 font-medium">{t("rejection_reason")}</div>
-                          <div className="col-span-2 mb-2 mt-9">
+                          <div className="col-span-3 mt-9 font-medium sm:col-span-1">
+                            {t("rejection_reason")}
+                          </div>
+                          <div className="col-span-3 mb-2 mt-9 sm:col-span-2">
                             <p>{reason}</p>
                           </div>
                         </>
@@ -233,7 +236,7 @@ export default function Directlink({ booking, reason, status }: inferSSRProps<ty
                         <hr className="mt-6" />
                         <div className="mt-5 text-left sm:mt-6">
                           <label className="font-medium text-[#313131] dark:text-white">
-                            {t("rejection_reason")}
+                            {`${t("rejection_reason")} (${t("optional").toLowerCase()})`}
                           </label>
                           <TextArea
                             value={cancellationReason}
@@ -241,20 +244,37 @@ export default function Directlink({ booking, reason, status }: inferSSRProps<ty
                             className="mt-2 mb-4 w-full dark:border-gray-900 dark:bg-gray-700 dark:text-white "
                             rows={3}
                           />
-                          <div className="flex flex-col-reverse rtl:space-x-reverse ">
-                            <div className="ml-auto flex w-full space-x-4 ">
-                              <Button className="ml-auto" color="secondary" href={acceptPath}>
+                          <div className="flex flex-col-reverse rtl:space-x-reverse">
+                            <div className="ml-auto flex w-full justify-end space-x-4">
+                              <Button
+                                color="secondary"
+                                className="hidden text-center sm:block"
+                                href={acceptPath}>
                                 {t("booking_accept_intent")}
                               </Button>
                               <Button
-                                className="flex justify-center"
-                                data-testid="cancel"
+                                className="hidden sm:block"
                                 onClick={async () => {
                                   router.push(
                                     `${rejectPath}?reason=${encodeURIComponent(cancellationReason)}`
                                   );
                                 }}>
                                 {t("rejection_confirmation")}
+                              </Button>
+                              <Button
+                                color="secondary"
+                                className="block text-center sm:hidden"
+                                href={acceptPath}>
+                                {t("accept")}
+                              </Button>
+                              <Button
+                                className="block sm:hidden"
+                                onClick={async () => {
+                                  router.push(
+                                    `${rejectPath}?reason=${encodeURIComponent(cancellationReason)}`
+                                  );
+                                }}>
+                                {t("reject")}
                               </Button>
                             </div>
                           </div>

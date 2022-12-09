@@ -39,13 +39,15 @@ export function WhenInfo(props: { calEvent: CalendarEvent; timeZone: string; t: 
     return dayjs(props.calEvent.endTime).tz(timeZone).format(format);
   }
 
+  const recurringInfo = getRecurringWhen({
+    recurringEvent: props.calEvent.recurringEvent,
+    attendee: props.calEvent.attendees[0],
+  });
+
   return (
     <div>
       <Info
-        label={`${t("when")} - ${getRecurringWhen({
-          recurringEvent: props.calEvent.recurringEvent,
-          attendee: props.calEvent.attendees[0],
-        })}`}
+        label={`${t("when")} ${recurringInfo !== "" ? ` - ${recurringInfo}` : ""}`}
         lineThrough={
           !!props.calEvent.cancellationReason && !props.calEvent.cancellationReason.includes("$RCH$")
         }
