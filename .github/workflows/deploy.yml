@@ -55,7 +55,7 @@ jobs:
 
       - uses: "marvinpinto/action-inject-ssm-secrets@latest"
         with:
-          ssm_parameter: "/cal/SHARED/GLOBAL_WEBHOOK_SECRET"
+          ssm_parameter: "/cal/shared/GLOBAL_WEBHOOK_SECRET"
           env_variable_name: "GLOBAL_WEBHOOK_SECRET"
 
       - name: Login to ECR
