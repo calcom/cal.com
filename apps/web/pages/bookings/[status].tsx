@@ -5,7 +5,7 @@ import { Fragment } from "react";
 import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
-import BookingLayout, { useFilterStore } from "@calcom/features/bookings/layout/BookingLayout";
+import BookingLayout from "@calcom/features/bookings/layout/BookingLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterInputs, RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmptyScreen, Icon } from "@calcom/ui";
@@ -42,7 +42,6 @@ const querySchema = z.object({
 });
 
 export default function Bookings() {
-  // const selectedUsers = useFilterStore((state) => state.selectedUsers);
   const router = useRouter();
   const { status } = router.isReady ? querySchema.parse(router.query) : { status: "upcoming" as const };
   const { t } = useLocale();

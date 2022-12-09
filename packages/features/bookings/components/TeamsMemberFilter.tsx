@@ -1,27 +1,15 @@
 import { Fragment } from "react";
-import shallow from "zustand/shallow";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import { AnimatedPopover, Avatar } from "@calcom/ui";
 
-import { useFilterStore } from "../layout/BookingLayout";
-
-export type ITeamMemberFilters = RouterOutputs["viewer"]["teams"]["listTeamsandMembers"];
-export type ITeamMemberFilter = ITeamMemberFilters[0];
+import { useFilterQuery } from "../lib/useFilterQuery";
 
 export const TeamsMemberFilter = () => {
-  const { selectedUsers, pushSelectedUser, removeSelectedUser } = useFilterStore(
-    (state) => ({
-      selectedUsers: state.selectedUsers,
-      pushSelectedUser: state.pushSelectedUser,
-      removeSelectedUser: state.removeSelectedUser,
-    }),
-    shallow
-  );
   const { t } = useLocale();
+  const { data: query, pop, push } = useFilterQuery();
   const { data } = trpc.viewer.teams.listTeamsandMembers.useQuery();
-  // Will be handled up the tree to redirect
 
   if (data?.length === 0) return null;
 
@@ -48,17 +36,15 @@ export const TeamsMemberFilter = () => {
 
                   <input
                     type="checkbox"
-                    checked={
-                      selectedUsers.filter(
-                        (selected) => selected.id === team.id && selected.user.id === member.user.id
-                      ).length > 0
-                    }
                     name={`${member.team.id}-${member.user.id}`}
+                    checked={query.userIds?.includes(member.user.id) && query.teamIds?.includes(team.id)}
                     onChange={(e) => {
                       if (e.target.checked) {
-                        pushSelectedUser({ id: team.id, teamName: team.name, user: member.user });
+                        push("userIds", member.user.id);
+                        push("teamIds", team.id);
                       } else if (!e.target.checked) {
-                        removeSelectedUser(member.user.id);
+                        pop("userIds", member.user.id);
+                        pop("teamIds", team.id);
                       }
                     }}
                     className="text-primary-600 focus:ring-primary-500 inline-flex h-4 w-4 place-self-center justify-self-end rounded border-gray-300 "
