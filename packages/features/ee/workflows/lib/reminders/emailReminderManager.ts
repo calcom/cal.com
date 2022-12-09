@@ -10,7 +10,7 @@ import sgMail from "@sendgrid/mail";
 
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
-import { BookingMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { bookingMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
 import customTemplate, { VariablesType } from "./templates/customTemplate";
@@ -107,7 +107,7 @@ export const scheduleEmailReminder = async (
         location: evt.location,
         additionalNotes: evt.additionalNotes,
         customInputs: evt.customInputs,
-        meetingUrl: BookingMetaDataSchema.parse(evt.metadata || {})?.videoCallUrl,
+        meetingUrl: bookingMetaDataSchema.parse(evt.metadata || {})?.videoCallUrl,
       };
 
       const emailSubjectTemplate = await customTemplate(

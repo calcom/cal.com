@@ -187,12 +187,6 @@ export const schemaBookingCancelParams = z.object({
   cancellationReason: z.string().optional(),
 });
 
-export const BookingMetaDataSchema = z
-  .object({
-    videoCallUrl: z.string().optional(),
-  })
-  .nullable();
-
 export const vitalSettingsUpdateSchema = z.object({
   connected: z.boolean().optional(),
   selectedParam: z.string().optional(),
@@ -224,6 +218,12 @@ export const teamMetadataSchema = z
     subscriptionItemId: z.string().nullable(),
   })
   .partial()
+  .nullable();
+
+export const bookingMetadataSchema = z
+  .object({
+    videoCallUrl: z.string().optional(),
+  })
   .nullable();
 
 export const customInputOptionSchema = z.array(
