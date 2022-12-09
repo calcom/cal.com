@@ -53,6 +53,24 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     cancellationReason: "It got late",
     paymentInfo: { id: "pi_12312", link: "https://cal.com", reason: "no reason" },
     recurringEvent: null,
+    appsStatus: [
+      {
+        appName: "Outlook Calendar",
+        type: "office365_calendar",
+        success: 1,
+        failures: 0,
+        errors: [],
+        warnings: [],
+      },
+      {
+        appName: "Google Meet",
+        type: "conferencing",
+        success: 0,
+        failures: 1,
+        errors: [],
+        warnings: ["In order to use Google Meet you must set your destination calendar to a Google Calendar"],
+      },
+    ],
   };
 
   req.statusCode = 200;
@@ -60,10 +78,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Content-Type", "text/html");
   res.setHeader("Cache-Control", "no-cache, no-store, private, must-revalidate");
   res.write(
-    renderEmail("DisabledAppEmail", {
-      appName: "Stripe",
-      appType: ["payment"],
-      t,
+    renderEmail("OrganizerScheduledEmail", {
+      calEvent: evt,
+      attendee: evt.organizer,
     })
   );
   res.end();

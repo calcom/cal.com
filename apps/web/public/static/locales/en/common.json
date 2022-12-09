@@ -1428,5 +1428,6 @@
   "enter_option": "Enter Option {{index}}",
   "add_an_option": "Add an option",
   "radio": "Radio",
-  "kbar_search_placeholder" : "Start typing to search"
+  "kbar_search_placeholder" : "Start typing to search",
+  "google_meet_warning": "In order to use Google Meet you must set your destination calendar to a Google Calendar"
 }
