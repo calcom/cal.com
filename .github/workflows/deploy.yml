@@ -53,6 +53,11 @@ jobs:
           ssm_parameter: "/cal/${{ env.ENVIRONMENT }}/GLOBAL_WEBHOOK_SUBSCRIBERS"
           env_variable_name: "GLOBAL_WEBHOOK_SUBSCRIBERS"
 
+      - uses: "marvinpinto/action-inject-ssm-secrets@latest"
+        with:
+          ssm_parameter: "/cal/SHARED/GLOBAL_WEBHOOK_SECRET"
+          env_variable_name: "GLOBAL_WEBHOOK_SECRET"
+
       - name: Login to ECR
         uses: docker/login-action@v1
         with:
