@@ -13,7 +13,7 @@ test.describe.configure({ mode: "parallel" });
 
 test.describe("free user", () => {
   test.beforeEach(async ({ page, users }) => {
-    const free = await users.create({ plan: "FREE" });
+    const free = await users.create();
     await page.goto(`/${free.username}`);
   });
   test.afterEach(async ({ users }) => {

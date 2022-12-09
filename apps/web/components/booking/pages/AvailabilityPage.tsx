@@ -29,10 +29,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Icon, DatePicker } from "@calcom/ui";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
-// import { timeZone } from "@lib/clock";
-import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
-import { isBrandingHidden } from "@lib/isBrandingHidden";
 
 import Gates, { Gate, GateState } from "@components/Gates";
 import AvailableTimes from "@components/booking/AvailableTimes";
@@ -279,9 +276,6 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   useEffect(() => {
     setTimeZone(localStorageTimeZone() || dayjs.tz.guess());
   }, []);
-
-  // TODO: Improve this;
-  useExposePlanGlobally(eventType.users.length === 1 ? eventType.users[0].plan : "PRO");
 
   const [recurringEventCount, setRecurringEventCount] = useState(eventType.recurringEvent?.count);
 
