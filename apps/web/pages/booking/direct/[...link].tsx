@@ -219,7 +219,7 @@ export default function Directlink({ booking, reason, status }: inferSSRProps<ty
                           </div>
                         </>
                       )}
-                      {status === BookingStatus.REJECTED && reason !== undefined && (
+                      {status === BookingStatus.REJECTED && reason && (
                         <>
                           <div className="mt-9 font-medium">{t("rejection_reason")}</div>
                           <div className="col-span-2 mb-2 mt-9">
