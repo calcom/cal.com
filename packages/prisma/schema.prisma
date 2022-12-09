@@ -103,12 +103,6 @@ model Credential {
   invalid              Boolean?              @default(false)
 }
 
-enum UserPlan {
-  FREE
-  TRIAL
-  PRO
-}
-
 enum IdentityProvider {
   CAL
   GOOGLE
@@ -170,7 +164,6 @@ model User {
   identityProviderId   String?
   availability         Availability[]
   invitedTo            Int?
-  plan                 UserPlan                @default(PRO)
   webhooks             Webhook[]
   brandColor           String                  @default("#292929")
   darkBrandColor       String                  @default("#fafafa")
