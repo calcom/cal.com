@@ -1,11 +1,12 @@
 //import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useEffect, useState } from "react";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import { Button } from "@calcom/ui";
 
-import Card from "../../core/Card";
+import Card from "../../v2/core/Card";
 
 export const tips = [
   {
@@ -137,10 +138,14 @@ export function TeamsBanner() {
         <h1 className="font-cal text-lg">{t("calcom_is_better_with_team")}</h1>
         <p className="my-4 max-w-xl text-sm">{t("add_your_team_members")}</p>
         <div className="space-x-2">
-          <Button className="bg-white" color="secondary">
+          <Button className="bg-white" color="secondary" href={`${WEBAPP_URL}/settings/teams/new`}>
             {t("create_team")}
           </Button>
-          <Button className="!bg-transparent text-white" color="minimal">
+          <Button
+            className="!bg-transparent text-white"
+            color="minimal"
+            href="https://go.cal.com/teams-video"
+            target="_blank">
             {t("learn_more")}
           </Button>
         </div>
