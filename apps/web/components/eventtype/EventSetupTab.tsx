@@ -33,22 +33,10 @@ export const EventSetupTab = (
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
   const [multipleDuration, setMultipleDuration] = useState(eventType.metadata.multipleDuration);
 
-  const multipleDurationOptions = [
-    { value: 5, label: t("multiple_duration_mins", { count: 5 }) },
-    { value: 10, label: t("multiple_duration_mins", { count: 10 }) },
-    { value: 15, label: t("multiple_duration_mins", { count: 15 }) },
-    { value: 20, label: t("multiple_duration_mins", { count: 20 }) },
-    { value: 25, label: t("multiple_duration_mins", { count: 25 }) },
-    { value: 30, label: t("multiple_duration_mins", { count: 30 }) },
-    { value: 45, label: t("multiple_duration_mins", { count: 45 }) },
-    { value: 50, label: t("multiple_duration_mins", { count: 50 }) },
-    { value: 60, label: t("multiple_duration_mins", { count: 60 }) },
-    { value: 75, label: t("multiple_duration_mins", { count: 75 }) },
-    { value: 80, label: t("multiple_duration_mins", { count: 80 }) },
-    { value: 90, label: t("multiple_duration_mins", { count: 90 }) },
-    { value: 120, label: t("multiple_duration_mins", { count: 120 }) },
-    { value: 180, label: t("multiple_duration_mins", { count: 180 }) },
-  ];
+  const multipleDurationOptions = [5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 180].map((mins) => ({
+    value: mins,
+    label: t("multiple_duration_mins", { count: mins }),
+  }));
 
   const [selectedMultipleDuration, setSelectedMultipleDuration] = useState<
     MultiValue<{
@@ -142,6 +130,7 @@ export const EventSetupTab = (
         {validLocations.length === 0 && (
           <div className="flex">
             <Select
+              placeholder={t("select")}
               options={locationOptions}
               isSearchable={false}
               className="block w-full min-w-0 flex-1 rounded-sm text-sm"
@@ -224,7 +213,7 @@ export const EventSetupTab = (
       <div className="space-y-8">
         <TextField
           required
-          label={t("Title")}
+          label={t("title")}
           defaultValue={eventType.title}
           {...formMethods.register("title")}
         />
@@ -261,23 +250,24 @@ export const EventSetupTab = (
                 isSearchable={false}
                 className="h-auto !min-h-[36px] text-sm"
                 options={multipleDurationOptions}
+                value={selectedMultipleDuration}
                 onChange={(options) => {
-                  const values = options
-                    .map((opt) => opt.value)
-                    .sort(function (a, b) {
-                      return a - b;
-                    });
+                  let newOptions = [...options];
+                  newOptions = newOptions.sort((a, b) => {
+                    return a?.value - b?.value;
+                  });
+                  const values = newOptions.map((opt) => opt.value);
                   setMultipleDuration(values);
-                  setSelectedMultipleDuration(options);
-                  if (!options.find((opt) => opt.value === defaultDuration?.value)) {
-                    if (options.length > 0) {
-                      setDefaultDuration(options[0]);
+                  setSelectedMultipleDuration(newOptions);
+                  if (!newOptions.find((opt) => opt.value === defaultDuration?.value)) {
+                    if (newOptions.length > 0) {
+                      setDefaultDuration(newOptions[0]);
                     } else {
                       setDefaultDuration(null);
                     }
                   }
-                  if (options.length === 1 && defaultDuration === null) {
-                    setDefaultDuration(options[0]);
+                  if (newOptions.length === 1 && defaultDuration === null) {
+                    setDefaultDuration(newOptions[0]);
                   }
                   formMethods.setValue("metadata.multipleDuration", values);
                 }}

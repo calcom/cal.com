@@ -49,9 +49,9 @@ const DisableTeamImpersonation = ({
         <div className="mt-5 sm:mt-0 sm:self-center">
           <Switch
             disabled={disabled}
-            defaultChecked={query.data?.disableImpersonation}
+            defaultChecked={!query.data?.disableImpersonation}
             onCheckedChange={(isChecked) => {
-              mutation.mutate({ teamId, memberId, disableImpersonation: isChecked });
+              mutation.mutate({ teamId, memberId, disableImpersonation: !isChecked });
             }}
           />
         </div>

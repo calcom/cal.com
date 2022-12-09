@@ -29,6 +29,8 @@ import { HttpError } from "@lib/core/http/error";
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import EditableHeading from "@components/ui/EditableHeading";
 
+import { ssgInit } from "@server/lib/ssg";
+
 const querySchema = z.object({
   schedule: stringOrNumber,
 });
@@ -91,7 +93,7 @@ export default function Availability({ schedule }: { schedule: number }) {
   return (
     <Shell
       backPath="/availability"
-      title={data?.schedule.name && data.schedule.name + " | " + t("availability")}
+      title={data?.schedule.name ? data.schedule.name + " | " + t("availability") : t("availability")}
       heading={
         <Controller
           control={form.control}
@@ -209,14 +211,16 @@ export default function Availability({ schedule }: { schedule: number }) {
   );
 }
 
-export const getStaticProps: GetStaticProps = (ctx) => {
+export const getStaticProps: GetStaticProps = async (ctx) => {
   const params = querySchema.safeParse(ctx.params);
+  const ssg = await ssgInit(ctx);
 
   if (!params.success) return { notFound: true };
 
   return {
     props: {
       schedule: params.data.schedule,
+      trpcState: ssg.dehydrate(),
     },
     revalidate: 10, // seconds
   };

@@ -1,5 +1,3 @@
-import { User } from "@prisma/client";
-
-export function isBrandingHidden<TUser extends Pick<User, "hideBranding" | "plan">>(user: TUser) {
-  return user.hideBranding && user.plan !== "FREE";
+export function isBrandingHidden(hideBrandingSetting: boolean, belongsToActiveTeam: boolean) {
+  return belongsToActiveTeam && hideBrandingSetting;
 }
