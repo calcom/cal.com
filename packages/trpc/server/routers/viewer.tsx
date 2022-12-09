@@ -305,6 +305,7 @@ const loggedInViewerRouter = router({
 
     const userCredentials = await prisma.credential.findMany({
       where: {
+        userId: ctx.user.id,
         app: {
           categories: { has: AppCategories.calendar },
           enabled: true,
