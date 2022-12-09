@@ -8,10 +8,10 @@ import { test } from "./lib/fixtures";
 test.describe.configure({ mode: "parallel" });
 
 test.describe("Event Types tests", () => {
-  test.describe("pro user", () => {
+  test.describe("user", () => {
     test.beforeEach(async ({ page, users }) => {
-      const proUser = await users.create();
-      await proUser.login();
+      const user = await users.create();
+      await user.login();
       await page.goto("/event-types");
       // We wait until loading is finished
       await page.waitForSelector('[data-testid="event-types"]');

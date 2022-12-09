@@ -152,6 +152,45 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
 
   return (
     <>
+      {!hasTeams || props.isIndividualTeam ? (
+        <Button
+          onClick={() => openModal(props.options[0])}
+          data-testid="new-event-type"
+          StartIcon={Icon.FiPlus}
+          disabled={!props.canAddEvents}>
+          {t("new")}
+        </Button>
+      ) : (
+        <Dropdown>
+          <DropdownMenuTrigger asChild>
+            <Button
+              EndIcon={Icon.FiChevronDown}
+              className="radix-state-open:bg-brand-500 radix-state-open:ring-2 radix-state-open:ring-brand-500 ring-offset-2">
+              {t("new")}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>
+              <div className="max-w-48">{t("new_event_subtitle")}</div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="h-px bg-gray-200" />
+            {props.options.map((option) => (
+              <DropdownMenuItem
+                key={option.slug}
+                className="flex cursor-pointer items-center px-3 py-2 hover:bg-neutral-100 focus:outline-none"
+                onSelect={() => openModal(option)}>
+                <Avatar
+                  alt={option.name || ""}
+                  imageSrc={option.image || `${WEBAPP_URL}/${option.slug}/avatar.png`} // if no image, use default avatar
+                  size="sm"
+                  className="inline ltr:mr-4 rtl:ml-4"
+                />
+                <span className="px-4">{option.name ? option.name : option.slug}</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </Dropdown>
+      )}
       {/* Dialog for duplicate event type */}
       {router.query.dialog === "duplicate-event-type" && <DuplicateDialog />}
       {router.query.dialog === "new-eventtype" && (
@@ -167,45 +206,6 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
             "slug",
             "locations",
           ]}>
-          {!hasTeams || props.isIndividualTeam ? (
-            <Button
-              onClick={() => openModal(props.options[0])}
-              data-testid="new-event-type"
-              StartIcon={Icon.FiPlus}
-              disabled={!props.canAddEvents}>
-              {t("new")}
-            </Button>
-          ) : (
-            <Dropdown>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  EndIcon={Icon.FiChevronDown}
-                  className="radix-state-open:bg-brand-500 radix-state-open:ring-2 radix-state-open:ring-brand-500 ring-offset-2">
-                  {t("new")}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>
-                  <div className="max-w-48">{t("new_event_subtitle")}</div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator className="h-px bg-gray-200" />
-                {props.options.map((option) => (
-                  <DropdownMenuItem
-                    key={option.slug}
-                    className="flex cursor-pointer items-center px-3 py-2 hover:bg-neutral-100 focus:outline-none"
-                    onSelect={() => openModal(option)}>
-                    <Avatar
-                      alt={option.name || ""}
-                      imageSrc={option.image || `${WEBAPP_URL}/${option.slug}/avatar.png`} // if no image, use default avatar
-                      size="sm"
-                      className="inline ltr:mr-4 rtl:ml-4"
-                    />
-                    <span className="px-4">{option.name ? option.name : option.slug}</span>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </Dropdown>
-          )}
           <DialogContent
             type="creation"
             className="overflow-y-auto"
