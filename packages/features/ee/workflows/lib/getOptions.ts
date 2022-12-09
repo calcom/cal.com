@@ -1,3 +1,5 @@
+import { WorkflowActions } from "@prisma/client";
+import { useSession } from "next-auth/react";
 import { TFunction } from "next-i18next";
 
 import { TIME_UNIT, WORKFLOW_ACTIONS, WORKFLOW_TEMPLATES, WORKFLOW_TRIGGER_EVENTS } from "./constants";
@@ -5,8 +7,15 @@ import { TIME_UNIT, WORKFLOW_ACTIONS, WORKFLOW_TEMPLATES, WORKFLOW_TRIGGER_EVENT
 export function getWorkflowActionOptions(t: TFunction) {
   return WORKFLOW_ACTIONS.map((action) => {
     const actionString = t(`${action.toLowerCase()}_action`);
+    const session = useSession();
 
-    return { label: actionString.charAt(0).toUpperCase() + actionString.slice(1), value: action };
+    const isSMSAction = action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.SMS_NUMBER;
+
+    return {
+      label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
+      value: action,
+      disabled: isSMSAction && !session.data?.user.belongsToActiveTeam,
+    };
   });
 }
 
