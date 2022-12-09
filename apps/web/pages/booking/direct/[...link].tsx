@@ -118,10 +118,14 @@ export default function Directlink({ booking, reason, status }: inferSSRProps<ty
       "integrations:daily";
   const locationToDisplay = getSuccessPageLocationMessage(location, t);
   const content = bookingContent(status);
+  const recurringInfo = getRecurringWhen({
+    recurringEvent: booking.eventType?.recurringEvent,
+    attendee: organizer,
+  });
   return (
     <>
       <HeadSeo
-        title=""
+        title={t(content.titleKey)}
         description=""
         nextSeoProps={{
           nofollow: true,
@@ -159,15 +163,17 @@ export default function Directlink({ booking, reason, status }: inferSSRProps<ty
                       <div className="col-span-2 mb-6 last:mb-0">{booking.title}</div>
                       <div className="font-medium">{t("when")}</div>
                       <div className="col-span-2 mb-6 last:mb-0">
-                        {getRecurringWhen({
-                          recurringEvent: booking.eventType?.recurringEvent,
-                          attendee: organizer,
-                        })}
-                        <br />
+                        {recurringInfo !== "" && (
+                          <>
+                            {recurringInfo}
+                            <br />
+                          </>
+                        )}
                         {booking.eventType.recurringEvent?.count ? `${t("starting")} ` : ""}
                         {t(getRecipientStart("dddd").toLowerCase())},{" "}
-                        {t(getRecipientStart("MMMM").toLowerCase())} {getRecipientStart("D, YYYY | h:mma")} -{" "}
-                        {getRecipientEnd("h:mma")}{" "}
+                        {t(getRecipientStart("MMMM").toLowerCase())} {getRecipientStart("D, YYYY")}
+                        <br />
+                        {getRecipientStart("h:mma")} - {getRecipientEnd("h:mma")}{" "}
                         <span style={{ color: "#888888" }}>({booking.attendees[0].timeZone})</span>
                       </div>
                       {(booking?.user || booking?.attendees) && (
