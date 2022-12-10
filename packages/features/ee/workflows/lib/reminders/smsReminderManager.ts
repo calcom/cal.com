@@ -10,7 +10,7 @@ import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
-import { noAlphanumericSenderIdSupport } from "../aphanumericSenderIdsCountries";
+import { noAlphanumericSenderIdSupport } from "../aphanumericSenderIdSupport";
 import * as twilio from "./smsProviders/twilioProvider";
 import customTemplate, { VariablesType } from "./templates/customTemplate";
 import smsReminderTemplate from "./templates/smsReminderTemplate";
