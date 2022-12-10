@@ -6,7 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
-import { noAlphanumericSenderIdSupport } from "../lib/aphanumericSenderIdSupport";
+import { noAlphanumericSenderIdSupport } from "../lib/alphanumericSenderIdSupport";
 import * as twilio from "../lib/reminders/smsProviders/twilioProvider";
 import customTemplate, { VariablesType } from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
