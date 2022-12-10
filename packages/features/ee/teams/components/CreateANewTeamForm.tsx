@@ -9,7 +9,7 @@ import { Avatar, Button, Form, Icon, ImageUploader, TextField } from "@calcom/ui
 
 import { NewTeamFormValues } from "../lib/types";
 
-const querySchema = z.optional(z.string());
+const querySchema = z.string();
 
 export const CreateANewTeamForm = () => {
   const { t } = useLocale();
