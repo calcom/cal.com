@@ -419,14 +419,15 @@ following
 2. Click ‘Get a Twilio phone number’
 3. Copy Account SID to your .env file into the TWILIO_SID field
 4. Copy Auth Token to your .env file into the TWILIO_TOKEN field
-5. Create a messaging service (Develop -> Messaging -> Services)
-6. Choose any name for the messaging service
-7. Click 'Add Senders'
-8. Choose phone number as sender type
-9. Add the listed phone number
-10. Leave all other fields as they are
-11. Complete setup and click ‘View my new Messaging Service’
-12. Copy Messaging Service SID to your .env file into the TWILIO_MESSAGING_SID field
+5. Copy your Twilio phone number to your .env file into the TWILIO_PHONE_NUMBER field
+6. Create a messaging service (Develop -> Messaging -> Services)
+7. Choose any name for the messaging service
+8. Click 'Add Senders'
+9. Choose phone number as sender type
+10. Add the listed phone number
+11. Leave all other fields as they are
+12. Complete setup and click ‘View my new Messaging Service’
+13. Copy Messaging Service SID to your .env file into the TWILIO_MESSAGING_SID field
 
 <!-- LICENSE -->
 
