@@ -1,12 +1,12 @@
 /* Schedule any workflow reminder that falls within 7 days for SMS */
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@prisma/client";
-import { noAlphanumericSenderIdSupport } from "ee/workflows/lib/aphanumericSenderIdsCountries";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
+import { noAlphanumericSenderIdSupport } from "../lib/aphanumericSenderIdsCountries";
 import * as twilio from "../lib/reminders/smsProviders/twilioProvider";
 import customTemplate, { VariablesType } from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
