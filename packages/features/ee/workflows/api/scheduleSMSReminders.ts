@@ -1,5 +1,6 @@
 /* Schedule any workflow reminder that falls within 7 days for SMS */
 import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@prisma/client";
+import { noAlphanumericSenderIdSupport } from "ee/workflows/lib/aphanumericSenderIdsCountries";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import dayjs from "@calcom/dayjs";
@@ -72,6 +73,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           ? reminder.booking?.attendees[0].timeZone
           : reminder.booking?.user?.timeZone;
 
+      const isAlphanumericSenderIdSupported = !noAlphanumericSenderIdSupport.find(
+        (code) => code === sendTo?.substring(0, code.length)
+      );
+      const senderID = isAlphanumericSenderIdSupported ? reminder.workflowStep.sender || "Cal" : "";
+
       let message: string | null = reminder.workflowStep.reminderBody;
       switch (reminder.workflowStep.template) {
         case WorkflowTemplates.REMINDER:
@@ -105,12 +111,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           break;
       }
       if (message?.length && message?.length > 0 && sendTo) {
-        const scheduledSMS = await twilio.scheduleSMS(
-          sendTo,
-          message,
-          reminder.scheduledDate,
-          reminder.workflowStep.sender || "Cal"
-        );
+        const scheduledSMS = await twilio.scheduleSMS(sendTo, message, reminder.scheduledDate, senderID);
 
         await prisma.workflowReminder.update({
           where: {

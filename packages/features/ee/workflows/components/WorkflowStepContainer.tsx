@@ -596,6 +596,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 reminderBody: reminderBody || "",
                 template: step.template,
                 sendTo: step.sendTo || "",
+                sender: step.sender || "Cal",
               });
               setConfirmationDialogOpen(false);
             }}>
