@@ -19,6 +19,13 @@ export const queryNumberArray = z.preprocess(
 // Take string and return return zod string array - comma separated
 export const queryStringArray = z.preprocess((a) => z.string().parse(a).split(","), z.string().array());
 
+const filterSingleSchema = z.object({
+  teamIds: z.number().positive().optional(),
+  status: z.string().optional(), // Not used right now but could be implemented when/if we move status to a filter
+  userIds: z.number().positive().optional(),
+  eventTypeIds: z.number().positive().optional(),
+});
+
 const filterQuerySchema = z.object({
   teamIds: queryNumberArray.optional(),
   status: queryStringArray.optional(), // Not used right now but could be implemented when/if we move status to a filter
@@ -33,23 +40,29 @@ export function useFilterQuery() {
   const router = useRouter();
   const data = filterQuerySchema.parse(router.query);
 
-  // push item to key of filterQuerySchema and set new query params in url
-
   const push = (key: Required<Keys>, item: string | number) => {
-    const newData = { ...data };
-    const keyData = newData[key] ?? [];
-    //  @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    newData[key] = [...keyData, item];
-    router.push({ query: newData });
+    const newData = data;
+    const search = new URLSearchParams();
+    const keyData = data[key] ?? ([] as number[] | string[]);
+    // parse item to make sure it fits the schema and then add it to the array
+    const itemParsed = filterSingleSchema.shape[key].parse(item);
+    if (!itemParsed) return;
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore I have no idea how to type this?
+    newData[key] = [...keyData, itemParsed];
+
+    Object.entries(newData).forEach(([key, value]) => {
+      if (value) {
+        search.append(key, value.toString());
+      }
+    });
+
+    router.push({ query: search.toString() }, undefined, { shallow: true });
   };
 
   const pop = (key: Required<Keys>, item: string | number) => {
-    const newData = { ...data };
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore idk how to fix this ?
-    newData[key] = newData[key].filter((a) => a !== item);
-    router.push({ query: newData });
+    return;
   };
 
   return { data, push, pop };

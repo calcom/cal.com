@@ -3,7 +3,7 @@ import React, { ComponentProps } from "react";
 import { HorizontalTabs, Shell } from "@calcom/ui";
 import { VerticalTabItemProps, HorizontalTabItemProps } from "@calcom/ui/v2";
 
-import { EventTypeFilter} from "../components/EventTypeFilter";
+import { EventTypeFilter } from "../components/EventTypeFilter";
 import { TeamsMemberFilter } from "../components/TeamsMemberFilter";
 
 const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
