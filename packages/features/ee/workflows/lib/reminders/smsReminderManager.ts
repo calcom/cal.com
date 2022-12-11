@@ -10,7 +10,7 @@ import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
-import { noAlphanumericSenderIdSupport } from "../alphanumericSenderIdSupport";
+import { getSenderId } from "../alphanumericSenderIdSupport";
 import * as twilio from "./smsProviders/twilioProvider";
 import customTemplate, { VariablesType } from "./templates/customTemplate";
 import smsReminderTemplate from "./templates/smsReminderTemplate";
@@ -58,10 +58,7 @@ export const scheduleSMSReminder = async (
   const timeUnit: timeUnitLowerCase | undefined = timeSpan.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase;
   let scheduledDate = null;
 
-  const isAlphanumericSenderIdSupported = !noAlphanumericSenderIdSupport.find(
-    (code) => code === reminderPhone?.substring(0, code.length)
-  );
-  const senderID = isAlphanumericSenderIdSupported ? sender : "";
+  const senderID = getSenderId(reminderPhone, sender);
 
   if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
     scheduledDate = timeSpan.time && timeUnit ? dayjs(startTime).subtract(timeSpan.time, timeUnit) : null;

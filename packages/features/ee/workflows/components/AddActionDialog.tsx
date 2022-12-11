@@ -21,6 +21,7 @@ import {
   TextField,
 } from "@calcom/ui";
 
+import { fallBackSenderId } from "../lib/alphanumericSenderIdSupport";
 import { WORKFLOW_ACTIONS } from "../lib/constants";
 import { getWorkflowActionOptions } from "../lib/getOptions";
 import { onlyLettersNumbersSpaces } from "../pages/workflow";
@@ -68,7 +69,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
     mode: "onSubmit",
     defaultValues: {
       action: WorkflowActions.EMAIL_HOST,
-      sender: "Cal",
+      sender: fallBackSenderId,
     },
     resolver: zodResolver(formSchema),
   });
@@ -166,7 +167,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                   <TextField
                     label={t("sender_id")}
                     type="text"
-                    placeholder="Cal"
+                    placeholder={fallBackSenderId}
                     maxLength={11}
                     {...form.register(`sender`)}
                   />

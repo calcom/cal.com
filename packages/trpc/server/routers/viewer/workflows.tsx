@@ -11,6 +11,7 @@ import {
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
+import { fallBackSenderId } from "@calcom/features/ee/workflows/lib/alphanumericSenderIdSupport";
 import {
   WORKFLOW_TEMPLATES,
   WORKFLOW_TRIGGER_EVENTS,
@@ -154,7 +155,7 @@ export const workflowsRouter = router({
           action: WorkflowActions.EMAIL_HOST,
           template: WorkflowTemplates.REMINDER,
           workflowId: workflow.id,
-          sender: "Cal",
+          sender: fallBackSenderId,
         },
       });
       return { workflow };
@@ -469,7 +470,7 @@ export const workflowsRouter = router({
                     step.reminderBody || "",
                     step.id,
                     step.template,
-                    step.sender || "Cal"
+                    step.sender || fallBackSenderId
                   );
                 }
               });
@@ -535,7 +536,7 @@ export const workflowsRouter = router({
               emailSubject: newStep.template === WorkflowTemplates.CUSTOM ? newStep.emailSubject : null,
               template: newStep.template,
               numberRequired: newStep.numberRequired,
-              sender: newStep.sender || "Cal",
+              sender: newStep.sender || fallBackSenderId,
             },
           });
           //cancel all reminders of step and create new ones (not for newEventTypes)
@@ -647,7 +648,7 @@ export const workflowsRouter = router({
                   newStep.reminderBody || "",
                   newStep.id || 0,
                   newStep.template,
-                  newStep.sender || "Cal"
+                  newStep.sender || fallBackSenderId
                 );
               }
             });
@@ -671,7 +672,7 @@ export const workflowsRouter = router({
         addedSteps.forEach(async (step) => {
           if (step) {
             const newStep = step;
-            newStep.sender = step.sender || "Cal";
+            newStep.sender = step.sender || fallBackSenderId;
             const createdStep = await ctx.prisma.workflowStep.create({
               data: step,
             });
@@ -760,7 +761,7 @@ export const workflowsRouter = router({
                     step.reminderBody || "",
                     createdStep.id,
                     step.template,
-                    step.sender || "Cal"
+                    step.sender || fallBackSenderId
                   );
                 }
               });
@@ -897,7 +898,7 @@ export const workflowsRouter = router({
             reminderBody,
             0,
             template,
-            sender || "Cal"
+            sender || fallBackSenderId
           );
           return { message: "Notification sent" };
         }

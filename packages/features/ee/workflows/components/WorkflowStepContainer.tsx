@@ -34,6 +34,7 @@ import {
 } from "@calcom/ui";
 
 import { AddVariablesDropdown } from "../components/AddVariablesDropdown";
+import { fallBackSenderId } from "../lib/alphanumericSenderIdSupport";
 import {
   getWorkflowActionOptions,
   getWorkflowTemplateOptions,
@@ -366,7 +367,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <TextField
                           label={t("sender_id")}
                           type="text"
-                          placeholder="Cal"
+                          placeholder={fallBackSenderId}
                           maxLength={11}
                           {...form.register(`steps.${step.stepNumber - 1}.sender`)}
                         />
@@ -557,7 +558,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         emailSubject,
                         reminderBody,
                         template: step.template,
-                        sender: step.sender || "Cal",
+                        sender: step.sender || fallBackSenderId,
                       });
                     } else {
                       const isNumberValid =
@@ -596,7 +597,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 reminderBody: reminderBody || "",
                 template: step.template,
                 sendTo: step.sendTo || "",
-                sender: step.sender || "Cal",
+                sender: step.sender || fallBackSenderId,
               });
               setConfirmationDialogOpen(false);
             }}>

@@ -11,6 +11,7 @@ import { Button, Label, TextField } from "@calcom/ui";
 import { MultiSelectCheckboxes } from "@calcom/ui";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
 
+import { fallBackSenderId } from "../lib/alphanumericSenderIdSupport";
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
 import { DeleteDialog } from "./DeleteDialog";
@@ -73,7 +74,7 @@ export default function WorkflowDetailsPage(props: Props) {
       emailSubject: null,
       template: WorkflowTemplates.CUSTOM,
       numberRequired: numberRequired || false,
-      sender: sender || "Cal",
+      sender: sender || fallBackSenderId,
     };
     steps?.push(step);
     form.setValue("steps", steps);
