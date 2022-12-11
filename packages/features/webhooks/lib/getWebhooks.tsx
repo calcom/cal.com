@@ -45,7 +45,7 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
       subscriberUrl,
       payloadTemplate: null,
       appId: null,
-      secret: null,
+      secret: process.env.GLOBAL_WEBHOOK_SECRET || null,
     });
   });
 

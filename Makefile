@@ -21,6 +21,7 @@ docker_build:
 	       --build-arg NEXT_PUBLIC_WEBAPP_URL=${NEXT_PUBLIC_WEBAPP_URL} \
 	       --build-arg NEXT_PUBLIC_SLOTS_PROXY_URL=${NEXT_PUBLIC_SLOTS_PROXY_URL} \
 	       --build-arg 'GLOBAL_WEBHOOK_SUBSCRIBERS=${GLOBAL_WEBHOOK_SUBSCRIBERS}' \
+	       --build-arg GLOBAL_WEBHOOK_SECRET=${GLOBAL_WEBHOOK_SECRET} \
 	       -t ${IMAGE} .
 
 .PHONY: docker_push
