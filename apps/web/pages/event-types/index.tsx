@@ -41,7 +41,7 @@ import AvatarGroup from "@components/ui/AvatarGroup";
 
 import { ssrInit } from "@server/lib/ssr";
 
-import { TeamsBanner } from "../../../../packages/ui/v2/core/Tips";
+import { TipBanner } from "../../../../packages/ui/v2/core/Tips";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
@@ -590,7 +590,7 @@ const EventTypesPage = () => {
           customLoader={<SkeletonLoader />}
           success={({ data }) => (
             <>
-              {isCalcom && <TeamsBanner />}
+              {isCalcom && <TipBanner />}
               {data.eventTypeGroups.map((group, index) => (
                 <Fragment key={group.profile.slug}>
                   {/* hide list heading when there is only one (current user) */}

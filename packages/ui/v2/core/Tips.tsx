@@ -130,7 +130,7 @@ export default function Tips() {
   );
 }
 
-export function TeamsBanner() {
+export function TipBanner() {
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
