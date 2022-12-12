@@ -315,6 +315,22 @@ const BookingPage = ({
         {}
       );
 
+    if (eventType.customInputs.length > 0) {
+      // find all required custom inputs and ensure they are filled out in the booking form
+      const requiredCustomInputs = eventType.customInputs.filter((input) => input.required);
+      const missingRequiredCustomInputs = requiredCustomInputs.filter(
+        (input) => !booking?.customInputs?.[input.id]
+      );
+      if (missingRequiredCustomInputs.length > 0) {
+        missingRequiredCustomInputs.forEach((input) => {
+          bookingForm.setError(`customInputs.${input.id}`, {
+            type: "required",
+          });
+        });
+        return;
+      }
+    }
+
     if (recurringDates.length) {
       // Identify set of bookings to one intance of recurring event to support batch changes
       const recurringEventId = uuidv4();
@@ -679,8 +695,11 @@ const BookingPage = ({
                       {input.type !== EventTypeCustomInputType.BOOL && (
                         <label
                           htmlFor={"custom_" + input.id}
-                          className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
-                          {input.label}
+                          className={classNames(
+                            "mb-1 block text-sm font-medium text-gray-700 transition-colors dark:text-white",
+                            bookingForm.formState.errors.customInputs?.[input.id] && "!text-red-700"
+                          )}>
+                          {input.label} {input.required && <span className="text-red-700">*</span>}
                         </label>
                       )}
                       {input.type === EventTypeCustomInputType.TEXTLONG && (
@@ -745,24 +764,28 @@ const BookingPage = ({
                         </div>
                       )}
                       {input.options && input.type === EventTypeCustomInputType.RADIO && (
-                        <div className="">
-                          <div className="flex">
-                            <Group
-                              onValueChange={(e) => {
-                                bookingForm.setValue(`customInputs.${input.id}`, e);
-                              }}>
-                              <>
-                                {input.options.map((option, i) => (
-                                  <RadioField
-                                    label={option.label}
-                                    key={`option.${i}.radio`}
-                                    value={option.label}
-                                    id={`option.${i}.radio`}
-                                  />
-                                ))}
-                              </>
-                            </Group>
-                          </div>
+                        <div className="flex">
+                          <Group
+                            required={input.required}
+                            onValueChange={(e) => {
+                              bookingForm.setValue(`customInputs.${input.id}`, e);
+                            }}>
+                            <>
+                              {input.options.map((option, i) => (
+                                <RadioField
+                                  label={option.label}
+                                  key={`option.${i}.radio`}
+                                  value={option.label}
+                                  id={`option.${i}.radio`}
+                                />
+                              ))}
+                            </>
+                            {bookingForm.formState.errors.customInputs?.[input.id] && (
+                              <div className="mt-px flex items-center text-xs text-red-700 ">
+                                <p>{t("required")}</p>
+                              </div>
+                            )}
+                          </Group>
                         </div>
                       )}
                     </div>
