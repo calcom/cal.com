@@ -108,7 +108,7 @@
   "link_expires": "p.s. De uitnodiging verloopt over {{expiresIn}} uur.",
   "upgrade_to_per_seat": "Upgraden naar per plaats",
   "team_upgrade_seats_details": "Van de {{memberCount}} leden in uw team zijn {{unpaidCount}} plaats(en) onbetaald. Voor $ {{seatPrice}}/maand per plaats bedragen de geschatte totale kosten van uw abonnement $ {{totalCost}}/maand.",
-  "team_upgrade_banner_description": "Bedankt voor het testen van ons nieuwe teamabonnement. We hebben gemerkt dat uw team \"{{teamName}}\" moet worden geüpgraded.",
+  "team_upgrade_banner_description": "Bedankt voor het testen van ons nieuwe teamabonnement. We hebben geconstateerd dat uw team \"{{teamName}}\" moet worden geüpgraded.",
   "team_upgrade_banner_action": "Hier upgraden",
   "team_upgraded_successfully": "Uw team is geüpgraded!",
   "use_link_to_reset_password": "Gebruik de onderstaande link om uw wachtwoord te resetten",
