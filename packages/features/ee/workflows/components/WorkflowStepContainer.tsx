@@ -367,7 +367,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <TextField
                           label={t("sender_id")}
                           type="text"
-                          placeholder={SENDER_ID || "Cal a"}
+                          placeholder={SENDER_ID}
                           maxLength={11}
                           {...form.register(`steps.${step.stepNumber - 1}.sender`)}
                         />
