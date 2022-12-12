@@ -247,7 +247,7 @@ const createUser = async (
   opts?: CustomUserOpts | null
 ): Promise<PrismaType.UserCreateInput> => {
   // build a unique name for our user
-  const uname = `${opts?.username}-${workerInfo.workerIndex}-${Date.now()}`;
+  const uname = `${opts?.username || "user"}-${workerInfo.workerIndex}-${Date.now()}`;
   return {
     username: uname,
     name: opts?.name,

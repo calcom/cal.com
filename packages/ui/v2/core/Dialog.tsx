@@ -1,6 +1,6 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useRouter } from "next/router";
-import React, { forwardRef, HTMLProps, ReactNode, useState } from "react";
+import React, { ReactNode, useState } from "react";
 import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
