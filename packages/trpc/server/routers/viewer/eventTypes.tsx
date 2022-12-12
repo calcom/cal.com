@@ -448,8 +448,15 @@ export const eventTypesRouter = router({
       users,
       id,
       hashedLink,
+      // Extract this from the input so it doesn't get saved in the db
+      // eslint-disable-next-line
+      userId,
+      // eslint-disable-next-line
+      teamId,
       ...rest
     } = input;
+    console.log("🚀 ~ file: eventTypes.tsx:458 ~ update:eventOwnerProcedure.input ~ schedule", schedule);
+
     const data: Prisma.EventTypeUpdateInput = {
       ...rest,
       metadata: rest.metadata === null ? Prisma.DbNull : rest.metadata,
@@ -492,11 +499,20 @@ export const eventTypesRouter = router({
     }
 
     if (schedule) {
-      data.schedule = {
-        connect: {
+      // Check that the schedule belongs to the user
+      const userScheduleQuery = await ctx.prisma.schedule.findFirst({
+        where: {
+          userId: ctx.user.id,
           id: schedule,
         },
-      };
+      });
+      if (userScheduleQuery) {
+        data.schedule = {
+          connect: {
+            id: schedule,
+          },
+        };
+      }
     }
 
     if (users) {
