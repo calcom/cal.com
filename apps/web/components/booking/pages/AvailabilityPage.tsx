@@ -436,7 +436,8 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                 />
               </div>
             </div>
-            {(!restProps.isBrandingHidden || isEmbed) && <PoweredByCal />}
+            {/* FIXME: We don't show branding in Embed yet because we need to place branding on top of the main content. Keeping it outside the main content would have visibility issues because outside main content background is transparent */}
+            {!restProps.isBrandingHidden && !isEmbed && <PoweredByCal />}
           </div>
         </main>
       </div>
