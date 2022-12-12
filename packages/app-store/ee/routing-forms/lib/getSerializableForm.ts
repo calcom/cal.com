@@ -40,72 +40,12 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
   const parsedRoutes = routesParsed.data;
   const fields = parsedFields as NonNullable<z.infer<typeof zodFieldsView>>;
 
-  const routes: z.infer<typeof zodRoutesView> = [];
-
   const fieldsExistInForm: Record<string, true> = {};
   parsedFields?.forEach((f) => {
     fieldsExistInForm[f.id] = true;
   });
 
-  //TODO: Reuse type here
-  const routers: { name: string; description: string | null; id: string }[] = [];
-  if (parsedRoutes) {
-    for (let i = 0; i < parsedRoutes.length; i++) {
-      const route = parsedRoutes[i];
-      if (isRouter(route)) {
-        // A form(as router) can only be used once in a form.
-        // TODO: Prevent this from happening in the select box itself and mutation
-        const router = await prisma.app_RoutingForms_Form.findFirst({
-          where: {
-            id: route.id,
-            userId: form.userId,
-          },
-        });
-        if (!router) {
-          throw new Error("Form -" + route.id + ", being used as router, not found");
-        }
-
-        const parsedRouter = await getSerializableForm(router);
-
-        routers.push({
-          name: parsedRouter.name,
-          description: parsedRouter.description,
-          id: parsedRouter.id,
-        });
-
-        routes.push({
-          ...route,
-          isRouter: true,
-          name: parsedRouter.name,
-          description: parsedRouter.description,
-          routes: parsedRouter.routes || [],
-        });
-
-        parsedRouter.fields?.forEach((field) => {
-          // Happens when the form is created and not saved.
-          // Once the form is saved the link b/w router field and Form is saved in the form, so that it can now be reordered
-          if (!fieldsExistInForm[field.id]) {
-            throw new Error("This case should never happen. Remove the code");
-          } else {
-            const currentFormField = fields.find((f) => f.id === field.id);
-            if (!currentFormField || !("routerId" in currentFormField)) {
-              return;
-            }
-            if (!isRouterLinkedField(field)) {
-              currentFormField.routerField = field;
-            }
-            currentFormField.router = {
-              id: parsedRouter.id,
-              name: router.name,
-              description: router.description || "",
-            };
-          }
-        });
-      } else {
-        routes.push(route);
-      }
-    }
-  }
+  const { routes, routers } = await getEnrichedRoutesAndRouters(parsedRoutes);
 
   const connectedForms = (await getConnectedForms(prisma, form)).map((f) => ({
     id: f.id,
@@ -127,4 +67,70 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
     updatedAt: form.updatedAt.toString(),
   };
   return serializableForm;
+
+  /**
+   * Enriches routes that are actually routers and returns a list of routers separately
+   */
+  async function getEnrichedRoutesAndRouters(parsedRoutes: z.infer<typeof zodRoutes>) {
+    const routers: { name: string; description: string | null; id: string }[] = [];
+    const routes: z.infer<typeof zodRoutesView> = [];
+    if (!parsedRoutes) {
+      return { routes, routers };
+    }
+
+    for (const [, route] of Object.entries(parsedRoutes)) {
+      if (isRouter(route)) {
+        const router = await prisma.app_RoutingForms_Form.findFirst({
+          where: {
+            id: route.id,
+            userId: form.userId,
+          },
+        });
+        if (!router) {
+          throw new Error("Form -" + route.id + ", being used as router, not found");
+        }
+
+        const parsedRouter = await getSerializableForm(router);
+
+        routers.push({
+          name: parsedRouter.name,
+          description: parsedRouter.description,
+          id: parsedRouter.id,
+        });
+
+        // Enrichment
+        routes.push({
+          ...route,
+          isRouter: true,
+          name: parsedRouter.name,
+          description: parsedRouter.description,
+          routes: parsedRouter.routes || [],
+        });
+
+        parsedRouter.fields?.forEach((field) => {
+          // Happens when the form is created and not saved.
+          // Once the form is saved the link b/w router field and Form is saved in the form, so that it can now be reordered
+          if (!fieldsExistInForm[field.id]) {
+            console.error("This case should never happen. Remove the code");
+          } else {
+            const currentFormField = fields.find((f) => f.id === field.id);
+            if (!currentFormField || !("routerId" in currentFormField)) {
+              return;
+            }
+            if (!isRouterLinkedField(field)) {
+              currentFormField.routerField = field;
+            }
+            currentFormField.router = {
+              id: parsedRouter.id,
+              name: router.name,
+              description: router.description || "",
+            };
+          }
+        });
+      } else {
+        routes.push(route);
+      }
+    }
+    return { routes, routers };
+  }
 }

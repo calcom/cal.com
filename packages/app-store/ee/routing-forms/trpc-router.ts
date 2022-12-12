@@ -297,7 +297,7 @@ const appRoutingForms = router({
         await updateFieldsInConnectedForms(dbSerializedForm, inputFields);
       }
 
-      await updateRouterLinkedFields(fields, routes);
+      fields = await getUpdatedRouterLinkedFields(fields, routes);
 
       if (addFallback) {
         // Add a fallback route if there is none
@@ -325,7 +325,7 @@ const appRoutingForms = router({
         },
         update: {
           disabled: disabled,
-          fields: inputFields,
+          fields,
           name: name,
           description,
           settings: settings === null ? Prisma.JsonNull : settings,
@@ -337,7 +337,7 @@ const appRoutingForms = router({
        * If Form has Router Linked fields, enrich them with the latest info from the Router
        * If Form doesn't have Router fields but there is a Router used in routes, add all the fields from the Router
        */
-      async function updateRouterLinkedFields(fields: InputFields, routes: InputRoutes) {
+      async function getUpdatedRouterLinkedFields(fields: InputFields, routes: InputRoutes) {
         const routerLinkedFields: Record<string, boolean> = {};
         for (const [, field] of Object.entries(fields)) {
           if (!isRouterLinkedField(field)) {
@@ -399,6 +399,7 @@ const appRoutingForms = router({
             }
           }
         }
+        return fields;
       }
 
       async function findFieldWithId(id: string, fields: InputFields) {

@@ -41,6 +41,7 @@ import { timeZone } from "@lib/clock";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
+import EventReservationSchema from "@components/schemas/EventReservationSchema";
 import { HeadSeo } from "@components/seo/head-seo";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -56,26 +57,41 @@ function redirectToExternalUrl(url: string) {
 function RedirectionToast({ url }: { url: string }) {
   const [timeRemaining, setTimeRemaining] = useState(10);
   const [isToastVisible, setIsToastVisible] = useState(true);
-  const parsedSuccessUrl = new URL(document.URL);
-  const parsedExternalUrl = new URL(url);
-
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  /* @ts-ignore */ //https://stackoverflow.com/questions/49218765/typescript-and-iterator-type-iterableiteratort-is-not-an-array-type
-  for (const [name, value] of parsedExternalUrl.searchParams.entries()) {
-    parsedSuccessUrl.searchParams.set(name, value);
-  }
-
-  const urlWithSuccessParams =
-    parsedExternalUrl.origin +
-    parsedExternalUrl.pathname +
-    "?" +
-    parsedSuccessUrl.searchParams.toString() +
-    parsedExternalUrl.hash;
 
   const { t } = useLocale();
   const timerRef = useRef<number | null>(null);
+  const router = useRouter();
+  const { cancel: isCancellationMode } = querySchema.parse(router.query);
+  const urlWithSuccessParamsRef = useRef<string | null>();
+  if (isCancellationMode && timerRef.current) {
+    setIsToastVisible(false);
+  }
 
   useEffect(() => {
+    if (!isToastVisible && timerRef.current) {
+      window.clearInterval(timerRef.current);
+    }
+  }, [isToastVisible]);
+
+  useEffect(() => {
+    const parsedExternalUrl = new URL(url);
+
+    const parsedSuccessUrl = new URL(document.URL);
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    /* @ts-ignore */ //https://stackoverflow.com/questions/49218765/typescript-and-iterator-type-iterableiteratort-is-not-an-array-type
+    for (const [name, value] of parsedExternalUrl.searchParams.entries()) {
+      parsedSuccessUrl.searchParams.set(name, value);
+    }
+
+    const urlWithSuccessParams =
+      parsedExternalUrl.origin +
+      parsedExternalUrl.pathname +
+      "?" +
+      parsedSuccessUrl.searchParams.toString() +
+      parsedExternalUrl.hash;
+    urlWithSuccessParamsRef.current = urlWithSuccessParams;
+
     timerRef.current = window.setInterval(() => {
       if (timeRemaining > 0) {
         setTimeRemaining((timeRemaining) => {
@@ -89,7 +105,7 @@ function RedirectionToast({ url }: { url: string }) {
     return () => {
       window.clearInterval(timerRef.current as number);
     };
-  }, [timeRemaining, urlWithSuccessParams]);
+  }, [timeRemaining, url]);
 
   if (!isToastVisible) {
     return null;
@@ -112,7 +128,9 @@ function RedirectionToast({ url }: { url: string }) {
               <div className="order-3 mt-2 w-full flex-shrink-0 sm:order-2 sm:mt-0 sm:w-auto">
                 <button
                   onClick={() => {
-                    redirectToExternalUrl(urlWithSuccessParams);
+                    if (urlWithSuccessParamsRef.current) {
+                      redirectToExternalUrl(urlWithSuccessParamsRef.current);
+                    }
                   }}
                   className="flex w-full items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50">
                   {t("continue")}
@@ -123,7 +141,6 @@ function RedirectionToast({ url }: { url: string }) {
                   type="button"
                   onClick={() => {
                     setIsToastVisible(false);
-                    window.clearInterval(timerRef.current as number);
                   }}
                   className="-mr-1 flex rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
                   <Icon.FiX className="h-6 w-6 text-white" />
@@ -178,11 +195,15 @@ export default function Success(props: SuccessProps) {
     console.error(`No location found `);
   }
 
-  const name = props.bookingInfo?.user?.name;
   const email = props.bookingInfo?.user?.email;
   const status = props.bookingInfo?.status;
   const reschedule = props.bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = props.bookingInfo.cancellationReason;
+
+  const attendeeName =
+    typeof props?.bookingInfo?.attendees?.[0]?.name === "string"
+      ? props?.bookingInfo?.attendees?.[0]?.name
+      : "Nameless";
 
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const { data: session } = useSession();
@@ -204,8 +225,6 @@ export default function Success(props: SuccessProps) {
       query: { ...router.query },
     });
   }
-
-  const attendeeName = typeof name === "string" ? name : "Nameless";
 
   const eventNameObject = {
     attendeeName,
@@ -319,6 +338,19 @@ export default function Success(props: SuccessProps) {
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
+      {!isEmbed && (
+        <EventReservationSchema
+          reservationId={bookingInfo.uid}
+          eventName={eventName}
+          startTime={bookingInfo.startTime}
+          endTime={bookingInfo.endTime}
+          organizer={bookingInfo.user}
+          attendees={bookingInfo.attendees}
+          location={locationToDisplay}
+          description={bookingInfo.description}
+          status={status}
+        />
+      )}
       {userIsOwner && !isEmbed && (
         <div className="mt-2 ml-4 -mb-4">
           <Link href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}>
@@ -333,7 +365,9 @@ export default function Success(props: SuccessProps) {
       <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
         <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
-          {eventType.successRedirectUrl ? <RedirectionToast url={eventType.successRedirectUrl} /> : null}{" "}
+          {isSuccessBookingPage && !isCancellationMode && eventType.successRedirectUrl ? (
+            <RedirectionToast url={eventType.successRedirectUrl} />
+          ) : null}{" "}
           <div
             className={classNames(
               shouldAlignCentrally ? "text-center" : "",
@@ -824,7 +858,6 @@ const getEventTypesFromDB = async (id: number) => {
           name: true,
           username: true,
           hideBranding: true,
-          plan: true,
           theme: true,
           brandColor: true,
           darkBrandColor: true,

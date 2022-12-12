@@ -1,6 +1,7 @@
 import { SchedulingType } from "@prisma/client";
 import { FC, ReactNode, useEffect } from "react";
 
+import dayjs from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon, Badge } from "@calcom/ui";
@@ -41,6 +42,7 @@ interface Props {
 
 const BookingDescription: FC<Props> = (props) => {
   const { profile, eventType, isBookingPage = false, children } = props;
+  const { date: bookingDate } = useRouterQuery("date");
   const { t } = useLocale();
   const { duration, setQuery: setDuration } = useRouterQuery("duration");
   useEffect(() => {
@@ -54,6 +56,21 @@ const BookingDescription: FC<Props> = (props) => {
       }
     }
   }, []);
+  let requiresConfirmation = eventType?.requiresConfirmation;
+  let requiresConfirmationText = t("requires_confirmation");
+  const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
+  if (rcThreshold) {
+    if (isBookingPage) {
+      if (dayjs(bookingDate).diff(dayjs(), rcThreshold.unit) > rcThreshold.time) {
+        requiresConfirmation = false;
+      }
+    } else {
+      requiresConfirmationText = t("requires_confirmation_threshold", {
+        ...rcThreshold,
+        unit: rcThreshold.unit.slice(0, -1),
+      });
+    }
+  }
   return (
     <>
       <UserAvatars
@@ -89,16 +106,16 @@ const BookingDescription: FC<Props> = (props) => {
             </div>
           </div>
         )}
-        {eventType?.requiresConfirmation && (
+        {requiresConfirmation && (
           <div
             className={classNames(
-              "flex items-center",
+              "items-top flex",
               isBookingPage && "dark:text-darkgray-600 text-sm font-medium text-gray-600"
             )}>
             <div>
-              <Icon.FiCheckSquare className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4 " />
+              <Icon.FiCheckSquare className="mr-[10px] ml-[2px] inline-block h-4 w-4 " />
             </div>
-            {t("requires_confirmation")}
+            {requiresConfirmationText}
           </div>
         )}
         <AvailableEventLocations
