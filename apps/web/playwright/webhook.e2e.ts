@@ -73,7 +73,7 @@ test("add webhook & test that creating an event triggers a webhook call", async 
   // console.log("BODY", body);
   // Text files shouldn't have platform specific suffixes
   testInfo.snapshotSuffix = "";
-  expect(JSON.stringify(body)).toMatchSnapshot(`webhookResponse.txt`);
+  expect(JSON.stringify(body) + "\n").toMatchSnapshot(`webhookResponse.txt`);
 
   webhookReceiver.close();
 });
