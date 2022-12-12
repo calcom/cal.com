@@ -61,8 +61,6 @@ export const tips = [
 
 function useLocalList<T extends { id: number }>(storageKey: string, initialValue: T[]) {
   const [list, setList] = useState<T[]>(initialValue);
-  console.log("initialValue", initialValue);
-  console.log("list", list);
 
   useEffect(() => {
     const reversedList = initialValue.slice(0).reverse();
