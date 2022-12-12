@@ -1142,6 +1142,17 @@ const loggedInViewerRouter = router({
       return prev - (current._count?.recurringEventId - 1);
     }, count);
   }),
+  isTeamsPlan: authedProcedure.query(async ({ ctx }) => {
+    const user = await ctx.prisma.user.findFirst({
+      where: {
+        id: ctx.user.id,
+      },
+      select: {
+        teams: true,
+      },
+    });
+    return (user && user.teams.length > 0) as boolean;
+  }),
 });
 
 export const viewerRouter = mergeRouters(
