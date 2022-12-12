@@ -1,6 +1,7 @@
-//import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useEffect, useState } from "react";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
 import { Button, Icon } from "@calcom/ui";
@@ -131,27 +132,79 @@ export default function Tips() {
 
 export function TeamsBanner() {
   const { t } = useLocale();
+  const [animationRef] = useAutoAnimate<HTMLDivElement>();
+
+  const tips = [
+    {
+      id: 1,
+      img: "/team-banner-background-small.jpg",
+      title: t("calcom_is_better_with_team"),
+      subtitle: t("add_your_team_members"),
+      href: `${WEBAPP_URL}/settings/teams/new`,
+      learnMoreHref: "https://go.cal.com/teams-video",
+    },
+  ];
+
+  // TODO: Refactor to reuse above code and not duplicate function
+  const [list, setList] = useState<typeof tips>([]);
+
+  const handleRemoveItem = (id: number) => {
+    setList((currentItems) => {
+      const items = localStorage.getItem("removedBannerIds") || "";
+      const itemToRemoveIndex = currentItems.findIndex((item) => item.id === id);
+
+      localStorage.setItem(
+        "removedBannerIds",
+        `${currentItems[itemToRemoveIndex].id.toString()}${items.length > 0 ? `,${items.split(",")}` : ""}`
+      );
+      currentItems.splice(itemToRemoveIndex, 1);
+      return [...currentItems];
+    });
+  };
+
+  useEffect(() => {
+    const reversedTips = tips.slice(0).reverse();
+    const removedTipsString = localStorage.getItem("removedBannerIds") || "";
+    const removedTipsIds = removedTipsString.split(",").map((id) => parseInt(id, 10));
+    const filteredTips = reversedTips.filter((tip) => removedTipsIds.indexOf(tip.id) === -1);
+    setList(() => [...filteredTips]);
+  }, []);
+
   return (
-    <div
-      className="relative -mt-6 mb-6 min-h-[186px] rounded-md"
-      style={{ backgroundImage: "url(/team-banner-background-small.jpg)", backgroundSize: "cover" }}>
-      <div className="p-6 text-white">
-        <h1 className="font-cal text-lg">{t("calcom_is_better_with_team")}</h1>
-        <p className="my-4 max-w-xl text-sm">{t("add_your_team_members")}</p>
-        <div className="space-x-2">
-          <Button className="bg-white" color="secondary">
-            {t("create_team")}
-          </Button>
-          <Button className="!bg-transparent text-white" color="minimal">
-            {t("learn_more")}
-          </Button>
-        </div>
-        <button
-          onClick={() => alert("save new cookie to hide this")}
-          className="!focus:border-transparent !focus:ring-0 absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-md !border-transparent text-white hover:bg-white/10">
-          <Icon.FiX className="h-4 w-4" />
-        </button>
-      </div>
+    <div>
+      {list.map((tip) => {
+        return (
+          <div
+            key={tip.id}
+            ref={animationRef}
+            className="relative -mt-6 mb-6 min-h-[186px] rounded-md"
+            style={{ backgroundImage: "url(" + tip.img + ")", backgroundSize: "cover" }}>
+            <div className="p-6 text-white">
+              <h1 className="font-cal text-lg">{tip.title}</h1>
+              <p className="my-4 max-w-xl text-sm">{tip.subtitle}</p>
+              <div className="space-x-2">
+                <Button className="bg-white" color="secondary" href={tip.href}>
+                  {t("create_team")}
+                </Button>
+                {tip.learnMoreHref && (
+                  <Button
+                    className="!bg-transparent text-white"
+                    color="minimal"
+                    target="_blank"
+                    href={tip.learnMoreHref}>
+                    {t("learn_more")}
+                  </Button>
+                )}
+              </div>
+              <button
+                onClick={() => handleRemoveItem(tip.id)}
+                className="!focus:border-transparent !focus:ring-0 absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-md !border-transparent text-white hover:bg-white/10">
+                <Icon.FiX className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
