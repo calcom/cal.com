@@ -189,7 +189,7 @@ const AppearanceView = () => {
                   onCheckedChange={(checked) =>
                     formMethods.setValue("hideBranding", checked, { shouldDirty: true })
                   }
-                  checked={value}
+                  checked={!session.data?.user.belongsToActiveTeam ? false : value}
                 />
               </div>
             </div>
