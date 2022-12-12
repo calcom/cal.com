@@ -107,10 +107,11 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
         });
 
         parsedRouter.fields?.forEach((field) => {
-          // Happens when the form is created and not saved.
-          // Once the form is saved the link b/w router field and Form is saved in the form, so that it can now be reordered
           if (!fieldsExistInForm[field.id]) {
-            console.error("This case should never happen. Remove the code");
+            // Instead of throwing error, Log it instead of breaking entire routing forms feature
+            console.error(
+              "This is an impossible state. A router field must always be present in the connected form."
+            );
           } else {
             const currentFormField = fields.find((f) => f.id === field.id);
             if (!currentFormField || !("routerId" in currentFormField)) {
