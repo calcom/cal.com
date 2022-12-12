@@ -6,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
+import { getSenderId } from "../lib/alphanumericSenderIdSupport";
 import * as twilio from "../lib/reminders/smsProviders/twilioProvider";
 import customTemplate, { VariablesType } from "../lib/reminders/templates/customTemplate";
 import smsReminderTemplate from "../lib/reminders/templates/smsReminderTemplate";
@@ -72,6 +73,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           ? reminder.booking?.attendees[0].timeZone
           : reminder.booking?.user?.timeZone;
 
+      const senderID = getSenderId(sendTo, reminder.workflowStep.sender);
+
       let message: string | null = reminder.workflowStep.reminderBody;
       switch (reminder.workflowStep.template) {
         case WorkflowTemplates.REMINDER:
@@ -105,12 +108,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           break;
       }
       if (message?.length && message?.length > 0 && sendTo) {
-        const scheduledSMS = await twilio.scheduleSMS(
-          sendTo,
-          message,
-          reminder.scheduledDate,
-          reminder.workflowStep.sender || "Cal"
-        );
+        const scheduledSMS = await twilio.scheduleSMS(sendTo, message, reminder.scheduledDate, senderID);
 
         await prisma.workflowReminder.update({
           where: {

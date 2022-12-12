@@ -25,7 +25,7 @@ export const sendSMS = async (phoneNumber: string, body: string, sender: string)
     body: body,
     messagingServiceSid: process.env.TWILIO_MESSAGING_SID,
     to: phoneNumber,
-    from: sender,
+    from: sender ? sender : process.env.TWILIO_PHONE_NUMBER,
   });
 
   return response;
@@ -39,7 +39,7 @@ export const scheduleSMS = async (phoneNumber: string, body: string, scheduledDa
     to: phoneNumber,
     scheduleType: "fixed",
     sendAt: scheduledDate,
-    from: sender,
+    from: sender ? sender : process.env.TWILIO_PHONE_NUMBER,
   });
 
   return response;
