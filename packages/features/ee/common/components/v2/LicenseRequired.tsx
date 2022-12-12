@@ -1,3 +1,4 @@
+import DOMPurify from "dompurify";
 import { useSession } from "next-auth/react";
 import React, { AriaRole, ComponentType, Fragment } from "react";
 
@@ -28,18 +29,20 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
       ) : (
         <EmptyScreen
           Icon={Icon.FiAlertTriangle}
-          headline="This is an enterprise feature"
+          headline={t("enterprise_license")}
           description={
             <div
               dangerouslySetInnerHTML={{
-                __html: t("enterprise_license_description", {
-                  consoleUrl: `<a href="${CONSOLE_URL}" target="_blank" rel="noopener noreferrer" class="underline">
+                __html: DOMPurify.sanitize(
+                  t("enterprise_license_description", {
+                    consoleUrl: `<a href="${CONSOLE_URL}" target="_blank" rel="noopener noreferrer" class="underline">
                 ${APP_NAME}
               </a>`,
-                  supportMail: `<a href="mailto:${SUPPORT_MAIL_ADDRESS}" class="underline">
+                    supportMail: `<a href="mailto:${SUPPORT_MAIL_ADDRESS}" class="underline">
                 ${SUPPORT_MAIL_ADDRESS}
               </a>`,
-                }),
+                  })
+                ),
               }}
             />
           }

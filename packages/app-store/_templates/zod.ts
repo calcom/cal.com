@@ -7,3 +7,5 @@ export const appDataSchema = eventTypeAppCardZod.merge(
     isSunrise: z.boolean(),
   })
 );
+
+export const appKeysSchema = z.object({});

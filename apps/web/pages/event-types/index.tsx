@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import Head from "next/head";
+import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
@@ -37,6 +37,8 @@ import { EmbedButton, EmbedDialog } from "@components/Embed";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
+
+import { ssrInit } from "@server/lib/ssr";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
@@ -531,9 +533,9 @@ const EventTypeListHeading = ({
         <Link href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}>
           <a className="font-bold">{profile?.name || ""}</a>
         </Link>
-        {membershipCount && (
+        {membershipCount && teamId && (
           <span className="relative -top-px text-xs text-neutral-500 ltr:ml-2 rtl:mr-2">
-            <Link href="/settings/teams">
+            <Link href={`/settings/teams/${teamId}/members`}>
               <a>
                 <Badge variant="gray">
                   <Icon.FiUsers className="mr-1 -mt-px inline h-3 w-3" />
@@ -579,12 +581,9 @@ const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer);
 
 const EventTypesPage = () => {
   const { t } = useLocale();
+
   return (
     <div>
-      <Head>
-        <title>Home | {APP_NAME}</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <Shell
         heading={t("event_types_page_title") as string}
         subtitle={t("event_types_page_subtitle") as string}
@@ -620,6 +619,16 @@ const EventTypesPage = () => {
       </Shell>
     </div>
   );
+};
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
 };
 
 export default EventTypesPage;

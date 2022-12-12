@@ -11,6 +11,5 @@
   "publisher": "Cal.com, Inc.",
   "email": "support@cal.com",
   "description": "Embedded booking pages right into your wordpress page",
-  "extendsFeature": "EventType",
   "__createdUsingCli": true
 }
