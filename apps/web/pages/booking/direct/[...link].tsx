@@ -1,5 +1,6 @@
 import { BookingStatus } from "@prisma/client";
 import { createHmac } from "crypto";
+import { instance } from "gaxios";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -12,6 +13,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import { processBookingConfirmation } from "@calcom/lib/server/queries/bookings/confirm";
 import prisma from "@calcom/prisma";
+import { TRPCError } from "@calcom/trpc/server";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, Icon, TextArea } from "@calcom/ui";
 
@@ -198,8 +200,8 @@ export default function Directlink({ booking, reason, status }: inferSSRProps<ty
                       )}
                       {locationToDisplay && (
                         <>
-                          <div className="font-mediumcol-span-3 mt-6 sm:col-span-1">{t("where")}</div>
-                          <div className="col-span-3 sm:col-span-2">
+                          <div className="col-span-3 mt-6 font-medium sm:col-span-1">{t("where")}</div>
+                          <div className="col-span-3 mt-6 sm:col-span-2">
                             {locationToDisplay.startsWith("http") ? (
                               <a title="Meeting Link" href={locationToDisplay}>
                                 {locationToDisplay}
@@ -413,23 +415,35 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
     };
   }
-  debugger;
+
   // Booking good to be accepted or rejected, proceeding to mark it
-  const { status } = await processBookingConfirmation(
-    {
-      bookingId: booking.id,
-      user: booking.user,
-      recurringEventId: booking.recurringEventId,
-      confirmed: action === DirectAction.accept,
-      rejectionReason: reason,
-    },
-    prisma
-  );
+  let result: { status: BookingStatus | undefined } = { status: undefined };
+  try {
+    result = await processBookingConfirmation(
+      {
+        bookingId: booking.id,
+        user: booking.user,
+        recurringEventId: booking.recurringEventId,
+        confirmed: action === DirectAction.accept,
+        rejectionReason: reason,
+      },
+      prisma
+    );
+  } catch (e) {
+    if (e instanceof TRPCError) {
+      return {
+        redirect: {
+          destination: `/500?error=${e.message.concat(" accessing " + context.resolvedUrl)}`,
+          permanent: false,
+        },
+      };
+    }
+  }
 
   return {
     props: {
       booking,
-      status,
+      status: result.status,
       reason: context.query.reason ?? null,
     },
   };
