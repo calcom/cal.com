@@ -21,6 +21,7 @@ export const metadata = {
   title: "HubSpot CRM",
   trending: true,
   email: "help@cal.com",
+  dirName: "hubspot",
 } as AppMeta;
 
 export default metadata;

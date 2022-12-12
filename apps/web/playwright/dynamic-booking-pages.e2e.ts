@@ -10,7 +10,7 @@ import {
 test("dynamic booking", async ({ page, users }) => {
   const pro = await users.create();
   await pro.login();
-  const free = await users.create({ plan: "FREE" });
+  const free = await users.create({ username: "free" });
   await page.goto(`/${pro.username}+${free.username}`);
 
   await test.step("book an event first day in next month", async () => {

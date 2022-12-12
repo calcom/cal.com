@@ -6,7 +6,7 @@ import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Alert, showToast, Icon, Skeleton, Tooltip, UnstyledSelect } from "../../..";
+import { Alert, Icon, showToast, Skeleton, Tooltip, UnstyledSelect } from "../../..";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 
@@ -96,6 +96,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     hintErrors,
     labelSrOnly,
     containerClassName,
+    readOnly,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     t: __t,
     ...passThrough
@@ -126,14 +127,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             id={id}
             type={type}
             placeholder={placeholder}
-            {...passThrough}
-            {...(type == "search" && {
-              onChange: (e) => {
-                setInputValue(e.target.value);
-                props.onChange && props.onChange(e);
-              },
-              value: inputValue,
-            })}
             isFullWidth={inputIsFullWidth}
             className={classNames(
               className,
@@ -142,6 +135,16 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               type === "search" && "pr-8",
               "!my-0 !ring-0"
             )}
+            {...passThrough}
+            {...(type == "search" && {
+              onChange: (e) => {
+                console.log(e.target.value);
+                setInputValue(e.target.value);
+                props.onChange && props.onChange(e);
+              },
+              value: inputValue,
+            })}
+            readOnly={readOnly}
             ref={ref}
           />
           {addOnSuffix && (

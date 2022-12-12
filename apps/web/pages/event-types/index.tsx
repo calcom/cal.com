@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import Head from "next/head";
+import { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
@@ -37,6 +37,8 @@ import { EmbedButton, EmbedDialog } from "@components/Embed";
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
+
+import { ssrInit } from "@server/lib/ssr";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
@@ -175,22 +177,17 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
   }
 
   // inject selection data into url for correct router history
-  const openModal = (group: EventTypeGroup, type: EventType) => {
+  const openDuplicateModal = (eventType: EventType) => {
     const query = {
       ...router.query,
-      dialog: "new-eventtype",
-      eventPage: group.profile.slug,
-      title: type.title,
-      slug: type.slug,
-      description: type.description,
-      length: type.length,
-      type: type.schedulingType,
-      teamId: group.teamId,
-      locations: encodeURIComponent(JSON.stringify(type.locations)),
+      dialog: "duplicate-event-type",
+      title: eventType.title,
+      description: eventType.description,
+      slug: eventType.slug,
+      id: eventType.id,
+      length: eventType.length,
     };
-    if (!group.teamId) {
-      delete query.teamId;
-    }
+
     router.push(
       {
         pathname: router.pathname,
@@ -359,7 +356,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                                   type="button"
                                   data-testid={"event-type-duplicate-" + type.id}
                                   StartIcon={Icon.FiCopy}
-                                  onClick={() => openModal(group, type)}>
+                                  onClick={() => openDuplicateModal(type)}>
                                   {t("duplicate") as string}
                                 </DropdownItem>
                               </DropdownMenuItem>
@@ -467,7 +464,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                             className="w-full rounded-none"
                             data-testid={"event-type-duplicate-" + type.id}
                             StartIcon={Icon.FiCopy}
-                            onClick={() => openModal(group, type)}>
+                            onClick={() => openDuplicateModal(type)}>
                             {t("duplicate") as string}
                           </Button>
                         </DropdownMenuItem>
@@ -579,6 +576,7 @@ const WithQuery = withQuery(trpc.viewer.eventTypes.getByViewer);
 
 const EventTypesPage = () => {
   const { t } = useLocale();
+
   return (
     <div>
       <Shell
@@ -616,6 +614,16 @@ const EventTypesPage = () => {
       </Shell>
     </div>
   );
+};
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
 };
 
 export default EventTypesPage;

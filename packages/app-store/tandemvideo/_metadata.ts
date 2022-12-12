@@ -27,6 +27,7 @@ export const metadata = {
       label: "Tandem Video",
     },
   },
+  dirName: "tandemvideo",
 } as AppMeta;
 
 export default metadata;
