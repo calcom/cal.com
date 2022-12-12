@@ -44,15 +44,17 @@ export function ScheduleListItem({
                 )}
               </div>
               <p className="mt-1 text-xs text-neutral-500">
-                {schedule.availability.map((availability: Availability) => (
-                  <Fragment key={availability.id}>
-                    {availabilityAsString(availability, {
-                      locale: i18n.language,
-                      hour12: displayOptions?.hour12,
-                    })}
-                    <br />
-                  </Fragment>
-                ))}
+                {schedule.availability
+                  .filter((availability) => !!availability.days.length)
+                  .map((availability) => (
+                    <Fragment key={availability.id}>
+                      {availabilityAsString(availability, {
+                        locale: i18n.language,
+                        hour12: displayOptions?.hour12,
+                      })}
+                      <br />
+                    </Fragment>
+                  ))}
                 {schedule.timeZone && schedule.timeZone !== displayOptions?.timeZone && (
                   <p className="my-1 flex items-center first-letter:text-xs">
                     <Icon.FiGlobe />

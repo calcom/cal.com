@@ -17,7 +17,7 @@ export type DatePickerProps = {
   /** Fires when the month is changed. */
   onMonthChange?: (date: Dayjs) => void;
   /** which date is currently selected (not tracked from here) */
-  selected?: Dayjs;
+  selected?: Dayjs | null;
   /** defaults to current date. */
   minDate?: Dayjs;
   /** Furthest date selectable in the future, default = UNLIMITED */
@@ -37,29 +37,35 @@ export type DatePickerProps = {
 export const Day = ({
   date,
   active,
+  disabled,
+  allowInteractionOnDisabled,
   ...props
-}: JSX.IntrinsicElements["button"] & { active: boolean; date: Dayjs }) => {
+}: JSX.IntrinsicElements["button"] & {
+  active: boolean;
+  date: Dayjs;
+  allowInteractionOnDisabled?: boolean;
+}) => {
   const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
   const disabledDateButtonEmbedStyles = useEmbedStyles("disabledDateButton");
   return (
     <button
-      style={props.disabled ? { ...disabledDateButtonEmbedStyles } : { ...enabledDateButtonEmbedStyles }}
+      type="button"
+      style={disabled ? { ...disabledDateButtonEmbedStyles } : { ...enabledDateButtonEmbedStyles }}
       className={classNames(
         "disabled:text-bookinglighter dark:hover:border-darkmodebrand absolute top-0 left-0 right-0 bottom-0 mx-auto w-full rounded-md border-2 border-transparent text-center font-medium disabled:cursor-default disabled:border-transparent disabled:font-light disabled:dark:border-transparent",
         active
           ? "dark:bg-darkmodebrand dark:text-darkmodebrandcontrast bg-brand text-brandcontrast border-2"
-          : !props.disabled
+          : !disabled
           ? "dark:bg-darkgray-200 bg-gray-100 hover:bg-gray-300 dark:text-white"
           : ""
       )}
       data-testid="day"
-      data-disabled={props.disabled}
+      data-disabled={allowInteractionOnDisabled ? false : disabled}
+      disabled={allowInteractionOnDisabled ? false : disabled}
       {...props}>
       {date.date()}
       {date.isToday() && (
-        <span className="absolute left-0 bottom-0 mx-auto -mb-px w-full text-4xl md:-bottom-1 lg:bottom-0">
-          .
-        </span>
+        <span className="absolute left-0 right-0 bottom-0 h-2/5 align-middle text-4xl leading-[0rem]">.</span>
       )}
     </button>
   );
@@ -78,6 +84,7 @@ const Days = ({
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
   browsingDate: Dayjs;
   weekStart: number;
+  allowInteractionOnDisabled?: boolean;
 }) => {
   // Create placeholder elements for empty days in first week
   const weekdayOfFirst = browsingDate.day();
@@ -112,6 +119,7 @@ const Days = ({
                   });
                 }, 500);
               }}
+              allowInteractionOnDisabled={props.allowInteractionOnDisabled}
               disabled={
                 (includedDates && !includedDates.includes(yyyymmdd(day))) ||
                 excludedDates.includes(yyyymmdd(day))
@@ -162,6 +170,7 @@ const DatePicker = ({
         </span>
         <div className="text-black dark:text-white">
           <button
+            type="button"
             onClick={() => changeMonth(-1)}
             className={classNames(
               "group p-1 opacity-50 hover:opacity-100 ltr:mr-2 rtl:ml-2",
@@ -172,6 +181,7 @@ const DatePicker = ({
             <ChevronLeftIcon className="h-5 w-5" />
           </button>
           <button
+            type="button"
             className="group p-1 opacity-50 hover:opacity-100"
             onClick={() => changeMonth(+1)}
             data-testid="incrementMonth">

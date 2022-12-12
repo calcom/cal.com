@@ -4,7 +4,7 @@ import { z } from "zod";
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { PrismaClient } from "@calcom/prisma/client";
-import { stringOrNumber } from "@calcom/prisma/zod-utils";
+import { extendedBookingCreateBody, stringOrNumber } from "@calcom/prisma/zod-utils";
 import { Schedule } from "@calcom/types/schedule";
 
 import { TRPCError } from "@trpc/server";
@@ -201,19 +201,36 @@ export const availabilityRouter = router({
           timeZone: z.string().optional(),
           name: z.string().optional(),
           isDefault: z.boolean().optional(),
-          schedule: z.array(
-            z.array(
+          schedule: z
+            .array(
+              z.array(
+                z.object({
+                  start: z.date(),
+                  end: z.date(),
+                })
+              )
+            )
+            .optional(),
+          dateOverrides: z
+            .array(
               z.object({
                 start: z.date(),
                 end: z.date(),
               })
             )
-          ),
+            .optional(),
         })
       )
       .mutation(async ({ input, ctx }) => {
         const { user, prisma } = ctx;
-        const availability = getAvailabilityFromSchedule(input.schedule);
+        const availability = input.schedule
+          ? getAvailabilityFromSchedule(input.schedule)
+          : (input.dateOverrides || []).map((dateOverride) => ({
+              startTime: dateOverride.start,
+              endTime: dateOverride.end,
+              date: dateOverride.start,
+              days: [],
+            }));
 
         let updatedUser;
         if (input.isDefault) {
@@ -240,6 +257,15 @@ export const availabilityRouter = router({
           });
         }
 
+        console.log([
+          ...availability,
+          ...(input.dateOverrides || []).map((override) => ({
+            date: override.start,
+            startTime: override.start,
+            endTime: override.end,
+          })),
+        ]);
+
         const schedule = await prisma.schedule.update({
           where: {
             id: input.scheduleId,
@@ -254,11 +280,14 @@ export const availabilityRouter = router({
                 },
               },
               createMany: {
-                data: availability.map((schedule) => ({
-                  days: schedule.days,
-                  startTime: schedule.startTime,
-                  endTime: schedule.endTime,
-                })),
+                data: [
+                  ...availability,
+                  ...(input.dateOverrides || []).map((override) => ({
+                    date: override.start,
+                    startTime: override.start,
+                    endTime: override.end,
+                  })),
+                ],
               },
             },
           },

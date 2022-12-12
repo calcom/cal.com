@@ -1,15 +1,18 @@
 import { GetStaticPaths, GetStaticProps } from "next";
 import { useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
+import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import Schedule from "@calcom/features/schedules/components/Schedule";
 import { availabilityAsString } from "@calcom/lib/availability";
+import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import type { Schedule as ScheduleType } from "@calcom/types/schedule";
+import type { Schedule as ScheduleType, TimeRange } from "@calcom/types/schedule";
 import {
   Button,
   Form,
@@ -21,6 +24,7 @@ import {
   SkeletonText,
   Switch,
   TimezoneSelect,
+  Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
 
@@ -36,8 +40,40 @@ const querySchema = z.object({
 type AvailabilityFormValues = {
   name: string;
   schedule: ScheduleType;
+  dateOverrides: { ranges: TimeRange[] }[];
   timeZone: string;
   isDefault: boolean;
+};
+
+const DateOverride = () => {
+  const { remove, append, update, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
+    name: "dateOverrides",
+  });
+  const { t } = useLocale();
+  return (
+    <div className="px-4 py-5 sm:p-6">
+      <h3 className="font-medium leading-6 text-gray-900">
+        {t("date_overrides")}{" "}
+        <Tooltip content={t("date_overrides_info")}>
+          <span className="inline-block">
+            <Icon.FiInfo />
+          </span>
+        </Tooltip>
+      </h3>
+      <p className="mb-4 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{t("date_overrides_subtitle")}</p>
+      <div className="mt-1 space-y-2">
+        <DateOverrideList remove={remove} update={update} items={fields} />
+        <DateOverrideInputDialog
+          onChange={(ranges) => append({ ranges })}
+          Trigger={
+            <Button color="secondary" StartIcon={Icon.FiPlus}>
+              Add an override
+            </Button>
+          }
+        />
+      </div>
+    </div>
+  );
 };
 
 export default function Availability({ schedule }: { schedule: number }) {
@@ -52,14 +88,43 @@ export default function Availability({ schedule }: { schedule: number }) {
 
   useEffect(() => {
     if (!isLoading && data) {
+      console.log(data);
       reset({
         name: data?.schedule?.name,
         schedule: data.availability,
+        dateOverrides: data.schedule.availability.reduce((acc, override) => {
+          // only iff future date override
+          if (!override.date || override.date < new Date()) {
+            return acc;
+          }
+          const newValue = {
+            start: dayjs
+              .utc(override.date)
+              .hour(override.startTime.getHours())
+              .minute(override.startTime.getMinutes())
+              .toDate(),
+            end: dayjs
+              .utc(override.date)
+              .hour(override.endTime.getHours())
+              .minute(override.endTime.getMinutes())
+              .toDate(),
+          };
+          const dayRangeIndex = acc.findIndex(
+            (item) => yyyymmdd(item.ranges[0].start) === yyyymmdd(override.startTime)
+          );
+          if (dayRangeIndex === -1) {
+            acc.push({ ranges: [newValue] });
+            return acc;
+          }
+          acc[dayRangeIndex].ranges.push(newValue);
+          return acc;
+        }, [] as { ranges: TimeRange[] }[]),
         timeZone: data.timeZone,
         isDefault: data.isDefault,
       });
     }
-  }, [data, isLoading, reset]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading]);
 
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async ({ prevDefaultId, currentDefaultId, ...data }) => {
@@ -101,12 +166,14 @@ export default function Availability({ schedule }: { schedule: number }) {
       }
       subtitle={
         data ? (
-          data.schedule.availability.map((availability) => (
-            <span key={availability.id}>
-              {availabilityAsString(availability, { locale: i18n.language, hour12: timeFormat === 12 })}
-              <br />
-            </span>
-          ))
+          data.schedule.availability
+            .filter((availability) => !!availability.days.length)
+            .map((availability) => (
+              <span key={availability.id}>
+                {availabilityAsString(availability, { locale: i18n.language, hour12: timeFormat === 12 })}
+                <br />
+              </span>
+            ))
         ) : (
           <SkeletonText className="h-4 w-48" />
         )
@@ -145,15 +212,16 @@ export default function Availability({ schedule }: { schedule: number }) {
           <Form
             form={form}
             id="availability-form"
-            handleSubmit={async (values) => {
+            handleSubmit={async ({ dateOverrides, ...values }) => {
               updateMutation.mutate({
                 scheduleId: schedule,
+                dateOverrides: dateOverrides.flatMap((override) => override.ranges),
                 ...values,
               });
             }}
             className="-mx-4 flex flex-col pb-16 sm:mx-0 xl:flex-row xl:space-x-6">
-            <div className="flex-1">
-              <div className="rounded-md border-gray-200 bg-white py-5 pr-4 sm:border sm:p-6">
+            <div className="flex-1 divide-y divide-neutral-200 rounded-md border">
+              <div className=" py-5 pr-4 sm:p-6">
                 <h3 className="mb-5 text-base font-medium leading-6 text-gray-900">
                   {t("change_start_end")}
                 </h3>
@@ -169,6 +237,7 @@ export default function Availability({ schedule }: { schedule: number }) {
                   />
                 )}
               </div>
+              <DateOverride />
             </div>
             <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
               <div className="xl:max-w-80 mt-4 w-full pr-4 sm:p-0">
