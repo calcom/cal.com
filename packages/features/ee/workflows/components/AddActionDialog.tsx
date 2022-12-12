@@ -5,6 +5,7 @@ import { Dispatch, SetStateAction, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Button,
@@ -21,7 +22,6 @@ import {
   TextField,
 } from "@calcom/ui";
 
-import { fallBackSenderId } from "../lib/alphanumericSenderIdSupport";
 import { WORKFLOW_ACTIONS } from "../lib/constants";
 import { getWorkflowActionOptions } from "../lib/getOptions";
 import { onlyLettersNumbersSpaces } from "../pages/workflow";
@@ -69,7 +69,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
     mode: "onSubmit",
     defaultValues: {
       action: WorkflowActions.EMAIL_HOST,
-      sender: fallBackSenderId,
+      sender: SENDER_ID || "Cal",
     },
     resolver: zodResolver(formSchema),
   });
@@ -167,7 +167,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                   <TextField
                     label={t("sender_id")}
                     type="text"
-                    placeholder={fallBackSenderId}
+                    placeholder={SENDER_ID || "Cal"}
                     maxLength={11}
                     {...form.register(`sender`)}
                   />

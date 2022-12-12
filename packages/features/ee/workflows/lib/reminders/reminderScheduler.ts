@@ -6,9 +6,9 @@ import {
   WorkflowTriggerEvents,
 } from "@prisma/client";
 
+import { SENDER_ID } from "@calcom/lib/constants";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { fallBackSenderId } from "../alphanumericSenderIdSupport";
 import { scheduleEmailReminder } from "./emailReminderManager";
 import { scheduleSMSReminder } from "./smsReminderManager";
 
@@ -52,7 +52,7 @@ export const scheduleWorkflowReminders = async (
               step.reminderBody || "",
               step.id,
               step.template,
-              step.sender || fallBackSenderId
+              step.sender || SENDER_ID
             );
           } else if (
             step.action === WorkflowActions.EMAIL_ATTENDEE ||
@@ -121,7 +121,7 @@ export const sendCancelledReminders = async (
               step.reminderBody || "",
               step.id,
               step.template,
-              step.sender || fallBackSenderId
+              step.sender || SENDER_ID
             );
           } else if (
             step.action === WorkflowActions.EMAIL_ATTENDEE ||

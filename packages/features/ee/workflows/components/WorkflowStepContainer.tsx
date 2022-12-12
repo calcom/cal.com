@@ -9,6 +9,7 @@ import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 import "react-phone-number-input/style.css";
 
+import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
@@ -34,7 +35,6 @@ import {
 } from "@calcom/ui";
 
 import { AddVariablesDropdown } from "../components/AddVariablesDropdown";
-import { fallBackSenderId } from "../lib/alphanumericSenderIdSupport";
 import {
   getWorkflowActionOptions,
   getWorkflowTemplateOptions,
@@ -367,7 +367,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <TextField
                           label={t("sender_id")}
                           type="text"
-                          placeholder={fallBackSenderId}
+                          placeholder={SENDER_ID || "Cal a"}
                           maxLength={11}
                           {...form.register(`steps.${step.stepNumber - 1}.sender`)}
                         />
@@ -558,7 +558,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         emailSubject,
                         reminderBody,
                         template: step.template,
-                        sender: step.sender || fallBackSenderId,
+                        sender: step.sender || SENDER_ID,
                       });
                     } else {
                       const isNumberValid =
@@ -597,7 +597,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 reminderBody: reminderBody || "",
                 template: step.template,
                 sendTo: step.sendTo || "",
-                sender: step.sender || fallBackSenderId,
+                sender: step.sender || SENDER_ID,
               });
               setConfirmationDialogOpen(false);
             }}>
