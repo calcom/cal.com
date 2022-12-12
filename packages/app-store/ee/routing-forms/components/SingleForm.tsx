@@ -504,7 +504,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
     };
   }
 
-  const isFormEditAllowed = (await import("../lib/isAllowed")).isFormEditAllowed;
+  const isFormEditAllowed = (await import("../lib/isFormEditAllowed")).isFormEditAllowed;
   if (!(await isFormEditAllowed({ userId: user.id, formId }))) {
     return {
       notFound: true,

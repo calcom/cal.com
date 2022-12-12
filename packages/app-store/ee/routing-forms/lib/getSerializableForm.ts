@@ -52,7 +52,6 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
     name: f.name,
     description: f.description,
   }));
-  // const finalFields = fields.map((f) => (f.routerField ? f.routerField : f));
   const finalFields = fields;
 
   // Ideally we should't have needed to explicitly type it but due to some reason it's not working reliably with VSCode TypeCheck

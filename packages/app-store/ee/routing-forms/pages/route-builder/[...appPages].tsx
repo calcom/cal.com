@@ -366,6 +366,7 @@ const Routes = ({
   appUrl: string;
 }) => {
   const { routes: serializedRoutes } = form;
+
   const config = getQueryBuilderConfig(form);
   const [routes, setRoutes] = useState(() => {
     const transformRoutes = () => {
@@ -397,12 +398,15 @@ const Routes = ({
           label: router.name,
           name: router.name,
           description: router.description,
+          isDisabled: false,
         };
       }) || [];
 
   const [routersInUse, setRoutersInUse] = useState<string[]>(
     routes.filter((route) => isRouter(route)).map((r) => r.id)
   );
+
+  const isConnectedForm = (id: string) => form.connectedForms.map((f) => f.id).includes(id);
 
   const routerOptions = (
     [
@@ -417,8 +421,18 @@ const Routes = ({
       value: string;
       name: string | null;
       description: string | null;
+      isDisabled?: boolean;
     }[]
-  ).concat(availableRouters.filter((r) => !routersInUse.includes(r.value)));
+  ).concat(
+    availableRouters
+      .filter((r) => !routersInUse.includes(r.value))
+      .map((r) => {
+        if (isConnectedForm(r.value)) {
+          r.isDisabled = true;
+        }
+        return r;
+      })
+  );
 
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
@@ -519,6 +533,7 @@ const Routes = ({
         <SelectField
           placeholder="Select a router"
           containerClassName="mb-6 data-testid-select-router"
+          isOptionDisabled={(option) => !!option.isDisabled}
           label="Add a new Route"
           options={routerOptions}
           key={mainRoutes.length}
