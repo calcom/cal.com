@@ -48,7 +48,6 @@ import pkg from "../../../../apps/web/package.json";
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
-import { TeamsBanner } from "./Tips";
 import HeadSeo from "./head-seo";
 import { SkeletonText } from "./skeleton";
 
