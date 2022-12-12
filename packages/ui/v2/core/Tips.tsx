@@ -59,20 +59,26 @@ export const tips = [
   },
 ];
 
-export default function Tips() {
-  //const [animationRef] = useAutoAnimate<HTMLDivElement>();
+function useLocalList<T extends { id: number }>(storageKey: string, initialValue: T[]) {
+  const [list, setList] = useState<T[]>(initialValue);
+  console.log("initialValue", initialValue);
+  console.log("list", list);
 
-  const { t } = useLocale();
-
-  const [list, setList] = useState<typeof tips>([]);
+  useEffect(() => {
+    const reversedList = initialValue.slice(0).reverse();
+    const removedListString = localStorage.getItem(storageKey) || "";
+    const removedListIds = removedListString.split(",").map((id) => parseInt(id, 10));
+    const filteredList = reversedList.filter((tip) => removedListIds.indexOf(tip.id) === -1);
+    setList(() => [...filteredList]);
+  }, [initialValue, storageKey]);
 
   const handleRemoveItem = (id: number) => {
     setList((currentItems) => {
-      const items = localStorage.getItem("removedTipsIds") || "";
+      const items = localStorage.getItem(storageKey) || "";
       const itemToRemoveIndex = currentItems.findIndex((item) => item.id === id);
 
       localStorage.setItem(
-        "removedTipsIds",
+        storageKey,
         `${currentItems[itemToRemoveIndex].id.toString()}${items.length > 0 ? `,${items.split(",")}` : ""}`
       );
       currentItems.splice(itemToRemoveIndex, 1);
@@ -80,13 +86,17 @@ export default function Tips() {
     });
   };
 
-  useEffect(() => {
-    const reversedTips = tips.slice(0).reverse();
-    const removedTipsString = localStorage.getItem("removedTipsIds") || "";
-    const removedTipsIds = removedTipsString.split(",").map((id) => parseInt(id, 10));
-    const filteredTips = reversedTips.filter((tip) => removedTipsIds.indexOf(tip.id) === -1);
-    setList(() => [...filteredTips]);
-  }, []);
+  return {
+    list,
+    handleRemoveItem,
+  };
+}
+export default function Tips() {
+  //const [animationRef] = useAutoAnimate<HTMLDivElement>();
+
+  const { t } = useLocale();
+
+  const { list, handleRemoveItem } = useLocalList<typeof tips[0]>("removedTipsIds", tips);
 
   const baseOriginalList = list.slice(0).reverse();
 
@@ -134,7 +144,7 @@ export function TipBanner() {
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
-  const tips = [
+  const bannerTips = [
     {
       id: 1,
       img: "/team-banner-background-small.jpg",
@@ -144,31 +154,7 @@ export function TipBanner() {
       learnMoreHref: "https://go.cal.com/teams-video",
     },
   ];
-
-  // TODO: Refactor to reuse above code and not duplicate function
-  const [list, setList] = useState<typeof tips>([]);
-
-  const handleRemoveItem = (id: number) => {
-    setList((currentItems) => {
-      const items = localStorage.getItem("removedBannerIds") || "";
-      const itemToRemoveIndex = currentItems.findIndex((item) => item.id === id);
-
-      localStorage.setItem(
-        "removedBannerIds",
-        `${currentItems[itemToRemoveIndex].id.toString()}${items.length > 0 ? `,${items.split(",")}` : ""}`
-      );
-      currentItems.splice(itemToRemoveIndex, 1);
-      return [...currentItems];
-    });
-  };
-
-  useEffect(() => {
-    const reversedTips = tips.slice(0).reverse();
-    const removedTipsString = localStorage.getItem("removedBannerIds") || "";
-    const removedTipsIds = removedTipsString.split(",").map((id) => parseInt(id, 10));
-    const filteredTips = reversedTips.filter((tip) => removedTipsIds.indexOf(tip.id) === -1);
-    setList(() => [...filteredTips]);
-  }, []);
+  const { list, handleRemoveItem } = useLocalList<typeof bannerTips[0]>("removedBannerIds", bannerTips);
 
   return (
     <div>
