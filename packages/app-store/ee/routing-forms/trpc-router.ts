@@ -402,7 +402,7 @@ const appRoutingForms = router({
         return fields;
       }
 
-      async function findFieldWithId(id: string, fields: InputFields) {
+      function findFieldWithId(id: string, fields: InputFields) {
         return fields.find((field) => field.id === id);
       }
 
@@ -424,15 +424,27 @@ const appRoutingForms = router({
           }
           const connectedFormFields = zodFields.parse(connectedFormDb.fields);
 
-          const updatedConnectedFormFields = connectedFormFields?.map((field) => {
-            if (isRouterLinkedField(field) && field.routerId === serializedForm.id) {
-              return {
-                ...field,
-                ...findFieldWithId(field.id, inputFields || []),
-              };
-            }
-            return field;
-          });
+          const fieldsThatAreNotInConnectedForm = (
+            inputFields?.filter((f) => !findFieldWithId(f.id, connectedFormFields || [])) || []
+          ).map((f) => ({
+            ...f,
+            routerId: serializedForm.id,
+          }));
+
+          const updatedConnectedFormFields = connectedFormFields
+            // Update fields that are already in connected form
+            ?.map((field) => {
+              if (isRouterLinkedField(field) && field.routerId === serializedForm.id) {
+                return {
+                  ...field,
+                  ...findFieldWithId(field.id, inputFields || []),
+                };
+              }
+              return field;
+            })
+            // Add fields that are not there
+            .concat(fieldsThatAreNotInConnectedForm);
+
           await prisma.app_RoutingForms_Form.update({
             where: {
               id: connectedForm.id,
