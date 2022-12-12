@@ -9,6 +9,7 @@ import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 import "react-phone-number-input/style.css";
 
+import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
@@ -372,7 +373,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <TextField
                           label={t("sender_id")}
                           type="text"
-                          placeholder="Cal"
+                          placeholder={SENDER_ID}
                           maxLength={11}
                           {...form.register(`steps.${step.stepNumber - 1}.sender`)}
                         />
@@ -563,7 +564,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         emailSubject,
                         reminderBody,
                         template: step.template,
-                        sender: step.sender || "Cal",
+                        sender: step.sender || SENDER_ID,
                       });
                     } else {
                       const isNumberValid =
@@ -602,6 +603,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 reminderBody: reminderBody || "",
                 template: step.template,
                 sendTo: step.sendTo || "",
+                sender: step.sender || SENDER_ID,
               });
               setConfirmationDialogOpen(false);
             }}>
