@@ -183,6 +183,7 @@ export function TipBanner() {
               <button
                 onClick={() => handleRemoveItem(tip.id)}
                 className="!focus:border-transparent !focus:ring-0 absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-md !border-transparent text-white hover:bg-white/10">
+                <span className="sr-only">Hide Banner</span>
                 <Icon.FiX className="h-4 w-4" />
               </button>
             </div>
