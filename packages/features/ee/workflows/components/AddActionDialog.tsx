@@ -69,7 +69,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
     mode: "onSubmit",
     defaultValues: {
       action: WorkflowActions.EMAIL_HOST,
-      sender: SENDER_ID || "Cal",
+      sender: SENDER_ID,
     },
     resolver: zodResolver(formSchema),
   });
@@ -167,7 +167,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                   <TextField
                     label={t("sender_id")}
                     type="text"
-                    placeholder={SENDER_ID || "Cal"}
+                    placeholder={SENDER_ID}
                     maxLength={11}
                     {...form.register(`sender`)}
                   />
