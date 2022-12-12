@@ -463,7 +463,6 @@ export const eventTypesRouter = router({
       teamId,
       ...rest
     } = input;
-    console.log("🚀 ~ file: eventTypes.tsx:458 ~ update:eventOwnerProcedure.input ~ schedule", schedule);
 
     const data: Prisma.EventTypeUpdateInput = {
       ...rest,

@@ -304,7 +304,6 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             seatsShowAttendees,
             metadata,
             customInputs,
-            userId: 4,
           });
         }}>
         <div ref={animationParentRef} className="space-y-6">
