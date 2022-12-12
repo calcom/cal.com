@@ -60,7 +60,7 @@ export default function SAMLConfiguration({ teamId }: { teamId: number | null })
   };
 
   if (isLoading) {
-    return <SkeletonLoader />;
+    return <SkeletonLoader title={t("saml_config")} description={t("saml_description")} />;
   }
 
   if (hasError) {

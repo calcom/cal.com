@@ -20,12 +20,13 @@ type AvailabilityOption = {
 
 const Option = ({ ...props }: OptionProps<AvailabilityOption>) => {
   const { label, isDefault } = props.data;
+  const { t } = useLocale();
   return (
     <components.Option {...props}>
       <span>{label}</span>
       {isDefault && (
         <Badge variant="blue" className="ml-2">
-          Default
+          {t("default")}
         </Badge>
       )}
     </components.Option>
@@ -34,12 +35,13 @@ const Option = ({ ...props }: OptionProps<AvailabilityOption>) => {
 
 const SingleValue = ({ ...props }: SingleValueProps<AvailabilityOption>) => {
   const { label, isDefault } = props.data;
+  const { t } = useLocale();
   return (
     <components.SingleValue {...props}>
       <span>{label}</span>
       {isDefault && (
         <Badge variant="blue" className="ml-2">
-          Default
+          {t("default")}
         </Badge>
       )}
     </components.SingleValue>

@@ -100,13 +100,7 @@ model Credential {
   // How to make it a required column?
   appId                String?
   destinationCalendars DestinationCalendar[]
-  invalid              Boolean?
-}
-
-enum UserPlan {
-  FREE
-  TRIAL
-  PRO
+  invalid              Boolean?              @default(false)
 }
 
 enum IdentityProvider {
@@ -170,7 +164,6 @@ model User {
   identityProviderId   String?
   availability         Availability[]
   invitedTo            Int?
-  plan                 UserPlan                @default(PRO)
   webhooks             Webhook[]
   brandColor           String                  @default("#292929")
   darkBrandColor       String                  @default("#fafafa")
@@ -510,6 +503,7 @@ model App {
   credentials Credential[]
   Webhook     Webhook[]
   ApiKey      ApiKey[]
+  enabled     Boolean         @default(false)
 }
 
 model App_RoutingForms_Form {
