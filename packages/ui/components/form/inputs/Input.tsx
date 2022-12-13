@@ -127,14 +127,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             id={id}
             type={type}
             placeholder={placeholder}
-            {...passThrough}
-            {...(type == "search" && {
-              onChange: (e) => {
-                setInputValue(e.target.value);
-                props.onChange && props.onChange(e);
-              },
-              value: inputValue,
-            })}
             isFullWidth={inputIsFullWidth}
             className={classNames(
               className,
@@ -144,6 +136,14 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
               "!my-0 !ring-0"
             )}
             {...passThrough}
+            {...(type == "search" && {
+              onChange: (e) => {
+                console.log(e.target.value);
+                setInputValue(e.target.value);
+                props.onChange && props.onChange(e);
+              },
+              value: inputValue,
+            })}
             readOnly={readOnly}
             ref={ref}
           />

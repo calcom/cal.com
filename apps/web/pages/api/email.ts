@@ -32,18 +32,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         timeZone: "America/Chihuahua",
         language,
       },
-      {
-        email: "pro@example.com",
-        name: "pro@example.com",
-        timeZone: "America/Chihuahua",
-        language,
-      },
-      {
-        email: "pro@example.com",
-        name: "pro@example.com",
-        timeZone: "America/Chihuahua",
-        language,
-      },
     ],
     location: "Zoom video",
     destinationCalendar: null,
