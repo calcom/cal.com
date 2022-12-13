@@ -250,23 +250,24 @@ export const EventSetupTab = (
                 isSearchable={false}
                 className="h-auto !min-h-[36px] text-sm"
                 options={multipleDurationOptions}
+                value={selectedMultipleDuration}
                 onChange={(options) => {
-                  const values = options
-                    .map((opt) => opt.value)
-                    .sort(function (a, b) {
-                      return a - b;
-                    });
+                  let newOptions = [...options];
+                  newOptions = newOptions.sort((a, b) => {
+                    return a?.value - b?.value;
+                  });
+                  const values = newOptions.map((opt) => opt.value);
                   setMultipleDuration(values);
-                  setSelectedMultipleDuration(options);
-                  if (!options.find((opt) => opt.value === defaultDuration?.value)) {
-                    if (options.length > 0) {
-                      setDefaultDuration(options[0]);
+                  setSelectedMultipleDuration(newOptions);
+                  if (!newOptions.find((opt) => opt.value === defaultDuration?.value)) {
+                    if (newOptions.length > 0) {
+                      setDefaultDuration(newOptions[0]);
                     } else {
                       setDefaultDuration(null);
                     }
                   }
-                  if (options.length === 1 && defaultDuration === null) {
-                    setDefaultDuration(options[0]);
+                  if (newOptions.length === 1 && defaultDuration === null) {
+                    setDefaultDuration(newOptions[0]);
                   }
                   formMethods.setValue("metadata.multipleDuration", values);
                 }}
