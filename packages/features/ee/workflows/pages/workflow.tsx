@@ -108,7 +108,6 @@ function WorkflowPage() {
 
   useEffect(() => {
     if (workflow && !isLoading && !teamsLoading) {
-      console.log("team plan: " + isTeamsPlan);
       setSelectedEventTypes(
         workflow.activeOn.map((active) => ({
           value: String(active.eventType.id),
