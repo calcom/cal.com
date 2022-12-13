@@ -135,12 +135,6 @@ export default function AllApps({ apps, searchText, categories }: AllAppsPropsTy
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [appsContainerRef, enableAnimation] = useAutoAnimate<HTMLDivElement>();
 
-  // const categories = apps
-  //   .map((app) => app.categories)
-  //   .filter((cat, pos, self) => {
-  //     return self.indexOf(cat) === pos;
-  //   });
-
   if (searchText) {
     enableAnimation(false);
   }
