@@ -62,6 +62,12 @@ export const tips = [
 function useLocalList<T extends { id: number }>(storageKey: string, initialValue: T[]) {
   const [list, setList] = useState<T[]>(initialValue);
 
+  /**
+     This use effect is used to filter out the items that have been removed from the list
+     we get this from local storage and then we reverse the list so that the newest items
+     are at the top. This is done so that the items are displayed in the order they were
+     added
+  **/
   useEffect(() => {
     const reversedList = initialValue.slice(0).reverse();
     const removedListString = localStorage.getItem(storageKey) || "";
