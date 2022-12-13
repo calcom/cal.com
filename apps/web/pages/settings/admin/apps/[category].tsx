@@ -10,7 +10,7 @@ function AdminAppsView() {
   const { t } = useLocale();
   return (
     <>
-      <Meta title={t("apps")} description={t("apps_description")} />
+      <Meta title={t("apps")} description={t("admin_apps_description")} />
       <AdminAppsList baseURL="/settings/admin/apps" className="w-0" />
     </>
   );

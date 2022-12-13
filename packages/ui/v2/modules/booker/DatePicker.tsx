@@ -6,6 +6,7 @@ import classNames from "@calcom/lib/classNames";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
+import { Button, Icon } from "@calcom/ui";
 
 import { SkeletonText } from "../../..";
 
@@ -95,7 +96,7 @@ const Days = ({
             <div key={`e-${idx}`} />
           ) : props.isLoading ? (
             <button
-              className=" dark:bg-darkgray-200 absolute top-0 left-0 right-0 bottom-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent bg-gray-50 text-center text-gray-400 opacity-50 dark:text-gray-400"
+              className="dark:bg-darkgray-200 absolute top-0 left-0 right-0 bottom-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent bg-gray-50 text-center text-gray-400 opacity-50 dark:text-gray-400"
               key={`e-${idx}`}
               disabled>
               <SkeletonText className="h-4 w-5" />
@@ -134,7 +135,7 @@ const DatePicker = ({
   ...passThroughProps
 }: DatePickerProps & Partial<React.ComponentProps<typeof Days>>) => {
   const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
-  const { i18n } = useLocale();
+  const { i18n, t } = useLocale();
 
   const changeMonth = (newMonth: number) => {
     if (onMonthChange) {
@@ -188,8 +189,18 @@ const DatePicker = ({
           </div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-1 text-center">
+      <div className="relative grid grid-cols-7 gap-1 text-center">
         <Days weekStart={weekStart} selected={selected} {...passThroughProps} browsingDate={browsingDate} />
+
+        {/* TODO: only show when no slots available */}
+        <div className="absolute top-40 left-1/2 -mt-10 w-max -translate-x-1/2 -translate-y-1/2 transform rounded-md border border-gray-200 bg-gray-50 p-8 shadow-sm">
+          <h4 className="mb-4 font-medium text-gray-900">
+            {t("no_availability_in_month", { month: month })}
+          </h4>
+          <Button onClick={() => changeMonth(+1)} color="primary" EndIcon={Icon.FiArrowRight}>
+            {t("view_next_month")}
+          </Button>
+        </div>
       </div>
     </div>
   );
