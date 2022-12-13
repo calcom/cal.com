@@ -535,7 +535,6 @@ export const workflowsRouter = router({
             !isSMSAction(oldStep.action) &&
             isSMSAction(newStep.action)
           ) {
-            //todo
             throw new TRPCError({ code: "UNAUTHORIZED" });
           }
           await ctx.prisma.workflowStep.update({
