@@ -273,7 +273,6 @@ export async function getUserAvailability(
     busy: bufferedBusyTimes,
     timeZone,
     workingHours,
-    dateOverrides,
     currentSeats,
   };
 }
