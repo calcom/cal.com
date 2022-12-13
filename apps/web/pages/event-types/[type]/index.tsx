@@ -339,7 +339,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { req, query } = context;
   const session = await getSession({ req });
   const typeParam = parseInt(asStringOrThrow(query.type));
-  // const ssr = await ssrInit(context);
 
   if (Number.isNaN(typeParam)) {
     return {
