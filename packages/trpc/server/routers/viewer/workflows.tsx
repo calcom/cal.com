@@ -945,11 +945,6 @@ export const workflowsRouter = router({
       const eventTypeWorkflow = await ctx.prisma.workflow.findFirst({
         where: {
           id: workflowId,
-          activeOn: {
-            some: {
-              eventTypeId: eventTypeId,
-            },
-          },
           userId: ctx.user.id,
         },
       });
