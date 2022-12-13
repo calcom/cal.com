@@ -54,7 +54,9 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
       .then(handleErrors)
       .then(async () => {
         await signIn("Cal.com", {
-          callbackUrl: router.query.callbackUrl ? `${WEBAPP_URL}/${router.query.callbackUrl}` : WEBAPP_URL,
+          callbackUrl: router.query.callbackUrl
+            ? `${WEBAPP_URL}/${router.query.callbackUrl}`
+            : `${WEBAPP_URL}/getting-started`,
         });
       })
       .catch((err) => {
@@ -111,7 +113,9 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
                     className="w-5/12 justify-center"
                     onClick={() =>
                       signIn("Cal.com", {
-                        callbackUrl: (`${WEBAPP_URL}/${router.query.callbackUrl}` || "") as string,
+                        callbackUrl: router.query.callbackUrl
+                          ? `${WEBAPP_URL}/${router.query.callbackUrl}`
+                          : `${WEBAPP_URL}/getting-started`,
                       })
                     }>
                     {t("login_instead")}
