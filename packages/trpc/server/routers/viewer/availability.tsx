@@ -257,15 +257,6 @@ export const availabilityRouter = router({
           });
         }
 
-        console.log([
-          ...availability,
-          ...(input.dateOverrides || []).map((override) => ({
-            date: override.start,
-            startTime: override.start,
-            endTime: override.end,
-          })),
-        ]);
-
         const schedule = await prisma.schedule.update({
           where: {
             id: input.scheduleId,

@@ -86,7 +86,7 @@ const Days = ({
   const weekdayOfFirst = browsingDate.day();
   const currentDate = minDate.utcOffset(browsingDate.utcOffset());
 
-  const availableDates = () => {
+  const availableDates = (includedDates: string[] | undefined) => {
     const dates = [];
     const lastDateOfMonth = browsingDate.date(daysInMonth(browsingDate));
     for (
@@ -94,13 +94,18 @@ const Days = ({
       date.isBefore(lastDateOfMonth) || date.isSame(lastDateOfMonth, "day");
       date = date.add(1, "day")
     ) {
+      // even if availableDates is given, filter out the passed included dates
+      if (includedDates && !includedDates.includes(yyyymmdd(date))) {
+        continue;
+      }
       dates.push(yyyymmdd(date));
     }
     return dates;
   };
 
-  const includedDates =
-    props.includedDates || currentDate.isSame(browsingDate, "month") ? availableDates() : undefined;
+  const includedDates = currentDate.isSame(browsingDate, "month")
+    ? availableDates(props.includedDates)
+    : props.includedDates;
 
   const days: (Dayjs | null)[] = Array((weekdayOfFirst - weekStart + 7) % 7).fill(null);
   for (let day = 1, dayCount = daysInMonth(browsingDate); day <= dayCount; day++) {

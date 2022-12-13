@@ -1,5 +1,6 @@
 import { UseFieldArrayRemove } from "react-hook-form";
 
+import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeRange } from "@calcom/types/schedule";
 import { Button, Icon, Tooltip, DialogTrigger } from "@calcom/ui";

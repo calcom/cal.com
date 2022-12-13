@@ -6,13 +6,13 @@ import { z } from "zod";
 import dayjs from "@calcom/dayjs";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import Schedule from "@calcom/features/schedules/components/Schedule";
-import { availabilityAsString } from "@calcom/lib/availability";
+import { availabilityAsString, getWorkingHours } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import type { Schedule as ScheduleType, TimeRange } from "@calcom/types/schedule";
+import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
   Button,
   Form,
@@ -47,7 +47,7 @@ type AvailabilityFormValues = {
   isDefault: boolean;
 };
 
-const DateOverride = () => {
+const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
   const { remove, append, update, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
   });
@@ -66,6 +66,7 @@ const DateOverride = () => {
       <div className="mt-1 space-y-2">
         <DateOverrideList remove={remove} update={update} items={fields} />
         <DateOverrideInputDialog
+          workingHours={workingHours}
           onChange={(ranges) => append({ ranges })}
           Trigger={
             <Button color="secondary" StartIcon={Icon.FiPlus}>
@@ -239,7 +240,14 @@ export default function Availability({ schedule }: { schedule: number }) {
                   />
                 )}
               </div>
-              <DateOverride />
+              <DateOverride
+                workingHours={getWorkingHours(
+                  {
+                    timeZone: data?.schedule?.timeZone || undefined,
+                  },
+                  data?.schedule?.availability || []
+                )}
+              />
             </div>
             <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
               <div className="xl:max-w-80 mt-4 w-full pr-4 sm:p-0">
