@@ -87,6 +87,12 @@ export const cancelTeamSubscriptionFromStripe = async (teamId: number) => {
 
 export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
   try {
+    const { url } = await checkIfTeamPaymentRequired({ teamId });
+    /**
+     * If there's no pending checkout URL it means that this team has not been paid.
+     * We cannot update the subscription yet, this will be handled on publish/checkout.
+     **/
+    if (!url) return;
     const team = await getTeamWithPaymentMetadata(teamId);
     const { subscriptionId, subscriptionItemId } = team.metadata;
     await stripe.subscriptions.update(subscriptionId, {
