@@ -55,6 +55,7 @@ export {
   Swatch,
   Switch,
   VerticalTabs,
+  TipBanner,
 } from "./v2";
 export type { AlertProps } from "./v2";
 export { getReactSelectProps, Segment, SegmentOption } from "./v2/core";

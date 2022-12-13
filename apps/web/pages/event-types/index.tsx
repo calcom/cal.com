@@ -29,6 +29,7 @@ import {
   showToast,
   Switch,
   Tooltip,
+  TipBanner,
 } from "@calcom/ui";
 
 import { withQuery } from "@lib/QueryCell";
@@ -40,8 +41,6 @@ import Avatar from "@components/ui/Avatar";
 import AvatarGroup from "@components/ui/AvatarGroup";
 
 import { ssrInit } from "@server/lib/ssr";
-
-import { TipBanner } from "../../../../packages/ui/v2/core/Tips";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
