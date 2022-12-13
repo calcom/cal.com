@@ -50,11 +50,12 @@ type WorkflowStepProps = {
   form: UseFormReturn<FormValues>;
   reload?: boolean;
   setReload?: Dispatch<SetStateAction<boolean>>;
+  isTeamsPlan?: boolean;
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
-  const { step, form, reload, setReload } = props;
+  const { step, form, reload, setReload, isTeamsPlan } = props;
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
 
@@ -93,7 +94,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
   );
 
-  const actionOptions = getWorkflowActionOptions(t);
+  const actionOptions = getWorkflowActionOptions(t, isTeamsPlan);
   const triggerOptions = getWorkflowTriggerOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t);
 

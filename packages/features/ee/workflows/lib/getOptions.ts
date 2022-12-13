@@ -3,7 +3,7 @@ import { TFunction } from "next-i18next";
 
 import { TIME_UNIT, WORKFLOW_ACTIONS, WORKFLOW_TEMPLATES, WORKFLOW_TRIGGER_EVENTS } from "./constants";
 
-export function getWorkflowActionOptions(t: TFunction) {
+export function getWorkflowActionOptions(t: TFunction, isTeamsPlan?: boolean) {
   return WORKFLOW_ACTIONS.map((action) => {
     const actionString = t(`${action.toLowerCase()}_action`);
 
@@ -12,7 +12,7 @@ export function getWorkflowActionOptions(t: TFunction) {
     return {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: action,
-      disabled: isSMSAction && true, //todo
+      disabled: isSMSAction && !isTeamsPlan,
     };
   });
 }
