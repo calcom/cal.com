@@ -50,12 +50,11 @@ type WorkflowStepProps = {
   form: UseFormReturn<FormValues>;
   reload?: boolean;
   setReload?: Dispatch<SetStateAction<boolean>>;
-  workflowId: number;
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
-  const { step, form, reload, setReload, workflowId } = props;
+  const { step, form, reload, setReload } = props;
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
 
@@ -555,7 +554,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       );
 
                       testActionMutation.mutate({
-                        workflowId,
                         step,
                         emailSubject,
                         reminderBody,
@@ -592,7 +590,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               );
 
               testActionMutation.mutate({
-                workflowId,
                 step,
                 emailSubject: "",
                 reminderBody: reminderBody || "",

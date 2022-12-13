@@ -804,7 +804,6 @@ export const workflowsRouter = router({
   testAction: authedProcedure
     .input(
       z.object({
-        workflowId: z.number(),
         step: z.object({
           id: z.number(),
           stepNumber: z.number(),
@@ -839,11 +838,7 @@ export const workflowsRouter = router({
           },
         });
 
-        if (
-          !userWorkflow ||
-          userWorkflow.userId !== user.id ||
-          userWorkflow.steps.find((userWorkflow) => userWorkflow.workflowId != step.workflowId)
-        ) {
+        if (!userWorkflow || userWorkflow.userId !== user.id) {
           throw new TRPCError({ code: "UNAUTHORIZED" });
         }
 
