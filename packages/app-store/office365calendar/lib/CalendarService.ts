@@ -165,7 +165,9 @@ export default class Office365CalendarService implements Calendar {
 
     while (!finishedParsingCalendars) {
       const response = await this.fetcher(requestLink);
-      let responseBody = await handleErrorsJson<{ value: OfficeCalendar[] }>(response);
+      let responseBody = await handleErrorsJson<{ value: OfficeCalendar[]; "@odata.nextLink"?: string }>(
+        response
+      );
       // If responseBody is valid then parse the JSON text
       if (typeof responseBody === "string") {
         responseBody = JSON.parse(responseBody) as { value: OfficeCalendar[] };
