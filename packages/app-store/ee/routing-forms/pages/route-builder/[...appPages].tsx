@@ -147,7 +147,6 @@ const Route = ({
   moveDown,
   appUrl,
   disabled = false,
-  removeRouterFromUse,
 }: {
   route: Route;
   routes: Route[];
@@ -158,7 +157,6 @@ const Route = ({
   moveDown?: { fn: () => void; check: () => boolean } | null;
   appUrl: string;
   disabled?: boolean;
-  removeRouterFromUse: (routerId: string) => void;
 }) => {
   const index = routes.indexOf(route);
 
@@ -205,7 +203,6 @@ const Route = ({
             fn: () => {
               const newRoutes = routes.filter((r) => r.id !== route.id);
               setRoutes(newRoutes);
-              removeRouterFromUse(route.id);
             },
           }}
           label={
@@ -402,10 +399,6 @@ const Routes = ({
         };
       }) || [];
 
-  const [routersInUse, setRoutersInUse] = useState<string[]>(
-    routes.filter((route) => isRouter(route)).map((r) => r.id)
-  );
-
   const isConnectedForm = (id: string) => form.connectedForms.map((f) => f.id).includes(id);
 
   const routerOptions = (
@@ -424,14 +417,20 @@ const Routes = ({
       isDisabled?: boolean;
     }[]
   ).concat(
-    availableRouters
-      .filter((r) => !routersInUse.includes(r.value))
-      .map((r) => {
-        if (isConnectedForm(r.value)) {
-          r.isDisabled = true;
-        }
-        return r;
-      })
+    availableRouters.map((r) => {
+      // Reset disabled state
+      r.isDisabled = false;
+
+      // Can't select a form as router that is already a connected form. It avoids cyclic dependency
+      if (isConnectedForm(r.value)) {
+        r.isDisabled = true;
+      }
+      // A route that's already used, can't be reselected
+      if (routes.find((route) => route.id === r.value)) {
+        r.isDisabled = true;
+      }
+      return r;
+    })
   );
 
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
@@ -494,12 +493,6 @@ const Routes = ({
 
   hookForm.setValue("routes", routesToSave);
 
-  const removeRouterFromUse = (routerNotInUse: string) => {
-    setRoutersInUse((routersInUse) => {
-      return routersInUse.filter((r) => r !== routerNotInUse);
-    });
-  };
-
   return (
     <div className="flex flex-col-reverse md:flex-row">
       <div ref={animationRef} className="w-full ltr:mr-2 rtl:ml-2">
@@ -510,7 +503,6 @@ const Routes = ({
               key={route.id}
               config={config}
               route={route}
-              removeRouterFromUse={removeRouterFromUse}
               moveUp={{
                 check: () => key !== 0,
                 fn: () => {
@@ -571,9 +563,6 @@ const Routes = ({
                 } as Route,
               ]);
             }
-            setRoutersInUse((prevValue) => {
-              return [...prevValue, option.value];
-            });
           }}
         />
 
@@ -585,7 +574,6 @@ const Routes = ({
             setRoute={setRoute}
             setRoutes={setRoutes}
             appUrl={appUrl}
-            removeRouterFromUse={removeRouterFromUse}
           />
         </div>
       </div>
