@@ -926,6 +926,32 @@ export const workflowsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { eventTypeId, workflowId } = input;
 
+      // Check that workflow & event type belong to the user
+      const userEventType = await ctx.prisma.eventType.findFirst({
+        where: {
+          id: eventTypeId,
+          users: {
+            some: {
+              id: ctx.user.id,
+            },
+          },
+        },
+      });
+
+      if (!userEventType)
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "This event type does not belong to the user" });
+
+      // Check that the workflow belongs to the user
+      const eventTypeWorkflow = await ctx.prisma.workflow.findFirst({
+        where: {
+          id: workflowId,
+          userId: ctx.user.id,
+        },
+      });
+
+      if (!eventTypeWorkflow)
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "This event type does not belong to the user" });
+
       // NOTE: This was unused
       // const eventType = await ctx.prisma.eventType.findFirst({
       //   where: {
