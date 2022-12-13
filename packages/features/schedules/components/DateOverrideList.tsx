@@ -1,4 +1,4 @@
-import { UseFieldArrayRemove, UseFieldArrayUpdate, FieldValues, ArrayPath } from "react-hook-form";
+import { UseFieldArrayRemove } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeRange } from "@calcom/types/schedule";
@@ -16,7 +16,6 @@ const DateOverrideList = ({
   update: any;
   items: { ranges: TimeRange[]; id: string }[];
 }) => {
-  console.log(items, "this is rendered");
   const { t, i18n } = useLocale();
   if (!items.length) {
     return <></>;

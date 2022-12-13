@@ -38,12 +38,10 @@ export const Day = ({
   date,
   active,
   disabled,
-  allowInteractionOnDisabled,
   ...props
 }: JSX.IntrinsicElements["button"] & {
   active: boolean;
   date: Dayjs;
-  allowInteractionOnDisabled?: boolean;
 }) => {
   const enabledDateButtonEmbedStyles = useEmbedStyles("enabledDateButton");
   const disabledDateButtonEmbedStyles = useEmbedStyles("disabledDateButton");
@@ -60,8 +58,8 @@ export const Day = ({
           : ""
       )}
       data-testid="day"
-      data-disabled={allowInteractionOnDisabled ? false : disabled}
-      disabled={allowInteractionOnDisabled ? false : disabled}
+      data-disabled={disabled}
+      disabled={disabled}
       {...props}>
       {date.date()}
       {date.isToday() && (
@@ -72,9 +70,8 @@ export const Day = ({
 };
 
 const Days = ({
-  // minDate,
+  minDate = dayjs.utc(),
   excludedDates = [],
-  includedDates,
   browsingDate,
   weekStart,
   DayComponent = Day,
@@ -84,10 +81,26 @@ const Days = ({
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
   browsingDate: Dayjs;
   weekStart: number;
-  allowInteractionOnDisabled?: boolean;
 }) => {
   // Create placeholder elements for empty days in first week
   const weekdayOfFirst = browsingDate.day();
+  const currentDate = minDate.utcOffset(browsingDate.utcOffset());
+
+  const availableDates = () => {
+    const dates = [];
+    const lastDateOfMonth = browsingDate.date(daysInMonth(browsingDate));
+    for (
+      let date = currentDate;
+      date.isBefore(lastDateOfMonth) || date.isSame(lastDateOfMonth, "day");
+      date = date.add(1, "day")
+    ) {
+      dates.push(yyyymmdd(date));
+    }
+    return dates;
+  };
+
+  const includedDates =
+    props.includedDates || currentDate.isSame(browsingDate, "month") ? availableDates() : undefined;
 
   const days: (Dayjs | null)[] = Array((weekdayOfFirst - weekStart + 7) % 7).fill(null);
   for (let day = 1, dayCount = daysInMonth(browsingDate); day <= dayCount; day++) {
@@ -119,7 +132,6 @@ const Days = ({
                   });
                 }, 500);
               }}
-              allowInteractionOnDisabled={props.allowInteractionOnDisabled}
               disabled={
                 (includedDates && !includedDates.includes(yyyymmdd(day))) ||
                 excludedDates.includes(yyyymmdd(day))

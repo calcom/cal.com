@@ -85,14 +85,7 @@ const DateOverrideForm = ({
       className="flex space-x-4">
       <div className="w-1/2 border-r pr-6">
         <DialogHeader title={t("date_overrides_dialog_title")} />
-        <DatePicker
-          allowInteractionOnDisabled={true}
-          excludedDates={excludedDates}
-          weekStart={0}
-          selected={date}
-          onChange={(day) => setDate(day)}
-          locale="en-GB"
-        />
+        <DatePicker weekStart={0} selected={date} onChange={(day) => setDate(day)} locale="en-GB" />
       </div>
       <div className="relative flex w-1/2 flex-col pl-2">
         <div className="mb-4 flex-grow space-y-4">
