@@ -1,15 +1,5 @@
 declare namespace NodeJS {
   interface ProcessEnv {
-    /**
-     * Set this value to 'agree' to accept our license:
-     * LICENSE: https://github.com/calendso/calendso/blob/main/LICENSE
-     *
-     * Summary of terms:
-     * - The codebase has to stay open source, whether it was modified or not
-     * - You can not repackage or sell the codebase
-     * - Acquire a commercial license to remove these terms by visiting: cal.com/sales
-     **/
-    readonly NEXT_PUBLIC_LICENSE_CONSENT: "agree" | undefined;
     /** Needed to enable enterprise-only features */
     readonly CALCOM_LICENSE_KEY: string | undefined;
     readonly CALCOM_TELEMETRY_DISABLED: string | undefined;
@@ -60,5 +50,8 @@ declare namespace NodeJS {
      * Set it to "1" if you need to run E2E tests locally
      **/
     readonly NEXT_PUBLIC_IS_E2E: "1" | undefined;
+    readonly NEXT_PUBLIC_APP_NAME: string | "Cal";
+    readonly NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS: string | "help@cal.com";
+    readonly NEXT_PUBLIC_COMPANY_NAME: string | "Cal.com, Inc.";
   }
 }

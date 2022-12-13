@@ -32,18 +32,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         timeZone: "America/Chihuahua",
         language,
       },
-      {
-        email: "pro@example.com",
-        name: "pro@example.com",
-        timeZone: "America/Chihuahua",
-        language,
-      },
-      {
-        email: "pro@example.com",
-        name: "pro@example.com",
-        timeZone: "America/Chihuahua",
-        language,
-      },
     ],
     location: "Zoom video",
     destinationCalendar: null,
@@ -60,9 +48,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Content-Type", "text/html");
   res.setHeader("Cache-Control", "no-cache, no-store, private, must-revalidate");
   res.write(
-    renderEmail("AttendeeScheduledEmail", {
-      attendee: evt.attendees[0],
-      calEvent: evt,
+    renderEmail("TeamInviteEmail", {
+      language: t,
+      from: "From",
+      to: "To",
+      teamName: "Team name",
+      joinLink: "Join link",
     })
   );
   res.end();

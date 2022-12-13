@@ -13,13 +13,14 @@ import path from "path";
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
-import { ErrorCode, verifyPassword, isPasswordValid } from "@calcom/lib/auth";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { ErrorCode, isPasswordValid, verifyPassword } from "@calcom/lib/auth";
+import { APP_NAME, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
 import rateLimit from "@calcom/lib/rateLimit";
 import { serverConfig } from "@calcom/lib/serverConfig";
 import prisma from "@calcom/prisma";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import CalComAdapter from "@lib/auth/next-auth-custom-adapter";
 import { randomString } from "@lib/random";
@@ -63,6 +64,11 @@ const providers: Provider[] = [
           password: true,
           twoFactorEnabled: true,
           twoFactorSecret: true,
+          teams: {
+            include: {
+              team: true,
+            },
+          },
         },
       });
 
@@ -116,6 +122,14 @@ const providers: Provider[] = [
         intervalInMs: 60 * 1000, // 1 minute
       });
       await limiter.check(10, user.email); // 10 requests per minute
+      // Check if the user you are logging into has any active teams
+      const hasActiveTeams =
+        user.teams.filter((m) => {
+          if (!IS_TEAM_BILLING_ENABLED) return true;
+          const metadata = teamMetadataSchema.safeParse(m.team.metadata);
+          if (metadata.success && metadata.data?.subscriptionId) return true;
+          return false;
+        }).length > 0;
 
       // authentication success- but does it meet the minimum password requirements?
       if (user.role === "ADMIN" && !isPasswordValid(credentials.password, false, true)) {
@@ -125,6 +139,7 @@ const providers: Provider[] = [
           email: user.email,
           name: user.name,
           role: "USER",
+          belongsToActiveTeam: hasActiveTeams,
         };
       }
 
@@ -134,6 +149,7 @@ const providers: Provider[] = [
         email: user.email,
         name: user.name,
         role: user.role,
+        belongsToActiveTeam: hasActiveTeams,
       };
     },
   }),
@@ -204,9 +220,9 @@ if (true) {
         });
         const emailTemplate = Handlebars.compile(emailFile);
         transporter.sendMail({
-          from: `${process.env.EMAIL_FROM}` || "Cal.com",
+          from: `${process.env.EMAIL_FROM}` || APP_NAME,
           to: identifier,
-          subject: "Your sign-in link for Cal.com",
+          subject: "Your sign-in link for " + APP_NAME,
           html: emailTemplate({
             base_url: WEBAPP_URL,
             signin_url: url,
@@ -271,7 +287,8 @@ export default NextAuth({
           username: user.username,
           email: user.email,
           role: user.role,
-          impersonatedByUID: user?.impersonatedByUID as number,
+          impersonatedByUID: user?.impersonatedByUID,
+          belongsToActiveTeam: user?.belongsToActiveTeam,
         };
       }
 
@@ -307,6 +324,7 @@ export default NextAuth({
           email: existingUser.email,
           role: existingUser.role,
           impersonatedByUID: token.impersonatedByUID as number,
+          belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
         };
       }
 
@@ -324,6 +342,7 @@ export default NextAuth({
           username: token.username as string,
           role: token.role as UserPermissionRole,
           impersonatedByUID: token.impersonatedByUID as number,
+          belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
         },
       };
       return calendsoSession;
@@ -331,16 +350,16 @@ export default NextAuth({
     async signIn(params) {
       const { user, account, profile } = params;
 
-      if (account.provider === "email") {
+      if (account?.provider === "email") {
         return true;
       }
       // In this case we've already verified the credentials in the authorize
       // callback so we can sign the user in.
-      if (account.type === "credentials") {
+      if (account?.type === "credentials") {
         return true;
       }
 
-      if (account.type !== "oauth") {
+      if (account?.type !== "oauth") {
         return false;
       }
 
@@ -352,12 +371,14 @@ export default NextAuth({
         return false;
       }
 
-      if (account.provider) {
+      if (account?.provider) {
         let idP: IdentityProvider = IdentityProvider.GOOGLE;
         if (account.provider === "saml") {
           idP = IdentityProvider.SAML;
         }
-        user.email_verified = user.email_verified || user.emailVerified || profile.email_verified;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore-error TODO validate email_verified key on profile
+        user.email_verified = user.email_verified || !!user.emailVerified || profile.email_verified;
 
         if (!user.email_verified) {
           return "/auth/error?error=unverified-email";
@@ -440,7 +461,7 @@ export default NextAuth({
                 emailVerified: new Date(Date.now()),
                 name: user.name,
                 identityProvider: idP,
-                identityProviderId: user.id as string,
+                identityProviderId: String(user.id),
               },
             });
 
@@ -463,7 +484,7 @@ export default NextAuth({
             name: user.name,
             email: user.email,
             identityProvider: idP,
-            identityProviderId: user.id as string,
+            identityProviderId: String(user.id),
           },
         });
         const linkAccountNewUserData = { ...account, userId: newUser.id };

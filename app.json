@@ -33,11 +33,6 @@
       "generator": "secret",
       "required": "true"
     },
-    "NEXT_PUBLIC_LICENSE_CONSENT": {
-      "description": "License consent",
-      "value": "true",
-      "required": "true"
-    },
     "CRON_API_KEY": {
       "description": "ApiKey for cronjobs",
       "value": ""
@@ -48,6 +43,10 @@
     },
     "SENDGRID_API_KEY": {
       "description": "Sendgrid api key. Used for email reminders in workflows",
+      "value": ""
+    },
+    "SENDGRID_SYNC_API_KEY": {
+      "description": "Sendgrid internal sync service",
       "value": ""
     },
     "SENDGRID_EMAIL": {

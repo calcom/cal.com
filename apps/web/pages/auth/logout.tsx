@@ -5,8 +5,7 @@ import { useEffect } from "react";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components/button";
+import { Button, Icon } from "@calcom/ui";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 

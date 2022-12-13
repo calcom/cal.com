@@ -12,8 +12,7 @@ import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { DecorateProcedure } from "@calcom/trpc/react/shared";
 import type { AnyQueryProcedure, inferProcedureInput, inferProcedureOutput } from "@calcom/trpc/server";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import { Alert } from "@calcom/ui/Alert";
-import Loader from "@calcom/ui/Loader";
+import { Alert, Loader } from "@calcom/ui";
 
 import type { UseTRPCQueryOptions } from "@trpc/react-query/shared";
 

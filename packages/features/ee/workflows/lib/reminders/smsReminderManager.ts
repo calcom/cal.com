@@ -10,6 +10,7 @@ import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
+import { getSenderId } from "../alphanumericSenderIdSupport";
 import * as twilio from "./smsProviders/twilioProvider";
 import customTemplate, { VariablesType } from "./templates/customTemplate";
 import smsReminderTemplate from "./templates/smsReminderTemplate";
@@ -57,6 +58,8 @@ export const scheduleSMSReminder = async (
   const timeUnit: timeUnitLowerCase | undefined = timeSpan.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase;
   let scheduledDate = null;
 
+  const senderID = getSenderId(reminderPhone, sender);
+
   if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
     scheduledDate = timeSpan.time && timeUnit ? dayjs(startTime).subtract(timeSpan.time, timeUnit) : null;
   } else if (triggerEvent === WorkflowTriggerEvents.AFTER_EVENT) {
@@ -98,7 +101,7 @@ export const scheduleSMSReminder = async (
       triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
     ) {
       try {
-        await twilio.sendSMS(reminderPhone, message, sender);
+        await twilio.sendSMS(reminderPhone, message, senderID);
       } catch (error) {
         console.log(`Error sending SMS with error ${error}`);
       }
@@ -117,7 +120,7 @@ export const scheduleSMSReminder = async (
             reminderPhone,
             message,
             scheduledDate.toDate(),
-            sender
+            senderID
           );
 
           await prisma.workflowReminder.create({

@@ -22,6 +22,7 @@ export const metadata = {
   variant: "other",
   verified: true,
   email: "support@tryvital.io",
+  dirName: "vital",
 } as AppMeta;
 
 export default metadata;

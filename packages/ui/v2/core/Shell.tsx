@@ -14,25 +14,34 @@ import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  COMPANY_NAME,
+  DESKTOP_APP_LINK,
+  JOIN_SLACK,
+  ROADMAP,
+  WEBAPP_URL,
+} from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import isCalcom from "@calcom/lib/isCalcom";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
-import Dropdown, {
+
+import {
+  Button,
+  Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@calcom/ui/Dropdown";
-import { Icon } from "@calcom/ui/Icon";
-import TimezoneChangeDialog from "@calcom/ui/TimezoneChangeDialog";
-import { Button } from "@calcom/ui/components/button";
-import showToast from "@calcom/ui/v2/core/notifications";
-import Tips from "@calcom/ui/v2/modules/tips/Tips";
+  Icon,
+  showToast,
+  TimezoneChangeDialog,
+  Tips,
+} from "../..";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
@@ -130,7 +139,7 @@ const Layout = (props: LayoutProps) => {
     <>
       {!props.withoutSeo && (
         <HeadSeo
-          title={pageTitle ?? "Cal.com"}
+          title={pageTitle ?? APP_NAME}
           description={props.subtitle ? props.subtitle?.toString() : ""}
           nextSeoProps={{
             nofollow: true,
@@ -181,6 +190,8 @@ type LayoutProps = {
   withoutMain?: boolean;
   // Gives you the option to skip HeadSEO and render your own.
   withoutSeo?: boolean;
+  // Gives the ability to include actions to the right of the heading
+  actions?: JSX.Element;
 };
 
 const CustomBrandingContainer = () => {
@@ -192,8 +203,6 @@ export default function Shell(props: LayoutProps) {
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
   useTheme("light");
-  const { session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
-  if (!session && !props.isPublic) return null;
 
   return (
     <KBarRoot>
@@ -303,7 +312,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                     mutation.mutate({ away: !user?.away });
                     utils.viewer.me.invalidate();
                   }}
-                  className="flex min-w-max cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
+                  className="flex w-full min-w-max cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
                   <Icon.FiMoon
                     className={classNames(
                       user.away
@@ -714,11 +723,8 @@ function DeploymentInfo() {
         fontSize: "0.5rem",
       }}
       className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
-      &copy; {new Date().getFullYear()} Cal.com, Inc. v.{pkg.version + "-"}
+      &copy; {new Date().getFullYear()} {COMPANY_NAME} v.{pkg.version + "-"}
       {process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"}
-      <span className="lowercase" data-testid={`plan-${user?.plan.toLowerCase()}`}>
-        -{user?.plan}
-      </span>
     </small>
   );
 }
@@ -838,6 +844,7 @@ export function ShellMain(props: LayoutProps) {
                 {props.CTA}
               </div>
             )}
+            {props.actions && props.actions}
           </header>
         )}
       </div>

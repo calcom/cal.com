@@ -3,8 +3,7 @@ import { useRouter } from "next/router";
 import { ReactNode, useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui";
-import { ListItem, ListItemText, ListItemTitle } from "@calcom/ui/v2/core/List";
+import { Icon, ListItem, ListItemText, ListItemTitle, showToast } from "@calcom/ui";
 
 import classNames from "@lib/classNames";
 
@@ -26,6 +25,13 @@ function IntegrationListItem(props: {
   const { hl } = router.query;
   const [highlight, setHighlight] = useState(hl === props.slug);
   const title = props.name || props.title;
+
+  // The highlight is to show a newly installed app, coming from the app's
+  // redirection after installation, so we proceed to show the corresponding
+  // message
+  if (highlight) {
+    showToast(t("app_successfully_installed"), "success");
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => setHighlight(false), 3000);

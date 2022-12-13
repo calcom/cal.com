@@ -7,8 +7,8 @@ import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Button } from "@calcom/ui/components/button";
+
+import { Button, Icon } from "../../..";
 
 interface Props {
   samlTenantID: string;

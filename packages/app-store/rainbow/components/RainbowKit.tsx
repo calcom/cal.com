@@ -1,25 +1,22 @@
 import {
   ConnectButton,
-  getDefaultWallets,
-  RainbowKitProvider,
   darkTheme,
+  getDefaultWallets,
   lightTheme,
+  RainbowKitProvider,
 } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Trans } from "react-i18next";
-import { configureChains, createClient, WagmiConfig } from "wagmi";
-import { useAccount, useSignMessage } from "wagmi";
+import { configureChains, createClient, useAccount, useSignMessage, WagmiConfig } from "wagmi";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/Icon";
-import { SkeletonText } from "@calcom/ui/v2";
-import showToast from "@calcom/ui/v2/core/notifications";
+import { Icon, showToast, SkeletonText } from "@calcom/ui";
 
-import { getProviders, ETH_MESSAGE, SUPPORTED_CHAINS } from "../utils/ethereum";
+import { ETH_MESSAGE, getProviders, SUPPORTED_CHAINS } from "../utils/ethereum";
 
 const { chains, provider } = configureChains(SUPPORTED_CHAINS, getProviders());
 

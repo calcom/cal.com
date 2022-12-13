@@ -1,9 +1,8 @@
-import React, { SyntheticEvent, useState } from "react";
+import { SyntheticEvent, useState } from "react";
 
 import { ErrorCode } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import Button from "@calcom/ui/Button";
-import showToast from "@calcom/ui/v2/core/notifications";
+import { Button, showToast } from "@calcom/ui";
 
 const ChangePasswordSection = () => {
   const [oldPassword, setOldPassword] = useState("");

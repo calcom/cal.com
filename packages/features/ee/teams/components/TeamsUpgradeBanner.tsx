@@ -2,8 +2,7 @@ import { useRouter } from "next/router";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { TopBanner } from "@calcom/ui/components";
-import { showToast } from "@calcom/ui/v2/core";
+import { showToast, TopBanner } from "@calcom/ui";
 
 export function TeamsUpgradeBanner() {
   const { t } = useLocale();

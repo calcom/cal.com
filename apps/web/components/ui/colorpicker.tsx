@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { HexColorInput, HexColorPicker } from "react-colorful";
 
 import { isValidHexCode, fallBackHex } from "@calcom/lib/CustomBranding";
-import { Swatch } from "@calcom/ui/v2";
+import { Swatch } from "@calcom/ui";
 
 type Handler = (event: MouseEvent | Event) => void;
 function useEventListener<
