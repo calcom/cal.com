@@ -129,7 +129,6 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
 }
 
 export default function AllApps({ apps, searchText, categories }: AllAppsPropsType) {
-  console.log("🚀 ~ file: AllApps.tsx:132 ~ AllApps ~ categories", categories);
   const router = useRouter();
   const { t } = useLocale();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
