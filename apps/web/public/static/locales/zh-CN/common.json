@@ -52,6 +52,7 @@
   "still_waiting_for_approval": "有活动正在等待您的批准",
   "event_is_still_waiting": "活动请求仍在等待中: {{attendeeName}} - {{date}} - {{eventType}}",
   "no_more_results": "无更多结果",
+  "no_results": "无结果",
   "load_more_results": "加载更多结果",
   "integration_meeting_id": "{{integrationName}} 会议 ID: {{meetingId}}",
   "confirmed_event_type_subject": "已确认: 和 {{name}} 在 {{date}} 的 {{eventType}}",
