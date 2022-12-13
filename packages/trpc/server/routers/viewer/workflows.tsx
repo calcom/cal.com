@@ -31,7 +31,7 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 
 import { TRPCError } from "@trpc/server";
 
-import { router, authedProcedure } from "../../trpc";
+import { router, authedProcedure, authedRateLimitedProcedure } from "../../trpc";
 
 export const workflowsRouter = router({
   list: authedProcedure.query(async ({ ctx }) => {
@@ -801,7 +801,7 @@ export const workflowsRouter = router({
         workflow,
       };
     }),
-  testAction: authedProcedure
+  testAction: authedRateLimitedProcedure({ intervalInMs: 10000, limit: 3 })
     .input(
       z.object({
         action: z.enum(WORKFLOW_ACTIONS),
