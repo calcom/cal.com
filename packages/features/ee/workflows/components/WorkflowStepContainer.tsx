@@ -12,7 +12,7 @@ import "react-phone-number-input/style.css";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
-import { trpc } from "@calcom/trpc/react";
+import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
   Button,
   Checkbox,
@@ -134,10 +134,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       showToast(t("notification_sent"), "success");
     },
     onError: (err) => {
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
+      let message = t("unexpected_error_try_again");
+      if (err instanceof TRPCClientError) {
+        if (err.message === "rate-limit-exceeded") {
+          message = t("rate_limit_exceeded");
+        }
       }
+      if (err instanceof HttpError) {
+        message = `${err.statusCode}: ${err.message}`;
+      }
+      showToast(message, "error");
     },
   });
 
