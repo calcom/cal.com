@@ -1438,5 +1438,6 @@
   "add_an_option": "Add an option",
   "radio": "Radio",
   "event_type_duplicate_copy_text": "{{slug}}-copy",
-  "set_as_default": "Set as default"
+  "set_as_default": "Set as default",
+  "hide_eventtype_details": "Hide EventType Details"
 }
