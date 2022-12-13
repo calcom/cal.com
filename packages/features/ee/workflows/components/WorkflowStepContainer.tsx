@@ -592,12 +592,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               );
 
               testActionMutation.mutate({
-                action: step.action,
+                workflowId,
+                step,
                 emailSubject: "",
                 reminderBody: reminderBody || "",
-                template: step.template,
-                sendTo: step.sendTo || "",
-                sender: step.sender || SENDER_ID,
               });
               setConfirmationDialogOpen(false);
             }}>
