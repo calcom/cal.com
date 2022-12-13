@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { CustomInputParsed, EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
+import type { CustomInputParsed, EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import short from "short-uuid";
@@ -36,7 +36,7 @@ const generateHashedLink = (id: number) => {
   return uid;
 };
 
-export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered, "eventType" | "team">) => {
+export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, "eventType" | "team">) => {
   const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();

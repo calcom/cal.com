@@ -1,5 +1,5 @@
 import { SchedulingType } from "@prisma/client/";
-import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
+import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useMemo } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
@@ -26,7 +26,7 @@ export const EventTeamTab = ({
   team,
   teamMembers,
   currentUserMembership,
-}: Pick<EventTypeSetupInfered, "eventType" | "teamMembers" | "team" | "currentUserMembership">) => {
+}: Pick<EventTypeSetupProps, "eventType" | "teamMembers" | "team" | "currentUserMembership">) => {
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
 

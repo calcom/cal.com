@@ -1,7 +1,8 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
+import { FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { MultiValue } from "react-select";
@@ -23,7 +24,7 @@ type OptionTypeBase = {
 };
 
 export const EventSetupTab = (
-  props: Pick<EventTypeSetupInfered, "eventType" | "locationOptions" | "team" | "teamMembers">
+  props: Pick<EventTypeSetupProps, "eventType" | "locationOptions" | "team" | "teamMembers">
 ) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();

@@ -15,8 +15,9 @@ import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
 import findDurationType from "@calcom/lib/findDurationType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
+import prisma from "@calcom/prisma";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { trpc } from "@calcom/trpc/react";
+import { trpc, RouterOutputs } from "@calcom/trpc/react";
 import type { BookingLimit, RecurringEvent } from "@calcom/types/Calendar";
 import { Form, showToast } from "@calcom/ui";
 
@@ -35,10 +36,6 @@ import { EventTeamTab } from "@components/eventtype/EventTeamTab";
 import { EventTeamWebhooksTab } from "@components/eventtype/EventTeamWebhooksTab";
 import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
 import EventWorkflowsTab from "@components/eventtype/EventWorkfowsTab";
-
-// import { getTranslation } from "@server/lib/i18n";
-
-// import { ssrInit } from "@server/lib/ssr";
 
 export type FormValues = {
   title: string;
@@ -107,42 +104,37 @@ const querySchema = z.object({
 });
 
 export type EventTypeSetupInfered = inferSSRProps<typeof getServerSideProps>;
+export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 
 const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
+  const router = useRouter();
+  const { tabName } = querySchema.parse(router.query);
 
   const { data: eventTypeApps } = trpc.viewer.apps.useQuery({
     extendsFeature: "EventType",
   });
 
-  const { data, isLoading } = trpc.viewer.eventTypes.get.useQuery(
-    { id: props.type },
-    {
-      async onSettled() {
-        await utils.viewer.eventTypes.get.invalidate();
-      },
-    }
-  );
+  const { data, isLoading } = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
   const eventType = data?.eventType ?? undefined;
   const locationOptions = data?.locationOptions ?? [];
   const team = data?.team ?? null;
   const teamMembers = data?.teamMembers ?? [];
 
-  const router = useRouter();
-  const { tabName } = querySchema.parse(router.query);
-
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
-    onSuccess: async ({ eventType: newEventType }) => {
-      // setEventType({ ...eventType, slug: newEventType.slug });
+    onSuccess: async () => {
       showToast(
         t("event_type_updated_successfully", {
           eventTypeTitle: eventType?.title,
         }),
         "success"
       );
+    },
+    async onSettled() {
+      await utils.viewer.eventTypes.get.invalidate();
     },
     onError: (err) => {
       let message = "";
@@ -252,7 +244,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         eventType={eventType}
         teamMembers={teamMembers}
         team={team}
-        currentUserMembership={data?.currentUserMembership}
+        currentUserMembership={data?.currentUserMembership ?? null}
       />
     ),
     limits: eventType && <EventLimitsTab eventType={eventType} />,
@@ -351,10 +343,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   if (Number.isNaN(typeParam)) {
     return {
-      redirect: {
-        permanent: false,
-        destination: "/404",
-      },
+      notFound: true,
     };
   }
 
@@ -364,6 +353,49 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         permanent: false,
         destination: "/auth/login",
       },
+    };
+  }
+
+  // check if event type exists or not
+  const rawEventType = await prisma.eventType.findFirst({
+    where: {
+      AND: [
+        {
+          OR: [
+            {
+              users: {
+                some: {
+                  id: session.user.id,
+                },
+              },
+            },
+            {
+              team: {
+                members: {
+                  some: {
+                    userId: session.user.id,
+                  },
+                },
+              },
+            },
+            {
+              userId: session.user.id,
+            },
+          ],
+        },
+        {
+          id: typeParam,
+        },
+      ],
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!rawEventType) {
+    return {
+      notFound: true,
     };
   }
 

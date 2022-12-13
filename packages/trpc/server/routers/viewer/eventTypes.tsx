@@ -442,7 +442,7 @@ export const eventTypesRouter = router({
           throw new TRPCError({ code: "BAD_REQUEST", message: "URL Slug already exists for given user." });
         }
       }
-      throw e;
+      throw new TRPCError({ code: "BAD_REQUEST" });
     }
   }),
   get: eventOwnerProcedure
@@ -658,7 +658,11 @@ export const eventTypesRouter = router({
           },
           select: userSelect,
         });
-        if (!fallbackUser) throw Error("The event type doesn't have user and no fallback user was found");
+        if (!fallbackUser)
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "The event type doesn't have user and no fallback user was found",
+          });
         eventType.users.push(fallbackUser);
       }
       const currentUser = eventType.users.find((u) => u.id === ctx.session.user.id);
