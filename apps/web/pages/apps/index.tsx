@@ -52,7 +52,11 @@ export default function Apps({
           <TrendingAppsSlider items={appStore} />
         </>
       )}
-      <AllApps apps={appStore} searchText={searchText} />
+      <AllApps
+        apps={appStore}
+        searchText={searchText}
+        categories={categories.map((category: string) => category.name)}
+      />
     </AppsLayout>
   );
 }
