@@ -30,6 +30,7 @@ interface IAddActionDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   addAction: (action: WorkflowActions, sendTo?: string, numberRequired?: boolean, sender?: string) => void;
+  isTeamsPlan?: boolean;
 }
 
 interface ISelectActionOption {
@@ -46,11 +47,11 @@ type AddActionFormValues = {
 
 export const AddActionDialog = (props: IAddActionDialog) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, addAction } = props;
+  const { isOpenDialog, setIsOpenDialog, addAction, isTeamsPlan } = props;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(false);
   const [isSenderIdNeeded, setIsSenderIdNeeded] = useState(false);
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(false);
-  const actionOptions = getWorkflowActionOptions(t);
+  const actionOptions = getWorkflowActionOptions(t, isTeamsPlan);
 
   const formSchema = z.object({
     action: z.enum(WORKFLOW_ACTIONS),
@@ -131,6 +132,11 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                         defaultValue={actionOptions[0]}
                         onChange={handleSelectAction}
                         options={actionOptions}
+                        isOptionDisabled={(option: {
+                          label: string;
+                          value: WorkflowActions;
+                          disabled: boolean;
+                        }) => option.disabled}
                       />
                     );
                   }}

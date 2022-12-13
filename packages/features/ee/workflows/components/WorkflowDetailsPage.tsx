@@ -160,6 +160,7 @@ export default function WorkflowDetailsPage(props: Props) {
         isOpenDialog={isAddActionDialogOpen}
         setIsOpenDialog={setIsAddActionDialogOpen}
         addAction={addAction}
+        isTeamsPlan={isTeamsPlan}
       />
       <DeleteDialog
         isOpenDialog={deleteDialogOpen}
