@@ -1,4 +1,4 @@
-import { App_RoutingForms_Form } from ".prisma/client";
+import { App_RoutingForms_Form } from "@calcom/prisma/client";
 
 export default async function getConnectedForms(
   prisma: typeof import("@calcom/prisma").default,
