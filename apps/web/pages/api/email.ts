@@ -23,8 +23,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     },
     attendees: [
       {
-        email: "john@example.com",
-        name: "John Doe",
+        email: "pro@example.com",
+        name: "pro@example.com",
         timeZone: "America/Chihuahua",
         language,
       },
