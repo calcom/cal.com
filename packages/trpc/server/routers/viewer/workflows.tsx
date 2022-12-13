@@ -804,17 +804,49 @@ export const workflowsRouter = router({
   testAction: authedProcedure
     .input(
       z.object({
-        action: z.enum(WORKFLOW_ACTIONS),
+        workflowId: z.number(),
+        step: z.object({
+          id: z.number(),
+          stepNumber: z.number(),
+          action: z.enum(WORKFLOW_ACTIONS),
+          workflowId: z.number(),
+          sendTo: z.string().optional().nullable(),
+          reminderBody: z.string().optional().nullable(),
+          emailSubject: z.string().optional().nullable(),
+          template: z.enum(WORKFLOW_TEMPLATES),
+          numberRequired: z.boolean().nullable(),
+          sender: z.string().optional().nullable(),
+        }),
         emailSubject: z.string(),
         reminderBody: z.string(),
-        template: z.enum(WORKFLOW_TEMPLATES),
-        sendTo: z.string().optional(),
-        sender: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { action, emailSubject, reminderBody, template, sendTo, sender } = input;
+      const { user } = ctx;
+      const { step, emailSubject, reminderBody } = input;
+      const { action, template, sendTo, sender } = step;
+
+      const senderID = sender || SENDER_ID;
+
       try {
+        const userWorkflow = await ctx.prisma.workflow.findUnique({
+          where: {
+            id: step.workflowId,
+          },
+          select: {
+            userId: true,
+            steps: true,
+          },
+        });
+
+        if (
+          !userWorkflow ||
+          userWorkflow.userId !== user.id ||
+          userWorkflow.steps.find((userWorkflow) => userWorkflow.workflowId != step.workflowId)
+        ) {
+          throw new TRPCError({ code: "UNAUTHORIZED" });
+        }
+
         const booking = await ctx.prisma.booking.findFirst({
           orderBy: {
             createdAt: "desc",
@@ -898,7 +930,7 @@ export const workflowsRouter = router({
             reminderBody,
             0,
             template,
-            sender || SENDER_ID
+            senderID
           );
           return { message: "Notification sent" };
         }
