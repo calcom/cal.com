@@ -165,11 +165,12 @@ export default class Office365CalendarService implements Calendar {
     }
     return responseBody?.value.map((cal: OfficeCalendar) => {
       const calendar: IntegrationCalendar = {
-        externalId: cal.owner.address ?? "No Id",
+        externalId: cal.id ?? "No Id",
         integration: this.integrationName,
         name: cal.name ?? "No calendar name",
         primary: cal.isDefaultCalendar ?? false,
         readOnly: !cal.canEdit && true,
+        email: cal.owner?.address ?? "No Address",
       };
       return calendar;
     });
