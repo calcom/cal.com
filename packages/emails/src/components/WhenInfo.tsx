@@ -3,21 +3,27 @@ import { RRule } from "rrule";
 
 import dayjs from "@calcom/dayjs";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
 
-function getRecurringWhen({ calEvent }: { calEvent: CalendarEvent }) {
-  if (calEvent.recurringEvent) {
-    const t = calEvent.attendees[0].language.translate;
-    const rruleOptions = new RRule(calEvent.recurringEvent).options;
-    const recurringEvent: RecurringEvent = {
+export function getRecurringWhen({
+  recurringEvent,
+  attendee,
+}: {
+  recurringEvent?: RecurringEvent | null;
+  attendee: Pick<Person, "language">;
+}) {
+  if (recurringEvent) {
+    const t = attendee.language.translate;
+    const rruleOptions = new RRule(recurringEvent).options;
+    const recurringEventConfig: RecurringEvent = {
       freq: rruleOptions.freq,
       count: rruleOptions.count || 1,
       interval: rruleOptions.interval,
     };
-    return ` - ${getEveryFreqFor({ t, recurringEvent })}`;
+    return `${getEveryFreqFor({ t, recurringEvent: recurringEventConfig })}`;
   }
   return "";
 }
@@ -33,10 +39,15 @@ export function WhenInfo(props: { calEvent: CalendarEvent; timeZone: string; t: 
     return dayjs(props.calEvent.endTime).tz(timeZone).format(format);
   }
 
+  const recurringInfo = getRecurringWhen({
+    recurringEvent: props.calEvent.recurringEvent,
+    attendee: props.calEvent.attendees[0],
+  });
+
   return (
     <div>
       <Info
-        label={`${t("when")} ${getRecurringWhen(props)}`}
+        label={`${t("when")} ${recurringInfo !== "" ? ` - ${recurringInfo}` : ""}`}
         lineThrough={
           !!props.calEvent.cancellationReason && !props.calEvent.cancellationReason.includes("$RCH$")
         }
