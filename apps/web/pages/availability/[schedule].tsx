@@ -102,13 +102,13 @@ export default function Availability({ schedule }: { schedule: number }) {
           const newValue = {
             start: dayjs
               .utc(override.date)
-              .hour(override.startTime.getHours())
-              .minute(override.startTime.getMinutes())
+              .hour(override.startTime.getUTCHours())
+              .minute(override.startTime.getUTCMinutes())
               .toDate(),
             end: dayjs
               .utc(override.date)
-              .hour(override.endTime.getHours())
-              .minute(override.endTime.getMinutes())
+              .hour(override.endTime.getUTCHours())
+              .minute(override.endTime.getUTCMinutes())
               .toDate(),
           };
           const dayRangeIndex = acc.findIndex(
