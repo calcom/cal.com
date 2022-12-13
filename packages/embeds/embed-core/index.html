@@ -1,5 +1,6 @@
 <html>
   <head>
+    <title>Embed Playground</title>
     <!-- <link rel="prerender" href="http://localhost:3000/free"> -->
     <!-- <script src="./src/embed.ts" type="module"></script> -->
     <script>
@@ -9,8 +10,8 @@
       (()=> {
         const url = new URL(document.URL);
         // Only run the example specified by only=, avoids distraction and faster to test.
-        const only = url.searchParams.get("only");
-        const elementIdentifier = only ? only.replace("ns:",""): null
+        const only = window.only = url.searchParams.get("only");
+        const elementIdentifier = only !== "all" ? only.replace("ns:",""): null
         if (elementIdentifier) {
           location.hash="#cal-booking-place-" + elementIdentifier + "-iframe"
         }
@@ -56,9 +57,10 @@
           rgba(148, 232, 249, 1) 100%
         );
       }
-      .debug {
+      .inline-embed-container {
         /* border: 1px solid black; */
         margin-bottom: 5px;
+        border-bottom: 1px solid
       }
 
       .loader {
@@ -70,19 +72,26 @@
     </style>
   </head>
   <body>
-    <h3>This page has a non responsive version accessible <a href="?nonResponsive">here</a></h3>
-    <h3>Pre-render test page available at <a href="?only=prerender-test">here</a></h3>
+    <span style="display: block;" ><a href="?nonResponsive">Non responsive version of this page here</a></span>
+    <span style="display: block;" ><a  href="?only=prerender-test">Go to Pre-render test page only</a><small></small></span>
     <div>
-      <button data-cal-namespace="prerendertestLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="free?light&popup">Book with Free User[Light Theme]</button>
-      <div>
-        <i
-          >Corresponding Cal Link is being preloaded. Assuming that it would take you some time to click this
-          as you are reading this text, it would open up super fast[If you are running a production build on
-          local]. Try switching to slow 3G or create a custom Network configuration which is impossibly
-          slow</i
-        >
-      </div>
-      <h2>Other Popup Examples</h2>
+      <script>
+        if (only === "all" || only === "prerender-test") {
+          document.write(`
+          <button data-cal-namespace="prerendertestLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="free?light&popup">Book with Free User[Light Theme]</button>
+          <i
+            >Corresponding Cal Link is being preloaded. Assuming that it would take you some time to click this
+            as you are reading this text, it would open up super fast[If you are running a production build on
+            local]. Try switching to slow 3G or create a custom Network configuration which is impossibly
+            slow</i
+          >`)
+        }
+    </script>
+    </div>
+    <span style="display: block;" ><a href="?only=all">Render All embeds together</a><small> - It would be slow to load</small></span>
+    <div>
+
+      <h2>Popup Examples</h2>
       <button data-cal-namespace="popupAutoTheme" data-cal-link="free">Book with Free User[Auto Theme]</button>
       <button data-cal-namespace="popupDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="free">Book with Free User[Dark Theme]</button>
       <button data-cal-namespace="popupTeamLinkLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="team/seeded-team/collective-seeded-team-event">Book with Test Team[Light Theme]</button>
@@ -90,35 +99,28 @@
       <button data-cal-namespace="popupTeamLinksList" data-cal-link="team/seeded-team/">See Team Links [Auto Theme]</button>
       <button data-cal-namespace="popupReschedule" data-cal-link="reschedule/qm3kwt3aTnVD7vmP9tiT2f">Reschedule Event[Auto Theme]</button>
       <button data-cal-namespace="popupPaidEvent" data-cal-link="pro/paid">Book Paid Event [Auto Theme]</button>
+      <button data-cal-namespace="popupHideEventTypeDetails" data-cal-link="free/30min">Book Free Event [Auto Theme][uiConfig.hideEventTypeDetails=true]</button>
       <button data-cal-namespace="routingFormAuto" data-cal-link="forms/948ae412-d995-4865-875a-48302588de03">Book through Routing Form [Auto Theme]</button>
       <button data-cal-namespace="routingFormDark" data-cal-config='{"theme":"dark"}' data-cal-link="forms/948ae412-d995-4865-875a-48302588de03">Book through Routing Form [Dark Theme]</button>
-      <div>
+      <!-- <div>
         <h2>Embed for Pages behind authentication</h2>
         <button data-cal-namespace="upcomingBookings" data-cal-config='{"theme":"dark"}' data-cal-link="bookings/upcoming">Show Upcoming Bookings</button>
-      </div>
+      </div> -->
     </div>
+    <h2>Inline Embed Examples</h2>
     <div id="namespaces-test">
-      <div class="debug" id="cal-booking-place-default">
-        <h2>
-          Default Namespace(Cal)<i>[Dark Theme][inline][Guests(janedoe@example.com and test@example.com)]</i>
-        </h2>
-        <div>
-          <i><a href="?only=ns:default">Test in Zen Mode</a></i>
-        </div>
+      <div class="inline-embed-container" id="cal-booking-place-default">
+        <h3>
+          <a href="?only=ns:default">[Dark Theme][Guests(janedoe@example.com and test@example.com)]</a>
+        </h3>
         <i class="last-action"> You would see last Booking page action in my place </i>
         <div >
           <div class="place" style="width:100%;"></div>
-          <div class="loader" id="cal-booking-loader-">Loading .....</div>
+          <div class="loader" id="cal-booking-loader-"></div>
         </div>
       </div>
-      <div class="debug" id="cal-booking-place-second">
-        <h2>Namespace "second"(Cal.ns.second)[Custom Styling][inline]</h2>
-        <div>
-          <i><a href="?only=ns:second">Test in Zen Mode</a></i>
-        </div>
-        <i class="last-action">
-          <i>You would see last Booking page action in my place</i>
-        </i>
+      <div class="inline-embed-container" id="cal-booking-place-second">
+        <h3><a href="?only=ns:second">[Custom Styling]</a></h3>
         <div class="place">
           <div>If you render booking embed in me, I won't restrict you. The entire page is yours. Content is by default aligned center</div>
           <button
@@ -143,71 +145,48 @@
             Change Date Button Color
           </button>
           
-          <div class="loader" id="cal-booking-loader-second">Loading .....</div>
         </div>
       </div>
-
-      <div class="debug" id="cal-booking-place-third">
-        <h2>Namespace "third"(Cal.ns.third)[inline][Custom Styling - Transparent Background]</h2>
-        <div>
-          <i><a href="?only=ns:third">Test in Zen Mode</a></i>
-        </div>
-        <i class="last-action">
-          <i>You would see last Booking page action in my place</i>
-        </i>
+      <div class="inline-embed-container" id="cal-booking-place-third">
+        <h3><a href="?only=ns:third">[Custom Styling - Transparent Background]</a></h3>
         <div style="width: 30%" class="place">
           <div>If you render booking embed in me, I would not let you be more than 30% wide</div>
-          <div class="loader" id="cal-booking-loader-third">Loading .....</div>
         </div>
       </div>
-
-      <div class="debug" id="cal-booking-place-fourth">
-        <h2>Namespace "fourth"(Cal.ns.fourth)[Team Event Test][inline taking entire width]</h2>
-        <div>
-          <i><a href="?only=ns:fourth">Test in Zen Mode</a></i>
-        </div>
-        <i class="last-action">
-          <i>You would see last Booking page action in my place</i>
-        </i>
+      <div class="inline-embed-container" id="cal-booking-place-fourth">
+        <h3><a href="?only=ns:fourth">[Team Event Test][inline taking entire width]</a></h3>
         <div style="width: 30%" class="place">
           <div>If you render booking embed in me, I would not let you be more than 30% wide</div>
-          <div class="loader" id="cal-booking-loader-third">Loading .....</div>
         </div>
       </div>
     </div>
 
-    <div class="debug" id="cal-booking-place-fifth">
-      <h2>Namespace "fifth"(Cal.ns.fifth)[Team Event Test][inline along with some content]</h2>
-      <div>
-        <i><a href="?only=ns:fifth">Test in Zen Mode</a></i>
-      </div>
-      <i class="last-action">
-        <i>You would see last Booking page action in my place</i>
-      </i>
+    <div class="inline-embed-container" id="cal-booking-place-fifth">
+      <h3><a href="?only=ns:fifth">[Team Event Test][inline along with some content]</a></h3>
       <div style="display:flex;align-items: center;">
-        <h2 style="width: 30%">
+        <h4 style="width: 30%">
           On the right side you can book a team meeting =>
-        </h2>
+        </h4>
         <div style="width: 70%" class="place">
         </div>
       </div>
     </div>
-    <div class="debug" id="cal-booking-place-inline-routing-form">
-      <h2>Inline Routing Form</h2>
-      <div>
-        <i><a href="?only=inline-routing-form">Test in Zen Mode</a></i>
-      </div>
-      <i class="last-action">
-        <i>You would see last Booking page action in my place</i>
-      </i>
+    <div class="inline-embed-container" id="cal-booking-place-inline-routing-form">
+      <h3><a href="?only=inline-routing-form">Inline Routing Form</a></h3>
       <div style="display:flex;align-items: center;">
-        <h2 style="width: 30%">
+        <h4 style="width: 30%">
           On the right side you can book a team meeting =>
-        </h2>
+        </h4>
         <div style="width: 70%" class="place">
         </div>
       </div>
     </div>
+    <div class="inline-embed-container" id="cal-booking-place-hideEventTypeDetails">
+      <h3><a href="?only=hideEventTypeDetails">Hide EventType Details Test</a></h3>
+      <div class="place">
+      </div>
+    </div>
+    
 
     <script>
       const callback = function (e) {
@@ -224,8 +203,8 @@
         );
       };
       const searchParams = new URL(document.URL).searchParams;
-      const only = searchParams.get("only");
-      if (!only || only === "ns:default") {
+      let only = window.only
+      if (only === "all" || only === "ns:default") {
         Cal("init", {
           debug: 1,
           origin: "http://localhost:3000",
@@ -251,7 +230,7 @@
           callback,
         });
       }
-      if (!only || only === "ns:second") {
+      if (only === "all" || only === "ns:second") {
         // Create a namespace "second". It can be accessed as Cal.ns.second with the exact same API as Cal
         Cal("init", "second", {
           debug: 1,
@@ -278,8 +257,7 @@
           callback,
         });
       }
-
-      if (!only || only === "ns:third") {
+      if (only === "all" || only === "ns:third") {
         // Create a namespace "third". It can be accessed as Cal.ns.second with the exact same API as Cal
         Cal("init", "third", {
           debug: 1,
@@ -329,8 +307,7 @@
           callback,
         });
       }
-
-      if (!only || only === "ns:fourth") {
+      if (only === "all" || only === "ns:fourth") {
         Cal("init", "fourth", {
           debug: 1,
           origin: "http://localhost:3000",
@@ -372,7 +349,7 @@
           callback,
         });
       }
-      if (!only || only === "ns:fifth") {
+      if (only === "all" || only === "ns:fifth") {
         Cal("init", "fifth", {
           debug: 1,
           origin: "http://localhost:3000",
@@ -396,7 +373,7 @@
           callback,
         });
       }
-      if (!only || only === "prerender-test") {
+      if (only === "all" || only === "prerender-test") {
         Cal('init', 'prerendertestLightTheme', {
           debug: 1,
           origin: "http://localhost:3000",
@@ -406,7 +383,7 @@
         });
       }
 
-      if (!only || only === "inline-routing-form") {
+      if (only === "all" || only === "inline-routing-form") {
         Cal('init', 'inline-routing-form', {
           debug: 1,
           origin: "http://localhost:3000",
@@ -427,11 +404,45 @@
         );
       }
 
+      if (only === "all" || only === "hideEventTypeDetails") {
+        let identifier = "hideEventTypeDetails"
+        Cal('init', identifier, {
+          debug: 1,
+          origin: "http://localhost:3000",
+        })
+        
+        Cal.ns.hideEventTypeDetails([
+          ['inline', {
+            elementOrSelector: `#cal-booking-place-${identifier} .place`,
+            calLink: "free/30min",
+            config: {
+                iframeAttrs: {
+                  id: `cal-booking-place-${identifier}-iframe`
+                },
+              }
+          }],
+          [
+            'ui', {
+              hideEventTypeDetails:true
+            }
+          ]
+        ]);
+      }
+
       Cal('init', 'popupDarkTheme', {
         debug: 1,
         origin: "http://localhost:3000",
       })
       
+      Cal('init', 'popupHideEventTypeDetails', {
+        debug: 1,
+        origin: "http://localhost:3000",
+      });
+      
+      Cal.ns.popupHideEventTypeDetails('ui', {
+        hideEventTypeDetails:true
+      });
+
       Cal('init', 'popupReschedule', {
         debug: 1,
         origin: "http://localhost:3000",
@@ -481,7 +492,7 @@
       })
 
 
-      if (!only  || only == "ns:floatingButton") {
+      if (only === "all"  || only == "ns:floatingButton") {
         Cal.ns.floatingButton("floatingButton", {
           calLink: "pro"
         })
