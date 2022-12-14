@@ -1,17 +1,15 @@
-import { GetStaticPaths, GetStaticProps } from "next";
-import { useEffect } from "react";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { GetServerSidePropsContext } from "next";
+import { Controller, useFieldArray, useForm, UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 
-import dayjs from "@calcom/dayjs";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import Schedule from "@calcom/features/schedules/components/Schedule";
 import { availabilityAsString, getWorkingHours } from "@calcom/lib/availability";
-import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
-import { trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
   Button,
@@ -33,7 +31,7 @@ import { HttpError } from "@lib/core/http/error";
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import EditableHeading from "@components/ui/EditableHeading";
 
-import { ssgInit } from "@server/lib/ssg";
+import { ssrInit } from "@server/lib/ssr";
 
 const querySchema = z.object({
   schedule: stringOrNumber,
@@ -288,24 +286,19 @@ export default function Availability({ schedule }: { schedule: number }) {
   );
 }
 
-export const getStaticProps: GetStaticProps = async (ctx) => {
+export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const params = querySchema.safeParse(ctx.params);
-  const ssg = await ssgInit(ctx);
+  const ssr = await ssrInit(ctx);
 
   if (!params.success) return { notFound: true };
 
+  const scheduleId = params.data.schedule;
+  await ssr.viewer.availability.schedule.get.fetch({ scheduleId });
+  await ssr.viewer.availability.getInitialData.fetch({ scheduleId });
   return {
     props: {
-      schedule: params.data.schedule,
-      trpcState: ssg.dehydrate(),
+      schedule: scheduleId,
+      trpcState: ssr.dehydrate(),
     },
-    revalidate: 10, // seconds
-  };
-};
-
-export const getStaticPaths: GetStaticPaths = () => {
-  return {
-    paths: [],
-    fallback: "blocking",
   };
 };
