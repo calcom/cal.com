@@ -1,5 +1,6 @@
 import {
   TimeUnit,
+  VerifiedNumber,
   WorkflowActions,
   WorkflowStep,
   WorkflowTemplates,
@@ -32,6 +33,7 @@ import {
   showToast,
   TextArea,
   TextField,
+  Badge,
 } from "@calcom/ui";
 
 import { AddVariablesDropdown } from "../components/AddVariablesDropdown";
@@ -50,11 +52,12 @@ type WorkflowStepProps = {
   form: UseFormReturn<FormValues>;
   reload?: boolean;
   setReload?: Dispatch<SetStateAction<boolean>>;
+  verifiedNumbers: VerifiedNumber[];
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
-  const { step, form, reload, setReload } = props;
+  const { step, form, reload, setReload, verifiedNumbers } = props;
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
 
@@ -111,6 +114,14 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const refReminderBody = useRef<HTMLTextAreaElement | null>(null);
 
+  const [numberVerified, setNumberVerified] = useState(
+    verifiedNumbers && step
+      ? !!verifiedNumbers.find(
+          (verified) => verified.phoneNumber === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
+        )
+      : false
+  );
+
   const addVariable = (variable: string, isEmailSubject?: boolean) => {
     if (step) {
       if (isEmailSubject) {
@@ -138,8 +149,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   });
 
   const verifyPhoneNumberMutation = trpc.viewer.workflows.verifyPhoneNumber.useMutation({
-    onSuccess: async () => {
-      showToast(t("verified"), "success");
+    onSuccess: async (isVerified) => {
+      showToast(isVerified ? t("verified") : t("wrong_code"), "success");
+      setNumberVerified(isVerified);
+    },
+    onError: (err) => {
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+        setNumberVerified(false);
+      }
     },
   });
 
@@ -325,7 +344,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setIsSenderIdNeeded(true);
                               setIsEmailAddressNeeded(false);
                               setIsPhoneNumberNeeded(val.value === WorkflowActions.SMS_NUMBER);
-
+                              setNumberVerified(false);
                               if (!wasSMSAction) {
                                 form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
                               }
@@ -373,9 +392,17 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           id={`steps.${step.stepNumber - 1}.sendTo`}
                           className="rounded-tl-md rounded-bl-md border-r-transparent"
                           required
+                          onChange={() => {
+                            const isAlreadyVerified = !!verifiedNumbers.find(
+                              (verified) =>
+                                verified.phoneNumber === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
+                            );
+                            setNumberVerified(isAlreadyVerified);
+                          }}
                         />
                         <Button
                           color="secondary"
+                          disabled={numberVerified || false}
                           className="-ml-[3px] h-[40px] w-32 rounded-tl-none rounded-bl-none "
                           onClick={() =>
                             sendVerificationCodeMutation.mutate({
@@ -392,28 +419,37 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                             {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
                           </p>
                         )}
-
-                      <div className="mt-3 flex">
-                        <TextField
-                          className="border-r-transparent"
-                          placeholder="Verification code"
-                          value={verificationCode}
-                          onChange={(e) => {
-                            setVerificationCode(e.target.value);
-                          }}
-                        />
-                        <Button
-                          color="secondary"
-                          className=" -ml-[3px] rounded-tl-none rounded-bl-none "
-                          onClick={() =>
-                            verifyPhoneNumberMutation.mutate({
-                              phoneNumber: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
-                              code: verificationCode,
-                            })
-                          }>
-                          Verify
-                        </Button>
-                      </div>
+                      {numberVerified ? (
+                        <div className="mt-1">
+                          <Badge variant="green">Number Verified</Badge>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="mt-3 flex">
+                            <TextField
+                              className="border-r-transparent"
+                              placeholder="Verification code"
+                              value={verificationCode}
+                              onChange={(e) => {
+                                setVerificationCode(e.target.value);
+                              }}
+                              required
+                            />
+                            <Button
+                              color="secondary"
+                              className="-ml-[3px] rounded-tl-none rounded-bl-none "
+                              disabled={verifyPhoneNumberMutation.isLoading}
+                              onClick={() => {
+                                verifyPhoneNumberMutation.mutate({
+                                  phoneNumber: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
+                                  code: verificationCode,
+                                });
+                              }}>
+                              Verify
+                            </Button>
+                          </div>
+                        </>
+                      )}
                     </>
                   )}
                   {isSenderIdNeeded && (

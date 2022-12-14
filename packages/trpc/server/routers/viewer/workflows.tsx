@@ -1005,8 +1005,20 @@ export const workflowsRouter = router({
         code: z.string(),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       const { phoneNumber, code } = input;
-      verifyPhoneNumber(phoneNumber, code);
+      const { user } = ctx;
+      const verifyStatus = await verifyPhoneNumber(phoneNumber, code, user.id);
+      return verifyStatus;
     }),
+  getVerifiedNumbers: authedProcedure.query(async ({ ctx }) => {
+    const { user } = ctx;
+    const verifiedNumbers = await ctx.prisma.verifiedNumber.findMany({
+      where: {
+        userId: user.id,
+      },
+    });
+
+    return verifiedNumbers;
+  }),
 });

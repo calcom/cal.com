@@ -104,8 +104,11 @@ function WorkflowPage() {
     }
   );
 
+  const { data: verifiedNumbers, isLoading: isLoadingVerifiedNumbers } =
+    trpc.viewer.workflows.getVerifiedNumbers.useQuery();
+
   useEffect(() => {
-    if (workflow && !isLoading) {
+    if (workflow && !isLoading && !isLoadingVerifiedNumbers) {
       setSelectedEventTypes(
         workflow.activeOn.map((active) => ({
           value: String(active.eventType.id),
@@ -145,7 +148,7 @@ function WorkflowPage() {
       form.setValue("activeOn", activeOn || []);
       setIsAllDataLoaded(true);
     }
-  }, [isLoading]);
+  }, [isLoading, isLoadingVerifiedNumbers]);
 
   const updateMutation = trpc.viewer.workflows.update.useMutation({
     onSuccess: async ({ workflow }) => {
@@ -244,6 +247,7 @@ function WorkflowPage() {
                     workflowId={+workflowId}
                     selectedEventTypes={selectedEventTypes}
                     setSelectedEventTypes={setSelectedEventTypes}
+                    verifiedNumbers={verifiedNumbers}
                   />
                 </>
               ) : (

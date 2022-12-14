@@ -1,4 +1,4 @@
-import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
+import { WorkflowActions, WorkflowTemplates, VerifiedNumber } from "@prisma/client";
 import { useRouter } from "next/router";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
@@ -22,10 +22,11 @@ interface Props {
   workflowId: number;
   selectedEventTypes: Option[];
   setSelectedEventTypes: Dispatch<SetStateAction<Option[]>>;
+  verifiedNumbers: VerifiedNumber[];
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const { form, workflowId, selectedEventTypes, setSelectedEventTypes } = props;
+  const { form, workflowId, selectedEventTypes, setSelectedEventTypes, verifiedNumbers } = props;
   const { t } = useLocale();
   const router = useRouter();
 
@@ -135,6 +136,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     step={step}
                     reload={reload}
                     setReload={setReload}
+                    verifiedNumbers={verifiedNumbers}
                   />
                 );
               })}
