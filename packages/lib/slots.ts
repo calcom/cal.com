@@ -7,7 +7,7 @@ export type GetSlots = {
   inviteeDate: Dayjs;
   frequency: number;
   workingHours: WorkingHours[];
-  dateOverrides: DateOverride[];
+  dateOverrides?: DateOverride[];
   minimumBookingNotice: number;
   eventLength: number;
 };
@@ -94,7 +94,7 @@ const getSlots = ({
   frequency,
   minimumBookingNotice,
   workingHours,
-  dateOverrides,
+  dateOverrides = [],
   eventLength,
 }: GetSlots) => {
   // current date in invitee tz
