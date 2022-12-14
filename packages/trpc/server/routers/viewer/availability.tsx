@@ -310,6 +310,8 @@ export const availabilityRouter = router({
           },
           select: {
             userId: true,
+            name: true,
+            id: true,
           },
         });
 
@@ -333,6 +335,7 @@ export const availabilityRouter = router({
           // but in the current logic, this wipes the existing availability.
           // Return early to prevent this from happening.
           return {
+            schedule: userSchedule,
             isDefault: updatedUser
               ? updatedUser.defaultScheduleId === input.scheduleId
               : user.defaultScheduleId === input.scheduleId,
