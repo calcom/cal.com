@@ -52,6 +52,7 @@ export {
   SkeletonAvatar,
   SkeletonButton,
   SkeletonContainer,
+  OptionComponentWithIcon,
   SkeletonText,
   Swatch,
   Switch,

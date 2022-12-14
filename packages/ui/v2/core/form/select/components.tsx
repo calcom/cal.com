@@ -158,3 +158,28 @@ export const MenuListComponent = <
     )}
   />
 );
+
+export const OptionComponentWithIcon = <
+  Option,
+  IsMulti extends boolean = false,
+  Group extends GroupBase<Option> = GroupBase<Option>
+>({
+  className,
+  ...props
+}: OptionProps<Option, IsMulti, Group>) => {
+  return (
+    <reactSelectComponents.Option
+      {...props}
+      className={classNames(
+        className,
+        "dark:bg-darkgray-100 item-center !flex !cursor-pointer !py-3 text-sm font-medium leading-5 ",
+        props.isFocused && "dark:!bg-darkgray-200 !bg-gray-100",
+        props.isSelected && "dark:!bg-darkgray-300 !bg-gray-200 !text-gray-900"
+      )}>
+      {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+      {/* @ts-ignore React select makes this really awkward to type*/}
+      {props.data.icon && <div className="my-auto mr-3 h-4 w-4">{props.data.icon}</div>}
+      <span>{props.label}</span> {props.isSelected && <Icon.FiCheck className="my-auto ml-auto h-4 w-4" />}
+    </reactSelectComponents.Option>
+  );
+};

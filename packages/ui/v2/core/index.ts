@@ -33,6 +33,7 @@ export {
   Select,
   SelectField,
   SelectWithValidation,
+  OptionComponentWithIcon,
 } from "./form";
 export { default as LinkIconButton } from "./LinkIconButton";
 export { List, ListItem } from "./List";

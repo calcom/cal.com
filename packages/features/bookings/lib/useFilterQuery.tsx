@@ -43,14 +43,14 @@ export function useFilterQuery() {
   const push = (key: Required<Keys>, item: string | number) => {
     const newData = data;
     const search = new URLSearchParams();
-    const keyData = data[key] ?? ([] as number[] | string[]);
+    const keyData = data[key] ?? [];
     // parse item to make sure it fits the schema and then add it to the array
     const itemParsed = filterSingleSchema.shape[key].parse(item);
     if (!itemParsed) return;
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore I have no idea how to type this?
-    newData[key] = [...keyData, itemParsed];
+    const itemWithArray = [...keyData, itemParsed] as string[] & number[];
+
+    newData[key] = itemWithArray;
 
     Object.entries(newData).forEach(([key, value]) => {
       if (value) {
@@ -62,8 +62,56 @@ export function useFilterQuery() {
   };
 
   const pop = (key: Required<Keys>, item: string | number) => {
-    return;
+    // Pop item from array
+    const newData = data;
+    const search = new URLSearchParams();
+    const keyData = (data[key] as string[] & number[]) ?? [];
+    const itemParsed = filterSingleSchema.shape[key].parse(item);
+    if (!itemParsed) return;
+
+    const itemWithArray = keyData.filter((a: string | number) => a !== itemParsed) as string[] & number[];
+
+    newData[key] = itemWithArray;
+
+    Object.entries(newData).forEach(([key, value]) => {
+      if (value.length > 0) {
+        search.append(key, value.toString());
+      }
+    });
+    router.push({ query: search.toString() }, undefined, { shallow: true });
   };
 
-  return { data, push, pop };
+  const set = (key: Required<Keys>, item: string | number) => {
+    // Set item to array
+    const newData = data;
+    const search = new URLSearchParams();
+    const itemParsed = filterSingleSchema.shape[key].parse(item);
+    if (!itemParsed) return;
+
+    newData[key] = [itemParsed] as string[] & number[];
+
+    Object.entries(newData).forEach(([key, value]) => {
+      if (value) {
+        search.append(key, value.toString());
+      }
+    });
+    router.push({ query: search.toString() }, undefined, { shallow: true });
+  };
+
+  const clear = (schemaKey: Required<Keys>) => {
+    // Clear item from array
+    const newData = data;
+    const search = new URLSearchParams();
+    newData[schemaKey] = [];
+
+    Object.entries(newData).forEach(([key, value]) => {
+      if (value) {
+        search.append(key, value.toString());
+      }
+    });
+    search.delete(schemaKey);
+    router.push({ query: search.toString() }, undefined, { shallow: true });
+  };
+
+  return { data, push, pop, set, clear };
 }
