@@ -55,7 +55,7 @@ export default function Apps({
       <AllApps
         apps={appStore}
         searchText={searchText}
-        categories={categories.map((category: string) => category.name)}
+        categories={categories.map((category) => category.name)}
       />
     </AppsLayout>
   );
