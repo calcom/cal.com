@@ -11,12 +11,14 @@ const DateOverrideList = ({
   remove,
   update,
   workingHours,
+  excludedDates = [],
 }: {
   remove: UseFieldArrayRemove;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   update: any;
   items: { ranges: TimeRange[]; id: string }[];
   workingHours: WorkingHours[];
+  excludedDates?: string[];
 }) => {
   const { t, i18n } = useLocale();
   if (!items.length) {
@@ -59,6 +61,7 @@ const DateOverrideList = ({
           </div>
           <div className="space-x-2">
             <DateOverrideInputDialog
+              excludedDates={excludedDates}
               workingHours={workingHours}
               value={item.ranges}
               onChange={(ranges) => {

@@ -62,7 +62,13 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
       </h3>
       <p className="mb-4 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{t("date_overrides_subtitle")}</p>
       <div className="mt-1 space-y-2">
-        <DateOverrideList remove={remove} update={update} items={fields} workingHours={workingHours} />
+        <DateOverrideList
+          excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
+          remove={remove}
+          update={update}
+          items={fields}
+          workingHours={workingHours}
+        />
         <DateOverrideInputDialog
           workingHours={workingHours}
           excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
