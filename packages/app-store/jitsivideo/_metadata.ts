@@ -9,6 +9,7 @@ export const metadata = {
   type: "jitsi_video",
   imageSrc: "/api/app-store/jitsivideo/icon.svg",
   variant: "conferencing",
+  categories: ["video"],
   logo: "/api/app-store/jitsivideo/icon.svg",
   publisher: "Cal.com",
   url: "https://jitsi.org/",

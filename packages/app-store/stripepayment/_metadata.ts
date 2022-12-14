@@ -12,6 +12,7 @@ export const metadata = {
   ),
   slug: "stripe",
   category: "payment",
+  categories: ["payment"],
   logo: "/api/app-store/stripepayment/icon.svg",
   rating: 4.6,
   trending: true,
