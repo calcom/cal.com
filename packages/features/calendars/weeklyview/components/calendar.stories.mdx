@@ -1,0 +1,69 @@
+import { Canvas, Meta, Story, ArgsTable } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Note,
+  Title,
+  CustomArgsTable,
+  VariantsTable,
+  VariantRow,
+} from "@calcom/storybook/components";
+
+import { events, blockingDates } from "../_storybookData";
+import "../styles/styles.css";
+import { CalendarEvent } from "../types/events";
+import { Calendar } from "./Calendar";
+
+<Meta title="UI/Calendar" component={Calendar} />
+
+<Title title="Calendar" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022" />
+
+## Props
+
+The Args Table below shows you a breakdown of what props can be passed into the Calendar component. All props should have a desciption to make it self explanitory to see what is going on.
+
+<CustomArgsTable of={Calendar} />
+
+## Example
+
+There will be a few examples of how to use the Calendar component to show different usecases.
+
+export const Template = (args) => <Calendar {...args} />;
+
+<Canvas>
+  <Story
+    name="Customising Start Hour and EndHour"
+    argTypes={{
+      startHour: {
+        control: { type: "number", min: 0, max: 23, step: 1 },
+      },
+      endHour: {
+        control: { type: "number", min: 0, max: 23, step: 1 },
+      },
+    }}
+    args={{
+      sortEvents: true,
+      startHour: 8,
+      endHour: 20,
+      events: events,
+      hoverEventDuration: 0,
+      blockingDates: blockingDates,
+    }}>
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+<Canvas>
+  <Story name="Onclick Handlers">
+    <Calendar
+      startHour={8}
+      endHour={17}
+      events={events}
+      onEventClick={(e) => alert(e.title)}
+      onEmptyCellClick={(date) => alert(date.toString())}
+      sortEvents
+      hoverEventDuration={30}
+    />
+  </Story>
+</Canvas>
