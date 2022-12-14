@@ -1,5 +1,5 @@
 import dayjs, { Dayjs } from "@calcom/dayjs";
-import { WorkingHours } from "@calcom/types/schedule";
+import { WorkingHours, TimeRange as DateOverride } from "@calcom/types/schedule";
 
 import { getWorkingHours } from "./availability";
 
@@ -7,6 +7,7 @@ export type GetSlots = {
   inviteeDate: Dayjs;
   frequency: number;
   workingHours: WorkingHours[];
+  //  dateOverrides: DateOverride[];
   minimumBookingNotice: number;
   eventLength: number;
 };
@@ -89,6 +90,7 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, 
     startTime: item.startTime,
     endTime: item.endTime,
   });
+
   localWorkingHours.forEach((item, index) => {
     if (!tempComputeTimeFrame) {
       tempComputeTimeFrame = makeTimeFrame(item);
@@ -135,14 +137,7 @@ const getSlots = ({ inviteeDate, frequency, minimumBookingNotice, workingHours, 
     }
   });
 
-  const uniq = (a: Dayjs[]) => {
-    const seen: Record<string, boolean> = {};
-    return a.filter((item) => {
-      return seen.hasOwnProperty(item.format()) ? false : (seen[item.format()] = true);
-    });
-  };
-
-  return uniq(slots);
+  return slots;
 };
 
 export default getSlots;
