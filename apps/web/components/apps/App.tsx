@@ -66,7 +66,7 @@ const Component = ({
     }
   );
 
-  const allowedMultipleInstalls = categories.indexOf("calendar") > -1;
+  const allowedMultipleInstalls = categories.indexOf("calendar") > -1 && variant !== "other";
 
   return (
     <div className="relative flex-1 flex-col items-start justify-start px-4 md:flex md:px-8 lg:flex-row lg:px-0">

@@ -2,7 +2,7 @@
   "/*": "Don't modify slug - If required, do it using cli edit command",
   "name": "Vimcal",
   "slug": "vimcal",
-  "type": "vimcal_calendar",
+  "type": "vimcal_other",
   "imageSrc": "/api/app-store/vimcal/icon.svg",
   "logo": "/api/app-store/vimcal/icon.svg",
   "url": "https://cal.com/apps/vimcal",
