@@ -157,13 +157,32 @@ export default class Office365CalendarService implements Calendar {
   }
 
   async listCalendars(): Promise<IntegrationCalendar[]> {
-    const response = await this.fetcher(`/me/calendars`);
-    let responseBody = await handleErrorsJson<{ value: OfficeCalendar[] }>(response);
-    // If responseBody is valid then parse the JSON text
-    if (typeof responseBody === "string") {
-      responseBody = JSON.parse(responseBody) as { value: OfficeCalendar[] };
+    const officeCalendars: OfficeCalendar[] = [];
+    // List calendars from MS are paginated
+    let finishedParsingCalendars = false;
+    // Store @odata.nextLink if in response
+    let requestLink = "/me/calendars";
+
+    while (!finishedParsingCalendars) {
+      const response = await this.fetcher(requestLink);
+      let responseBody = await handleErrorsJson<{ value: OfficeCalendar[]; "@odata.nextLink"?: string }>(
+        response
+      );
+      // If responseBody is valid then parse the JSON text
+      if (typeof responseBody === "string") {
+        responseBody = JSON.parse(responseBody) as { value: OfficeCalendar[] };
+      }
+
+      officeCalendars.push(...responseBody.value);
+
+      if (responseBody["@odata.nextLink"]) {
+        requestLink = responseBody["@odata.nextLink"].replace(this.apiGraphUrl, "");
+      } else {
+        finishedParsingCalendars = true;
+      }
     }
-    return responseBody?.value.map((cal: OfficeCalendar) => {
+
+    return officeCalendars.map((cal: OfficeCalendar) => {
       const calendar: IntegrationCalendar = {
         externalId: cal.id ?? "No Id",
         integration: this.integrationName,
