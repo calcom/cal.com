@@ -6,7 +6,6 @@ import { Controller, UseFormReturn } from "react-hook-form";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Icon } from "@calcom/ui";
 import { Button, Label, TextField } from "@calcom/ui";
 import { MultiSelectCheckboxes } from "@calcom/ui";
@@ -22,11 +21,10 @@ interface Props {
   workflowId: number;
   selectedEventTypes: Option[];
   setSelectedEventTypes: Dispatch<SetStateAction<Option[]>>;
-  isTeamsPlan?: boolean;
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const { form, workflowId, selectedEventTypes, setSelectedEventTypes, isTeamsPlan } = props;
+  const { form, workflowId, selectedEventTypes, setSelectedEventTypes } = props;
   const { t } = useLocale();
   const router = useRouter();
 
@@ -123,7 +121,7 @@ export default function WorkflowDetailsPage(props: Props) {
         <div className="w-full rounded-md border border-gray-200 bg-gray-50 p-3 py-5 md:ml-3 md:p-8">
           {form.getValues("trigger") && (
             <div>
-              <WorkflowStepContainer form={form} isTeamsPlan={isTeamsPlan} />
+              <WorkflowStepContainer form={form} />
             </div>
           )}
           {form.getValues("steps") && (
@@ -136,7 +134,6 @@ export default function WorkflowDetailsPage(props: Props) {
                     step={step}
                     reload={reload}
                     setReload={setReload}
-                    isTeamsPlan={isTeamsPlan}
                   />
                 );
               })}
@@ -160,7 +157,6 @@ export default function WorkflowDetailsPage(props: Props) {
         isOpenDialog={isAddActionDialogOpen}
         setIsOpenDialog={setIsAddActionDialogOpen}
         addAction={addAction}
-        isTeamsPlan={isTeamsPlan}
       />
       <DeleteDialog
         isOpenDialog={deleteDialogOpen}

@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import {
   Button,
   Checkbox,
@@ -23,14 +24,12 @@ import {
 } from "@calcom/ui";
 
 import { WORKFLOW_ACTIONS } from "../lib/constants";
-import { getWorkflowActionOptions } from "../lib/getOptions";
 import { onlyLettersNumbersSpaces } from "../pages/workflow";
 
 interface IAddActionDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   addAction: (action: WorkflowActions, sendTo?: string, numberRequired?: boolean, sender?: string) => void;
-  isTeamsPlan?: boolean;
 }
 
 interface ISelectActionOption {
@@ -47,11 +46,11 @@ type AddActionFormValues = {
 
 export const AddActionDialog = (props: IAddActionDialog) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, addAction, isTeamsPlan } = props;
+  const { isOpenDialog, setIsOpenDialog, addAction } = props;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(false);
   const [isSenderIdNeeded, setIsSenderIdNeeded] = useState(false);
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(false);
-  const actionOptions = getWorkflowActionOptions(t, isTeamsPlan);
+  const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
 
   const formSchema = z.object({
     action: z.enum(WORKFLOW_ACTIONS),

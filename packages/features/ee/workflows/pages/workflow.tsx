@@ -104,10 +104,8 @@ function WorkflowPage() {
     }
   );
 
-  const { data: isTeamsPlan, isLoading: teamsLoading } = trpc.viewer.isTeamsPlan.useQuery();
-
   useEffect(() => {
-    if (workflow && !isLoading && !teamsLoading) {
+    if (workflow && !isLoading) {
       setSelectedEventTypes(
         workflow.activeOn.map((active) => ({
           value: String(active.eventType.id),
@@ -147,7 +145,7 @@ function WorkflowPage() {
       form.setValue("activeOn", activeOn || []);
       setIsAllDataLoaded(true);
     }
-  }, [isLoading, teamsLoading]);
+  }, [isLoading]);
 
   const updateMutation = trpc.viewer.workflows.update.useMutation({
     onSuccess: async ({ workflow }) => {
@@ -246,7 +244,6 @@ function WorkflowPage() {
                     workflowId={+workflowId}
                     selectedEventTypes={selectedEventTypes}
                     setSelectedEventTypes={setSelectedEventTypes}
-                    isTeamsPlan={isTeamsPlan}
                   />
                 </>
               ) : (

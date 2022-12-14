@@ -17,6 +17,7 @@ import {
   WORKFLOW_ACTIONS,
   TIME_UNIT,
 } from "@calcom/features/ee/workflows/lib/constants";
+import { getWorkflowActionOptions } from "@calcom/features/ee/workflows/lib/getOptions";
 import {
   deleteScheduledEmailReminder,
   scheduleEmailReminder,
@@ -28,15 +29,14 @@ import {
 } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getTranslation } from "@calcom/lib/server/i18n";
 
 import { TRPCError } from "@trpc/server";
 
 import { router, authedProcedure, authedRateLimitedProcedure } from "../../trpc";
 
 function isSMSAction(action: WorkflowActions) {
-  if (action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.SMS_NUMBER) {
-    return true;
-  }
+  return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.SMS_NUMBER;
 }
 
 export const workflowsRouter = router({
@@ -1005,4 +1005,10 @@ export const workflowsRouter = router({
         });
       }
     }),
+  getWorkflowActionOptions: authedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.user.id;
+    const hasTeamPlan = (await ctx.prisma.membership.count({ where: { userId } })) > 0;
+    const t = await getTranslation(ctx.user.locale, "common");
+    return getWorkflowActionOptions(t, hasTeamPlan);
+  }),
 });
