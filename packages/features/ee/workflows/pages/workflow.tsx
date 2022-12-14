@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   TimeUnit,
+  VerifiedNumber,
   WorkflowActions,
   WorkflowStep,
   WorkflowTemplates,
@@ -178,6 +179,7 @@ function WorkflowPage() {
       handleSubmit={async (values) => {
         let activeOnEventTypeIds: number[] = [];
         let isEmpty = false;
+        let isVerified = true;
 
         values.steps.forEach((step) => {
           const isSMSAction =
@@ -202,9 +204,24 @@ function WorkflowPage() {
             step.emailSubject = translateVariablesToEnglish(step.emailSubject, { locale: i18n.language, t });
           }
           isEmpty = !isEmpty ? isBodyEmpty : isEmpty;
+
+          //check if phone number is verified
+          if (
+            step.action === WorkflowActions.SMS_NUMBER &&
+            !verifiedNumbers?.find(
+              (verifiedNumber: VerifiedNumber) => verifiedNumber.phoneNumber === step.sendTo
+            )
+          ) {
+            isVerified = false;
+
+            form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
+              type: "custom",
+              message: t("not_verified"),
+            });
+          }
         });
 
-        if (!isEmpty) {
+        if (!isEmpty && isVerified) {
           if (values.activeOn) {
             activeOnEventTypeIds = values.activeOn.map((option) => {
               return parseInt(option.value, 10);
