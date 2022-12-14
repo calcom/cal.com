@@ -160,6 +160,7 @@ export const workflowsRouter = router({
           template: WorkflowTemplates.REMINDER,
           workflowId: workflow.id,
           sender: SENDER_ID,
+          numberVerificationPending: false,
         },
       });
       return { workflow };
@@ -541,6 +542,7 @@ export const workflowsRouter = router({
               template: newStep.template,
               numberRequired: newStep.numberRequired,
               sender: newStep.sender || SENDER_ID,
+              numberVerificationPending: false,
             },
           });
           //cancel all reminders of step and create new ones (not for newEventTypes)
@@ -678,7 +680,7 @@ export const workflowsRouter = router({
             const newStep = step;
             newStep.sender = step.sender || SENDER_ID;
             const createdStep = await ctx.prisma.workflowStep.create({
-              data: step,
+              data: { ...step, numberVerificationPending: false },
             });
             if (
               (trigger === WorkflowTriggerEvents.BEFORE_EVENT ||

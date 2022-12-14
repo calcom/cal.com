@@ -560,18 +560,19 @@ enum WorkflowActions {
 }
 
 model WorkflowStep {
-  id                Int                @id @default(autoincrement())
-  stepNumber        Int
-  action            WorkflowActions
-  workflowId        Int
-  workflow          Workflow           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  sendTo            String?
-  reminderBody      String?
-  emailSubject      String?
-  template          WorkflowTemplates  @default(REMINDER)
-  workflowReminders WorkflowReminder[]
-  numberRequired    Boolean?
-  sender            String?
+  id                        Int                @id @default(autoincrement())
+  stepNumber                Int
+  action                    WorkflowActions
+  workflowId                Int
+  workflow                  Workflow           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  sendTo                    String?
+  reminderBody              String?
+  emailSubject              String?
+  template                  WorkflowTemplates  @default(REMINDER)
+  workflowReminders         WorkflowReminder[]
+  numberRequired            Boolean?
+  sender                    String?
+  numberVerificationPending Boolean            @default(true)
 }
 
 model Workflow {
