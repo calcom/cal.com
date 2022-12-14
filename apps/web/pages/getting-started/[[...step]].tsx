@@ -112,6 +112,7 @@ const OnboardingPage = (props: IOnboardingPageProps) => {
             <StepCard>
               {currentStep === "user-settings" && <UserSettings user={user} nextStep={() => goToIndex(1)} />}
 
+              {/* TODO: filter out calendar apps that have external links */}
               {currentStep === "connected-calendar" && <ConnectedCalendars nextStep={() => goToIndex(2)} />}
 
               {currentStep === "setup-availability" && (
