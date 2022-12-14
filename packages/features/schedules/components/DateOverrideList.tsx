@@ -24,14 +24,6 @@ const DateOverrideList = ({
   }
 
   const timeSpan = ({ start, end }: TimeRange) => {
-    if (
-      start.getHours() === 0 &&
-      start.getMinutes() === 0 &&
-      end.getHours() === 23 &&
-      end.getMinutes() === 59
-    ) {
-      return t("unavailable");
-    }
     return (
       new Intl.DateTimeFormat(i18n.language, { hour: "numeric", minute: "numeric", hour12: true }).format(
         new Date(start.toISOString().slice(0, -1))
@@ -55,11 +47,15 @@ const DateOverrideList = ({
                 day: "numeric",
               }).format(item.ranges[0].start)}
             </h3>
-            {item.ranges.map((range, i) => (
-              <p key={i} className="text-xs text-neutral-500">
-                {timeSpan(range)}
-              </p>
-            ))}
+            {item.ranges[0].end.getUTCHours() === 0 && item.ranges[0].end.getUTCMinutes() === 0 ? (
+              <p className="text-xs text-neutral-500">{t("unavailable")}</p>
+            ) : (
+              item.ranges.map((range, i) => (
+                <p key={i} className="text-xs text-neutral-500">
+                  {timeSpan(range)}
+                </p>
+              ))
+            )}
           </div>
           <div className="space-x-2">
             <DateOverrideInputDialog

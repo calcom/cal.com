@@ -242,37 +242,16 @@ export async function getUserAvailability(
       const startTime = dayjs.utc(override.startTime);
       const endTime = dayjs.utc(override.endTime);
       return {
-        start: dayjs.utc(override.date).hour(startTime.hour()).minute(startTime.minute()),
-        end: dayjs.utc(override.date).hour(endTime.hour()).minute(endTime.minute()),
+        start: dayjs.utc(override.date).hour(startTime.hour()).minute(startTime.minute()).toDate(),
+        end: dayjs.utc(override.date).hour(endTime.hour()).minute(endTime.minute()).toDate(),
       };
     });
-
-  const betweenWorkingHours = (override: typeof dateOverrides[number]) => {
-    return workingHours.some((workingHour) => {
-      if (!workingHour.days.includes(override.start.day())) {
-        return false;
-      }
-      const workDayStart = override.start.startOf("day").add(workingHour.startTime, "minute");
-      const workDayEnd = override.start.startOf("day").add(workingHour.endTime, "minute");
-      return (
-        override.start.isBetween(workDayStart, workDayEnd, null, "[]") &&
-        override.end.isBetween(workDayStart, workDayEnd, null, "[]")
-      );
-    });
-  };
-
-  // date overrides are busy times if they take place during working hours.
-  bufferedBusyTimes.push(
-    ...dateOverrides.filter(betweenWorkingHours).map((override) => ({
-      start: override.start.toDate(),
-      end: override.end.toDate(),
-    }))
-  );
 
   return {
     busy: bufferedBusyTimes,
     timeZone,
     workingHours,
+    dateOverrides,
     currentSeats,
   };
 }

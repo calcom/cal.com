@@ -21,7 +21,7 @@ import { DayRanges, TimeRange } from "./Schedule";
 
 const ALL_DAY_RANGE = {
   start: new Date(dayjs.utc().hour(0).minute(0).second(0).format()),
-  end: new Date(dayjs.utc().hour(23).minute(59).second(0).format()),
+  end: new Date(dayjs.utc().hour(0).minute(0).second(0).format()),
 };
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -43,8 +43,8 @@ const DateOverrideForm = ({
     value &&
       value[0].start.getHours() === 0 &&
       value[0].start.getMinutes() === 0 &&
-      value[0].end.getHours() === 23 &&
-      value[0].end.getMinutes() === 59
+      value[0].end.getHours() === 0 &&
+      value[0].end.getMinutes() === 0
   );
 
   const [date, setDate] = useState<Dayjs | null>(value ? dayjs(value[0].start) : null);
