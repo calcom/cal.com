@@ -30,11 +30,13 @@ const noop = () => {};
 const DateOverrideForm = ({
   value,
   workingHours,
+  excludedDates,
   onChange,
   onClose = noop,
 }: {
   workingHours?: WorkingHours[];
   onChange: (newValue: TimeRange[]) => void;
+  excludedDates: string[];
   value?: TimeRange[];
   onClose?: () => void;
 }) => {
@@ -116,6 +118,7 @@ const DateOverrideForm = ({
         <DialogHeader title={t("date_overrides_dialog_title")} />
         <DatePicker
           includedDates={includedDates}
+          excludedDates={excludedDates}
           weekStart={0}
           selected={date}
           onChange={(day) => setDate(day)}
@@ -159,9 +162,11 @@ const DateOverrideForm = ({
 
 const DateOverrideInputDialog = ({
   Trigger,
+  excludedDates = [],
   ...passThroughProps
 }: {
   workingHours: WorkingHours[];
+  excludedDates?: string[];
   Trigger: React.ReactNode;
   onChange: (newValue: TimeRange[]) => void;
   value?: TimeRange[];
@@ -171,7 +176,11 @@ const DateOverrideInputDialog = ({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
       <DialogContent size="md">
-        <DateOverrideForm {...passThroughProps} onClose={() => setOpen(false)} />
+        <DateOverrideForm
+          excludedDates={excludedDates}
+          {...passThroughProps}
+          onClose={() => setOpen(false)}
+        />
       </DialogContent>
     </Dialog>
   );

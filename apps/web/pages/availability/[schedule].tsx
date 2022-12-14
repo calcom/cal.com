@@ -5,6 +5,7 @@ import { z } from "zod";
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import Schedule from "@calcom/features/schedules/components/Schedule";
 import { availabilityAsString } from "@calcom/lib/availability";
+import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
@@ -64,6 +65,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
         <DateOverrideList remove={remove} update={update} items={fields} workingHours={workingHours} />
         <DateOverrideInputDialog
           workingHours={workingHours}
+          excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
           onChange={(ranges) => append({ ranges })}
           Trigger={
             <Button color="secondary" StartIcon={Icon.FiPlus}>
