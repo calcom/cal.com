@@ -359,7 +359,9 @@ const appRoutingForms = router({
             },
           });
           if (router) {
+            assertIfInvalidRouter(router);
             const parsedRouterFields = zodFields.parse(router.fields);
+
             // There is a field from some router available, make sure that the field has up-to-date info from the router
             const routerField = parsedRouterFields?.find((f) => f.id === field.id);
             // Update local field(cache) with router field on every mutation
@@ -384,6 +386,7 @@ const appRoutingForms = router({
             },
           });
           if (router) {
+            assertIfInvalidRouter(router);
             const parsedRouterFields = zodFields.parse(router.fields);
             const fieldsFromRouter = parsedRouterFields
               ?.filter((f) => !f.deleted)
@@ -533,6 +536,18 @@ const appRoutingForms = router({
           })
         );
         return fields;
+      }
+      function assertIfInvalidRouter(router: App_RoutingForms_Form) {
+        const routesOfRouter = zodRoutes.parse(router.routes);
+        if (routesOfRouter) {
+          if (routesOfRouter.find(isRouter)) {
+            throw new TRPCError({
+              code: "BAD_REQUEST",
+              message:
+                "A form being used as a Router must be a Origin form. It must not be using any other Router.",
+            });
+          }
+        }
       }
     }),
   deleteForm: authedProcedure

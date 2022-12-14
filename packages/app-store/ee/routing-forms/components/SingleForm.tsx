@@ -237,7 +237,11 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
     onSuccess() {
       showToast("Form updated successfully.", "success");
     },
-    onError() {
+    onError(e) {
+      if (e.message) {
+        showToast(e.message, "error");
+        return;
+      }
       showToast(`Something went wrong`, "error");
     },
     onSettled() {

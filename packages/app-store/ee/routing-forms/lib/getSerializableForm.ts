@@ -89,7 +89,7 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>(
           throw new Error("Form -" + route.id + ", being used as router, not found");
         }
 
-        const parsedRouter = await getSerializableForm(router);
+        const parsedRouter = await getSerializableForm(router, false);
 
         routers.push({
           name: parsedRouter.name,

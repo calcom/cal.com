@@ -296,14 +296,18 @@ const FormEdit = ({
       </div>
     </div>
   ) : (
-    <button data-testid="add-field" onClick={addField} className="w-full">
+    <div className="w-full">
       <EmptyScreen
         Icon={Icon.FiFileText}
         headline="Create your first field"
         description="Fields are the form fields that the booker would see."
-        buttonRaw={<Button>Create Field</Button>}
+        buttonRaw={
+          <Button data-testid="add-field" onClick={addField}>
+            Create Field
+          </Button>
+        }
       />
-    </button>
+    </div>
   );
 };
 
