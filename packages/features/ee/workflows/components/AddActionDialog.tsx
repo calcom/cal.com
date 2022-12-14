@@ -101,6 +101,8 @@ export const AddActionDialog = (props: IAddActionDialog) => {
     }
   };
 
+  if (!actionOptions) return null;
+
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent type="creation" title={t("add_action")}>
