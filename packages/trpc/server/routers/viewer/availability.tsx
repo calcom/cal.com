@@ -2,14 +2,16 @@ import { Availability as AvailabilityModel, Prisma, Schedule as ScheduleModel, U
 import { z } from "zod";
 
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import dayjs from "@calcom/dayjs";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { yyyymmdd } from "@calcom/lib/date-fns";
 import { PrismaClient } from "@calcom/prisma/client";
-import { extendedBookingCreateBody, stringOrNumber } from "@calcom/prisma/zod-utils";
-import { Schedule } from "@calcom/types/schedule";
+import { stringOrNumber } from "@calcom/prisma/zod-utils";
+import { Schedule, TimeRange } from "@calcom/types/schedule";
 
 import { TRPCError } from "@trpc/server";
 
-import { router, authedProcedure } from "../../trpc";
+import { authedProcedure, router } from "../../trpc";
 
 export const availabilityRouter = router({
   list: authedProcedure.query(async ({ ctx }) => {
@@ -52,6 +54,68 @@ export const availabilityRouter = router({
     .query(({ input }) => {
       return getUserAvailability(input);
     }),
+  defaultValues: authedProcedure.input(z.object({ scheduleId: z.number() })).query(async ({ ctx, input }) => {
+    const { prisma, user } = ctx;
+    const schedule = await prisma.schedule.findUnique({
+      where: {
+        id: input.scheduleId || (await getDefaultScheduleId(user.id, prisma)),
+      },
+      select: {
+        id: true,
+        userId: true,
+        name: true,
+        availability: true,
+        timeZone: true,
+        eventType: {
+          select: {
+            _count: true,
+            id: true,
+            eventName: true,
+          },
+        },
+      },
+    });
+    if (!schedule || schedule.userId !== user.id) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+      });
+    }
+    const availability = convertScheduleToAvailability(schedule);
+    return {
+      name: schedule.name,
+      rawSchedule: schedule,
+      schedule: availability,
+      dateOverrides: schedule.availability.reduce((acc, override) => {
+        // only iff future date override
+        if (!override.date || override.date < new Date()) {
+          return acc;
+        }
+        const newValue = {
+          start: dayjs
+            .utc(override.date)
+            .hour(override.startTime.getUTCHours())
+            .minute(override.startTime.getUTCMinutes())
+            .toDate(),
+          end: dayjs
+            .utc(override.date)
+            .hour(override.endTime.getUTCHours())
+            .minute(override.endTime.getUTCMinutes())
+            .toDate(),
+        };
+        const dayRangeIndex = acc.findIndex(
+          (item) => yyyymmdd(item.ranges[0].start) === yyyymmdd(override.startTime)
+        );
+        if (dayRangeIndex === -1) {
+          acc.push({ ranges: [newValue] });
+          return acc;
+        }
+        acc[dayRangeIndex].ranges.push(newValue);
+        return acc;
+      }, [] as { ranges: TimeRange[] }[]),
+      timeZone: schedule.timeZone || user.timeZone,
+      isDefault: !input.scheduleId || user.defaultScheduleId === schedule.id,
+    };
+  }),
   schedule: router({
     get: authedProcedure
       .input(

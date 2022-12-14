@@ -83,50 +83,9 @@ export default function Availability({ schedule }: { schedule: number }) {
   const me = useMeQuery();
   const { timeFormat } = me.data || { timeFormat: null };
   const { data, isLoading } = trpc.viewer.availability.schedule.get.useQuery({ scheduleId: schedule });
-
-  const form = useForm<AvailabilityFormValues>();
-  const { control, reset } = form;
-
-  useEffect(() => {
-    if (!isLoading && data) {
-      console.log(data);
-      reset({
-        name: data?.schedule?.name,
-        schedule: data.availability,
-        dateOverrides: data.schedule.availability.reduce((acc, override) => {
-          // only iff future date override
-          if (!override.date || override.date < new Date()) {
-            return acc;
-          }
-          const newValue = {
-            start: dayjs
-              .utc(override.date)
-              .hour(override.startTime.getUTCHours())
-              .minute(override.startTime.getUTCMinutes())
-              .toDate(),
-            end: dayjs
-              .utc(override.date)
-              .hour(override.endTime.getUTCHours())
-              .minute(override.endTime.getUTCMinutes())
-              .toDate(),
-          };
-          const dayRangeIndex = acc.findIndex(
-            (item) => yyyymmdd(item.ranges[0].start) === yyyymmdd(override.startTime)
-          );
-          if (dayRangeIndex === -1) {
-            acc.push({ ranges: [newValue] });
-            return acc;
-          }
-          acc[dayRangeIndex].ranges.push(newValue);
-          return acc;
-        }, [] as { ranges: TimeRange[] }[]),
-        timeZone: data.timeZone,
-        isDefault: data.isDefault,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading]);
-
+  const { data: defaultValues } = trpc.viewer.availability.defaultValues.useQuery({ scheduleId: schedule });
+  const form = useForm<AvailabilityFormValues>({ defaultValues });
+  const { control } = form;
   const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async ({ prevDefaultId, currentDefaultId, ...data }) => {
       if (prevDefaultId && currentDefaultId) {
@@ -294,7 +253,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   const scheduleId = params.data.schedule;
   await ssr.viewer.availability.schedule.get.fetch({ scheduleId });
-  await ssr.viewer.availability.getInitialData.fetch({ scheduleId });
+  await ssr.viewer.availability.defaultValues.fetch({ scheduleId });
   return {
     props: {
       schedule: scheduleId,
