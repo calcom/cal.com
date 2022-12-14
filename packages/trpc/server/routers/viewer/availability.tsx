@@ -103,7 +103,9 @@ export const availabilityRouter = router({
             .toDate(),
         };
         const dayRangeIndex = acc.findIndex(
-          (item) => yyyymmdd(item.ranges[0].start) === yyyymmdd(override.startTime)
+          // early return prevents override.date from ever being empty.
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          (item) => yyyymmdd(item.ranges[0].start) === yyyymmdd(override.date!)
         );
         if (dayRangeIndex === -1) {
           acc.push({ ranges: [newValue] });
