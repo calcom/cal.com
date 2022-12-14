@@ -25,6 +25,7 @@ export const apiHandlers = {
   office365video: import("./office365video/api"),
   ping: import("./ping/api"),
   pipedream: import("./pipedream/api"),
+  plausible: import("./plausible/api"),
   qr_code: import("./qr_code/api"),
   rainbow: import("./rainbow/api"),
   raycast: import("./raycast/api"),
@@ -43,6 +44,7 @@ export const apiHandlers = {
   whatsapp: import("./whatsapp/api"),
   whereby: import("./whereby/api"),
   wipemycalother: import("./wipemycalother/api"),
+  wordpress: import("./wordpress/api"),
   zapier: import("./zapier/api"),
   zoomvideo: import("./zoomvideo/api"),
 };

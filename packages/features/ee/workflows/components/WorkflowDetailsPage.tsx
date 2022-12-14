@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 
+import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -73,7 +74,7 @@ export default function WorkflowDetailsPage(props: Props) {
       emailSubject: null,
       template: WorkflowTemplates.CUSTOM,
       numberRequired: numberRequired || false,
-      sender: sender || "Cal",
+      sender: sender || SENDER_ID,
     };
     steps?.push(step);
     form.setValue("steps", steps);

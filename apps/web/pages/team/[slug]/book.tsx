@@ -4,7 +4,7 @@ import { JSONObject } from "superjson/dist/types";
 import { LocationObject, privacyFilteredLocations } from "@calcom/app-store/locations";
 import { parseRecurringEvent } from "@calcom/lib";
 import prisma from "@calcom/prisma";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import getBooking, { GetBookingType } from "@lib/getBooking";
@@ -96,6 +96,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
       periodStartDate: e.periodStartDate?.toString() ?? null,
       periodEndDate: e.periodEndDate?.toString() ?? null,
+      customInputs: customInputSchema.array().parse(e.customInputs || []),
       users: eventType.users.map((u) => ({
         id: u.id,
         name: u.name,

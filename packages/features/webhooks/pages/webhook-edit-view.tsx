@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import z from "zod";
 
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { getSettingsLayout as getLayout, Meta, showToast, SkeletonContainer } from "@calcom/ui";
@@ -53,8 +54,8 @@ const EditWebhook = () => {
     return (
       <>
         <Meta
-          title="Edit Webhook"
-          description="Receive meeting data in real-time when something happens in Cal.com"
+          title={t("edit_webhook")}
+          description={t("add_webhook_description", { appName: APP_NAME })}
           backButton
         />
         <WebhookForm

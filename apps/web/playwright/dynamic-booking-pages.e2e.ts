@@ -10,7 +10,7 @@ import {
 test("dynamic booking", async ({ page, users }) => {
   const pro = await users.create();
   await pro.login();
-  const free = await users.create({ plan: "FREE" });
+  const free = await users.create({ username: "free" });
   await page.goto(`/${pro.username}+${free.username}`);
 
   await test.step("book an event first day in next month", async () => {
@@ -37,7 +37,7 @@ test("dynamic booking", async ({ page, users }) => {
     await page.locator('[data-testid="confirm-reschedule-button"]').click();
     await page.waitForNavigation({
       url(url) {
-        return url.pathname === "/success";
+        return url.pathname.startsWith("/booking");
       },
     });
     await expect(page.locator("[data-testid=success-page]")).toBeVisible();
@@ -48,10 +48,9 @@ test("dynamic booking", async ({ page, users }) => {
     await page.locator('[data-testid="cancel"]').first().click();
     await page.waitForNavigation({
       url: (url) => {
-        return url.pathname.startsWith("/success");
+        return url.pathname.startsWith("/booking");
       },
     });
-    // --- fill form
     await page.locator('[data-testid="cancel"]').click();
 
     const cancelledHeadline = await page.locator('[data-testid="cancelled-headline"]').innerText();

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, Form, TextField } from "@calcom/ui";
 
@@ -34,7 +35,7 @@ export default function AppleCalendarSetup() {
             <h1 className="text-gray-600">{t("connect_apple_server")}</h1>
 
             <div className="mt-1 text-sm">
-              {t("apple_server_generate_password")}{" "}
+              {t("apple_server_generate_password", { appName: APP_NAME })}{" "}
               <a
                 className="text-indigo-400"
                 href="https://appleid.apple.com/account/manage"

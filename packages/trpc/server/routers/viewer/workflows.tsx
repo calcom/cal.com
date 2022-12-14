@@ -26,11 +26,12 @@ import {
   deleteScheduledSMSReminder,
   scheduleSMSReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
+import { SENDER_ID } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 
 import { TRPCError } from "@trpc/server";
 
-import { router, authedProcedure } from "../../trpc";
+import { router, authedProcedure, authedRateLimitedProcedure } from "../../trpc";
 
 export const workflowsRouter = router({
   list: authedProcedure.query(async ({ ctx }) => {
@@ -154,7 +155,7 @@ export const workflowsRouter = router({
           action: WorkflowActions.EMAIL_HOST,
           template: WorkflowTemplates.REMINDER,
           workflowId: workflow.id,
-          sender: "Cal",
+          sender: SENDER_ID,
         },
       });
       return { workflow };
@@ -469,7 +470,7 @@ export const workflowsRouter = router({
                     step.reminderBody || "",
                     step.id,
                     step.template,
-                    step.sender || "Cal"
+                    step.sender || SENDER_ID
                   );
                 }
               });
@@ -535,7 +536,7 @@ export const workflowsRouter = router({
               emailSubject: newStep.template === WorkflowTemplates.CUSTOM ? newStep.emailSubject : null,
               template: newStep.template,
               numberRequired: newStep.numberRequired,
-              sender: newStep.sender || "Cal",
+              sender: newStep.sender || SENDER_ID,
             },
           });
           //cancel all reminders of step and create new ones (not for newEventTypes)
@@ -647,7 +648,7 @@ export const workflowsRouter = router({
                   newStep.reminderBody || "",
                   newStep.id || 0,
                   newStep.template,
-                  newStep.sender || "Cal"
+                  newStep.sender || SENDER_ID
                 );
               }
             });
@@ -671,7 +672,7 @@ export const workflowsRouter = router({
         addedSteps.forEach(async (step) => {
           if (step) {
             const newStep = step;
-            newStep.sender = step.sender || "Cal";
+            newStep.sender = step.sender || SENDER_ID;
             const createdStep = await ctx.prisma.workflowStep.create({
               data: step,
             });
@@ -760,7 +761,7 @@ export const workflowsRouter = router({
                     step.reminderBody || "",
                     createdStep.id,
                     step.template,
-                    step.sender || "Cal"
+                    step.sender || SENDER_ID
                   );
                 }
               });
@@ -800,7 +801,7 @@ export const workflowsRouter = router({
         workflow,
       };
     }),
-  testAction: authedProcedure
+  testAction: authedRateLimitedProcedure({ intervalInMs: 10000, limit: 3 })
     .input(
       z.object({
         action: z.enum(WORKFLOW_ACTIONS),
@@ -897,7 +898,7 @@ export const workflowsRouter = router({
             reminderBody,
             0,
             template,
-            sender || "Cal"
+            sender || SENDER_ID
           );
           return { message: "Notification sent" };
         }
@@ -924,6 +925,32 @@ export const workflowsRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { eventTypeId, workflowId } = input;
+
+      // Check that workflow & event type belong to the user
+      const userEventType = await ctx.prisma.eventType.findFirst({
+        where: {
+          id: eventTypeId,
+          users: {
+            some: {
+              id: ctx.user.id,
+            },
+          },
+        },
+      });
+
+      if (!userEventType)
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "This event type does not belong to the user" });
+
+      // Check that the workflow belongs to the user
+      const eventTypeWorkflow = await ctx.prisma.workflow.findFirst({
+        where: {
+          id: workflowId,
+          userId: ctx.user.id,
+        },
+      });
+
+      if (!eventTypeWorkflow)
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "This event type does not belong to the user" });
 
       // NOTE: This was unused
       // const eventType = await ctx.prisma.eventType.findFirst({

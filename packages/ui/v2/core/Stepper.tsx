@@ -4,7 +4,12 @@ type DefaultStep = {
   title: string;
 };
 
-function Stepper<T extends DefaultStep>(props: { href: string; step: number; steps: T[] }) {
+function Stepper<T extends DefaultStep>(props: {
+  href: string;
+  step: number;
+  steps: T[];
+  disableSteps?: boolean;
+}) {
   const { href, steps } = props;
   return (
     <>
@@ -16,7 +21,7 @@ function Stepper<T extends DefaultStep>(props: { href: string; step: number; ste
           <ol role="list" className="ml-8 flex items-center space-x-5">
             {steps.map((mapStep, index) => (
               <li key={mapStep.title}>
-                <Link href={`${href}?step=${index + 1}`} shallow replace>
+                <Link href={props.disableSteps ? "#" : `${href}?step=${index + 1}`} shallow replace>
                   {index + 1 < props.step ? (
                     <a className="block h-2.5 w-2.5 rounded-full bg-gray-600 hover:bg-gray-900">
                       <span className="sr-only">{mapStep.title}</span>

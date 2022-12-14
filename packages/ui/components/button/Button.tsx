@@ -5,8 +5,7 @@ import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
 import { applyStyleToMultipleVariants } from "@calcom/lib/cva";
-
-import Tooltip from "../../v2/core/Tooltip";
+import { Tooltip } from "@calcom/ui";
 
 type InferredVariantProps = VariantProps<typeof buttonClasses>;
 
@@ -104,7 +103,7 @@ const buttonClasses = cva(
         className:
           "bg-gray-100 text-gray-900/30 dark:bg-darkgray-100 dark:text-darkgray-900/30 dark:border-darkgray-200",
       },
-      applyStyleToMultipleVariants({
+      ...applyStyleToMultipleVariants({
         disabled: [undefined, false],
         color: "minimal",
         className:
