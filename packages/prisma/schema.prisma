@@ -68,7 +68,7 @@ model EventType {
   beforeEventBuffer       Int                     @default(0)
   afterEventBuffer        Int                     @default(0)
   seatsPerTimeSlot        Int?
-  seatsShowAttendees      Boolean?
+  seatsShowAttendees      Boolean?                @default(false)
   schedulingType          SchedulingType?
   schedule                Schedule?               @relation(fields: [scheduleId], references: [id])
   scheduleId              Int?
