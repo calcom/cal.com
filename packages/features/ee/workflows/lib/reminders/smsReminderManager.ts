@@ -71,9 +71,9 @@ export const scheduleSMSReminder = async (
   //SMS_ATTENDEE action does not need to be verified
   //isVerificationPending is from all already existing workflows (once they edit their workflow, they will also have to verify the number)
   const isNumberVerified =
+    action === WorkflowActions.SMS_ATTENDEE ||
     !!verifiedNumbers.find((verifiedNumber) => verifiedNumber.phoneNumber === reminderPhone) ||
-    isVerificationPending ||
-    action === WorkflowActions.SMS_ATTENDEE;
+    isVerificationPending;
 
   if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
     scheduledDate = timeSpan.time && timeUnit ? dayjs(startTime).subtract(timeSpan.time, timeUnit) : null;
