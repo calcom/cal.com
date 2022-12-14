@@ -1431,6 +1431,7 @@
   "disable_app": "Disable App",
   "disable_app_description": "Disabling this app could cause problems with how your users interact with Cal",
   "edit_keys": "Edit Keys",
+  "apps_description": "Enable apps for your instance of Cal",
   "no_available_apps": "There are no available apps",
   "no_available_apps_description": "Please ensure there are apps in your deployment under 'packages/app-store'",
   "no_apps": "There are no apps enabled in this instance of Cal",
