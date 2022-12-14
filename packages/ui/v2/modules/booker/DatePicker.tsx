@@ -106,12 +106,11 @@ const Days = ({
   browsingDate: Dayjs;
   weekStart: number;
   month: string | null;
-  nextMonthButton: (newMonth: number) => void;
+  nextMonthButton: () => void;
 }) => {
   // Create placeholder elements for empty days in first week
   const weekdayOfFirst = browsingDate.day();
   const currentDate = minDate.utcOffset(browsingDate.utcOffset());
-
   const availableDates = (includedDates: string[] | undefined) => {
     const dates = [];
     const lastDateOfMonth = browsingDate.date(daysInMonth(browsingDate));
@@ -174,7 +173,7 @@ const Days = ({
       ))}
 
       {!props.isLoading && includedDates && includedDates?.length === 0 && (
-        <NoAvailabilityOverlay month={month} nextMonthButton={() => nextMonthButton} />
+        <NoAvailabilityOverlay month={month} nextMonthButton={nextMonthButton} />
       )}
     </>
   );
