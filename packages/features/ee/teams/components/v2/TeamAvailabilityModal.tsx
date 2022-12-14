@@ -33,7 +33,7 @@ export default function TeamAvailabilityModal(props: Props) {
   return (
     <LicenseRequired>
       <>
-        <div className="grid h-[400px] w-[36.7rem] grid-cols-2 space-x-11 rtl:space-x-reverse">
+        <div className="grid h-[400px] grid-cols-2 space-x-11 rtl:space-x-reverse">
           <div className="col-span-1">
             <div className="flex">
               <Avatar
