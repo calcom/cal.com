@@ -66,6 +66,27 @@ export const Day = ({
   );
 };
 
+const NoAvailabilityOverlay = ({
+  month,
+  nextMonthButton,
+}: {
+  month: string | null;
+  nextMonthButton: () => void;
+}) => {
+  const { t } = useLocale();
+
+  return (
+    <div className="dark:border-darkgray-300 dark:bg-darkgray-200 absolute top-40 left-1/2 -mt-10 w-max -translate-x-1/2 -translate-y-1/2 transform rounded-md border border-gray-200 bg-gray-50 p-8 shadow-sm">
+      <h4 className="mb-4 font-medium text-gray-900 dark:text-white">
+        {t("no_availability_in_month", { month: month })}
+      </h4>
+      <Button onClick={nextMonthButton} color="primary" EndIcon={Icon.FiArrowRight}>
+        {t("view_next_month")}
+      </Button>
+    </div>
+  );
+};
+
 const Days = ({
   // minDate,
   excludedDates = [],
@@ -74,11 +95,15 @@ const Days = ({
   weekStart,
   DayComponent = Day,
   selected,
+  month,
+  nextMonthButton,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
   browsingDate: Dayjs;
   weekStart: number;
+  month: string | null;
+  nextMonthButton: (newMonth: number) => void;
 }) => {
   // Create placeholder elements for empty days in first week
   const weekdayOfFirst = browsingDate.day();
@@ -122,6 +147,10 @@ const Days = ({
           )}
         </div>
       ))}
+
+      {!props.isLoading && includedDates && includedDates?.length === 0 && (
+        <NoAvailabilityOverlay month={month} nextMonthButton={() => nextMonthButton} />
+      )}
     </>
   );
 };
@@ -135,7 +164,7 @@ const DatePicker = ({
   ...passThroughProps
 }: DatePickerProps & Partial<React.ComponentProps<typeof Days>>) => {
   const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
-  const { i18n, t } = useLocale();
+  const { i18n } = useLocale();
 
   const changeMonth = (newMonth: number) => {
     if (onMonthChange) {
@@ -190,17 +219,14 @@ const DatePicker = ({
         ))}
       </div>
       <div className="relative grid grid-cols-7 gap-1 text-center">
-        <Days weekStart={weekStart} selected={selected} {...passThroughProps} browsingDate={browsingDate} />
-
-        {/* TODO: only show when no slots available */}
-        <div className="absolute top-40 left-1/2 -mt-10 w-max -translate-x-1/2 -translate-y-1/2 transform rounded-md border border-gray-200 bg-gray-50 p-8 shadow-sm">
-          <h4 className="mb-4 font-medium text-gray-900">
-            {t("no_availability_in_month", { month: month })}
-          </h4>
-          <Button onClick={() => changeMonth(+1)} color="primary" EndIcon={Icon.FiArrowRight}>
-            {t("view_next_month")}
-          </Button>
-        </div>
+        <Days
+          weekStart={weekStart}
+          selected={selected}
+          {...passThroughProps}
+          browsingDate={browsingDate}
+          month={month}
+          nextMonthButton={() => changeMonth(+1)}
+        />
       </div>
     </div>
   );
