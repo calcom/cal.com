@@ -42,7 +42,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
   control,
   CopyButton,
 }: {
-  name: string;
+  name: ArrayPath<TFieldValues>;
   weekday: string;
   control: Control<TFieldValues>;
   CopyButton: JSX.Element;
@@ -62,7 +62,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
                 defaultChecked={watchDayRange && watchDayRange.length > 0}
                 checked={watchDayRange && !!watchDayRange.length}
                 onCheckedChange={(isChecked) => {
-                  setValue(name, isChecked ? [DEFAULT_DAY_RANGE] : []);
+                  setValue(name, (isChecked ? [DEFAULT_DAY_RANGE] : []) as TFieldValues[typeof name]);
                 }}
               />
             </div>
@@ -144,7 +144,7 @@ const Schedule = <
       {/* First iterate for each day */}
       {weekdayNames(i18n.language, weekStart, "long").map((weekday, num) => {
         const weekdayIndex = (num + weekStart) % 7;
-        const dayRangeName = `${name}.${weekdayIndex}`;
+        const dayRangeName = `${name}.${weekdayIndex}` as ArrayPath<TFieldValues>;
         return (
           <ScheduleDay
             name={dayRangeName}

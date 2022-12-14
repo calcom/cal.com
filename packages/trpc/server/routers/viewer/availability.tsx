@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
-import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
+import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule, getWorkingHours } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 import { PrismaClient } from "@calcom/prisma/client";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
@@ -152,6 +152,10 @@ export const availabilityRouter = router({
         const availability = convertScheduleToAvailability(schedule);
         return {
           schedule,
+          workingHours: getWorkingHours(
+            { timeZone: schedule.timeZone || undefined },
+            schedule.availability || []
+          ),
           availability,
           timeZone: schedule.timeZone || user.timeZone,
           isDefault: !input.scheduleId || user.defaultScheduleId === schedule.id,

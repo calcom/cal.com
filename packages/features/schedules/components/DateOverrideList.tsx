@@ -1,9 +1,8 @@
 import { UseFieldArrayRemove } from "react-hook-form";
 
-import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TimeRange } from "@calcom/types/schedule";
-import { Button, Icon, Tooltip, DialogTrigger } from "@calcom/ui";
+import { TimeRange, WorkingHours } from "@calcom/types/schedule";
+import { Button, DialogTrigger, Icon, Tooltip } from "@calcom/ui";
 
 import DateOverrideInputDialog from "./DateOverrideInputDialog";
 
@@ -11,11 +10,13 @@ const DateOverrideList = ({
   items,
   remove,
   update,
+  workingHours,
 }: {
   remove: UseFieldArrayRemove;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   update: any;
   items: { ranges: TimeRange[]; id: string }[];
+  workingHours: WorkingHours[];
 }) => {
   const { t, i18n } = useLocale();
   if (!items.length) {
@@ -62,6 +63,7 @@ const DateOverrideList = ({
           </div>
           <div className="space-x-2">
             <DateOverrideInputDialog
+              workingHours={workingHours}
               value={item.ranges}
               onChange={(ranges) => {
                 update(index, {

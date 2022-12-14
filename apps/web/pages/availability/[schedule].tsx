@@ -1,15 +1,14 @@
 import { GetServerSidePropsContext } from "next";
-import { Controller, useFieldArray, useForm, UseFormReturn } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import Schedule from "@calcom/features/schedules/components/Schedule";
-import { availabilityAsString, getWorkingHours } from "@calcom/lib/availability";
+import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
-import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
   Button,
@@ -62,7 +61,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
       </h3>
       <p className="mb-4 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{t("date_overrides_subtitle")}</p>
       <div className="mt-1 space-y-2">
-        <DateOverrideList remove={remove} update={update} items={fields} />
+        <DateOverrideList remove={remove} update={update} items={fields} workingHours={workingHours} />
         <DateOverrideInputDialog
           workingHours={workingHours}
           onChange={(ranges) => append({ ranges })}
@@ -96,7 +95,7 @@ export default function Availability({ schedule }: { schedule: number }) {
           utils.viewer.availability.schedule.get.refetch({ scheduleId: prevDefaultId });
         }
       }
-      utils.viewer.availability.schedule.get.setData({ scheduleId: data.schedule.id }, data);
+      utils.viewer.availability.schedule.get.invalidate({ scheduleId: data.schedule.id });
       utils.viewer.availability.list.invalidate();
       showToast(
         t("availability_updated_successfully", {
@@ -197,14 +196,7 @@ export default function Availability({ schedule }: { schedule: number }) {
                   />
                 )}
               </div>
-              <DateOverride
-                workingHours={getWorkingHours(
-                  {
-                    timeZone: data?.schedule?.timeZone || undefined,
-                  },
-                  data?.schedule?.availability || []
-                )}
-              />
+              {data?.workingHours && <DateOverride workingHours={data.workingHours} />}
             </div>
             <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
               <div className="xl:max-w-80 mt-4 w-full pr-4 sm:p-0">

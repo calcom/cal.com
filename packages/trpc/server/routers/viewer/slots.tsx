@@ -138,6 +138,7 @@ async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeo
       },
       availability: {
         select: {
+          date: true,
           startTime: true,
           endTime: true,
           days: true,

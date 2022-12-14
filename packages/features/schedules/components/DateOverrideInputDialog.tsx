@@ -60,7 +60,7 @@ const DateOverrideForm = ({
       }, [] as string[])
     : [];
 
-  const form = useForm();
+  const form = useForm<{ range: TimeRange[] }>();
   const { reset } = form;
 
   useEffect(() => {
