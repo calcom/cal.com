@@ -6,8 +6,7 @@ declare global {
 }
 
 export const twilio =
-  globalThis.twilio ||
-  (process.env.TWILIO_SID && process.env.TWILIO_TOKEN && process.env.TWILIO_MESSAGING_SID)
+  globalThis.twilio || (process.env.TWILIO_SID && process.env.TWILIO_TOKEN) //&& process.env.TWILIO_MESSAGING_SID) => todo add this again
     ? TwilioClient(process.env.TWILIO_SID, process.env.TWILIO_TOKEN)
     : undefined;
 
@@ -48,4 +47,27 @@ export const scheduleSMS = async (phoneNumber: string, body: string, scheduledDa
 export const cancelSMS = async (referenceId: string) => {
   assertTwilio(twilio);
   await twilio.messages(referenceId).update({ status: "canceled" });
+};
+
+export const sendVerificationCode = async (phoneNumber: string) => {
+  assertTwilio(twilio);
+  if (process.env.TWILIO_VERIFY_SID) {
+    await twilio.verify
+      .services(process.env.TWILIO_VERIFY_SID)
+      .verifications.create({ to: phoneNumber, channel: "sms" });
+  }
+};
+
+export const verifyNumber = async (phoneNumber: string, code: string) => {
+  assertTwilio(twilio);
+  if (process.env.TWILIO_VERIFY_SID) {
+    try {
+      const verification_check = await twilio.verify.v2
+        .services(process.env.TWILIO_VERIFY_SID)
+        .verificationChecks.create({ to: phoneNumber, code: code });
+      return verification_check.status;
+    } catch (e) {
+      return "failed";
+    }
+  }
 };

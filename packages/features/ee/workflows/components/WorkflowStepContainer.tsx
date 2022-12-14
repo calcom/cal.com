@@ -58,6 +58,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
 
+  const [verificationCode, setVerificationCode] = useState("");
+
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(
     step?.action === WorkflowActions.SMS_NUMBER ? true : false
   );
@@ -128,6 +130,18 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       }
     }
   };
+
+  const sendVerificationCodeMutation = trpc.viewer.workflows.sendVerificationCode.useMutation({
+    onSuccess: async () => {
+      showToast("verification code sent", "success");
+    },
+  });
+
+  const verifyPhoneNumberMutation = trpc.viewer.workflows.verifyPhoneNumber.useMutation({
+    onSuccess: async () => {
+      showToast(t("verified"), "success");
+    },
+  });
 
   const testActionMutation = trpc.viewer.workflows.testAction.useMutation({
     onSuccess: async () => {
@@ -351,20 +365,55 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   {isPhoneNumberNeeded && (
                     <>
                       <Label className="pt-4">{t("custom_phone_number")}</Label>
-                      <PhoneInput<FormValues>
-                        control={form.control}
-                        name={`steps.${step.stepNumber - 1}.sendTo`}
-                        placeholder={t("phone_number")}
-                        id={`steps.${step.stepNumber - 1}.sendTo`}
-                        className="w-full rounded-md"
-                        required
-                      />
+                      <div className="flex ">
+                        <PhoneInput<FormValues>
+                          control={form.control}
+                          name={`steps.${step.stepNumber - 1}.sendTo`}
+                          placeholder={t("phone_number")}
+                          id={`steps.${step.stepNumber - 1}.sendTo`}
+                          className="rounded-tl-md rounded-bl-md border-r-transparent"
+                          required
+                        />
+                        <Button
+                          color="secondary"
+                          className="-ml-[3px] h-[40px] w-32 rounded-tl-none rounded-bl-none "
+                          onClick={() =>
+                            sendVerificationCodeMutation.mutate({
+                              phoneNumber: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
+                            })
+                          }>
+                          Send code
+                        </Button>
+                      </div>
+
                       {form.formState.errors.steps &&
                         form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
                           <p className="mt-1 text-xs text-red-500">
                             {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
                           </p>
                         )}
+
+                      <div className="mt-3 flex">
+                        <TextField
+                          className="border-r-transparent"
+                          placeholder="Verification code"
+                          value={verificationCode}
+                          onChange={(e) => {
+                            setVerificationCode(e.target.value);
+                          }}
+                        />
+                        <Button
+                          color="secondary"
+                          className=" -ml-[3px] rounded-tl-none rounded-bl-none "
+                          onClick={() =>
+                            verifyPhoneNumberMutation.mutate({
+                              phoneNumber: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
+                              code: verificationCode,
+                            })
+                          }>
+                          Verify
+                        </Button>
+                      </div>
                     </>
                   )}
                   {isSenderIdNeeded && (

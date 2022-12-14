@@ -26,6 +26,10 @@ import {
   deleteScheduledSMSReminder,
   scheduleSMSReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
+import {
+  verifyPhoneNumber,
+  sendVerificationCode,
+} from "@calcom/features/ee/workflows/lib/reminders/verifyPhoneNumber";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 
@@ -983,5 +987,26 @@ export const workflowsRouter = router({
           },
         });
       }
+    }),
+  sendVerificationCode: authedProcedure
+    .input(
+      z.object({
+        phoneNumber: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { phoneNumber } = input;
+      sendVerificationCode(phoneNumber);
+    }),
+  verifyPhoneNumber: authedProcedure
+    .input(
+      z.object({
+        phoneNumber: z.string(),
+        code: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { phoneNumber, code } = input;
+      verifyPhoneNumber(phoneNumber, code);
     }),
 });
