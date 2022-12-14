@@ -237,6 +237,7 @@ export const workflowsRouter = router({
             template: z.enum(WORKFLOW_TEMPLATES),
             numberRequired: z.boolean().nullable(),
             sender: z.string().optional().nullable(),
+            numberVerificationPending: z.boolean(),
           })
           .array(),
         trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
@@ -475,7 +476,9 @@ export const workflowsRouter = router({
                     step.reminderBody || "",
                     step.id,
                     step.template,
-                    step.sender || SENDER_ID
+                    step.sender || SENDER_ID,
+                    user.id,
+                    step.numberVerificationPending
                   );
                 }
               });
@@ -654,7 +657,9 @@ export const workflowsRouter = router({
                   newStep.reminderBody || "",
                   newStep.id || 0,
                   newStep.template,
-                  newStep.sender || SENDER_ID
+                  newStep.sender || SENDER_ID,
+                  user.id,
+                  newStep.numberVerificationPending
                 );
               }
             });
@@ -767,7 +772,9 @@ export const workflowsRouter = router({
                     step.reminderBody || "",
                     createdStep.id,
                     step.template,
-                    step.sender || SENDER_ID
+                    step.sender || SENDER_ID,
+                    user.id,
+                    step.numberVerificationPending
                   );
                 }
               });
@@ -904,7 +911,9 @@ export const workflowsRouter = router({
             reminderBody,
             0,
             template,
-            sender || SENDER_ID
+            sender || SENDER_ID,
+            ctx.user.id,
+            false
           );
           return { message: "Notification sent" };
         }

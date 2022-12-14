@@ -50,7 +50,9 @@ export const scheduleSMSReminder = async (
   message: string,
   workflowStepId: number,
   template: WorkflowTemplates,
-  sender: string
+  sender: string,
+  userId: number,
+  isVerificationPending: boolean
 ) => {
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
@@ -59,6 +61,19 @@ export const scheduleSMSReminder = async (
   let scheduledDate = null;
 
   const senderID = getSenderId(reminderPhone, sender);
+
+  const verifiedNumbers = await prisma.verifiedNumber.findMany({
+    where: {
+      userId,
+    },
+  });
+
+  //SMS_ATTENDEE action does not need to be verified
+  //isVerificationPending is from all already existing workflows (once they edit their workflow, they will also have to verify the number)
+  const isNumberVerified =
+    !!verifiedNumbers.find((verifiedNumber) => verifiedNumber.phoneNumber === reminderPhone) ||
+    isVerificationPending ||
+    action === WorkflowActions.SMS_ATTENDEE;
 
   if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
     scheduledDate = timeSpan.time && timeUnit ? dayjs(startTime).subtract(timeSpan.time, timeUnit) : null;
@@ -93,7 +108,7 @@ export const scheduleSMSReminder = async (
       break;
   }
 
-  if (message.length > 0 && reminderPhone) {
+  if (message.length > 0 && reminderPhone && isNumberVerified) {
     //send SMS when event is booked/cancelled/rescheduled
     if (
       triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
