@@ -302,12 +302,6 @@ export const availabilityRouter = router({
               days: [],
             }));
 
-        let updatedUser;
-        if (input.isDefault) {
-          const setupDefault = await setupDefaultSchedule(user.id, input.scheduleId, prisma);
-          updatedUser = setupDefault;
-        }
-
         // Not able to update the schedule with userId where clause, so fetch schedule separately and then validate
         // Bug: https://github.com/prisma/prisma/issues/7290
         const userSchedule = await prisma.schedule.findUnique({
@@ -325,6 +319,24 @@ export const availabilityRouter = router({
           throw new TRPCError({
             code: "UNAUTHORIZED",
           });
+        }
+
+        let updatedUser;
+        if (input.isDefault) {
+          const setupDefault = await setupDefaultSchedule(user.id, input.scheduleId, prisma);
+          updatedUser = setupDefault;
+        }
+
+        if (!input.name) {
+          // TODO: Improve
+          // We don't want to pass the full schedule for just a set as default update
+          // but in the current logic, this wipes the existing availability.
+          // Return early to prevent this from happening.
+          return {
+            isDefault: updatedUser
+              ? updatedUser.defaultScheduleId === input.scheduleId
+              : user.defaultScheduleId === input.scheduleId,
+          };
         }
 
         const schedule = await prisma.schedule.update({

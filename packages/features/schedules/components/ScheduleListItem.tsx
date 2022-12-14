@@ -30,15 +30,7 @@ export function ScheduleListItem({
     timeZone?: string;
     hour12?: boolean;
   };
-  updateDefault: ({
-    scheduleId,
-    isDefault,
-    schedule,
-  }: {
-    scheduleId: number;
-    isDefault: boolean;
-    schedule: Schedule;
-  }) => void;
+  updateDefault: ({ scheduleId, isDefault }: { scheduleId: number; isDefault: boolean }) => void;
 }) {
   const { t, i18n } = useLocale();
 
@@ -97,7 +89,6 @@ export function ScheduleListItem({
                       updateDefault({
                         scheduleId: schedule.id,
                         isDefault: true,
-                        schedule: data.availability,
                       });
                     }}>
                     {t("set_as_default")}
