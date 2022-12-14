@@ -73,10 +73,9 @@ export function getWorkingHours(
     relativeTimeUnit.utcOffset ??
     (relativeTimeUnit.timeZone ? dayjs().tz(relativeTimeUnit.timeZone).utcOffset() : 0);
 
-  const workingHours = availability
+    const workingHours = availability.reduce((currentWorkingHours: WorkingHours[], schedule) => {
     // Include only recurring weekly availability, not date overrides
-    .filter((item) => !!item.days.length)
-    .reduce((currentWorkingHours: WorkingHours[], schedule) => {
+    if (!!schedule.days.length) return currentWorkingHours;
       // Get times localised to the given utcOffset/timeZone
       const startTime =
         dayjs.utc(schedule.startTime).get("hour") * 60 +
