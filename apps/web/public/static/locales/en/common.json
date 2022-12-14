@@ -920,7 +920,7 @@
   "allow_booker_to_select_duration": "Allow booker to select duration",
   "impersonate_user_tip": "All uses of this feature is audited.",
   "impersonating_user_warning": "Impersonating username \"{{user}}\".",
-  "impersonating_stop_instructions": "<0>Click Here to stop</0>.",
+  "impersonating_stop_instructions": "Click here to stop",
   "event_location_changed": "Updated - Your event changed the location",
   "location_changed_event_type_subject": "Location Changed: {{eventType}} with {{name}} at {{date}}",
   "current_location": "Current Location",
