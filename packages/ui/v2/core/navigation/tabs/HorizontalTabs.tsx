@@ -1,3 +1,5 @@
+import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
+
 import HorizontalTabItem, { HorizontalTabItemProps } from "./HorizontalTabItem";
 
 export { HorizontalTabItem };

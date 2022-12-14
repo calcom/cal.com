@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import BookingLayout from "@calcom/features/bookings/layout/BookingLayout";
+import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterInputs, RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmptyScreen, Icon } from "@calcom/ui";
@@ -42,12 +43,19 @@ const querySchema = z.object({
 });
 
 export default function Bookings() {
+  const { data: filterQuery } = useFilterQuery();
   const router = useRouter();
   const { status } = router.isReady ? querySchema.parse(router.query) : { status: "upcoming" as const };
   const { t } = useLocale();
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
-    { status, limit: 10 },
+    {
+      limit: 10,
+      filters: {
+        ...filterQuery,
+        status: filterQuery.status ?? status,
+      },
+    },
     {
       // first render has status `undefined`
       enabled: router.isReady,
