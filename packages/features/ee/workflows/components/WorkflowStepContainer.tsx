@@ -10,6 +10,7 @@ import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 import "react-phone-number-input/style.css";
 
+import { classNames } from "@calcom/lib";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
@@ -384,13 +385,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   {isPhoneNumberNeeded && (
                     <>
                       <Label className="pt-4">{t("custom_phone_number")}</Label>
-                      <div className="flex ">
+                      <div className="block sm:flex">
                         <PhoneInput<FormValues>
                           control={form.control}
                           name={`steps.${step.stepNumber - 1}.sendTo`}
                           placeholder={t("phone_number")}
                           id={`steps.${step.stepNumber - 1}.sendTo`}
-                          className="rounded-tl-md rounded-bl-md border-r-transparent"
+                          className="min-w-fit sm:rounded-tl-md sm:rounded-bl-md sm:border-r-transparent"
                           required
                           onChange={() => {
                             const isAlreadyVerified = !!verifiedNumbers.find(
@@ -403,7 +404,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <Button
                           color="secondary"
                           disabled={numberVerified || false}
-                          className="-ml-[3px] h-[40px] w-32 rounded-tl-none rounded-bl-none "
+                          className={classNames(
+                            "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-tl-none sm:rounded-bl-none ",
+                            numberVerified ? "hidden" : "mt-3 sm:mt-0"
+                          )}
                           onClick={() =>
                             sendVerificationCodeMutation.mutate({
                               phoneNumber: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
@@ -427,7 +431,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <>
                           <div className="mt-3 flex">
                             <TextField
-                              className="border-r-transparent"
+                              className=" border-r-transparent"
                               placeholder="Verification code"
                               value={verificationCode}
                               onChange={(e) => {
@@ -605,12 +609,21 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   className="mt-7 w-full"
                   onClick={() => {
                     let isEmpty = false;
+                    const isNumberVerified = true;
+
                     if (!form.getValues(`steps.${step.stepNumber - 1}.sendTo`) && isPhoneNumberNeeded) {
                       form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
                         type: "custom",
                         message: t("no_input"),
                       });
                       isEmpty = true;
+                    }
+
+                    if (!numberVerified) {
+                      form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
+                        type: "custom",
+                        message: t("not_verified"),
+                      });
                     }
                     if (
                       form.getValues(`steps.${step.stepNumber - 1}.template`) === WorkflowTemplates.CUSTOM
@@ -658,7 +671,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           ? false
                           : true;
 
-                      if (isPhoneNumberNeeded && isNumberValid && !isEmpty) {
+                      if (isPhoneNumberNeeded && isNumberValid && !isEmpty && numberVerified) {
                         setConfirmationDialogOpen(true);
                       }
                     }
