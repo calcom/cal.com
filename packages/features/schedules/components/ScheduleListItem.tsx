@@ -30,15 +30,7 @@ export function ScheduleListItem({
     timeZone?: string;
     hour12?: boolean;
   };
-  updateDefault: ({
-    scheduleId,
-    isDefault,
-    schedule,
-  }: {
-    scheduleId: number;
-    isDefault: boolean;
-    schedule: Schedule;
-  }) => void;
+  updateDefault: ({ scheduleId, isDefault }: { scheduleId: number; isDefault: boolean }) => void;
 }) {
   const { t, i18n } = useLocale();
 
@@ -59,15 +51,17 @@ export function ScheduleListItem({
                 )}
               </div>
               <p className="mt-1 text-xs text-neutral-500">
-                {schedule.availability.map((availability: Availability) => (
-                  <Fragment key={availability.id}>
-                    {availabilityAsString(availability, {
-                      locale: i18n.language,
-                      hour12: displayOptions?.hour12,
-                    })}
-                    <br />
-                  </Fragment>
-                ))}
+                {schedule.availability
+                  .filter((availability) => !!availability.days.length)
+                  .map((availability) => (
+                    <Fragment key={availability.id}>
+                      {availabilityAsString(availability, {
+                        locale: i18n.language,
+                        hour12: displayOptions?.hour12,
+                      })}
+                      <br />
+                    </Fragment>
+                  ))}
                 {schedule.timeZone && schedule.timeZone !== displayOptions?.timeZone && (
                   <p className="my-1 flex items-center first-letter:text-xs">
                     <Icon.FiGlobe />
@@ -95,7 +89,6 @@ export function ScheduleListItem({
                       updateDefault({
                         scheduleId: schedule.id,
                         isDefault: true,
-                        schedule: data.availability,
                       });
                     }}>
                     {t("set_as_default")}
