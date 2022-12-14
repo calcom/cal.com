@@ -1431,7 +1431,7 @@
   "disable_app": "Disable App",
   "disable_app_description": "Disabling this app could cause problems with how your users interact with Cal",
   "edit_keys": "Edit Keys",
-  "apps_description": "Enable apps for your instance of Cal",
+  "admin_apps_description": "Enable apps for your instance of Cal",
   "no_available_apps": "There are no available apps",
   "no_available_apps_description": "Please ensure there are apps in your deployment under 'packages/app-store'",
   "no_apps": "There are no apps enabled in this instance of Cal",
@@ -1454,5 +1454,7 @@
   "date_overrides_update_btn": "Update Override",
   "event_type_duplicate_copy_text": "{{slug}}-copy",
   "set_as_default": "Set as default",
-  "hide_eventtype_details": "Hide EventType Details"
+  "hide_eventtype_details": "Hide EventType Details",
+  "no_availability_in_month": "No availability in {{month}}",
+  "view_next_month": "View next month"
 }
