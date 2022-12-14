@@ -1,1 +1,13 @@
-{}
+{
+  "day_one": "{{count}} ημέρα",
+  "day_other": "{{count}} ημέρες",
+  "second_one": "{{count}} δευτερόλεπτο",
+  "second_other": "{{count}} δευτερόλεπτα",
+  "upgrade_now": "Αναβαθμίστε τώρα",
+  "accept_invitation": "Αποδοχή Πρόσκλησης",
+  "have_any_questions": "Έχετε ερωτήσεις? Είμαστε εδώ για να βοηθήσουμε.",
+  "reset_password_subject": "{{appName}}: Οδηγίες επαναφοράς κωδικού πρόσβασης",
+  "event_declined_subject": "Απορρίφθηκε: {{eventType}} με {{name}} στις {{date}}",
+  "event_cancelled_subject": "Ακύρωση: {{eventType}} με {{name}} στις {{date}}",
+  "cancellation_reason": "Λόγος ακύρωσης (προαιρετικό)"
+}
