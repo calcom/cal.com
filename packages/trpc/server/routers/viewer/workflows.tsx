@@ -827,6 +827,17 @@ export const workflowsRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { action, emailSubject, reminderBody, template, sendTo, sender } = input;
+
+      const verifiedNumbers = await ctx.prisma.verifiedNumber.findFirst({
+        where: {
+          userId: ctx.user.id,
+          phoneNumber: sendTo,
+        },
+      });
+      if (!verifiedNumbers) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Phone number is not verified" });
+      }
+
       try {
         const booking = await ctx.prisma.booking.findFirst({
           orderBy: {

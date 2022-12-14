@@ -172,6 +172,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       if (err instanceof TRPCClientError) {
         if (err.message === "rate-limit-exceeded") {
           message = t("rate_limit_exceeded");
+        } else {
+          message = err.message;
         }
       }
       if (err instanceof HttpError) {
