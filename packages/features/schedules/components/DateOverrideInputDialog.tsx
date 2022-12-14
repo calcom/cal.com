@@ -146,10 +146,16 @@ const DateOverrideForm = ({
               label={t("date_overrides_mark_all_day_unavailable_one")}
               checked={datesUnavailable}
               onCheckedChange={setDatesUnavailable}
+              data-testid="date-override-mark-unavailable"
             />
           </div>
           <div className="flex flex-row-reverse">
-            <Button className="ml-2" color="primary" type="submit" disabled={!date}>
+            <Button
+              className="ml-2"
+              color="primary"
+              type="submit"
+              disabled={!date}
+              data-testid="add-override-submit-btn">
               {value ? t("date_overrides_update_btn") : t("date_overrides_add_btn")}
             </Button>
             <DialogClose onClick={onClose} />
