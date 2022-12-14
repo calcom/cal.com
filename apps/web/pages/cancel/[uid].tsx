@@ -166,11 +166,11 @@ export default function Type(props: inferSSRProps<typeof getServerSideProps>) {
                           rows={3}
                         />
                         <div className="flex justify-between space-x-2 text-center rtl:space-x-reverse">
-                          {!props.booking.eventType?.recurringEvent && (
-                            <Button color="secondary" onClick={() => router.push("/reschedule/" + uid)}>
-                              {t("reschedule_this")}
-                            </Button>
-                          )}
+                          {/*{!props.booking.eventType?.recurringEvent && (*/}
+                          <Button color="secondary" onClick={() => router.push("/reschedule/" + uid)}>
+                            {t("reschedule_this")}
+                          </Button>
+                          {/*)}*/}
                           <Button
                             data-testid="cancel"
                             onClick={async () => {
