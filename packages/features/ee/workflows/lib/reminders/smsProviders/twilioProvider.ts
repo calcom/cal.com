@@ -6,7 +6,8 @@ declare global {
 }
 
 export const twilio =
-  globalThis.twilio || (process.env.TWILIO_SID && process.env.TWILIO_TOKEN) //&& process.env.TWILIO_MESSAGING_SID) => todo add this again
+  globalThis.twilio ||
+  (process.env.TWILIO_SID && process.env.TWILIO_TOKEN && process.env.TWILIO_MESSAGING_SID)
     ? TwilioClient(process.env.TWILIO_SID, process.env.TWILIO_TOKEN)
     : undefined;
 

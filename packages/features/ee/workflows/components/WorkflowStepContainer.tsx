@@ -145,13 +145,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const sendVerificationCodeMutation = trpc.viewer.workflows.sendVerificationCode.useMutation({
     onSuccess: async () => {
-      showToast("verification code sent", "success");
+      showToast(t("verification_code_sent"), "success");
     },
   });
 
   const verifyPhoneNumberMutation = trpc.viewer.workflows.verifyPhoneNumber.useMutation({
     onSuccess: async (isVerified) => {
-      showToast(isVerified ? t("verified") : t("wrong_code"), "success");
+      showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
       setNumberVerified(isVerified);
     },
     onError: (err) => {
