@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
 import dayjs, { Dayjs } from "@calcom/dayjs";
@@ -38,7 +38,8 @@ const DateOverrideForm = ({
   value?: TimeRange[];
   onClose?: () => void;
 }) => {
-  const { t } = useLocale();
+  const [browsingDate, setBrowsingDate] = useState<Dayjs>();
+  const { t, i18n, isLocaleReady } = useLocale();
   const [datesUnavailable, setDatesUnavailable] = useState(
     value &&
       value[0].start.getHours() === 0 &&
@@ -48,17 +49,22 @@ const DateOverrideForm = ({
   );
 
   const [date, setDate] = useState<Dayjs | null>(value ? dayjs(value[0].start) : null);
-  const includedDates = workingHours
-    ? workingHours.reduce((dates, workingHour) => {
-        for (let dNum = 1; dNum < daysInMonth(dayjs()); dNum++) {
-          const d = dayjs.utc().date(dNum);
-          if (workingHour.days.includes(dayjs.utc().date(dNum).day())) {
-            dates.push(yyyymmdd(d));
-          }
-        }
-        return dates;
-      }, [] as string[])
-    : [];
+  const includedDates = useMemo(
+    () =>
+      workingHours
+        ? workingHours.reduce((dates, workingHour) => {
+            for (let dNum = 1; dNum <= daysInMonth(browsingDate || dayjs()); dNum++) {
+              const d = browsingDate ? browsingDate.date(dNum) : dayjs.utc().date(dNum);
+              if (workingHour.days.includes(d.day())) {
+                dates.push(yyyymmdd(d));
+              }
+            }
+            return dates;
+          }, [] as string[])
+        : [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [browsingDate]
+  );
 
   const form = useForm<{ range: TimeRange[] }>();
   const { reset } = form;
@@ -113,7 +119,11 @@ const DateOverrideForm = ({
           weekStart={0}
           selected={date}
           onChange={(day) => setDate(day)}
-          locale="en-GB"
+          onMonthChange={(newMonth) => {
+            setBrowsingDate(newMonth);
+          }}
+          browsingDate={browsingDate}
+          locale={isLocaleReady ? i18n.language : "en"}
         />
       </div>
       {date && (

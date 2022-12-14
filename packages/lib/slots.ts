@@ -130,7 +130,6 @@ const getSlots = ({
       startTime: override.start.getUTCHours() * 60 + override.start.getUTCMinutes(),
       endTime: override.end.getUTCHours() * 60 + override.end.getUTCMinutes(),
     }));
-    console.log({ computedLocalAvailability });
     return buildSlots({ computedLocalAvailability, startDate, startOfInviteeDay, eventLength, frequency });
   }
 
