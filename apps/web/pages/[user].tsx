@@ -28,7 +28,6 @@ import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { BadgeCheckIcon, EventTypeDescriptionLazy as EventTypeDescription, Icon } from "@calcom/ui";
 
-import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EmbedProps } from "@lib/withEmbedSsr";
 
@@ -92,7 +91,6 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const query = { ...router.query };
   delete query.user; // So it doesn't display in the Link (and make tests fail)
-  useExposePlanGlobally("PRO");
   const nameOrUsername = user.name || user.username || "";
   const telemetry = useTelemetry();
 
@@ -272,7 +270,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       darkBrandColor: true,
       avatar: true,
       theme: true,
-      plan: true,
       away: true,
       verified: true,
       allowDynamicBooking: true,

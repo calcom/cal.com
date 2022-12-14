@@ -26,6 +26,7 @@ export const metadata = {
   extendsFeature: "EventType",
   verified: true,
   email: "help@cal.com",
+  dirName: "stripepayment",
 } as AppMeta;
 
 export default metadata;

@@ -7,3 +7,5 @@ export const appDataSchema = eventTypeAppCardZod.merge(
     trackedDomain: z.string(),
   })
 );
+
+export const appKeysSchema = z.object({});
