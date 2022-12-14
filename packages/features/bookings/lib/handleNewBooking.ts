@@ -910,6 +910,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           const googleMeetResult = {
             appName: "Google Meet",
             type: "conferencing",
+            uid: results[0].uid,
+            originalEvent: results[0].originalEvent,
           };
 
           const googleCalResult = results.find((result) => result.type === "google_calendar");
@@ -927,7 +929,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
               ...googleMeetResult,
               success: true,
             });
-          } else if (googleCalResult && !googleCalResult.createdEvent.hangoutLink) {
+          } else if (googleCalResult && !googleCalResult.createdEvent?.hangoutLink) {
             results.push({
               ...googleMeetResult,
               success: false,
