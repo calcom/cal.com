@@ -1426,6 +1426,7 @@
   "disable_app": "Desativar a aplicação",
   "disable_app_description": "A desativação desta aplicação pode causar problemas na forma como os seus utilizadores interagem com o Cal",
   "edit_keys": "Editar chaves",
+  "admin_apps_description": "Ativar aplicações para a sua instância do Cal",
   "no_available_apps": "Não existem aplicações disponíveis",
   "no_available_apps_description": "Por favor, certifique-se que existem aplicações na sua instalação em 'packages/app-store'",
   "no_apps": "Não existem aplicações ativas nesta instância do Cal",
