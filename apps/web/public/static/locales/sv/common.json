@@ -1426,6 +1426,7 @@
   "disable_app": "Inaktivera app",
   "disable_app_description": "Inaktivering av den här appen kan orsaka problem med hur dina användare interagerar med Cal",
   "edit_keys": "Redigera nycklar",
+  "admin_apps_description": "Aktivera appar för din Cal-version",
   "no_available_apps": "Det finns inga tillgängliga appar",
   "no_available_apps_description": "Se till att det finns appar i din distribution under \"paket/app-store\"",
   "no_apps": "Det finns inga appar aktiverade i denna instans av Cal",
