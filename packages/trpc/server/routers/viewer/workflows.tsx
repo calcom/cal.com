@@ -857,14 +857,16 @@ export const workflowsRouter = router({
 
       const senderID = sender || SENDER_ID;
 
-      const verifiedNumbers = await ctx.prisma.verifiedNumber.findFirst({
-        where: {
-          userId: ctx.user.id,
-          phoneNumber: sendTo,
-        },
-      });
-      if (!verifiedNumbers && action === WorkflowActions.SMS_NUMBER) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Phone number is not verified" });
+      if (action === WorkflowActions.SMS_NUMBER) {
+        if (!sendTo) throw new TRPCError({ code: "BAD_REQUEST", message: "Missing sendTo" });
+        const verifiedNumbers = await ctx.prisma.verifiedNumber.findFirst({
+          where: {
+            userId: ctx.user.id,
+            phoneNumber: sendTo,
+          },
+        });
+        if (!verifiedNumbers)
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Phone number is not verified" });
       }
 
       try {
@@ -972,7 +974,7 @@ export const workflowsRouter = router({
             reminderBody,
             0,
             template,
-            sender || SENDER_ID,
+            senderID,
             ctx.user.id
           );
           return { message: "Notification sent" };
