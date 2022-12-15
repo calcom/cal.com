@@ -66,6 +66,8 @@ const Component = ({
     }
   );
 
+  // variant not other allows, an app to be shown in calendar category without requiring an actual calendar connection e.g. vimcal
+  // Such apps, can only be installed once.
   const allowedMultipleInstalls = categories.indexOf("calendar") > -1 && variant !== "other";
 
   return (
