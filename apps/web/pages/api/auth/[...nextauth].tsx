@@ -73,8 +73,6 @@ const providers: Provider[] = [
         },
       });
 
-      // Comment
-
       if (!user) {
         throw new Error(ErrorCode.UserNotFound);
       }

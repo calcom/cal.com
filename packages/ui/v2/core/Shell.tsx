@@ -627,7 +627,9 @@ const NavigationItem: React.FC<{
       </Link>
       {item.child &&
         isCurrent({ router, isChild, item }) &&
-        item.child.map((item) => <NavigationItem key={item.name} item={item} isChild isApp={index === 0} />)}
+        item.child.map((item, index) => (
+          <NavigationItem key={item.name} item={item} isChild isApp={index === 0} />
+        ))}
     </Fragment>
   );
 };
