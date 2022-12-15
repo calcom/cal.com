@@ -11,33 +11,35 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
+import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { JOIN_SLACK, ROADMAP, DESKTOP_APP_LINK, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME, COMPANY_NAME, MENTO_COACH_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import isCalcom from "@calcom/lib/isCalcom";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
-import Dropdown, {
+
+import {
+  Button,
+  Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuPortal,
-} from "@calcom/ui/Dropdown";
-import { Icon } from "@calcom/ui/Icon";
-import TimezoneChangeDialog from "@calcom/ui/TimezoneChangeDialog";
-import { Button } from "@calcom/ui/components/button";
-import showToast from "@calcom/ui/v2/core/notifications";
-import Tips from "@calcom/ui/v2/modules/tips/Tips";
+  Icon,
+  showToast,
+  TimezoneChangeDialog,
+  Tips,
+} from "../..";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
-import Logo from "../../Logo";
 import HeadSeo from "./head-seo";
 import { SkeletonText } from "./skeleton";
 
@@ -129,7 +131,7 @@ const Layout = (props: LayoutProps) => {
     <>
       {!props.withoutSeo && (
         <HeadSeo
-          title={pageTitle ?? "Cal.com"}
+          title={pageTitle ?? APP_NAME}
           description={props.subtitle ? props.subtitle?.toString() : ""}
           nextSeoProps={{
             nofollow: true,
@@ -143,12 +145,14 @@ const Layout = (props: LayoutProps) => {
 
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
-
-      <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
-        {props.SidebarContainer || <SideBarContainer />}
-        <div className="flex w-0 flex-1 flex-col overflow-hidden">
-          <ImpersonatingBanner />
-          <MainContainer {...props} />
+      <div className="h-screen overflow-hidden">
+        <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
+          {props.SidebarContainer || <SideBarContainer />}
+          <div className="flex w-0 flex-1 flex-col overflow-hidden">
+            <TeamsUpgradeBanner />
+            <ImpersonatingBanner />
+            <MainContainer {...props} />
+          </div>
         </div>
       </div>
     </>
@@ -178,6 +182,8 @@ type LayoutProps = {
   withoutMain?: boolean;
   // Gives you the option to skip HeadSEO and render your own.
   withoutSeo?: boolean;
+  // Gives the ability to include actions to the right of the heading
+  actions?: JSX.Element;
 };
 
 const CustomBrandingContainer = () => {
@@ -189,8 +195,6 @@ export default function Shell(props: LayoutProps) {
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
   useTheme("light");
-  const { session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
-  if (!session && !props.isPublic) return null;
 
   return (
     <KBarRoot>
@@ -216,9 +220,9 @@ function UserDropdown({ small }: { small?: boolean }) {
         screenResolution: `${screen.width}x${screen.height}`,
       });
   });
-  const mutation = trpc.useMutation("viewer.away", {
+  const mutation = trpc.viewer.away.useMutation({
     onSettled() {
-      utils.invalidateQueries("viewer.me");
+      utils.viewer.me.invalidate();
     },
   });
   const utils = trpc.useContext();
@@ -240,10 +244,10 @@ function UserDropdown({ small }: { small?: boolean }) {
   return (
     <Dropdown open={menuOpen}>
       <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
-        <button className="group flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-100 sm:pl-3 md:rounded-none lg:pl-2">
+        <button className="group flex w-full cursor-pointer appearance-none items-center  rounded-full p-2 text-left outline-none hover:bg-gray-200 sm:pl-3 md:rounded lg:pl-2">
           <span
             className={classNames(
-              small ? "h-8 w-8" : "h-9 w-9 ltr:mr-2 rtl:ml-3",
+              small ? "h-6 w-6" : "h-8 w-8 ltr:mr-2 rtl:ml-3",
               "relative flex-shrink-0 rounded-full bg-gray-300 "
             )}>
             {
@@ -267,7 +271,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 <span className="block truncate font-medium text-gray-900">
                   {user.name || "Nameless User"}
                 </span>
-                <span className="block truncate font-normal text-neutral-500">
+                <span className="block truncate font-normal text-gray-900">
                   {user.username
                     ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
                       ? `cal.com/${user.username}`
@@ -294,6 +298,26 @@ function UserDropdown({ small }: { small?: boolean }) {
             <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
           ) : (
             <>
+              {/*<DropdownMenuItem>*/}
+              {/*  <button*/}
+              {/*    onClick={() => {*/}
+              {/*      mutation.mutate({ away: !user?.away });*/}
+              {/*      utils.viewer.me.invalidate();*/}
+              {/*    }}*/}
+              {/*    className="flex w-full min-w-max cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">*/}
+              {/*    <Icon.FiMoon*/}
+              {/*      className={classNames(*/}
+              {/*        user.away*/}
+              {/*          ? "text-purple-500 group-hover:text-purple-700"*/}
+              {/*          : "text-gray-500 group-hover:text-gray-700",*/}
+              {/*        "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-3"*/}
+              {/*      )}*/}
+              {/*      aria-hidden="true"*/}
+              {/*    />*/}
+              {/*    {user.away ? t("set_as_free") : t("set_as_away")}*/}
+              {/*  </button>*/}
+              {/*</DropdownMenuItem>*/}
+              {/*<DropdownMenuSeparator className="h-px bg-gray-200" />*/}
               {user.username && (
                 <>
                   <DropdownMenuItem>
@@ -323,6 +347,52 @@ function UserDropdown({ small }: { small?: boolean }) {
                   </DropdownMenuItem>
                 </>
               )}
+              {/*<DropdownMenuSeparator className="h-px bg-gray-200" />*/}
+              {/*<DropdownMenuItem>*/}
+              {/*  <a*/}
+              {/*    href={JOIN_SLACK}*/}
+              {/*    target="_blank"*/}
+              {/*    rel="noreferrer"*/}
+              {/*    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">*/}
+              {/*    <Icon.FiSlack strokeWidth={1.5} className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}*/}
+              {/*    {t("join_our_slack")}*/}
+              {/*  </a>*/}
+              {/*</DropdownMenuItem>*/}
+              {/*<DropdownMenuItem>*/}
+              {/*  <a*/}
+              {/*    target="_blank"*/}
+              {/*    rel="noopener noreferrer"*/}
+              {/*    href={ROADMAP}*/}
+              {/*    className="flex items-center px-4 py-2 text-sm text-gray-700">*/}
+              {/*    <Icon.FiMap className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" /> {t("visit_roadmap")}*/}
+              {/*  </a>*/}
+              {/*</DropdownMenuItem>*/}
+              {/*<DropdownMenuItem>*/}
+              {/*  <button*/}
+              {/*    onClick={() => setHelpOpen(true)}*/}
+              {/*    className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">*/}
+              {/*    <Icon.FiHelpCircle*/}
+              {/*      className={classNames(*/}
+              {/*        "text-gray-500 group-hover:text-neutral-500",*/}
+              {/*        "h-4 w-4 flex-shrink-0 ltr:mr-2"*/}
+              {/*      )}*/}
+              {/*      aria-hidden="true"*/}
+              {/*    />*/}
+
+              {/*    {t("help")}*/}
+              {/*  </button>*/}
+              {/*</DropdownMenuItem>*/}
+              {/*<DropdownMenuItem>*/}
+              {/*  <a*/}
+              {/*    target="_blank"*/}
+              {/*    rel="noopener noreferrer"*/}
+              {/*    href={DESKTOP_APP_LINK}*/}
+              {/*    className="desktop-hidden hidden items-center px-4 py-2 text-sm text-gray-700 lg:flex">*/}
+              {/*    <Icon.FiDownload className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}*/}
+              {/*    {t("download_desktop_app")}*/}
+              {/*  </a>*/}
+              {/*</DropdownMenuItem>*/}
+
               <DropdownMenuSeparator className="h-px bg-gray-200" />
               <DropdownMenuItem>
                 <a
@@ -449,6 +519,11 @@ const navigation: NavigationItemType[] = [
       return router.asPath.startsWith("/apps/routing-forms/");
     },
   },
+  // {
+  //   name: "workflows",
+  //   href: "/workflows",
+  //   icon: Icon.FiZap,
+  // },
   {
     name: "settings",
     href: "/settings/my-account/profile",
@@ -488,9 +563,13 @@ const Navigation = () => {
 
 function useShouldDisplayNavigationItem(item: NavigationItemType) {
   const { status } = useSession();
-  const { data: routingForms } = trpc.useQuery(["viewer.appById", { appId: "routing-forms" }], {
-    enabled: status === "authenticated" && requiredCredentialNavigationItems.includes(item.name),
-  });
+  const { data: routingForms } = trpc.viewer.appById.useQuery(
+    { appId: "routing-forms" },
+    {
+      enabled: status === "authenticated" && requiredCredentialNavigationItems.includes(item.name),
+      trpc: {},
+    }
+  );
   return !requiredCredentialNavigationItems.includes(item.name) || routingForms?.isInstalled;
 }
 
@@ -516,10 +595,8 @@ const NavigationItem: React.FC<{
     <Fragment>
       <Link
         href={
-          // HACK
-          item.href === "MENTO_URL"
-            ? process?.env?.NEXT_PUBLIC_MENTO_COACH_URL || "https://coaching.mento.co"
-            : item.href
+          // CUSTOM_CODE
+          item.href === "MENTO_URL" ? MENTO_COACH_URL : item.href
         }>
         <a
           aria-label={t(item.name)}
@@ -550,7 +627,7 @@ const NavigationItem: React.FC<{
       </Link>
       {item.child &&
         isCurrent({ router, isChild, item }) &&
-        item.child.map((item, index) => <NavigationItem key={item.name} item={item} isApp={index === 0} />)}
+        item.child.map((item) => <NavigationItem key={item.name} item={item} isChild isApp={index === 0} />)}
     </Fragment>
   );
 };
@@ -649,11 +726,8 @@ function DeploymentInfo() {
         fontSize: "0.5rem",
       }}
       className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
-      &copy; {new Date().getFullYear()} Cal.com, Inc. v.{pkg.version + "-"}
+      &copy; {new Date().getFullYear()} {COMPANY_NAME} v.{pkg.version + "-"}
       {process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"}
-      <span className="lowercase" data-testid={`plan-${user?.plan.toLowerCase()}`}>
-        -{user?.plan}
-      </span>
     </small>
   );
 }
@@ -765,7 +839,7 @@ export function ShellMain(props: LayoutProps) {
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className="w-full ltr:mr-4 rtl:ml-4 sm:block">
               {props.heading && (
-                <h1 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 mb-1 truncate text-xl font-bold tracking-wide text-black xl:max-w-full">
+                <h1 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 mb-1 hidden truncate text-xl font-bold tracking-wide text-black sm:block xl:max-w-full">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
               )}
@@ -784,6 +858,7 @@ export function ShellMain(props: LayoutProps) {
                 {props.CTA}
               </div>
             )}
+            {props.actions && props.actions}
           </header>
         )}
       </div>

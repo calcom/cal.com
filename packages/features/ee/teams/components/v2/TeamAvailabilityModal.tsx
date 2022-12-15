@@ -1,19 +1,18 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
-import { Avatar, Label } from "@calcom/ui/components";
-import TimezoneSelect, { ITimezone } from "@calcom/ui/form/TimezoneSelect";
-import { Select, DatePicker } from "@calcom/ui/v2";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { ITimezone } from "@calcom/ui";
+import { Avatar, DatePickerField as DatePicker, Label, Select, TimezoneSelect } from "@calcom/ui";
 
 import LicenseRequired from "../../../common/components/LicenseRequired";
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 
 interface Props {
-  team?: inferQueryOutput<"viewer.teams.get">;
-  member?: inferQueryOutput<"viewer.teams.get">["members"][number];
+  team?: RouterOutputs["viewer"]["teams"]["get"];
+  member?: RouterOutputs["viewer"]["teams"]["get"]["members"][number];
 }
 
 export default function TeamAvailabilityModal(props: Props) {
@@ -28,13 +27,13 @@ export default function TeamAvailabilityModal(props: Props) {
   const [frequency, setFrequency] = useState<15 | 30 | 60>(30);
 
   useEffect(() => {
-    utils.invalidateQueries(["viewer.teams.getMemberAvailability"]);
+    utils.viewer.teams.getMemberAvailability.invalidate();
   }, [utils, selectedTimeZone, selectedDate]);
 
   return (
     <LicenseRequired>
       <>
-        <div className="grid h-[400px] w-[36.7rem] grid-cols-2 space-x-11 rtl:space-x-reverse">
+        <div className="grid h-[400px] grid-cols-2 space-x-11 rtl:space-x-reverse">
           <div className="col-span-1">
             <div className="flex">
               <Avatar

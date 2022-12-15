@@ -1,13 +1,15 @@
+import { GetServerSidePropsContext } from "next";
+import { useRouter } from "next/router";
 import { useState } from "react";
 import { HelpScout, useChat } from "react-live-chat-loader";
 
 import { classNames } from "@calcom/lib";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Button } from "@calcom/ui/components/button";
-import Meta from "@calcom/ui/v2/core/Meta";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
+import { Button, getSettingsLayout as getLayout, Icon, Meta } from "@calcom/ui";
+
+import { ssrInit } from "@server/lib/ssr";
 
 interface CtaRowProps {
   title: string;
@@ -33,10 +35,12 @@ const CtaRow = ({ title, description, className, children }: CtaRowProps) => {
 
 const BillingView = () => {
   const { t } = useLocale();
-  const { data: user } = trpc.useQuery(["viewer.me"]);
-  const isPro = user?.plan === "PRO";
+  const { data: user } = trpc.viewer.me.useQuery();
   const [, loadChat] = useChat();
   const [showChat, setShowChat] = useState(false);
+  const router = useRouter();
+  const returnTo = router.asPath;
+  const billingHref = `/api/integrations/stripepayment/portal?returnTo=${WEBAPP_URL}${returnTo}`;
 
   const onContactSupportClick = () => {
     setShowChat(true);
@@ -47,32 +51,17 @@ const BillingView = () => {
     <>
       <Meta title={t("billing")} description={t("manage_billing_description")} />
       <div className="space-y-6 text-sm sm:space-y-8">
-        {!isPro && (
-          <CtaRow title={t("billing_freeplan_title")} description={t("billing_freeplan_description")}>
-            <form target="_blank" method="POST" action="/api/upgrade">
-              <Button type="submit" EndIcon={Icon.FiExternalLink}>
-                {t("billing_freeplan_cta")}
-              </Button>
-            </form>
-          </CtaRow>
-        )}
-
         <CtaRow
-          className={classNames(!isPro && "pointer-events-none opacity-30")}
           title={t("billing_manage_details_title")}
           description={t("billing_manage_details_description")}>
-          <Button
-            color={isPro ? "primary" : "secondary"}
-            href="/api/integrations/stripepayment/portal"
-            target="_blank"
-            EndIcon={Icon.FiExternalLink}>
+          <Button color="primary" href={billingHref} target="_blank" EndIcon={Icon.FiExternalLink}>
             {t("billing_portal")}
           </Button>
         </CtaRow>
 
         <CtaRow title={t("billing_help_title")} description={t("billing_help_description")}>
           <Button color="secondary" onClick={onContactSupportClick}>
-            {t("billing_help_cta")}
+            {t("contact_support")}
           </Button>
         </CtaRow>
         {showChat && <HelpScout color="#292929" icon="message" horizontalPosition="right" zIndex="1" />}
@@ -82,5 +71,15 @@ const BillingView = () => {
 };
 
 BillingView.getLayout = getLayout;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
+};
 
 export default BillingView;

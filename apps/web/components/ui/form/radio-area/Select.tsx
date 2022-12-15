@@ -1,7 +1,7 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import React from "react";
 
-import { Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui";
 
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";

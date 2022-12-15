@@ -23,7 +23,7 @@ const DestinationCalendarSelector = ({
   destinationCalendar,
 }: Props): JSX.Element | null => {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.connectedCalendars"]);
+  const query = trpc.viewer.connectedCalendars.useQuery();
   const [selectedOption, setSelectedOption] = useState<{ value: string; label: string } | null>(null);
 
   // Extra styles to show prefixed text in react-select

@@ -35,16 +35,16 @@ test.describe("Wipe my Cal App Test", () => {
     await bookings.create(pro.id, pro.username, eventType.id, {});
     await pro.login();
     await page.goto("/bookings/upcoming");
-
     await expect(page.locator("data-testid=wipe-today-button")).toBeVisible();
 
     const $openBookingCount = await page.locator('[data-testid="bookings"] > *').count();
-    await expect($openBookingCount).toBe(3);
+    expect($openBookingCount).toBe(3);
 
     await page.locator("data-testid=wipe-today-button").click();
-    await page.locator("data-testid=send_request").click();
 
-    const $openBookings = await page.locator('[data-testid="bookings"]');
+    // Don't await send_request click, otherwise mutation can possibly occur before observer is attached
+    page.locator("data-testid=send_request").click();
+    const $openBookings = page.locator('[data-testid="bookings"]');
     await $openBookings.evaluate((ul) => {
       return new Promise<void>((resolve) =>
         new window.MutationObserver(() => {

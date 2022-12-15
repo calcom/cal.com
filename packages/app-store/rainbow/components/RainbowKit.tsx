@@ -1,25 +1,22 @@
 import {
   ConnectButton,
-  getDefaultWallets,
-  RainbowKitProvider,
   darkTheme,
+  getDefaultWallets,
   lightTheme,
+  RainbowKitProvider,
 } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 import { useTheme } from "next-themes";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { Trans } from "react-i18next";
-import { configureChains, createClient, WagmiConfig } from "wagmi";
-import { useAccount, useSignMessage } from "wagmi";
+import { configureChains, createClient, useAccount, useSignMessage, WagmiConfig } from "wagmi";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { SkeletonText } from "@calcom/ui";
-import { Icon } from "@calcom/ui/Icon";
-import showToast from "@calcom/ui/v2/core/notifications";
+import { Icon, showToast, SkeletonText } from "@calcom/ui";
 
-import { getProviders, ETH_MESSAGE, SUPPORTED_CHAINS } from "../utils/ethereum";
+import { ETH_MESSAGE, getProviders, SUPPORTED_CHAINS } from "../utils/ethereum";
 
 const { chains, provider } = configureChains(SUPPORTED_CHAINS, getProviders());
 
@@ -71,12 +68,12 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
   } = useSignMessage({
     message: ETH_MESSAGE,
   });
-  const { data: contractData, isLoading: isContractLoading } = trpc.useQuery([
-    "viewer.eth.contract",
-    { address: tokenAddress, chainId },
-  ]);
-  const { data: balanceData, isLoading: isBalanceLoading } = trpc.useQuery(
-    ["viewer.eth.balance", { address: address || "", tokenAddress, chainId }],
+  const { data: contractData, isLoading: isContractLoading } = trpc.viewer.eth.contract.useQuery({
+    address: tokenAddress,
+    chainId,
+  });
+  const { data: balanceData, isLoading: isBalanceLoading } = trpc.viewer.eth.balance.useQuery(
+    { address: address || "", tokenAddress, chainId },
     {
       enabled: !!address,
     }
@@ -118,8 +115,8 @@ const BalanceCheck: React.FC<RainbowGateProps> = ({ chainId, setToken, tokenAddr
             <h2 className="mb-2 grow font-semibold text-neutral-900 dark:text-white">Token Gate</h2>
             {isLoading && (
               <>
-                <SkeletonText width="[100%]" height="5" className="mb-3" />
-                <SkeletonText width="[100%]" height="5" />
+                <SkeletonText className="mb-3 h-1 w-full" />
+                <SkeletonText className="h-1 w-full" />
               </>
             )}
             {!isLoading && contractData && contractData.data && (

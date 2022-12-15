@@ -1,13 +1,14 @@
 import React, { FC } from "react";
 
-import Dropdown, {
+import {
+  Button,
+  Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuPortal,
-} from "@calcom/ui/Dropdown";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components/button";
+  DropdownMenuTrigger,
+  Icon,
+} from "@calcom/ui";
 
 import { SVGComponent } from "@lib/types/SVGComponent";
 

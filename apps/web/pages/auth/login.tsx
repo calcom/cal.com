@@ -1,21 +1,21 @@
+import classNames from "classnames";
 import { GetServerSidePropsContext } from "next";
 import { getCsrfToken, signIn } from "next-auth/react";
+import Link from "next/link";
 import { useRouter } from "next/router";
-import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { FormProvider, useForm } from "react-hook-form";
 import { FaGoogle } from "react-icons/fa";
 
+import { isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/features/ee/sso/lib/saml";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
-import { Icon } from "@calcom/ui";
-import { Alert } from "@calcom/ui/Alert";
-import { Button } from "@calcom/ui/components";
-import { EmailField, PasswordField } from "@calcom/ui/components/form";
-import SAMLLogin from "@calcom/ui/v2/modules/auth/SAMLLogin";
+import { Alert, Button, EmailField, Icon, PasswordField, SAMLLogin } from "@calcom/ui";
 
-import { getSession } from "@lib/auth";
-import { WEBAPP_URL } from "@lib/config/constants";
+import { ErrorCode, getSession } from "@lib/auth";
+import { WEBAPP_URL, WEBSITE_URL } from "@lib/config/constants";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import AddToHomescreen from "@components/AddToHomescreen";
@@ -32,10 +32,30 @@ interface LoginValues {
   csrfToken: string;
 }
 
-export default function Login({ isGoogleLoginEnabled }: inferSSRProps<typeof getServerSideProps>) {
+export default function Login({
+  csrfToken,
+  isGoogleLoginEnabled,
+  isSAMLLoginEnabled,
+  samlTenantID,
+  samlProductID,
+}: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const router = useRouter();
   const methods = useForm<LoginValues>();
+
+  const { register, formState } = methods;
+
+  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const errorMessages: { [key: string]: string } = {
+    // [ErrorCode.SecondFactorRequired]: t("2fa_enabled_instructions"),
+    [ErrorCode.IncorrectPassword]: `${t("incorrect_password")} ${t("please_try_again")}`,
+    [ErrorCode.UserNotFound]: t("no_account_exists"),
+    [ErrorCode.IncorrectTwoFactorCode]: `${t("incorrect_2fa_code")} ${t("please_try_again")}`,
+    [ErrorCode.InternalServerError]: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
+    [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
+  };
 
   const telemetry = useTelemetry();
 
@@ -52,9 +72,17 @@ export default function Login({ isGoogleLoginEnabled }: inferSSRProps<typeof get
 
   callbackUrl = safeCallbackUrl || "";
 
+  const LoginFooter = null;
+  // const LoginFooter = (
+  //   <a href={`${WEBSITE_URL}/signup`} className="text-brand-500 font-medium">
+  //     {t("dont_have_an_account")}
+  //   </a>
+  // );
+
   const TwoFactorFooter = (
     <Button
       onClick={() => {
+        setTwoFactorRequired(false);
         methods.setValue("totpCode", "");
       }}
       StartIcon={Icon.FiArrowLeft}
@@ -63,31 +91,106 @@ export default function Login({ isGoogleLoginEnabled }: inferSSRProps<typeof get
     </Button>
   );
 
+  const onSubmit = async (values: LoginValues) => {
+    setErrorMessage(null);
+    telemetry.event(telemetryEventTypes.login, collectPageParameters());
+    const res = await signIn<"credentials">("credentials", {
+      ...values,
+      callbackUrl,
+      redirect: false,
+    });
+    if (!res) setErrorMessage(errorMessages[ErrorCode.InternalServerError]);
+    // we're logged in! let's do a hard refresh to the desired url
+    else if (!res.error) router.push(callbackUrl);
+    // reveal two factor input if required
+    else if (res.error === ErrorCode.SecondFactorRequired) setTwoFactorRequired(true);
+    // fallback if error not found
+    else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
+  };
+
   return (
     <>
       <AuthContainer
         title={t("login")}
         description={t("login")}
         showLogo
-        heading={t("welcome_back")}
-        footerText={null}>
-        <div className="mt-0 text-center">
-          {isGoogleLoginEnabled && (
-            <Button
-              color="secondary"
-              className="w-full justify-center"
-              data-testid="google"
-              StartIcon={FaGoogle}
-              onClick={async (e) => {
-                e.preventDefault();
-                // track Google logins. Without personal data/payload
-                telemetry.event(telemetryEventTypes.googleLogin, collectPageParameters());
-                await signIn("google");
-              }}>
-              {t("signin_with_google")}
-            </Button>
+        heading={twoFactorRequired ? t("2fa_code") : t("welcome_back")}
+        footerText={twoFactorRequired ? TwoFactorFooter : LoginFooter}>
+        <FormProvider {...methods}>
+          <form onSubmit={methods.handleSubmit(onSubmit)} data-testid="login-form">
+            <div>
+              <input defaultValue={csrfToken || undefined} type="hidden" hidden {...register("csrfToken")} />
+            </div>
+            <div className="space-y-6">
+              {/*<div className={classNames("space-y-6", { hidden: twoFactorRequired })}>*/}
+              {/*  <EmailField*/}
+              {/*    id="email"*/}
+              {/*    label={t("email_address")}*/}
+              {/*    defaultValue={router.query.email as string}*/}
+              {/*    placeholder="john.doe@example.com"*/}
+              {/*    required*/}
+              {/*    {...register("email")}*/}
+              {/*  />*/}
+              {/*  <div className="relative">*/}
+              {/*    <div className="absolute right-0 -top-[6px] z-10">*/}
+              {/*      <Link href="/auth/forgot-password">*/}
+              {/*        <a tabIndex={-1} className="text-sm font-medium text-gray-600">*/}
+              {/*          {t("forgot")}*/}
+              {/*        </a>*/}
+              {/*      </Link>*/}
+              {/*    </div>*/}
+              {/*    <PasswordField*/}
+              {/*      id="password"*/}
+              {/*      autoComplete="current-password"*/}
+              {/*      required*/}
+              {/*      className="mb-0"*/}
+              {/*      {...register("password")}*/}
+              {/*    />*/}
+              {/*  </div>*/}
+              {/*</div>*/}
+
+              {twoFactorRequired && <TwoFactor center />}
+
+              {errorMessage && <Alert severity="error" title={errorMessage} />}
+              {/*<Button*/}
+              {/*  type="submit"*/}
+              {/*  color="primary"*/}
+              {/*  disabled={formState.isSubmitting}*/}
+              {/*  className="w-full justify-center">*/}
+              {/*  {twoFactorRequired ? t("submit") : t("sign_in")}*/}
+              {/*</Button>*/}
+            </div>
+          </form>
+          {!twoFactorRequired && (
+            <>
+              {/*{(isGoogleLoginEnabled || isSAMLLoginEnabled) && <hr className="my-8" />}*/}
+              <div className="space-y-3">
+                {isGoogleLoginEnabled && (
+                  <Button
+                    color="secondary"
+                    className="w-full justify-center"
+                    data-testid="google"
+                    StartIcon={FaGoogle}
+                    onClick={async (e) => {
+                      e.preventDefault();
+                      // track Google logins. Without personal data/payload
+                      telemetry.event(telemetryEventTypes.googleLogin, collectPageParameters());
+                      await signIn("google");
+                    }}>
+                    {t("signin_with_google")}
+                  </Button>
+                )}
+                {isSAMLLoginEnabled && (
+                  <SAMLLogin
+                    samlTenantID={samlTenantID}
+                    samlProductID={samlProductID}
+                    setErrorMessage={setErrorMessage}
+                  />
+                )}
+              </div>
+            </>
           )}
-        </div>
+        </FormProvider>
       </AuthContainer>
       <AddToHomescreen />
     </>
@@ -124,6 +227,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       csrfToken: await getCsrfToken(context),
       trpcState: ssr.dehydrate(),
       isGoogleLoginEnabled: IS_GOOGLE_LOGIN_ENABLED,
+      isSAMLLoginEnabled,
+      samlTenantID,
+      samlProductID,
     },
   };
 }

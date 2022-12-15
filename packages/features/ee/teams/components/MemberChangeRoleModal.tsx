@@ -3,8 +3,7 @@ import { SyntheticEvent, useMemo, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components";
-import { Dialog, DialogContent, Select } from "@calcom/ui/v2";
+import { Button, Dialog, DialogContent, Select } from "@calcom/ui";
 
 type MembershipRoleOption = {
   label: string;
@@ -47,9 +46,9 @@ export default function MemberChangeRoleModal(props: {
   const [errorMessage, setErrorMessage] = useState("");
   const utils = trpc.useContext();
 
-  const changeRoleMutation = trpc.useMutation("viewer.teams.changeMemberRole", {
+  const changeRoleMutation = trpc.viewer.teams.changeMemberRole.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
+      await utils.viewer.teams.get.invalidate();
       props.onExit();
     },
     async onError(err) {
@@ -68,7 +67,7 @@ export default function MemberChangeRoleModal(props: {
   }
   return (
     <Dialog open={props.isOpen} onOpenChange={props.onExit}>
-      <DialogContent type="creation" useOwnActionButtons size="md">
+      <DialogContent type="creation">
         <>
           <div className="mb-4 sm:flex sm:items-start">
             <div className="text-center sm:text-left">

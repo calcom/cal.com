@@ -292,7 +292,7 @@ You can deploy Cal on [Railway](https://railway.app/) using the button above. Th
 
 Currently Vercel Pro Plan is required to be able to Deploy this application with Vercel, due to limitations on the number of serverless functions on the free plan.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com&env=DATABASE_URL,NEXT_PUBLIC_WEBAPP_URL,NEXTAUTH_URL,NEXTAUTH_SECRET,CRON_API_KEY,CALENDSO_ENCRYPTION_KEY,NEXT_PUBLIC_LICENSE_CONSENT&envDescription=See%20all%20available%20env%20vars&envLink=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com%2Fblob%2Fmain%2F.env.example&project-name=cal&repo-name=cal.com&build-command=cd%20../..%20%26%26%20yarn%20build&root-directory=apps%2Fweb%2F)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com&env=DATABASE_URL,NEXT_PUBLIC_WEBAPP_URL,NEXTAUTH_URL,NEXTAUTH_SECRET,CRON_API_KEY,CALENDSO_ENCRYPTION_KEY&envDescription=See%20all%20available%20env%20vars&envLink=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com%2Fblob%2Fmain%2F.env.example&project-name=cal&repo-name=cal.com&build-command=cd%20../..%20%26%26%20yarn%20build&root-directory=apps%2Fweb%2F)
 
 <!-- ROADMAP -->
 
@@ -354,56 +354,6 @@ following
 5. Use **Application (client) ID** as the **MS_GRAPH_CLIENT_ID** attribute value in .env
 6. Click **Certificates & secrets** create a new client secret and use the value as the **MS_GRAPH_CLIENT_SECRET** attribute
 
-### Obtaining Slack Client ID and Secret and Signing Secret
-
-To test this you will need to create a Slack app for yourself on [their apps website](https://api.slack.com/apps).
-
-Copy and paste the app manifest below into the setting on your slack app. Be sure to replace `YOUR_DOMAIN` with your own domain or your proxy host if you're testing locally.
-
-<details>
-  <summary>App Manifest</summary>
-  
- ```yaml
- display_information:
-  name: Cal.com Slack
-features:
-  bot_user:
-    display_name: Cal.com Slack
-    always_online: false
-  slash_commands:
-    - command: /create-event
-      url: https://YOUR_DOMAIN/api/integrations/slackmessaging/commandHandler
-      description: Create an event within Cal!
-      should_escape: false
-    - command: /today
-      url: https://YOUR_DOMAIN/api/integrations/slackmessaging/commandHandler
-      description: View all your bookings for today
-      should_escape: false
-oauth_config:
-  redirect_urls:
-    - https://YOUR_DOMAIN/api/integrations/slackmessaging/callback
-  scopes:
-    bot:
-      - chat:write
-      - commands
-      - chat:write.public 
-settings:
-  interactivity:
-    is_enabled: true
-    request_url: https://YOUR_DOMAIN/api/integrations/slackmessaging/interactiveHandler
-    message_menu_options_url: https://YOUR_DOMAIN/api/integrations/slackmessaging/interactiveHandler
-  org_deploy_enabled: false
-  socket_mode_enabled: false
-  token_rotation_enabled: false
-```
-
-</details>
-
-Add the integration as normal - slack app - add. Follow the oauth flow to add it to a server.
-
-Next make sure you have your app running `yarn dx`. Then in the slack chat type one of these commands: `/create-event` or `/today`
-
-> NOTE: Next you will need to setup a proxy server like [ngrok](https://ngrok.com/) to allow your local host machine to be hosted on a public https server.
 
 ### Obtaining Zoom Client ID and Secret
 
@@ -437,7 +387,7 @@ Next make sure you have your app running `yarn dx`. Then in the slack chat type 
 4. Fill in any information you want in the "App info" tab
 5. Go to tab "Auth"
 6. Now copy the Client ID and Client Secret to your .env file into the `HUBSPOT_CLIENT_ID` and `HUBSPOT_CLIENT_SECRET` fields.
-7. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/hubspotothercalendar/callback` replacing Cal.com URL with the URI at which your application runs.
+7. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/hubspot/callback` replacing Cal.com URL with the URI at which your application runs.
 8. In the "Scopes" section at the bottom of the page, make sure you select "Read" and "Write" for scope called `crm.objects.contacts`
 9. Click the "Save" button at the bottom footer.
 10. You're good to go. Now you can see any booking in Cal.com created as a meeting in HubSpot for your contacts.
@@ -469,14 +419,16 @@ Next make sure you have your app running `yarn dx`. Then in the slack chat type 
 2. Click ‘Get a Twilio phone number’
 3. Copy Account SID to your .env file into the TWILIO_SID field
 4. Copy Auth Token to your .env file into the TWILIO_TOKEN field
-5. Create a messaging service (Develop -> Messaging -> Services)
-6. Choose any name for the messaging service
-7. Click 'Add Senders'
-8. Choose phone number as sender type
-9. Add the listed phone number
-10. Leave all other fields as they are
-11. Complete setup and click ‘View my new Messaging Service’
-12. Copy Messaging Service SID to your .env file into the TWILIO_MESSAGING_SID field
+5. Copy your Twilio phone number to your .env file into the TWILIO_PHONE_NUMBER field
+6. Add your own sender id to the .env file into the NEXT_PUBLIC_SENDER_ID field (fallback is Cal)
+7. Create a messaging service (Develop -> Messaging -> Services)
+8. Choose any name for the messaging service
+9. Click 'Add Senders'
+10. Choose phone number as sender type
+11. Add the listed phone number
+12. Leave all other fields as they are
+13. Complete setup and click ‘View my new Messaging Service’
+14. Copy Messaging Service SID to your .env file into the TWILIO_MESSAGING_SID field
 
 <!-- LICENSE -->
 

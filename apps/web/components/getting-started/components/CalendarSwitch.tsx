@@ -1,8 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 
 import { trpc } from "@calcom/trpc/react";
-import { Switch } from "@calcom/ui/v2";
-import showToast from "@calcom/ui/v2/core/notifications";
+import { showToast, Switch } from "@calcom/ui";
 
 import classNames from "@lib/classNames";
 
@@ -58,7 +57,7 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
     },
     {
       async onSettled() {
-        await utils.invalidateQueries(["viewer.integrations"]);
+        await utils.viewer.integrations.invalidate();
       },
       onError() {
         showToast(`Something went wrong when toggling "${title}""`, "error");

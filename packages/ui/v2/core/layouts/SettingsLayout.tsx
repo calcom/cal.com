@@ -1,20 +1,17 @@
 import { MembershipRole, UserPermissionRole } from "@prisma/client";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { ComponentProps, useEffect, useState } from "react";
 
 import { classNames } from "@calcom/lib";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
 
-import ErrorBoundary from "../../../ErrorBoundary";
-import { Icon } from "../../../Icon";
-import { Badge } from "../../../components/badge";
+import { Badge, Button, ErrorBoundary, Icon } from "../../..";
 import { useMeta } from "../Meta";
 import Shell from "../Shell";
 import { VerticalTabItemProps } from "../navigation/tabs/VerticalTabItem";
@@ -76,7 +73,7 @@ const tabs: VerticalTabItemProps[] = [
     children: [
       //
       { name: "impersonation", href: "/settings/admin/impersonation" },
-      { name: "apps", href: "/settings/admin/apps" },
+      { name: "apps", href: "/settings/admin/apps/calendar" },
       { name: "users", href: "/settings/admin/users" },
     ],
   },
@@ -105,27 +102,37 @@ const useTabs = () => {
 
 const SettingsSidebarContainer = ({ className = "" }) => {
   const { t } = useLocale();
+  const router = useRouter();
   const tabsWithPermissions = useTabs();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
 
-  const { data: teams } = trpc.useQuery(["viewer.teams.list"]);
+  const { data: teams } = trpc.viewer.teams.list.useQuery();
 
   useEffect(() => {
     if (teams) {
-      const teamStates = teams?.map((team) => ({ teamId: team.id, teamMenuOpen: false }));
+      const teamStates = teams?.map((team) => ({
+        teamId: team.id,
+        teamMenuOpen: String(team.id) === router.query.id,
+      }));
       setTeamMenuState(teamStates);
+      setTimeout(() => {
+        const tabMembers = Array.from(document.getElementsByTagName("a")).filter(
+          (bottom) => bottom.dataset.testid === "vertical-tab-Members"
+        )[1];
+        tabMembers?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
     }
-  }, [teams]);
+  }, [router.query.id, teams]);
 
   return (
     <nav
-      className={`no-scrollbar flex w-56 flex-col space-y-1 overflow-scroll py-3 px-2 ${className}`}
+      className={`no-scrollbar flex w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll py-3 px-2 ${className}`}
       aria-label="Tabs">
       <>
         <div className="desktop-only pt-4" />
         <VerticalTabItem
-          name="Back"
+          name={t("back")}
           href="/."
           icon={Icon.FiArrowLeft}
           textClassNames="text-md font-medium leading-none text-black"
@@ -134,7 +141,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
           return tab.name !== "teams" ? (
             <React.Fragment key={tab.href}>
               <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
-                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
+                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 text-sm font-medium leading-none text-gray-600 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
                   {tab && tab.icon && (
                     <tab.icon className="mr-[12px] h-[16px] w-[16px] stroke-[2px] md:mt-0" />
                   )}
@@ -158,12 +165,16 @@ const SettingsSidebarContainer = ({ className = "" }) => {
           ) : (
             <React.Fragment key={tab.href}>
               <div className={`${!tab.children?.length ? "mb-3" : ""}`}>
-                <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
-                  {tab && tab.icon && (
-                    <tab.icon className="mr-[12px] h-[16px] w-[16px] stroke-[2px] md:mt-0" />
-                  )}
-                  <p className="text-sm font-medium leading-5">{t(tab.name)}</p>
-                </div>
+                <Link href={tab.href}>
+                  <a>
+                    <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
+                      {tab && tab.icon && (
+                        <tab.icon className="mr-[12px] h-[16px] w-[16px] stroke-[2px] md:mt-0" />
+                      )}
+                      <p className="text-sm font-medium leading-5">{t(tab.name)}</p>
+                    </div>
+                  </a>
+                </Link>
                 {teams &&
                   teamMenuState &&
                   teams.map((team, index: number) => {
@@ -243,6 +254,12 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                                   textClassNames="px-3 text-gray-900 font-medium text-sm"
                                   disableChevron
                                 />
+                                {/*<VerticalTabItem*/}
+                                {/*  name={t("billing")}*/}
+                                {/*  href={`/settings/teams/${team.id}/billing`}*/}
+                                {/*  textClassNames="px-3 text-gray-900 font-medium text-sm"*/}
+                                {/*  disableChevron*/}
+                                {/*/>*/}
                                 {/*{HOSTED_CAL_FEATURES && (*/}
                                 {/*  <VerticalTabItem*/}
                                 {/*    name={t("saml_config")}*/}
@@ -280,12 +297,7 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
     <>
       <nav className="fixed z-20 flex w-full items-center justify-between border-b border-gray-100 bg-gray-50 p-4 sm:relative lg:hidden">
         <div className="flex items-center space-x-3 ">
-          <Button
-            StartIcon={Icon.FiMenu}
-            color="minimalSecondary"
-            size="icon"
-            onClick={props.onSideContainerOpen}
-          />
+          <Button StartIcon={Icon.FiMenu} color="minimal" size="icon" onClick={props.onSideContainerOpen} />
           <a href="/" className="flex items-center space-x-2 rounded-md px-3 py-1 hover:bg-gray-200">
             <Icon.FiArrowLeft className="text-gray-700" />
             <p className="font-semibold text-black">{t("settings")}</p>
@@ -325,6 +337,7 @@ export default function SettingsLayout({
 
   return (
     <Shell
+      withoutSeo={true}
       flexChildrenContainer
       {...rest}
       SidebarContainer={<SettingsSidebarContainer className="hidden lg:flex" />}
@@ -333,7 +346,7 @@ export default function SettingsLayout({
       SettingsSidebarContainer={
         <div
           className={classNames(
-            "fixed inset-y-0 z-50 m-0 h-screen transform overflow-y-scroll border-gray-100 bg-gray-50 transition duration-200 ease-in-out",
+            "fixed inset-y-0 z-50 m-0 h-screen w-56 transform overflow-x-hidden overflow-y-scroll border-gray-100 bg-gray-50 transition duration-200 ease-in-out",
             sideContainerOpen ? "translate-x-0" : "-translate-x-full"
           )}>
           <SettingsSidebarContainer />

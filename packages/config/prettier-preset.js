@@ -17,4 +17,12 @@ module.exports = {
   ],
   importOrderSeparation: true,
   plugins: [require("./merged-prettier-plugin")],
+  overrides: [
+    {
+      files: ["apps/website/lib/utils/wordlist/wordlist.ts"],
+      options: {
+        quoteProps: "consistent",
+      },
+    },
+  ],
 };

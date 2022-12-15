@@ -3,34 +3,34 @@ import { z } from "zod";
 
 import { generateUniqueAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 
-import { createProtectedRouter } from "../../createRouter";
+import { router, authedProcedure } from "../../trpc";
 
-export const apiKeysRouter = createProtectedRouter()
-  .query("list", {
-    async resolve({ ctx }) {
-      return await ctx.prisma.apiKey.findMany({
-        where: {
-          userId: ctx.user.id,
-          OR: [
-            {
-              NOT: {
-                appId: "zapier",
-              },
+export const apiKeysRouter = router({
+  list: authedProcedure.query(async ({ ctx }) => {
+    return await ctx.prisma.apiKey.findMany({
+      where: {
+        userId: ctx.user.id,
+        OR: [
+          {
+            NOT: {
+              appId: "zapier",
             },
-            {
-              appId: null,
-            },
-          ],
-        },
-        orderBy: { createdAt: "desc" },
-      });
-    },
-  })
-  .query("findKeyOfType", {
-    input: z.object({
-      appId: z.string().optional().nullable(),
-    }),
-    async resolve({ ctx, input }) {
+          },
+          {
+            appId: null,
+          },
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }),
+  findKeyOfType: authedProcedure
+    .input(
+      z.object({
+        appId: z.string().optional().nullable(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
       return await ctx.prisma.apiKey.findFirst({
         where: {
           AND: [
@@ -43,16 +43,17 @@ export const apiKeysRouter = createProtectedRouter()
           ],
         },
       });
-    },
-  })
-  .mutation("create", {
-    input: z.object({
-      note: z.string().optional().nullish(),
-      expiresAt: z.date().optional().nullable(),
-      neverExpires: z.boolean().optional(),
-      appId: z.string().optional().nullable(),
     }),
-    async resolve({ ctx, input }) {
+  create: authedProcedure
+    .input(
+      z.object({
+        note: z.string().optional().nullish(),
+        expiresAt: z.date().optional().nullable(),
+        neverExpires: z.boolean().optional(),
+        appId: z.string().optional().nullable(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       const [hashedApiKey, apiKey] = generateUniqueAPIKey();
       // Here we snap never expires before deleting it so it's not passed to prisma create call.
       const neverExpires = input.neverExpires;
@@ -69,15 +70,16 @@ export const apiKeysRouter = createProtectedRouter()
       });
       const prefixedApiKey = `${process.env.API_KEY_PREFIX ?? "cal_"}${apiKey}`;
       return prefixedApiKey;
-    },
-  })
-  .mutation("edit", {
-    input: z.object({
-      id: z.string(),
-      note: z.string().optional().nullish(),
-      expiresAt: z.date().optional(),
     }),
-    async resolve({ ctx, input }) {
+  edit: authedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        note: z.string().optional().nullish(),
+        expiresAt: z.date().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       const { id, ...data } = input;
       const {
         apiKeys: [updatedApiKey],
@@ -104,14 +106,15 @@ export const apiKeysRouter = createProtectedRouter()
         },
       });
       return updatedApiKey;
-    },
-  })
-  .mutation("delete", {
-    input: z.object({
-      id: z.string(),
-      eventTypeId: z.number().optional(),
     }),
-    async resolve({ ctx, input }) {
+  delete: authedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        eventTypeId: z.number().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       const { id } = input;
 
       const apiKeyToDelete = await ctx.prisma.apiKey.findFirst({
@@ -145,5 +148,5 @@ export const apiKeysRouter = createProtectedRouter()
       return {
         id,
       };
-    },
-  });
+    }),
+});

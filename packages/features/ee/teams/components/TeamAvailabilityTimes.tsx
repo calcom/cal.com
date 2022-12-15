@@ -5,7 +5,7 @@ import { ITimezone } from "react-timezone-select";
 import { Dayjs } from "@calcom/dayjs";
 import getSlots from "@calcom/lib/slots";
 import { trpc } from "@calcom/trpc/react";
-import Loader from "@calcom/ui/Loader";
+import { Loader } from "@calcom/ui";
 
 interface Props {
   teamId: number;
@@ -18,17 +18,14 @@ interface Props {
 }
 
 export default function TeamAvailabilityTimes(props: Props) {
-  const { data, isLoading } = trpc.useQuery(
-    [
-      "viewer.teams.getMemberAvailability",
-      {
-        teamId: props.teamId,
-        memberId: props.memberId,
-        dateFrom: props.selectedDate.toString(),
-        dateTo: props.selectedDate.add(1, "day").toString(),
-        timezone: `${props.selectedTimeZone.toString()}`,
-      },
-    ],
+  const { data, isLoading } = trpc.viewer.teams.getMemberAvailability.useQuery(
+    {
+      teamId: props.teamId,
+      memberId: props.memberId,
+      dateFrom: props.selectedDate.toString(),
+      dateTo: props.selectedDate.add(1, "day").toString(),
+      timezone: `${props.selectedTimeZone.toString()}`,
+    },
     {
       refetchOnWindowFocus: false,
     }

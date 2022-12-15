@@ -1,76 +1,81 @@
 import { ArrowRightIcon } from "@heroicons/react/outline";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { User } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import TimezoneSelect from "@calcom/ui/form/TimezoneSelect";
+import { Button, TimezoneSelect } from "@calcom/ui";
 
-import { UsernameAvailability } from "@components/ui/UsernameAvailability";
+import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
+
+import type { IOnboardingPageProps } from "../../../pages/getting-started/[[...step]]";
 
 interface IUserSettingsProps {
-  user: User;
+  user: IOnboardingPageProps["user"];
   nextStep: () => void;
 }
-
-type FormData = {
-  name: string;
-};
 
 const UserSettings = (props: IUserSettingsProps) => {
   const { user, nextStep } = props;
   const { t } = useLocale();
-  const [selectedTimeZone, setSelectedTimeZone] = useState(dayjs.tz.guess());
-  const { handleSubmit } = useForm<FormData>({
+  const [selectedTimeZone, setSelectedTimeZone] = useState(user.timeZone ?? dayjs.tz.guess());
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
     defaultValues: {
-      name: user?.name || undefined,
+      name: user?.name || "",
     },
     reValidateMode: "onChange",
   });
+  const defaultOptions = { required: true, maxLength: 255 };
 
   const utils = trpc.useContext();
   const onSuccess = async () => {
-    await utils.invalidateQueries(["viewer.me"]);
+    await utils.viewer.me.invalidate();
     nextStep();
   };
-  const mutation = trpc.useMutation("viewer.updateProfile", {
+  const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: onSuccess,
   });
-  const { data: stripeCustomer } = trpc.useQuery(["viewer.stripeCustomer"]);
-  const paymentRequired = stripeCustomer?.isPremium ? !stripeCustomer?.paidForPremium : false;
-  const onSubmit = handleSubmit(() => {
-    if (paymentRequired) {
-      return;
-    }
 
+  const onSubmit = handleSubmit((data) => {
     mutation.mutate({
-      name: user?.name || "",
+      name: data.name,
       bio: user?.bio || undefined,
       avatar: user?.avatar || undefined,
       timeZone: selectedTimeZone,
     });
   });
-  const [currentUsername, setCurrentUsername] = useState(user.username || undefined);
-  const [inputUsernameValue, setInputUsernameValue] = useState(currentUsername);
-  const usernameRef = useRef<HTMLInputElement>(null!);
 
   return (
     <form onSubmit={onSubmit}>
       <div className="space-y-6">
         {/* Username textfield */}
-        <UsernameAvailability
-          readonly={true}
-          currentUsername={currentUsername}
-          setCurrentUsername={setCurrentUsername}
-          inputUsernameValue={inputUsernameValue}
-          usernameRef={usernameRef}
-          setInputUsernameValue={setInputUsernameValue}
-          user={user}
-        />
+        <UsernameAvailabilityField user={user} />
 
+        {/* Full name textfield */}
+        {/*<div className="w-full">*/}
+        {/*  <label htmlFor="name" className="mb-2 block text-sm font-medium text-gray-700">*/}
+        {/*    {t("full_name")}*/}
+        {/*  </label>*/}
+        {/*  <input*/}
+        {/*    {...register("name", defaultOptions)}*/}
+        {/*    id="name"*/}
+        {/*    name="name"*/}
+        {/*    type="text"*/}
+        {/*    autoComplete="off"*/}
+        {/*    autoCorrect="off"*/}
+        {/*    className="w-full rounded-md border border-gray-300 text-sm"*/}
+        {/*  />*/}
+        {/*  {errors.name && (*/}
+        {/*    <p data-testid="required" className="py-2 text-xs text-red-500">*/}
+        {/*      {t("required")}*/}
+        {/*    </p>*/}
+        {/*  )}*/}
+        {/*</div>*/}
         {/* Timezone select field */}
         <div className="w-full">
           <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">

@@ -1,7 +1,7 @@
 import { WorkflowActions, WorkflowStep } from "@prisma/client";
 
 import { classNames } from "@calcom/lib";
-import { Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui";
 
 export function getActionIcon(steps: WorkflowStep[], className?: string): JSX.Element {
   if (steps.length === 0) {

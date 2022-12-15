@@ -3,8 +3,7 @@ import { ArrowRightIcon } from "@heroicons/react/solid";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { List } from "@calcom/ui/List";
-import { SkeletonAvatar, SkeletonText, SkeletonButton } from "@calcom/ui/v2";
+import { SkeletonAvatar, SkeletonText, SkeletonButton, List } from "@calcom/ui";
 
 import { CalendarItem } from "../components/CalendarItem";
 import { ConnectedCalendarItem } from "../components/ConnectedCalendarItem";
@@ -16,12 +15,9 @@ interface IConnectCalendarsProps {
 
 const ConnectedCalendars = (props: IConnectCalendarsProps) => {
   const { nextStep } = props;
-  const queryConnectedCalendars = trpc.useQuery(["viewer.connectedCalendars"]);
+  const queryConnectedCalendars = trpc.viewer.connectedCalendars.useQuery();
   const { t } = useLocale();
-  const queryIntegrations = trpc.useQuery([
-    "viewer.integrations",
-    { variant: "calendar", onlyInstalled: false },
-  ]);
+  const queryIntegrations = trpc.viewer.integrations.useQuery({ variant: "calendar", onlyInstalled: false });
 
   const firstCalendar = queryConnectedCalendars.data?.connectedCalendars.find(
     (item) => item.calendars && item.calendars?.length > 0

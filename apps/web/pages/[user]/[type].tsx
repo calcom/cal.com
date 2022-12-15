@@ -4,14 +4,15 @@ import { JSONObject } from "superjson/dist/types";
 import { z } from "zod";
 
 import { privacyFilteredLocations, LocationObject } from "@calcom/app-store/locations";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getDefaultEvent, getGroupName, getUsernameList } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 import prisma from "@calcom/prisma";
 import { User } from "@calcom/prisma/client";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { isBrandingHidden } from "@lib/isBrandingHidden";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EmbedProps } from "@lib/withEmbedSsr";
 
@@ -71,7 +72,6 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       id: true,
       username: true,
       away: true,
-      plan: true,
       name: true,
       hideBranding: true,
       timeZone: true,
@@ -110,6 +110,11 @@ async function getUserPageProps(context: GetStaticPropsContext) {
           },
         ],
       },
+      teams: {
+        include: {
+          team: true,
+        },
+      },
     },
   });
 
@@ -121,10 +126,10 @@ async function getUserPageProps(context: GetStaticPropsContext) {
     "strikethrough",
   ]);
 
-  if (!user || !user.eventTypes) return { notFound: true };
+  if (!user || !user.eventTypes.length) return { notFound: true };
 
   const [eventType]: (typeof user.eventTypes[number] & {
-    users: Pick<User, "name" | "username" | "hideBranding" | "plan" | "timeZone">[];
+    users: Pick<User, "name" | "username" | "hideBranding" | "timeZone">[];
   })[] = [
     {
       ...user.eventTypes[0],
@@ -133,7 +138,6 @@ async function getUserPageProps(context: GetStaticPropsContext) {
           name: user.name,
           username: user.username,
           hideBranding: user.hideBranding,
-          plan: user.plan,
           timeZone: user.timeZone,
         },
       ],
@@ -150,6 +154,14 @@ async function getUserPageProps(context: GetStaticPropsContext) {
     locations: privacyFilteredLocations(locations),
     descriptionAsSafeHTML: eventType.description ? md.render(eventType.description) : null,
   });
+  // Check if the user you are logging into has any active teams
+  const hasActiveTeam =
+    user.teams.filter((m) => {
+      if (!IS_TEAM_BILLING_ENABLED) return true;
+      const metadata = teamMetadataSchema.safeParse(m.team.metadata);
+      if (metadata.success && metadata.data?.subscriptionId) return true;
+      return false;
+    }).length > 0;
 
   return {
     props: {
@@ -167,6 +179,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
       away: user?.away,
       isDynamic: false,
       trpcState: ssg.dehydrate(),
+      isBrandingHidden: isBrandingHidden(user.hideBranding, hasActiveTeam),
     },
     revalidate: 10, // seconds
   };
@@ -212,7 +225,6 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
         },
       },
       theme: true,
-      plan: true,
     },
   });
 
@@ -224,7 +236,7 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
 
   const locations = eventType.locations ? (eventType.locations as LocationObject[]) : [];
   const eventTypeObject = Object.assign({}, eventType, {
-    metadata: (eventType.metadata || {}) as JSONObject,
+    metadata: EventTypeMetaDataSchema.parse(eventType.metadata || {}),
     recurringEvent: parseRecurringEvent(eventType.recurringEvent),
     locations: privacyFilteredLocations(locations),
     users: users.map((user) => {
@@ -232,7 +244,6 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
         name: user.name,
         username: user.username,
         hideBranding: user.hideBranding,
-        plan: user.plan,
         timeZone: user.timeZone,
       };
     }),
@@ -262,6 +273,7 @@ async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
       isDynamic: true,
       away: false,
       trpcState: ssg.dehydrate(),
+      isBrandingHidden: false, // I think we should always show branding for dynamic groups - saves us checking every single user
     },
     revalidate: 10, // seconds
   };

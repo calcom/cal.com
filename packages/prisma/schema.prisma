@@ -100,13 +100,7 @@ model Credential {
   // How to make it a required column?
   appId                String?
   destinationCalendars DestinationCalendar[]
-  invalid              Boolean?
-}
-
-enum UserPlan {
-  FREE
-  TRIAL
-  PRO
+  invalid              Boolean?              @default(false)
 }
 
 enum IdentityProvider {
@@ -170,7 +164,6 @@ model User {
   identityProviderId   String?
   availability         Availability[]
   invitedTo            Int?
-  plan                 UserPlan                @default(PRO)
   webhooks             Webhook[]
   brandColor           String                  @default("#292929")
   darkBrandColor       String                  @default("#fafafa")
@@ -202,12 +195,15 @@ model Team {
   /// @zod.min(1)
   name         String
   /// @zod.min(1)
-  slug         String       @unique
+  slug         String?      @unique
   logo         String?
   bio          String?
   hideBranding Boolean      @default(false)
   members      Membership[]
   eventTypes   EventType[]
+  createdAt    DateTime     @default(now())
+  /// @zod.custom(imports.teamMetadataSchema)
+  metadata     Json?
 }
 
 enum MembershipRole {
@@ -344,6 +340,7 @@ enum EventTypeCustomInputType {
   TEXTLONG @map("textLong")
   NUMBER   @map("number")
   BOOL     @map("bool")
+  RADIO    @map("radio")
 }
 
 model EventTypeCustomInput {
@@ -352,6 +349,8 @@ model EventTypeCustomInput {
   eventType   EventType                @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   label       String
   type        EventTypeCustomInputType
+  // @zod.custom(imports.customInputOptionSchema)
+  options     Json?
   required    Boolean
   placeholder String                   @default("")
 }
@@ -504,6 +503,7 @@ model App {
   credentials Credential[]
   Webhook     Webhook[]
   ApiKey      ApiKey[]
+  enabled     Boolean         @default(false)
 }
 
 model App_RoutingForms_Form {
@@ -570,6 +570,7 @@ model WorkflowStep {
   template          WorkflowTemplates  @default(REMINDER)
   workflowReminders WorkflowReminder[]
   numberRequired    Boolean?
+  sender            String?
 }
 
 model Workflow {

@@ -1,4 +1,4 @@
-import { PrismaClient, UserPlan } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
@@ -59,11 +59,8 @@ export const samlTenantProduct = async (prisma: PrismaClient, email: string) => 
   };
 };
 
-export const canAccess = async (
-  user: { id: number; plan: UserPlan; email: string },
-  teamId: number | null
-) => {
-  const { id: userId, plan, email } = user;
+export const canAccess = async (user: { id: number; email: string }, teamId: number | null) => {
+  const { id: userId, email } = user;
 
   if (!isSAMLLoginEnabled) {
     return {
@@ -77,13 +74,6 @@ export const canAccess = async (
     if (teamId === null || !(await isTeamAdmin(userId, teamId))) {
       return {
         message: "dont_have_permission",
-        access: false,
-      };
-    }
-
-    if (plan != UserPlan.PRO) {
-      return {
-        message: "app_upgrade_description",
         access: false,
       };
     }

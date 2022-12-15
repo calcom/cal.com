@@ -1,7 +1,7 @@
 name: Unit tests
 on:
   push:
-    branches: [fixes/e2e-consolidation] # TODO: Remove this after merged in main
+    branches: [ feat/routing-forms/reporting ] # TODO: Remove this after merged in main
   pull_request_target: # So we can test on forks
     branches:
       - main
@@ -21,7 +21,8 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }} # So we can test on forks
           fetch-depth: 2
-      - run: echo 'NODE_OPTIONS="--max_old_space_size=4096"' >> $GITHUB_ENV
+      # Should be an 8GB machine as per https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners
+      - run: echo 'NODE_OPTIONS="--max_old_space_size=6144"' >> $GITHUB_ENV
       - name: Use Node 16.x
         uses: actions/setup-node@v3
         with:

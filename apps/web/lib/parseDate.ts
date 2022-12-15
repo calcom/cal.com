@@ -3,7 +3,6 @@ import { RRule } from "rrule";
 
 import dayjs, { Dayjs } from "@calcom/dayjs";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
-import { inferQueryOutput } from "@calcom/trpc/react";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 
 import { parseZone } from "./parseZone";

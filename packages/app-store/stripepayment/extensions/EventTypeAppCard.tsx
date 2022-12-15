@@ -5,8 +5,7 @@ import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TextField } from "@calcom/ui/components";
-import { Alert } from "@calcom/ui/v2";
+import { Alert, TextField } from "@calcom/ui";
 
 import { appDataSchema } from "../zod";
 
@@ -62,7 +61,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 className="block w-full rounded-sm border-gray-300 pl-2 pr-12 text-sm"
                 placeholder="Price"
                 onChange={(e) => {
-                  setAppData("price", e.target.valueAsNumber * 100);
+                  setAppData("price", Number(e.target.value) * 100);
                 }}
                 value={price > 0 ? price / 100 : undefined}
               />

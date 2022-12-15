@@ -1,21 +1,19 @@
 import classNames from "classnames";
-import { debounce } from "lodash";
-import { MutableRefObject, useCallback, useEffect, useState } from "react";
+import { debounce, noop } from "lodash";
+import { RefCallback, useEffect, useMemo, useState } from "react";
 
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
-import { Dialog, DialogClose, DialogContent, DialogHeader } from "@calcom/ui/Dialog";
-import { Icon } from "@calcom/ui/Icon";
-import { Button, Input, Label } from "@calcom/ui/components";
+import { Button, Dialog, DialogClose, DialogContent, DialogHeader, Icon, Input, Label } from "@calcom/ui";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
-  setCurrentUsername: (value: string | undefined) => void;
+  setCurrentUsername?: (newUsername: string) => void;
   inputUsernameValue: string | undefined;
-  usernameRef: MutableRefObject<HTMLInputElement | null>;
+  usernameRef: RefCallback<HTMLInputElement>;
   setInputUsernameValue: (value: string) => void;
   onSuccessMutation?: () => void;
   onErrorMutation?: (error: TRPCClientErrorLike<AppRouter>) => void;
@@ -25,7 +23,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
   const { t } = useLocale();
   const {
     currentUsername,
-    setCurrentUsername,
+    setCurrentUsername = noop,
     inputUsernameValue,
     setInputUsernameValue,
     usernameRef,
@@ -36,39 +34,44 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
   const [markAsError, setMarkAsError] = useState(false);
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
 
-  const debouncedApiCall = useCallback(
-    debounce(async (username) => {
-      const { data } = await fetchUsername(username);
-      setMarkAsError(!data.available);
-      setUsernameIsAvailable(data.available);
-    }, 150),
+  const debouncedApiCall = useMemo(
+    () =>
+      debounce(async (username) => {
+        const { data } = await fetchUsername(username);
+        setMarkAsError(!data.available);
+        setUsernameIsAvailable(data.available);
+      }, 150),
     []
   );
 
   useEffect(() => {
+    if (!inputUsernameValue) {
+      debouncedApiCall.cancel();
+      setUsernameIsAvailable(false);
+      setMarkAsError(false);
+      return;
+    }
+
     if (currentUsername !== inputUsernameValue) {
       debouncedApiCall(inputUsernameValue);
-    } else if (inputUsernameValue === "") {
-      setMarkAsError(false);
-      setUsernameIsAvailable(false);
     } else {
       setUsernameIsAvailable(false);
     }
-  }, [inputUsernameValue]);
+  }, [inputUsernameValue, debouncedApiCall, currentUsername]);
 
   const utils = trpc.useContext();
 
-  const updateUsername = trpc.useMutation("viewer.updateProfile", {
+  const updateUsernameMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async () => {
       onSuccessMutation && (await onSuccessMutation());
-      setCurrentUsername(inputUsernameValue);
       setOpenDialogSaveUsername(false);
+      setCurrentUsername(inputUsernameValue);
     },
     onError: (error) => {
       onErrorMutation && onErrorMutation(error);
     },
     async onSettled() {
-      await utils.invalidateQueries(["viewer.public.i18n"]);
+      await utils.viewer.public.i18n.invalidate();
     },
   });
 
@@ -89,9 +92,6 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           onClick={() => {
             if (currentUsername) {
               setInputUsernameValue(currentUsername);
-              if (usernameRef.current) {
-                usernameRef.current.value = currentUsername;
-              }
             }
           }}>
           {t("cancel")}
@@ -100,6 +100,12 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
     ) : (
       <></>
     );
+  };
+
+  const updateUsername = async () => {
+    updateUsernameMutation.mutate({
+      username: inputUsernameValue,
+    });
   };
 
   return (
@@ -118,6 +124,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           <Input
             ref={usernameRef}
             name="username"
+            value={inputUsernameValue}
             autoComplete="none"
             autoCapitalize="none"
             autoCorrect="none"
@@ -127,7 +134,6 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
                 ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
                 : ""
             )}
-            defaultValue={currentUsername}
             onChange={(event) => {
               event.preventDefault();
               setInputUsernameValue(event.target.value);
@@ -182,20 +188,14 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           <div className="mt-4 flex flex-row-reverse gap-x-2">
             <Button
               type="button"
-              loading={updateUsername.isLoading}
+              loading={updateUsernameMutation.isLoading}
               data-testid="save-username"
-              onClick={() => {
-                updateUsername.mutate({
-                  username: inputUsernameValue,
-                });
-              }}>
+              onClick={updateUsername}>
               {t("save")}
             </Button>
 
-            <DialogClose asChild>
-              <Button color="secondary" onClick={() => setOpenDialogSaveUsername(false)}>
-                {t("cancel")}
-              </Button>
+            <DialogClose color="secondary" onClick={() => setOpenDialogSaveUsername(false)}>
+              {t("cancel")}
             </DialogClose>
           </div>
         </DialogContent>

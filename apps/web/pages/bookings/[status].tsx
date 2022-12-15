@@ -6,20 +6,25 @@ import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryInput, inferQueryOutput, trpc } from "@calcom/trpc/react";
-import { Alert } from "@calcom/ui/Alert";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components";
-import { EmptyScreen } from "@calcom/ui/v2";
-import BookingLayout from "@calcom/ui/v2/core/layouts/BookingLayout";
+import { RouterInputs, RouterOutputs, trpc } from "@calcom/trpc/react";
+import { Alert, BookingLayout, Button, EmptyScreen, Icon } from "@calcom/ui";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
 
-type BookingListingStatus = inferQueryInput<"viewer.bookings">["status"];
-type BookingOutput = inferQueryOutput<"viewer.bookings">["bookings"][0];
+import { ssgInit } from "@server/lib/ssg";
+
+type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["status"];
+type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
+
+type RecurringInfo = {
+  recurringEventId: string | null;
+  count: number;
+  firstDate: Date | null;
+  bookings: { [key: string]: Date[] };
+};
 
 const validStatuses = ["upcoming", "recurring", "past", "cancelled", "unconfirmed"] as const;
 
@@ -40,11 +45,14 @@ export default function Bookings() {
   const { status } = router.isReady ? querySchema.parse(router.query) : { status: "upcoming" as const };
   const { t } = useLocale();
 
-  const query = trpc.useInfiniteQuery(["viewer.bookings", { status, limit: 10 }], {
-    // first render has status `undefined`
-    enabled: router.isReady,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-  });
+  const query = trpc.viewer.bookings.get.useInfiniteQuery(
+    { status, limit: 10 },
+    {
+      // first render has status `undefined`
+      enabled: router.isReady,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  );
 
   // Animate page (tab) tranistions to look smoothing
 
@@ -74,6 +82,18 @@ export default function Bookings() {
     return true;
   };
 
+  let recurringInfoToday: RecurringInfo | undefined;
+
+  const bookingsToday =
+    query.data?.pages.map((page) =>
+      page.bookings.filter((booking: BookingOutput) => {
+        recurringInfoToday = page.recurringInfo.find(
+          (info) => info.recurringEventId === booking.recurringEventId
+        );
+        return new Date(booking.startTime).toDateString() === new Date().toDateString();
+      })
+    )[0] || [];
+
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
   return (
@@ -84,45 +104,65 @@ export default function Bookings() {
         )}
         {(query.status === "loading" || query.isPaused) && <SkeletonLoader />}
         {query.status === "success" && !isEmpty && (
-          <div className="pt-2 xl:pt-0">
-            <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
-            {/* TODO: add today only for the current day
-            <p className="pb-3 text-xs font-medium leading-4 text-gray-500 uppercase">{t("today")}</p>
-             */}
-
-            <div className="overflow-hidden rounded-md border border-gray-200">
-              <table className="w-full max-w-full table-fixed">
-                <tbody className="divide-y divide-gray-200 bg-white" data-testid="bookings">
-                  {query.data.pages.map((page, index) => (
-                    <Fragment key={index}>
-                      {page.bookings.filter(filterBookings).map((booking: BookingOutput) => {
-                        const recurringInfo = page.recurringInfo.find(
-                          (info) => info.recurringEventId === booking.recurringEventId
-                        );
-                        return (
+          <>
+            {!!bookingsToday.length && status === "upcoming" && (
+              <div className="mb-6 pt-2 xl:pt-0">
+                <WipeMyCalActionButton bookingStatus={status} bookingsEmpty={isEmpty} />
+                <p className="mb-2 text-xs font-medium uppercase leading-4 text-gray-500">{t("today")}</p>
+                <div className="overflow-hidden rounded-md border border-gray-200">
+                  <table className="w-full max-w-full table-fixed">
+                    <tbody className="divide-y divide-gray-200 bg-white">
+                      <Fragment>
+                        {bookingsToday.map((booking: BookingOutput) => (
                           <BookingListItem
                             key={booking.id}
                             listingStatus={status}
-                            recurringInfo={recurringInfo}
+                            recurringInfo={recurringInfoToday}
                             {...booking}
                           />
-                        );
-                      })}
-                    </Fragment>
-                  ))}
-                </tbody>
-              </table>
+                        ))}
+                      </Fragment>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+            <div className="pt-2 xl:pt-0">
+              <p className="mb-2 text-xs font-medium uppercase leading-4 text-gray-500">{t("all")}</p>
+              <div className="overflow-hidden rounded-md border border-gray-200">
+                <table className="w-full max-w-full table-fixed">
+                  <tbody className="divide-y divide-gray-200 bg-white" data-testid="bookings">
+                    {query.data.pages.map((page, index) => (
+                      <Fragment key={index}>
+                        {page.bookings.filter(filterBookings).map((booking: BookingOutput) => {
+                          const recurringInfo = page.recurringInfo.find(
+                            (info) => info.recurringEventId === booking.recurringEventId
+                          );
+                          return (
+                            <BookingListItem
+                              key={booking.id}
+                              listingStatus={status}
+                              recurringInfo={recurringInfo}
+                              {...booking}
+                            />
+                          );
+                        })}
+                      </Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="p-4 text-center" ref={buttonInView.ref}>
+                <Button
+                  color="minimal"
+                  loading={query.isFetchingNextPage}
+                  disabled={!query.hasNextPage}
+                  onClick={() => query.fetchNextPage()}>
+                  {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
+                </Button>
+              </div>
             </div>
-            <div className="p-4 text-center" ref={buttonInView.ref}>
-              <Button
-                color="minimal"
-                loading={query.isFetchingNextPage}
-                disabled={!query.hasNextPage}
-                onClick={() => query.fetchNextPage()}>
-                {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
-              </Button>
-            </div>
-          </div>
+          </>
         )}
         {query.status === "success" && isEmpty && (
           <div className="flex items-center justify-center pt-2 xl:mx-6 xl:pt-0">
@@ -141,14 +181,16 @@ export default function Bookings() {
   );
 }
 
-export const getStaticProps: GetStaticProps = (ctx) => {
+export const getStaticProps: GetStaticProps = async (ctx) => {
   const params = querySchema.safeParse(ctx.params);
+  const ssg = await ssgInit(ctx);
 
   if (!params.success) return { notFound: true };
 
   return {
     props: {
       status: params.data.status,
+      trpcState: ssg.dehydrate(),
     },
   };
 };

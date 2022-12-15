@@ -158,8 +158,8 @@ async function createApp(
 ) {
   await prisma.app.upsert({
     where: { slug },
-    create: { slug, dirName, categories, keys },
-    update: { dirName, categories, keys },
+    create: { slug, dirName, categories, keys, enabled: true },
+    update: { dirName, categories, keys, enabled: true },
   });
   await prisma.credential.updateMany({
     where: { type },
@@ -233,15 +233,17 @@ export default async function main() {
   await createApp("jitsi", "jitsivideo", ["video"], "jitsi_video");
   // Other apps
   if (process.env.HUBSPOT_CLIENT_ID && process.env.HUBSPOT_CLIENT_SECRET) {
-    await createApp("hubspot", "hubspotothercalendar", ["other"], "hubspot_other_calendar", {
+    await createApp("hubspot", "hubspot", ["other"], "hubspot_other_calendar", {
       client_id: process.env.HUBSPOT_CLIENT_ID,
       client_secret: process.env.HUBSPOT_CLIENT_SECRET,
     });
   }
-  // No need to check if environment variable is present, the API Key is set up by the user, not the system
-  await createApp("closecom", "closecomothercalendar", ["other"], "closecom_other_calendar");
-  // No need to check if environment variable is present, the API Key is set up by the user, not the system
-  await createApp("sendgrid", "sendgridothercalendar", ["other"], "sendgrid_other_calendar");
+  if (process.env.SALESFORCE_CONSUMER_KEY && process.env.SALESFORCE_CONSUMER_SECRET) {
+    await createApp("salesforce", "salesforce", ["other"], "salesforce_other_calendar", {
+      consumer_key: process.env.SALESFORCE_CONSUMER_KEY,
+      consumer_secret: process.env.SALESFORCE_CONSUMER_SECRET,
+    });
+  }
   await createApp("wipe-my-cal", "wipemycalother", ["other"], "wipemycal_other");
   if (process.env.GIPHY_API_KEY) {
     await createApp("giphy", "giphy", ["other"], "giphy_other", {
@@ -266,14 +268,7 @@ export default async function main() {
 
   // Web3 apps
   await createApp("huddle01", "huddle01video", ["web3", "video"], "huddle01_video");
-  // Messaging apps
-  if (process.env.SLACK_CLIENT_ID && process.env.SLACK_CLIENT_SECRET && process.env.SLACK_SIGNING_SECRET) {
-    await createApp("slack", "slackmessaging", ["messaging"], "slack_messaging", {
-      client_id: process.env.SLACK_CLIENT_ID,
-      client_secret: process.env.SLACK_CLIENT_SECRET,
-      signing_secret: process.env.SLACK_SIGNING_SECRET,
-    });
-  }
+
   // Payment apps
   if (
     process.env.STRIPE_CLIENT_ID &&

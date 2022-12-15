@@ -1,11 +1,9 @@
 import { useRouter } from "next/router";
 
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { SkeletonContainer } from "@calcom/ui/v2";
-import Meta from "@calcom/ui/v2/core/Meta";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
-import showToast from "@calcom/ui/v2/core/notifications";
+import { getSettingsLayout as getLayout, Meta, showToast, SkeletonContainer } from "@calcom/ui";
 
 import WebhookForm, { WebhookFormSubmitData } from "../components/WebhookForm";
 
@@ -13,22 +11,22 @@ const NewWebhookView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
-  const { data: installedApps, isLoading } = trpc.useQuery(
-    ["viewer.integrations", { variant: "other", onlyInstalled: true }],
+  const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery(
+    { variant: "other", onlyInstalled: true },
     {
       suspense: true,
       enabled: router.isReady,
     }
   );
-  const { data: webhooks } = trpc.useQuery(["viewer.webhook.list"], {
+  const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
     suspense: true,
     enabled: router.isReady,
   });
 
-  const createWebhookMutation = trpc.useMutation("viewer.webhook.create", {
+  const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
     async onSuccess() {
       showToast(t("webhook_created_successfully"), "success");
-      await utils.invalidateQueries(["viewer.webhook.list"]);
+      await utils.viewer.webhook.list.invalidate();
       router.back();
     },
     onError(error) {
@@ -64,8 +62,8 @@ const NewWebhookView = () => {
   return (
     <>
       <Meta
-        title="Add Webhook"
-        description="Receive meeting data in real-time when something happens in Cal.com"
+        title={t("add_webhook")}
+        description={t("add_webhook_description", { appName: APP_NAME })}
         backButton
       />
 

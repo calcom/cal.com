@@ -4,7 +4,7 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import superjson from "superjson";
 
 import prisma from "@calcom/prisma";
-import { createSSGHelpers } from "@calcom/trpc/react/ssg";
+import { createProxySSGHelpers } from "@calcom/trpc/react/ssg";
 import { appRouter } from "@calcom/trpc/server/routers/_app";
 
 /**
@@ -23,7 +23,7 @@ export async function ssgInit<TParams extends { locale?: string }>(opts: GetStat
 
   const _i18n = await serverSideTranslations(locale, ["common"]);
 
-  const ssg = createSSGHelpers({
+  const ssg = createProxySSGHelpers({
     router: appRouter,
     transformer: superjson,
     ctx: {
@@ -36,7 +36,7 @@ export async function ssgInit<TParams extends { locale?: string }>(opts: GetStat
   });
 
   // always preload i18n
-  await ssg.fetchQuery("viewer.public.i18n");
+  await ssg.viewer.public.i18n.fetch();
 
   return ssg;
 }

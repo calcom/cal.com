@@ -14,7 +14,7 @@ If you are working with embed on website, don't forget to do `yarn build` after 
 ## Running Tests
 
 Runs tests and updates the snapshots. Right now we don't care about snapshots
-`yarn embed-tests-quick  --update-snapshots`
+`yarn embed-tests-quick --update-snapshots`
 TODO
 
 - Playwright tests.

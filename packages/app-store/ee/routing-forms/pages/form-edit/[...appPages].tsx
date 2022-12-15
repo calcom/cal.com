@@ -1,29 +1,30 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { App_RoutingForms_Form } from "@prisma/client";
 import { useEffect, useState } from "react";
-import { Controller, useFieldArray } from "react-hook-form";
-import { UseFormReturn } from "react-hook-form";
+import { Controller, useFieldArray, UseFormReturn } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 
 import classNames from "@calcom/lib/classNames";
 import {
-  AppGetServerSidePropsContext,
-  AppPrisma,
-  AppUser,
-  AppSsrInit,
-} from "@calcom/types/AppGetServerSideProps";
-import { Icon } from "@calcom/ui";
-import { Button, TextAreaField, TextField } from "@calcom/ui/components";
-import { EmptyScreen, SelectField, Shell } from "@calcom/ui/v2";
-import { BooleanToggleGroupField } from "@calcom/ui/v2/core/form/BooleanToggleGroup";
-import FormCard from "@calcom/ui/v2/core/form/FormCard";
+  BooleanToggleGroupField,
+  Button,
+  EmptyScreen,
+  FormCard,
+  Icon,
+  SelectField,
+  Shell,
+  TextAreaField,
+  TextField,
+} from "@calcom/ui";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import SingleForm from "../../components/SingleForm";
-import { getSerializableForm } from "../../lib/getSerializableForm";
+import SingleForm, {
+  getServerSidePropsForSingleFormView as getServerSideProps,
+} from "../../components/SingleForm";
 import { SerializableForm } from "../../types/types";
 
+export { getServerSideProps };
 type RoutingForm = SerializableForm<App_RoutingForms_Form>;
 type RoutingFormWithResponseCount = RoutingForm & {
   _count: {
@@ -301,65 +302,4 @@ FormEditPage.getLayout = (page: React.ReactElement) => {
       {page}
     </Shell>
   );
-};
-
-export const getServerSideProps = async function getServerSideProps(
-  context: AppGetServerSidePropsContext,
-  prisma: AppPrisma,
-  user: AppUser,
-  ssrInit: AppSsrInit
-) {
-  const ssr = await ssrInit(context);
-  if (!user) {
-    return {
-      redirect: {
-        permanent: false,
-        destination: "/auth/login",
-      },
-    };
-  }
-  const { params } = context;
-  if (!params) {
-    return {
-      notFound: true,
-    };
-  }
-  const formId = params.appPages[0];
-  if (!formId || params.appPages.length > 1) {
-    return {
-      notFound: true,
-    };
-  }
-  const isAllowed = (await import("../../lib/isAllowed")).isAllowed;
-  if (!(await isAllowed({ userId: user.id, formId }))) {
-    return {
-      notFound: true,
-    };
-  }
-
-  const form = await prisma.app_RoutingForms_Form.findUnique({
-    where: {
-      id: formId,
-    },
-    include: {
-      _count: {
-        select: {
-          responses: true,
-        },
-      },
-    },
-  });
-
-  if (!form) {
-    return {
-      notFound: true,
-    };
-  }
-  return {
-    props: {
-      trpcState: ssr.dehydrate(),
-
-      form: getSerializableForm(form),
-    },
-  };
 };

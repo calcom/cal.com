@@ -1,15 +1,7 @@
-import { GetServerSidePropsContext, NextPage } from "next";
+import withEmbedSsr from "@lib/withEmbedSsr";
 
-const RescheduleEmbed: NextPage = () => {
-  return <div>RescheduleEmbed</div>;
-};
+import { getServerSideProps as _getServerSideProps } from "../[uid]";
 
-export async function getServerSideProps(context: GetServerSidePropsContext) {
-  return {
-    redirect: {
-      destination: `/reschedule/${context?.query?.uid}`,
-    },
-  };
-}
+export { default } from "../[uid]";
 
-export default RescheduleEmbed;
+export const getServerSideProps = withEmbedSsr(_getServerSideProps);

@@ -1,24 +1,33 @@
+import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { inferQueryOutput, trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import { Form, Label } from "@calcom/ui/components/form";
-import Meta from "@calcom/ui/v2/core/Meta";
-import TimezoneSelect from "@calcom/ui/v2/core/TimezoneSelect";
-import Select from "@calcom/ui/v2/core/form/select";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
-import showToast from "@calcom/ui/v2/core/notifications";
-import { SkeletonContainer, SkeletonText, SkeletonButton } from "@calcom/ui/v2/core/skeleton";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import {
+  Button,
+  Form,
+  getSettingsLayout as getLayout,
+  Label,
+  Meta,
+  Select,
+  showToast,
+  SkeletonButton,
+  SkeletonContainer,
+  SkeletonText,
+  TimezoneSelect,
+} from "@calcom/ui";
 
 import { withQuery } from "@lib/QueryCell";
 import { nameOfDay } from "@lib/core/i18n/weekday";
 
-const SkeletonLoader = () => {
+import { ssrInit } from "@server/lib/ssr";
+
+const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
+      <Meta title={title} description={description} />
       <div className="mt-6 mb-8 space-y-6 divide-y">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -33,23 +42,23 @@ const SkeletonLoader = () => {
 
 interface GeneralViewProps {
   localeProp: string;
-  user: inferQueryOutput<"viewer.me">;
+  user: RouterOutputs["viewer"]["me"];
 }
 
-const WithQuery = withQuery(["viewer.public.i18n"], { trpc: { context: { skipBatch: true } } });
+const WithQuery = withQuery(trpc.viewer.public.i18n, undefined, { trpc: { context: { skipBatch: true } } });
 
 const GeneralQueryView = () => {
   const { t } = useLocale();
 
-  const { data: user, isLoading } = trpc.useQuery(["viewer.me"]);
-  if (isLoading) return <SkeletonLoader />;
+  const { data: user, isLoading } = trpc.viewer.me.useQuery();
+  if (isLoading) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
   if (!user) {
     throw new Error(t("something_went_wrong"));
   }
   return (
     <WithQuery
       success={({ data }) => <GeneralView user={user} localeProp={data.locale} />}
-      customLoader={<SkeletonLoader />}
+      customLoader={<SkeletonLoader title={t("general")} description={t("general_description")} />}
     />
   );
 };
@@ -59,7 +68,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
   const utils = trpc.useContext();
   const { t } = useLocale();
 
-  const mutation = trpc.useMutation("viewer.updateProfile", {
+  const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: () => {
       showToast(t("settings_updated_successfully"), "success");
     },
@@ -67,7 +76,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
       showToast(t("error_updating_settings"), "error");
     },
     onSettled: async () => {
-      await utils.invalidateQueries(["viewer.public.i18n"]);
+      await utils.viewer.public.i18n.invalidate();
     },
   });
 
@@ -122,7 +131,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           weekStart: values.weekStart.value,
         });
       }}>
-      <Meta title="General" description="Manage settings for your language and timezone" />
+      <Meta title={t("general")} description={t("general_description")} />
       <Controller
         name="locale"
         render={({ field: { value, onChange } }) => (
@@ -204,5 +213,15 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
 };
 
 GeneralQueryView.getLayout = getLayout;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
+};
 
 export default GeneralQueryView;

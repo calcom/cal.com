@@ -1,18 +1,26 @@
+import { GetServerSidePropsContext } from "next";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components";
-import { Label, Form } from "@calcom/ui/components/form";
-import { Switch, Skeleton, showToast } from "@calcom/ui/v2/core";
-import Meta from "@calcom/ui/v2/core/Meta";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
+import {
+  Button,
+  Form,
+  getSettingsLayout as getLayout,
+  Label,
+  Meta,
+  showToast,
+  Skeleton,
+  Switch,
+} from "@calcom/ui";
+
+import { ssrInit } from "@server/lib/ssr";
 
 const ProfileImpersonationView = () => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const { data: user } = trpc.useQuery(["viewer.me"]);
-  const mutation = trpc.useMutation("viewer.updateProfile", {
+  const { data: user } = trpc.viewer.me.useQuery();
+  const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: () => {
       showToast(t("profile_updated_successfully"), "success");
     },
@@ -34,12 +42,12 @@ const ProfileImpersonationView = () => {
 
   return (
     <>
-      <Meta title="Impersonation Settings" description="" />
+      <Meta title={t("impersonation")} description={t("impersonation_description")} />
       <Form
         form={formMethods}
         handleSubmit={({ disableImpersonation }) => {
           mutation.mutate({ disableImpersonation });
-          utils.invalidateQueries(["viewer.me"]);
+          utils.viewer.me.invalidate();
         }}>
         <div className="flex space-x-3">
           <Switch
@@ -68,5 +76,15 @@ const ProfileImpersonationView = () => {
 };
 
 ProfileImpersonationView.getLayout = getLayout;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
+};
 
 export default ProfileImpersonationView;

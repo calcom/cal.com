@@ -3,9 +3,7 @@ import { useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { Form, TextField } from "@calcom/ui/components/form";
-import { Dialog, DialogContent } from "@calcom/ui/v2/core/Dialog";
+import { Button, Dialog, DialogContent, Form, TextField } from "@calcom/ui";
 
 import TwoFactor from "@components/auth/TwoFactor";
 
@@ -132,11 +130,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        title={t("enable_2fa")}
-        description={setupDescriptions[step]}
-        type="creation"
-        useOwnActionButtons>
+      <DialogContent title={t("enable_2fa")} description={setupDescriptions[step]} type="creation">
         <WithStep step={SetupStep.ConfirmPassword} current={step}>
           <form onSubmit={handleSetup}>
             <div className="mb-4">

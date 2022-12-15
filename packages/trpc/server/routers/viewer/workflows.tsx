@@ -17,6 +17,7 @@ import {
   WORKFLOW_ACTIONS,
   TIME_UNIT,
 } from "@calcom/features/ee/workflows/lib/constants";
+import { getWorkflowActionOptions } from "@calcom/features/ee/workflows/lib/getOptions";
 import {
   deleteScheduledEmailReminder,
   scheduleEmailReminder,
@@ -26,51 +27,51 @@ import {
   deleteScheduledSMSReminder,
   scheduleSMSReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
+import { SENDER_ID } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getTranslation } from "@calcom/lib/server/i18n";
 
 import { TRPCError } from "@trpc/server";
 
-import { createProtectedRouter } from "../../createRouter";
+import { router, authedProcedure, authedRateLimitedProcedure } from "../../trpc";
 
 function isSMSAction(action: WorkflowActions) {
-  if (action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.SMS_NUMBER) {
-    return true;
-  }
+  return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.SMS_NUMBER;
 }
 
-export const workflowsRouter = createProtectedRouter()
-  .query("list", {
-    async resolve({ ctx }) {
-      const workflows = await ctx.prisma.workflow.findMany({
-        where: {
-          userId: ctx.user.id,
-        },
-        include: {
-          activeOn: {
-            select: {
-              eventType: {
-                select: {
-                  id: true,
-                  title: true,
-                },
+export const workflowsRouter = router({
+  list: authedProcedure.query(async ({ ctx }) => {
+    const workflows = await ctx.prisma.workflow.findMany({
+      where: {
+        userId: ctx.user.id,
+      },
+      include: {
+        activeOn: {
+          select: {
+            eventType: {
+              select: {
+                id: true,
+                title: true,
               },
             },
           },
-          steps: true,
         },
-        orderBy: {
-          id: "asc",
-        },
-      });
+        steps: true,
+      },
+      orderBy: {
+        id: "asc",
+      },
+    });
 
-      return { workflows };
-    },
-  })
-  .query("get", {
-    input: z.object({
-      id: z.number(),
-    }),
-    async resolve({ ctx, input }) {
+    return { workflows };
+  }),
+  get: authedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
       const workflow = await ctx.prisma.workflow.findFirst({
         where: {
           userId: ctx.user.id,
@@ -100,18 +101,19 @@ export const workflowsRouter = createProtectedRouter()
         });
       }
       return workflow;
-    },
-  })
-  .mutation("create", {
-    input: z.object({
-      name: z.string(),
-      trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
-      action: z.enum(WORKFLOW_ACTIONS),
-      timeUnit: z.enum(TIME_UNIT).optional(),
-      time: z.number().optional(),
-      sendTo: z.string().optional(),
     }),
-    async resolve({ ctx, input }) {
+  create: authedProcedure
+    .input(
+      z.object({
+        name: z.string(),
+        trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
+        action: z.enum(WORKFLOW_ACTIONS),
+        timeUnit: z.enum(TIME_UNIT).optional(),
+        time: z.number().optional(),
+        sendTo: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       const { name, trigger, action, timeUnit, time, sendTo } = input;
       const userId = ctx.user.id;
 
@@ -138,42 +140,42 @@ export const workflowsRouter = createProtectedRouter()
       } catch (e) {
         throw e;
       }
-    },
-  })
-  .mutation("createV2", {
-    async resolve({ ctx }) {
-      const userId = ctx.user.id;
-
-      try {
-        const workflow = await ctx.prisma.workflow.create({
-          data: {
-            name: "",
-            trigger: WorkflowTriggerEvents.BEFORE_EVENT,
-            time: 24,
-            timeUnit: TimeUnit.HOUR,
-            userId,
-          },
-        });
-
-        await ctx.prisma.workflowStep.create({
-          data: {
-            stepNumber: 1,
-            action: WorkflowActions.EMAIL_HOST,
-            template: WorkflowTemplates.REMINDER,
-            workflowId: workflow.id,
-          },
-        });
-        return { workflow };
-      } catch (e) {
-        throw e;
-      }
-    },
-  })
-  .mutation("delete", {
-    input: z.object({
-      id: z.number(),
     }),
-    async resolve({ ctx, input }) {
+  createV2: authedProcedure.mutation(async ({ ctx }) => {
+    const userId = ctx.user.id;
+
+    try {
+      const workflow = await ctx.prisma.workflow.create({
+        data: {
+          name: "",
+          trigger: WorkflowTriggerEvents.BEFORE_EVENT,
+          time: 24,
+          timeUnit: TimeUnit.HOUR,
+          userId,
+        },
+      });
+
+      await ctx.prisma.workflowStep.create({
+        data: {
+          stepNumber: 1,
+          action: WorkflowActions.EMAIL_HOST,
+          template: WorkflowTemplates.REMINDER,
+          workflowId: workflow.id,
+          sender: SENDER_ID,
+        },
+      });
+      return { workflow };
+    } catch (e) {
+      throw e;
+    }
+  }),
+  delete: authedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       const { id } = input;
 
       const workflowToDelete = await ctx.prisma.workflow.findFirst({
@@ -217,31 +219,33 @@ export const workflowsRouter = createProtectedRouter()
       return {
         id,
       };
-    },
-  })
-  .mutation("update", {
-    input: z.object({
-      id: z.number(),
-      name: z.string(),
-      activeOn: z.number().array(),
-      steps: z
-        .object({
-          id: z.number(),
-          stepNumber: z.number(),
-          action: z.enum(WORKFLOW_ACTIONS),
-          workflowId: z.number(),
-          sendTo: z.string().optional().nullable(),
-          reminderBody: z.string().optional().nullable(),
-          emailSubject: z.string().optional().nullable(),
-          template: z.enum(WORKFLOW_TEMPLATES),
-          numberRequired: z.boolean().nullable(),
-        })
-        .array(),
-      trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
-      time: z.number().nullable(),
-      timeUnit: z.enum(TIME_UNIT).nullable(),
     }),
-    async resolve({ input, ctx }) {
+  update: authedProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        name: z.string(),
+        activeOn: z.number().array(),
+        steps: z
+          .object({
+            id: z.number(),
+            stepNumber: z.number(),
+            action: z.enum(WORKFLOW_ACTIONS),
+            workflowId: z.number(),
+            sendTo: z.string().optional().nullable(),
+            reminderBody: z.string().optional().nullable(),
+            emailSubject: z.string().optional().nullable(),
+            template: z.enum(WORKFLOW_TEMPLATES),
+            numberRequired: z.boolean().nullable(),
+            sender: z.string().optional().nullable(),
+          })
+          .array(),
+        trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
+        time: z.number().nullable(),
+        timeUnit: z.enum(TIME_UNIT).nullable(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       const { user } = ctx;
       const { id, name, activeOn, steps, trigger, time, timeUnit } = input;
 
@@ -251,6 +255,11 @@ export const workflowsRouter = createProtectedRouter()
         },
         select: {
           userId: true,
+          user: {
+            select: {
+              teams: true,
+            },
+          },
           steps: true,
         },
       });
@@ -471,7 +480,8 @@ export const workflowsRouter = createProtectedRouter()
                     },
                     step.reminderBody || "",
                     step.id,
-                    step.template
+                    step.template,
+                    step.sender || SENDER_ID
                   );
                 }
               });
@@ -520,7 +530,11 @@ export const workflowsRouter = createProtectedRouter()
           });
           //step was edited
         } else if (JSON.stringify(oldStep) !== JSON.stringify(newStep)) {
-          if (user.plan === "FREE" && !isSMSAction(oldStep.action) && isSMSAction(newStep.action)) {
+          if (
+            !userWorkflow.user.teams.length &&
+            !isSMSAction(oldStep.action) &&
+            isSMSAction(newStep.action)
+          ) {
             throw new TRPCError({ code: "UNAUTHORIZED" });
           }
           await ctx.prisma.workflowStep.update({
@@ -540,6 +554,7 @@ export const workflowsRouter = createProtectedRouter()
               emailSubject: newStep.template === WorkflowTemplates.CUSTOM ? newStep.emailSubject : null,
               template: newStep.template,
               numberRequired: newStep.numberRequired,
+              sender: newStep.sender || SENDER_ID,
             },
           });
           //cancel all reminders of step and create new ones (not for newEventTypes)
@@ -650,7 +665,8 @@ export const workflowsRouter = createProtectedRouter()
                   },
                   newStep.reminderBody || "",
                   newStep.id || 0,
-                  newStep.template
+                  newStep.template,
+                  newStep.sender || SENDER_ID
                 );
               }
             });
@@ -660,7 +676,7 @@ export const workflowsRouter = createProtectedRouter()
       //added steps
       const addedSteps = steps.map((s) => {
         if (s.id <= 0) {
-          if (user.plan === "FREE" && isSMSAction(s.action)) {
+          if (!userWorkflow.user.teams.length && isSMSAction(s.action)) {
             throw new TRPCError({ code: "UNAUTHORIZED" });
           }
           const { id: stepId, ...stepToAdd } = s;
@@ -676,6 +692,8 @@ export const workflowsRouter = createProtectedRouter()
         });
         addedSteps.forEach(async (step) => {
           if (step) {
+            const newStep = step;
+            newStep.sender = step.sender || SENDER_ID;
             const createdStep = await ctx.prisma.workflowStep.create({
               data: step,
             });
@@ -763,7 +781,8 @@ export const workflowsRouter = createProtectedRouter()
                     },
                     step.reminderBody || "",
                     createdStep.id,
-                    step.template
+                    step.template,
+                    step.sender || SENDER_ID
                   );
                 }
               });
@@ -802,18 +821,20 @@ export const workflowsRouter = createProtectedRouter()
       return {
         workflow,
       };
-    },
-  })
-  .mutation("testAction", {
-    input: z.object({
-      action: z.enum(WORKFLOW_ACTIONS),
-      emailSubject: z.string(),
-      reminderBody: z.string(),
-      template: z.enum(WORKFLOW_TEMPLATES),
-      sendTo: z.string().optional(),
     }),
-    async resolve({ ctx, input }) {
-      const { action, emailSubject, reminderBody, template, sendTo } = input;
+  testAction: authedRateLimitedProcedure({ intervalInMs: 10000, limit: 3 })
+    .input(
+      z.object({
+        action: z.enum(WORKFLOW_ACTIONS),
+        emailSubject: z.string(),
+        reminderBody: z.string(),
+        template: z.enum(WORKFLOW_TEMPLATES),
+        sendTo: z.string().optional(),
+        sender: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { action, emailSubject, reminderBody, template, sendTo, sender } = input;
       try {
         const booking = await ctx.prisma.booking.findFirst({
           orderBy: {
@@ -897,7 +918,8 @@ export const workflowsRouter = createProtectedRouter()
             { time: null, timeUnit: null },
             reminderBody,
             0,
-            template
+            template,
+            sender || SENDER_ID
           );
           return { message: "Notification sent" };
         }
@@ -914,21 +936,49 @@ export const workflowsRouter = createProtectedRouter()
           message: error.message,
         };
       }
-    },
-  })
-  .mutation("activateEventType", {
-    input: z.object({
-      eventTypeId: z.number(),
-      workflowId: z.number(),
     }),
-    async resolve({ ctx, input }) {
+  activateEventType: authedProcedure
+    .input(
+      z.object({
+        eventTypeId: z.number(),
+        workflowId: z.number(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       const { eventTypeId, workflowId } = input;
 
-      const eventType = await ctx.prisma.eventType.findFirst({
+      // Check that workflow & event type belong to the user
+      const userEventType = await ctx.prisma.eventType.findFirst({
         where: {
           id: eventTypeId,
+          users: {
+            some: {
+              id: ctx.user.id,
+            },
+          },
         },
       });
+
+      if (!userEventType)
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "This event type does not belong to the user" });
+
+      // Check that the workflow belongs to the user
+      const eventTypeWorkflow = await ctx.prisma.workflow.findFirst({
+        where: {
+          id: workflowId,
+          userId: ctx.user.id,
+        },
+      });
+
+      if (!eventTypeWorkflow)
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "This event type does not belong to the user" });
+
+      // NOTE: This was unused
+      // const eventType = await ctx.prisma.eventType.findFirst({
+      //   where: {
+      //     id: eventTypeId,
+      //   },
+      // });
 
       //check if event type is already active
 
@@ -954,5 +1004,11 @@ export const workflowsRouter = createProtectedRouter()
           },
         });
       }
-    },
-  });
+    }),
+  getWorkflowActionOptions: authedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.user.id;
+    const hasTeamPlan = (await ctx.prisma.membership.count({ where: { userId } })) > 0;
+    const t = await getTranslation(ctx.user.locale, "common");
+    return getWorkflowActionOptions(t, hasTeamPlan);
+  }),
+});

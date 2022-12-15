@@ -1,12 +1,10 @@
 import { useRouter } from "next/router";
 import z from "zod";
 
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { SkeletonContainer } from "@calcom/ui/v2";
-import Meta from "@calcom/ui/v2/core/Meta";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
-import showToast from "@calcom/ui/v2/core/notifications";
+import { getSettingsLayout as getLayout, Meta, showToast, SkeletonContainer } from "@calcom/ui";
 
 import WebhookForm, { WebhookFormSubmitData } from "../components/WebhookForm";
 
@@ -18,24 +16,27 @@ const EditWebhook = () => {
   const router = useRouter();
 
   function Component({ webhookId }: { webhookId: string }) {
-    const { data: installedApps, isLoading } = trpc.useQuery(
-      ["viewer.integrations", { variant: "other", onlyInstalled: true }],
+    const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery(
+      { variant: "other", onlyInstalled: true },
       {
         suspense: true,
         enabled: router.isReady,
       }
     );
-    const { data: webhook } = trpc.useQuery(["viewer.webhook.get", { webhookId }], {
+    const { data: webhook } = trpc.viewer.webhook.get.useQuery(
+      { webhookId },
+      {
+        suspense: true,
+        enabled: router.isReady,
+      }
+    );
+    const { data: webhooks } = trpc.viewer.webhook.list.useQuery(undefined, {
       suspense: true,
       enabled: router.isReady,
     });
-    const { data: webhooks } = trpc.useQuery(["viewer.webhook.list"], {
-      suspense: true,
-      enabled: router.isReady,
-    });
-    const editWebhookMutation = trpc.useMutation("viewer.webhook.edit", {
+    const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
       async onSuccess() {
-        await utils.invalidateQueries(["viewer.webhook.list"]);
+        await utils.viewer.webhook.list.invalidate();
         showToast(t("webhook_updated_successfully"), "success");
         router.back();
       },
@@ -53,8 +54,8 @@ const EditWebhook = () => {
     return (
       <>
         <Meta
-          title="Edit Webhook"
-          description="Receive meeting data in real-time when something happens in Cal.com"
+          title={t("edit_webhook")}
+          description={t("add_webhook_description", { appName: APP_NAME })}
           backButton
         />
         <WebhookForm

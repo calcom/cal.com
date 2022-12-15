@@ -7,8 +7,8 @@ import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Button } from "@calcom/ui/components/button";
+
+import { Button, Icon } from "../../..";
 
 interface Props {
   samlTenantID: string;
@@ -25,7 +25,7 @@ export default function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage
   const methods = useFormContext();
   const telemetry = useTelemetry();
 
-  const mutation = trpc.useMutation("viewer.public.samlTenantProduct", {
+  const mutation = trpc.viewer.public.samlTenantProduct.useMutation({
     onSuccess: async (data) => {
       await signIn("saml", {}, { tenant: data.tenant, product: data.product });
     },

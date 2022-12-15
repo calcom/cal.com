@@ -1,28 +1,48 @@
-import { MembershipRole } from "@prisma/client";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { MembershipRole, Prisma } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { CAL_URL } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import objectKeys from "@calcom/lib/objectKeys";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Avatar, Button, Label, TextArea, Form, TextField } from "@calcom/ui/components";
-import { Dialog, DialogTrigger, LinkIconButton, showToast } from "@calcom/ui/v2/core";
-import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
-import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
-import Meta from "@calcom/ui/v2/core/Meta";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
+import {
+  Avatar,
+  Button,
+  ConfirmationDialogContent,
+  Dialog,
+  DialogTrigger,
+  Form,
+  getSettingsLayout as getLayout,
+  Icon,
+  ImageUploader,
+  Label,
+  LinkIconButton,
+  Meta,
+  showToast,
+  TextArea,
+  TextField,
+} from "@calcom/ui";
 
-interface TeamProfileValues {
-  name: string;
-  url: string;
-  logo: string;
-  bio: string;
-}
+const regex = new RegExp("^[a-zA-Z0-9-]*$");
+
+const teamProfileFormSchema = z.object({
+  name: z.string(),
+  slug: z
+    .string()
+    .regex(regex, {
+      message: "Url can only have alphanumeric characters(a-z, 0-9) and hyphen(-) symbol.",
+    })
+    .min(1, { message: "Url cannot be left empty" }),
+  logo: z.string(),
+  bio: z.string(),
+});
 
 const ProfileView = () => {
   const { t } = useLocale();
@@ -30,51 +50,69 @@ const ProfileView = () => {
   const utils = trpc.useContext();
   const session = useSession();
 
-  const mutation = trpc.useMutation("viewer.teams.update", {
+  const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {
       showToast(err.message, "error");
     },
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
+      await utils.viewer.teams.get.invalidate();
       showToast(t("your_team_updated_successfully"), "success");
     },
   });
 
-  const form = useForm<TeamProfileValues>();
-
-  const { data: team, isLoading } = trpc.useQuery(["viewer.teams.get", { teamId: Number(router.query.id) }], {
-    onError: () => {
-      router.push("/settings");
-    },
-    onSuccess: (team) => {
-      if (team) {
-        form.setValue("name", team.name || "");
-        form.setValue("url", team.slug || "");
-        form.setValue("logo", team.logo || "");
-        form.setValue("bio", team.bio || "");
-      }
-    },
+  const form = useForm({
+    resolver: zodResolver(teamProfileFormSchema),
   });
+
+  const { data: team, isLoading } = trpc.viewer.teams.get.useQuery(
+    { teamId: Number(router.query.id) },
+    {
+      onError: () => {
+        router.push("/settings");
+      },
+      onSuccess: (team) => {
+        if (team) {
+          form.setValue("name", team.name || "");
+          form.setValue("slug", team.slug || "");
+          form.setValue("logo", team.logo || "");
+          form.setValue("bio", team.bio || "");
+          if (team.slug === null && (team?.metadata as Prisma.JsonObject)?.requestedSlug) {
+            form.setValue("slug", ((team?.metadata as Prisma.JsonObject)?.requestedSlug as string) || "");
+          }
+        }
+      },
+    }
+  );
 
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
-  const permalink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team?.slug}`;
+  const permalink = `${CAL_URL?.replace(/^(https?:|)\/\//, "")}/team/${team?.slug}`;
 
-  const deleteTeamMutation = trpc.useMutation("viewer.teams.delete", {
+  const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
-      await utils.invalidateQueries(["viewer.teams.list"]);
-      router.push(`/settings`);
-      showToast(t("your_team_updated_successfully"), "success");
+      await utils.viewer.teams.list.invalidate();
+      showToast(t("your_team_disbanded_successfully"), "success");
+      router.push(`${WEBAPP_URL}/teams`);
     },
   });
 
-  const removeMemberMutation = trpc.useMutation("viewer.teams.removeMember", {
+  const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
-      await utils.invalidateQueries(["viewer.teams.get"]);
-      await utils.invalidateQueries(["viewer.teams.list"]);
+      await utils.viewer.teams.get.invalidate();
+      await utils.viewer.teams.list.invalidate();
       showToast(t("success"), "success");
+    },
+    async onError(err) {
+      showToast(err.message, "error");
+    },
+  });
+
+  const publishMutation = trpc.viewer.teams.publish.useMutation({
+    async onSuccess(data: { url?: string }) {
+      if (data.url) {
+        router.push(data.url);
+      }
     },
     async onError(err) {
       showToast(err.message, "error");
@@ -95,7 +133,7 @@ const ProfileView = () => {
 
   return (
     <>
-      <Meta title="Profile" description="Manage settings for your team profile" />
+      <Meta title={t("profile")} description={t("profile_team_description")} />
       {!isLoading && (
         <>
           {isAdmin ? (
@@ -106,7 +144,7 @@ const ProfileView = () => {
                   const variables = {
                     logo: values.logo,
                     name: values.name,
-                    slug: values.url,
+                    slug: values.slug,
                     bio: values.bio,
                   };
                   objectKeys(variables).forEach((key) => {
@@ -158,16 +196,17 @@ const ProfileView = () => {
               />
               <Controller
                 control={form.control}
-                name="url"
+                name="slug"
                 render={({ field: { value } }) => (
                   <div className="mt-8">
                     <TextField
-                      name="url"
+                      name="slug"
                       label={t("team_url")}
                       value={value}
                       addOnLeading={`${WEBAPP_URL}/team/`}
                       onChange={(e) => {
-                        form.setValue("url", e?.target.value);
+                        form.clearErrors("slug");
+                        form.setValue("slug", e?.target.value);
                       }}
                     />
                   </div>
@@ -194,6 +233,19 @@ const ProfileView = () => {
               <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>
                 {t("update")}
               </Button>
+              {IS_TEAM_BILLING_ENABLED &&
+                team.slug === null &&
+                (team.metadata as Prisma.JsonObject)?.requestedSlug && (
+                  <Button
+                    color="secondary"
+                    className="ml-2 mt-8"
+                    type="button"
+                    onClick={() => {
+                      publishMutation.mutate({ teamId: team.id });
+                    }}>
+                    Publish
+                  </Button>
+                )}
             </Form>
           ) : (
             <div className="flex">
@@ -233,7 +285,7 @@ const ProfileView = () => {
             <Dialog>
               <DialogTrigger asChild>
                 <Button color="destructive" className="border" StartIcon={Icon.FiTrash2}>
-                  {t("delete_team")}
+                  {t("disband_team")}
                 </Button>
               </DialogTrigger>
               <ConfirmationDialogContent

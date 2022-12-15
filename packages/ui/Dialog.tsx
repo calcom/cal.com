@@ -69,7 +69,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
         <DialogPrimitive.Content
           {...props}
           className={classNames(
-            "min-w-[360px] rounded bg-white text-left shadow-xl focus-visible:outline-none sm:w-full sm:align-middle",
+            "h-auto max-h-[inherit] min-w-[360px] rounded bg-white text-left shadow-xl focus-visible:outline-none sm:w-full sm:align-middle",
             props.size == "xl"
               ? "p-0.5 sm:max-w-[98vw]"
               : props.size == "lg"

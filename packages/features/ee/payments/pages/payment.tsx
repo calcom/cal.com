@@ -31,6 +31,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       booking: {
         select: {
           id: true,
+          uid: true,
           description: true,
           title: true,
           startTime: true,
@@ -57,7 +58,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
                   name: true,
                   username: true,
                   hideBranding: true,
-                  plan: true,
                   theme: true,
                 },
               },

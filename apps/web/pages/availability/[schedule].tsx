@@ -1,29 +1,37 @@
-import { GetStaticPaths, GetStaticProps } from "next";
-import { useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { GetServerSidePropsContext } from "next";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import Schedule from "@calcom/features/schedules/components/Schedule";
 import { availabilityAsString } from "@calcom/lib/availability";
+import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import type { Schedule as ScheduleType } from "@calcom/types/schedule";
-import { Icon } from "@calcom/ui";
-import { Button } from "@calcom/ui/components/button";
-import { Form, Label } from "@calcom/ui/components/form";
-import Shell from "@calcom/ui/v2/core/Shell";
-import Switch from "@calcom/ui/v2/core/Switch";
-import TimezoneSelect from "@calcom/ui/v2/core/TimezoneSelect";
-import VerticalDivider from "@calcom/ui/v2/core/VerticalDivider";
-import showToast from "@calcom/ui/v2/core/notifications";
-import { Skeleton, SkeletonText } from "@calcom/ui/v2/core/skeleton";
+import type { Schedule as ScheduleType, TimeRange, WorkingHours } from "@calcom/types/schedule";
+import {
+  Button,
+  Form,
+  Icon,
+  Label,
+  Shell,
+  showToast,
+  Skeleton,
+  SkeletonText,
+  Switch,
+  TimezoneSelect,
+  Tooltip,
+  VerticalDivider,
+} from "@calcom/ui";
 
 import { HttpError } from "@lib/core/http/error";
 
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 import EditableHeading from "@components/ui/EditableHeading";
+
+import { ssrInit } from "@server/lib/ssr";
 
 const querySchema = z.object({
   schedule: stringOrNumber,
@@ -32,8 +40,48 @@ const querySchema = z.object({
 type AvailabilityFormValues = {
   name: string;
   schedule: ScheduleType;
+  dateOverrides: { ranges: TimeRange[] }[];
   timeZone: string;
   isDefault: boolean;
+};
+
+const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
+  const { remove, append, update, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
+    name: "dateOverrides",
+  });
+  const { t } = useLocale();
+  return (
+    <div className="px-4 py-5 sm:p-6">
+      <h3 className="font-medium leading-6 text-gray-900">
+        {t("date_overrides")}{" "}
+        <Tooltip content={t("date_overrides_info")}>
+          <span className="inline-block">
+            <Icon.FiInfo />
+          </span>
+        </Tooltip>
+      </h3>
+      <p className="mb-4 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{t("date_overrides_subtitle")}</p>
+      <div className="mt-1 space-y-2">
+        <DateOverrideList
+          excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
+          remove={remove}
+          update={update}
+          items={fields}
+          workingHours={workingHours}
+        />
+        <DateOverrideInputDialog
+          workingHours={workingHours}
+          excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
+          onChange={(ranges) => append({ ranges })}
+          Trigger={
+            <Button color="secondary" StartIcon={Icon.FiPlus}>
+              Add an override
+            </Button>
+          }
+        />
+      </div>
+    </div>
+  );
 };
 
 export default function Availability({ schedule }: { schedule: number }) {
@@ -41,34 +89,22 @@ export default function Availability({ schedule }: { schedule: number }) {
   const utils = trpc.useContext();
   const me = useMeQuery();
   const { timeFormat } = me.data || { timeFormat: null };
-  const { data, isLoading } = trpc.useQuery(["viewer.availability.schedule", { scheduleId: schedule }]);
-
-  const form = useForm<AvailabilityFormValues>();
-  const { control, reset } = form;
-
-  useEffect(() => {
-    if (!isLoading && data) {
-      reset({
-        name: data?.schedule?.name,
-        schedule: data.availability,
-        timeZone: data.timeZone,
-        isDefault: data.isDefault,
-      });
-    }
-  }, [data, isLoading, reset]);
-
-  const updateMutation = trpc.useMutation("viewer.availability.schedule.update", {
+  const { data, isLoading } = trpc.viewer.availability.schedule.get.useQuery({ scheduleId: schedule });
+  const { data: defaultValues } = trpc.viewer.availability.defaultValues.useQuery({ scheduleId: schedule });
+  const form = useForm<AvailabilityFormValues>({ defaultValues });
+  const { control } = form;
+  const updateMutation = trpc.viewer.availability.schedule.update.useMutation({
     onSuccess: async ({ prevDefaultId, currentDefaultId, ...data }) => {
       if (prevDefaultId && currentDefaultId) {
         // check weather the default schedule has been changed by comparing  previous default schedule id and current default schedule id.
         if (prevDefaultId !== currentDefaultId) {
           // if not equal, invalidate previous default schedule id and refetch previous default schedule id.
-          utils.invalidateQueries(["viewer.availability.schedule", { scheduleId: prevDefaultId }]);
-          utils.refetchQueries(["viewer.availability.schedule", { scheduleId: prevDefaultId }]);
+          utils.viewer.availability.schedule.get.invalidate({ scheduleId: prevDefaultId });
+          utils.viewer.availability.schedule.get.refetch({ scheduleId: prevDefaultId });
         }
       }
-      utils.setQueryData(["viewer.availability.schedule", { scheduleId: data.schedule.id }], data);
-      utils.invalidateQueries(["viewer.availability.list"]);
+      utils.viewer.availability.schedule.get.invalidate({ scheduleId: data.schedule.id });
+      utils.viewer.availability.list.invalidate();
       showToast(
         t("availability_updated_successfully", {
           scheduleName: data.schedule.name,
@@ -87,7 +123,7 @@ export default function Availability({ schedule }: { schedule: number }) {
   return (
     <Shell
       backPath="/availability"
-      title={data?.schedule.name && data.schedule.name + " | " + t("availability")}
+      title={data?.schedule.name ? data.schedule.name + " | " + t("availability") : t("availability")}
       heading={
         <Controller
           control={form.control}
@@ -97,12 +133,14 @@ export default function Availability({ schedule }: { schedule: number }) {
       }
       subtitle={
         data ? (
-          data.schedule.availability.map((availability) => (
-            <span key={availability.id}>
-              {availabilityAsString(availability, { locale: i18n.language, hour12: timeFormat === 12 })}
-              <br />
-            </span>
-          ))
+          data.schedule.availability
+            .filter((availability) => !!availability.days.length)
+            .map((availability) => (
+              <span key={availability.id}>
+                {availabilityAsString(availability, { locale: i18n.language, hour12: timeFormat === 12 })}
+                <br />
+              </span>
+            ))
         ) : (
           <SkeletonText className="h-4 w-48" />
         )
@@ -141,15 +179,16 @@ export default function Availability({ schedule }: { schedule: number }) {
           <Form
             form={form}
             id="availability-form"
-            handleSubmit={async (values) => {
+            handleSubmit={async ({ dateOverrides, ...values }) => {
               updateMutation.mutate({
                 scheduleId: schedule,
+                dateOverrides: dateOverrides.flatMap((override) => override.ranges),
                 ...values,
               });
             }}
             className="-mx-4 flex flex-col pb-16 sm:mx-0 xl:flex-row xl:space-x-6">
-            <div className="flex-1">
-              <div className="rounded-md border-gray-200 bg-white py-5 pr-4 sm:border sm:p-6">
+            <div className="flex-1 divide-y divide-neutral-200 rounded-md border">
+              <div className=" py-5 pr-4 sm:p-6">
                 <h3 className="mb-5 text-base font-medium leading-6 text-gray-900">
                   {t("change_start_end")}
                 </h3>
@@ -165,6 +204,7 @@ export default function Availability({ schedule }: { schedule: number }) {
                   />
                 )}
               </div>
+              {data?.workingHours && <DateOverride workingHours={data.workingHours} />}
             </div>
             <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
               <div className="xl:max-w-80 mt-4 w-full pr-4 sm:p-0">
@@ -205,22 +245,19 @@ export default function Availability({ schedule }: { schedule: number }) {
   );
 }
 
-export const getStaticProps: GetStaticProps = (ctx) => {
+export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const params = querySchema.safeParse(ctx.params);
+  const ssr = await ssrInit(ctx);
 
   if (!params.success) return { notFound: true };
 
+  const scheduleId = params.data.schedule;
+  await ssr.viewer.availability.schedule.get.fetch({ scheduleId });
+  await ssr.viewer.availability.defaultValues.fetch({ scheduleId });
   return {
     props: {
-      schedule: params.data.schedule,
+      schedule: scheduleId,
+      trpcState: ssr.dehydrate(),
     },
-    revalidate: 10, // seconds
-  };
-};
-
-export const getStaticPaths: GetStaticPaths = () => {
-  return {
-    paths: [],
-    fallback: "blocking",
   };
 };

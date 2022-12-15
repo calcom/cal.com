@@ -41,14 +41,24 @@ const config: Config = {
     },
     {
       displayName: "@calcom/closecom",
-      roots: ["<rootDir>/packages/app-store/closecomothercalendar"],
+      roots: ["<rootDir>/packages/app-store/closecom"],
       testMatch: ["**/test/lib/**/*.(spec|test).(ts|tsx|js)"],
       transform: {
         "^.+\\.ts?$": "ts-jest",
       },
       transformIgnorePatterns: ["/node_modules/", "^.+\\.module\\.(css|sass|scss)$"],
       testEnvironment: "jsdom",
-      setupFiles: ["<rootDir>/packages/app-store/closecomothercalendar/test/globals.ts"],
+      setupFiles: ["<rootDir>/packages/app-store/closecom/test/globals.ts"],
+    },
+    {
+      displayName: "@calcom/routing-forms",
+      roots: ["<rootDir>/packages/app-store/ee/routing-forms"],
+      testMatch: ["**/test/lib/**/*.(spec|test).(ts|tsx|js)"],
+      transform: {
+        "^.+\\.ts?$": "ts-jest",
+      },
+      transformIgnorePatterns: ["/node_modules/", "^.+\\.module\\.(css|sass|scss)$"],
+      testEnvironment: "jsdom",
     },
     {
       displayName: "@calcom/api",

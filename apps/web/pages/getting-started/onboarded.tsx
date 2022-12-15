@@ -86,10 +86,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         title: "Mento Bi-Weekly Coaching session",
         slug: "coaching-session",
         eventName: "{HOST} & {ATTENDEE} | Mento coaching",
-        description: "Set up your ongoing Mento Coaching schedule (45 minutes every two weeks).",
+        description: "Set up your ongoing Mento Coaching schedule (30 minutes every two weeks).",
         locations: [{ type: "integrations:google:meet" }],
         recurringEvent: { freq: 2, count: 24, interval: 2 },
-        length: 45,
+        length: 30,
         hidden: false,
         owner: { connect: { id: user?.id } },
         users: {
@@ -109,7 +109,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         eventName: "{HOST} & {ATTENDEE} | Mento coaching",
         description: "Please use this to book one-time and make up sessions when necessary.",
         locations: [{ type: "integrations:google:meet" }],
-        length: 45,
+        length: 30,
         hidden: false,
         owner: { connect: { id: user?.id } },
         users: {

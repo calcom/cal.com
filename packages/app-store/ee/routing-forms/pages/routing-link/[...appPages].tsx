@@ -1,7 +1,6 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useState, useRef, FormEvent } from "react";
-import { useEffect } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 
@@ -13,22 +12,18 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button } from "@calcom/ui/components";
-import showToast from "@calcom/ui/v2/core/notifications";
+import { Button, showToast } from "@calcom/ui";
 
-import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
-
+import FormInputFields from "../../components/FormInputFields";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 import { processRoute } from "../../lib/processRoute";
 import { Response, Route } from "../../types/types";
-import { getQueryBuilderConfig } from "../route-builder/[...appPages]";
 
 function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getServerSideProps>) {
   const [customPageMessage, setCustomPageMessage] = useState<Route["action"]["value"]>("");
   const formFillerIdRef = useRef(uuidv4());
   const isEmbed = useIsEmbed(restProps.isEmbed);
   useTheme(profile.theme);
-  useExposePlanGlobally(profile.plan);
   // TODO: We might want to prevent spam from a single user by having same formFillerId across pageviews
   // But technically, a user can fill form multiple times due to any number of reasons and we currently can't differentiate b/w that.
   // - like a network error
@@ -59,7 +54,7 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
     sdkActionManager?.fire("__routeChanged", {});
   }, [customPageMessage]);
 
-  const responseMutation = trpc.useMutation("viewer.app_routing_forms.public.response", {
+  const responseMutation = trpc.viewer.appRoutingForms.public.response.useMutation({
     onSuccess: () => {
       const decidedAction = decidedActionRef.current;
       if (!decidedAction) {
@@ -88,8 +83,6 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
   });
 
   const [response, setResponse] = useState<Response>({});
-
-  const queryBuilderConfig = getQueryBuilderConfig(form);
 
   const handleOnSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -124,57 +117,7 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
                         </p>
                       ) : null}
                     </div>
-                    {form.fields?.map((field) => {
-                      const widget = queryBuilderConfig.widgets[field.type];
-                      if (!("factory" in widget)) {
-                        return null;
-                      }
-                      const Component = widget.factory;
-
-                      const optionValues = field.selectText?.trim().split("\n");
-                      const options = optionValues?.map((value) => {
-                        const title = value;
-                        return {
-                          value,
-                          title,
-                        };
-                      });
-                      return (
-                        <div key={field.id} className="mb-4 block flex-col sm:flex ">
-                          <div className="min-w-48 mb-2 flex-grow">
-                            <label
-                              id="slug-label"
-                              htmlFor="slug"
-                              className="flex text-sm font-medium text-neutral-700 dark:text-white">
-                              {field.label}
-                            </label>
-                          </div>
-                          <div className="flex rounded-sm">
-                            <Component
-                              value={response[field.id]?.value}
-                              // required property isn't accepted by query-builder types
-                              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                              /* @ts-ignore */
-                              required={!!field.required}
-                              listValues={options}
-                              data-testid="field"
-                              setValue={(value) => {
-                                setResponse((response) => {
-                                  response = response || {};
-                                  return {
-                                    ...response,
-                                    [field.id]: {
-                                      label: field.label,
-                                      value,
-                                    },
-                                  };
-                                });
-                              }}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
+                    <FormInputFields form={form} response={response} setResponse={setResponse} />
                     <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
                       <Button
                         className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast dark:hover:border-darkmodebrandcontrast dark:border-transparent"
@@ -237,7 +180,6 @@ export const getServerSideProps = async function getServerSideProps(
           theme: true,
           brandColor: true,
           darkBrandColor: true,
-          plan: true,
         },
       },
     },
@@ -256,7 +198,6 @@ export const getServerSideProps = async function getServerSideProps(
         theme: form.user.theme,
         brandColor: form.user.brandColor,
         darkBrandColor: form.user.darkBrandColor,
-        plan: form.user.plan,
       },
       form: getSerializableForm(form),
     },

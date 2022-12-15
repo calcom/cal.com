@@ -9,7 +9,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 
 import { TRPCError } from "@trpc/server";
 
-import { createProtectedRouter } from "../../createRouter";
+import { router, authedProcedure } from "../../trpc";
 
 // Common data for all endpoints under webhook
 const webhookIdAndEventTypeIdSchema = z.object({
@@ -19,62 +19,65 @@ const webhookIdAndEventTypeIdSchema = z.object({
   eventTypeId: z.number().optional(),
 });
 
-export const webhookRouter = createProtectedRouter()
-  .middleware(async ({ ctx, rawInput, next }) => {
-    // Endpoints that just read the logged in user's data - like 'list' don't necessary have any input
-    if (!rawInput) {
-      return next();
-    }
-    const webhookIdAndEventTypeId = webhookIdAndEventTypeIdSchema.safeParse(rawInput);
-    if (!webhookIdAndEventTypeId.success) {
-      throw new TRPCError({ code: "PARSE_ERROR" });
-    }
-    const { eventTypeId, id } = webhookIdAndEventTypeId.data;
+const webhookProcedure = authedProcedure.use(async ({ ctx, rawInput, next }) => {
+  // Endpoints that just read the logged in user's data - like 'list' don't necessary have any input
+  if (!rawInput) {
+    return next();
+  }
+  const webhookIdAndEventTypeId = webhookIdAndEventTypeIdSchema.safeParse(rawInput);
+  if (!webhookIdAndEventTypeId.success) {
+    throw new TRPCError({ code: "PARSE_ERROR" });
+  }
+  const { eventTypeId, id } = webhookIdAndEventTypeId.data;
 
-    // A webhook is either linked to Event Type or to a user.
-    if (eventTypeId) {
-      const team = await ctx.prisma.team.findFirst({
-        where: {
-          eventTypes: {
-            some: {
-              id: eventTypeId,
-            },
+  // A webhook is either linked to Event Type or to a user.
+  if (eventTypeId) {
+    const team = await ctx.prisma.team.findFirst({
+      where: {
+        eventTypes: {
+          some: {
+            id: eventTypeId,
           },
         },
-        include: {
-          members: true,
-        },
-      });
+      },
+      include: {
+        members: true,
+      },
+    });
 
-      // Team should be available and the user should be a member of the team
-      if (!team?.members.some((membership) => membership.userId === ctx.user.id)) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
-      }
-    } else if (id) {
-      const authorizedHook = await ctx.prisma.webhook.findFirst({
-        where: {
-          id: id,
-          userId: ctx.user.id,
-        },
+    // Team should be available and the user should be a member of the team
+    if (!team?.members.some((membership) => membership.userId === ctx.user.id)) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
       });
-      if (!authorizedHook) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-        });
-      }
     }
-    return next();
-  })
-  .query("list", {
-    input: z
-      .object({
-        eventTypeId: z.number().optional(),
-        appId: z.string().optional(),
-      })
-      .optional(),
-    async resolve({ ctx, input }) {
+  } else if (id) {
+    const authorizedHook = await ctx.prisma.webhook.findFirst({
+      where: {
+        id: id,
+        userId: ctx.user.id,
+      },
+    });
+    if (!authorizedHook) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+      });
+    }
+  }
+  return next();
+});
+
+export const webhookRouter = router({
+  list: webhookProcedure
+    .input(
+      z
+        .object({
+          eventTypeId: z.number().optional(),
+          appId: z.string().optional(),
+        })
+        .optional()
+    )
+    .query(async ({ ctx, input }) => {
       const where: Prisma.WebhookWhereInput = {
         /* Don't mixup zapier webhooks with normal ones */
         AND: [{ appId: !input?.appId ? null : input.appId }],
@@ -90,13 +93,14 @@ export const webhookRouter = createProtectedRouter()
       return await ctx.prisma.webhook.findMany({
         where,
       });
-    },
-  })
-  .query("get", {
-    input: z.object({
-      webhookId: z.string().optional(),
     }),
-    async resolve({ ctx, input }) {
+  get: webhookProcedure
+    .input(
+      z.object({
+        webhookId: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
       return await ctx.prisma.webhook.findUniqueOrThrow({
         where: {
           id: input.webhookId,
@@ -110,19 +114,20 @@ export const webhookRouter = createProtectedRouter()
           secret: true,
         },
       });
-    },
-  })
-  .mutation("create", {
-    input: z.object({
-      subscriberUrl: z.string().url(),
-      eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array(),
-      active: z.boolean(),
-      payloadTemplate: z.string().nullable(),
-      eventTypeId: z.number().optional(),
-      appId: z.string().optional().nullable(),
-      secret: z.string().optional().nullable(),
     }),
-    async resolve({ ctx, input }) {
+  create: webhookProcedure
+    .input(
+      z.object({
+        subscriberUrl: z.string().url(),
+        eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array(),
+        active: z.boolean(),
+        payloadTemplate: z.string().nullable(),
+        eventTypeId: z.number().optional(),
+        appId: z.string().optional().nullable(),
+        secret: z.string().optional().nullable(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       if (input.eventTypeId) {
         return await ctx.prisma.webhook.create({
           data: {
@@ -139,20 +144,21 @@ export const webhookRouter = createProtectedRouter()
           ...input,
         },
       });
-    },
-  })
-  .mutation("edit", {
-    input: z.object({
-      id: z.string(),
-      subscriberUrl: z.string().url().optional(),
-      eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array().optional(),
-      active: z.boolean().optional(),
-      payloadTemplate: z.string().nullable(),
-      eventTypeId: z.number().optional(),
-      appId: z.string().optional().nullable(),
-      secret: z.string().optional().nullable(),
     }),
-    async resolve({ ctx, input }) {
+  edit: webhookProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        subscriberUrl: z.string().url().optional(),
+        eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array().optional(),
+        active: z.boolean().optional(),
+        payloadTemplate: z.string().nullable(),
+        eventTypeId: z.number().optional(),
+        appId: z.string().optional().nullable(),
+        secret: z.string().optional().nullable(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       const { id, ...data } = input;
       const webhook = input.eventTypeId
         ? await ctx.prisma.webhook.findFirst({
@@ -178,14 +184,15 @@ export const webhookRouter = createProtectedRouter()
         },
         data,
       });
-    },
-  })
-  .mutation("delete", {
-    input: z.object({
-      id: z.string(),
-      eventTypeId: z.number().optional(),
     }),
-    async resolve({ ctx, input }) {
+  delete: webhookProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        eventTypeId: z.number().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
       const { id } = input;
       input.eventTypeId
         ? await ctx.prisma.eventType.update({
@@ -215,15 +222,16 @@ export const webhookRouter = createProtectedRouter()
       return {
         id,
       };
-    },
-  })
-  .mutation("testTrigger", {
-    input: z.object({
-      url: z.string().url(),
-      type: z.string(),
-      payloadTemplate: z.string().optional().nullable(),
     }),
-    async resolve({ input }) {
+  testTrigger: webhookProcedure
+    .input(
+      z.object({
+        url: z.string().url(),
+        type: z.string(),
+        payloadTemplate: z.string().optional().nullable(),
+      })
+    )
+    .mutation(async ({ input }) => {
       const { url, type, payloadTemplate = null } = input;
       const translation = await getTranslation("en", "common");
       const language = {
@@ -264,5 +272,5 @@ export const webhookRouter = createProtectedRouter()
           message: error.message,
         };
       }
-    },
-  });
+    }),
+});

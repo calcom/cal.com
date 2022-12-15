@@ -136,7 +136,7 @@ export async function getServerSideProps(context: NextPageContext) {
   const session = await getSession();
 
   // set meetingPassword to null for guests
-  if (session?.userid !== bookingObj.user?.id) {
+  if (session?.user.id !== bookingObj.user?.id) {
     bookingObj.references.forEach((bookRef) => {
       bookRef.meetingPassword = null;
     });
