@@ -17,6 +17,7 @@ import {
   WORKFLOW_ACTIONS,
   TIME_UNIT,
 } from "@calcom/features/ee/workflows/lib/constants";
+import { getWorkflowActionOptions } from "@calcom/features/ee/workflows/lib/getOptions";
 import {
   deleteScheduledEmailReminder,
   scheduleEmailReminder,
@@ -28,10 +29,15 @@ import {
 } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { getTranslation } from "@calcom/lib/server/i18n";
 
 import { TRPCError } from "@trpc/server";
 
 import { router, authedProcedure, authedRateLimitedProcedure } from "../../trpc";
+
+function isSMSAction(action: WorkflowActions) {
+  return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.SMS_NUMBER;
+}
 
 export const workflowsRouter = router({
   list: authedProcedure.query(async ({ ctx }) => {
@@ -249,6 +255,11 @@ export const workflowsRouter = router({
         },
         select: {
           userId: true,
+          user: {
+            select: {
+              teams: true,
+            },
+          },
           steps: true,
         },
       });
@@ -519,6 +530,13 @@ export const workflowsRouter = router({
           });
           //step was edited
         } else if (JSON.stringify(oldStep) !== JSON.stringify(newStep)) {
+          if (
+            !userWorkflow.user.teams.length &&
+            !isSMSAction(oldStep.action) &&
+            isSMSAction(newStep.action)
+          ) {
+            throw new TRPCError({ code: "UNAUTHORIZED" });
+          }
           await ctx.prisma.workflowStep.update({
             where: {
               id: oldStep.id,
@@ -658,6 +676,9 @@ export const workflowsRouter = router({
       //added steps
       const addedSteps = steps.map((s) => {
         if (s.id <= 0) {
+          if (!userWorkflow.user.teams.length && isSMSAction(s.action)) {
+            throw new TRPCError({ code: "UNAUTHORIZED" });
+          }
           const { id: stepId, ...stepToAdd } = s;
           return stepToAdd;
         }
@@ -984,4 +1005,10 @@ export const workflowsRouter = router({
         });
       }
     }),
+  getWorkflowActionOptions: authedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.user.id;
+    const hasTeamPlan = (await ctx.prisma.membership.count({ where: { userId } })) > 0;
+    const t = await getTranslation(ctx.user.locale, "common");
+    return getWorkflowActionOptions(t, hasTeamPlan);
+  }),
 });
