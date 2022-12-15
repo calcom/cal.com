@@ -1,6 +1,5 @@
 import {
   TimeUnit,
-  VerifiedNumber,
   WorkflowActions,
   WorkflowStep,
   WorkflowTemplates,
@@ -53,7 +52,7 @@ type WorkflowStepProps = {
   form: UseFormReturn<FormValues>;
   reload?: boolean;
   setReload?: Dispatch<SetStateAction<boolean>>;
-  verifiedNumbers: VerifiedNumber[];
+  verifiedNumbers: string[];
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
@@ -116,9 +115,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const [numberVerified, setNumberVerified] = useState(
     verifiedNumbers && step
-      ? !!verifiedNumbers.find(
-          (verified) => verified.phoneNumber === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
-        )
+      ? !!verifiedNumbers.find((number) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`))
       : false
   );
 
@@ -152,6 +149,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     onSuccess: async (isVerified) => {
       showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
       setNumberVerified(isVerified);
+      const sendTo = step ? form.getValues(`steps.${step.stepNumber - 1}.sendTo`) : "";
+      if (isVerified && sendTo) {
+        verifiedNumbers.push(sendTo);
+      }
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -402,8 +403,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           required
                           onChange={() => {
                             const isAlreadyVerified = !!verifiedNumbers.find(
-                              (verified) =>
-                                verified.phoneNumber === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
+                              (number) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
                             );
                             setNumberVerified(isAlreadyVerified);
                           }}

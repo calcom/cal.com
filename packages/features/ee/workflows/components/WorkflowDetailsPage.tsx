@@ -1,4 +1,4 @@
-import { WorkflowActions, WorkflowTemplates, VerifiedNumber } from "@prisma/client";
+import { WorkflowActions, WorkflowTemplates } from "@prisma/client";
 import { useRouter } from "next/router";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
@@ -21,7 +21,7 @@ interface Props {
   workflowId: number;
   selectedEventTypes: Option[];
   setSelectedEventTypes: Dispatch<SetStateAction<Option[]>>;
-  verifiedNumbers: VerifiedNumber[];
+  verifiedNumbers?: string[];
 }
 
 export default function WorkflowDetailsPage(props: Props) {
@@ -122,7 +122,7 @@ export default function WorkflowDetailsPage(props: Props) {
         <div className="w-full rounded-md border border-gray-200 bg-gray-50 p-3 py-5 md:ml-3 md:p-8">
           {form.getValues("trigger") && (
             <div>
-              <WorkflowStepContainer form={form} />
+              <WorkflowStepContainer form={form} verifiedNumbers={[]} />
             </div>
           )}
           {form.getValues("steps") && (
@@ -135,7 +135,7 @@ export default function WorkflowDetailsPage(props: Props) {
                     step={step}
                     reload={reload}
                     setReload={setReload}
-                    verifiedNumbers={verifiedNumbers}
+                    verifiedNumbers={verifiedNumbers || []}
                   />
                 );
               })}
