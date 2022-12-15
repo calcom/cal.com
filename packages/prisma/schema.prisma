@@ -300,6 +300,8 @@ model Booking {
   smsReminderNumber     String?
   workflowReminders     WorkflowReminder[]
   scheduledJobs         String[]
+  /// @zod.custom(imports.bookingMetadataSchema)
+  metadata              Json?
 }
 
 model Schedule {
