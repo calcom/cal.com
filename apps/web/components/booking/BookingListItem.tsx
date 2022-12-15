@@ -29,6 +29,8 @@ import useMeQuery from "@lib/hooks/useMeQuery";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
+import { ViewRecordingsDialog } from "@components/dialog/ViewRecordingsDialog";
+import TableActions, { ActionType } from "@components/ui/TableActions";
 
 type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
 
@@ -48,6 +50,7 @@ function BookingListItem(booking: BookingItemProps) {
   const router = useRouter();
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
+  const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
   const mutation = trpc.viewer.bookings.confirm.useMutation({
     onSuccess: (data) => {
       if (data.status === BookingStatus.REJECTED) {
@@ -109,6 +112,17 @@ function BookingListItem(booking: BookingItemProps) {
       icon: Icon.FiCheck,
       disabled: mutation.isLoading,
       color: "primary",
+    },
+  ];
+
+  const showRecordingActions: ActionType[] = [
+    {
+      id: "view_recordings",
+      label: t("view_recordings"),
+      onClick: () => {
+        setViewRecordingsDialogIsOpen(true);
+      },
+      disabled: mutation.isLoading,
     },
   ];
 
@@ -206,7 +220,7 @@ function BookingListItem(booking: BookingItemProps) {
       },
     });
   };
-
+  const showRecordingsButtons = isPast && isConfirmed && booking.location === "integrations:daily";
   return (
     <>
       <RescheduleDialog
@@ -220,7 +234,11 @@ function BookingListItem(booking: BookingItemProps) {
         isOpenDialog={isOpenSetLocationDialog}
         setShowLocationModal={setIsOpenLocationDialog}
       />
-
+      <ViewRecordingsDialog
+        booking={booking}
+        isOpenDialog={viewRecordingsDialogIsOpen}
+        setIsOpenDialog={setViewRecordingsDialogIsOpen}
+      />
       {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}
       <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
         <DialogContent>
@@ -377,6 +395,7 @@ function BookingListItem(booking: BookingItemProps) {
             </>
           ) : null}
           {isPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
+          {showRecordingsButtons && <TableActions actions={showRecordingActions} />}
           {isCancelled && booking.rescheduled && (
             <div className="hidden h-full items-center md:flex">
               <RequestSentMessage />

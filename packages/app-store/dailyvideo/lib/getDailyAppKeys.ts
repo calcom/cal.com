@@ -4,6 +4,7 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 
 const dailyAppKeysSchema = z.object({
   api_key: z.string(),
+  scale_plan: z.string(),
 });
 
 export const getDailyAppKeys = async () => {

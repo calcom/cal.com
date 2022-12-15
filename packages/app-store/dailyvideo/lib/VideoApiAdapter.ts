@@ -87,9 +87,8 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     if (!event.uid) {
       throw new Error("We need need the booking uid to create the Daily reference in DB");
     }
-    const dailyEvent = await postToDailyAPI(endpoint, translateEvent(event)).then(
-      dailyReturnTypeSchema.parse
-    );
+    const body = await translateEvent(event);
+    const dailyEvent = await postToDailyAPI(endpoint, body).then(dailyReturnTypeSchema.parse);
     const meetingToken = await postToDailyAPI("/meeting-tokens", {
       properties: { room_name: dailyEvent.name, is_owner: true },
     }).then(meetingTokenSchema.parse);
@@ -102,13 +101,13 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     });
   }
 
-  const translateEvent = (event: CalendarEvent) => {
+  const translateEvent = async (event: CalendarEvent) => {
     // Documentation at: https://docs.daily.co/reference#list-rooms
     // added a 1 hour buffer for room expiration
     const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 60;
-    const scalePlan = process.env.DAILY_SCALE_PLAN;
+    const { scale_plan } = await getDailyAppKeys();
 
-    if (scalePlan === "true") {
+    if (scale_plan === "true") {
       return {
         privacy: "public",
         properties: {
@@ -118,7 +117,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
           enable_screenshare: true,
           enable_chat: true,
           exp: exp,
-          enable_recording: "local",
+          enable_recording: "cloud",
         },
       };
     }
