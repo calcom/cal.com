@@ -6,10 +6,8 @@ import { Controller, UseFormReturn } from "react-hook-form";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Button, Label, TextField } from "@calcom/ui";
-import { MultiSelectCheckboxes } from "@calcom/ui";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
+import { Button, Icon, Label, MultiSelectCheckboxes, TextField } from "@calcom/ui";
 
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
@@ -74,6 +72,7 @@ export default function WorkflowDetailsPage(props: Props) {
       template: WorkflowTemplates.CUSTOM,
       numberRequired: numberRequired || false,
       sender: sender || SENDER_ID,
+      numberVerificationPending: false,
     };
     steps?.push(step);
     form.setValue("steps", steps);
