@@ -52,7 +52,7 @@ export const scheduleSMSReminder = async (
   template: WorkflowTemplates,
   sender: string,
   userId: number,
-  isVerificationPending: boolean
+  isVerificationPending = false
 ) => {
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;

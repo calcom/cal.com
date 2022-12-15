@@ -487,8 +487,7 @@ export const workflowsRouter = router({
                     step.id,
                     step.template,
                     step.sender || SENDER_ID,
-                    user.id,
-                    false
+                    user.id
                   );
                 }
               });
@@ -675,8 +674,7 @@ export const workflowsRouter = router({
                   newStep.id || 0,
                   newStep.template,
                   newStep.sender || SENDER_ID,
-                  user.id,
-                  false
+                  user.id
                 );
               }
             });
@@ -793,8 +791,7 @@ export const workflowsRouter = router({
                     createdStep.id,
                     step.template,
                     step.sender || SENDER_ID,
-                    user.id,
-                    false
+                    user.id
                   );
                 }
               });
@@ -943,8 +940,7 @@ export const workflowsRouter = router({
             0,
             template,
             sender || SENDER_ID,
-            ctx.user.id,
-            false
+            ctx.user.id
           );
           return { message: "Notification sent" };
         }
