@@ -22,10 +22,20 @@ interface Props {
   selectedEventTypes: Option[];
   setSelectedEventTypes: Dispatch<SetStateAction<Option[]>>;
   verifiedNumbers?: string[];
+  setNewVerifiedNumbers: Dispatch<SetStateAction<string[]>>;
+  newVerifiedNumbers: string[];
 }
 
 export default function WorkflowDetailsPage(props: Props) {
-  const { form, workflowId, selectedEventTypes, setSelectedEventTypes, verifiedNumbers } = props;
+  const {
+    form,
+    workflowId,
+    selectedEventTypes,
+    setSelectedEventTypes,
+    verifiedNumbers,
+    setNewVerifiedNumbers,
+    newVerifiedNumbers,
+  } = props;
   const { t } = useLocale();
   const router = useRouter();
 
@@ -75,6 +85,7 @@ export default function WorkflowDetailsPage(props: Props) {
       template: WorkflowTemplates.CUSTOM,
       numberRequired: numberRequired || false,
       sender: sender || SENDER_ID,
+      numberVerificationPending: false,
     };
     steps?.push(step);
     form.setValue("steps", steps);
@@ -122,7 +133,7 @@ export default function WorkflowDetailsPage(props: Props) {
         <div className="w-full rounded-md border border-gray-200 bg-gray-50 p-3 py-5 md:ml-3 md:p-8">
           {form.getValues("trigger") && (
             <div>
-              <WorkflowStepContainer form={form} verifiedNumbers={[]} />
+              <WorkflowStepContainer form={form} />
             </div>
           )}
           {form.getValues("steps") && (
@@ -136,6 +147,8 @@ export default function WorkflowDetailsPage(props: Props) {
                     reload={reload}
                     setReload={setReload}
                     verifiedNumbers={verifiedNumbers || []}
+                    setNewVerifiedNumbers={setNewVerifiedNumbers}
+                    newVerifiedNumbers={newVerifiedNumbers}
                   />
                 );
               })}

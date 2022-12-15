@@ -243,7 +243,6 @@ export const workflowsRouter = router({
             template: z.enum(WORKFLOW_TEMPLATES),
             numberRequired: z.boolean().nullable(),
             sender: z.string().optional().nullable(),
-            numberVerificationPending: z.boolean(),
           })
           .array(),
         trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
@@ -489,7 +488,7 @@ export const workflowsRouter = router({
                     step.template,
                     step.sender || SENDER_ID,
                     user.id,
-                    step.numberVerificationPending
+                    false
                   );
                 }
               });
@@ -677,7 +676,7 @@ export const workflowsRouter = router({
                   newStep.template,
                   newStep.sender || SENDER_ID,
                   user.id,
-                  newStep.numberVerificationPending
+                  false
                 );
               }
             });
@@ -795,7 +794,7 @@ export const workflowsRouter = router({
                     step.template,
                     step.sender || SENDER_ID,
                     user.id,
-                    step.numberVerificationPending
+                    false
                   );
                 }
               });

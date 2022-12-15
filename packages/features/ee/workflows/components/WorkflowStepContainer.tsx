@@ -52,12 +52,14 @@ type WorkflowStepProps = {
   form: UseFormReturn<FormValues>;
   reload?: boolean;
   setReload?: Dispatch<SetStateAction<boolean>>;
-  verifiedNumbers: string[];
+  verifiedNumbers?: string[];
+  setNewVerifiedNumbers?: Dispatch<SetStateAction<string[]>>;
+  newVerifiedNumbers?: string[];
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
-  const { step, form, reload, setReload, verifiedNumbers } = props;
+  const { step, form, reload, setReload, verifiedNumbers, setNewVerifiedNumbers, newVerifiedNumbers } = props;
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
 
@@ -151,7 +153,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       setNumberVerified(isVerified);
       const sendTo = step ? form.getValues(`steps.${step.stepNumber - 1}.sendTo`) : "";
       if (isVerified && sendTo) {
-        verifiedNumbers.push(sendTo);
+        const updatedNumbers = newVerifiedNumbers || [];
+        updatedNumbers.push(sendTo);
+
+        setNewVerifiedNumbers?.(updatedNumbers || []);
       }
     },
     onError: (err) => {
@@ -402,9 +407,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           className="min-w-fit sm:rounded-tl-md sm:rounded-bl-md sm:border-r-transparent"
                           required
                           onChange={() => {
-                            const isAlreadyVerified = !!verifiedNumbers.find(
-                              (number) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
-                            );
+                            const isAlreadyVerified = !!verifiedNumbers
+                              ?.concat(newVerifiedNumbers || [])
+                              .find(
+                                (number) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
+                              );
                             setNumberVerified(isAlreadyVerified);
                           }}
                         />
