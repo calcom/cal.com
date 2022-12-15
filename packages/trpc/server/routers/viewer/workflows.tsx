@@ -1034,7 +1034,7 @@ export const workflowsRouter = router({
     )
     .mutation(async ({ input }) => {
       const { phoneNumber } = input;
-      sendVerificationCode(phoneNumber);
+      return sendVerificationCode(phoneNumber);
     }),
   verifyPhoneNumber: authedProcedure
     .input(
