@@ -39,6 +39,7 @@ import { metadata as stripepayment_meta } from "./stripepayment/_metadata";
 import { metadata as tandemvideo_meta } from "./tandemvideo/_metadata";
 import { metadata as telegram_meta } from "./telegram/_metadata";
 import { metadata as typeform_meta } from "./typeform/_metadata";
+import { metadata as vimcal_meta } from "./vimcal/_metadata";
 import { metadata as vital_meta } from "./vital/_metadata";
 import { metadata as weather_in_your_calendar_meta } from "./weather_in_your_calendar/_metadata";
 import { metadata as whatsapp_meta } from "./whatsapp/_metadata";
@@ -86,6 +87,7 @@ export const appStoreMetadata = {
   tandemvideo: tandemvideo_meta,
   telegram: telegram_meta,
   typeform: typeform_meta,
+  vimcal: vimcal_meta,
   vital: vital_meta,
   weather_in_your_calendar: weather_in_your_calendar_meta,
   whatsapp: whatsapp_meta,

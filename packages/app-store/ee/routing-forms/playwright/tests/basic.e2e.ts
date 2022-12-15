@@ -8,7 +8,7 @@ async function gotoRoutingLink(page: Page, formId: string) {
   await new Promise((resolve) => setTimeout(resolve, 500));
 }
 
-async function addForm(page: Page) {
+export async function addForm(page: Page) {
   await page.click('[data-testid="new-routing-form"]');
   await page.fill("input[name]", "Test Form Name");
   await page.click('[data-testid="add-form"]');
@@ -41,7 +41,7 @@ async function verifySelectOptions(
   };
 }
 
-async function fillForm(
+export async function fillForm(
   page: Page,
   form: { description: string; field?: { typeIndex: number; label: string } }
 ) {
