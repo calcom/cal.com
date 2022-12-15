@@ -632,7 +632,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       isEmpty = true;
                     }
 
-                    if (!numberVerified) {
+                    if (!numberVerified && isPhoneNumberNeeded) {
                       form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
                         type: "custom",
                         message: t("not_verified"),

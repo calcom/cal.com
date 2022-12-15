@@ -851,7 +851,7 @@ export const workflowsRouter = router({
           phoneNumber: sendTo,
         },
       });
-      if (!verifiedNumbers) {
+      if (!verifiedNumbers && action === WorkflowActions.SMS_NUMBER) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Phone number is not verified" });
       }
 
