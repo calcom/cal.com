@@ -427,7 +427,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               phoneNumber: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
                             })
                           }>
-                          Send code
+                          {t("send_code")}
                         </Button>
                       </div>
 
@@ -439,7 +439,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         )}
                       {numberVerified ? (
                         <div className="mt-1">
-                          <Badge variant="green">Number Verified</Badge>
+                          <Badge variant="green">{t("number_verified")}</Badge>
                         </div>
                       ) : (
                         <>

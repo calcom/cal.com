@@ -1460,5 +1460,7 @@
   "wrong_code": "Wong verification code",
   "not_verified": "Not yet verified",
   "no_availability_in_month": "No availability in {{month}}",
-  "view_next_month": "View next month"
+  "view_next_month": "View next month",
+  "send_code" : "Send code",
+  "number_verified": "Number Verified"
 }
