@@ -40,8 +40,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await prisma.credential.create({
         data,
       });
-    } catch (reason) {
-      logger.error("Could not add this caldav account", reason);
+    } catch (e) {
+      logger.error("Could not add this caldav account", e);
+      if (e instanceof Error) {
+        let message = e.message;
+        if (e.message.indexOf("Invalid credentials") > -1 && url.indexOf("dav.php") > -1) {
+          const parsedUrl = new URL(url);
+          const adminUrl =
+            parsedUrl.protocol +
+            "//" +
+            parsedUrl.hostname +
+            (parsedUrl.port ? ":" + parsedUrl.port : "") +
+            "/admin/?/settings/standard/";
+          message = `Couldn\'t connect to caldav account, please verify WebDAV authentication type is set to "Basic"`;
+          return res.status(500).json({ message, actionUrl: adminUrl });
+        }
+      }
       return res.status(500).json({ message: "Could not add this caldav account" });
     }
 
