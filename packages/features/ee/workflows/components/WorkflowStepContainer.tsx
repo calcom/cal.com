@@ -15,6 +15,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
+  Badge,
   Button,
   Checkbox,
   ConfirmationDialogContent,
@@ -33,15 +34,10 @@ import {
   showToast,
   TextArea,
   TextField,
-  Badge,
 } from "@calcom/ui";
 
 import { AddVariablesDropdown } from "../components/AddVariablesDropdown";
-import {
-  getWorkflowActionOptions,
-  getWorkflowTemplateOptions,
-  getWorkflowTriggerOptions,
-} from "../lib/getOptions";
+import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
 import { translateVariablesToEnglish } from "../lib/variableTranslations";
 import type { FormValues } from "../pages/workflow";
 import Editor from "./TextEditor/Editor";
@@ -52,14 +48,14 @@ type WorkflowStepProps = {
   form: UseFormReturn<FormValues>;
   reload?: boolean;
   setReload?: Dispatch<SetStateAction<boolean>>;
-  verifiedNumbers?: string[];
-  setNewVerifiedNumbers?: Dispatch<SetStateAction<string[]>>;
-  newVerifiedNumbers?: string[];
 };
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
-  const { step, form, reload, setReload, verifiedNumbers, setNewVerifiedNumbers, newVerifiedNumbers } = props;
+  const utils = trpc.useContext();
+  const { step, form, reload, setReload } = props;
+  const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery();
+  const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber);
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
   const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
 
@@ -151,13 +147,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     onSuccess: async (isVerified) => {
       showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
       setNumberVerified(isVerified);
-      const sendTo = step ? form.getValues(`steps.${step.stepNumber - 1}.sendTo`) : "";
-      if (isVerified && sendTo) {
-        const updatedNumbers = newVerifiedNumbers || [];
-        updatedNumbers.push(sendTo);
-
-        setNewVerifiedNumbers?.(updatedNumbers || []);
-      }
+      utils.viewer.workflows.getVerifiedNumbers.invalidate();
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -408,7 +398,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           required
                           onChange={() => {
                             const isAlreadyVerified = !!verifiedNumbers
-                              ?.concat(newVerifiedNumbers || [])
+                              ?.concat([])
                               .find(
                                 (number) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
                               );

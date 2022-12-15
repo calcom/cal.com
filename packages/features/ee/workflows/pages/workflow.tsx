@@ -1,7 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   TimeUnit,
-  VerifiedNumber,
   WorkflowActions,
   WorkflowStep,
   WorkflowTemplates,
@@ -106,7 +105,6 @@ function WorkflowPage() {
   );
 
   const { data: verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery();
-  const [newVerifiedNumbers, setNewVerifiedNumbers] = useState<Array<string>>([]);
 
   useEffect(() => {
     if (workflow && !isLoading) {
@@ -208,8 +206,7 @@ function WorkflowPage() {
           //check if phone number is verified
           if (
             step.action === WorkflowActions.SMS_NUMBER &&
-            !verifiedNumbers?.find((verifiedNumber) => verifiedNumber.phoneNumber === step.sendTo) &&
-            !newVerifiedNumbers?.find((number) => number === step.sendTo)
+            !verifiedNumbers?.find((verifiedNumber) => verifiedNumber.phoneNumber === step.sendTo)
           ) {
             isVerified = false;
 
@@ -264,11 +261,6 @@ function WorkflowPage() {
                     workflowId={+workflowId}
                     selectedEventTypes={selectedEventTypes}
                     setSelectedEventTypes={setSelectedEventTypes}
-                    verifiedNumbers={verifiedNumbers?.map(
-                      (verifiedNumber: VerifiedNumber) => verifiedNumber.phoneNumber
-                    )}
-                    setNewVerifiedNumbers={setNewVerifiedNumbers}
-                    newVerifiedNumbers={newVerifiedNumbers}
                   />
                 </>
               ) : (

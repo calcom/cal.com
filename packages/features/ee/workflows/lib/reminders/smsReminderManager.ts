@@ -62,18 +62,17 @@ export const scheduleSMSReminder = async (
 
   const senderID = getSenderId(reminderPhone, sender);
 
-  const verifiedNumbers = await prisma.verifiedNumber.findMany({
-    where: {
-      userId,
-    },
-  });
-
   //SMS_ATTENDEE action does not need to be verified
   //isVerificationPending is from all already existing workflows (once they edit their workflow, they will also have to verify the number)
-  const isNumberVerified =
-    action === WorkflowActions.SMS_ATTENDEE ||
-    !!verifiedNumbers.find((verifiedNumber) => verifiedNumber.phoneNumber === reminderPhone) ||
-    isVerificationPending;
+  async function getIsNumberVerified() {
+    if (action === WorkflowActions.SMS_ATTENDEE) return true;
+    const verifiedNumber = await prisma.verifiedNumber.findFirst({
+      where: { userId, phoneNumber: reminderPhone || "" },
+    });
+    if (!!verifiedNumber) return true;
+    return isVerificationPending;
+  }
+  const isNumberVerified = await getIsNumberVerified();
 
   if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
     scheduledDate = timeSpan.time && timeUnit ? dayjs(startTime).subtract(timeSpan.time, timeUnit) : null;
