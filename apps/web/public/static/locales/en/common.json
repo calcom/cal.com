@@ -1455,6 +1455,12 @@
   "event_type_duplicate_copy_text": "{{slug}}-copy",
   "set_as_default": "Set as default",
   "hide_eventtype_details": "Hide EventType Details",
+  "verification_code_sent": "Verification code sent",
+  "verified_successfully": "Verified successfully",
+  "wrong_code": "Wong verification code",
+  "not_verified": "Not yet verified",
   "no_availability_in_month": "No availability in {{month}}",
-  "view_next_month": "View next month"
+  "view_next_month": "View next month",
+  "send_code" : "Send code",
+  "number_verified": "Number Verified"
 }

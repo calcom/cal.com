@@ -186,6 +186,7 @@ model User {
   ownedEventTypes      EventType[]             @relation("owner")
   workflows            Workflow[]
   routingForms         App_RoutingForms_Form[] @relation("routing-form")
+  verifiedNumbers      VerifiedNumber[]
 
   @@map(name: "users")
 }
@@ -561,18 +562,19 @@ enum WorkflowActions {
 }
 
 model WorkflowStep {
-  id                Int                @id @default(autoincrement())
-  stepNumber        Int
-  action            WorkflowActions
-  workflowId        Int
-  workflow          Workflow           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  sendTo            String?
-  reminderBody      String?
-  emailSubject      String?
-  template          WorkflowTemplates  @default(REMINDER)
-  workflowReminders WorkflowReminder[]
-  numberRequired    Boolean?
-  sender            String?
+  id                        Int                @id @default(autoincrement())
+  stepNumber                Int
+  action                    WorkflowActions
+  workflowId                Int
+  workflow                  Workflow           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  sendTo                    String?
+  reminderBody              String?
+  emailSubject              String?
+  template                  WorkflowTemplates  @default(REMINDER)
+  workflowReminders         WorkflowReminder[]
+  numberRequired            Boolean?
+  sender                    String?
+  numberVerificationPending Boolean            @default(true)
 }
 
 model Workflow {
@@ -621,4 +623,11 @@ enum WorkflowTemplates {
 enum WorkflowMethods {
   EMAIL
   SMS
+}
+
+model VerifiedNumber {
+  id          Int    @id @default(autoincrement())
+  userId      Int
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phoneNumber String
 }
