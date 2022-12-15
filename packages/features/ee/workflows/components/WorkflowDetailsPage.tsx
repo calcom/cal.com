@@ -6,7 +6,6 @@ import { Controller, UseFormReturn } from "react-hook-form";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Icon } from "@calcom/ui";
 import { Button, Label, TextField } from "@calcom/ui";
 import { MultiSelectCheckboxes } from "@calcom/ui";
