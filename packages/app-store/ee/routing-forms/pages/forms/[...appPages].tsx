@@ -131,6 +131,7 @@ export default function RoutingForms({
                                 </FormAction>
                                 {typeformApp?.isInstalled ? (
                                   <FormAction
+                                    data-testid="copy-redirect-url"
                                     routingForm={form}
                                     action="copyRedirectUrl"
                                     color="minimal"

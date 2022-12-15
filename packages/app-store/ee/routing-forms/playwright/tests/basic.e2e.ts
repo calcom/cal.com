@@ -1,7 +1,11 @@
 import { expect, Page } from "@playwright/test";
 
 import { Fixtures, test } from "@calcom/web/playwright/lib/fixtures";
-import { todo } from "@calcom/web/playwright/lib/testUtils";
+
+function todo(title: string) {
+  // eslint-disable-next-line playwright/no-skipped-test, @typescript-eslint/no-empty-function
+  test.skip(title, () => {});
+}
 
 test.describe("Routing Forms", () => {
   test.describe("Zero State Routing Forms", () => {
@@ -356,7 +360,7 @@ async function fillSeededForm(page: Page, routingFormId: string) {
   await page.isVisible("text=Custom Page Result");
 }
 
-async function addForm(page: Page, { name = "Test Form Name" } = {}) {
+export async function addForm(page: Page, { name = "Test Form Name" } = {}) {
   await page.goto("/apps/routing-forms/forms");
   await page.click('[data-testid="new-routing-form"]');
   await page.fill("input[name]", name);
@@ -370,7 +374,7 @@ async function addForm(page: Page, { name = "Test Form Name" } = {}) {
   return formId;
 }
 
-async function addOneFieldAndDescriptionAndSaveForm(
+export async function addOneFieldAndDescriptionAndSaveForm(
   formId: string,
   page: Page,
   form: { description?: string; field?: { typeIndex: number; label: string } }

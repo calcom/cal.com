@@ -47,6 +47,7 @@ const getEventType = async (id: number) => {
           startTime: true,
           endTime: true,
           days: true,
+          date: true,
         },
       },
     },
@@ -225,18 +226,32 @@ export async function getUserAvailability(
   const startGetWorkingHours = performance.now();
 
   const timeZone = schedule.timeZone || eventType?.timeZone || currentUser.timeZone;
-  const workingHours = getWorkingHours(
-    { timeZone },
+
+  const availability =
     schedule.availability ||
-      (eventType?.availability.length ? eventType.availability : currentUser.availability)
-  );
+    (eventType?.availability.length ? eventType.availability : currentUser.availability);
+
+  const workingHours = getWorkingHours({ timeZone }, availability);
+
   const endGetWorkingHours = performance.now();
   logger.debug(`getWorkingHours took ${endGetWorkingHours - startGetWorkingHours}ms for userId ${userId}`);
+
+  const dateOverrides = availability
+    .filter((availability) => !!availability.date)
+    .map((override) => {
+      const startTime = dayjs.utc(override.startTime);
+      const endTime = dayjs.utc(override.endTime);
+      return {
+        start: dayjs.utc(override.date).hour(startTime.hour()).minute(startTime.minute()).toDate(),
+        end: dayjs.utc(override.date).hour(endTime.hour()).minute(endTime.minute()).toDate(),
+      };
+    });
 
   return {
     busy: bufferedBusyTimes,
     timeZone,
     workingHours,
+    dateOverrides,
     currentSeats,
   };
 }
