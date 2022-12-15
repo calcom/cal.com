@@ -104,12 +104,18 @@ export const bookingsRouter = router({
   get: authedProcedure
     .input(
       z.object({
-        filters: filterQuerySchema,
+        filters: z.object({
+          teamIds: z.number().array().optional(),
+          userIds: z.number().array().optional(),
+          status: z.enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"]),
+          eventTypeIds: z.number().array().optional(),
+        }),
         limit: z.number().min(1).max(100).nullish(),
         cursor: z.number().nullish(), // <-- "cursor" needs to exist when using useInfiniteQuery, but can be any type
       })
     )
     .query(async ({ ctx, input }) => {
+      console.log("input", input);
       // using offset actually because cursor pagination requires a unique column
       // for orderBy, but we don't use a unique column in our orderBy
       const take = input.limit ?? 10;
@@ -229,7 +235,7 @@ export const bookingsRouter = router({
               },
             },
           ],
-          AND: [passedBookingsStatusFilter],
+          AND: [passedBookingsStatusFilter, ...filtersCombined],
         },
         select: {
           ...bookingMinimalSelect,

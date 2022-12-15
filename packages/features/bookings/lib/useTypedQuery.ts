@@ -21,7 +21,11 @@ export function useTypedQuery<T extends z.Schema>(schema: T) {
   // push item to existing key
   function pushItemToKey<J extends SchemaKeys>(
     key: J,
-    value: InferedSchema[J] extends Array<unknown> ? InferedSchema[J][0] : InferedSchema[J] // If the value is an array, use the first item of the array as the type for the value
+    value: InferedSchema[J] extends Array<unknown>
+      ? InferedSchema[J][0]
+      : InferedSchema[J] extends Array<unknown> | undefined
+      ? NonNullable<InferedSchema[J]>[0]
+      : InferedSchema[J]
   ) {
     const existingValue = parsedQuery[key];
     if (Array.isArray(existingValue)) {
@@ -34,7 +38,11 @@ export function useTypedQuery<T extends z.Schema>(schema: T) {
   // Remove item by key and value
   function removeItemByKeyAndValue<J extends SchemaKeys>(
     key: J,
-    value: InferedSchema[J] extends Array<unknown> ? InferedSchema[J][0] : InferedSchema[J]
+    value: InferedSchema[J] extends Array<unknown>
+      ? InferedSchema[J][0]
+      : InferedSchema[J] extends Array<unknown> | undefined
+      ? NonNullable<InferedSchema[J]>[0]
+      : InferedSchema[J]
   ) {
     const existingValue = parsedQuery[key];
     if (Array.isArray(existingValue)) {
@@ -52,14 +60,19 @@ export function useTypedQuery<T extends z.Schema>(schema: T) {
 
 const testSchema = z.object({
   test: z.string(),
-  test2: z.string(),
-  test3: z.number().array(),
+  test2: z.string().optional(),
+  test3: z.number().array().optional(),
+  test4: z.number().array(),
 });
+
+type test = z.infer<typeof testSchema>;
 
 function Test() {
   const { data, setQuery, removeByKey, pushItemToKey, removeItemByKeyAndValue } = useTypedQuery(testSchema);
   setQuery("test2", "test");
   removeByKey("test2");
   pushItemToKey("test3", 1);
-  removeItemByKeyAndValue("test", "2");
+  pushItemToKey("test2", "test");
+  removeItemByKeyAndValue("test3", 1);
+  removeItemByKeyAndValue("test4", 1);
 }
