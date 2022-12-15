@@ -14,6 +14,7 @@ import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { ErrorCode, isPasswordValid, verifyPassword } from "@calcom/lib/auth";
+import CalComAdapter from "@calcom/lib/auth/next-auth-custom-adapter";
 import { APP_NAME, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
@@ -22,7 +23,6 @@ import { serverConfig } from "@calcom/lib/serverConfig";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import CalComAdapter from "@lib/auth/next-auth-custom-adapter";
 import { randomString } from "@lib/random";
 import slugify from "@lib/slugify";
 

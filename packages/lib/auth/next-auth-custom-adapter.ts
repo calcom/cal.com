@@ -1,7 +1,7 @@
 import { Account, IdentityProvider, Prisma, PrismaClient, User, VerificationToken } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 
-import { identityProviderNameMap } from "@lib/auth";
+import { identityProviderNameMap } from "./index";
 
 /** @return { import("next-auth/adapters").Adapter } */
 export default function CalComAdapter(prismaClient: PrismaClient) {
