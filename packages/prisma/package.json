@@ -24,11 +24,13 @@
   },
   "dependencies": {
     "@calcom/lib": "*",
-    "@prisma/client": "^4.2.1",
-    "prisma": "^4.2.1",
     "ts-node": "^10.9.1",
     "zod": "^3.19.1",
     "zod-prisma": "^0.5.4"
+  },
+  "peerDependencies": {
+    "@prisma/client": "*",
+    "prisma": "*"
   },
   "main": "index.ts",
   "types": "index.d.ts",

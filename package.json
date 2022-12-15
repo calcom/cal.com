@@ -71,7 +71,9 @@
     "jest-watch-typeahead": "^2.0.0",
     "lint-staged": "^12.5.0",
     "prettier": "^2.7.1",
-    "ts-jest": "^28.0.8"
+    "ts-jest": "^28.0.8",
+    "@prisma/client": "^4.2.1",
+    "prisma": "^4.2.1"
   },
   "dependencies": {
     "turbo": "^1.4.3"
