@@ -43,7 +43,7 @@ export function useTypedQuery<T extends z.Schema>(schema: T) {
         existingValue.filter((item: InferedSchema[J][0]) => item !== value)
       );
     } else {
-      setQuery(key, undefined);
+      removeByKey(key); // if its the last item, remove the key from the query entirely
     }
   }
 
@@ -60,5 +60,6 @@ function Test() {
   const { data, setQuery, removeByKey, pushItemToKey, removeItemByKeyAndValue } = useTypedQuery(testSchema);
   setQuery("test2", "test");
   removeByKey("test2");
+  pushItemToKey("test3", 1);
   removeItemByKeyAndValue("test", "2");
 }
