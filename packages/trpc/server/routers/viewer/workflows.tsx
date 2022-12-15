@@ -863,6 +863,13 @@ export const workflowsRouter = router({
           throw new TRPCError({ code: "UNAUTHORIZED" });
         }
 
+        if (isSMSAction(step.action)) {
+          const hasTeamPlan = (await ctx.prisma.membership.count({ where: { userId: user.id } })) > 0;
+          if (!hasTeamPlan) {
+            throw new TRPCError({ code: "UNAUTHORIZED", message: "Team plan needed" });
+          }
+        }
+
         const booking = await ctx.prisma.booking.findFirst({
           orderBy: {
             createdAt: "desc",
@@ -1000,15 +1007,7 @@ export const workflowsRouter = router({
       if (!eventTypeWorkflow)
         throw new TRPCError({ code: "UNAUTHORIZED", message: "This event type does not belong to the user" });
 
-      // NOTE: This was unused
-      // const eventType = await ctx.prisma.eventType.findFirst({
-      //   where: {
-      //     id: eventTypeId,
-      //   },
-      // });
-
       //check if event type is already active
-
       const isActive = await ctx.prisma.workflowsOnEventTypes.findFirst({
         where: {
           workflowId,
