@@ -825,17 +825,51 @@ export const workflowsRouter = router({
   testAction: authedRateLimitedProcedure({ intervalInMs: 10000, limit: 3 })
     .input(
       z.object({
-        action: z.enum(WORKFLOW_ACTIONS),
+        step: z.object({
+          id: z.number(),
+          stepNumber: z.number(),
+          action: z.enum(WORKFLOW_ACTIONS),
+          workflowId: z.number(),
+          sendTo: z.string().optional().nullable(),
+          reminderBody: z.string().optional().nullable(),
+          emailSubject: z.string().optional().nullable(),
+          template: z.enum(WORKFLOW_TEMPLATES),
+          numberRequired: z.boolean().nullable(),
+          sender: z.string().optional().nullable(),
+        }),
         emailSubject: z.string(),
         reminderBody: z.string(),
-        template: z.enum(WORKFLOW_TEMPLATES),
-        sendTo: z.string().optional(),
-        sender: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { action, emailSubject, reminderBody, template, sendTo, sender } = input;
+      const { user } = ctx;
+      const { step, emailSubject, reminderBody } = input;
+      const { action, template, sendTo, sender } = step;
+
+      const senderID = sender || SENDER_ID;
+
       try {
+        const userWorkflow = await ctx.prisma.workflow.findUnique({
+          where: {
+            id: step.workflowId,
+          },
+          select: {
+            userId: true,
+            steps: true,
+          },
+        });
+
+        if (!userWorkflow || userWorkflow.userId !== user.id) {
+          throw new TRPCError({ code: "UNAUTHORIZED" });
+        }
+
+        if (isSMSAction(step.action)) {
+          const hasTeamPlan = (await ctx.prisma.membership.count({ where: { userId: user.id } })) > 0;
+          if (!hasTeamPlan) {
+            throw new TRPCError({ code: "UNAUTHORIZED", message: "Team plan needed" });
+          }
+        }
+
         const booking = await ctx.prisma.booking.findFirst({
           orderBy: {
             createdAt: "desc",
@@ -919,7 +953,7 @@ export const workflowsRouter = router({
             reminderBody,
             0,
             template,
-            sender || SENDER_ID
+            senderID
           );
           return { message: "Notification sent" };
         }
@@ -973,15 +1007,7 @@ export const workflowsRouter = router({
       if (!eventTypeWorkflow)
         throw new TRPCError({ code: "UNAUTHORIZED", message: "This event type does not belong to the user" });
 
-      // NOTE: This was unused
-      // const eventType = await ctx.prisma.eventType.findFirst({
-      //   where: {
-      //     id: eventTypeId,
-      //   },
-      // });
-
       //check if event type is already active
-
       const isActive = await ctx.prisma.workflowsOnEventTypes.findFirst({
         where: {
           workflowId,

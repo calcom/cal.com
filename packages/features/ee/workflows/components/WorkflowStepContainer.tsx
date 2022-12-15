@@ -565,11 +565,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       );
 
                       testActionMutation.mutate({
-                        action: step.action,
+                        step,
                         emailSubject,
                         reminderBody,
-                        template: step.template,
-                        sender: step.sender || SENDER_ID,
                       });
                     } else {
                       const isNumberValid =
@@ -603,12 +601,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               );
 
               testActionMutation.mutate({
-                action: step.action,
+                step,
                 emailSubject: "",
                 reminderBody: reminderBody || "",
-                template: step.template,
-                sendTo: step.sendTo || "",
-                sender: step.sender || SENDER_ID,
               });
               setConfirmationDialogOpen(false);
             }}>
