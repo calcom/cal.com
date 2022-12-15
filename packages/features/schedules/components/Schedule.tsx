@@ -30,6 +30,8 @@ import {
   Switch,
 } from "@calcom/ui";
 
+export type { TimeRange };
+
 export type FieldPathByValue<TFieldValues extends FieldValues, TValue> = {
   [Key in FieldPath<TFieldValues>]: FieldPathValue<TFieldValues, Key> extends TValue ? Key : never;
 }[FieldPath<TFieldValues>];
@@ -40,7 +42,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
   control,
   CopyButton,
 }: {
-  name: string;
+  name: ArrayPath<TFieldValues>;
   weekday: string;
   control: Control<TFieldValues>;
   CopyButton: JSX.Element;
@@ -60,7 +62,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
                 defaultChecked={watchDayRange && watchDayRange.length > 0}
                 checked={watchDayRange && !!watchDayRange.length}
                 onCheckedChange={(isChecked) => {
-                  setValue(name, isChecked ? [DEFAULT_DAY_RANGE] : []);
+                  setValue(name, (isChecked ? [DEFAULT_DAY_RANGE] : []) as TFieldValues[typeof name]);
                 }}
               />
             </div>
@@ -142,7 +144,7 @@ const Schedule = <
       {/* First iterate for each day */}
       {weekdayNames(i18n.language, weekStart, "long").map((weekday, num) => {
         const weekdayIndex = (num + weekStart) % 7;
-        const dayRangeName = `${name}.${weekdayIndex}`;
+        const dayRangeName = `${name}.${weekdayIndex}` as ArrayPath<TFieldValues>;
         return (
           <ScheduleDay
             name={dayRangeName}
@@ -157,18 +159,18 @@ const Schedule = <
   );
 };
 
-const DayRanges = <TFieldValues extends FieldValues>({
+export const DayRanges = <TFieldValues extends FieldValues>({
   name,
   control,
 }: {
-  name: string;
-  control: Control<TFieldValues>;
+  name: ArrayPath<TFieldValues>;
+  control?: Control<TFieldValues>;
 }) => {
   const { t } = useLocale();
 
   const { remove, fields, append } = useFieldArray({
     control,
-    name: name as unknown as ArrayPath<TFieldValues>,
+    name,
   });
 
   return (
@@ -224,7 +226,7 @@ const RemoveTimeButton = ({
 const TimeRangeField = ({ className, value, onChange }: { className?: string } & ControllerRenderProps) => {
   // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
   return (
-    <div className={classNames("mr-1 sm:mx-1", className)}>
+    <div className={className}>
       <LazySelect
         className="inline-block h-9 w-[100px]"
         value={value.start}

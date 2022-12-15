@@ -10,6 +10,7 @@ const HAWAII_AND_NEWYORK_TEAM = [
     timeZone: "America/Detroit", // GMT -4 per 22th of Aug, 2022
     workingHours: [{ days: [1, 2, 3, 4, 5], startTime: 780, endTime: 1260 }],
     busy: [],
+    dateOverrides: [],
   },
   {
     timeZone: "Pacific/Honolulu", // GMT -10 per 22th of Aug, 2022
@@ -20,6 +21,7 @@ const HAWAII_AND_NEWYORK_TEAM = [
       { days: [5], startTime: 780, endTime: 1439 },
     ],
     busy: [],
+    dateOverrides: [],
   },
 ];
 

@@ -12,7 +12,7 @@ import "react-phone-number-input/style.css";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
-import { trpc } from "@calcom/trpc/react";
+import { trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
   Button,
   Checkbox,
@@ -92,8 +92,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const [showTimeSectionAfter, setShowTimeSectionAfter] = useState(
     form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
   );
-
-  const actionOptions = getWorkflowActionOptions(t);
+  const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
   const triggerOptions = getWorkflowTriggerOptions(t);
   const templateOptions = getWorkflowTemplateOptions(t);
 
@@ -134,10 +133,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       showToast(t("notification_sent"), "success");
     },
     onError: (err) => {
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
+      let message = t("unexpected_error_try_again");
+      if (err instanceof TRPCClientError) {
+        if (err.message === "rate-limit-exceeded") {
+          message = t("rate_limit_exceeded");
+        }
       }
+      if (err instanceof HttpError) {
+        message = `${err.statusCode}: ${err.message}`;
+      }
+      showToast(message, "error");
     },
   });
 
@@ -221,6 +226,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     const selectedAction = {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: step.action,
+      disabled: false,
     };
 
     const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
@@ -335,6 +341,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         }}
                         defaultValue={selectedAction}
                         options={actionOptions}
+                        isOptionDisabled={(option: {
+                          label: string;
+                          value: WorkflowActions;
+                          disabled: boolean;
+                        }) => option.disabled}
                       />
                     );
                   }}
@@ -554,11 +565,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       );
 
                       testActionMutation.mutate({
-                        action: step.action,
+                        step,
                         emailSubject,
                         reminderBody,
-                        template: step.template,
-                        sender: step.sender || SENDER_ID,
                       });
                     } else {
                       const isNumberValid =
@@ -592,12 +601,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               );
 
               testActionMutation.mutate({
-                action: step.action,
+                step,
                 emailSubject: "",
                 reminderBody: reminderBody || "",
-                template: step.template,
-                sendTo: step.sendTo || "",
-                sender: step.sender || SENDER_ID,
               });
               setConfirmationDialogOpen(false);
             }}>
