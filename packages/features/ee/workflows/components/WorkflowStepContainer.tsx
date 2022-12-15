@@ -623,7 +623,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   className="mt-7 w-full"
                   onClick={() => {
                     let isEmpty = false;
-                    const isNumberVerified = true;
 
                     if (!form.getValues(`steps.${step.stepNumber - 1}.sendTo`) && isPhoneNumberNeeded) {
                       form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
