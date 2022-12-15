@@ -6,7 +6,7 @@
   "imageSrc": "/api/app-store/vimcal/icon.svg",
   "logo": "/api/app-store/vimcal/icon.svg",
   "url": "https://cal.com/apps/vimcal",
-  "variant": "calendar",
+  "variant": "other",
   "categories": ["calendar"],
   "publisher": "Cal.com, Inc.",
   "email": "support@cal.com",
