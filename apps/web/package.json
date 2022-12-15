@@ -121,7 +121,7 @@
     "tailwindcss-radix": "^2.6.0",
     "uuid": "^8.3.2",
     "web3": "^1.7.5",
-    "zod": "^3.19.1"
+    "zod": "^3.20.2"
   },
   "devDependencies": {
     "@babel/core": "^7.19.6",
