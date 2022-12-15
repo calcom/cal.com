@@ -793,7 +793,7 @@
   "no_category_apps_description_analytics": "Add an analytics app for your booking pages",
   "no_category_apps_description_automation": "Add an automation app to use",
   "no_category_apps_description_other": "Add any other type of app to do all sorts of things",
-  "installed_app_calendar_description": "Set the calendar(s) to check for conflicts to prevent double bookings.",
+  "installed_app_calendar_description": "Set the calendars to check for conflicts to prevent double bookings.",
   "installed_app_conferencing_description": "Add your favourite video conferencing apps for your meetings",
   "installed_app_payment_description": "Configure which payment processing services to use when charging your clients.",
   "installed_app_analytics_description": "Configure which analytics apps to use for your booking pages",

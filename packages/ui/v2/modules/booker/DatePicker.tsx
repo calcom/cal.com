@@ -229,6 +229,7 @@ const DatePicker = ({
           <button
             type="button"
             className="group p-1 opacity-50 hover:opacity-100"
+            w
             onClick={() => changeMonth(+1)}
             data-testid="incrementMonth">
             <ChevronRightIcon className="h-5 w-5" />
