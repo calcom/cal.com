@@ -38,6 +38,7 @@ export const apiHandlers = {
   tandemvideo: import("./tandemvideo/api"),
   telegram: import("./telegram/api"),
   typeform: import("./typeform/api"),
+  vimcal: import("./vimcal/api"),
   vital: import("./vital/api"),
   weather_in_your_calendar: import("./weather_in_your_calendar/api"),
   whatsapp: import("./whatsapp/api"),

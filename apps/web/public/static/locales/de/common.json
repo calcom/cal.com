@@ -1337,5 +1337,6 @@
   "test_preview": "Vorschau testen",
   "route_to": "Weiterleiten zu",
   "test_preview_description": "Testen Sie Ihr Weiterleitungsformular, ohne Daten zu senden",
-  "test_routing": "Testweiterleitung"
+  "test_routing": "Testweiterleitung",
+  "admin_apps_description": "Hier findest du eine Auflistung deiner Apps"
 }
