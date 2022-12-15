@@ -56,6 +56,8 @@ const schemaEventTypeCreateParams = z
     length: z.number().int(),
     metadata: z.any().optional(),
     recurringEvent: recurringEventInputSchema.optional(),
+    seatsPerTimeSlot: z.number().optional(),
+    seatsShowAttendees: z.boolean().optional(),
   })
   .strict();
 
@@ -68,6 +70,8 @@ const schemaEventTypeEditParams = z
     title: z.string().optional(),
     slug: z.string().optional(),
     length: z.number().int().optional(),
+    seatsPerTimeSlot: z.number().optional(),
+    seatsShowAttendees: z.boolean().optional(),
   })
   .strict();
 
@@ -103,6 +107,8 @@ export const schemaEventTypeReadPublic = EventType.pick({
   description: true,
   locations: true,
   metadata: true,
+  seatsPerTimeSlot: true,
+  seatsShowAttendees: true,
 }).merge(
   z.object({
     locations: z

@@ -37,6 +37,7 @@ import { schemaEventTypeCreateBodyParams, schemaEventTypeReadPublic } from "~/li
  *               slug:
  *                 type: string
  *                 example: my-event
+ *
  *     tags:
  *     - event-types
  *     externalDocs:
