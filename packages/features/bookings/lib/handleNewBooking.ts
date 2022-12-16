@@ -257,7 +257,10 @@ async function ensureAvailableUsers(
         recurringDatesInfo?.currentRecurringIndex === 0 &&
         recurringDatesInfo.allRecurringDates
       ) {
-        const allBookingDates = recurringDatesInfo.allRecurringDates.map((strDate) => new Date(strDate));
+        let allBookingDates = recurringDatesInfo.allRecurringDates.map((strDate) => new Date(strDate));
+        // CUSTOM_CODE First 3 Instances we check
+        allBookingDates = allBookingDates.slice(0, 3);
+
         // Go through each date for the recurring event and check if each one's availability
         // DONE: Decreased computational complexity from O(2^n) to O(n) by refactoring this loop to stop
         // running at the first unavailable time.
@@ -279,7 +282,8 @@ async function ensureAvailableUsers(
     }
   }
   if (!availableUsers.length) {
-    throw new Error("No available users found.");
+    // CUSTOM_CODE First 3 Instances we check
+    throw new Error("One of the first three sessions is unavailable. Please try another day or time.");
   }
   return availableUsers;
 }
