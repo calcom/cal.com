@@ -108,7 +108,7 @@ const querySchema = z.object({
 export type EventTypeSetupInfered = inferSSRProps<typeof getServerSideProps>;
 export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 
-const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
+const EventTypePage = (props: EventTypeSetupProps) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
@@ -118,11 +118,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     extendsFeature: "EventType",
   });
 
-  const { data, isLoading } = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
-  const eventType = data?.eventType ?? undefined;
-  const locationOptions = data?.locationOptions ?? [];
-  const team = data?.team ?? null;
-  const teamMembers = data?.teamMembers ?? [];
+  const { eventType, locationOptions, team, teamMembers, currentUserMembership } = props;
 
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
@@ -166,14 +162,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
     endDate: new Date(eventType?.periodEndDate || Date.now()),
   });
 
-  const metadata = eventType ? eventType.metadata : {};
+  const metadata = eventType.metadata;
   // fallback to !!eventType.schedule when 'useHostSchedulesForTeamEvent' is undefined
   if (!!team) {
     metadata.config = {
       ...metadata?.config,
       useHostSchedulesForTeamEvent:
         typeof eventType?.metadata?.config?.useHostSchedulesForTeamEvent !== "undefined"
-          ? eventType.metadata.config?.useHostSchedulesForTeamEvent === true
+          ? eventType?.metadata?.config?.useHostSchedulesForTeamEvent === true
           : !!eventType?.schedule,
     };
   } else {
@@ -232,7 +228,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
   }`;
 
   const tabMap = {
-    setup: eventType && (
+    setup: (
       <EventSetupTab
         eventType={eventType}
         locationOptions={locationOptions}
@@ -240,13 +236,13 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         teamMembers={teamMembers}
       />
     ),
-    availability: eventType && <AvailabilityTab isTeamEvent={!!team} />,
-    team: eventType && <EventTeamTab eventType={eventType} teamMembers={teamMembers} team={team} />,
-    limits: eventType && <EventLimitsTab eventType={eventType} />,
-    advanced: eventType && <EventAdvancedTab eventType={eventType} team={team} />,
-    recurring: eventType && <EventRecurringTab eventType={eventType} />,
-    apps: eventType && <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
-    workflows: eventType && (
+    availability: <AvailabilityTab isTeamEvent={!!team} />,
+    team: <EventTeamTab eventType={eventType} teamMembers={teamMembers} team={team} />,
+    limits: <EventLimitsTab eventType={eventType} />,
+    advanced: <EventAdvancedTab eventType={eventType} team={team} />,
+    recurring: <EventRecurringTab eventType={eventType} />,
+    apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
+    workflows: (
       <EventWorkflowsTab
         eventType={eventType}
         workflows={eventType?.workflows?.map((workflowOnEventType) => workflowOnEventType.workflow)}
@@ -290,10 +286,10 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             ...input
           } = values;
 
-            if (bookingLimits) {
-              const isValid = validateBookingLimitOrder(bookingLimits);
-              if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
-            }
+          if (bookingLimits) {
+            const isValid = validateBookingLimitOrder(bookingLimits);
+            if (!isValid) throw new Error(t("event_setup_booking_limits_error"));
+          }
 
           if (metadata?.multipleDuration !== undefined) {
             if (metadata?.multipleDuration.length < 1) {
@@ -303,31 +299,38 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
                 throw new Error(t("event_setup_multiple_duration_default_error"));
               }
             }
+          }
 
-            updateMutation.mutate({
-              ...input,
-              locations,
-              recurringEvent,
-              periodStartDate: periodDates.startDate,
-              periodEndDate: periodDates.endDate,
-              periodCountCalendarDays: periodCountCalendarDays === "1",
-              id: eventType.id,
-              beforeEventBuffer: beforeBufferTime,
-              afterEventBuffer: afterBufferTime,
-              bookingLimits,
-              seatsPerTimeSlot,
-              seatsShowAttendees,
-              metadata,
-              customInputs,
-            });
-          }}>
-          <div ref={animationParentRef} className="space-y-6">
-            {tabMap[tabName]}
-          </div>
-        </Form>
-      </EventTypeSingleLayout>
-    )
+          updateMutation.mutate({
+            ...input,
+            locations,
+            recurringEvent,
+            periodStartDate: periodDates.startDate,
+            periodEndDate: periodDates.endDate,
+            periodCountCalendarDays: periodCountCalendarDays === "1",
+            id: eventType.id,
+            beforeEventBuffer: beforeBufferTime,
+            afterEventBuffer: afterBufferTime,
+            bookingLimits,
+            seatsPerTimeSlot,
+            seatsShowAttendees,
+            metadata,
+            customInputs,
+          });
+        }}>
+        <div ref={animationParentRef} className="space-y-6">
+          {tabMap[tabName]}
+        </div>
+      </Form>
+    </EventTypeSingleLayout>
   );
+};
+
+const EventTypePageWrapper = (props: inferSSRProps<typeof getServerSideProps>) => {
+  const { data, isLoading } = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
+
+  if (isLoading || !data) return null;
+  return <EventTypePage {...data} />;
 };
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
@@ -403,4 +406,4 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   };
 };
 
-export default EventTypePage;
+export default EventTypePageWrapper;
