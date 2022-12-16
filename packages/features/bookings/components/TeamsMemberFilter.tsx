@@ -8,7 +8,7 @@ import { useFilterQuery } from "../lib/useFilterQuery";
 
 export const TeamsMemberFilter = () => {
   const { t } = useLocale();
-  const { data: query, pop, push, clear } = useFilterQuery();
+  const { data: query, pushItemToKey, removeItemByKeyAndValue, removeByKey } = useFilterQuery();
   const { data } = trpc.viewer.teams.list.useQuery();
 
   return (
@@ -29,7 +29,7 @@ export const TeamsMemberFilter = () => {
           checked={!query.teamIds}
           onChange={() => {
             // removeByKey("teamIds");
-            clear("teamIds"); // Always clear on toggle  or not toggle (seems weird but when you know the behviour it works well )
+            removeByKey("teamIds"); // Always clear on toggle  or not toggle (seems weird but when you know the behviour it works well )
           }}
           className="text-primary-600 focus:ring-primary-500 inline-flex h-4 w-4 place-self-center justify-self-end rounded border-gray-300 "
         />
@@ -58,9 +58,9 @@ export const TeamsMemberFilter = () => {
               checked={query.teamIds?.includes(team.id)}
               onChange={(e) => {
                 if (e.target.checked) {
-                  push("teamIds", team.id);
+                  pushItemToKey("teamIds", team.id);
                 } else if (!e.target.checked) {
-                  pop("teamIds", team.id);
+                  removeItemByKeyAndValue("teamIds", team.id);
                 }
               }}
               className="text-primary-600 focus:ring-primary-500 inline-flex h-4 w-4 place-self-center justify-self-end rounded border-gray-300 "

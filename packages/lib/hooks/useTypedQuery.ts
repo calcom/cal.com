@@ -2,6 +2,24 @@ import { useRouter } from "next/router";
 import { useCallback, useMemo } from "react";
 import { z } from "zod";
 
+// Take array as a string and return zod array
+export const queryNumberArray = z
+  .string()
+  .or(z.number())
+  .or(z.array(z.number()))
+  .transform((a) => {
+    if (typeof a === "string") return a.split(",").map((a) => Number(a));
+    if (Array.isArray(a)) return a;
+    return [a];
+  });
+
+// Take array as a string and return zod  number array
+
+// Take string and return return zod string array - comma separated
+export const queryStringArray = z
+  .preprocess((a) => z.string().parse(a).split(","), z.string().array())
+  .or(z.string().array());
+
 export function useTypedQuery<T extends z.Schema>(schema: T) {
   type InferedSchema = z.infer<typeof schema>;
   type SchemaKeys = keyof InferedSchema;
@@ -20,14 +38,17 @@ export function useTypedQuery<T extends z.Schema>(schema: T) {
     return {} as InferedSchema;
   }, []);
 
-  if (parsedQuerySchema.success) {
-    parsedQuery = parsedQuerySchema.data;
-  }
+  if (parsedQuerySchema.success) parsedQuery = parsedQuerySchema.data;
+  else if (!parsedQuerySchema.success) console.error(parsedQuerySchema.error);
 
   // Set the query based on schema values
   const setQuery = useCallback(
     function setQuery<J extends SchemaKeys>(key: J, value: Partial<InferedSchema[J]>) {
-      router.replace({ query: { ...parsedQuery, [key]: value } }, undefined, { shallow: true });
+      // Remove old value by key so we can merge new value
+      const { [key]: _, ...newQuery } = parsedQuery;
+      const newValue = { ...newQuery, [key]: value };
+      const search = new URLSearchParams(newValue).toString();
+      router.replace({ query: search }, undefined, { shallow: true });
     },
     [parsedQuery, router]
   );
@@ -47,6 +68,7 @@ export function useTypedQuery<T extends z.Schema>(schema: T) {
   ) {
     const existingValue = parsedQuery[key];
     if (Array.isArray(existingValue)) {
+      if (existingValue.includes(value)) return; // prevent adding the same value to the array
       setQuery(key, [...existingValue, value]);
     } else {
       setQuery(key, [value]);
@@ -61,11 +83,15 @@ export function useTypedQuery<T extends z.Schema>(schema: T) {
       : NonNullable<InferedSchema[J]>
   ) {
     const existingValue = parsedQuery[key];
-    if (Array.isArray(existingValue)) {
-      setQuery(
-        key,
-        existingValue.filter((item: InferedSchema[J][0]) => item !== value)
-      );
+    console.log(existingValue);
+    const newValue = existingValue.filter((item: InferedSchema[J][number]) => item !== value);
+    if (Array.isArray(existingValue) && newValue.length > 0) {
+      setQuery(key, value);
+    } else {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore - we know the key is optional but i can't figure out for the life of me
+      // how to support it in the type
+      removeByKey(key);
     }
   }
 

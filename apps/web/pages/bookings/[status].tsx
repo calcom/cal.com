@@ -6,9 +6,9 @@ import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
 import BookingLayout from "@calcom/features/bookings/layout/BookingLayout";
-import { useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
+import { filterQuerySchema, useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterInputs, RouterOutputs, trpc } from "@calcom/trpc/react";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmptyScreen, Icon } from "@calcom/ui";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
@@ -18,7 +18,7 @@ import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 import { ssgInit } from "@server/lib/ssg";
 
-type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["status"];
+type BookingListingStatus = z.infer<typeof filterQuerySchema>["status"];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
 
 type RecurringInfo = {
