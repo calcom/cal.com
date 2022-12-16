@@ -12,6 +12,7 @@
     "@hookform/resolvers": "^2.9.7",
     "@sendgrid/client": "^7.7.0",
     "@sendgrid/mail": "^7.6.2",
+    "libphonenumber-js": "^1.10.12",
     "twilio": "^3.80.1",
     "zod": "^3.20.2"
   },
