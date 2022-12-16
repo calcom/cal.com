@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
 import dayjs, { Dayjs } from "@calcom/dayjs";
+import { classNames } from "@calcom/lib";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WorkingHours } from "@calcom/types/schedule";
@@ -113,8 +114,8 @@ const DateOverrideForm = ({
         );
         onClose();
       }}
-      className="flex space-x-4">
-      <div className="w-1/2 border-r pr-6">
+      className="space-y-4 sm:flex sm:space-x-4">
+      <div className={classNames(date && "w-full sm:border-r sm:pr-6")}>
         <DialogHeader title={t("date_overrides_dialog_title")} />
         <DatePicker
           includedDates={includedDates}
@@ -130,7 +131,7 @@ const DateOverrideForm = ({
         />
       </div>
       {date && (
-        <div className="relative flex w-1/2 flex-col pl-2">
+        <div className="relative flex w-full flex-col sm:pl-2">
           <div className="mb-4 flex-grow space-y-4">
             <p className="text-medium text-sm">{t("date_overrides_dialog_which_hours")}</p>
             <div>
