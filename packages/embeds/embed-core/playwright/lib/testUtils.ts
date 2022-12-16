@@ -1,4 +1,5 @@
 import { Page, Frame, test, expect } from "@playwright/test";
+import { Booking } from "@prisma/client";
 
 import prisma from "@calcom/prisma";
 
@@ -33,31 +34,41 @@ export const getBooking = async (bookingId: string) => {
 
 export const getEmbedIframe = async ({ page, pathname }: { page: Page; pathname: string }) => {
   // We can't seem to access page.frame till contentWindow is available. So wait for that.
-  await page.evaluate(() => {
+  const iframeReady = await page.evaluate(() => {
     return new Promise((resolve) => {
-      const iframe = document.querySelector(".cal-embed") as HTMLIFrameElement;
-      if (!iframe) {
-        resolve(false);
-        return;
-      }
       const interval = setInterval(() => {
+        const iframe = document.querySelector(".cal-embed") as HTMLIFrameElement | null;
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        if (iframe.contentWindow && window.iframeReady) {
+        if (iframe && iframe.contentWindow && window.iframeReady) {
           clearInterval(interval);
           resolve(true);
+        } else {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          console.log("Iframe Status:", !!iframe, !!iframe?.contentWindow, window.iframeReady);
         }
-      }, 10);
+      }, 500);
+
+      // A hard timeout if iframe isn't ready in that time. Avoids infinite wait
+      setTimeout(() => {
+        clearInterval(interval);
+        resolve(false);
+      }, 5000);
     });
   });
-  const embedIframe = page.frame("cal-embed");
-  if (!embedIframe) {
+  if (!iframeReady) {
     return null;
   }
+
+  // We just verified that iframeReady is true here, so obviously embedIframe is not null
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const embedIframe = page.frame("cal-embed")!;
   const u = new URL(embedIframe.url());
   if (u.pathname === pathname + "/embed") {
     return embedIframe;
   }
+  console.log('Embed iframe url pathname match. Expected: "' + pathname + '/embed"', "Actual: " + u.pathname);
   return null;
 };
 
@@ -91,7 +102,7 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   // It would also allow correct snapshot to be taken for current month.
   await frame.waitForTimeout(1000);
   expect(await page.screenshot()).toMatchSnapshot("availability-page-1.png");
-
+  const eventSlug = new URL(frame.url()).pathname;
   await selectFirstAvailableTimeSlotNextMonth(frame, page);
   await frame.waitForNavigation({
     url(url) {
@@ -104,10 +115,34 @@ export async function bookFirstEvent(username: string, frame: Frame, page: Page)
   await frame.fill('[name="email"]', "embed-user@example.com");
   await frame.press('[name="email"]', "Enter");
   const response = await page.waitForResponse("**/api/book/event");
-  const responseObj = await response.json();
-  const bookingId = responseObj.uid;
+  const booking = (await response.json()) as { uid: string; eventSlug: string };
+  booking.eventSlug = eventSlug;
+
   // Make sure we're navigated to the success page
   await expect(frame.locator("[data-testid=success-page]")).toBeVisible();
   expect(await page.screenshot()).toMatchSnapshot("success-page.png");
-  return bookingId;
+
+  await frame.evaluate(() => {
+    // Closes popup - if it is a popup
+    document.body.click();
+  });
+
+  return booking;
+}
+
+export async function rescheduleEvent(username, frame, page) {
+  await selectFirstAvailableTimeSlotNextMonth(frame, page);
+  await frame.waitForNavigation({
+    url(url) {
+      return url.pathname.includes(`/${username}/book`);
+    },
+  });
+  // --- fill form
+  await frame.press('[name="email"]', "Enter");
+  await frame.click("[data-testid=confirm-reschedule-button]");
+  const response = await page.waitForResponse("**/api/book/event");
+  const responseObj = await response.json();
+  const booking = responseObj.uid;
+  // Make sure we're navigated to the success page
+  await expect(frame.locator("[data-testid=success-page]")).toBeVisible();
 }
