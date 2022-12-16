@@ -429,6 +429,8 @@ following
 12. Leave all other fields as they are
 13. Complete setup and click ‘View my new Messaging Service’
 14. Copy Messaging Service SID to your .env file into the TWILIO_MESSAGING_SID field
+15. Create a verify service
+16. Copy Verify Service SID to your .env file into the TWILIO_VERIFY_SID field
 
 <!-- LICENSE -->
 

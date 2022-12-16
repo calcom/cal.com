@@ -8,6 +8,10 @@
   "dependencies": {
     "@lexical/react": "^0.5.0",
     "dompurify": "^2.4.1",
-    "lexical": "^0.5.0"
+    "lexical": "^0.5.0",
+    "zustand": "^4.1.4",
+    "@calcom/ui": "*",
+    "@calcom/lib": "*",
+    "@calcom/dayjs": "*"
   }
 }

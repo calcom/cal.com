@@ -120,6 +120,7 @@ const Actions = ({
         {typeformApp?.isInstalled ? (
           <FormActionsDropdown form={form}>
             <FormAction
+              data-testid="copy-redirect-url"
               routingForm={form}
               action="copyRedirectUrl"
               color="minimal"
@@ -172,6 +173,7 @@ const Actions = ({
           </FormAction>
           {typeformApp ? (
             <FormAction
+              data-testid="copy-redirect-url"
               routingForm={form}
               action="copyRedirectUrl"
               color="minimal"
