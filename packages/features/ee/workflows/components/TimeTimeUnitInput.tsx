@@ -42,7 +42,7 @@ export const TimeTimeUnitInput = (props: Props) => {
           <DropdownMenuTrigger asChild>
             <button className="-ml-1 h-9 w-24 rounded-none rounded-r-md border border-gray-300 bg-gray-50 px-3 py-1 text-sm">
               <div className="flex">
-                <div className="w-3/4">
+                <div className="mr-1 w-3/4">
                   {timeUnit ? t(`${timeUnit.toLowerCase()}_timeUnit`) : "undefined"}{" "}
                 </div>
                 <div className="w-1/4 pt-1">
