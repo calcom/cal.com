@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useLocale } from "@calcom/console/modules/common/hooks/useLocale";
 
 type DefaultStep = {
   title: string;
