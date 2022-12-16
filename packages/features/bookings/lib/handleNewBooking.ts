@@ -609,8 +609,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   async function createBooking() {
     if (originalRescheduledBooking) {
-      evt.title = originalRescheduledBooking?.title || evt.title;
-      evt.description = originalRescheduledBooking?.description || evt.additionalNotes;
+      evt.title = evt.title;
+      evt.description = evt.additionalNotes;
       evt.location = originalRescheduledBooking?.location;
     }
 
@@ -813,6 +813,16 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           metadata.hangoutLink = updatedEvent.hangoutLink;
           metadata.conferenceData = updatedEvent.conferenceData;
           metadata.entryPoints = updatedEvent.entryPoints;
+        }
+        // A reschedule can create a new event if rescheduled with a different user
+        const createdEvent = results[0].createdEvent;
+        if (createdEvent) {
+          metadata.hangoutLink = createdEvent.hangoutLink;
+          metadata.conferenceData = createdEvent.conferenceData;
+          metadata.entryPoints = createdEvent.entryPoints;
+        }
+
+        if (createdEvent || updatedEvent) {
           handleAppsStatus(results, booking);
         }
       }
