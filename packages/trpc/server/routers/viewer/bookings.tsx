@@ -104,7 +104,6 @@ export const bookingsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      console.log("input", input);
       // using offset actually because cursor pagination requires a unique column
       // for orderBy, but we don't use a unique column in our orderBy
       const take = input.limit ?? 10;
@@ -181,6 +180,21 @@ export const bookingsRouter = router({
                 team: {
                   id: {
                     in: input.filters?.teamIds,
+                  },
+                },
+              },
+            },
+          ],
+        },
+        userIds: {
+          AND: [
+            {
+              eventType: {
+                users: {
+                  some: {
+                    id: {
+                      in: input.filters?.userIds,
+                    },
                   },
                 },
               },

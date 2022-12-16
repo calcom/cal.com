@@ -1443,6 +1443,7 @@
   "radio": "Radio",
   "individual":"Individual",
   "all_bookings_filter_label":"All Bookings",
+  "all_users_filter_label":"All Users",
   "date_overrides": "Date overrides",
   "date_overrides_subtitle": "Add dates when your availability changes from your daily hours.",
   "date_overrides_info": "Date overrides are archived automatically after the date has passed",

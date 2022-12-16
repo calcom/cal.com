@@ -11,8 +11,14 @@ export const TeamsMemberFilter = () => {
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeByKey } = useFilterQuery();
   const { data } = trpc.viewer.teams.list.useQuery();
 
+  if (!data) return null;
+
+  // get team names from query
+  const teamNames = data?.filter((team) => query.teamIds?.includes(team.id)).map((team) => team.name);
+
   return (
-    <AnimatedPopover text={t("members")}>
+    <AnimatedPopover
+      text={teamNames && teamNames.length > 0 ? `${teamNames.join(",")}` : t("all_bookings_filter_label")}>
       <div className="item-center flex px-4 py-[6px] focus-within:bg-gray-100">
         <div className="mr-2 flex h-6 w-6 items-center justify-center">
           <Icon.FiLayers className="h-full w-full" />

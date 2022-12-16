@@ -642,38 +642,50 @@ export const viewerTeamsRouter = router({
     });
     return teams;
   }),
-  listTeamsandMembers: authedProcedure.query(async ({ ctx }) => {
-    const teams = await ctx.prisma.team.findMany({
-      where: {
-        members: {
-          some: {
-            user: {
-              id: ctx.user.id,
-            },
+  listMembers: authedProcedure
+    .input(
+      z.object({
+        teamIds: z.number().array().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const teams = await ctx.prisma.team.findMany({
+        where: {
+          id: {
+            in: input.teamIds,
           },
-        },
-      },
-      select: {
-        id: true,
-        name: true,
-        members: {
-          select: {
-            team: {
-              select: {
-                id: true,
-              },
-            },
-            user: {
-              select: {
-                id: true,
-                name: true,
-                avatar: true,
+          members: {
+            some: {
+              user: {
+                id: ctx.user.id,
               },
             },
           },
         },
-      },
-    });
-    return teams;
-  }),
+        select: {
+          members: {
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatar: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      // flattern users to be unique by id
+      const users = teams
+        .flatMap((t) => t.members)
+        .reduce((acc, m) => {
+          if (!acc.find((u) => u.id === m.user.id)) {
+            acc.push(m.user);
+          }
+          return acc;
+        }, [] as User[]);
+
+      return users;
+    }),
 });

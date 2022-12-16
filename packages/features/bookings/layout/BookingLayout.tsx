@@ -3,8 +3,7 @@ import React, { ComponentProps } from "react";
 import { HorizontalTabs, Shell } from "@calcom/ui";
 import { VerticalTabItemProps, HorizontalTabItemProps } from "@calcom/ui/v2";
 
-import { EventTypeFilter } from "../components/EventTypeFilter";
-import { TeamsMemberFilter } from "../components/TeamsMemberFilter";
+import { FiltersContainer } from "../components/FiltersContainer";
 
 const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
   {
@@ -38,10 +37,7 @@ export default function BookingLayout({
       <div className="flex max-w-6xl flex-col sm:space-x-2">
         <div className="flex  flex-col lg:flex-row">
           <HorizontalTabs tabs={tabs} />
-          <div className="flex space-x-2">
-            <TeamsMemberFilter />
-            <EventTypeFilter />
-          </div>
+          <FiltersContainer />
         </div>
         <main className="w-full max-w-6xl">{children}</main>
       </div>
