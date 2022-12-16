@@ -137,9 +137,9 @@ export default function AllApps({ apps, searchText }: AllAppsPropsType) {
       return self.indexOf(cat) === pos;
     });
 
-  /* if (searchText) {
-    enableAnimation(false);
-  } */
+  if (searchText) {
+    enableAnimation && enableAnimation(false);
+  }
 
   useEffect(() => {
     const queryCategory =
