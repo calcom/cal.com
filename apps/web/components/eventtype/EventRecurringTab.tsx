@@ -1,5 +1,4 @@
 import { EventTypeSetupProps } from "pages/event-types/[type]";
-import { useState } from "react";
 
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 

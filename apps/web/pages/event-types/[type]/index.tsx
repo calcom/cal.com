@@ -37,6 +37,8 @@ import { EventTeamWebhooksTab } from "@components/eventtype/EventTeamWebhooksTab
 import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
 import EventWorkflowsTab from "@components/eventtype/EventWorkfowsTab";
 
+import { ssrInit } from "@server/lib/ssr";
+
 export type FormValues = {
   title: string;
   eventTitle: string;
@@ -239,14 +241,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       />
     ),
     availability: eventType && <AvailabilityTab isTeamEvent={!!team} />,
-    team: eventType && (
-      <EventTeamTab
-        eventType={eventType}
-        teamMembers={teamMembers}
-        team={team}
-        currentUserMembership={data?.currentUserMembership ?? null}
-      />
-    ),
+    team: eventType && <EventTeamTab eventType={eventType} teamMembers={teamMembers} team={team} />,
     limits: eventType && <EventLimitsTab eventType={eventType} />,
     advanced: eventType && <EventAdvancedTab eventType={eventType} team={team} />,
     recurring: eventType && <EventRecurringTab eventType={eventType} />,
@@ -339,6 +334,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { req, query } = context;
   const session = await getSession({ req });
   const typeParam = parseInt(asStringOrThrow(query.type));
+  const ssr = await ssrInit(context);
 
   if (Number.isNaN(typeParam)) {
     return {
@@ -402,6 +398,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     props: {
       session,
       type: typeParam,
+      trpcState: ssr.dehydrate(),
     },
   };
 };
