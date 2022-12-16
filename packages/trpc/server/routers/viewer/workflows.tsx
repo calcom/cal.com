@@ -884,7 +884,7 @@ export const workflowsRouter = router({
           throw new TRPCError({ code: "UNAUTHORIZED" });
         }
 
-        if (isSMSAction(step.action)) {
+        if (isSMSAction(step.action) || step.action === WorkflowActions.EMAIL_ADDRESS) {
           const hasTeamPlan = (await ctx.prisma.membership.count({ where: { userId: user.id } })) > 0;
           if (!hasTeamPlan) {
             throw new TRPCError({ code: "UNAUTHORIZED", message: "Team plan needed" });
