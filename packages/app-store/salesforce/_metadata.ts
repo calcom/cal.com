@@ -4,6 +4,7 @@ import config from "./config.json";
 
 export const metadata = {
   category: "other",
+  dirName: "salesforce",
   ...config,
 } as AppMeta;
 

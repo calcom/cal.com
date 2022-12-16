@@ -26,6 +26,7 @@ import { metadata as office365calendar_meta } from "./office365calendar/_metadat
 import { metadata as office365video_meta } from "./office365video/_metadata";
 import { metadata as ping_meta } from "./ping/_metadata";
 import { metadata as pipedream_meta } from "./pipedream/_metadata";
+import { metadata as plausible_meta } from "./plausible/_metadata";
 import { metadata as qr_code_meta } from "./qr_code/_metadata";
 import { metadata as rainbow_meta } from "./rainbow/_metadata";
 import { metadata as raycast_meta } from "./raycast/_metadata";
@@ -38,6 +39,7 @@ import { metadata as stripepayment_meta } from "./stripepayment/_metadata";
 import { metadata as tandemvideo_meta } from "./tandemvideo/_metadata";
 import { metadata as telegram_meta } from "./telegram/_metadata";
 import { metadata as typeform_meta } from "./typeform/_metadata";
+import { metadata as vimcal_meta } from "./vimcal/_metadata";
 import { metadata as vital_meta } from "./vital/_metadata";
 import { metadata as weather_in_your_calendar_meta } from "./weather_in_your_calendar/_metadata";
 import { metadata as whatsapp_meta } from "./whatsapp/_metadata";
@@ -72,6 +74,7 @@ export const appStoreMetadata = {
   office365video: office365video_meta,
   ping: ping_meta,
   pipedream: pipedream_meta,
+  plausible: plausible_meta,
   qr_code: qr_code_meta,
   rainbow: rainbow_meta,
   raycast: raycast_meta,
@@ -84,6 +87,7 @@ export const appStoreMetadata = {
   tandemvideo: tandemvideo_meta,
   telegram: telegram_meta,
   typeform: typeform_meta,
+  vimcal: vimcal_meta,
   vital: vital_meta,
   weather_in_your_calendar: weather_in_your_calendar_meta,
   whatsapp: whatsapp_meta,

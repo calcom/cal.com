@@ -42,7 +42,7 @@ const Component = ({
 
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
-      if (data.setupPending) return;
+      if (data?.setupPending) return;
       showToast(t("app_successfully_installed"), "success");
     },
     onError: (error) => {
@@ -66,7 +66,9 @@ const Component = ({
     }
   );
 
-  const allowedMultipleInstalls = categories.indexOf("calendar") > -1;
+  // variant not other allows, an app to be shown in calendar category without requiring an actual calendar connection e.g. vimcal
+  // Such apps, can only be installed once.
+  const allowedMultipleInstalls = categories.indexOf("calendar") > -1 && variant !== "other";
 
   return (
     <div className="relative flex-1 flex-col items-start justify-start px-4 md:flex md:px-8 lg:flex-row lg:px-0">
@@ -195,7 +197,7 @@ const Component = ({
         <h4 className="mt-8 font-semibold text-gray-900 ">{t("pricing")}</h4>
         <span>
           {price === 0 ? (
-            "Free"
+            t("free_to_use_apps")
           ) : (
             <>
               {Intl.NumberFormat("en-US", {

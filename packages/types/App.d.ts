@@ -135,6 +135,7 @@ export interface App {
   licenseRequired?: boolean;
   isProOnly?: boolean;
   appData?: EventLocationAppData;
+  dirName?: string;
 }
 
 export type AppMeta = Optional<App, "rating" | "trending" | "reviews" | "verified">;

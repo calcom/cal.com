@@ -3,13 +3,11 @@ import { useRouter } from "next/router";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 
+import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Icon } from "@calcom/ui";
-import { Button, Label, TextField } from "@calcom/ui";
-import { MultiSelectCheckboxes } from "@calcom/ui";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
+import { Button, Icon, Label, MultiSelectCheckboxes, TextField } from "@calcom/ui";
 
 import type { FormValues } from "../pages/workflow";
 import { AddActionDialog } from "./AddActionDialog";
@@ -73,7 +71,8 @@ export default function WorkflowDetailsPage(props: Props) {
       emailSubject: null,
       template: WorkflowTemplates.CUSTOM,
       numberRequired: numberRequired || false,
-      sender: sender || "Cal",
+      sender: sender || SENDER_ID,
+      numberVerificationPending: false,
     };
     steps?.push(step);
     form.setValue("steps", steps);

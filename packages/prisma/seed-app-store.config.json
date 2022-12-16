@@ -85,6 +85,12 @@
     "type": "fathom_analytics"
   },
   {
+    "dirName": "plausible",
+    "categories": ["analytics"],
+    "slug": "plausible",
+    "type": "plausible_analytics"
+  },
+  {
     "dirName": "wordpress",
     "categories": ["other"],
     "slug": "wordpress",
@@ -137,5 +143,11 @@
     "categories": ["video"],
     "slug": "signal",
     "type": "signal_video"
+  },
+  {
+    "dirName": "vimcal",
+    "categories": ["calendar"],
+    "slug": "vimcal",
+    "type": "vimcal_other"
   }
 ]
