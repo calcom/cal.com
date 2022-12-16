@@ -8,8 +8,18 @@ export function useTypedQuery<T extends z.Schema>(schema: T) {
     [K in keyof InferedSchema]: undefined extends InferedSchema[K] ? K : never;
   }[keyof InferedSchema];
 
+  type ArrayOnlyKeys = {
+    [K in keyof InferedSchema]: InferedSchema[K] extends Array<unknown> & undefined ? K : never;
+  };
+
   const { query: unparsedQuery, ...router } = useRouter();
-  const parsedQuery = schema.parse(unparsedQuery);
+  const parsedQuerySchema = schema.safeParse(unparsedQuery);
+
+  let parsedQuery: InferedSchema = {} as InferedSchema;
+
+  if (parsedQuerySchema.success) {
+    parsedQuery = parsedQuerySchema.data;
+  }
 
   // Set the query based on schema values
   function setQuery<J extends SchemaKeys>(key: J, value: Partial<InferedSchema[J]>) {
