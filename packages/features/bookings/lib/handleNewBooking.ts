@@ -835,6 +835,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     evt.appsStatus = Object.values(calcAppsStatus);
   }
 
+  let videoCallUrl;
+
   if (originalRescheduledBooking?.uid) {
     // Use EventManager to conditionally use all needed integrations.
     const updateManager = await eventManager.reschedule(
@@ -869,6 +871,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           metadata.conferenceData = updatedEvent.conferenceData;
           metadata.entryPoints = updatedEvent.entryPoints;
           handleAppsStatus(results, booking);
+          videoCallUrl = metadata.hangoutLink || videoCallUrl;
 
           // CUSTOM_CODE: Hack to force hangout link
           if (metadata?.hangoutLink) {
@@ -876,7 +879,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           }
         }
       }
-
       if (noEmail !== true) {
         await sendRescheduledEmails({
           ...evt,
@@ -898,6 +900,9 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
     results = createManager.results;
     referencesToCreate = createManager.referencesToCreate;
+
+    videoCallUrl = evt.videoCallData && evt.videoCallData.url ? evt.videoCallData.url : null;
+
     if (results.length > 0 && results.every((res) => !res.success)) {
       const error = {
         errorCode: "BookingCreatingMeetingFailed",
@@ -914,6 +919,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
         metadata.entryPoints = results[0].createdEvent?.entryPoints;
         handleAppsStatus(results, booking);
+        videoCallUrl = metadata.hangoutLink || videoCallUrl;
 
         // CUSTOM_CODE: Hack to force hangout link
         if (metadata?.hangoutLink) {
@@ -955,7 +961,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   }
 
   log.debug(`Booking ${organizerUser.username} completed`);
-
+  const metadata = videoCallUrl ? { videoCallUrl } : undefined;
   if (isConfirmedByDefault) {
     const eventTrigger: WebhookTriggerEvents = rescheduleUid
       ? WebhookTriggerEvents.BOOKING_RESCHEDULED
@@ -1011,7 +1017,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           ...eventTypeInfo,
           bookingId,
           rescheduleUid,
-          metadata: reqBody.metadata,
+          metadata: { ...metadata, ...reqBody.metadata },
           eventTypeId,
           status: "ACCEPTED",
           smsReminderNumber: booking?.smsReminderNumber || undefined,
@@ -1053,6 +1059,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         uid: booking.uid,
       },
       data: {
+        metadata,
         references: {
           createMany: {
             data: referencesToCreate,

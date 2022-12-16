@@ -16,7 +16,7 @@ function ImpersonatingBanner() {
         variant="warning"
         actions={
           <a className="border-b border-b-black" href="/auth/logout">
-            Click Here To stop
+            {t("impersonating_stop_instructions")}
           </a>
         }
       />

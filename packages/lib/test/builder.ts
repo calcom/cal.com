@@ -54,6 +54,7 @@ export const buildBooking = (booking?: Partial<Booking>): Booking => {
     recurringEventId: null,
     smsReminderNumber: null,
     scheduledJobs: [],
+    metadata: null,
     ...booking,
   };
 };

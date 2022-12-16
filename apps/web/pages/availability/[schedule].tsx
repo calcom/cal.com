@@ -74,7 +74,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
           excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
           onChange={(ranges) => append({ ranges })}
           Trigger={
-            <Button color="secondary" StartIcon={Icon.FiPlus}>
+            <Button color="secondary" StartIcon={Icon.FiPlus} data-testid="add-override">
               Add an override
             </Button>
           }
@@ -128,7 +128,9 @@ export default function Availability({ schedule }: { schedule: number }) {
         <Controller
           control={form.control}
           name="name"
-          render={({ field }) => <EditableHeading isReady={!isLoading} {...field} />}
+          render={({ field }) => (
+            <EditableHeading isReady={!isLoading} {...field} data-testid="availablity-title" />
+          )}
         />
       }
       subtitle={
