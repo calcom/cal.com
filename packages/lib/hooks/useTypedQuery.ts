@@ -1,4 +1,5 @@
 import { useRouter } from "next/router";
+import { useCallback } from "react";
 import { z } from "zod";
 
 export function useTypedQuery<T extends z.Schema>(schema: T) {
@@ -22,9 +23,12 @@ export function useTypedQuery<T extends z.Schema>(schema: T) {
   }
 
   // Set the query based on schema values
-  function setQuery<J extends SchemaKeys>(key: J, value: Partial<InferedSchema[J]>) {
-    router.replace({ query: { ...parsedQuery, [key]: value } }, undefined, { shallow: true });
-  }
+  const setQuery = useCallback(
+    function setQuery<J extends SchemaKeys>(key: J, value: Partial<InferedSchema[J]>) {
+      router.replace({ query: { ...parsedQuery, [key]: value } }, undefined, { shallow: true });
+    },
+    [parsedQuery, router]
+  );
 
   // Delete a key from the query
   function removeByKey(key: OptionalKeys) {
