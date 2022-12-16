@@ -9,15 +9,22 @@ export type PhoneInputProps<FormValues> = Props<
     required: boolean;
   },
   FormValues
->;
+> & { onChange?: (e: any) => void };
 
-function PhoneInput<FormValues>({ control, name, className, ...rest }: PhoneInputProps<FormValues>) {
+function PhoneInput<FormValues>({
+  control,
+  name,
+  className,
+  onChange,
+  ...rest
+}: PhoneInputProps<FormValues>) {
   return (
     <BasePhoneInput
       {...rest}
       international
       name={name}
       control={control}
+      onChange={onChange}
       countrySelectProps={{ className: "text-black" }}
       numberInputProps={{
         className: "border-0 text-sm focus:ring-0 dark:bg-darkgray-100 dark:placeholder:text-darkgray-600",

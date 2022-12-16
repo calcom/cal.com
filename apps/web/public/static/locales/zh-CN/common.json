@@ -1418,6 +1418,7 @@
   "disable_app": "禁用应用",
   "disable_app_description": "禁用此应用可能会导致您的用户与 Cal 的交互方式出现问题",
   "edit_keys": "编辑密钥",
+  "admin_apps_description": "为您的 Cal 实例启用应用",
   "no_available_apps": "没有可用的应用",
   "no_available_apps_description": "请确保您在“packages/app-store”下的部署中有应用",
   "no_apps": "此 Cal 实例中未启用任何应用",
