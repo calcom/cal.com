@@ -126,7 +126,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     onSuccess: async () => {
       showToast(
         t("event_type_updated_successfully", {
-          eventTypeTitle: eventType?.title,
+          eventTypeTitle: eventType.title,
         }),
         "success"
       );
@@ -158,46 +158,46 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   });
 
   const [periodDates] = useState<{ startDate: Date; endDate: Date }>({
-    startDate: new Date(eventType?.periodStartDate || Date.now()),
-    endDate: new Date(eventType?.periodEndDate || Date.now()),
+    startDate: new Date(eventType.periodStartDate || Date.now()),
+    endDate: new Date(eventType.periodEndDate || Date.now()),
   });
 
   const metadata = eventType.metadata;
   // fallback to !!eventType.schedule when 'useHostSchedulesForTeamEvent' is undefined
   if (!!team) {
     metadata.config = {
-      ...metadata?.config,
+      ...metadata.config,
       useHostSchedulesForTeamEvent:
-        typeof eventType?.metadata?.config?.useHostSchedulesForTeamEvent !== "undefined"
-          ? eventType?.metadata?.config?.useHostSchedulesForTeamEvent === true
-          : !!eventType?.schedule,
+        typeof eventType.metadata.config?.useHostSchedulesForTeamEvent !== "undefined"
+          ? eventType.metadata.config?.useHostSchedulesForTeamEvent === true
+          : !!eventType.schedule,
     };
   } else {
     // Make sure non-team events NEVER have this config key;
-    delete metadata?.config?.useHostSchedulesForTeamEvent;
+    delete metadata.config?.useHostSchedulesForTeamEvent;
   }
 
   const formMethods = useForm<FormValues>({
     defaultValues: {
-      title: eventType?.title,
-      locations: eventType?.locations || [],
-      recurringEvent: eventType?.recurringEvent || null,
-      description: eventType?.description ?? undefined,
-      schedule: eventType?.schedule || undefined,
-      bookingLimits: eventType?.bookingLimits || undefined,
-      hidden: eventType?.hidden,
+      title: eventType.title,
+      locations: eventType.locations || [],
+      recurringEvent: eventType.recurringEvent || null,
+      description: eventType.description ?? undefined,
+      schedule: eventType.schedule || undefined,
+      bookingLimits: eventType.bookingLimits || undefined,
+      hidden: eventType.hidden,
       periodDates: {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
       },
-      periodType: eventType?.periodType,
-      periodCountCalendarDays: eventType?.periodCountCalendarDays ? "1" : "0",
-      schedulingType: eventType?.schedulingType,
-      minimumBookingNotice: eventType?.minimumBookingNotice,
+      periodType: eventType.periodType,
+      periodCountCalendarDays: eventType.periodCountCalendarDays ? "1" : "0",
+      schedulingType: eventType.schedulingType,
+      minimumBookingNotice: eventType.minimumBookingNotice,
       minimumBookingNoticeInDurationType: convertToNewDurationType(
         "minutes",
-        findDurationType(eventType?.minimumBookingNotice ?? 0),
-        eventType?.minimumBookingNotice ?? 0
+        findDurationType(eventType.minimumBookingNotice),
+        eventType.minimumBookingNotice
       ),
       metadata,
     },
@@ -223,8 +223,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     ).length;
   }
 
-  const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType?.users?.[0]?.username}/${
-    eventType?.slug
+  const permalink = `${CAL_URL}/${team ? `team/${team.slug}` : eventType.users[0].username}/${
+    eventType.slug
   }`;
 
   const tabMap = {
@@ -245,7 +245,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     workflows: (
       <EventWorkflowsTab
         eventType={eventType}
-        workflows={eventType?.workflows?.map((workflowOnEventType) => workflowOnEventType.workflow)}
+        workflows={eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow)}
       />
     ),
     webhooks: <EventTeamWebhooksTab eventType={eventType} team={team} />,
