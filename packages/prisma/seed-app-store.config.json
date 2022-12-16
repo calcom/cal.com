@@ -149,5 +149,11 @@
     "categories": ["calendar"],
     "slug": "vimcal",
     "type": "vimcal_other"
+  },
+  {
+    "dirName": "amie",
+    "categories": ["other"],
+    "slug": "amie",
+    "type": "amie_other"
   }
 ]
