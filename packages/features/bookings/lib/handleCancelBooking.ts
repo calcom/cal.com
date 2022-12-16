@@ -1,5 +1,4 @@
 import {
-  Booking,
   BookingStatus,
   Prisma,
   PrismaPromise,
@@ -195,7 +194,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     );
   }
 
-  let updatedBookings: {
+  const updatedBookings: {
     uid: string;
     workflowReminders: WorkflowReminder[];
     scheduledJobs: string[];
@@ -237,30 +236,40 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     for (const booking of allUpdatedBookings) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      if (booking && booking?.status === BookingStatus.CANCELLED) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        const evt: CalendarEvent = {
+      const evt: CalendarEvent = {
+        uid: booking?.uid,
+      };
+
+      const promises = webhooks.map((webhook) =>
+        sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
+          ...evt,
+          ...eventTypeInfo,
+          status: "CANCELLED",
+        }).catch((e) => {
+          console.error(
+            `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}`,
+            e
+          );
+        })
+      );
+      await Promise.all(promises);
+
+      const updatedBooking = await prisma.booking.update({
+        where: {
           uid: booking?.uid,
-        };
-
-        const promises = webhooks.map((webhook) =>
-          sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
-            ...evt,
-            ...eventTypeInfo,
-            status: "CANCELLED",
-          }).catch((e) => {
-            console.error(
-              `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}`,
-              e
-            );
-          })
-        );
-        await Promise.all(promises);
-      }
+        },
+        data: {
+          status: BookingStatus.CANCELLED,
+          cancellationReason: cancellationReason,
+        },
+        select: {
+          workflowReminders: true,
+          uid: true,
+          scheduledJobs: true,
+        },
+      });
+      updatedBookings.push(updatedBooking);
     }
-
-    updatedBookings = updatedBookings.concat(allUpdatedBookings);
   } else {
     const updatedBooking = await prisma.booking.update({
       where: {
