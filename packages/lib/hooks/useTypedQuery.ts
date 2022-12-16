@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { z } from "zod";
 
 export function useTypedQuery<T extends z.Schema>(schema: T) {
@@ -16,7 +16,9 @@ export function useTypedQuery<T extends z.Schema>(schema: T) {
   const { query: unparsedQuery, ...router } = useRouter();
   const parsedQuerySchema = schema.safeParse(unparsedQuery);
 
-  let parsedQuery: InferedSchema = {} as InferedSchema;
+  let parsedQuery: InferedSchema = useMemo(() => {
+    return {} as InferedSchema;
+  }, []);
 
   if (parsedQuerySchema.success) {
     parsedQuery = parsedQuerySchema.data;
