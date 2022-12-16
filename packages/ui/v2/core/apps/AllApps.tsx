@@ -2,12 +2,13 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Credential } from "@prisma/client";
 import { useRouter } from "next/router";
 import { UIEvent, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight } from "react-feather";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App } from "@calcom/types/App";
+import { Icon } from "@calcom/ui";
 
+import EmptyScreen from "../EmptyScreen";
 import AppCard from "./AppCard";
 
 export function useShouldShowArrows() {
@@ -73,7 +74,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
       {leftVisible && (
         <button onClick={handleLeft} className="absolute top-9 flex md:left-1/2 md:-top-1">
           <div className="flex h-12 w-5 items-center justify-end bg-white">
-            <ChevronLeft className="h-4 w-4 text-gray-500" />
+            <Icon.FiChevronLeft className="h-4 w-4 text-gray-500" />
           </div>
           <div className="flex h-12 w-5 bg-gradient-to-l from-transparent to-white" />
         </button>
@@ -116,7 +117,7 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
         <button onClick={handleRight} className="absolute top-9 right-0 flex md:-top-1">
           <div className="flex h-12 w-5 bg-gradient-to-r from-transparent to-white" />
           <div className="flex h-12 w-5 items-center justify-end bg-white">
-            <ChevronRight className="h-4 w-4 text-gray-500" />
+            <Icon.FiChevronRight className="h-4 w-4 text-gray-500" />
           </div>
         </button>
       )}
@@ -137,7 +138,7 @@ export default function AllApps({ apps, searchText }: AllAppsPropsType) {
     });
 
   if (searchText) {
-    enableAnimation(false);
+    enableAnimation && enableAnimation(false);
   }
 
   useEffect(() => {
@@ -161,15 +162,21 @@ export default function AllApps({ apps, searchText }: AllAppsPropsType) {
   return (
     <div className="mb-16">
       <CategoryTab selectedCategory={selectedCategory} searchText={searchText} categories={categories} />
-      <div
-        className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:730px)]:grid-cols-2 [@media(max-width:500px)]:grid-cols-1"
-        ref={appsContainerRef}>
-        {filteredApps.length
-          ? filteredApps.map((app) => (
-              <AppCard key={app.name} app={app} searchText={searchText} credentials={app.credentials} />
-            ))
-          : t("no_results")}
-      </div>
+      {filteredApps.length ? (
+        <div
+          className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:730px)]:grid-cols-2 [@media(max-width:500px)]:grid-cols-1"
+          ref={appsContainerRef}>
+          {filteredApps.map((app) => (
+            <AppCard key={app.name} app={app} searchText={searchText} credentials={app.credentials} />
+          ))}{" "}
+        </div>
+      ) : (
+        <EmptyScreen
+          Icon={Icon.FiSearch}
+          headline={t("no_results")}
+          description={searchText ? searchText?.toString() : ""}
+        />
+      )}
     </div>
   );
 }
