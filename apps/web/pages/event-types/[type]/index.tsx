@@ -8,11 +8,15 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { EventLocationType } from "@calcom/core/location";
-import { validateBookingLimitOrder } from "@calcom/lib";
+import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
+import { getEventTypeAppData, getLocationOptions } from "@calcom/app-store/utils";
+import { EventLocationType, LocationObject } from "@calcom/core/location";
+import { parseBookingLimit, parseRecurringEvent, validateBookingLimitOrder } from "@calcom/lib";
+import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { CAL_URL } from "@calcom/lib/constants";
 import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
 import findDurationType from "@calcom/lib/findDurationType";
+import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
@@ -37,6 +41,7 @@ import { EventTeamWebhooksTab } from "@components/eventtype/EventTeamWebhooksTab
 import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
 import EventWorkflowsTab from "@components/eventtype/EventWorkfowsTab";
 
+import { getTranslation } from "@server/lib/i18n";
 import { ssrInit } from "@server/lib/ssr";
 
 export type FormValues = {
@@ -327,7 +332,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 };
 
 const EventTypePageWrapper = (props: inferSSRProps<typeof getServerSideProps>) => {
-  const { data, isLoading } = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
+  const { data, isLoading } = trpc.viewer.eventTypes.get.useQuery(
+    { id: props.type },
+    {
+      initialData: props.initialData,
+    }
+  );
 
   if (isLoading || !data) return null;
   return <EventTypePage {...data} />;
@@ -354,7 +364,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
-  // check if event type exists or not
+  const userSelect = Prisma.validator<Prisma.UserSelect>()({
+    name: true,
+    username: true,
+    id: true,
+    avatar: true,
+    email: true,
+    locale: true,
+    defaultScheduleId: true,
+  });
+
   const rawEventType = await prisma.eventType.findFirst({
     where: {
       AND: [
@@ -388,6 +407,83 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     },
     select: {
       id: true,
+      title: true,
+      slug: true,
+      description: true,
+      length: true,
+      hidden: true,
+      locations: true,
+      eventName: true,
+      customInputs: true,
+      timeZone: true,
+      periodType: true,
+      metadata: true,
+      periodDays: true,
+      periodStartDate: true,
+      periodEndDate: true,
+      periodCountCalendarDays: true,
+      requiresConfirmation: true,
+      recurringEvent: true,
+      hideCalendarNotes: true,
+      disableGuests: true,
+      minimumBookingNotice: true,
+      beforeEventBuffer: true,
+      afterEventBuffer: true,
+      slotInterval: true,
+      hashedLink: true,
+      bookingLimits: true,
+      successRedirectUrl: true,
+      currency: true,
+      team: {
+        select: {
+          id: true,
+          slug: true,
+          members: {
+            where: {
+              accepted: true,
+            },
+            select: {
+              role: true,
+              user: {
+                select: userSelect,
+              },
+            },
+          },
+        },
+      },
+      users: {
+        select: userSelect,
+      },
+      schedulingType: true,
+      schedule: {
+        select: {
+          id: true,
+        },
+      },
+      userId: true,
+      price: true,
+      destinationCalendar: true,
+      seatsPerTimeSlot: true,
+      seatsShowAttendees: true,
+      workflows: {
+        include: {
+          workflow: {
+            include: {
+              activeOn: {
+                select: {
+                  eventType: {
+                    select: {
+                      id: true,
+                      title: true,
+                    },
+                  },
+                },
+              },
+              steps: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -397,11 +493,105 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
+  const credentials = await prisma.credential.findMany({
+    where: {
+      userId: session.user.id,
+      app: {
+        enabled: true,
+      },
+    },
+    select: {
+      id: true,
+      type: true,
+      key: true,
+      userId: true,
+      appId: true,
+      invalid: true,
+    },
+  });
+
+  const { locations, metadata, ...restEventType } = rawEventType;
+
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  const newMetadata = EventTypeMetaDataSchema.parse(metadata || {})!;
+  const apps = newMetadata.apps || {};
+  const eventTypeWithParsedMetadata = { ...rawEventType, metadata: newMetadata };
+  newMetadata.apps = {
+    ...apps,
+    stripe: {
+      ...getStripeAppData(eventTypeWithParsedMetadata, true),
+      currency:
+        (
+          credentials.find((integration) => integration.type === "stripe_payment")
+            ?.key as unknown as StripeData
+        )?.default_currency || "usd",
+    },
+    giphy: getEventTypeAppData(eventTypeWithParsedMetadata, "giphy", true),
+    rainbow: getEventTypeAppData(eventTypeWithParsedMetadata, "rainbow", true),
+  };
+
+  // TODO: How to extract metadata schema from _EventTypeModel to be able to parse it?
+  // const parsedMetaData = _EventTypeModel.parse(newMetadata);
+  const parsedMetaData = newMetadata;
+
+  const parsedCustomInputs = (rawEventType.customInputs || []).map((input) => customInputSchema.parse(input));
+
+  const eventType = {
+    ...restEventType,
+    schedule: rawEventType.schedule?.id || rawEventType.users[0]?.defaultScheduleId || null,
+    recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
+    bookingLimits: parseBookingLimit(restEventType.bookingLimits),
+    locations: locations as unknown as LocationObject[],
+    metadata: parsedMetaData,
+    customInputs: parsedCustomInputs,
+  };
+
+  // backwards compat
+  if (eventType.users.length === 0 && !eventType.team) {
+    const fallbackUser = await prisma.user.findUnique({
+      where: {
+        id: session.user.id,
+      },
+      select: userSelect,
+    });
+    if (!fallbackUser) throw Error("The event type doesn't have user and no fallback user was found");
+    eventType.users.push(fallbackUser);
+  }
+  const currentUser = eventType.users.find((u) => u.id === session.user.id);
+  const t = await getTranslation(currentUser?.locale ?? "en", "common");
+  const integrations = await getEnabledApps(credentials);
+  const locationOptions = getLocationOptions(integrations, t);
+
+  const eventTypeObject = Object.assign({}, eventType, {
+    periodStartDate: eventType.periodStartDate?.toString() ?? null,
+    periodEndDate: eventType.periodEndDate?.toString() ?? null,
+  });
+
+  const teamMembers = eventTypeObject.team
+    ? eventTypeObject.team.members.map((member) => {
+        const user = member.user;
+        user.avatar = `${CAL_URL}/${user.username}/avatar.png`;
+        return user;
+      })
+    : [];
+
+  // Find the current users memebership so we can check role to enable/disable deletion.
+  // Sets to null if no membership is found - this must mean we are in a none team event type
+  const currentUserMembership =
+    eventTypeObject.team?.members.find((el) => el.user.id === session.user.id) ?? null;
+
   return {
     props: {
       session,
       type: typeParam,
       trpcState: ssr.dehydrate(),
+      initialData: {
+        eventType: eventTypeObject,
+        locationOptions,
+        team: eventTypeObject.team || null,
+        teamMembers,
+        currentUserMembership,
+      },
     },
   };
 };
