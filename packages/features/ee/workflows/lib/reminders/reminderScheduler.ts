@@ -69,8 +69,6 @@ export const scheduleWorkflowReminders = async (
               case WorkflowActions.EMAIL_ATTENDEE:
                 sendTo = evt.attendees[0].email;
                 break;
-              case WorkflowActions.EMAIL_ADDRESS:
-                sendTo = step.sendTo || "";
             }
             scheduleEmailReminder(
               evt,
@@ -139,8 +137,6 @@ export const sendCancelledReminders = async (
               case WorkflowActions.EMAIL_ATTENDEE:
                 sendTo = evt.attendees[0].email;
                 break;
-              case WorkflowActions.EMAIL_ADDRESS:
-                sendTo = step.sendTo || "";
             }
             scheduleEmailReminder(
               evt,
