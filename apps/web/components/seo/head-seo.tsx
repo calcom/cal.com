@@ -23,6 +23,8 @@ export type HeadSeoProps = {
   nextSeoProps?: NextSeoProps;
   app?: AppImageProps;
   meeting?: MeetingImageProps;
+  name?: string;
+  username?: string;
 };
 
 /**
