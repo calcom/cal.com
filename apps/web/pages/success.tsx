@@ -466,7 +466,7 @@ export default function Success(props: SuccessProps) {
                 {!needsConfirmation &&
                   !isCancelled &&
                   (!isCancellationMode ? (
-                    <>
+                    <div className="hidden">
                       <hr className="border-bookinglightest dark:border-darkgray-300 mb-8" />
                       <div className="text-center last:pb-0">
                         <span className="text-gray-900 ltr:mr-2 rtl:ml-2 dark:text-gray-50">
@@ -492,7 +492,7 @@ export default function Success(props: SuccessProps) {
                           {t("cancel")}
                         </button>
                       </div>
-                    </>
+                    </div>
                   ) : (
                     <>
                       <hr className="border-bookinglightest dark:border-darkgray-300" />
