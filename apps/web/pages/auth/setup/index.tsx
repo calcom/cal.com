@@ -46,7 +46,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { req } = context;
   const session = await getSession({ req });
 
-  console.log({ role: session?.user.role });
 
   if (session?.user.role && session?.user.role !== UserPermissionRole.ADMIN) {
     return {
