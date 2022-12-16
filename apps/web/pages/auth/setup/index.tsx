@@ -24,7 +24,7 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
     {
       title: t("enable_apps"),
       description: t("enable_apps_description"),
-      content: <AdminAppsList baseURL="/auth/setup" />,
+      content: <AdminAppsList baseURL="/auth/setup?step=2" />,
       isLoading: false,
     },
   ];
