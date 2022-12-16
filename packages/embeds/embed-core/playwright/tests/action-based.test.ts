@@ -76,7 +76,7 @@ test.describe("Popup Tests", () => {
     await deleteAllBookingsByEmail("embed-user@example.com");
   });
 
-  test.only("should be able to reschedule", async ({ page, addEmbedListeners, getActionFiredDetails }) => {
+  test("should be able to reschedule", async ({ page, addEmbedListeners, getActionFiredDetails }) => {
     const booking = await test.step("Create a booking", async () => {
       return await bookFirstFreeUserEventThroughEmbed({
         page,
