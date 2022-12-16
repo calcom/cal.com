@@ -115,7 +115,7 @@ const DateOverrideForm = ({
         onClose();
       }}
       className="space-y-4 sm:flex sm:space-x-4">
-      <div className={classNames(date && "w-full border-r pr-6")}>
+      <div className={classNames(date && "w-full sm:border-r sm:pr-6")}>
         <DialogHeader title={t("date_overrides_dialog_title")} />
         <DatePicker
           includedDates={includedDates}
