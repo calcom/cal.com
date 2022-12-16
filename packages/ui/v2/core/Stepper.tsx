@@ -1,6 +1,7 @@
+import { TFunction } from "next-i18next";
 import Link from "next/link";
 
-import { useLocale } from "@calcom/console/modules/common/hooks/useLocale";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 type DefaultStep = {
   title: string;
@@ -11,8 +12,12 @@ function Stepper<T extends DefaultStep>(props: {
   step: number;
   steps: T[];
   disableSteps?: boolean;
+  t?: TFunction;
 }) {
-  const { t } = useLocale();
+  let { t } = useLocale();
+  if (props.t) {
+    t = props.t;
+  }
   const { href, steps } = props;
   return (
     <>

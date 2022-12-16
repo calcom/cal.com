@@ -1,7 +1,8 @@
+import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 
-import { useLocale } from "@calcom/console/modules/common/hooks/useLocale";
 import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Button, Stepper } from "../..";
 
@@ -18,9 +19,13 @@ function WizardForm<T extends DefaultStep>(props: {
   steps: T[];
   disableNavigation?: boolean;
   containerClassname?: string;
+  t?: TFunction;
 }) {
   const { href, steps } = props;
-  const { t } = useLocale();
+  let { t } = useLocale();
+  if (props.t) {
+    t = props.t;
+  }
   const router = useRouter();
   const step = parseInt((router.query.step as string) || "1");
   const currentStep = steps[step - 1];
@@ -73,7 +78,7 @@ function WizardForm<T extends DefaultStep>(props: {
       </div>
       {!props.disableNavigation && (
         <div className="print:hidden">
-          <Stepper href={href} step={step} steps={steps} disableSteps />
+          <Stepper href={href} step={step} steps={steps} disableSteps t={t} />
         </div>
       )}
     </div>
