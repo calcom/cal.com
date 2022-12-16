@@ -152,7 +152,7 @@
   },
   {
     "dirName": "amie",
-    "categories": ["other"],
+    "categories": ["calendar"],
     "slug": "amie",
     "type": "amie_other"
   }
