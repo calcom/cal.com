@@ -53,11 +53,16 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
     })
       .then(handleErrors)
       .then(async () => {
-        await signIn("Cal.com", {
+        const res = await signIn<"credentials">("credentials", {
+          ...data,
           callbackUrl: router.query.callbackUrl
             ? `${WEBAPP_URL}/${router.query.callbackUrl}`
             : `${WEBAPP_URL}/getting-started`,
         });
+        if (!res)
+          methods.setError("apiError", {
+            message: `${t("something_went_wrong")} ${t("please_try_again_and_contact_us")}`,
+          });
       })
       .catch((err) => {
         methods.setError("apiError", { message: err.message });
