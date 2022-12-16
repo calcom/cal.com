@@ -54,9 +54,12 @@ export default function InstalledAppsLayout({
   if (query.data?.items.length === 0) {
     actualTabs = tabs.filter((tab) => tab.name !== InstalledAppVariants.payment);
   }
+
   return (
     <Shell {...rest}>
-      <AppCategoryNavigation baseURL="/apps/installed" containerClassname="w-full xl:mx-5 xl:w-4/5 xl:pr-5">
+      <AppCategoryNavigation
+        baseURL="/apps/installed"
+        containerClassname="w-full xl:mx-5 xl:w-4/5 xl:max-w-2xl xl:pr-5">
         {children}
       </AppCategoryNavigation>
     </Shell>

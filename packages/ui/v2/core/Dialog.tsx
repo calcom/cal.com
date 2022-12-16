@@ -78,7 +78,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               : props.size == "md"
               ? "p-8 sm:max-w-[48rem]"
               : "p-8 sm:max-w-[35rem]",
-            "max-h-[560px] overflow-visible overscroll-auto md:h-auto md:max-h-[inherit]",
+            "overflow-y-auto overscroll-auto md:h-auto md:max-h-[inherit]",
             `${props.className || ""}`
           )}
           ref={forwardedRef}>

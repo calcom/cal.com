@@ -1426,6 +1426,7 @@
   "disable_app": "Onemogući aplikaciju",
   "disable_app_description": "Onemogućavanje ove aplikacije može da stvori probleme u komunikaciji vaših korisnika sa Cal-om",
   "edit_keys": "Izmeni ključeve",
+  "admin_apps_description": "Omogućite aplikacije za vašu instancu Cal-a",
   "no_available_apps": "Nema dostupnih aplikacija",
   "no_available_apps_description": "Uverite se da ima aplikacija u vašoj fascikli za instalaciju pod „packages/app-store“",
   "no_apps": "Nema omogućenih aplikacija u ovoj instanci Cal-a",
