@@ -38,8 +38,8 @@ jobs:
       STRIPE_PRIVATE_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
       STRIPE_CLIENT_ID: ${{ secrets.CI_STRIPE_CLIENT_ID }}
       STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
-      STRIPE_PAYMENT_FEE_PERCENTAGE: ${{ secrets.CI_STRIPE_PAYMENT_FEE_PERCENTAGE }}
-      STRIPE_PAYMENT_FEE_FIXED: ${{ secrets.CI_STRIPE_PAYMENT_FEE_FIXED }}
+      STRIPE_PAYMENT_FEE_PERCENTAGE: 0.005
+      STRIPE_PAYMENT_FEE_FIXED: 10
       SAML_DATABASE_URL: postgresql://postgres:@localhost:5432/calendso
       SAML_ADMINS: pro@example.com
       NEXTAUTH_URL: http://localhost:3000/api/auth
