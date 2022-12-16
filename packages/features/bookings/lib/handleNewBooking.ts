@@ -283,7 +283,7 @@ async function ensureAvailableUsers(
   }
   if (!availableUsers.length) {
     // CUSTOM_CODE First 3 Instances we check
-    throw new Error("One of the first three sessions is unavailable. Please try another day or time.");
+    throw new Error("Second or third session is unavailable. Please try another day or time.");
   }
   return availableUsers;
 }
