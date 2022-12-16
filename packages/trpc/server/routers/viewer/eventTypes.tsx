@@ -14,6 +14,7 @@ import { parseBookingLimit, parseRecurringEvent, validateBookingLimitOrder } fro
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { CAL_URL } from "@calcom/lib/constants";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import {
@@ -24,7 +25,6 @@ import {
 } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 
-import { getTranslation } from "@server/lib/i18n";
 import { TRPCError } from "@trpc/server";
 
 import { authedProcedure, router } from "../../trpc";
