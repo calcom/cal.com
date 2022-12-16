@@ -39,6 +39,7 @@ export const scheduleEmailReminder = async (
   workflowStepId: number,
   template: WorkflowTemplates
 ) => {
+  if (action === WorkflowActions.EMAIL_ADDRESS) return;
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
