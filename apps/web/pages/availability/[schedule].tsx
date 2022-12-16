@@ -174,74 +174,70 @@ export default function Availability({ schedule }: { schedule: number }) {
           </Button>
         </div>
       }>
-      <div className="flex items-baseline sm:mt-0">
-        {/* TODO: Find a better way to guarantee alignment, but for now this'll do. */}
-        <Icon.FiArrowLeft className=" mr-3 text-transparent hover:cursor-pointer" />
-        <div className="w-full">
-          <Form
-            form={form}
-            id="availability-form"
-            handleSubmit={async ({ dateOverrides, ...values }) => {
-              updateMutation.mutate({
-                scheduleId: schedule,
-                dateOverrides: dateOverrides.flatMap((override) => override.ranges),
-                ...values,
-              });
-            }}
-            className="-mx-4 flex flex-col pb-16 sm:mx-0 xl:flex-row xl:space-x-6">
-            <div className="flex-1 divide-y divide-neutral-200 rounded-md border">
-              <div className=" py-5 pr-4 sm:p-6">
-                <h3 className="mb-5 text-base font-medium leading-6 text-gray-900">
-                  {t("change_start_end")}
-                </h3>
-                {typeof me.data?.weekStart === "string" && (
-                  <Schedule
-                    control={control}
-                    name="schedule"
-                    weekStart={
-                      ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
-                        me.data?.weekStart
-                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
-                    }
-                  />
-                )}
-              </div>
-              {data?.workingHours && <DateOverride workingHours={data.workingHours} />}
+      <div className="w-full">
+        <Form
+          form={form}
+          id="availability-form"
+          handleSubmit={async ({ dateOverrides, ...values }) => {
+            updateMutation.mutate({
+              scheduleId: schedule,
+              dateOverrides: dateOverrides.flatMap((override) => override.ranges),
+              ...values,
+            });
+          }}
+          className="flex flex-col pb-16 sm:mx-0 xl:flex-row xl:space-x-6">
+          <div className="flex-1 divide-y divide-neutral-200 rounded-md border">
+            <div className=" py-5 sm:p-6">
+              <h3 className="mb-2 px-5 text-base font-medium leading-6 text-gray-900 sm:pl-0">
+                {t("change_start_end")}
+              </h3>
+              {typeof me.data?.weekStart === "string" && (
+                <Schedule
+                  control={control}
+                  name="schedule"
+                  weekStart={
+                    ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+                      me.data?.weekStart
+                    ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
+                  }
+                />
+              )}
             </div>
-            <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
-              <div className="xl:max-w-80 mt-4 w-full pr-4 sm:p-0">
-                <div>
-                  <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
-                    {t("timezone")}
-                  </label>
-                  <Controller
-                    name="timeZone"
-                    render={({ field: { onChange, value } }) =>
-                      value ? (
-                        <TimezoneSelect
-                          value={value}
-                          className="focus:border-brand mt-1 block w-72 rounded-md border-gray-300 text-sm"
-                          onChange={(timezone) => onChange(timezone.value)}
-                        />
-                      ) : (
-                        <SelectSkeletonLoader className="w-72" />
-                      )
-                    }
-                  />
-                </div>
-                <hr className="my-8" />
-                <div className="rounded-md">
-                  <h3 className="text-sm font-medium text-gray-900">{t("something_doesnt_look_right")}</h3>
-                  <div className="mt-3 flex">
-                    <Button href="/availability/troubleshoot" color="secondary">
-                      {t("launch_troubleshooter")}
-                    </Button>
-                  </div>
+            {data?.workingHours && <DateOverride workingHours={data.workingHours} />}
+          </div>
+          <div className="min-w-40 col-span-3 space-y-2 lg:col-span-1">
+            <div className="xl:max-w-80 mt-4 w-full pr-4 sm:p-0">
+              <div>
+                <label htmlFor="timeZone" className="block text-sm font-medium text-gray-700">
+                  {t("timezone")}
+                </label>
+                <Controller
+                  name="timeZone"
+                  render={({ field: { onChange, value } }) =>
+                    value ? (
+                      <TimezoneSelect
+                        value={value}
+                        className="focus:border-brand mt-1 block w-72 rounded-md border-gray-300 text-sm"
+                        onChange={(timezone) => onChange(timezone.value)}
+                      />
+                    ) : (
+                      <SelectSkeletonLoader className="w-72" />
+                    )
+                  }
+                />
+              </div>
+              <hr className="my-8" />
+              <div className="rounded-md">
+                <h3 className="text-sm font-medium text-gray-900">{t("something_doesnt_look_right")}</h3>
+                <div className="mt-3 flex">
+                  <Button href="/availability/troubleshoot" color="secondary">
+                    {t("launch_troubleshooter")}
+                  </Button>
                 </div>
               </div>
             </div>
-          </Form>
-        </div>
+          </div>
+        </Form>
       </div>
     </Shell>
   );
