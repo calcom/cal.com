@@ -11,6 +11,7 @@ import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { getSenderId } from "../alphanumericSenderIdSupport";
 import * as twilio from "./smsProviders/twilioProvider";
 import customTemplate, { VariablesType } from "./templates/customTemplate";
 import smsReminderTemplate from "./templates/smsReminderTemplate";
@@ -51,13 +52,29 @@ export const scheduleSMSReminder = async (
   message: string,
   workflowStepId: number,
   template: WorkflowTemplates,
-  sender: string
+  sender: string,
+  userId: number,
+  isVerificationPending = false
 ) => {
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
   const timeUnit: timeUnitLowerCase | undefined = timeSpan.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase;
   let scheduledDate = null;
+
+  const senderID = getSenderId(reminderPhone, sender);
+
+  //SMS_ATTENDEE action does not need to be verified
+  //isVerificationPending is from all already existing workflows (once they edit their workflow, they will also have to verify the number)
+  async function getIsNumberVerified() {
+    if (action === WorkflowActions.SMS_ATTENDEE) return true;
+    const verifiedNumber = await prisma.verifiedNumber.findFirst({
+      where: { userId, phoneNumber: reminderPhone || "" },
+    });
+    if (!!verifiedNumber) return true;
+    return isVerificationPending;
+  }
+  const isNumberVerified = await getIsNumberVerified();
 
   if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
     scheduledDate = timeSpan.time && timeUnit ? dayjs(startTime).subtract(timeSpan.time, timeUnit) : null;
@@ -93,7 +110,7 @@ export const scheduleSMSReminder = async (
       break;
   }
 
-  if (message.length > 0 && reminderPhone) {
+  if (message.length > 0 && reminderPhone && isNumberVerified) {
     //send SMS when event is booked/cancelled/rescheduled
     if (
       triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
@@ -101,7 +118,7 @@ export const scheduleSMSReminder = async (
       triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
     ) {
       try {
-        await twilio.sendSMS(reminderPhone, message, sender);
+        await twilio.sendSMS(reminderPhone, message, senderID);
       } catch (error) {
         console.log(`Error sending SMS with error ${error}`);
       }
@@ -120,7 +137,7 @@ export const scheduleSMSReminder = async (
             reminderPhone,
             message,
             scheduledDate.toDate(),
-            sender
+            senderID
           );
 
           await prisma.workflowReminder.create({
