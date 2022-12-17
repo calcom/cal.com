@@ -1,7 +1,7 @@
 import { BookingStatus } from "@prisma/client";
 import { createHmac } from "crypto";
-import { instance } from "gaxios";
 import { GetServerSidePropsContext } from "next";
+import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import z from "zod";
@@ -18,6 +18,8 @@ import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, Icon, TextArea } from "@calcom/ui";
 
 import { HeadSeo } from "@components/seo/head-seo";
+
+import { getTranslation } from "@server/lib/i18n";
 
 enum DirectAction {
   "accept" = "accept",
@@ -42,7 +44,7 @@ const pageErrors = {
 const requestSchema = z.object({
   link: z
     .array(z.string())
-    .max(4)
+    .max(4, "Direct link URL must contain exactly 4 parts")
     .superRefine((data, ctx) => {
       refineParse(actionSchema.safeParse(data[0]), ctx);
       const signedData = `${data[1]}/${data[2]}`;
@@ -52,50 +54,57 @@ const requestSchema = z.object({
           message: pageErrors.signature_mismatch,
           code: "custom",
         });
-        console.log(signedData, data, data[3], "==", sig);
       }
     }),
   reason: z.string().optional(),
 });
 
-function bookingContent(status: BookingStatus | undefined | null) {
+function bookingContent(status: BookingStatus | undefined | null, t: TFunction) {
   switch (status) {
     case BookingStatus.PENDING:
       // Trying to reject booking without reason
       return {
         iconColor: "gray",
         Icon: Icon.FiCalendar,
-        titleKey: "event_awaiting_approval",
-        subtitleKey: "someone_requested_an_event",
+        title: t("event_awaiting_approval"),
+        subtitle: t("someone_requested_an_event"),
       };
     case BookingStatus.ACCEPTED:
       // Booking was acepted successfully
       return {
         iconColor: "green",
         Icon: Icon.FiCheck,
-        titleKey: "booking_confirmed",
-        subtitleKey: "emailed_you_and_any_other_attendees",
+        title: t("booking_confirmed"),
+        subtitle: t("emailed_you_and_any_other_attendees"),
       };
     case BookingStatus.REJECTED:
       // Booking was rejected successfully
       return {
         iconColor: "red",
         Icon: Icon.FiX,
-        titleKey: "booking_rejection_success",
-        subtitleKey: "emailed_you_and_any_other_attendees",
+        title: t("booking_rejection_success"),
+        subtitle: t("emailed_you_and_any_other_attendees"),
       };
     default:
       // Booking was already accepted or rejected
       return {
         iconColor: "yellow",
         Icon: Icon.FiAlertTriangle,
-        titleKey: "booking_already_accepted_rejected",
+        title: t("booking_already_accepted_rejected"),
       };
   }
 }
 
-export default function Directlink({ booking, reason, status }: inferSSRProps<typeof getServerSideProps>) {
-  const { t } = useLocale();
+export default function Directlink({
+  booking,
+  reason,
+  status,
+  translations,
+}: inferSSRProps<typeof getServerSideProps>) {
+  let { t } = useLocale();
+  if (!t) {
+    t = (key: string) => translations[key];
+  }
   const router = useRouter();
   const acceptPath = router.asPath.replace("reject", "accept");
   const rejectPath = router.asPath.replace("accept", "reject");
@@ -119,7 +128,7 @@ export default function Directlink({ booking, reason, status }: inferSSRProps<ty
     : // If there is no location set then we default to Cal Video
       "integrations:daily";
   const locationToDisplay = getSuccessPageLocationMessage(location, t);
-  const content = bookingContent(status);
+  const content = bookingContent(status, t);
   const recurringInfo = getRecurringWhen({
     recurringEvent: booking.eventType?.recurringEvent,
     attendee: organizer,
@@ -127,7 +136,7 @@ export default function Directlink({ booking, reason, status }: inferSSRProps<ty
   return (
     <>
       <HeadSeo
-        title={t(content.titleKey)}
+        title={content.title}
         description=""
         nextSeoProps={{
           nofollow: true,
@@ -152,11 +161,11 @@ export default function Directlink({ booking, reason, status }: inferSSRProps<ty
                     <h3
                       className="text-2xl font-semibold leading-6 text-neutral-900 dark:text-white"
                       id="modal-headline">
-                      {t(content.titleKey)}
+                      {content.title}
                     </h3>
-                    {content.subtitleKey && (
+                    {content.subtitle && (
                       <div className="mt-3">
-                        <p className="text-neutral-600 dark:text-gray-300">{t(content.subtitleKey)}</p>
+                        <p className="text-neutral-600 dark:text-gray-300">{content.subtitle}</p>
                       </div>
                     )}
                     <div className="dark:border-darkgray-300 mt-8 grid grid-cols-3 border-t border-[#e1e1e1] pt-8 text-left text-[#313131] dark:text-gray-300">
@@ -175,7 +184,7 @@ export default function Directlink({ booking, reason, status }: inferSSRProps<ty
                         {t(getRecipientStart("MMMM").toLowerCase())} {getRecipientStart("D, YYYY")}
                         <br />
                         {getRecipientStart("h:mma")} - {getRecipientEnd("h:mma")}{" "}
-                        <span style={{ color: "#888888" }}>({booking.attendees[0].timeZone})</span>
+                        <span style={{ color: "#888888" }}>({booking?.user?.timeZone})</span>
                       </div>
                       {(booking?.user || booking?.attendees) && (
                         <>
@@ -386,6 +395,31 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     })),
   };
 
+  const t = await getTranslation(booking.attendees[0].locale ?? "en", "common");
+  const translations = [
+    "when",
+    "what",
+    "starting",
+    "reject",
+    "accept",
+    "rejection_confirmation",
+    "who",
+    "where",
+    "additional_notes",
+    "optional",
+    "booking_accept_intent",
+    "rejection_reason",
+    "event_awaiting_approval",
+    "someone_requested_an_event",
+    "booking_confirmed",
+    "emailed_you_and_any_other_attendees",
+    "booking_rejection_success",
+    "booking_already_accepted_rejected",
+  ].reduce((prev, curr) => {
+    prev[curr] = t(curr);
+    return prev;
+  }, {} as { [key: string]: string });
+
   // Booking user not found, showing error 500 with message
   if (booking.user === null) {
     return {
@@ -402,6 +436,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       props: {
         booking,
         status: null,
+        translations,
       },
     };
   }
@@ -412,6 +447,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       props: {
         booking,
         status: BookingStatus.PENDING,
+        translations,
       },
     };
   }
@@ -445,6 +481,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       booking,
       status: result.status,
       reason: context.query.reason ?? null,
+      translations,
     },
   };
 }

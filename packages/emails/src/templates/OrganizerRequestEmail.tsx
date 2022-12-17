@@ -22,6 +22,7 @@ export const OrganizerRequestEmail = (props: React.ComponentProps<typeof Organiz
         <CallToActionTable>
           <CallToAction
             label={props.calEvent.organizer.language.translate("accept")}
+            noClickTracking
             href={`${process.env.NEXT_PUBLIC_WEBAPP_URL}/booking/direct/accept/${encodeURIComponent(
               props.attendee.email
             )}/${encodeURIComponent(props.calEvent.uid as string)}/${encodeURIComponent(signature)}`}
@@ -29,6 +30,7 @@ export const OrganizerRequestEmail = (props: React.ComponentProps<typeof Organiz
           <Separator />
           <CallToAction
             label={props.calEvent.organizer.language.translate("reject")}
+            noClickTracking
             secondary
             href={`${process.env.NEXT_PUBLIC_WEBAPP_URL}/booking/direct/reject/${encodeURIComponent(
               props.attendee.email
