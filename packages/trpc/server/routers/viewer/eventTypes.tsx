@@ -9,7 +9,7 @@ import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
 import { getEventTypeAppData, getLocationOptions } from "@calcom/app-store/utils";
-import { EventLocationType, LocationObject } from "@calcom/core/location";
+import { LocationObject } from "@calcom/core/location";
 import { parseBookingLimit, parseRecurringEvent, validateBookingLimitOrder } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -42,9 +42,10 @@ function handlePeriodType(periodType: string | undefined): PeriodType | undefine
 }
 
 function handleCustomInputs(customInputs: CustomInputSchema[], eventTypeId: number) {
-  const cInputsIdsToDelete = customInputs.filter((input) => input.id > 0).map((e) => e.id);
+  const cInputsIdsToDeleteOrUpdated = customInputs.filter((input) => !input.hasToBeCreated);
+  const cInputsIdsToDelete = cInputsIdsToDeleteOrUpdated.map((e) => e.id);
   const cInputsToCreate = customInputs
-    .filter((input) => input.id < 0)
+    .filter((input) => input.hasToBeCreated)
     .map((input) => ({
       type: input.type,
       label: input.label,
@@ -52,20 +53,18 @@ function handleCustomInputs(customInputs: CustomInputSchema[], eventTypeId: numb
       placeholder: input.placeholder,
       options: input.options || undefined,
     }));
-  const cInputsToUpdate = customInputs
-    .filter((input) => input.id > 0)
-    .map((input) => ({
-      data: {
-        type: input.type,
-        label: input.label,
-        required: input.required,
-        placeholder: input.placeholder,
-        options: input.options || undefined,
-      },
-      where: {
-        id: input.id,
-      },
-    }));
+  const cInputsToUpdate = cInputsIdsToDeleteOrUpdated.map((input) => ({
+    data: {
+      type: input.type,
+      label: input.label,
+      required: input.required,
+      placeholder: input.placeholder,
+      options: input.options || undefined,
+    },
+    where: {
+      id: input.id,
+    },
+  }));
 
   return {
     deleteMany: {
