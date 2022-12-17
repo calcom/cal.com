@@ -1426,6 +1426,7 @@
   "disable_app": "앱 비활성화",
   "disable_app_description": "이 앱을 비활성화하면 사용자가 Cal과 상호 작용하는 방식에 문제가 발생할 수 있습니다",
   "edit_keys": "키 편집",
+  "admin_apps_description": "Cal 인스턴스용 앱 활성화",
   "no_available_apps": "사용 가능한 앱이 없습니다",
   "no_available_apps_description": "'packages/app-store' 아래 배포에 앱이 있는지 확인하세요",
   "no_apps": "Cal의 이 인스턴스에서 활성화된 앱이 없습니다",

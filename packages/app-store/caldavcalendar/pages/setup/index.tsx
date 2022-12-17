@@ -18,6 +18,7 @@ export default function CalDavCalendarSetup() {
   });
 
   const [errorMessage, setErrorMessage] = useState("");
+  const [errorActionUrl, setErrorActionUrl] = useState("");
 
   return (
     <div className="flex h-screen bg-gray-200">
@@ -49,6 +50,9 @@ export default function CalDavCalendarSetup() {
                   const json = await res.json();
                   if (!res.ok) {
                     setErrorMessage(json?.message || t("something_went_wrong"));
+                    if (json.actionUrl) {
+                      setErrorActionUrl(json.actionUrl);
+                    }
                   } else {
                     router.push(json.url);
                   }
@@ -78,7 +82,24 @@ export default function CalDavCalendarSetup() {
                   />
                 </fieldset>
 
-                {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
+                {errorMessage && (
+                  <Alert
+                    severity="error"
+                    title={errorMessage}
+                    actions={
+                      errorActionUrl !== "" ? (
+                        <Button
+                          href={errorActionUrl}
+                          color="secondary"
+                          target="_blank"
+                          className="ml-5 w-32 !p-5">
+                          Go to Admin
+                        </Button>
+                      ) : undefined
+                    }
+                    className="my-4"
+                  />
+                )}
                 <div className="mt-5 justify-end space-x-2 sm:mt-4 sm:flex">
                   <Button type="button" color="secondary" onClick={() => router.back()}>
                     {t("cancel")}
