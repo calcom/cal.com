@@ -1,7 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { Check, X } from "react-feather";
+import { X } from "react-feather";
+import { Icon } from "@calcom/ui";
 import { Controller, useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import z from "zod";
@@ -107,7 +108,7 @@ export default function CloseComSetup() {
                     type="submit"
                     loading={testLoading}
                     disabled={testPassed === true}
-                    StartIcon={testPassed !== undefined ? (testPassed ? Check : X) : undefined}
+                    StartIcon={testPassed !== undefined ? (testPassed ? Icon.FiCheck : X) : undefined}
                     className={
                       testPassed !== undefined
                         ? testPassed

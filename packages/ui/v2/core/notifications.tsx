@@ -1,5 +1,6 @@
 import classNames from "classnames";
-import { Check, Info } from "react-feather";
+import {  Info } from "react-feather";
+import { Icon } from "@calcom/ui";
 import toast from "react-hot-toast";
 
 export function showToast(message: string, variant: "success" | "warning" | "error") {
@@ -12,7 +13,7 @@ export function showToast(message: string, variant: "success" | "warning" | "err
               "data-testid-toast-success bg-brand-500 mb-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md",
               t.visible && "animate-fade-in-up"
             )}>
-            <Check className="h-4 w-4" />
+            <Icon.FiCheck className="h-4 w-4" />
             <p>{message}</p>
           </div>
         ),
@@ -57,7 +58,7 @@ export function showToast(message: string, variant: "success" | "warning" | "err
               "animate-fade-in-up bg-brand-500 mb-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md",
               t.visible && "animate-fade-in-up"
             )}>
-            <Check className="h-4 w-4" />
+            <Icon.FiCheck className="h-4 w-4" />
             <p>{message}</p>
           </div>
         ),
