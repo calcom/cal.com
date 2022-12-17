@@ -110,7 +110,6 @@ const querySchema = z.object({
     .default("setup"),
 });
 
-export type EventTypeSetupInfered = inferSSRProps<typeof getServerSideProps>;
 export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 
 const EventTypePage = (props: EventTypeSetupProps) => {

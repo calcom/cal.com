@@ -1,6 +1,6 @@
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
+import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useMemo, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
 
@@ -36,9 +36,9 @@ import { EmbedButton, EmbedDialog } from "@components/Embed";
 
 type Props = {
   children: React.ReactNode;
-  eventType: EventTypeSetupInfered["eventType"];
-  currentUserMembership: EventTypeSetupInfered["currentUserMembership"];
-  team: EventTypeSetupInfered["team"];
+  eventType: EventTypeSetupProps["eventType"];
+  currentUserMembership: EventTypeSetupProps["currentUserMembership"];
+  team: EventTypeSetupProps["team"];
   disableBorder?: boolean;
   enabledAppsNumber: number;
   installedAppsNumber: number;
