@@ -4,7 +4,7 @@ export const CallToAction = (props: {
   label: string;
   href: string;
   secondary?: boolean;
-  noClickTracking: boolean;
+  noClickTracking?: boolean;
 }) => (
   <p
     style={{
