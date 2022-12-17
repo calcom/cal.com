@@ -443,8 +443,8 @@ export const workflowsRouter = router({
                 };
                 if (
                   step.action === WorkflowActions.EMAIL_HOST ||
-                  step.action === WorkflowActions.EMAIL_ATTENDEE ||
-                  step.action === WorkflowActions.EMAIL_ADDRESS
+                  step.action === WorkflowActions.EMAIL_ATTENDEE /*||
+                  step.action === WorkflowActions.EMAIL_ADDRESS*/
                 ) {
                   let sendTo = "";
 
@@ -455,8 +455,8 @@ export const workflowsRouter = router({
                     case WorkflowActions.EMAIL_ATTENDEE:
                       sendTo = bookingInfo.attendees[0].email;
                       break;
-                    case WorkflowActions.EMAIL_ADDRESS:
-                      sendTo = step.sendTo || "";
+                    /*case WorkflowActions.EMAIL_ADDRESS:
+                      sendTo = step.sendTo || "";*/
                   }
 
                   await scheduleEmailReminder(
@@ -550,8 +550,8 @@ export const workflowsRouter = router({
             data: {
               action: newStep.action,
               sendTo:
-                newStep.action === WorkflowActions.SMS_NUMBER ||
-                newStep.action === WorkflowActions.EMAIL_ADDRESS
+                newStep.action === WorkflowActions.SMS_NUMBER /*||
+                newStep.action === WorkflowActions.EMAIL_ADDRESS*/
                   ? newStep.sendTo
                   : null,
               stepNumber: newStep.stepNumber,
@@ -630,8 +630,8 @@ export const workflowsRouter = router({
               };
               if (
                 newStep.action === WorkflowActions.EMAIL_HOST ||
-                newStep.action === WorkflowActions.EMAIL_ATTENDEE ||
-                newStep.action === WorkflowActions.EMAIL_ADDRESS
+                newStep.action === WorkflowActions.EMAIL_ATTENDEE /*||
+                newStep.action === WorkflowActions.EMAIL_ADDRESS*/
               ) {
                 let sendTo = "";
 
@@ -642,8 +642,8 @@ export const workflowsRouter = router({
                   case WorkflowActions.EMAIL_ATTENDEE:
                     sendTo = bookingInfo.attendees[0].email;
                     break;
-                  case WorkflowActions.EMAIL_ADDRESS:
-                    sendTo = newStep.sendTo || "";
+                  /*case WorkflowActions.EMAIL_ADDRESS:
+                    sendTo = newStep.sendTo || "";*/
                 }
 
                 await scheduleEmailReminder(
@@ -747,8 +747,8 @@ export const workflowsRouter = router({
 
                 if (
                   step.action === WorkflowActions.EMAIL_ATTENDEE ||
-                  step.action === WorkflowActions.EMAIL_HOST ||
-                  step.action === WorkflowActions.EMAIL_ADDRESS
+                  step.action === WorkflowActions.EMAIL_HOST /*||
+                  step.action === WorkflowActions.EMAIL_ADDRESS*/
                 ) {
                   let sendTo = "";
 
@@ -759,8 +759,8 @@ export const workflowsRouter = router({
                     case WorkflowActions.EMAIL_ATTENDEE:
                       sendTo = bookingInfo.attendees[0].email;
                       break;
-                    case WorkflowActions.EMAIL_ADDRESS:
-                      sendTo = step.sendTo || "";
+                    /*case WorkflowActions.EMAIL_ADDRESS:
+                      sendTo = step.sendTo || "";*/
                   }
 
                   await scheduleEmailReminder(
@@ -884,7 +884,7 @@ export const workflowsRouter = router({
           throw new TRPCError({ code: "UNAUTHORIZED" });
         }
 
-        if (isSMSAction(step.action) || step.action === WorkflowActions.EMAIL_ADDRESS) {
+        if (isSMSAction(step.action) /*|| step.action === WorkflowActions.EMAIL_ADDRESS*/) {
           const hasTeamPlan = (await ctx.prisma.membership.count({ where: { userId: user.id } })) > 0;
           if (!hasTeamPlan) {
             throw new TRPCError({ code: "UNAUTHORIZED", message: "Team plan needed" });
@@ -949,8 +949,8 @@ export const workflowsRouter = router({
 
         if (
           action === WorkflowActions.EMAIL_ATTENDEE ||
-          action === WorkflowActions.EMAIL_HOST ||
-          action === WorkflowActions.EMAIL_ADDRESS
+          action === WorkflowActions.EMAIL_HOST /*||
+          action === WorkflowActions.EMAIL_ADDRESS*/
         ) {
           scheduleEmailReminder(
             evt,
