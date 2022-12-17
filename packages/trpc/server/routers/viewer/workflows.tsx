@@ -850,8 +850,10 @@ export const workflowsRouter = router({
         reminderBody: z.string(),
       })
     )
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     .mutation(async ({ ctx, input }) => {
-      const { user } = ctx;
+      throw new TRPCError({ code: "FORBIDDEN", message: "Test action temporarily disabled" });
+      /* const { user } = ctx;
       const { step, emailSubject, reminderBody } = input;
       const { action, template, sendTo, sender } = step;
 
@@ -991,7 +993,7 @@ export const workflowsRouter = router({
           status: 500,
           message: error.message,
         };
-      }
+      }*/
     }),
   activateEventType: authedProcedure
     .input(
