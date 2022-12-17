@@ -147,16 +147,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
         const batchId = batchIdResponse[1].batch_id;
 
-        await sgMail.send({
-          to: sendTo,
-          from: senderEmail,
-          subject: emailContent.emailSubject,
-          text: emailContent.emailBody.text,
-          html: emailContent.emailBody.html,
-          batchId: batchId,
-          sendAt: dayjs(reminder.scheduledDate).unix(),
-          replyTo: reminder.booking?.user?.email || senderEmail,
-        });
+        if (reminder.workflowStep.action !== WorkflowActions.EMAIL_ADDRESS) {
+          await sgMail.send({
+            to: sendTo,
+            from: senderEmail,
+            subject: emailContent.emailSubject,
+            text: emailContent.emailBody.text,
+            html: emailContent.emailBody.html,
+            batchId: batchId,
+            sendAt: dayjs(reminder.scheduledDate).unix(),
+            replyTo: reminder.booking?.user?.email || senderEmail,
+          });
+        }
 
         await prisma.workflowReminder.update({
           where: {

@@ -32,7 +32,7 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   return (
     <>
       <main className="flex items-center bg-gray-100 print:h-full">
-        <WizardForm href="/auth/setup" steps={steps} disableNavigation={shouldDisable} />
+        <WizardForm href="/auth/setup" steps={steps} />
       </main>
     </>
   );
