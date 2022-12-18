@@ -1,12 +1,11 @@
 import React from "react";
-import { Icon as FeatherIcon } from "react-feather";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SVGComponent } from "@calcom/types/SVGComponent";
 import { Button, Icon } from "@calcom/ui";
 
 type WorkflowExampleType = {
-  Icon: FeatherIcon;
+  Icon: SVGComponent;
   text: string;
 };
 
@@ -40,7 +39,7 @@ export default function EmptyScreen({
   isLoading,
   showExampleWorkflows,
 }: {
-  IconHeading: SVGComponent | FeatherIcon;
+  IconHeading: SVGComponent;
   headline: string;
   description: string | React.ReactElement;
   buttonText?: string;
