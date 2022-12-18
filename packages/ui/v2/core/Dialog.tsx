@@ -1,10 +1,10 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useRouter } from "next/router";
 import React, { ReactNode, useState } from "react";
-import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { SVGComponent } from "@calcom/types/SVGComponent";
 
 import { Button, ButtonProps } from "../../components/button";
 
@@ -58,7 +58,7 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
   description?: string | JSX.Element | undefined;
   closeText?: string;
   actionDisabled?: boolean;
-  Icon?: Icon;
+  Icon?: SVGComponent;
 };
 
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(

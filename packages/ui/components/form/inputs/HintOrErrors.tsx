@@ -1,4 +1,3 @@
-import { X, Circle, Check } from "react-feather";
 import { FieldValues, useFormContext } from "react-hook-form";
 
 // TODO: Refactor import once V1 migration has happened
@@ -50,12 +49,12 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
                 className={error !== undefined ? (submitted ? "text-red-700" : "") : "text-green-600"}>
                 {error !== undefined ? (
                   submitted ? (
-                    <X size="12" strokeWidth="3" className="mr-2 -ml-1 inline-block" />
+                    <Icon.FiX size="12" strokeWidth="3" className="mr-2 -ml-1 inline-block" />
                   ) : (
-                    <Circle fill="currentColor" size="5" className="mr-2 inline-block" />
+                    <Icon.FiCircle fill="currentColor" size="5" className="mr-2 inline-block" />
                   )
                 ) : (
-                  <Check size="12" strokeWidth="3" className="mr-2 -ml-1 inline-block" />
+                  <Icon.FiCheck size="12" strokeWidth="3" className="mr-2 -ml-1 inline-block" />
                 )}
                 {t(`${fieldName}_hint_${key}`)}
               </li>
