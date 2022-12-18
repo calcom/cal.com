@@ -1400,5 +1400,11 @@
   "test_routing": "Tester le routage",
   "payment_app_disabled": "Un administrateur a désactivé une application de paiement",
   "edit_event_type": "Modifier le type d'événement",
+  "collective_scheduling": "Programmation collective",
+  "make_it_easy_to_book": "Il est facile de réserver votre équipe quand tout le monde sera disponible.",
+  "find_the_best_person": "Trouvez la meilleure personne disponible et passez en revue votre équipe.",
+  "fixed_round_robin": "Round robin établi",
+  "add_one_fixed_attendee": "Ajoutez un participant fixe et un round robin via un certain nombre de participants.",
+  "calcom_is_better_with_team": "Cal.com est meilleur avec des équipes",
   "admin_apps_description": "Activer les applications pour votre instance de Cal"
 }
