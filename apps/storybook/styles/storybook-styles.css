@@ -1,3 +1,5 @@
+@import url("../../../packages/features/calendars/weeklyview/styles/styles.css");
+
 .sbdocs {
   font-family: 'Inter var' !important;
   padding: 0!important;
@@ -36,7 +38,7 @@
 
 /** Docs table **/
 .custom-args-wrapper{
-  max-height: 600px;
+  max-height: 400px;
   overflow-y: scroll;
   overflow-x: hidden;
   margin-bottom: 1rem;

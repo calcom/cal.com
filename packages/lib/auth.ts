@@ -54,7 +54,14 @@ export function isPasswordValid(password: string, breakdown?: boolean, strict?: 
       if (password[i] === password[i].toLowerCase()) low = true;
     }
   }
-  return !!breakdown ? { caplow: cap && low, num, min, admin_min } : cap && low && num && min;
+
+  if (!breakdown) return cap && low && num && min && (strict ? admin_min : true);
+
+  let errors: Record<string, boolean> = { caplow: cap && low, num, min };
+  // Only return the admin key if strict mode is enabled.
+  if (strict) errors = { ...errors, admin_min };
+
+  return errors;
 }
 
 type CtxOrReq = { req: NextApiRequest; ctx?: never } | { ctx: { req: NextApiRequest }; req?: never };

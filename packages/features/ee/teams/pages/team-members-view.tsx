@@ -46,7 +46,7 @@ const MembersView = () => {
 
   return (
     <>
-      <Meta title="Team Members" description="Users that are in the group" />
+      <Meta title={t("team_members")} description={t("members_team_description")} />
       {!isLoading && (
         <>
           <div>
@@ -108,7 +108,7 @@ const MembersView = () => {
                 inviteMemberMutation.mutate({
                   teamId,
                   language: i18n.language,
-                  role: values.role.value,
+                  role: values.role,
                   usernameOrEmail: values.emailOrUsername,
                   sendEmailInvitation: values.sendInviteEmail,
                 });

@@ -120,6 +120,7 @@ const Actions = ({
         {typeformApp?.isInstalled ? (
           <FormActionsDropdown form={form}>
             <FormAction
+              data-testid="copy-redirect-url"
               routingForm={form}
               action="copyRedirectUrl"
               color="minimal"
@@ -172,6 +173,7 @@ const Actions = ({
           </FormAction>
           {typeformApp ? (
             <FormAction
+              data-testid="copy-redirect-url"
               routingForm={form}
               action="copyRedirectUrl"
               color="minimal"
@@ -379,16 +381,14 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                 )}
               </div>
               <DialogFooter>
-                <DialogClose asChild>
-                  <Button
-                    color="secondary"
-                    onClick={() => {
-                      setIsTestPreviewOpen(false);
-                      setDecidedAction(null);
-                      setResponse({});
-                    }}>
-                    {t("close")}
-                  </Button>
+                <DialogClose
+                  color="secondary"
+                  onClick={() => {
+                    setIsTestPreviewOpen(false);
+                    setDecidedAction(null);
+                    setResponse({});
+                  }}>
+                  {t("close")}
                 </DialogClose>
                 <Button type="submit" data-testid="test-routing">
                   {t("test_routing")}

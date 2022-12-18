@@ -65,6 +65,7 @@ export const Select = <
 >({
   className,
   components,
+  styles,
   ...props
 }: SelectProps<Option, IsMulti, Group>) => {
   const reactSelectProps = React.useMemo(() => {
@@ -86,6 +87,7 @@ export const Select = <
             ? "var(--brand-color-dark-mode)"
             : "var(--brand-text-color)",
         }),
+        ...styles,
       }}
     />
   );

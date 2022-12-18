@@ -3,7 +3,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
-import { getPremiumPlanPrice } from "@calcom/app-store/stripepayment/lib/utils";
+import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import {
   hostedCal,
@@ -161,7 +161,7 @@ const getStripePremiumUsernameUrl = async ({
     customer: customer.id,
     line_items: [
       {
-        price: getPremiumPlanPrice(),
+        price: getPremiumMonthlyPlanPriceId(),
         quantity: 1,
       },
     ],

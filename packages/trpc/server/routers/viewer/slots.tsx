@@ -34,6 +34,11 @@ const getScheduleSchema = z
     // or list of users (for dynamic events)
     usernameList: z.array(z.string()).optional(),
     debug: z.boolean().optional(),
+    // to handle event types with multiple duration options
+    duration: z
+      .string()
+      .optional()
+      .transform((val) => val && parseInt(val)),
   })
   .refine(
     (data) => !!data.eventTypeId || !!data.usernameList,
@@ -133,6 +138,7 @@ async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeo
       },
       availability: {
         select: {
+          date: true,
           startTime: true,
           endTime: true,
           days: true,
@@ -222,11 +228,12 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   let currentSeats: CurrentSeats | undefined = undefined;
 
   /* We get all users working hours and busy slots */
-  const usersWorkingHoursAndBusySlots = await Promise.all(
+  const userAvailability = await Promise.all(
     eventType.users.map(async (currentUser) => {
       const {
         busy,
         workingHours,
+        dateOverrides,
         currentSeats: _currentSeats,
         timeZone,
       } = await getUserAvailability(
@@ -246,11 +253,14 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       return {
         timeZone,
         workingHours,
+        dateOverrides,
         busy,
       };
     })
   );
-  const workingHours = getAggregateWorkingHours(usersWorkingHoursAndBusySlots, eventType.schedulingType);
+  // flattens availability of multiple users
+  const dateOverrides = userAvailability.flatMap((availability) => availability.dateOverrides);
+  const workingHours = getAggregateWorkingHours(userAvailability, eventType.schedulingType);
   const computedAvailableSlots: Record<string, Slot[]> = {};
   const availabilityCheckProps = {
     eventLength: eventType.length,
@@ -277,10 +287,11 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     // get slots retrieves the available times for a given day
     const timeSlots = getTimeSlots({
       inviteeDate: currentCheckedTime,
-      eventLength: eventType.length,
+      eventLength: input.duration || eventType.length,
       workingHours,
+      dateOverrides,
       minimumBookingNotice: eventType.minimumBookingNotice,
-      frequency: eventType.slotInterval || eventType.length,
+      frequency: eventType.slotInterval || input.duration || eventType.length,
     });
 
     const endGetSlots = performance.now();
@@ -293,7 +304,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         : ("some" as const);
 
     const availableTimeSlots = timeSlots.filter(isTimeWithinBounds).filter((time) =>
-      usersWorkingHoursAndBusySlots[filterStrategy]((schedule) => {
+      userAvailability[filterStrategy]((schedule) => {
         const startCheckForAvailability = performance.now();
         const isAvailable = checkIfIsAvailable({ time, ...schedule, ...availabilityCheckProps });
         const endCheckForAvailability = performance.now();

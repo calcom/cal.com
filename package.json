@@ -23,6 +23,7 @@
     "deploy": "turbo run deploy",
     "dev:all": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/website\" --scope=\"@calcom/console\"",
     "dev:api": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/api\"",
+    "dev:api:console": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/api\" --scope=\"@calcom/console\"",
     "dev:console": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/console\"",
     "dev:swagger": "turbo run dev --scope=\"@calcom/api\" --scope=\"@calcom/swagger\"",
     "dev:website": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/website\"",
@@ -59,6 +60,7 @@
   },
   "devDependencies": {
     "@snaplet/copycat": "^0.3.0",
+    "@types/dompurify": "^2.4.0",
     "@types/jest": "^28.1.7",
     "dotenv-checker": "^1.1.5",
     "husky": "^8.0.1",
