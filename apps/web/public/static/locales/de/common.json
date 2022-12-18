@@ -282,7 +282,7 @@
   "error_end_time_next_day": "Die Endzeit darf nicht größer als 24 Stunden sein",
   "back_to_bookings": "Zurück zu den Buchungen",
   "free_to_pick_another_event_type": "Sie können jederzeit einen anderen Termin wählen.",
-  "cancelled": "Abgesagte",
+  "cancelled": "Abgesagt",
   "cancellation_successful": "Stornierung erfolgreich",
   "really_cancel_booking": "Möchten Sie wirklich stornieren?",
   "cannot_cancel_booking": "Sie können diese Buchung nicht stornieren",
