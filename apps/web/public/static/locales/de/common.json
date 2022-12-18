@@ -302,7 +302,7 @@
   "event_between_users": "{{eventName}} zwischen {{host}} und {{attendeeName}}",
   "bookings": "Buchungen",
   "bookings_description": "Sehen Sie anstehende und vergangene Veranstaltungen, die über Ihre Events gebucht wurden.",
-  "upcoming_bookings": "Sobald jemand einen Termin mit Ihnen bucht können Sie dies hier sehen.",
+  "upcoming_bookings": "Sobald jemand eine Zeit bei Ihnen bucht können Sie das hier sehen.",
   "recurring_bookings": "Sobald jemand einen wiederkehrenden Termin mit Ihnen bucht wird er hier erscheinen.",
   "past_bookings": "Ihre früheren Buchungen werden hier angezeigt.",
   "cancelled_bookings": "Ihre stornierten Buchungen werden hier angezeigt.",
