@@ -12,6 +12,7 @@ import {
 } from "react-select";
 
 import { classNames } from "@calcom/lib";
+
 import { Icon } from "../../../Icon";
 
 export const InputComponent = <
