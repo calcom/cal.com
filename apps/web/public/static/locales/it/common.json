@@ -1426,6 +1426,7 @@
   "disable_app": "Disabilita app",
   "disable_app_description": "La disattivazione di questa app potrebbe causare problemi con il modo in cui i tuoi utenti interagiscono con Cal",
   "edit_keys": "Modifica chiavi",
+  "admin_apps_description": "Abilita le app per la tua istanza di Cal",
   "no_available_apps": "Nessuna app disponibile",
   "no_available_apps_description": "Assicurarsi che ci siano delle applicazioni nella propria distribuzione in 'packages/app-store'",
   "no_apps": "Non ci sono applicazioni abilitate in questa istanza di Cal",

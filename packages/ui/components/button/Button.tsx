@@ -1,10 +1,10 @@
 import { cva, VariantProps } from "class-variance-authority";
 import Link, { LinkProps } from "next/link";
 import React, { forwardRef } from "react";
-import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
 import { applyStyleToMultipleVariants } from "@calcom/lib/cva";
+import { SVGComponent } from "@calcom/types/SVGComponent";
 import { Tooltip } from "@calcom/ui";
 
 type InferredVariantProps = VariantProps<typeof buttonClasses>;
@@ -13,9 +13,9 @@ export type ButtonBaseProps = {
   /** Action that happens when the button is clicked */
   onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   /**Left aligned icon*/
-  StartIcon?: Icon | React.ElementType;
+  StartIcon?: SVGComponent | React.ElementType;
   /**Right aligned icon */
-  EndIcon?: Icon;
+  EndIcon?: SVGComponent;
   shallow?: boolean;
   /**Tool tip used when icon size is set to small */
   tooltip?: string;

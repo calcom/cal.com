@@ -1,7 +1,7 @@
 import { MouseEvent, useState } from "react";
-import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
+import { SVGComponent } from "@calcom/types/SVGComponent";
 
 const stylesByVariant = {
   neutral: { background: "bg-gray-100 ", text: "!text-gray-800", hover: "hover:!bg-gray-200" },
@@ -14,7 +14,7 @@ export type BannerProps = {
   description?: string;
   variant: keyof typeof stylesByVariant;
   errorMessage?: string;
-  Icon?: Icon;
+  Icon?: SVGComponent;
   onDismiss: (event: MouseEvent<HTMLElement, globalThis.MouseEvent>) => void;
   onAction?: (event: MouseEvent<HTMLElement, globalThis.MouseEvent>) => void;
   actionText?: string;
