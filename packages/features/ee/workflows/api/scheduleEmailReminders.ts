@@ -7,6 +7,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import customTemplate, { VariablesType } from "../lib/reminders/templates/customTemplate";
 import emailReminderTemplate from "../lib/reminders/templates/emailReminderTemplate";
@@ -125,6 +126,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             location: reminder.booking?.location || "",
             additionalNotes: reminder.booking?.description,
             customInputs: reminder.booking?.customInputs,
+            meetingUrl: bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl,
           };
           const emailSubject = await customTemplate(
             reminder.workflowStep.emailSubject || "",
