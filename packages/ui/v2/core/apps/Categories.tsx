@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { ArrowRight } from "react-feather";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Icon } from "@calcom/ui";
 
 import { SkeletonText } from "../skeleton";
 import Slider from "./Slider";
@@ -44,7 +44,7 @@ export default function AppStoreCategories({
                 )}
                 <p className="text-sm text-gray-500">
                   {isLocaleReady ? t("number_apps", { count: category.count }) : <SkeletonText invisible />}{" "}
-                  <ArrowRight className="inline-block h-4 w-4" />
+                  <Icon.FiArrowRight className="inline-block h-4 w-4" />
                 </p>
               </div>
             </a>
