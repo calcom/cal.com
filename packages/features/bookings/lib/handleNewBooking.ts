@@ -1066,7 +1066,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     await scheduleWorkflowReminders(
       eventType.workflows,
       reqBody.smsReminderNumber as string | null,
-      evt,
+      { ...evt, ...{ metadata } },
       evt.requiresConfirmation || false,
       rescheduleUid ? true : false,
       true
