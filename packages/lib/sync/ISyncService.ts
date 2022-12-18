@@ -1,6 +1,3 @@
-// import { DeploymentType } from "@prisma/admin-client";
-import { User } from "@prisma/client";
-
 import logger from "@calcom/lib/logger";
 import { default as webPrisma } from "@calcom/prisma";
 
@@ -17,7 +14,8 @@ export type TeamInfoType = {
 };
 
 export type WebUserInfoType = UserInfo & {
-  plan: User["plan"];
+  /** All users are PRO now */
+  plan?: "PRO";
 };
 
 export type ConsoleUserInfoType = UserInfo & {

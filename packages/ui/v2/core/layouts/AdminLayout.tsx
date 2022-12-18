@@ -17,13 +17,13 @@ export default function AdminLayout({
   // Force redirect on component level
   useEffect(() => {
     if (session.data && session.data.user.role !== UserPermissionRole.ADMIN) {
-      router.replace("/settings");
+      router.replace("/settings/my-account/profile");
     }
   }, [session, router]);
 
   return (
     <SettingsLayout {...rest}>
-      <div className="mx-auto flex max-w-4xl flex-row divide-y divide-gray-200 md:px-12">
+      <div className="mx-auto flex max-w-4xl flex-row divide-y divide-gray-200">
         <div className="flex flex-1 [&>*]:flex-1">
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>

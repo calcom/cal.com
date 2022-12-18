@@ -120,9 +120,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
             <Button loading={mutation.isLoading} data-testid="add-form" type="submit">
               {t("continue")}
             </Button>
-            <DialogClose asChild>
-              <Button color="secondary">{t("cancel")}</Button>
-            </DialogClose>
+            <DialogClose />
           </div>
         </Form>
       </DialogContent>
@@ -137,7 +135,7 @@ export const FormActionsDropdown = ({ form, children }: { form: RoutingForm; chi
   return (
     <dropdownCtx.Provider value={{ dropdown: true }}>
       <Dropdown>
-        <DropdownMenuTrigger asChild>
+        <DropdownMenuTrigger data-testid="form-dropdown" asChild>
           <Button
             type="button"
             size="icon"
@@ -236,14 +234,31 @@ const actionsCtx = createContext({
 export function FormActionsProvider({ appUrl, children }: { appUrl: string; children: React.ReactNode }) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogFormId, setDeleteDialogFormId] = useState<string | null>(null);
-  const router = useRouter();
+  const utils = trpc.useContext();
 
   const toggleMutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
-    onError: () => {
-      showToast(`Something went wrong`, "error");
+    onMutate: async ({ id: formId, disabled }) => {
+      await utils.viewer.appRoutingForms.forms.cancel();
+      const previousValue = utils.viewer.appRoutingForms.forms.getData();
+      if (previousValue) {
+        const itemIndex = previousValue.findIndex(({ id }) => id === formId);
+        const prevValueTemp = [...previousValue];
+
+        if (itemIndex !== -1 && prevValueTemp[itemIndex] && disabled !== undefined) {
+          prevValueTemp[itemIndex].disabled = disabled;
+        }
+        utils.viewer.appRoutingForms.forms.setData(undefined, prevValueTemp);
+      }
+      return { previousValue };
     },
-    onSuccess: () => {
-      router.replace(router.asPath);
+    onSettled: () => {
+      utils.viewer.appRoutingForms.forms.invalidate();
+    },
+    onError: (err, value, context) => {
+      if (context?.previousValue) {
+        utils.viewer.appRoutingForms.forms.setData(undefined, context.previousValue);
+      }
+      showToast("Something went wrong", "error");
     },
   });
 

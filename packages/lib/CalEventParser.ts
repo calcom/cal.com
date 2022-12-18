@@ -123,21 +123,20 @@ export const getProviderName = (calEvent: CalendarEvent): string => {
   return "";
 };
 
-export const getManageLink = (calEvent: CalendarEvent) => {
-  return `
-${calEvent.organizer.language.translate("need_to_reschedule_or_cancel")}
-${getCancelLink(calEvent)}
-  `;
-};
-
 export const getUid = (calEvent: CalendarEvent): string => {
   return calEvent.uid ?? translator.fromUUID(uuidv5(JSON.stringify(calEvent), uuidv5.URL));
 };
 
+export const getManageLink = (calEvent: CalendarEvent) => {
+  return `
+${calEvent.organizer.language.translate("need_to_reschedule_or_cancel")}
+${WEBAPP_URL + "/booking/" + getUid(calEvent) + "?changes=true"}
+  `;
+};
+
 export const getCancelLink = (calEvent: CalendarEvent): string => {
   return (
-    WEBAPP_URL +
-    `/success?uid=${getUid(calEvent)}&cancel=true&allRemainingBookings=${!!calEvent.recurringEvent}`
+    WEBAPP_URL + `/booking/${getUid(calEvent)}?cancel=true&allRemainingBookings=${!!calEvent.recurringEvent}`
   );
 };
 

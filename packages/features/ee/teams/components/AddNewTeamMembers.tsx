@@ -77,7 +77,7 @@ const AddNewTeamMembersForm = ({ defaultValues, teamId }: { defaultValues: FormV
           inviteMemberMutation.mutate({
             teamId,
             language: i18n.language,
-            role: values.role.value,
+            role: values.role,
             usernameOrEmail: values.emailOrUsername,
             sendEmailInvitation: values.sendInviteEmail,
           });

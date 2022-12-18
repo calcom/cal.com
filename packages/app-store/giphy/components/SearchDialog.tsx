@@ -187,13 +187,12 @@ export const SearchDialog = (props: ISearchDialog) => {
         )}
         <DialogFooter>
           <DialogClose
+            color="minimal"
+            tabIndex={-1}
             onClick={() => {
               props.setIsOpenDialog(false);
-            }}
-            asChild>
-            <Button type="button" color="minimal" tabIndex={-1}>
-              {t("cancel")}
-            </Button>
+            }}>
+            {t("cancel")}
           </DialogClose>
 
           <Button

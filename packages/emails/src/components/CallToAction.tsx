@@ -1,30 +1,33 @@
 import { LinkIcon } from "./LinkIcon";
 
-export const CallToAction = (props: { label: string; href: string }) => (
+export const CallToAction = (props: { label: string; href: string; secondary?: boolean }) => (
   <p
     style={{
       display: "inline-block",
-      background: "#292929",
+      background: props.secondary ? "#FFFFFF" : "#292929",
+      border: props.secondary ? "1px solid #d1d5db" : "",
       color: "#ffffff",
       fontFamily: "Roboto, Helvetica, sans-serif",
-      fontSize: "16px",
+      fontSize: "14px",
       fontWeight: 500,
-      lineHeight: "120%",
+      lineHeight: "20px",
       margin: 0,
       textDecoration: "none",
       textTransform: "none",
-      padding: "10px 25px",
+      padding: "10px 16px",
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       msoPaddingAlt: "0px",
-      borderRadius: "3px",
+      borderRadius: "6px",
+      boxSizing: "border-box",
     }}>
     <a
-      style={{ color: "#FFFFFF", textDecoration: "none" }}
+      style={{ color: props.secondary ? "#292929" : "#FFFFFF", textDecoration: "none" }}
       href={props.href}
       target="_blank"
       rel="noreferrer">
-      {props.label} <LinkIcon />
+      {props.label}
+      <LinkIcon secondary />
     </a>
   </p>
 );

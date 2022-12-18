@@ -1,9 +1,11 @@
+import { GetServerSidePropsContext } from "next";
 import { useState } from "react";
 
 import { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/v2/LicenseRequired";
 import ApiKeyDialogForm from "@calcom/features/ee/api-keys/components/ApiKeyDialogForm";
 import ApiKeyListItem from "@calcom/features/ee/api-keys/components/ApiKeyListItem";
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -16,6 +18,8 @@ import {
   Meta,
   SkeletonLoader,
 } from "@calcom/ui";
+
+import { ssrInit } from "@server/lib/ssr";
 
 const ApiKeysView = () => {
   const { t } = useLocale();
@@ -43,7 +47,10 @@ const ApiKeysView = () => {
 
   return (
     <>
-      <Meta title="API Keys" description="API keys allow other apps to communicate with Cal.com" />
+      <Meta
+        title={t("api_keys")}
+        description={t("create_first_api_key_description", { appName: APP_NAME })}
+      />
 
       <LicenseRequired>
         <>
@@ -70,7 +77,7 @@ const ApiKeysView = () => {
               <EmptyScreen
                 Icon={Icon.FiLink}
                 headline={t("create_first_api_key")}
-                description={t("create_first_api_key_description")}
+                description={t("create_first_api_key_description", { appName: APP_NAME })}
                 buttonRaw={<NewApiKeyButton />}
               />
             )}
@@ -79,7 +86,7 @@ const ApiKeysView = () => {
       </LicenseRequired>
 
       <Dialog open={apiKeyModal} onOpenChange={setApiKeyModal}>
-        <DialogContent type="creation" useOwnActionButtons>
+        <DialogContent type="creation">
           <ApiKeyDialogForm handleClose={() => setApiKeyModal(false)} defaultValues={apiKeyToEdit} />
         </DialogContent>
       </Dialog>
@@ -88,5 +95,15 @@ const ApiKeysView = () => {
 };
 
 ApiKeysView.getLayout = getLayout;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
+};
 
 export default ApiKeysView;

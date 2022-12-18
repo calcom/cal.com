@@ -100,13 +100,7 @@ model Credential {
   // How to make it a required column?
   appId                String?
   destinationCalendars DestinationCalendar[]
-  invalid              Boolean?
-}
-
-enum UserPlan {
-  FREE
-  TRIAL
-  PRO
+  invalid              Boolean?              @default(false)
 }
 
 enum IdentityProvider {
@@ -170,7 +164,6 @@ model User {
   identityProviderId   String?
   availability         Availability[]
   invitedTo            Int?
-  plan                 UserPlan                @default(PRO)
   webhooks             Webhook[]
   brandColor           String                  @default("#292929")
   darkBrandColor       String                  @default("#fafafa")
@@ -193,6 +186,7 @@ model User {
   ownedEventTypes      EventType[]             @relation("owner")
   workflows            Workflow[]
   routingForms         App_RoutingForms_Form[] @relation("routing-form")
+  verifiedNumbers      VerifiedNumber[]
 
   @@map(name: "users")
 }
@@ -307,6 +301,8 @@ model Booking {
   smsReminderNumber     String?
   workflowReminders     WorkflowReminder[]
   scheduledJobs         String[]
+  /// @zod.custom(imports.bookingMetadataSchema)
+  metadata              Json?
 }
 
 model Schedule {
@@ -347,6 +343,8 @@ enum EventTypeCustomInputType {
   TEXTLONG @map("textLong")
   NUMBER   @map("number")
   BOOL     @map("bool")
+  RADIO    @map("radio")
+  PHONE    @map("phone")
 }
 
 model EventTypeCustomInput {
@@ -355,6 +353,8 @@ model EventTypeCustomInput {
   eventType   EventType                @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   label       String
   type        EventTypeCustomInputType
+  // @zod.custom(imports.customInputOptionSchema)
+  options     Json?
   required    Boolean
   placeholder String                   @default("")
 }
@@ -507,6 +507,7 @@ model App {
   credentials Credential[]
   Webhook     Webhook[]
   ApiKey      ApiKey[]
+  enabled     Boolean         @default(false)
 }
 
 model App_RoutingForms_Form {
@@ -562,18 +563,19 @@ enum WorkflowActions {
 }
 
 model WorkflowStep {
-  id                Int                @id @default(autoincrement())
-  stepNumber        Int
-  action            WorkflowActions
-  workflowId        Int
-  workflow          Workflow           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-  sendTo            String?
-  reminderBody      String?
-  emailSubject      String?
-  template          WorkflowTemplates  @default(REMINDER)
-  workflowReminders WorkflowReminder[]
-  numberRequired    Boolean?
-  sender            String?
+  id                        Int                @id @default(autoincrement())
+  stepNumber                Int
+  action                    WorkflowActions
+  workflowId                Int
+  workflow                  Workflow           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  sendTo                    String?
+  reminderBody              String?
+  emailSubject              String?
+  template                  WorkflowTemplates  @default(REMINDER)
+  workflowReminders         WorkflowReminder[]
+  numberRequired            Boolean?
+  sender                    String?
+  numberVerificationPending Boolean            @default(true)
 }
 
 model Workflow {
@@ -622,4 +624,11 @@ enum WorkflowTemplates {
 enum WorkflowMethods {
   EMAIL
   SMS
+}
+
+model VerifiedNumber {
+  id          Int    @id @default(autoincrement())
+  userId      Int
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phoneNumber String
 }

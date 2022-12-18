@@ -1,5 +1,8 @@
+import { GetServerSidePropsContext } from "next";
+import { useSession } from "next-auth/react";
 import { Controller, useForm } from "react-hook-form";
 
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -16,9 +19,12 @@ import {
   Switch,
 } from "@calcom/ui";
 
-const SkeletonLoader = () => {
+import { ssrInit } from "@server/lib/ssr";
+
+const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
+      <Meta title={title} description={description} />
       <div className="mt-6 mb-8 space-y-6 divide-y">
         <div className="flex items-center">
           <SkeletonButton className="mr-6 h-32 w-48 rounded-md p-5" />
@@ -40,7 +46,7 @@ const SkeletonLoader = () => {
 
 const AppearanceView = () => {
   const { t } = useLocale();
-
+  const session = useSession();
   const utils = trpc.useContext();
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
 
@@ -67,7 +73,7 @@ const AppearanceView = () => {
     },
   });
 
-  if (isLoading) return <SkeletonLoader />;
+  if (isLoading) return <SkeletonLoader title={t("appearance")} description={t("appearance_description")} />;
 
   if (!user) return null;
 
@@ -84,7 +90,7 @@ const AppearanceView = () => {
           theme: values.theme || null,
         });
       }}>
-      <Meta title="Appearance" description="Manage settings for your booking appearance" />
+      <Meta title={t("appearance")} description={t("appearance_description")} />
       <div className="mb-6 flex items-center text-sm">
         <div>
           <p className="font-semibold">{t("theme")}</p>
@@ -171,18 +177,19 @@ const AppearanceView = () => {
             <div className="flex w-full text-sm">
               <div className="mr-1 flex-grow">
                 <div className="flex items-center">
-                  <p className="mr-2 font-semibold">{t("disable_cal_branding")}</p>
+                  <p className="mr-2 font-semibold">{t("disable_cal_branding", { appName: APP_NAME })}</p>
                   <Badge variant="gray">{t("pro")}</Badge>
                 </div>
-                <p className="mt-0.5  text-gray-600">{t("removes_cal_branding")}</p>
+                <p className="mt-0.5  text-gray-600">{t("removes_cal_branding", { appName: APP_NAME })}</p>
               </div>
               <div className="flex-none">
                 <Switch
                   id="hideBranding"
+                  disabled={!session.data?.user.belongsToActiveTeam}
                   onCheckedChange={(checked) =>
                     formMethods.setValue("hideBranding", checked, { shouldDirty: true })
                   }
-                  checked={value}
+                  checked={!session.data?.user.belongsToActiveTeam ? false : value}
                 />
               </div>
             </div>
@@ -202,6 +209,16 @@ const AppearanceView = () => {
 };
 
 AppearanceView.getLayout = getLayout;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
+};
 
 export default AppearanceView;
 interface ThemeLabelProps {

@@ -1,5 +1,4 @@
 import React, { ReactNode } from "react";
-import { Icon } from "react-feather";
 import { IconType } from "react-icons";
 
 import { SVGComponent } from "@calcom/types/SVGComponent";
@@ -14,7 +13,7 @@ export default function EmptyScreen({
   buttonOnClick,
   buttonRaw,
 }: {
-  Icon: SVGComponent | Icon | IconType;
+  Icon: SVGComponent | IconType;
   headline: string;
   description: string | React.ReactElement;
   buttonText?: string;
@@ -30,10 +29,10 @@ export default function EmptyScreen({
           <Icon className="inline-block h-10 w-10 stroke-[1.3px] dark:bg-gray-900 dark:text-gray-600" />
         </div>
         <div className="flex max-w-[420px] flex-col items-center">
-          <h2 className="text-semibold font-cal mt-6 text-xl dark:text-gray-300">{headline}</h2>
-          <p className="mt-3 mb-8 text-center text-sm font-normal leading-6 text-gray-700 dark:text-gray-300">
+          <h2 className="text-semibold font-cal mt-6 text-center text-xl dark:text-gray-300">{headline}</h2>
+          <div className="mt-3 mb-8 text-center text-sm font-normal leading-6 text-gray-700 dark:text-gray-300">
             {description}
-          </p>
+          </div>
           {buttonOnClick && buttonText && <Button onClick={(e) => buttonOnClick(e)}>{buttonText}</Button>}
           {buttonRaw}
         </div>

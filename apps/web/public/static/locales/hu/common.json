@@ -170,7 +170,7 @@
   "starting": "Kezdés",
   "length": "Hossz",
   "delete_account": "Fiók törlése",
-  "delete_account_confirmation_message": "Biztosan törölnéd a Cal.com fiókod? Senki akinek elküldted a fiókod linkjét nem fog tudni időpontot foglalni, az eddig elmentett beállításaid is el fognak veszni.",
+  "delete_account_confirmation_message": "Biztosan törölnéd a {{appName}} fiókod? Senki akinek elküldted a fiókod linkjét nem fog tudni időpontot foglalni, az eddig elmentett beállításaid is el fognak veszni.",
   "apps": "Alkalmazások",
   "app_store": "App Store",
   "settings": "Beállítások",
