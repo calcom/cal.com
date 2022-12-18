@@ -97,7 +97,10 @@
       <button data-cal-namespace="popupTeamLinkLightTheme" data-cal-config='{"theme":"light"}' data-cal-link="team/seeded-team/collective-seeded-team-event">Book with Test Team[Light Theme]</button>
       <button data-cal-namespace="popupTeamLinkDarkTheme" data-cal-config='{"theme":"dark"}' data-cal-link="team/seeded-team/collective-seeded-team-event">Book with Test Team[Dark Theme]</button>
       <button data-cal-namespace="popupTeamLinksList" data-cal-link="team/seeded-team/">See Team Links [Auto Theme]</button>
-      <button data-cal-namespace="popupReschedule" data-cal-link="reschedule/qm3kwt3aTnVD7vmP9tiT2f">Reschedule Event[Auto Theme]</button>
+      <script>
+        let popupRescheduleId = new URL(document.URL).searchParams.get("popupRescheduleId") || "qm3kwt3aTnVD7vmP9tiT2f"
+        document.write(`<button data-cal-namespace="popupReschedule" data-cal-link="reschedule/${popupRescheduleId}">Reschedule Event[Auto Theme]</button>`)
+      </script>
       <button data-cal-namespace="popupPaidEvent" data-cal-link="pro/paid">Book Paid Event [Auto Theme]</button>
       <button data-cal-namespace="popupHideEventTypeDetails" data-cal-link="free/30min">Book Free Event [Auto Theme][uiConfig.hideEventTypeDetails=true]</button>
       <button data-cal-namespace="routingFormAuto" data-cal-link="forms/948ae412-d995-4865-875a-48302588de03">Book through Routing Form [Auto Theme]</button>
