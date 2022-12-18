@@ -1,9 +1,9 @@
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import { Icon } from "@calcom/ui";
 
 import classNames from "@calcom/lib/classNames";
 import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
+import { Icon } from "@calcom/ui";
 
 import { Maybe } from "@trpc/server";
 
