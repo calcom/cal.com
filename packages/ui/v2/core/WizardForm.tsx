@@ -42,7 +42,7 @@ function WizardForm<T extends DefaultStep>(props: {
           <p className="text-sm text-gray-500">{currentStep.description}</p>
         </div>
 
-        <div className="print:p-none px-4 py-5 sm:p-6">{currentStep.content}</div>
+        <div className="print:p-none max-w-3xl px-4 py-5 sm:p-6">{currentStep.content}</div>
         {!props.disableNavigation && (
           <>
             {currentStep.enabled !== false && (
