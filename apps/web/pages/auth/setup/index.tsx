@@ -46,11 +46,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const { req } = context;
   const session = await getSession({ req });
 
-
   if (session?.user.role && session?.user.role !== UserPermissionRole.ADMIN) {
     return {
       redirect: {
-        destination: `/400`,
+        destination: `/404`,
         permanent: false,
       },
     };
