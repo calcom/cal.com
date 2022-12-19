@@ -258,7 +258,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
           const calLink = `${CAL_URL}/${embedLink}`;
           return (
             <li key={type.id}>
-              <div className="flex w-full items-center justify-between hover:bg-neutral-50">
+              <div className="flex w-full items-center justify-between hover:bg-gray-50">
                 <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                   {!(firstItem && firstItem.id === type.id) && (
                     <button
