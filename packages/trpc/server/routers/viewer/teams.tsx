@@ -21,6 +21,7 @@ import {
   closeComUpsertTeamUser,
 } from "@calcom/lib/sync/SyncServiceManager";
 import { availabilityUserSelect } from "@calcom/prisma";
+import { User } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
