@@ -160,7 +160,7 @@ function EventTypeSingleLayout({
         name: "webhooks",
         href: `/event-types/${eventType.id}?tabName=webhooks`,
         icon: Icon.FiLink,
-        info: `${enabledWorkflowsNumber} ${t("active")}`,
+        info: `${eventType.webhooks.filter((webhook) => webhook.active).length} ${t("active")}`,
       });
     }
     return navigation;

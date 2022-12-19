@@ -458,6 +458,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       webhooks: {
         select: {
           subscriberUrl: true,
+          active: true,
         },
       },
       workflows: {
