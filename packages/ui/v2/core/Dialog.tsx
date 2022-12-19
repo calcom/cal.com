@@ -1,10 +1,10 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useRouter } from "next/router";
-import React, { forwardRef, HTMLProps, ReactNode, useState } from "react";
-import { Icon } from "react-feather";
+import React, { ReactNode, useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { SVGComponent } from "@calcom/types/SVGComponent";
 
 import { Button, ButtonProps } from "../../components/button";
 
@@ -32,18 +32,6 @@ export function Dialog(props: DialogProps) {
           delete router.query[queryParam];
         });
       }
-      router.push(
-        {
-          // This is temporary till we are doing rewrites to /v2.
-          // If not done, opening/closing a modalbox can take the user to /v2 paths.
-          pathname: router.pathname.replace("/v2", ""),
-          query: {
-            ...router.query,
-          },
-        },
-        undefined,
-        { shallow: true }
-      );
       setOpen(open);
     };
     // handles initial state
@@ -70,7 +58,7 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
   description?: string | JSX.Element | undefined;
   closeText?: string;
   actionDisabled?: boolean;
-  Icon?: Icon;
+  Icon?: SVGComponent;
 };
 
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
@@ -88,9 +76,9 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               : props.size == "lg"
               ? "p-8 sm:max-w-[70rem]"
               : props.size == "md"
-              ? "p-8 sm:max-w-[40rem]"
+              ? "p-8 sm:max-w-[48rem]"
               : "p-8 sm:max-w-[35rem]",
-            "max-h-[560px] overflow-visible overscroll-auto md:h-auto md:max-h-[inherit]",
+            "overflow-y-auto overscroll-auto md:h-auto md:max-h-[inherit]",
             `${props.className || ""}`
           )}
           ref={forwardedRef}>

@@ -5,7 +5,9 @@ import { Dispatch, SetStateAction, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import {
   Button,
   Checkbox,
@@ -22,7 +24,6 @@ import {
 } from "@calcom/ui";
 
 import { WORKFLOW_ACTIONS } from "../lib/constants";
-import { getWorkflowActionOptions } from "../lib/getOptions";
 import { onlyLettersNumbersSpaces } from "../pages/workflow";
 
 interface IAddActionDialog {
@@ -49,7 +50,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(false);
   const [isSenderIdNeeded, setIsSenderIdNeeded] = useState(false);
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(false);
-  const actionOptions = getWorkflowActionOptions(t);
+  const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
 
   const formSchema = z.object({
     action: z.enum(WORKFLOW_ACTIONS),
@@ -68,7 +69,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
     mode: "onSubmit",
     defaultValues: {
       action: WorkflowActions.EMAIL_HOST,
-      sender: "Cal",
+      sender: SENDER_ID,
     },
     resolver: zodResolver(formSchema),
   });
@@ -100,6 +101,8 @@ export const AddActionDialog = (props: IAddActionDialog) => {
     }
   };
 
+  if (!actionOptions) return null;
+
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent type="creation" title={t("add_action")}>
@@ -130,6 +133,11 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                         defaultValue={actionOptions[0]}
                         onChange={handleSelectAction}
                         options={actionOptions}
+                        isOptionDisabled={(option: {
+                          label: string;
+                          value: WorkflowActions;
+                          disabled: boolean;
+                        }) => option.disabled}
                       />
                     );
                   }}
@@ -166,7 +174,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                   <TextField
                     label={t("sender_id")}
                     type="text"
-                    placeholder="Cal"
+                    placeholder={SENDER_ID}
                     maxLength={11}
                     {...form.register(`sender`)}
                   />

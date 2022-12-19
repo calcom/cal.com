@@ -53,6 +53,8 @@ export default async function handler(req: NextApiRequest) {
     interFontMedium,
   ]);
   const ogConfig = {
+    width: 1200,
+    height: 630,
     fonts: [
       { name: "inter", data: interFontData, weight: 400 },
       { name: "inter", data: interFontMediumData, weight: 500 },
@@ -71,7 +73,7 @@ export default async function handler(req: NextApiRequest) {
         meetingImage: searchParams.get("meetingImage"),
         imageType,
       });
-      return new ImageResponse(
+      const img = new ImageResponse(
         (
           <Meeting
             title={title}
@@ -80,7 +82,9 @@ export default async function handler(req: NextApiRequest) {
           />
         ),
         ogConfig
-      );
+      ) as { body: Buffer };
+
+      return new Response(img.body, { status: 200 });
     }
     case "app": {
       const { name, description, slug } = appSchema.parse({
@@ -89,7 +93,11 @@ export default async function handler(req: NextApiRequest) {
         slug: searchParams.get("slug"),
         imageType,
       });
-      return new ImageResponse(<App name={name} description={description} slug={slug} />, ogConfig);
+      const img = new ImageResponse(<App name={name} description={description} slug={slug} />, ogConfig) as {
+        body: Buffer;
+      };
+
+      return new Response(img.body, { status: 200 });
     }
 
     case "generic": {
@@ -99,7 +107,11 @@ export default async function handler(req: NextApiRequest) {
         imageType,
       });
 
-      return new ImageResponse(<Generic title={title} description={description} />, ogConfig);
+      const img = new ImageResponse(<Generic title={title} description={description} />, ogConfig) as {
+        body: Buffer;
+      };
+
+      return new Response(img.body, { status: 200 });
     }
 
     default:

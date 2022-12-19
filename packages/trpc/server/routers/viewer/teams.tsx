@@ -1,4 +1,4 @@
-import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
+import { MembershipRole, Prisma } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 
@@ -8,8 +8,9 @@ import { sendTeamInviteEmail } from "@calcom/emails";
 import {
   cancelTeamSubscriptionFromStripe,
   purchaseTeamSubscription,
+  updateQuantitySubscriptionFromStripe,
 } from "@calcom/features/ee/teams/lib/payments";
-import { HOSTED_CAL_FEATURES, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTeamWithMembers, isTeamAdmin, isTeamMember, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import slugify from "@calcom/lib/slugify";
@@ -45,10 +46,8 @@ export const viewerTeamsRouter = router({
         ...team,
         membership: {
           role: membership?.role as MembershipRole,
-          isMissingSeat: membership?.plan === UserPlan.FREE,
           accepted: membership?.accepted,
         },
-        requiresUpgrade: HOSTED_CAL_FEATURES ? !!team.members.find((m) => m.plan !== UserPlan.PRO) : false,
       };
     }),
   // Returns teams I a member of
@@ -244,8 +243,7 @@ export const viewerTeamsRouter = router({
 
       // Sync Services
       closeComDeleteTeamMembership(membership.user);
-      // @TODO: Update with new logic
-      // if (HOSTED_CAL_FEATURES) await removeSeat(ctx.user.id, input.teamId, input.memberId);
+      if (IS_TEAM_BILLING_ENABLED) await updateQuantitySubscriptionFromStripe(input.teamId);
     }),
   inviteMember: authedProcedure
     .input(
@@ -356,13 +354,7 @@ export const viewerTeamsRouter = router({
           });
         }
       }
-
-      // @TODO: Update with new logic
-      // try {
-      //   if (HOSTED_CAL_FEATURES) await addSeat(ctx.user.id, team.id, inviteeUserId);
-      // } catch (e) {
-      //   console.log(e);
-      // }
+      if (IS_TEAM_BILLING_ENABLED) await updateQuantitySubscriptionFromStripe(input.teamId);
     }),
   acceptOrLeave: authedProcedure
     .input(
@@ -393,10 +385,6 @@ export const viewerTeamsRouter = router({
             where: { teamId: input.teamId, role: MembershipRole.OWNER },
             include: { team: true },
           });
-
-          // TODO: disable if not hosted by Cal
-          // @TODO: Update with new logic
-          // if (teamOwner) await removeSeat(teamOwner.userId, input.teamId, ctx.user.id);
 
           const membership = await ctx.prisma.membership.delete({
             where: {

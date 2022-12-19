@@ -167,7 +167,6 @@ const loggedInViewerRouter = router({
       identityProvider: user.identityProvider,
       brandColor: user.brandColor,
       darkBrandColor: user.darkBrandColor,
-      plan: user.plan,
       away: user.away,
       bio: user.bio,
       weekStart: user.weekStart,
@@ -306,6 +305,7 @@ const loggedInViewerRouter = router({
 
     const userCredentials = await prisma.credential.findMany({
       where: {
+        userId: ctx.user.id,
         app: {
           categories: { has: AppCategories.calendar },
           enabled: true,
@@ -647,7 +647,6 @@ const loggedInViewerRouter = router({
           email: true,
           metadata: true,
           name: true,
-          plan: true,
           createdDate: true,
         },
       });

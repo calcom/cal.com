@@ -1,9 +1,9 @@
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import { Check } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
 import { defaultAvatarSrc } from "@calcom/lib/defaultAvatarImage";
+import { Icon } from "@calcom/ui";
 
 import { Maybe } from "@trpc/server";
 
@@ -47,7 +47,7 @@ export function Avatar(props: AvatarProps) {
             size === "lg" ? "h-5 w-5" : "h-2 w-2"
           )}>
           <div className="flex h-full items-center justify-center p-[2px]">
-            {size === "lg" && <Check className="" />}
+            {size === "lg" && <Icon.FiCheck className="" />}
           </div>
         </div>
       )}

@@ -1,4 +1,4 @@
-import { BookingStatus, MembershipRole, Prisma, UserPermissionRole, UserPlan } from "@prisma/client";
+import { BookingStatus, MembershipRole, Prisma, UserPermissionRole } from "@prisma/client";
 import { uuid } from "short-uuid";
 
 import dailyMeta from "@calcom/app-store/dailyvideo/_metadata";
@@ -16,7 +16,6 @@ async function createUserAndEventType(opts: {
     email: string;
     password: string;
     username: string;
-    plan: UserPlan;
     name: string;
     completedOnboarding?: boolean;
     timeZone?: string;
@@ -176,7 +175,6 @@ async function main() {
       password: "delete-me",
       username: "delete-me",
       name: "delete-me",
-      plan: "FREE",
     },
     eventTypes: [],
   });
@@ -187,7 +185,6 @@ async function main() {
       password: "onboarding",
       username: "onboarding",
       name: "onboarding",
-      plan: "TRIAL",
       completedOnboarding: false,
     },
     eventTypes: [],
@@ -199,7 +196,6 @@ async function main() {
       password: "free-first-hidden",
       username: "free-first-hidden",
       name: "Free First Hidden Example",
-      plan: "FREE",
     },
     eventTypes: [
       {
@@ -221,7 +217,6 @@ async function main() {
       name: "Pro Example",
       password: "pro",
       username: "pro",
-      plan: "PRO",
     },
     eventTypes: [
       {
@@ -445,7 +440,6 @@ async function main() {
       password: "trial",
       username: "trial",
       name: "Trial Example",
-      plan: "TRIAL",
     },
     eventTypes: [
       {
@@ -467,7 +461,6 @@ async function main() {
       password: "free",
       username: "free",
       name: "Free Example",
-      plan: "FREE",
     },
     eventTypes: [
       {
@@ -489,7 +482,6 @@ async function main() {
       password: "usa",
       username: "usa",
       name: "USA Timezone Example",
-      plan: "FREE",
       timeZone: "America/Phoenix",
     },
     eventTypes: [
@@ -507,7 +499,6 @@ async function main() {
       password: "teamfree",
       username: "teamfree",
       name: "Team Free Example",
-      plan: "FREE",
     },
     eventTypes: [],
   });
@@ -518,7 +509,6 @@ async function main() {
       password: "teampro",
       username: "teampro",
       name: "Team Pro Example",
-      plan: "PRO",
     },
     eventTypes: [],
   });
@@ -530,7 +520,6 @@ async function main() {
       password: "ADMINadmin2022!",
       username: "admin",
       name: "Admin Example",
-      plan: "PRO",
       role: "ADMIN",
     },
     eventTypes: [],
@@ -542,7 +531,6 @@ async function main() {
       password: "teampro2",
       username: "teampro2",
       name: "Team Pro Example 2",
-      plan: "PRO",
     },
     eventTypes: [],
   });
@@ -553,7 +541,6 @@ async function main() {
       password: "teampro3",
       username: "teampro3",
       name: "Team Pro Example 3",
-      plan: "PRO",
     },
     eventTypes: [],
   });
@@ -564,7 +551,6 @@ async function main() {
       password: "teampro4",
       username: "teampro4",
       name: "Team Pro Example 4",
-      plan: "PRO",
     },
     eventTypes: [],
   });
