@@ -1,9 +1,9 @@
 import "react-calendar/dist/Calendar.css";
 import "react-date-picker/dist/DatePicker.css";
 import PrimitiveDatePicker from "react-date-picker/dist/entry.nostyle";
-import { Calendar } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
+import { Icon } from "@calcom/ui";
 
 type Props = {
   date: Date;
@@ -22,7 +22,7 @@ const DatePicker = ({ minDate, disabled, date, onDatesChange, className }: Props
       )}
       calendarClassName="rounded-md"
       clearIcon={null}
-      calendarIcon={<Calendar className="h-5 w-5 rounded-md text-gray-500" />}
+      calendarIcon={<Icon.FiCalendar className="h-5 w-5 rounded-md text-gray-500" />}
       value={date}
       minDate={minDate}
       disabled={disabled}
