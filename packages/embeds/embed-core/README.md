@@ -18,7 +18,7 @@ yarn dev
 
 ## Running Tests
 
-Ensure that the main App is running on port 3000 (e.g. yarn dx) already and then run the following command:
+Ensure that the main App is running on port 3000 (e.g. yarn dx) already. Also ensure dev server for embed-core is running and then run the following command:
 Start the server on 3100 port
 
 ```bash
@@ -30,6 +30,8 @@ And from another terminal you can run the following command to execute tests:
 ```bash
 yarn embed-tests-quick
 ```
+
+Note: `getEmbedIframe` and `addEmbedListeners` work as a team but they only support opening up embed in a fresh load. Opening an embed closing it and then opening another embed isn't supported yet. 
 
 ## Shipping to Production
 
