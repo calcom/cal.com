@@ -275,11 +275,6 @@ function BookingListItem(booking: BookingItemProps) {
                 {booking.eventType.team.name}
               </Badge>
             )}
-            {!!booking?.eventType?.price && !booking.paid && (
-              <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
-                {t("pending_payment")}
-              </Badge>
-            )}
             {booking.paid && (
               <Badge className="ltr:mr-2 rtl:ml-2" variant="green">
                 {t("paid")}
@@ -343,7 +338,9 @@ function BookingListItem(booking: BookingItemProps) {
               <span> </span>
 
               {!!booking?.eventType?.price && !booking.paid && (
-                <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">Pending payment</Tag>
+                <Badge className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex" variant="orange">
+                  {t("pending_payment")}
+                </Badge>
               )}
             </div>
             {booking.description && (
@@ -528,15 +525,6 @@ const DisplayAttendees = ({
         </>
       )}
     </div>
-  );
-};
-
-const Tag = ({ children, className = "" }: React.PropsWithChildren<{ className?: string }>) => {
-  return (
-    <span
-      className={`inline-flex items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ${className}`}>
-      {children}
-    </span>
   );
 };
 
