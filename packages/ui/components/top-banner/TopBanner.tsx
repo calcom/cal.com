@@ -4,6 +4,8 @@ import classNames from "classnames";
 import noop from "lodash/noop";
 import { ReactNode } from "react";
 
+import { Icon } from "@calcom/ui";
+
 export type TopBannerProps = {
   text: string;
   variant?: keyof typeof variantClassName;
@@ -23,17 +25,20 @@ export function TopBanner(props: TopBannerProps) {
     <div
       data-testid="banner"
       className={classNames(
-        "flex min-h-[40px] w-full items-start justify-between gap-8 bg-gray-50 py-2 px-4 text-center lg:items-center",
+        "flex min-h-[40px] w-full items-start justify-between gap-8 py-2 px-4 text-center lg:items-center",
         variantClassName[variant]
       )}>
       <div className="flex flex-1 flex-col items-start justify-center gap-2 p-1 lg:flex-row lg:items-center">
         <p className="flex flex-col items-start justify-center gap-2 text-left font-sans text-sm font-medium leading-4 text-gray-900 lg:flex-row lg:items-center">
-          {["warning", "error"].includes(variant) && (
-            <ExclamationIcon className="h-5 w-5 text-black" aria-hidden="true" />
+          {variant === "error" && (
+            <Icon.FiAlertTriangle className="h-4 w-4 stroke-[2.5px] text-black" aria-hidden="true" />
+          )}
+          {variant === "warning" && (
+            <Icon.FiInfo className="h-4 w-4 stroke-[2.5px] text-black" aria-hidden="true" />
           )}
           {text}
         </p>
-        {actions && <div className="text-sm">{actions}</div>}
+        {actions && <div className="text-sm font-medium">{actions}</div>}
       </div>
       {typeof onClose === "function" && (
         <button
