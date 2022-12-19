@@ -392,7 +392,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 selectedCustomInput={selectedCustomInput}
                 onSubmit={(values) => {
                   const customInput: CustomInputParsed = {
-                    id: Math.floor(Math.random() * 10000),
+                    id: -1 * Math.floor(Math.random() * 10000),
                     eventTypeId: -1,
                     label: values.label,
                     placeholder: values.placeholder,
