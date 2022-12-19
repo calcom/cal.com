@@ -83,7 +83,6 @@ export function useTypedQuery<T extends z.Schema>(schema: T) {
       : NonNullable<InferedSchema[J]>
   ) {
     const existingValue = parsedQuery[key];
-    console.log(existingValue);
     const newValue = existingValue.filter((item: InferedSchema[J][number]) => item !== value);
     if (Array.isArray(existingValue) && newValue.length > 0) {
       setQuery(key, value);
