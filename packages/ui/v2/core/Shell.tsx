@@ -177,7 +177,6 @@ type LayoutProps = {
   children: ReactNode;
   CTA?: ReactNode;
   large?: boolean;
-  SettingsSidebarContainer?: ReactNode;
   MobileNavigationContainer?: ReactNode;
   SidebarContainer?: ReactNode;
   TopNavContainer?: ReactNode;
@@ -540,7 +539,7 @@ const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMor
   Record<string, NavigationItemType[]>
 >(
   (items, item, index) => {
-    // We filter out the "more" separator in desktop navigation
+    // We filter out the "more" separator in` desktop navigation
     if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
     // Items for mobile bottom navigation
     if (index < moreSeparatorIndex + 1 && !item.onlyDesktop) items.mobileNavigationBottomItems.push(item);
@@ -852,31 +851,15 @@ export function ShellMain(props: LayoutProps) {
   );
 }
 
-const SettingsSidebarContainerDefault = () => null;
-
 function MainContainer({
-  SettingsSidebarContainer: SettingsSidebarContainerProp = <SettingsSidebarContainerDefault />,
   MobileNavigationContainer: MobileNavigationContainerProp = <MobileNavigationContainer />,
   TopNavContainer: TopNavContainerProp = <TopNavContainer />,
   ...props
 }: LayoutProps) {
-  const [sideContainerOpen, setSideContainerOpen] = props.drawerState || [false, noop];
-
   return (
     <main className="relative z-0 flex-1 bg-white focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
-      {/* The following is used for settings navigation on medium and smaller screens */}
-      <div
-        className={classNames(
-          "overflow-none fixed z-40 m-0 h-screen w-screen overscroll-none bg-black opacity-50",
-          sideContainerOpen ? "" : "hidden"
-        )}
-        onClick={() => {
-          setSideContainerOpen(false);
-        }}
-      />
-      {SettingsSidebarContainerProp}
       <div className="max-w-full px-4 py-2 lg:py-8 lg:px-12">
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
