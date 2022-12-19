@@ -1,3 +1,4 @@
+import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 
 import classNames from "@calcom/lib/classNames";
@@ -18,9 +19,13 @@ function WizardForm<T extends DefaultStep>(props: {
   steps: T[];
   disableNavigation?: boolean;
   containerClassname?: string;
+  t?: TFunction;
 }) {
   const { href, steps } = props;
-  const { t } = useLocale();
+  let { t } = useLocale();
+  if (props.t) {
+    t = props.t;
+  }
   const router = useRouter();
   const step = parseInt((router.query.step as string) || "1");
   const currentStep = steps[step - 1];
@@ -42,7 +47,7 @@ function WizardForm<T extends DefaultStep>(props: {
           <p className="text-sm text-gray-500">{currentStep.description}</p>
         </div>
 
-        <div className="print:p-none px-4 py-5 sm:p-6">{currentStep.content}</div>
+        <div className="print:p-none max-w-3xl px-4 py-5 sm:p-6">{currentStep.content}</div>
         {!props.disableNavigation && (
           <>
             {currentStep.enabled !== false && (
@@ -63,10 +68,7 @@ function WizardForm<T extends DefaultStep>(props: {
                   type="submit"
                   color="primary"
                   form={`wizard-step-${step}`}
-                  className="relative ml-2"
-                  onClick={() => {
-                    setStep(step + 1);
-                  }}>
+                  className="relative ml-2">
                   {step < steps.length ? t("next_step_text") : t("finish")}
                 </Button>
               </div>
@@ -76,7 +78,7 @@ function WizardForm<T extends DefaultStep>(props: {
       </div>
       {!props.disableNavigation && (
         <div className="print:hidden">
-          <Stepper href={href} step={step} steps={steps} disableSteps />
+          <Stepper href={href} step={step} steps={steps} disableSteps t={t} />
         </div>
       )}
     </div>

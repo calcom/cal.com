@@ -3,6 +3,7 @@
     Don't modify this file manually.
 **/
 export const apiHandlers = {
+  amie: import("./amie/api"),
   applecalendar: import("./applecalendar/api"),
   around: import("./around/api"),
   caldavcalendar: import("./caldavcalendar/api"),
