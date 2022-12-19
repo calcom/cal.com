@@ -36,6 +36,7 @@ import { EventLimitsTab } from "@components/eventtype/EventLimitsTab";
 import { EventRecurringTab } from "@components/eventtype/EventRecurringTab";
 import { EventSetupTab } from "@components/eventtype/EventSetupTab";
 import { EventTeamTab } from "@components/eventtype/EventTeamTab";
+import { EventTeamWebhooksTab } from "@components/eventtype/EventTeamWebhooksTab";
 import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
 import EventWorkflowsTab from "@components/eventtype/EventWorkfowsTab";
 
@@ -93,7 +94,17 @@ export type CustomInputParsed = typeof customInputSchema._output;
 
 const querySchema = z.object({
   tabName: z
-    .enum(["setup", "availability", "apps", "limits", "recurring", "team", "advanced", "workflows"])
+    .enum([
+      "setup",
+      "availability",
+      "apps",
+      "limits",
+      "recurring",
+      "team",
+      "advanced",
+      "workflows",
+      "webhooks",
+    ])
     .optional()
     .default("setup"),
 });
@@ -235,6 +246,14 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       <EventWorkflowsTab
         eventType={eventType}
         workflows={eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow)}
+      />
+    ),
+    webhooks: (
+      <EventTeamWebhooksTab
+        eventType={eventType}
+        teamMembers={teamMembers}
+        team={team}
+        currentUserMembership={props.currentUserMembership}
       />
     ),
   } as const;
@@ -436,6 +455,11 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       destinationCalendar: true,
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
+      webhooks: {
+        select: {
+          subscriberUrl: true,
+        },
+      },
       workflows: {
         include: {
           workflow: {
