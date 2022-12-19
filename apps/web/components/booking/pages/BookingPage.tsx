@@ -593,7 +593,7 @@ const BookingPage = ({
                   </div>
                 </div>
                 <>
-                  {rescheduleUid ? (
+                  {rescheduleUid && booking?.location ? (
                     <div className="mb-4">
                       <span className="block text-sm font-medium text-gray-700 dark:text-white">
                         {t("location")}
