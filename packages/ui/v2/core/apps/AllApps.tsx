@@ -2,12 +2,13 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Credential } from "@prisma/client";
 import { useRouter } from "next/router";
 import { UIEvent, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight } from "react-feather";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App } from "@calcom/types/App";
+import { Icon } from "@calcom/ui";
 
+import EmptyScreen from "../EmptyScreen";
 import AppCard from "./AppCard";
 
 export function useShouldShowArrows() {
@@ -36,14 +37,15 @@ export function useShouldShowArrows() {
   return { ref, calculateScroll, leftVisible: showArrowScroll.left, rightVisible: showArrowScroll.right };
 }
 
-type AllAppsPropsType = { apps: (App & { credentials: Credential[] | undefined })[] };
+type AllAppsPropsType = { apps: (App & { credentials: Credential[] | undefined })[]; searchText?: string };
 
 interface CategoryTabProps {
   selectedCategory: string | null;
   categories: string[];
+  searchText?: string;
 }
 
-function CategoryTab({ selectedCategory, categories }: CategoryTabProps) {
+function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabProps) {
   const { t } = useLocale();
   const router = useRouter();
   const { ref, calculateScroll, leftVisible, rightVisible } = useShouldShowArrows();
@@ -60,17 +62,19 @@ function CategoryTab({ selectedCategory, categories }: CategoryTabProps) {
   };
   return (
     <div className="relative mb-4 flex flex-col justify-between lg:flex-row lg:items-center">
-      <h2 className="text-lg font-semibold text-gray-900 ">
-        {t("explore_apps", {
-          category:
-            (selectedCategory && selectedCategory[0].toUpperCase() + selectedCategory.slice(1)) ||
-            t("all_apps"),
-        })}
+      <h2 className="hidden text-lg font-semibold text-gray-900 sm:block">
+        {searchText
+          ? t("search")
+          : t("explore_apps", {
+              category:
+                (selectedCategory && selectedCategory[0].toUpperCase() + selectedCategory.slice(1)) ||
+                t("all_apps"),
+            })}
       </h2>
       {leftVisible && (
         <button onClick={handleLeft} className="absolute top-9 flex md:left-1/2 md:-top-1">
           <div className="flex h-12 w-5 items-center justify-end bg-white">
-            <ChevronLeft className="h-4 w-4 text-gray-500" />
+            <Icon.FiChevronLeft className="h-4 w-4 text-gray-500" />
           </div>
           <div className="flex h-12 w-5 bg-gradient-to-l from-transparent to-white" />
         </button>
@@ -113,7 +117,7 @@ function CategoryTab({ selectedCategory, categories }: CategoryTabProps) {
         <button onClick={handleRight} className="absolute top-9 right-0 flex md:-top-1">
           <div className="flex h-12 w-5 bg-gradient-to-r from-transparent to-white" />
           <div className="flex h-12 w-5 items-center justify-end bg-white">
-            <ChevronRight className="h-4 w-4 text-gray-500" />
+            <Icon.FiChevronRight className="h-4 w-4 text-gray-500" />
           </div>
         </button>
       )}
@@ -121,17 +125,21 @@ function CategoryTab({ selectedCategory, categories }: CategoryTabProps) {
   );
 }
 
-export default function AllApps({ apps }: AllAppsPropsType) {
+export default function AllApps({ apps, searchText }: AllAppsPropsType) {
   const router = useRouter();
-
+  const { t } = useLocale();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [appsContainerRef] = useAutoAnimate<HTMLDivElement>();
+  const [appsContainerRef, enableAnimation] = useAutoAnimate<HTMLDivElement>();
 
   const categories = apps
     .map((app) => app.category)
     .filter((cat, pos, self) => {
       return self.indexOf(cat) === pos;
     });
+
+  if (searchText) {
+    enableAnimation && enableAnimation(false);
+  }
 
   useEffect(() => {
     const queryCategory =
@@ -141,24 +149,34 @@ export default function AllApps({ apps }: AllAppsPropsType) {
     setSelectedCategory(queryCategory);
   }, [router.query.category]);
 
+  const filteredApps = apps
+    .filter((app) =>
+      selectedCategory !== null
+        ? app.categories
+          ? app.categories.includes(selectedCategory)
+          : app.category === selectedCategory
+        : true
+    )
+    .filter((app) => (searchText ? app.name.toLowerCase().includes(searchText.toLowerCase()) : true));
+
   return (
     <div className="mb-16">
-      <CategoryTab selectedCategory={selectedCategory} categories={categories} />
-      <div
-        className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:730px)]:grid-cols-2 [@media(max-width:500px)]:grid-cols-1"
-        ref={appsContainerRef}>
-        {apps
-          .filter((app) =>
-            selectedCategory !== null
-              ? app.categories
-                ? app.categories.includes(selectedCategory)
-                : app.category === selectedCategory
-              : true
-          )
-          .map((app) => (
-            <AppCard key={app.name} app={app} credentials={app.credentials} />
-          ))}
-      </div>
+      <CategoryTab selectedCategory={selectedCategory} searchText={searchText} categories={categories} />
+      {filteredApps.length ? (
+        <div
+          className="grid gap-3 lg:grid-cols-4 [@media(max-width:1270px)]:grid-cols-3 [@media(max-width:730px)]:grid-cols-2 [@media(max-width:500px)]:grid-cols-1"
+          ref={appsContainerRef}>
+          {filteredApps.map((app) => (
+            <AppCard key={app.name} app={app} searchText={searchText} credentials={app.credentials} />
+          ))}{" "}
+        </div>
+      ) : (
+        <EmptyScreen
+          Icon={Icon.FiSearch}
+          headline={t("no_results")}
+          description={searchText ? searchText?.toString() : ""}
+        />
+      )}
     </div>
   );
 }

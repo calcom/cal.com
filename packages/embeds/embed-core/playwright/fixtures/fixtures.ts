@@ -1,6 +1,6 @@
 import { test as base, Page } from "@playwright/test";
 
-interface Fixtures {
+export interface Fixtures {
   addEmbedListeners: (calNamespace: string) => Promise<void>;
   getActionFiredDetails: (a: { calNamespace: string; actionType: string }) => Promise<any>;
 }
@@ -74,6 +74,7 @@ export const test = base.extend<Fixtures>({
       if (!page.isClosed()) {
         return await page.evaluate(
           ({ actionType, calNamespace }) => {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             //@ts-ignore
             return window.eventsFiredStoreForPlaywright[`${actionType}-${calNamespace}`];
           },

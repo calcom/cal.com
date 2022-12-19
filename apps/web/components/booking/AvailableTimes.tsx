@@ -57,7 +57,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
             {nameOfDay(i18n.language, Number(date.format("d")), "short")}
           </span>
           <span className="text-bookinglight font-medium">
-            , {date.toDate().toLocaleString(i18n.language, { month: "long" })} {date.format(" D ")}
+            , {date.toDate().toLocaleString(i18n.language, { month: "short" })} {date.format(" D ")}
           </span>
         </div>
         <div className="ml-auto">

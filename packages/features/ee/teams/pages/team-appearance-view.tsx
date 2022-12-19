@@ -2,6 +2,7 @@ import { MembershipRole } from "@prisma/client";
 import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
 
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Form, getSettingsLayout as getLayout, Meta, showToast, Switch } from "@calcom/ui";
@@ -33,11 +34,6 @@ const ProfileView = () => {
       onError: () => {
         router.push("/settings");
       },
-      onSuccess: (team) => {
-        if (team) {
-          form.setValue("hideBranding", team.hideBranding);
-        }
-      },
     }
   );
 
@@ -46,7 +42,7 @@ const ProfileView = () => {
 
   return (
     <>
-      <Meta title="Booking Appearance" description="Manage settings for your team's booking appearance" />
+      <Meta title={t("booking_appearance")} description={t("appearance_team_description")} />
       {!isLoading && (
         <>
           {isAdmin ? (
@@ -54,22 +50,22 @@ const ProfileView = () => {
               form={form}
               handleSubmit={(values) => {
                 if (team) {
-                  const hideBranding = form.getValues("hideBranding");
-                  if (team.hideBranding !== hideBranding) {
-                    mutation.mutate({ id: team.id, hideBranding });
-                  }
+                  mutation.mutate({ id: team.id, hideBranding: values.hideBranding });
                 }
               }}>
               <div className="relative flex items-start">
                 <div className="flex-grow text-sm">
                   <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                    {t("disable_cal_branding")}
+                    {t("disable_cal_branding", { appName: APP_NAME })}
                   </label>
-                  <p className="text-gray-500">{t("team_disable_cal_branding_description")}</p>
+                  <p className="text-gray-500">
+                    {t("team_disable_cal_branding_description", { appName: APP_NAME })}
+                  </p>
                 </div>
                 <div className="flex-none">
                   <Controller
                     control={form.control}
+                    defaultValue={team?.hideBranding ?? false}
                     name="hideBranding"
                     render={({ field }) => (
                       <Switch

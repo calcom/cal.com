@@ -4,16 +4,17 @@ import { isValidPhoneNumber } from "libphonenumber-js";
 import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
+import { MultiValue } from "react-select";
 import { z } from "zod";
 
 import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon, Label, Select, Skeleton, TextField } from "@calcom/ui";
+import { Button, Icon, Label, Select, Skeleton, TextField, SettingsToggle } from "@calcom/ui";
 
 import { slugify } from "@lib/slugify";
 
-import { EditLocationDialog } from "@components/eventtype/EditLocationDialog";
+import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 
 type OptionTypeBase = {
   label: string;
@@ -28,7 +29,24 @@ export const EventSetupTab = (
   const formMethods = useFormContext<FormValues>();
   const { eventType, locationOptions, team } = props;
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const [editingLocationType, setEditingLocationType] = useState<string>("");
   const [selectedLocation, setSelectedLocation] = useState<OptionTypeBase | undefined>(undefined);
+  const [multipleDuration, setMultipleDuration] = useState(eventType.metadata.multipleDuration);
+
+  const multipleDurationOptions = [5, 10, 15, 20, 25, 30, 45, 50, 60, 75, 80, 90, 120, 180].map((mins) => ({
+    value: mins,
+    label: t("multiple_duration_mins", { count: mins }),
+  }));
+
+  const [selectedMultipleDuration, setSelectedMultipleDuration] = useState<
+    MultiValue<{
+      value: number;
+      label: string;
+    }>
+  >(multipleDurationOptions.filter((mdOpt) => multipleDuration?.includes(mdOpt.value)));
+  const [defaultDuration, setDefaultDuration] = useState(
+    selectedMultipleDuration.find((opt) => opt.value === eventType.length) ?? null
+  );
 
   const openLocationModal = (type: EventLocationType["type"]) => {
     setSelectedLocation(locationOptions.find((option) => option.value === type));
@@ -43,14 +61,23 @@ export const EventSetupTab = (
     );
   };
 
-  const addLocation = (newLocationType: EventLocationType["type"], details = {}) => {
-    const existingIdx = formMethods.getValues("locations").findIndex((loc) => newLocationType === loc.type);
+  const saveLocation = (newLocationType: EventLocationType["type"], details = {}) => {
+    const locationType = editingLocationType !== "" ? editingLocationType : newLocationType;
+    const existingIdx = formMethods.getValues("locations").findIndex((loc) => locationType === loc.type);
     if (existingIdx !== -1) {
       const copy = formMethods.getValues("locations");
-      copy[existingIdx] = {
-        ...formMethods.getValues("locations")[existingIdx],
-        ...details,
-      };
+      if (editingLocationType !== "") {
+        copy[existingIdx] = {
+          ...details,
+          type: newLocationType,
+        };
+      } else {
+        copy[existingIdx] = {
+          ...formMethods.getValues("locations")[existingIdx],
+          ...details,
+        };
+      }
+
       formMethods.setValue("locations", copy);
     } else {
       formMethods.setValue(
@@ -58,6 +85,8 @@ export const EventSetupTab = (
         formMethods.getValues("locations").concat({ type: newLocationType, ...details })
       );
     }
+
+    setEditingLocationType("");
     setShowLocationModal(false);
   };
 
@@ -101,6 +130,7 @@ export const EventSetupTab = (
         {validLocations.length === 0 && (
           <div className="flex">
             <Select
+              placeholder={t("select")}
               options={locationOptions}
               isSearchable={false}
               className="block w-full min-w-0 flex-1 rounded-sm text-sm"
@@ -115,7 +145,7 @@ export const EventSetupTab = (
                   if (eventLocationType.organizerInputType) {
                     openLocationModal(newLocationType);
                   } else {
-                    addLocation(newLocationType);
+                    saveLocation(newLocationType);
                   }
                 }
               }}
@@ -150,6 +180,7 @@ export const EventSetupTab = (
                           locationFormMethods.unregister("locationLink");
                           locationFormMethods.unregister("locationAddress");
                           locationFormMethods.unregister("locationPhoneNumber");
+                          setEditingLocationType(location.type);
                           openLocationModal(location.type);
                         }}
                         aria-label={t("edit")}
@@ -182,7 +213,7 @@ export const EventSetupTab = (
       <div className="space-y-8">
         <TextField
           required
-          label={t("Title")}
+          label={t("title")}
           defaultValue={eventType.title}
           {...formMethods.register("title")}
         />
@@ -206,17 +237,92 @@ export const EventSetupTab = (
             setValueAs: (v) => slugify(v),
           })}
         />
-        <TextField
-          required
-          name="length"
-          type="number"
-          label={t("duration")}
-          addOnSuffix={<>{t("minutes")}</>}
-          defaultValue={eventType.length ?? 15}
-          onChange={(e) => {
-            formMethods.setValue("length", Number(e.target.value));
-          }}
-        />
+        {multipleDuration ? (
+          <div className="space-y-4">
+            <div>
+              <Skeleton as={Label} loadingClassName="w-16">
+                {t("available_durations")}
+              </Skeleton>
+              <Select
+                isMulti
+                defaultValue={selectedMultipleDuration}
+                name="metadata.multipleDuration"
+                isSearchable={false}
+                className="h-auto !min-h-[36px] text-sm"
+                options={multipleDurationOptions}
+                value={selectedMultipleDuration}
+                onChange={(options) => {
+                  let newOptions = [...options];
+                  newOptions = newOptions.sort((a, b) => {
+                    return a?.value - b?.value;
+                  });
+                  const values = newOptions.map((opt) => opt.value);
+                  setMultipleDuration(values);
+                  setSelectedMultipleDuration(newOptions);
+                  if (!newOptions.find((opt) => opt.value === defaultDuration?.value)) {
+                    if (newOptions.length > 0) {
+                      setDefaultDuration(newOptions[0]);
+                    } else {
+                      setDefaultDuration(null);
+                    }
+                  }
+                  if (newOptions.length === 1 && defaultDuration === null) {
+                    setDefaultDuration(newOptions[0]);
+                  }
+                  formMethods.setValue("metadata.multipleDuration", values);
+                }}
+              />
+            </div>
+            <div>
+              <Skeleton as={Label} loadingClassName="w-16">
+                {t("default_duration")}
+              </Skeleton>
+              <Select
+                value={defaultDuration}
+                isSearchable={false}
+                name="length"
+                className="text-sm"
+                noOptionsMessage={() => t("default_duration_no_options")}
+                options={selectedMultipleDuration}
+                onChange={(option) => {
+                  setDefaultDuration(
+                    selectedMultipleDuration.find((opt) => opt.value === option?.value) ?? null
+                  );
+                  formMethods.setValue("length", Number(option?.value));
+                }}
+              />
+            </div>
+          </div>
+        ) : (
+          <TextField
+            required
+            name="length"
+            type="number"
+            label={t("duration")}
+            addOnSuffix={<>{t("minutes")}</>}
+            defaultValue={eventType.length ?? 15}
+            onChange={(e) => {
+              formMethods.setValue("length", Number(e.target.value));
+            }}
+          />
+        )}
+        <div className="!mt-4 [&_label]:my-1 [&_label]:font-normal">
+          <SettingsToggle
+            title={t("allow_booker_to_select_duration")}
+            checked={multipleDuration !== undefined}
+            onCheckedChange={() => {
+              if (multipleDuration !== undefined) {
+                setMultipleDuration(undefined);
+                formMethods.setValue("metadata.multipleDuration", undefined);
+                formMethods.setValue("length", eventType.length);
+              } else {
+                setMultipleDuration([]);
+                formMethods.setValue("metadata.multipleDuration", []);
+                formMethods.setValue("length", 0);
+              }
+            }}
+          />
+        </div>
         <div>
           <Skeleton as={Label} loadingClassName="w-16">
             {t("location")}
@@ -234,12 +340,13 @@ export const EventSetupTab = (
       <EditLocationDialog
         isOpenDialog={showLocationModal}
         setShowLocationModal={setShowLocationModal}
-        saveLocation={addLocation}
+        saveLocation={saveLocation}
         defaultValues={formMethods.getValues("locations")}
         selection={
           selectedLocation ? { value: selectedLocation.value, label: selectedLocation.label } : undefined
         }
         setSelectedLocation={setSelectedLocation}
+        setEditingLocationType={setEditingLocationType}
       />
     </div>
   );

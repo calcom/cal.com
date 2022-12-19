@@ -42,6 +42,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (!booking) {
     return {
       notFound: true,
+    } as {
+      notFound: true;
     };
   }
 
@@ -49,6 +51,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     // TODO: Show something in UI to let user know that this booking is not rescheduleable.
     return {
       notFound: true,
+    } as {
+      notFound: true;
     };
   }
 
@@ -62,7 +66,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       : booking.user?.username || "rick") /* This shouldn't happen */ +
     "/" +
     eventType?.slug;
-
   return {
     redirect: {
       destination: "/" + eventPage + "?rescheduleUid=" + context.query.uid,

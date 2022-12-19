@@ -34,6 +34,7 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
     key: symmetricEncrypt(JSON.stringify(body), process.env.CALENDSO_ENCRYPTION_KEY!),
     userId: user.id,
     appId: "exchange2016-calendar",
+    invalid: false,
   };
 
   try {

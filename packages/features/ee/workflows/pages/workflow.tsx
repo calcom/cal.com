@@ -61,6 +61,7 @@ const formSchema = z.object({
       sendTo: z
         .string()
         .refine((val) => isValidPhoneNumber(val) || val.includes("@"))
+        .optional()
         .nullable(),
       sender: z
         .string()
@@ -95,6 +96,7 @@ function WorkflowPage() {
     data: workflow,
     isError,
     error,
+    isLoading,
   } = trpc.viewer.workflows.get.useQuery(
     { id: +workflowId },
     {
@@ -102,8 +104,10 @@ function WorkflowPage() {
     }
   );
 
+  const { data: verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery();
+
   useEffect(() => {
-    if (workflow) {
+    if (workflow && !isLoading) {
       setSelectedEventTypes(
         workflow.activeOn.map((active) => ({
           value: String(active.eventType.id),
@@ -143,7 +147,7 @@ function WorkflowPage() {
       form.setValue("activeOn", activeOn || []);
       setIsAllDataLoaded(true);
     }
-  }, [workflow]);
+  }, [isLoading]);
 
   const updateMutation = trpc.viewer.workflows.update.useMutation({
     onSuccess: async ({ workflow }) => {
@@ -172,30 +176,64 @@ function WorkflowPage() {
       form={form}
       handleSubmit={async (values) => {
         let activeOnEventTypeIds: number[] = [];
+        let isEmpty = false;
+        let isVerified = true;
 
         values.steps.forEach((step) => {
+          const isSMSAction =
+            step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.SMS_NUMBER;
+
+          const strippedHtml = step.reminderBody?.replace(/<[^>]+>/g, "") || "";
+
+          const isBodyEmpty =
+            step.template === WorkflowTemplates.CUSTOM && !isSMSAction && strippedHtml.length <= 1;
+
+          if (isBodyEmpty) {
+            form.setError(`steps.${step.stepNumber - 1}.reminderBody`, {
+              type: "custom",
+              message: t("fill_this_field"),
+            });
+          }
+
           if (step.reminderBody) {
             step.reminderBody = translateVariablesToEnglish(step.reminderBody, { locale: i18n.language, t });
           }
           if (step.emailSubject) {
             step.emailSubject = translateVariablesToEnglish(step.emailSubject, { locale: i18n.language, t });
           }
+          isEmpty = !isEmpty ? isBodyEmpty : isEmpty;
+
+          //check if phone number is verified
+          if (
+            step.action === WorkflowActions.SMS_NUMBER &&
+            !verifiedNumbers?.find((verifiedNumber) => verifiedNumber.phoneNumber === step.sendTo)
+          ) {
+            isVerified = false;
+
+            form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
+              type: "custom",
+              message: t("not_verified"),
+            });
+          }
         });
 
-        if (values.activeOn) {
-          activeOnEventTypeIds = values.activeOn.map((option) => {
-            return parseInt(option.value, 10);
+        if (!isEmpty && isVerified) {
+          if (values.activeOn) {
+            activeOnEventTypeIds = values.activeOn.map((option) => {
+              return parseInt(option.value, 10);
+            });
+          }
+          updateMutation.mutate({
+            id: parseInt(router.query.workflow as string, 10),
+            name: values.name,
+            activeOn: activeOnEventTypeIds,
+            steps: values.steps,
+            trigger: values.trigger,
+            time: values.time || null,
+            timeUnit: values.timeUnit || null,
           });
+          utils.viewer.workflows.getVerifiedNumbers.invalidate();
         }
-        updateMutation.mutate({
-          id: parseInt(router.query.workflow as string, 10),
-          name: values.name,
-          activeOn: activeOnEventTypeIds,
-          steps: values.steps,
-          trigger: values.trigger,
-          time: values.time || null,
-          timeUnit: values.timeUnit || null,
-        });
       }}>
       <Shell
         backPath="/workflows"

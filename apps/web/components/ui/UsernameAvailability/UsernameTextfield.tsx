@@ -124,6 +124,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           <Input
             ref={usernameRef}
             name="username"
+            value={inputUsernameValue}
             autoComplete="none"
             autoCapitalize="none"
             autoCorrect="none"
@@ -133,7 +134,6 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
                 ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
                 : ""
             )}
-            defaultValue={currentUsername}
             onChange={(event) => {
               event.preventDefault();
               setInputUsernameValue(event.target.value);
@@ -194,10 +194,8 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
               {t("save")}
             </Button>
 
-            <DialogClose asChild>
-              <Button color="secondary" onClick={() => setOpenDialogSaveUsername(false)}>
-                {t("cancel")}
-              </Button>
+            <DialogClose color="secondary" onClick={() => setOpenDialogSaveUsername(false)}>
+              {t("cancel")}
             </DialogClose>
           </div>
         </DialogContent>

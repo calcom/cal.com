@@ -5,7 +5,9 @@ import { Dispatch, SetStateAction, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { SENDER_ID } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import {
   Button,
   Checkbox,
@@ -22,14 +24,12 @@ import {
 } from "@calcom/ui";
 
 import { WORKFLOW_ACTIONS } from "../lib/constants";
-import { getWorkflowActionOptions } from "../lib/getOptions";
 import { onlyLettersNumbersSpaces } from "../pages/workflow";
 
 interface IAddActionDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   addAction: (action: WorkflowActions, sendTo?: string, numberRequired?: boolean, sender?: string) => void;
-  isFreeUser: boolean;
 }
 
 interface ISelectActionOption {
@@ -44,20 +44,13 @@ type AddActionFormValues = {
   sender?: string;
 };
 
-const cleanUpActionsForFreeUser = (actions: ISelectActionOption[]) => {
-  return actions.filter(
-    (item) => item.value !== WorkflowActions.SMS_ATTENDEE && item.value !== WorkflowActions.SMS_NUMBER
-  );
-};
-
 export const AddActionDialog = (props: IAddActionDialog) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, addAction, isFreeUser } = props;
+  const { isOpenDialog, setIsOpenDialog, addAction } = props;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(false);
   const [isSenderIdNeeded, setIsSenderIdNeeded] = useState(false);
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(false);
-  const workflowActions = getWorkflowActionOptions(t);
-  const actionOptions = isFreeUser ? cleanUpActionsForFreeUser(workflowActions) : workflowActions;
+  const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
 
   const formSchema = z.object({
     action: z.enum(WORKFLOW_ACTIONS),
@@ -76,7 +69,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
     mode: "onSubmit",
     defaultValues: {
       action: WorkflowActions.EMAIL_HOST,
-      sender: "Cal",
+      sender: SENDER_ID,
     },
     resolver: zodResolver(formSchema),
   });
@@ -108,9 +101,11 @@ export const AddActionDialog = (props: IAddActionDialog) => {
     }
   };
 
+  if (!actionOptions) return null;
+
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent type="creation" useOwnActionButtons={true} title={t("add_action")}>
+      <DialogContent type="creation" title={t("add_action")}>
         <div className="space-x-3 ">
           <div className="pt-1">
             <Form
@@ -138,6 +133,11 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                         defaultValue={actionOptions[0]}
                         onChange={handleSelectAction}
                         options={actionOptions}
+                        isOptionDisabled={(option: {
+                          label: string;
+                          value: WorkflowActions;
+                          disabled: boolean;
+                        }) => option.disabled}
                       />
                     );
                   }}
@@ -174,7 +174,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                   <TextField
                     label={t("sender_id")}
                     type="text"
-                    placeholder="Cal"
+                    placeholder={SENDER_ID}
                     maxLength={11}
                     {...form.register(`sender`)}
                   />
@@ -196,21 +196,17 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                 </div>
               )}
               <DialogFooter>
-                <DialogClose asChild>
-                  <Button
-                    color="secondary"
-                    onClick={() => {
-                      setIsOpenDialog(false);
-                      form.unregister("sendTo");
-                      form.unregister("action");
-                      form.unregister("numberRequired");
-                      setIsPhoneNumberNeeded(false);
-                      setIsEmailAddressNeeded(false);
-                      setIsSenderIdNeeded(false);
-                    }}>
-                    {t("cancel")}
-                  </Button>
-                </DialogClose>
+                <DialogClose
+                  onClick={() => {
+                    setIsOpenDialog(false);
+                    form.unregister("sendTo");
+                    form.unregister("action");
+                    form.unregister("numberRequired");
+                    setIsPhoneNumberNeeded(false);
+                    setIsEmailAddressNeeded(false);
+                    setIsSenderIdNeeded(false);
+                  }}
+                />
                 <Button type="submit">{t("add")}</Button>
               </DialogFooter>
             </Form>

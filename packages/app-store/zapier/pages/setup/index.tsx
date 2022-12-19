@@ -64,7 +64,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                 <>
                   <div className="mt-1 text-xl">{t("your_unique_api_key")}</div>
                   <div className="my-2 mt-3 flex-wrap sm:flex sm:flex-nowrap">
-                    <code className="h-full w-full whitespace-pre-wrap rounded-md bg-gray-100 py-2 pl-2 pr-2 sm:rounded-r-none sm:pr-5">
+                    <code className="h-full w-full whitespace-pre-wrap rounded-md bg-gray-100 py-[6px] pl-2 pr-2 sm:rounded-r-none sm:pr-5">
                       {newApiKey}
                     </code>
                     <Tooltip side="top" content={t("copy_to_clipboard")}>

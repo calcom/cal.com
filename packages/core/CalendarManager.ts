@@ -227,7 +227,7 @@ export const createEvent = async (
     createdEvent: creationResult,
     originalEvent: calEvent,
     calError,
-    calWarnings: creationResult?.additionalInfo.calWarnings,
+    calWarnings: creationResult?.additionalInfo?.calWarnings || [],
   };
 };
 
@@ -267,9 +267,9 @@ export const updateEvent = async (
       : undefined;
 
   if (Array.isArray(updatedResult)) {
-    calWarnings = updatedResult.flatMap((res) => res.additionalInfo.calWarnings ?? []);
+    calWarnings = updatedResult.flatMap((res) => res.additionalInfo?.calWarnings ?? []);
   } else {
-    calWarnings = updatedResult?.additionalInfo.calWarnings;
+    calWarnings = updatedResult?.additionalInfo?.calWarnings || [];
   }
 
   return {
