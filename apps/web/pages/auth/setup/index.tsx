@@ -1,6 +1,9 @@
+import { UserPermissionRole } from "@prisma/client";
+import { GetServerSidePropsContext } from "next";
 import { useState } from "react";
 
 import AdminAppsList from "@calcom/features/apps/AdminAppsList";
+import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -38,8 +41,20 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   );
 }
 
-export const getServerSideProps = async () => {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const userCount = await prisma.user.count();
+  const { req } = context;
+  const session = await getSession({ req });
+
+  if (session?.user.role && session?.user.role !== UserPermissionRole.ADMIN) {
+    return {
+      redirect: {
+        destination: `/404`,
+        permanent: false,
+      },
+    };
+  }
+
   return {
     props: {
       userCount,
