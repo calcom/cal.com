@@ -528,13 +528,4 @@ const DisplayAttendees = ({
   );
 };
 
-const Tag = ({ children, className = "" }: React.PropsWithChildren<{ className?: string }>) => {
-  return (
-    <span
-      className={`inline-flex items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ${className}`}>
-      {children}
-    </span>
-  );
-};
-
 export default BookingListItem;
