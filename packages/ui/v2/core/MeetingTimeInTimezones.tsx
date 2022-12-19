@@ -54,14 +54,14 @@ const MeetingTimeInTimezones = ({
     <Popover.Root>
       <Popover.Trigger
         onClick={preventBubbling}
-        className="popover-button ml-2 inline-flex h-5 w-5 items-center justify-center rounded-sm text-gray-900 transition-colors hover:bg-gray-200 focus:bg-gray-200">
+        className="popover-button invisible ml-2 inline-flex h-5 w-5 items-center justify-center rounded-sm text-gray-900 transition-colors hover:bg-gray-200 focus:bg-gray-200 group-hover:visible">
         <Icon.FiGlobe />
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content
           onClick={preventBubbling}
           side="top"
-          className="popover-content slideInBottom shadow-dropdown border-5 bg-brand-500 rounded-md border-gray-200 p-3 text-sm text-white shadow-sm">
+          className="popover-content slideInBottom border-5 bg-brand-500 rounded-md border-gray-200 p-3 text-sm text-white shadow-sm">
           {times.map((time) => (
             <span className="mt-2 block first:mt-0" key={time.timezone}>
               <span className="inline-flex align-baseline">
