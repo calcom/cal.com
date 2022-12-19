@@ -12,6 +12,7 @@ type WebhookProps = {
   active: boolean;
   eventTriggers: WebhookTriggerEvents[];
   secret: string | null;
+  eventTypeId: number | null;
 };
 
 export default function WebhookListItem(props: {
@@ -71,7 +72,7 @@ export default function WebhookListItem(props: {
           size="icon"
           onClick={() => {
             // TODO: Confimation dialog before deleting
-            deleteWebhook.mutate({ id: webhook.id });
+            deleteWebhook.mutate({ id: webhook.id, eventTypeId: webhook.eventTypeId || undefined });
           }}
         />
       </div>

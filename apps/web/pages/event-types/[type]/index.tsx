@@ -248,14 +248,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         workflows={eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow)}
       />
     ),
-    webhooks: (
-      <EventTeamWebhooksTab
-        eventType={eventType}
-        teamMembers={teamMembers}
-        team={team}
-        currentUserMembership={props.currentUserMembership}
-      />
-    ),
+    webhooks: <EventTeamWebhooksTab eventType={eventType} team={team} />,
   } as const;
 
   return (
@@ -463,6 +456,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
           active: true,
           eventTriggers: true,
           secret: true,
+          eventTypeId: true,
         },
       },
       workflows: {
