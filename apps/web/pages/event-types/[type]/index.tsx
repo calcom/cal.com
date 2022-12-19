@@ -267,7 +267,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       team={team}
       isUpdateMutationLoading={updateMutation.isLoading}
       formMethods={formMethods}
-      disableBorder={tabName === "apps" || tabName === "workflows"}
+      disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
       currentUserMembership={props.currentUserMembership}>
       <Form
         form={formMethods}
@@ -457,8 +457,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       seatsShowAttendees: true,
       webhooks: {
         select: {
+          id: true,
           subscriberUrl: true,
+          payloadTemplate: true,
           active: true,
+          eventTriggers: true,
+          secret: true,
         },
       },
       workflows: {

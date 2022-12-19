@@ -1,6 +1,7 @@
 import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
 import { useFormContext } from "react-hook-form";
 
+import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, EmptyScreen, Icon } from "@calcom/ui";
@@ -35,9 +36,16 @@ export const EventTeamWebhooksTab = ({
             <>
               {eventType.webhooks.length ? (
                 <>
-                  <div>
-                    {eventType.webhooks.map((webhook) => {
-                      return <>{webhook.subscriberUrl}</>;
+                  <div className="mt-4 mb-8 rounded-md border">
+                    {eventType.webhooks.map((webhook, index) => {
+                      return (
+                        <WebhookListItem
+                          key={webhook.id}
+                          webhook={webhook}
+                          lastItem={eventType.webhooks.length === index + 1}
+                          onEditWebhook={() => console.log("edit")}
+                        />
+                      );
                     })}
                   </div>
                   <NewWebhookButton />

@@ -87,6 +87,7 @@ export const webhookRouter = router({
           where.AND?.push({ eventTypeId: input.eventTypeId });
         } else {
           where.AND?.push({ userId: ctx.user.id });
+          where.AND?.push({ eventTypeId: null });
         }
       }
 

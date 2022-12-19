@@ -1,12 +1,21 @@
+import { WebhookTriggerEvents } from "@prisma/client";
+
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Badge, Button, Icon, showToast, Switch, Tooltip } from "@calcom/ui";
 
-export type TWebhook = RouterOutputs["viewer"]["webhook"]["list"][number];
+type WebhookProps = {
+  id: string;
+  subscriberUrl: string;
+  payloadTemplate: string | null;
+  active: boolean;
+  eventTriggers: WebhookTriggerEvents[];
+  secret: string | null;
+};
 
 export default function WebhookListItem(props: {
-  webhook: TWebhook;
+  webhook: WebhookProps;
   onEditWebhook: () => void;
   lastItem: boolean;
 }) {
