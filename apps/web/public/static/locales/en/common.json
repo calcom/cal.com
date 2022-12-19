@@ -1458,6 +1458,8 @@
   "event_type_duplicate_copy_text": "{{slug}}-copy",
   "set_as_default": "Set as default",
   "hide_eventtype_details": "Hide EventType Details",
+  "show_navigation": "Show navigation",
+  "hide_navigation": "Hide navigation",
   "verification_code_sent": "Verification code sent",
   "verified_successfully": "Verified successfully",
   "wrong_code": "Wong verification code",
