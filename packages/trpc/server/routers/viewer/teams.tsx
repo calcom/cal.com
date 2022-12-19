@@ -21,7 +21,6 @@ import {
   closeComUpsertTeamUser,
 } from "@calcom/lib/sync/SyncServiceManager";
 import { availabilityUserSelect } from "@calcom/prisma";
-import { User } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -677,16 +676,11 @@ export const viewerTeamsRouter = router({
           },
         },
       });
+      type UserMap = Record<number, typeof teams[number]["members"][number]["user"]>;
       // flattern users to be unique by id
       const users = teams
         .flatMap((t) => t.members)
-        .reduce((acc, m) => {
-          if (!acc.find((u) => u.id === m.user.id)) {
-            acc.push(m.user);
-          }
-          return acc;
-        }, [] as User[]);
-
-      return users;
+        .reduce((acc, m) => (m.user.id in acc ? acc : { ...acc, [m.user.id]: m.user }), {} as UserMap);
+      return Object.values(users);
     }),
 });
