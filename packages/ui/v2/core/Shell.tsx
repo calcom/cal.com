@@ -154,8 +154,10 @@ const Layout = (props: LayoutProps) => {
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
       <div className="flex min-h-screen flex-col">
-        <TeamsUpgradeBanner />
-        <ImpersonatingBanner />
+        <div className="divide-y divide-black">
+          <TeamsUpgradeBanner />
+          <ImpersonatingBanner />
+        </div>
         <div className="flex flex-1" data-testid="dashboard-shell">
           {props.SidebarContainer || <SideBarContainer />}
           <div className="flex w-0 flex-1 flex-col">
