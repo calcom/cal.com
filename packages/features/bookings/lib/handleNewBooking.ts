@@ -211,8 +211,6 @@ async function ensureAvailableUsers(
       { user, eventType }
     );
 
-    console.log("calendarBusyTimes==>>>", bufferedBusyTimes);
-
     let isAvailableToBeBooked = true;
     try {
       if (
@@ -388,7 +386,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       users = availableUsers;
     }
   }
-  console.log("available users", users);
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
 
   // @TODO: use the returned address somewhere in booking creation?
@@ -417,7 +414,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
 
   const bookingLocation = getLocationValueForDB(reqBody.location, eventType.locations);
-  console.log(bookingLocation, reqBody.location, eventType.locations);
   const customInputs = {} as NonNullable<CalendarEvent["customInputs"]>;
 
   const teamMemberPromises =
@@ -935,11 +931,6 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     try {
       // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
       const subscribers = await getWebhooks(subscriberOptions);
-
-      console.log("evt:", {
-        ...evt,
-        metadata: reqBody.metadata,
-      });
       const bookingId = booking?.id;
 
       const eventTypeInfo: EventTypeInfo = {

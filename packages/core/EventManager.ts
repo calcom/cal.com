@@ -6,6 +6,7 @@ import { z } from "zod";
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { Attendee } from "@calcom/prisma/client";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
@@ -30,6 +31,8 @@ import { createMeeting, updateMeeting } from "./videoClient";
 export const isDedicatedIntegration = (location: string): boolean => {
   return location !== "integrations:google:meet" && location.includes("integrations:");
 };
+
+const log = logger.getChildLogger({ prefix: ["[EventManager]"] });
 
 export const getLocationRequestFromIntegration = (location: string) => {
   const eventLocationType = getEventLocationTypeFromApp(location);
@@ -478,20 +481,20 @@ export default class EventManager {
           result.push(updateEvent(credential, event, bookingRefUid, bookingExternalCalendarId));
         } else {
           // This means the user has changed. Delete the old calendar event and create a new one!
-          credential = this.calendarCredentials.find((c) => c.type.endsWith("_calendar"));
-          if (credential) {
-            try {
-              await deleteEvent(credential, bookingRefUid, event);
-            } catch {
-              console.log("Could not delete event");
-            }
-          }
-          // Assign the new user credential to `credential`
           credential = await prisma.credential.findUnique({
             where: {
               id: calendarReference.credentialId,
             },
           });
+          if (credential) {
+            try {
+              await deleteEvent(credential, bookingRefUid, event, bookingExternalCalendarId);
+            } catch {
+              log.warn("Could not delete event", { credential, bookingRefUid, bookingExternalCalendarId });
+            }
+          }
+          // Assign the new user credential to `credential`
+          credential = this.calendarCredentials.find((c) => c.type.endsWith("_calendar"));
           if (credential) {
             // createEvent expects a CredentialWithAppName
             credential = getApps([credential])

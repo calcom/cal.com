@@ -286,11 +286,12 @@ export const updateEvent = async (
 export const deleteEvent = (
   credential: CredentialPayload,
   uid: string,
-  event: CalendarEvent
+  event: CalendarEvent,
+  externalCalendarId: string | null = null
 ): Promise<unknown> => {
   const calendar = getCalendar(credential);
   if (calendar) {
-    return calendar.deleteEvent(uid, event);
+    return calendar.deleteEvent(uid, event, externalCalendarId);
   }
 
   return Promise.resolve({});
