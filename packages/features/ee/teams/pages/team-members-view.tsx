@@ -46,7 +46,25 @@ const MembersView = () => {
 
   return (
     <>
-      <Meta title={t("team_members")} description={t("members_team_description")} />
+      <Meta
+        title={t("team_members")}
+        description={t("members_team_description")}
+        CTA={
+          isAdmin ? (
+            <Button
+              type="button"
+              color="primary"
+              StartIcon={Icon.FiPlus}
+              className="ml-auto"
+              onClick={() => setShowMemberInvitationModal(true)}
+              data-testid="new-member-button">
+              {t("add")}
+            </Button>
+          ) : (
+            <></>
+          )
+        }
+      />
       {!isLoading && (
         <>
           <div>
