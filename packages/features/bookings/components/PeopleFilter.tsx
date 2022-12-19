@@ -9,7 +9,7 @@ export const PeopleFilter = () => {
   const { data: query, pushItemToKey, removeItemByKeyAndValue, removeByKey } = useFilterQuery();
   const { data } = trpc.viewer.teams.listMembers.useQuery({});
 
-  if (!data) return null;
+  if (!data || !data.length) return null;
 
   // Get user names from query
   const userNames = data?.filter((user) => query.userIds?.includes(user.id)).map((user) => user.name);
