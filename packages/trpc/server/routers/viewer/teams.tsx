@@ -685,7 +685,7 @@ export const viewerTeamsRouter = router({
             acc.push(m.user);
           }
           return acc;
-        }, [] as User[]);
+        }, [] as Partial<User>[]);
 
       return users;
     }),
