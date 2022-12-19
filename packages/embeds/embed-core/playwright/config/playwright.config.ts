@@ -137,9 +137,9 @@ expect.extend({
         };
       }
     }
-
+    let iframeReadyCheckInterval;
     const iframeReadyEventDetail = await new Promise(async (resolve) => {
-      setInterval(async () => {
+      iframeReadyCheckInterval = setInterval(async () => {
         const iframeReadyEventDetail = await getActionFiredDetails({
           calNamespace,
           actionType: "linkReady",
@@ -149,6 +149,8 @@ expect.extend({
         }
       }, 500);
     });
+
+    clearInterval(iframeReadyCheckInterval);
 
     //At this point we know that window.initialBodyVisibility would be set as DOM would already have been ready(because linkReady event can only fire after that)
     const {

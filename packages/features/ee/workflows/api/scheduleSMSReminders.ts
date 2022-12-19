@@ -5,6 +5,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import dayjs from "@calcom/dayjs";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getSenderId } from "../lib/alphanumericSenderIdSupport";
 import * as twilio from "../lib/reminders/smsProviders/twilioProvider";
@@ -98,6 +99,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             location: reminder.booking?.location || "",
             additionalNotes: reminder.booking?.description,
             customInputs: reminder.booking?.customInputs,
+            meetingUrl: bookingMetadataSchema.parse(reminder.booking?.metadata || {})?.videoCallUrl,
           };
           const customMessage = await customTemplate(
             reminder.workflowStep.reminderBody || "",

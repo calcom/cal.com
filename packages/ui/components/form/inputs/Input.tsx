@@ -1,5 +1,4 @@
 import React, { forwardRef, ReactElement, ReactNode, Ref, useCallback, useId, useState } from "react";
-import { Eye, EyeOff } from "react-feather";
 import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn } from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
@@ -211,9 +210,9 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
               type="button"
               onClick={() => toggleIsPasswordVisible()}>
               {isPasswordVisible ? (
-                <EyeOff className="h-4 stroke-[2.5px]" />
+                <Icon.FiEyeOff className="h-4 stroke-[2.5px]" />
               ) : (
-                <Eye className="h-4 stroke-[2.5px]" />
+                <Icon.FiEye className="h-4 stroke-[2.5px]" />
               )}
               <span className="sr-only">{textLabel}</span>
             </button>

@@ -174,14 +174,26 @@ const querySchema = z.object({
     .default(AppCategories.calendar),
 });
 
-const AdminAppsList = ({ baseURL, className }: { baseURL: string; className?: string }) => (
-  <AppCategoryNavigation
-    baseURL={baseURL}
-    containerClassname="w-full xl:mx-5 xl:w-2/3 xl:pr-5"
-    className={className}>
-    <AdminAppsListContainer />
-  </AppCategoryNavigation>
-);
+const AdminAppsList = ({ baseURL, className }: { baseURL: string; className?: string }) => {
+  const router = useRouter();
+  return (
+    <form
+      id="wizard-step-2"
+      name="wizard-step-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        router.replace("/");
+      }}>
+      <AppCategoryNavigation
+        baseURL={baseURL}
+        fromAdmin
+        containerClassname="w-full xl:ml-5 max-h-97 overflow-scroll"
+        className={className}>
+        <AdminAppsListContainer />
+      </AppCategoryNavigation>
+    </form>
+  );
+};
 
 const AdminAppsListContainer = () => {
   const { t } = useLocale();
@@ -222,7 +234,7 @@ export default AdminAppsList;
 
 const SkeletonLoader = () => {
   return (
-    <SkeletonContainer>
+    <SkeletonContainer className="w-[30rem] pr-10">
       <div className="mt-6 mb-8 space-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />

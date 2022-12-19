@@ -11,19 +11,26 @@ const AppCategoryNavigation = ({
   children,
   containerClassname,
   className,
+  fromAdmin,
 }: {
   baseURL: string;
   children: React.ReactNode;
   containerClassname: string;
   className?: string;
+  fromAdmin?: boolean;
 }) => {
-  const appCategories = useMemo(() => getAppCategories(baseURL), [baseURL]);
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
+  const appCategories = useMemo(() => getAppCategories(baseURL, fromAdmin), [baseURL, fromAdmin]);
 
   return (
     <div className={classNames("flex flex-col p-2 md:p-0 xl:flex-row", className)}>
       <div className="hidden xl:block">
-        <VerticalTabs tabs={appCategories} sticky linkProps={{ shallow: true }} />
+        <VerticalTabs
+          tabs={appCategories}
+          sticky
+          linkProps={{ shallow: true }}
+          itemClassname={classNames(fromAdmin && "w-60")}
+        />
       </div>
       <div className="mb-4 block overflow-x-scroll xl:hidden">
         <HorizontalTabs tabs={appCategories} linkProps={{ shallow: true }} />
