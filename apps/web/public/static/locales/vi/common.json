@@ -1401,5 +1401,7 @@
   "payment_app_disabled": "Một quản trị viên đã vô hiệu hoá một ứng dụng thanh toán",
   "edit_event_type": "Sửa loại sự kiện",
   "collective_scheduling": "Lên lịch tập thể",
+  "make_it_easy_to_book": "Tạo điều kiện dễ dàng đặt lịch cho nhóm của bạn khi mọi người đều rảnh.",
+  "find_the_best_person": "Tìm người tốt nhất có được và xoay vòng trong nhóm bạn.",
   "admin_apps_description": "Bật các ứng dụng cho thực thể Cal của bạn"
 }
