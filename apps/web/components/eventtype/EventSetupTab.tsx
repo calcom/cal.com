@@ -262,12 +262,14 @@ export const EventSetupTab = (
                   if (!newOptions.find((opt) => opt.value === defaultDuration?.value)) {
                     if (newOptions.length > 0) {
                       setDefaultDuration(newOptions[0]);
+                      formMethods.setValue("length", newOptions[0].value);
                     } else {
                       setDefaultDuration(null);
                     }
                   }
                   if (newOptions.length === 1 && defaultDuration === null) {
                     setDefaultDuration(newOptions[0]);
+                    formMethods.setValue("length", newOptions[0].value);
                   }
                   formMethods.setValue("metadata.multipleDuration", values);
                 }}
