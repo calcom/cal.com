@@ -24,14 +24,7 @@ export const queryStringArray = z
   .preprocess((a) => z.string().parse(a).split(","), z.string().array())
   .or(z.string().array());
 
-export const schema = z.object({
-  teamIds: queryNumberArray.optional(),
-  userIds: queryNumberArray.optional(),
-  status: z.enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"]),
-  eventTypeIds: queryNumberArray.optional(),
-});
-
-export function useTypedQuery<T extends z.ZodType>() {
+export function useTypedQuery<T extends z.ZodType>(schema: T) {
   type Output = z.infer<typeof schema>;
   type FullOutput = Required<Output>;
   type OutputKeys = Required<keyof FullOutput>;
@@ -81,10 +74,12 @@ export function useTypedQuery<T extends z.ZodType>() {
   // Remove item by key and value
   function removeItemByKeyAndValue<J extends ArrayOutputKeys>(key: J, value: ArrayOutput[J][number]) {
     const existingValue = parsedQuery[key];
-    const newValue = existingValue?.filter((item) => item !== value);
-    if (Array.isArray(existingValue) && newValue && newValue.length > 0) {
+    if (Array.isArray(existingValue)) {
+      // @ts-expect-error this is too much for TS it seems
+      const newValue = existingValue.filter((item) => item !== value);
       setQuery(key, newValue);
     } else {
+      // @ts-expect-error this is too much for TS it seems
       removeByKey(key);
     }
   }
