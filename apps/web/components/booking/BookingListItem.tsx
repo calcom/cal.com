@@ -275,11 +275,6 @@ function BookingListItem(booking: BookingItemProps) {
                 {booking.eventType.team.name}
               </Badge>
             )}
-            {!!booking?.eventType?.price && !booking.paid && (
-              <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
-                {t("pending_payment")}
-              </Badge>
-            )}
             {booking.paid && (
               <Badge className="ltr:mr-2 rtl:ml-2" variant="green">
                 {t("paid")}
