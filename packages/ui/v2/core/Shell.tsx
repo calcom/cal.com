@@ -156,14 +156,12 @@ const Layout = (props: LayoutProps) => {
       <div className="flex min-h-screen flex-col">
         <TeamsUpgradeBanner />
         <ImpersonatingBanner />
-        {/* <div className="h-full flex-1"> */}
         <div className="flex flex-1" data-testid="dashboard-shell">
           {props.SidebarContainer || <SideBarContainer />}
           <div className="flex w-0 flex-1 flex-col">
             <MainContainer {...props} />
           </div>
         </div>
-        {/* </div> */}
       </div>
     </>
   );

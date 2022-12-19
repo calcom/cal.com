@@ -16,9 +16,12 @@ export function TeamsUpgradeBanner() {
       showToast(error.message, "error");
     },
   });
-  if (!data) return null;
-  const [membership] = data;
-  if (!membership) return null;
+  // if (!data) return null;
+  // const [membership] = data;
+  // if (!membership) return null;
+  const membership = {
+    team: { name: "test team name", id: 12 },
+  };
   return (
     <TopBanner
       text={t("team_upgrade_banner_description", { teamName: membership.team.name })}
