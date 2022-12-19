@@ -68,19 +68,6 @@ const MembersView = () => {
                 )}
               </>
             )}
-            {isAdmin && (
-              <div className="relative mb-5 flex w-full items-center ">
-                <Button
-                  type="button"
-                  color="primary"
-                  StartIcon={Icon.FiPlus}
-                  className="ml-auto"
-                  onClick={() => setShowMemberInvitationModal(true)}
-                  data-testid="new-member-button">
-                  {t("add")}
-                </Button>
-              </div>
-            )}
             <div>
               <ul className="divide-y divide-gray-200 rounded-md border ">
                 {team?.members.map((member) => {
