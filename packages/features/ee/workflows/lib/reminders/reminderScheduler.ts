@@ -19,7 +19,7 @@ export const scheduleWorkflowReminders = async (
     };
   })[],
   smsReminderNumber: string | null,
-  evt: CalendarEvent,
+  evt: CalendarEvent & { metadata?: { videoCallUrl: string } },
   needsConfirmation: boolean,
   isRescheduleEvent: boolean,
   isFirstRecurringEvent: boolean
@@ -52,12 +52,13 @@ export const scheduleWorkflowReminders = async (
               step.reminderBody || "",
               step.id,
               step.template,
-              step.sender || SENDER_ID
+              step.sender || SENDER_ID,
+              workflow.userId,
+              step.numberVerificationPending
             );
           } else if (
             step.action === WorkflowActions.EMAIL_ATTENDEE ||
-            step.action === WorkflowActions.EMAIL_HOST ||
-            step.action === WorkflowActions.EMAIL_ADDRESS
+            step.action === WorkflowActions.EMAIL_HOST
           ) {
             let sendTo = "";
 
@@ -68,9 +69,8 @@ export const scheduleWorkflowReminders = async (
               case WorkflowActions.EMAIL_ATTENDEE:
                 sendTo = evt.attendees[0].email;
                 break;
-              case WorkflowActions.EMAIL_ADDRESS:
-                sendTo = step.sendTo || "";
             }
+
             scheduleEmailReminder(
               evt,
               workflow.trigger,
@@ -121,12 +121,13 @@ export const sendCancelledReminders = async (
               step.reminderBody || "",
               step.id,
               step.template,
-              step.sender || SENDER_ID
+              step.sender || SENDER_ID,
+              workflow.userId,
+              step.numberVerificationPending
             );
           } else if (
             step.action === WorkflowActions.EMAIL_ATTENDEE ||
-            step.action === WorkflowActions.EMAIL_HOST ||
-            step.action === WorkflowActions.EMAIL_ADDRESS
+            step.action === WorkflowActions.EMAIL_HOST
           ) {
             let sendTo = "";
 
@@ -137,8 +138,6 @@ export const sendCancelledReminders = async (
               case WorkflowActions.EMAIL_ATTENDEE:
                 sendTo = evt.attendees[0].email;
                 break;
-              case WorkflowActions.EMAIL_ADDRESS:
-                sendTo = step.sendTo || "";
             }
             scheduleEmailReminder(
               evt,

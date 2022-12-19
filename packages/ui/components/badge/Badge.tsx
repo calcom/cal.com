@@ -1,7 +1,7 @@
-import { Icon } from "react-feather";
 import { GoPrimitiveDot } from "react-icons/go";
 
 import classNames from "@calcom/lib/classNames";
+import { SVGComponent } from "@calcom/types/SVGComponent";
 
 const badgeClassNameByVariant = {
   default: "bg-orange-100 text-orange-800",
@@ -23,7 +23,7 @@ const classNameBySize = {
 export type BadgeProps = {
   variant: keyof typeof badgeClassNameByVariant;
   size?: keyof typeof classNameBySize;
-  StartIcon?: Icon;
+  StartIcon?: SVGComponent;
   bold?: boolean;
   withDot?: boolean;
   rounded?: boolean;

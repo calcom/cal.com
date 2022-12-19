@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 
 import classNames from "@calcom/lib/classNames";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Button, Stepper } from "../..";
 
@@ -19,6 +20,7 @@ function WizardForm<T extends DefaultStep>(props: {
   containerClassname?: string;
 }) {
   const { href, steps } = props;
+  const { t } = useLocale();
   const router = useRouter();
   const step = parseInt((router.query.step as string) || "1");
   const currentStep = steps[step - 1];
@@ -40,7 +42,7 @@ function WizardForm<T extends DefaultStep>(props: {
           <p className="text-sm text-gray-500">{currentStep.description}</p>
         </div>
 
-        <div className="print:p-none px-4 py-5 sm:p-6">{currentStep.content}</div>
+        <div className="print:p-none max-w-3xl px-4 py-5 sm:p-6">{currentStep.content}</div>
         {!props.disableNavigation && (
           <>
             {currentStep.enabled !== false && (
@@ -51,7 +53,7 @@ function WizardForm<T extends DefaultStep>(props: {
                     onClick={() => {
                       setStep(step - 1);
                     }}>
-                    Back
+                    {t("prev_step")}
                   </Button>
                 )}
 
@@ -65,7 +67,7 @@ function WizardForm<T extends DefaultStep>(props: {
                   onClick={() => {
                     setStep(step + 1);
                   }}>
-                  {step < steps.length ? "Next" : "Finish"}
+                  {step < steps.length ? t("next_step_text") : t("finish")}
                 </Button>
               </div>
             )}
