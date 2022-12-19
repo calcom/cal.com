@@ -35,7 +35,14 @@ export default function Setup(props: inferSSRProps<typeof getServerSideProps>) {
   return (
     <>
       <main className="flex items-center bg-gray-100 print:h-full">
-        <WizardForm href="/auth/setup" steps={steps} />
+        <WizardForm
+          href="/auth/setup"
+          steps={steps}
+          nextLabel={t("next_step_text")}
+          finishLabel={t("finish")}
+          prevLabel={t("prev_step")}
+          stepLabel={(currentStep, maxSteps) => t("current_step_of_total", { currentStep, maxSteps })}
+        />
       </main>
     </>
   );
