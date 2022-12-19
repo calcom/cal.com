@@ -385,6 +385,7 @@
   "go_to_billing_portal": "Accéder au portail de facturation",
   "need_anything_else": "Besoin d'autre chose ?",
   "further_billing_help": "Si vous avez besoin d'aide pour la facturation, notre équipe d'assistance est là pour vous aider.",
+  "contact_our_support_team": "Contactez notre équipe d'assistance",
   "uh_oh": "Oups !",
   "no_event_types_have_been_setup": "Cet utilisateur n'a pas encore configuré de types d'événements.",
   "edit_logo": "Modifier le logo",
@@ -1406,5 +1407,12 @@
   "fixed_round_robin": "Round robin établi",
   "add_one_fixed_attendee": "Ajoutez un participant fixe et un round robin via un certain nombre de participants.",
   "calcom_is_better_with_team": "Cal.com est meilleur avec des équipes",
+  "add_your_team_members": "Ajoutez les membres de votre équipe à vos types d'événements. Utilisez la planification collective pour inclure tout le monde ou trouvez la personne la plus appropriée avec la planification de round robin.",
+  "booking_limit_reached": "La limite de réservation pour ce type d'événement a été atteinte",
+  "admin_has_disabled": "Un administrateur a désactivé {{appName}}",
+  "disabled_app_affects_event_type": "Un administrateur a désactivé {{appName}} qui affecte votre type d'événement {{eventType}}",
+  "disable_payment_app": "L'administrateur a désactivé {{appName}} qui affecte votre type d'événement {{title}}. Les participants sont toujours en mesure de réserver ce type d'événement, mais ne seront pas invités à payer. Vous pouvez masquer le type d'événement pour l'empêcher jusqu'à ce que votre administrateur réactive votre moyen de paiement.",
+  "payment_disabled_still_able_to_book": "Les participants sont toujours en mesure de réserver ce type d'événement, mais ne seront pas invités à payer. Vous pouvez masquer le type d'événement pour l'empêcher jusqu'à ce que votre administrateur réactive votre mode de paiement.",
+  "app_disabled_with_event_type": "L'administrateur a désactivé {{appName}} qui affecte votre type d'événement {{title}}.",
   "admin_apps_description": "Activer les applications pour votre instance de Cal"
 }
