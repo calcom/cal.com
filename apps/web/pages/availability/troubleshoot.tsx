@@ -1,9 +1,9 @@
-import { useState } from "react";
-
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Shell, SkeletonText } from "@calcom/ui";
+
+import useRouterQuery from "@lib/hooks/useRouterQuery";
 
 type User = RouterOutputs["viewer"]["me"];
 
@@ -16,7 +16,9 @@ export interface IBusySlot {
 
 const AvailabilityView = ({ user }: { user: User }) => {
   const { t } = useLocale();
-  const [selectedDate, setSelectedDate] = useState(dayjs());
+  const { date, setQuery: setSelectedDate } = useRouterQuery("date");
+  const selectedDate = dayjs(date);
+  const formattedSelectedDate = selectedDate.format("YYYY-MM-DD");
 
   const { data, isLoading } = trpc.viewer.availability.user.useQuery(
     {
@@ -30,6 +32,17 @@ const AvailabilityView = ({ user }: { user: User }) => {
     }
   );
 
+  const overrides =
+    data?.dateOverrides.reduce((acc, override) => {
+      if (
+        formattedSelectedDate !== dayjs(override.start).format("YYYY-MM-DD") &&
+        formattedSelectedDate !== dayjs(override.end).format("YYYY-MM-DD")
+      )
+        return acc;
+      acc.push({ ...override, source: "Date override" });
+      return acc;
+    }, [] as IBusySlot[]) || [];
+
   return (
     <div className="max-w-xl overflow-hidden rounded-md bg-white shadow">
       <div className="px-4 py-5 sm:p-6">
@@ -37,9 +50,9 @@ const AvailabilityView = ({ user }: { user: User }) => {
         <input
           type="date"
           className="inline h-8 border-none p-0"
-          defaultValue={selectedDate.format("YYYY-MM-DD")}
+          defaultValue={formattedSelectedDate}
           onChange={(e) => {
-            if (e.target.value) setSelectedDate(dayjs(e.target.value));
+            if (e.target.value) setSelectedDate(e.target.value);
           }}
         />
         <small className="block text-neutral-400">{t("hover_over_bold_times_tip")}</small>
@@ -49,39 +62,47 @@ const AvailabilityView = ({ user }: { user: User }) => {
               {t("your_day_starts_at")} {convertMinsToHrsMins(user.startTime)}
             </div>
           </div>
-          {isLoading ? (
-            <>
-              <SkeletonText className="block h-16 w-full" />
-              <SkeletonText className="block h-16 w-full" />
-            </>
-          ) : data && data.busy.length > 0 ? (
-            data.busy
-              .sort((a: IBusySlot, b: IBusySlot) => (a.start > b.start ? -1 : 1))
-              .map((slot: IBusySlot) => (
-                <div
-                  key={dayjs(slot.start).format("HH:mm")}
-                  className="overflow-hidden rounded-md bg-neutral-100">
-                  <div className="px-4 py-5 text-black sm:p-6">
-                    {t("calendar_shows_busy_between")}{" "}
-                    <span className="font-medium text-neutral-800" title={dayjs(slot.start).format("HH:mm")}>
-                      {dayjs(slot.start).format("HH:mm")}
-                    </span>{" "}
-                    {t("and")}{" "}
-                    <span className="font-medium text-neutral-800" title={dayjs(slot.end).format("HH:mm")}>
-                      {dayjs(slot.end).format("HH:mm")}
-                    </span>{" "}
-                    {t("on")} {dayjs(slot.start).format("D")}{" "}
-                    {t(dayjs(slot.start).format("MMMM").toLowerCase())} {dayjs(slot.start).format("YYYY")}
-                    {slot.title && ` - (${slot.title})`}
-                    {slot.source && <small>{` - (source: ${slot.source})`}</small>}
+          {(() => {
+            if (isLoading)
+              return (
+                <>
+                  <SkeletonText className="block h-16 w-full" />
+                  <SkeletonText className="block h-16 w-full" />
+                </>
+              );
+
+            if (data && (data.busy.length > 0 || overrides.length > 0))
+              return [...data.busy, ...overrides]
+                .sort((a: IBusySlot, b: IBusySlot) => (a.start > b.start ? -1 : 1))
+                .map((slot: IBusySlot) => (
+                  <div
+                    key={dayjs(slot.start).format("HH:mm")}
+                    className="overflow-hidden rounded-md bg-neutral-100"
+                    data-testid="troubleshooter-busy-time">
+                    <div className="px-4 py-5 text-black sm:p-6">
+                      {t("calendar_shows_busy_between")}{" "}
+                      <span
+                        className="font-medium text-neutral-800"
+                        title={dayjs(slot.start).format("HH:mm")}>
+                        {dayjs(slot.start).format("HH:mm")}
+                      </span>{" "}
+                      {t("and")}{" "}
+                      <span className="font-medium text-neutral-800" title={dayjs(slot.end).format("HH:mm")}>
+                        {dayjs(slot.end).format("HH:mm")}
+                      </span>{" "}
+                      {t("on")} {dayjs(slot.start).format("D")}{" "}
+                      {t(dayjs(slot.start).format("MMMM").toLowerCase())} {dayjs(slot.start).format("YYYY")}
+                      {slot.title && ` - (${slot.title})`}
+                      {slot.source && <small>{` - (source: ${slot.source})`}</small>}
+                    </div>
                   </div>
-                </div>
-              ))
-          ) : (
-            <div className="overflow-hidden rounded-md bg-neutral-100">
-              <div className="px-4 py-5 text-black sm:p-6">{t("calendar_no_busy_slots")}</div>
-            </div>
-          )}
+                ));
+            return (
+              <div className="overflow-hidden rounded-md bg-neutral-100">
+                <div className="px-4 py-5 text-black sm:p-6">{t("calendar_no_busy_slots")}</div>
+              </div>
+            );
+          })()}
 
           <div className="bg-brand dark:bg-darkmodebrand overflow-hidden rounded-md">
             <div className="text-brandcontrast dark:text-darkmodebrandcontrast px-4 py-2 sm:px-6">

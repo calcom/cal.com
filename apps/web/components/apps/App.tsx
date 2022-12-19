@@ -66,7 +66,9 @@ const Component = ({
     }
   );
 
-  const allowedMultipleInstalls = categories.indexOf("calendar") > -1;
+  // variant not other allows, an app to be shown in calendar category without requiring an actual calendar connection e.g. vimcal
+  // Such apps, can only be installed once.
+  const allowedMultipleInstalls = categories.indexOf("calendar") > -1 && variant !== "other";
 
   return (
     <div className="relative flex-1 flex-col items-start justify-start px-4 md:flex md:px-8 lg:flex-row lg:px-0">

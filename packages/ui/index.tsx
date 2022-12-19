@@ -24,6 +24,9 @@ export {
   TextAreaField,
   TextField,
   TopBanner,
+  Select,
+  SelectField,
+  SelectWithValidation,
 } from "./components";
 export type { AvatarProps, BadgeProps, ButtonBaseProps, ButtonProps, TopBannerProps } from "./components";
 export { default as CheckboxField } from "./components/form/checkbox/Checkbox";
@@ -43,9 +46,6 @@ export {
   CustomInputItem,
   EmptyScreen,
   HorizontalTabs,
-  Select,
-  SelectField,
-  SelectWithValidation,
   SettingsToggle,
   showToast,
   SkeletonAvatar,
@@ -55,9 +55,10 @@ export {
   Swatch,
   Switch,
   VerticalTabs,
+  TipBanner,
 } from "./v2";
 export type { AlertProps } from "./v2";
-export { getReactSelectProps, Segment, SegmentOption } from "./v2/core";
+export { Segment, SegmentOption } from "./v2/core";
 export { default as AllApps } from "./v2/core/apps/AllApps";
 export { default as AppCard } from "./v2/core/apps/AppCard";
 export { default as AppStoreCategories } from "./v2/core/apps/Categories";
@@ -119,4 +120,4 @@ export { default as SAMLLogin } from "./v2/modules/auth/SAMLLogin";
 export { default as DatePicker } from "./v2/modules/booker/DatePicker";
 export { EventTypeDescriptionLazy } from "./v2/modules/event-types";
 export { EventTypeDescription } from "./v2/modules/event-types/EventTypeDescription";
-export { default as Tips } from "./v2/modules/tips/Tips";
+export { default as Tips } from "./v2/core/Tips";
