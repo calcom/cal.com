@@ -32,7 +32,6 @@ export const TeamsMemberFilter = () => {
           type="checkbox"
           checked={!query.teamIds}
           onChange={() => {
-            // removeByKey("teamIds");
             removeByKey("teamIds"); // Always clear on toggle  or not toggle (seems weird but when you know the behviour it works well )
           }}
           className="text-primary-600 focus:ring-primary-500 inline-flex h-4 w-4 place-self-center justify-self-end rounded border-gray-300 "
