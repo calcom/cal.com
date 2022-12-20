@@ -24,7 +24,7 @@ export const queryStringArray = z
   .preprocess((a) => z.string().parse(a).split(","), z.string().array())
   .or(z.string().array());
 
-export function useTypedQuery<T extends z.ZodType>(schema: T) {
+export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
   type Output = z.infer<typeof schema>;
   type FullOutput = Required<Output>;
   type OutputKeys = Required<keyof FullOutput>;
@@ -65,8 +65,10 @@ export function useTypedQuery<T extends z.ZodType>(schema: T) {
     const existingValue = parsedQuery[key];
     if (Array.isArray(existingValue)) {
       if (existingValue.includes(value)) return; // prevent adding the same value to the array
+      // @ts-expect-error this is too much for TS it seems
       setQuery(key, [...existingValue, value]);
     } else {
+      // @ts-expect-error this is too much for TS it seems
       setQuery(key, [value]);
     }
   }
