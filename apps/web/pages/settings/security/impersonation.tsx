@@ -51,7 +51,6 @@ const ProfileImpersonationView = () => {
         }}>
         <div className="flex space-x-3">
           <Switch
-            {...formMethods.register("disableImpersonation")}
             defaultChecked={!user?.disableImpersonation}
             onCheckedChange={(e) => {
               setValue("disableImpersonation", !e);
