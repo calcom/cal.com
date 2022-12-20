@@ -23,6 +23,7 @@ const ProfileImpersonationView = () => {
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: () => {
       showToast(t("profile_updated_successfully"), "success");
+      reset(getValues());
     },
     onSettled: () => {
       utils.viewer.me.invalidate();
@@ -51,10 +52,13 @@ const ProfileImpersonationView = () => {
   });
 
   const {
-    formState: { isSubmitting },
+    formState: { isSubmitting, isDirty },
     setValue,
+    reset,
+    getValues,
   } = formMethods;
 
+  const isDisabled = isSubmitting || !isDirty;
   return (
     <>
       <Meta title={t("impersonation")} description={t("impersonation_description")} />
@@ -67,7 +71,7 @@ const ProfileImpersonationView = () => {
           <Switch
             defaultChecked={!user?.disableImpersonation}
             onCheckedChange={(e) => {
-              setValue("disableImpersonation", !e);
+              setValue("disableImpersonation", !e, { shouldDirty: true });
             }}
             fitToHeight={true}
           />
@@ -80,7 +84,7 @@ const ProfileImpersonationView = () => {
             </Skeleton>
           </div>
         </div>
-        <Button color="primary" className="mt-8" type="submit" disabled={isSubmitting || mutation.isLoading}>
+        <Button color="primary" className="mt-8" type="submit" disabled={isDisabled}>
           {t("update")}
         </Button>
       </Form>
