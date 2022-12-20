@@ -2,6 +2,10 @@ import { useRouter } from "next/router";
 import { useCallback, useMemo } from "react";
 import { z } from "zod";
 
+type OptionalKeys<T> = { [K in keyof T]-?: Record<string, unknown> extends Pick<T, K> ? K : never }[keyof T];
+
+type FilteredKeys<T, U> = { [K in keyof T as T[K] extends U ? K : never]: T[K] };
+
 // Take array as a string and return zod array
 export const queryNumberArray = z
   .string()
@@ -20,22 +24,19 @@ export const queryStringArray = z
   .preprocess((a) => z.string().parse(a).split(","), z.string().array())
   .or(z.string().array());
 
-export function useTypedQuery<T extends z.Schema>(schema: T) {
-  type InferedSchema = z.infer<typeof schema>;
-  type SchemaKeys = keyof InferedSchema;
-  type OptionalKeys = {
-    [K in keyof InferedSchema]: undefined extends InferedSchema[K] ? K : never;
-  }[keyof InferedSchema];
-
-  type ArrayOnlyKeys = {
-    [K in keyof InferedSchema]: InferedSchema[K] extends Array<unknown> & undefined ? K : never;
-  };
+export function useTypedQuery<T extends z.ZodType>(schema: T) {
+  type Output = z.infer<typeof schema>;
+  type FullOutput = Required<Output>;
+  type OutputKeys = Required<keyof FullOutput>;
+  type OutputOptionalKeys = OptionalKeys<Output>;
+  type ArrayOutput = FilteredKeys<FullOutput, Array<unknown>>;
+  type ArrayOutputKeys = keyof ArrayOutput;
 
   const { query: unparsedQuery, ...router } = useRouter();
   const parsedQuerySchema = schema.safeParse(unparsedQuery);
 
-  let parsedQuery: InferedSchema = useMemo(() => {
-    return {} as InferedSchema;
+  let parsedQuery: Output = useMemo(() => {
+    return {} as Output;
   }, []);
 
   if (parsedQuerySchema.success) parsedQuery = parsedQuerySchema.data;
@@ -43,29 +44,24 @@ export function useTypedQuery<T extends z.Schema>(schema: T) {
 
   // Set the query based on schema values
   const setQuery = useCallback(
-    function setQuery<J extends SchemaKeys>(key: J, value: Partial<InferedSchema[J]>) {
+    function setQuery<J extends OutputKeys>(key: J, value: Output[J]) {
       // Remove old value by key so we can merge new value
       const { [key]: _, ...newQuery } = parsedQuery;
       const newValue = { ...newQuery, [key]: value };
-      const search = new URLSearchParams(newValue).toString();
+      const search = new URLSearchParams(newValue as any).toString();
       router.replace({ query: search }, undefined, { shallow: true });
     },
     [parsedQuery, router]
   );
 
   // Delete a key from the query
-  function removeByKey(key: OptionalKeys) {
+  function removeByKey(key: OutputOptionalKeys) {
     const { [key]: _, ...newQuery } = parsedQuery;
-    router.replace({ query: newQuery }, undefined, { shallow: true });
+    router.replace({ query: newQuery as Output }, undefined, { shallow: true });
   }
 
   // push item to existing key
-  function pushItemToKey<J extends SchemaKeys>(
-    key: J,
-    value: InferedSchema[J] extends Array<unknown> | undefined
-      ? NonNullable<InferedSchema[J]>[number]
-      : NonNullable<InferedSchema[J]>
-  ) {
+  function pushItemToKey<J extends ArrayOutputKeys>(key: J, value: ArrayOutput[J][number]) {
     const existingValue = parsedQuery[key];
     if (Array.isArray(existingValue)) {
       if (existingValue.includes(value)) return; // prevent adding the same value to the array
@@ -76,21 +72,14 @@ export function useTypedQuery<T extends z.Schema>(schema: T) {
   }
 
   // Remove item by key and value
-  function removeItemByKeyAndValue<J extends SchemaKeys>(
-    key: J,
-    value: InferedSchema[J] extends Array<unknown> | undefined
-      ? NonNullable<InferedSchema[J]>[number]
-      : NonNullable<InferedSchema[J]>
-  ) {
+  function removeItemByKeyAndValue<J extends ArrayOutputKeys>(key: J, value: ArrayOutput[J][number]) {
     const existingValue = parsedQuery[key];
-    console.log(existingValue);
-    const newValue = existingValue.filter((item: InferedSchema[J][number]) => item !== value);
-    if (Array.isArray(existingValue) && newValue.length > 0) {
-      setQuery(key, value);
+    if (Array.isArray(existingValue)) {
+      // @ts-expect-error this is too much for TS it seems
+      const newValue = existingValue.filter((item) => item !== value);
+      setQuery(key, newValue);
     } else {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore - we know the key is optional but i can't figure out for the life of me
-      // how to support it in the type
+      // @ts-expect-error this is too much for TS it seems
       removeByKey(key);
     }
   }
