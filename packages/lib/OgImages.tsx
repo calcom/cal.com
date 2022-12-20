@@ -26,6 +26,10 @@ export interface GenericImageProps {
   description: string;
 }
 
+export interface ScreenshotImageProps {
+  image: string;
+}
+
 const joinMultipleNames = (names: string[] = []) => {
   const lastName = names.pop();
   return `${names.length > 0 ? `${names.join(", ")} & ${lastName}` : lastName}`;
@@ -93,6 +97,7 @@ const Wrapper = ({
   <div tw="flex w-full h-full">
     <img
       tw="flex absolute left-0 top-0 w-full h-[110%]"
+      style={{ transform: "rotate(180deg)" }}
       src={`${CAL_URL}/social-bg-${variant}-lines.jpg`}
       alt="background"
       width="1200"
@@ -233,6 +238,21 @@ export const Generic = ({ title, description }: GenericImageProps) => (
           {description}
         </div>
       </div>
+    </div>
+  </Wrapper>
+);
+
+export const ScreenShot = ({ image }: ScreenshotImageProps) => (
+  <Wrapper>
+    <div tw="h-full w-full flex flex-col justify-center items-center">
+      <img
+        src={image}
+        width="1024"
+        height="576"
+        alt="screenshot"
+        tw="rounded-2xl mt-[140px] object-cover"
+        style={{ boxShadow: "0 0 45px -3px rgba(0,0,0,.3)" }}
+      />
     </div>
   </Wrapper>
 );
