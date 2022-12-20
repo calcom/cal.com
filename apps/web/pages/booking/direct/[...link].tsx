@@ -175,7 +175,7 @@ export default function Directlink({ booking, reason, status }: inferSSRProps<ty
                         {t(getRecipientStart("MMMM").toLowerCase())} {getRecipientStart("D, YYYY")}
                         <br />
                         {getRecipientStart("h:mma")} - {getRecipientEnd("h:mma")}{" "}
-                        <span style={{ color: "#888888" }}>({booking.attendees[0].timeZone})</span>
+                        <span style={{ color: "#888888" }}>({booking?.user?.timeZone})</span>
                       </div>
                       {(booking?.user || booking?.attendees) && (
                         <>
