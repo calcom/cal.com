@@ -58,13 +58,20 @@ async function checkPermissions(req: NextApiRequest) {
   if (isAdmin) return;
   // Only the invited user can accept the invite
   if ("accepted" in data && queryUserId !== userId)
-    throw new HttpError({ statusCode: 403, message: "Only the invited user can accept the invite" });
+    throw new HttpError({
+      statusCode: 403,
+      message: "Only the invited user can accept the invite",
+    });
   // Only team OWNERS and ADMINS can modify `role`
   if ("role" in data) {
     const membership = await prisma.membership.findFirst({
       where: { userId, teamId, role: { in: ["ADMIN", "OWNER"] } },
     });
-    if (!membership) throw new HttpError({ statusCode: 403, message: "Forbidden" });
+    if (
+      !membership ||
+      (membership.role !== "OWNER" && req.body.role === "OWNER")
+    )
+      throw new HttpError({ statusCode: 403, message: "Forbidden" });
   }
 }
 
