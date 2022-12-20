@@ -184,7 +184,7 @@ export default class Office365CalendarService implements Calendar {
 
     const user = await this.fetcher("/me");
     const userResponseBody = await handleErrorsJson<User>(user);
-    const email = userResponseBody.mail;
+    const email = userResponseBody.mail ?? userResponseBody.userPrincipalName;
 
     return officeCalendars.map((cal: OfficeCalendar) => {
       const calendar: IntegrationCalendar = {
@@ -193,7 +193,7 @@ export default class Office365CalendarService implements Calendar {
         name: cal.name ?? "No calendar name",
         primary: cal.isDefaultCalendar ?? false,
         readOnly: !cal.canEdit && true,
-        email,
+        email: email ?? "No Email",
       };
       return calendar;
     });
