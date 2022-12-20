@@ -372,6 +372,7 @@ export default class GoogleCalendarService implements Calendar {
                 name: cal.summary ?? "No name",
                 primary: cal.primary ?? false,
                 readOnly: !(cal.accessRole === "reader" || cal.accessRole === "owner") && true,
+                email: cal.id ?? "",
               };
               return calendar;
             }) || []

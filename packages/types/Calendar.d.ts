@@ -178,6 +178,8 @@ export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "
   primary?: boolean;
   name?: string;
   readOnly?: boolean;
+  // For displaying the connected email address
+  email?: string;
 }
 
 export interface Calendar {
