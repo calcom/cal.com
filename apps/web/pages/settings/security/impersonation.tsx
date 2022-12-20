@@ -24,7 +24,22 @@ const ProfileImpersonationView = () => {
     onSuccess: () => {
       showToast(t("profile_updated_successfully"), "success");
     },
-    onError: (error) => {
+    onSettled: () => {
+      utils.viewer.me.invalidate();
+    },
+    onMutate: async ({ disableImpersonation }) => {
+      await utils.viewer.me.cancel();
+      const previousValue = utils.viewer.me.getData();
+
+      if (previousValue && disableImpersonation) {
+        utils.viewer.me.setData(undefined, { ...previousValue, disableImpersonation });
+      }
+      return { previousValue };
+    },
+    onError: (error, variables, context) => {
+      if (context?.previousValue) {
+        utils.viewer.me.setData(undefined, context.previousValue);
+      }
       showToast(`${t("error")}, ${error.message}`, "error");
     },
   });
@@ -47,7 +62,6 @@ const ProfileImpersonationView = () => {
         form={formMethods}
         handleSubmit={({ disableImpersonation }) => {
           mutation.mutate({ disableImpersonation });
-          utils.viewer.me.invalidate();
         }}>
         <div className="flex space-x-3">
           <Switch
