@@ -225,13 +225,19 @@ export async function getUserAvailability(
     }
   }
 
+  const userSchedule = currentUser.schedules.filter(
+    (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
+  )[0];
+
   const schedule =
     !eventType?.metadata?.config?.useHostSchedulesForTeamEvent && eventType?.schedule
       ? { ...eventType?.schedule }
       : {
-          ...currentUser.schedules.filter(
-            (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
-          )[0],
+          ...userSchedule,
+          availability: userSchedule.availability.map((a) => ({
+            ...a,
+            userId: currentUser.id,
+          })),
         };
 
   const startGetWorkingHours = performance.now();
@@ -242,10 +248,7 @@ export async function getUserAvailability(
     schedule.availability ||
     (eventType?.availability.length ? eventType.availability : currentUser.availability);
 
-  const workingHours = getWorkingHours({ timeZone }, availability).map((a) => ({
-    ...a,
-    userId: currentUser.id,
-  }));
+  const workingHours = getWorkingHours({ timeZone }, availability);
 
   const endGetWorkingHours = performance.now();
   logger.debug(`getWorkingHours took ${endGetWorkingHours - startGetWorkingHours}ms for userId ${userId}`);
