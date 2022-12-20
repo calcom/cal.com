@@ -367,6 +367,7 @@
   "team_webhooks": "Team-Webhooks",
   "create_new_webhook_to_account": "Erstellen Sie einen neuen Webhook in Ihrem Account",
   "new_webhook": "Neuer Webhook",
+  "receive_cal_meeting_data": "Erhalte {{appName}} Termindaten unter einer bestimmten URL in Echtzeit, wenn ein Termin geplant oder abgesagt wird.",
   "responsive_fullscreen_iframe": "Responsives Vollbild-iFrame",
   "loading": "Wird geladen...",
   "deleting": "Lösche...",
