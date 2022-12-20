@@ -78,7 +78,7 @@ ProfileImpersonationView.getLayout = getLayout;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
-
+  await ssr.viewer.me.prefetch();
   return {
     props: {
       trpcState: ssr.dehydrate(),
