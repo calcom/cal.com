@@ -142,15 +142,6 @@ const getSlots = ({
     dayjs.utc(override.start).tz(timeZone).isSame(startOfInviteeDay, "day")
   );
 
-  if (!!activeOverrides.length) {
-    const computedLocalAvailability = activeOverrides.flatMap((override) => ({
-      userIds: override.userId ? [override.userId] : [],
-      startTime: override.start.getUTCHours() * 60 + override.start.getUTCMinutes(),
-      endTime: override.end.getUTCHours() * 60 + override.end.getUTCMinutes(),
-    }));
-    return buildSlots({ computedLocalAvailability, startDate, startOfInviteeDay, eventLength, frequency });
-  }
-
   const workingHoursUTC = workingHours.map((schedule) => ({
     userId: schedule.userId,
     days: schedule.days,
@@ -194,6 +185,19 @@ const getSlots = ({
     }
   });
 
+  if (!!activeOverrides.length) {
+    const overrides = activeOverrides.flatMap((override) => ({
+      userIds: override.userId ? [override.userId] : [],
+      startTime: override.start.getUTCHours() * 60 + override.start.getUTCMinutes(),
+      endTime: override.end.getUTCHours() * 60 + override.end.getUTCMinutes(),
+    }));
+    overrides.forEach((override) => {
+      const index = computedLocalAvailability.findIndex(
+        (a) => override.userIds[0] && a.userIds?.includes(override.userIds[0])
+      );
+      computedLocalAvailability[index] = override;
+    });
+  }
   return buildSlots({
     computedLocalAvailability,
     startOfInviteeDay,
