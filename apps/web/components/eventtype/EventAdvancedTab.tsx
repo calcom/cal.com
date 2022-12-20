@@ -36,6 +36,18 @@ const generateHashedLink = (id: number) => {
   return uid;
 };
 
+const getRandomId = (length = 8) => {
+  return (
+    -1 *
+    parseInt(
+      Math.ceil(Math.random() * Date.now())
+        .toPrecision(length)
+        .toString()
+        .replace(".", "")
+    )
+  );
+};
+
 export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, "eventType" | "team">) => {
   const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
   const formMethods = useFormContext<FormValues>();
@@ -51,7 +63,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const [selectedCustomInputModalOpen, setSelectedCustomInputModalOpen] = useState(false);
   const [requiresConfirmation, setRequiresConfirmation] = useState(eventType.requiresConfirmation);
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
-
+  console.log(customInputs);
   const seatsEnabled = formMethods.getValues("seatsPerTimeSlotEnabled");
 
   const removeCustom = (index: number) => {
@@ -392,7 +404,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 selectedCustomInput={selectedCustomInput}
                 onSubmit={(values) => {
                   const customInput: CustomInputParsed = {
-                    id: -1 * Math.floor(Math.random() * 10000),
+                    id: getRandomId(),
                     eventTypeId: -1,
                     label: values.label,
                     placeholder: values.placeholder,
