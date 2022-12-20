@@ -1,5 +1,6 @@
 import { useState } from "react";
 
+import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
@@ -69,31 +70,35 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent>
         <DialogHeader title={t("recordings_title")} />
-
-        {data?.recordings?.total_count ? (
+        <LicenseRequired>
           <>
-            {data.recordings.data?.map((recording: RecordingObjType, index: number) => {
-              return (
-                <div className="flex w-full items-center justify-between" key={recording.id}>
-                  <div className="flex items-center gap-2">
-                    <h1>Recording {index + 1}</h1>
-                    <Badge variant="gray">{convertStoMs(recording.duration)}</Badge>
-                    <Badge variant="green">{recording.status.toUpperCase()}</Badge>
-                  </div>
-                  <Button
-                    className="ml-4 lg:ml-0"
-                    loading={downloadingRecordingId === recording.id}
-                    onClick={() => handleDownloadClick(recording.id, data.api_key)}>
-                    {t("download")}
-                  </Button>
-                </div>
-              );
-            })}
+            {data?.recordings?.total_count ? (
+              <>
+                {data.recordings.data?.map((recording: RecordingObjType, index: number) => {
+                  return (
+                    <div className="flex w-full items-center justify-between" key={recording.id}>
+                      <div className="flex items-center gap-2">
+                        <h1>
+                          {t("recording")} #{index + 1}
+                        </h1>
+                        <Badge variant="gray">{convertStoMs(recording.duration)}</Badge>
+                        <Badge variant="green">{recording.status.toUpperCase()}</Badge>
+                      </div>
+                      <Button
+                        className="ml-4 lg:ml-0"
+                        loading={downloadingRecordingId === recording.id}
+                        onClick={() => handleDownloadClick(recording.id, data.api_key)}>
+                        {t("download")}
+                      </Button>
+                    </div>
+                  );
+                })}
+              </>
+            ) : (
+              <h1>No Recordings Found </h1>
+            )}
           </>
-        ) : (
-          <h1>No Recordings Found </h1>
-        )}
-
+        </LicenseRequired>
         <DialogFooter>
           <DialogClose />
         </DialogFooter>
