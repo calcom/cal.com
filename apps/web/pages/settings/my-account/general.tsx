@@ -70,6 +70,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
 
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: () => {
+      reset(getValues());
       showToast(t("settings_updated_successfully"), "success");
     },
     onError: () => {
@@ -119,7 +120,12 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
       },
     },
   });
-
+  const {
+    formState: { isDirty, isSubmitting },
+    reset,
+    getValues,
+  } = formMethods;
+  const isDisabled = isSubmitting || !isDirty;
   return (
     <Form
       form={formMethods}
@@ -160,7 +166,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
               id="timezone"
               value={value}
               onChange={(event) => {
-                if (event) formMethods.setValue("timeZone", event.value);
+                if (event) formMethods.setValue("timeZone", event.value, { shouldDirty: true });
               }}
             />
           </>
@@ -178,7 +184,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
               value={value}
               options={timeFormatOptions}
               onChange={(event) => {
-                if (event) formMethods.setValue("timeFormat", { ...event });
+                if (event) formMethods.setValue("timeFormat", { ...event }, { shouldDirty: true });
               }}
             />
           </>
@@ -199,13 +205,13 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
               value={value}
               options={weekStartOptions}
               onChange={(event) => {
-                if (event) formMethods.setValue("weekStart", { ...event });
+                if (event) formMethods.setValue("weekStart", { ...event }, { shouldDirty: true });
               }}
             />
           </>
         )}
       />
-      <Button color="primary" type="submit" className="mt-8">
+      <Button disabled={isDisabled} color="primary" type="submit" className="mt-8">
         <>{t("update")}</>
       </Button>
     </Form>
