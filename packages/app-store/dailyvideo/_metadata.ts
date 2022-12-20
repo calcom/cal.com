@@ -10,6 +10,7 @@ export const metadata = {
   imageSrc: "/api/app-store/dailyvideo/icon.svg",
   variant: "conferencing",
   url: "https://daily.co",
+  categories: ["calendar"],
   trending: true,
   logo: "/api/app-store/dailyvideo/icon.svg",
   publisher: "Cal.com",

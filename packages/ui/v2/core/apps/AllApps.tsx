@@ -1,11 +1,11 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { Credential } from "@prisma/client";
 import { useRouter } from "next/router";
 import { UIEvent, useEffect, useRef, useState } from "react";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { App } from "@calcom/types/App";
+import type { AppFrontendPayload as App } from "@calcom/types/App";
+import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import { Icon } from "@calcom/ui";
 
 import EmptyScreen from "../EmptyScreen";
@@ -37,7 +37,11 @@ export function useShouldShowArrows() {
   return { ref, calculateScroll, leftVisible: showArrowScroll.left, rightVisible: showArrowScroll.right };
 }
 
-type AllAppsPropsType = { apps: (App & { credentials: Credential[] | undefined })[]; searchText?: string };
+type AllAppsPropsType = {
+  apps: (App & { credentials?: Credential[] })[];
+  searchText?: string;
+  categories: string[];
+};
 
 interface CategoryTabProps {
   selectedCategory: string | null;
@@ -125,17 +129,11 @@ function CategoryTab({ selectedCategory, categories, searchText }: CategoryTabPr
   );
 }
 
-export default function AllApps({ apps, searchText }: AllAppsPropsType) {
+export default function AllApps({ apps, searchText, categories }: AllAppsPropsType) {
   const router = useRouter();
   const { t } = useLocale();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [appsContainerRef, enableAnimation] = useAutoAnimate<HTMLDivElement>();
-
-  const categories = apps
-    .map((app) => app.category)
-    .filter((cat, pos, self) => {
-      return self.indexOf(cat) === pos;
-    });
 
   if (searchText) {
     enableAnimation && enableAnimation(false);

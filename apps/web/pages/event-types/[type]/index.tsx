@@ -36,6 +36,7 @@ import { EventLimitsTab } from "@components/eventtype/EventLimitsTab";
 import { EventRecurringTab } from "@components/eventtype/EventRecurringTab";
 import { EventSetupTab } from "@components/eventtype/EventSetupTab";
 import { EventTeamTab } from "@components/eventtype/EventTeamTab";
+import { EventTeamWebhooksTab } from "@components/eventtype/EventTeamWebhooksTab";
 import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
 import EventWorkflowsTab from "@components/eventtype/EventWorkfowsTab";
 
@@ -93,7 +94,17 @@ export type CustomInputParsed = typeof customInputSchema._output;
 
 const querySchema = z.object({
   tabName: z
-    .enum(["setup", "availability", "apps", "limits", "recurring", "team", "advanced", "workflows"])
+    .enum([
+      "setup",
+      "availability",
+      "apps",
+      "limits",
+      "recurring",
+      "team",
+      "advanced",
+      "workflows",
+      "webhooks",
+    ])
     .optional()
     .default("setup"),
 });
@@ -237,6 +248,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
         workflows={eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow)}
       />
     ),
+    webhooks: <EventTeamWebhooksTab eventType={eventType} team={team} />,
   } as const;
 
   return (
@@ -248,7 +260,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
       team={team}
       isUpdateMutationLoading={updateMutation.isLoading}
       formMethods={formMethods}
-      disableBorder={tabName === "apps" || tabName === "workflows"}
+      disableBorder={tabName === "apps" || tabName === "workflows" || tabName === "webhooks"}
       currentUserMembership={props.currentUserMembership}>
       <Form
         form={formMethods}
@@ -436,6 +448,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       destinationCalendar: true,
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
+      webhooks: {
+        select: {
+          id: true,
+          subscriberUrl: true,
+          payloadTemplate: true,
+          active: true,
+          eventTriggers: true,
+          secret: true,
+          eventTypeId: true,
+        },
+      },
       workflows: {
         include: {
           workflow: {
