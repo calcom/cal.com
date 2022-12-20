@@ -143,7 +143,6 @@ const BookingPage = ({
           isSuccessBookingPage: true,
           email: bookingForm.getValues("email"),
           eventTypeSlug: eventType.slug,
-          listingStatus: "upcoming",
         },
       });
     },

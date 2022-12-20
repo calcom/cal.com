@@ -170,7 +170,6 @@ const querySchema = z.object({
   changes: stringToBoolean,
   reschedule: stringToBoolean,
   isSuccessBookingPage: z.string().optional(),
-  listingStatus: z.enum(validStatuses),
 });
 
 export default function Success(props: SuccessProps) {
@@ -181,7 +180,6 @@ export default function Success(props: SuccessProps) {
     allRemainingBookings,
     isSuccessBookingPage,
     cancel: isCancellationMode,
-    listingStatus,
     changes,
   } = querySchema.parse(router.query);
 
@@ -552,7 +550,7 @@ export default function Success(props: SuccessProps) {
                 {(!needsConfirmation || !userIsOwner) &&
                   !isCancelled &&
                   (!isCancellationMode ? (
-                    listingStatus === "past" ? null : (
+                    new Date(bookingInfo.startTime) < new Date(Date.now()) ? null : (
                       <>
                         <hr className="border-bookinglightest dark:border-darkgray-300 mb-8" />
                         <div className="text-center last:pb-0">
