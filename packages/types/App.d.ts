@@ -121,9 +121,6 @@ export interface App {
   isGlobal?: boolean;
   /** A contact email, mainly to ask for support */
   email: string;
-
-  /** Needed API Keys (usually for global apps) */
-  key?: Prisma.JsonValue;
   /** Needed API Keys (usually for global apps) */
   key?: Prisma.JsonValue;
   /** If not free, what kind of fees does the app have */
@@ -137,5 +134,10 @@ export interface App {
   appData?: EventLocationAppData;
   dirName?: string;
 }
+
+export type AppFrontendPayload = Omit<App, "key"> & {
+  /** We should type error if keys are leaked to the frontend */
+  key?: never;
+};
 
 export type AppMeta = Optional<App, "rating" | "trending" | "reviews" | "verified">;

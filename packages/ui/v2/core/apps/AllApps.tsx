@@ -1,11 +1,11 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { Credential } from "@prisma/client";
 import { useRouter } from "next/router";
 import { UIEvent, useEffect, useRef, useState } from "react";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { App } from "@calcom/types/App";
+import type { AppFrontendPayload as App } from "@calcom/types/App";
+import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import { Icon } from "@calcom/ui";
 
 import EmptyScreen from "../EmptyScreen";
@@ -38,7 +38,7 @@ export function useShouldShowArrows() {
 }
 
 type AllAppsPropsType = {
-  apps: (App & { credentials: Credential[] | undefined })[];
+  apps: (App & { credentials?: Credential[] })[];
   searchText?: string;
   categories: string[];
 };
