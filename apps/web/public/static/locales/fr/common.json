@@ -1414,5 +1414,15 @@
   "disable_payment_app": "L'administrateur a désactivé {{appName}} qui affecte votre type d'événement {{title}}. Les participants sont toujours en mesure de réserver ce type d'événement, mais ne seront pas invités à payer. Vous pouvez masquer le type d'événement pour l'empêcher jusqu'à ce que votre administrateur réactive votre moyen de paiement.",
   "payment_disabled_still_able_to_book": "Les participants sont toujours en mesure de réserver ce type d'événement, mais ne seront pas invités à payer. Vous pouvez masquer le type d'événement pour l'empêcher jusqu'à ce que votre administrateur réactive votre mode de paiement.",
   "app_disabled_with_event_type": "L'administrateur a désactivé {{appName}} qui affecte votre type d'événement {{title}}.",
+  "app_disabled_video": "L'administrateur a désactivé {{appName}}, ce qui peut affecter vos types d'événements. Si vous avez des types d'événements avec {{appName}} comme emplacement, Cal Video sera alors utilisé par défaut.",
+  "app_disabled_subject": "{{appName}} a été désactivé",
+  "navigate_installed_apps": "Accéder aux applications installées",
+  "disabled_calendar": "Si un autre calendrier est installé, de nouvelles réservations y seront ajoutées. Si ce n'est pas le cas, connectez un nouveau calendrier pour ne pas manquer de nouvelles réservations.",
+  "enable_apps": "Activer les applications",
+  "enable_apps_description": "Activer les applications que les utilisateurs peuvent intégrer à Cal.com",
+  "app_is_enabled": "{{appName}} est activé",
+  "app_is_disabled": "{{appName}} est désactivé",
+  "keys_have_been_saved": "Les clés ont été enregistrées",
+  "disable_app_description": "Désactiver cette application peut causer des problèmes avec la façon dont vos utilisateurs interagissent avec Cal",
   "admin_apps_description": "Activer les applications pour votre instance de Cal"
 }
