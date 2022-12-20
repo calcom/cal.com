@@ -320,7 +320,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
               return isAvailable;
             })
           : (() => {
-              const userSchedule = userAvailability.find(({ userId }) => slot.userIds.includes(userId));
+              const userSchedule = userAvailability.find(({ userId }) => slot.userIds?.includes(userId));
               if (!userSchedule) {
                 throw new TRPCError({
                   message: "Shouldn't happen that we don't have a matching user schedule here",
