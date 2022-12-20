@@ -1,6 +1,5 @@
 import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
-import { useFormContext } from "react-hook-form";
 
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
@@ -15,7 +14,6 @@ export const EventTeamWebhooksTab = ({
   eventType,
   team,
 }: Pick<EventTypeSetupInfered, "eventType" | "team">) => {
-  const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
 
   const utils = trpc.useContext();
