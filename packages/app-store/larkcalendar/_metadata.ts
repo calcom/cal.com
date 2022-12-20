@@ -10,7 +10,7 @@ export const metadata = {
   title: "Lark Calendar",
   imageSrc: "/api/app-store/larkcalendar/icon.svg",
   variant: "calendar",
-  category: "calendar",
+  categories: ["calendar"],
   logo: "/api/app-store/larkcalendar/icon.svg",
   publisher: "Lark",
   rating: 5,

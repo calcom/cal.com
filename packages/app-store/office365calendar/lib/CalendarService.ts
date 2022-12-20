@@ -1,4 +1,4 @@
-import { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-beta";
+import { Calendar as OfficeCalendar, User } from "@microsoft/microsoft-graph-types-beta";
 
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
@@ -182,6 +182,10 @@ export default class Office365CalendarService implements Calendar {
       }
     }
 
+    const user = await this.fetcher("/me");
+    const userResponseBody = await handleErrorsJson<User>(user);
+    const email = userResponseBody.mail ?? userResponseBody.userPrincipalName;
+
     return officeCalendars.map((cal: OfficeCalendar) => {
       const calendar: IntegrationCalendar = {
         externalId: cal.id ?? "No Id",
@@ -189,6 +193,7 @@ export default class Office365CalendarService implements Calendar {
         name: cal.name ?? "No calendar name",
         primary: cal.isDefaultCalendar ?? false,
         readOnly: !cal.canEdit && true,
+        email: email ?? "",
       };
       return calendar;
     });
