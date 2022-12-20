@@ -62,7 +62,7 @@ export async function checkLimit({
             {
               id: eventId,
               bookings: {
-                some: {
+                every: {
                   startTime: {
                     gte: startDate,
                   },
