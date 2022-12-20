@@ -260,10 +260,9 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     })
   );
   // flattens availability of multiple users
-  const dateOverrides = userAvailability.flatMap((availability) => ({
-    userId: availability.userId,
-    ...availability.dateOverrides,
-  }));
+  const dateOverrides = userAvailability.flatMap((availability) =>
+    availability.dateOverrides.map((override) => ({ userId: availability.userId, ...override }))
+  );
   const workingHours = getAggregateWorkingHours(userAvailability, eventType.schedulingType);
   const computedAvailableSlots: Record<string, Slot[]> = {};
   const availabilityCheckProps = {
