@@ -201,7 +201,6 @@ const getSlots = ({
     });
   }
 
-  console.log(computedLocalAvailability);
   return buildSlots({
     computedLocalAvailability,
     startOfInviteeDay,
