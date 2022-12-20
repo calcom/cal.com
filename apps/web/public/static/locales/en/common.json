@@ -1466,5 +1466,5 @@
   "send_code" : "Send code",
   "number_verified": "Number Verified",
   "create_your_first_team_webhook_description": "Create your first webhook for this team event type",
-  "create_webhook_team_event_type": "Create webhook for this team event type"
+  "create_webhook_team_event_type": "Create a webhook for this team event type"
 }
