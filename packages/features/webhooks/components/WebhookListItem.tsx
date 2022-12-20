@@ -60,6 +60,7 @@ export default function WebhookListItem(props: {
               id: webhook.id,
               active: !webhook.active,
               payloadTemplate: webhook.payloadTemplate,
+              eventTypeId: webhook.eventTypeId || undefined,
             })
           }
         />
