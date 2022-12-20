@@ -195,9 +195,13 @@ const getSlots = ({
       const index = computedLocalAvailability.findIndex(
         (a) => override.userIds[0] && a.userIds?.includes(override.userIds[0])
       );
-      computedLocalAvailability[index] = override;
+      if (index >= 0) {
+        computedLocalAvailability[index] = override;
+      }
     });
   }
+
+  console.log(computedLocalAvailability);
   return buildSlots({
     computedLocalAvailability,
     startOfInviteeDay,
