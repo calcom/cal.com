@@ -63,7 +63,7 @@ export function getWorkingHours(
     timeZone?: string;
     utcOffset?: number;
   },
-  availability: { userId: number; days: number[]; startTime: ConfigType; endTime: ConfigType }[]
+  availability: { userId?: number | null; days: number[]; startTime: ConfigType; endTime: ConfigType }[]
 ) {
   if (!availability.length) {
     return [];

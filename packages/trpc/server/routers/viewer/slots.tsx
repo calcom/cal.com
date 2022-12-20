@@ -13,7 +13,6 @@ import getTimeSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { EventBusyDate } from "@calcom/types/Calendar";
-import { TimeRange } from "@calcom/types/schedule";
 
 import { TRPCError } from "@trpc/server";
 
@@ -47,7 +46,7 @@ const getScheduleSchema = z
 
 export type Slot = {
   time: string;
-  userId: string;
+  userId?: number | null;
   attendees?: number;
   bookingUid?: string;
   users?: string[];
@@ -261,7 +260,10 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     })
   );
   // flattens availability of multiple users
-  const dateOverrides = userAvailability.flatMap((availability) => availability.dateOverrides);
+  const dateOverrides = userAvailability.flatMap((availability) => ({
+    userId: availability.userId,
+    ...availability.dateOverrides,
+  }));
   const workingHours = getAggregateWorkingHours(userAvailability, eventType.schedulingType);
   const computedAvailableSlots: Record<string, Slot[]> = {};
   const availabilityCheckProps = {
@@ -283,7 +285,6 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   let checkForAvailabilityTime = 0;
   let getSlotsCount = 0;
   let checkForAvailabilityCount = 0;
-
   do {
     const startGetSlots = performance.now();
     // get slots retrieves the available times for a given day
@@ -299,19 +300,18 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     const endGetSlots = performance.now();
     getSlotsTime += endGetSlots - startGetSlots;
     getSlotsCount++;
-    // if ROUND_ROBIN - slots stay available on some() - if normal / COLLECTIVE - slots only stay available on every()
-    const filterStrategy =
-      !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE
-        ? ("every" as const)
-        : ("some" as const);
+
+    const isCollective = !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE;
+
     const availableTimeSlots = timeSlots
-      .filter((slot) => isTimeWithinBounds(slot.slot))
+      .filter((slot) => isTimeWithinBounds(slot.time))
       .filter((slot) =>
-        filterStrategy === "every"
-          ? userAvailability[filterStrategy]((schedule) => {
+        isCollective
+          ? // The slot should be available for every user
+            userAvailability.every((schedule) => {
               const startCheckForAvailability = performance.now();
               const isAvailable = checkIfIsAvailable({
-                time: slot.slot,
+                time: slot.time,
                 ...schedule,
                 ...availabilityCheckProps,
               });
@@ -321,10 +321,16 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
               return isAvailable;
             })
           : (() => {
-              console.log("Slot: ", slot, "UserAvailability: ", userAvailability);
-              const userSchedule = userAvailability.find(({ userId }) => slot.userId === userId)!;
+              const userSchedule = userAvailability.find(({ userId }) => slot.userId === userId);
+              if (!userSchedule) {
+                throw new TRPCError({
+                  message: "Shouldn't happen that we don't have a matching user schedule here",
+                  code: "INTERNAL_SERVER_ERROR",
+                });
+              }
+              // The slot should be available for the respective user.
               return checkIfIsAvailable({
-                time: slot.slot,
+                time: slot.time,
                 ...userSchedule,
                 ...availabilityCheckProps,
               });
@@ -332,7 +338,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       );
 
     computedAvailableSlots[currentCheckedTime.format("YYYY-MM-DD")] = availableTimeSlots.map(
-      ({ slot: time, userId }) => ({
+      ({ time: time, userId }) => ({
         userId,
         time: time.toISOString(),
         users: eventType.users.map((user) => user.username || ""),

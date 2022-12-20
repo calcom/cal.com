@@ -1,4 +1,5 @@
 export type TimeRange = {
+  userId?: number | null;
   start: Date;
   end: Date;
 };
@@ -15,5 +16,5 @@ export type WorkingHours = {
   days: number[];
   startTime: number;
   endTime: number;
-  userId: number;
+  userId?: number | null;
 };

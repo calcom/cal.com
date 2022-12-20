@@ -11,7 +11,7 @@ export type GetSlots = {
   minimumBookingNotice: number;
   eventLength: number;
 };
-export type TimeFrame = { userId: number; startTime: number; endTime: number };
+export type TimeFrame = { userId?: number | null; startTime: number; endTime: number };
 
 /**
  * TODO: What does this function do?
@@ -66,7 +66,7 @@ function buildSlots({
     slotsTimeFrameAvailable.push(...userSlotsTimeFrameAvailable);
   });
 
-  const slots: { slot: Dayjs; userId: number }[] = [];
+  const slots: { time: Dayjs; userId?: number | null }[] = [];
 
   slotsTimeFrameAvailable.forEach((item) => {
     // XXX: Hack alert, as dayjs is supposedly not aware of timezone the current slot may have invalid UTC offset.
@@ -81,14 +81,14 @@ function buildSlots({
      */
     const slot = {
       userId: item.userId,
-      slot: dayjs.tz(startOfInviteeDay.add(item.startTime, "minute").format("YYYY-MM-DDTHH:mm:ss"), timeZone),
+      time: dayjs.tz(startOfInviteeDay.add(item.startTime, "minute").format("YYYY-MM-DDTHH:mm:ss"), timeZone),
     };
     // If the startOfInviteeDay has a different UTC offset than the slot, a DST change has occurred.
     // As the time has now fallen backwards, or forwards; this difference -
     // needs to be manually added as this is not done for us. Usually 0.
-    slot.slot = slot.slot.add(startOfInviteeDay.utcOffset() - slot.slot.utcOffset(), "minutes");
+    slot.time = slot.time.add(startOfInviteeDay.utcOffset() - slot.time.utcOffset(), "minutes");
     // Validating slot its not on the past
-    if (!slot.slot.isBefore(startDate)) {
+    if (!slot.time.isBefore(startDate)) {
       slots.push(slot);
     }
   });
@@ -132,10 +132,10 @@ const getSlots = ({
   const activeOverrides = dateOverrides.filter((override) =>
     dayjs.utc(override.start).tz(timeZone).isSame(startOfInviteeDay, "day")
   );
+
   if (!!activeOverrides.length) {
     const computedLocalAvailability = activeOverrides.flatMap((override) => ({
-      //FIXME: Set correct userId for overrides as well.
-      userId: -1,
+      userId: override.userId,
       startTime: override.start.getUTCHours() * 60 + override.start.getUTCMinutes(),
       endTime: override.end.getUTCHours() * 60 + override.end.getUTCMinutes(),
     }));
