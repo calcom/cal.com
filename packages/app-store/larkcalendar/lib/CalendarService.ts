@@ -319,7 +319,7 @@ export default class LarkCalendarService implements Calendar {
             integration: this.integrationName,
             name: cal.summary_alias || cal.summary || "No calendar name",
             primary: cal.type === "primary",
-            email: cal.calendar_id ?? "No Email",
+            email: cal.calendar_id ?? "",
           };
           return calendar;
         });
@@ -340,7 +340,7 @@ export default class LarkCalendarService implements Calendar {
           integration: this.integrationName,
           name: cal.summary_alias || cal.summary || "No calendar name",
           primary: cal.type === "primary",
-          email: cal.calendar_id ?? "No Email",
+          email: cal.calendar_id ?? "",
         };
         return calendar;
       });

@@ -193,7 +193,7 @@ export default class Office365CalendarService implements Calendar {
         name: cal.name ?? "No calendar name",
         primary: cal.isDefaultCalendar ?? false,
         readOnly: !cal.canEdit && true,
-        email: email ?? "No Email",
+        email: email ?? "",
       };
       return calendar;
     });
