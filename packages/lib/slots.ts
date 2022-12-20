@@ -11,7 +11,7 @@ export type GetSlots = {
   minimumBookingNotice: number;
   eventLength: number;
 };
-export type TimeFrame = { startTime: number; endTime: number };
+export type TimeFrame = { userId: number; startTime: number; endTime: number };
 
 /**
  * TODO: What does this function do?
@@ -56,10 +56,17 @@ function buildSlots({
   const slotsTimeFrameAvailable: TimeFrame[] = [];
 
   computedLocalAvailability.forEach((item) => {
-    slotsTimeFrameAvailable.push(...splitAvailableTime(item.startTime, item.endTime, frequency, eventLength));
+    const userSlotsTimeFrameAvailable = splitAvailableTime(
+      item.startTime,
+      item.endTime,
+      frequency,
+      eventLength
+    ).map((slot) => ({ ...slot, userId: item.userId }));
+
+    slotsTimeFrameAvailable.push(...userSlotsTimeFrameAvailable);
   });
 
-  const slots: Dayjs[] = [];
+  const slots: { slot: Dayjs; userId: number }[] = [];
 
   slotsTimeFrameAvailable.forEach((item) => {
     // XXX: Hack alert, as dayjs is supposedly not aware of timezone the current slot may have invalid UTC offset.
@@ -72,16 +79,16 @@ function buildSlots({
      * @calcom/web:dev: 2022-11-06T03:00:00-04:00
      * ...
      */
-    let slot = dayjs.tz(
-      startOfInviteeDay.add(item.startTime, "minute").format("YYYY-MM-DDTHH:mm:ss"),
-      timeZone
-    );
+    const slot = {
+      userId: item.userId,
+      slot: dayjs.tz(startOfInviteeDay.add(item.startTime, "minute").format("YYYY-MM-DDTHH:mm:ss"), timeZone),
+    };
     // If the startOfInviteeDay has a different UTC offset than the slot, a DST change has occurred.
     // As the time has now fallen backwards, or forwards; this difference -
     // needs to be manually added as this is not done for us. Usually 0.
-    slot = slot.add(startOfInviteeDay.utcOffset() - slot.utcOffset(), "minutes");
+    slot.slot = slot.slot.add(startOfInviteeDay.utcOffset() - slot.slot.utcOffset(), "minutes");
     // Validating slot its not on the past
-    if (!slot.isBefore(startDate)) {
+    if (!slot.slot.isBefore(startDate)) {
       slots.push(slot);
     }
   });
@@ -127,6 +134,8 @@ const getSlots = ({
   );
   if (!!activeOverrides.length) {
     const computedLocalAvailability = activeOverrides.flatMap((override) => ({
+      //FIXME: Set correct userId for overrides as well.
+      userId: -1,
       startTime: override.start.getUTCHours() * 60 + override.start.getUTCMinutes(),
       endTime: override.end.getUTCHours() * 60 + override.end.getUTCMinutes(),
     }));
@@ -134,6 +143,7 @@ const getSlots = ({
   }
 
   const workingHoursUTC = workingHours.map((schedule) => ({
+    userId: schedule.userId,
     days: schedule.days,
     startTime: /* Why? */ startOfDayUTC.add(schedule.startTime, "minute"),
     endTime: /* Why? */ startOfDayUTC.add(schedule.endTime, "minute"),
@@ -152,6 +162,7 @@ const getSlots = ({
   let tempComputeTimeFrame: TimeFrame | undefined;
   const computeLength = localWorkingHours.length - 1;
   const makeTimeFrame = (item: typeof localWorkingHours[0]): TimeFrame => ({
+    userId: item.userId,
     startTime: item.startTime,
     endTime: item.endTime,
   });

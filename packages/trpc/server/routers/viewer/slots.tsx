@@ -47,6 +47,7 @@ const getScheduleSchema = z
 
 export type Slot = {
   time: string;
+  userId: string;
   attendees?: number;
   bookingUid?: string;
   users?: string[];
@@ -255,6 +256,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         workingHours,
         dateOverrides,
         busy,
+        userId: currentUser.id,
       };
     })
   );
@@ -302,33 +304,51 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE
         ? ("every" as const)
         : ("some" as const);
+    const availableTimeSlots = timeSlots
+      .filter((slot) => isTimeWithinBounds(slot.slot))
+      .filter((slot) =>
+        filterStrategy === "every"
+          ? userAvailability[filterStrategy]((schedule) => {
+              const startCheckForAvailability = performance.now();
+              const isAvailable = checkIfIsAvailable({
+                time: slot.slot,
+                ...schedule,
+                ...availabilityCheckProps,
+              });
+              const endCheckForAvailability = performance.now();
+              checkForAvailabilityCount++;
+              checkForAvailabilityTime += endCheckForAvailability - startCheckForAvailability;
+              return isAvailable;
+            })
+          : (() => {
+              console.log("Slot: ", slot, "UserAvailability: ", userAvailability);
+              const userSchedule = userAvailability.find(({ userId }) => slot.userId === userId)!;
+              return checkIfIsAvailable({
+                time: slot.slot,
+                ...userSchedule,
+                ...availabilityCheckProps,
+              });
+            })()
+      );
 
-    const availableTimeSlots = timeSlots.filter(isTimeWithinBounds).filter((time) =>
-      userAvailability[filterStrategy]((schedule) => {
-        const startCheckForAvailability = performance.now();
-        const isAvailable = checkIfIsAvailable({ time, ...schedule, ...availabilityCheckProps });
-        const endCheckForAvailability = performance.now();
-        checkForAvailabilityCount++;
-        checkForAvailabilityTime += endCheckForAvailability - startCheckForAvailability;
-        return isAvailable;
+    computedAvailableSlots[currentCheckedTime.format("YYYY-MM-DD")] = availableTimeSlots.map(
+      ({ slot: time, userId }) => ({
+        userId,
+        time: time.toISOString(),
+        users: eventType.users.map((user) => user.username || ""),
+        // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
+        ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
+          attendees:
+            currentSeats[
+              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
+            ]._count.attendees,
+          bookingUid:
+            currentSeats[
+              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
+            ].uid,
+        }),
       })
     );
-
-    computedAvailableSlots[currentCheckedTime.format("YYYY-MM-DD")] = availableTimeSlots.map((time) => ({
-      time: time.toISOString(),
-      users: eventType.users.map((user) => user.username || ""),
-      // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
-      ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
-        attendees:
-          currentSeats[
-            currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-          ]._count.attendees,
-        bookingUid:
-          currentSeats[
-            currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-          ].uid,
-      }),
-    }));
     currentCheckedTime = currentCheckedTime.add(1, "day");
   } while (currentCheckedTime.isBefore(endTime));
 

@@ -231,7 +231,10 @@ export async function getUserAvailability(
     schedule.availability ||
     (eventType?.availability.length ? eventType.availability : currentUser.availability);
 
-  const workingHours = getWorkingHours({ timeZone }, availability);
+  const workingHours = getWorkingHours({ timeZone }, availability).map((a) => ({
+    ...a,
+    userId: currentUser.id,
+  }));
 
   const endGetWorkingHours = performance.now();
   logger.debug(`getWorkingHours took ${endGetWorkingHours - startGetWorkingHours}ms for userId ${userId}`);

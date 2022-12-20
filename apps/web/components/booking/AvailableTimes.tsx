@@ -101,7 +101,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
             }
 
             return (
-              <div key={dayjs(slot.time).format()}>
+              <div data-slot-owner={slot.userId} key={`${dayjs(slot.time).format()}-${slot.userId}`}>
                 {/* Current there is no way to disable Next.js Links */}
                 {seatsPerTimeSlot && slot.attendees && slot.attendees >= seatsPerTimeSlot ? (
                   <div

@@ -63,7 +63,7 @@ export function getWorkingHours(
     timeZone?: string;
     utcOffset?: number;
   },
-  availability: { days: number[]; startTime: ConfigType; endTime: ConfigType }[]
+  availability: { userId: number; days: number[]; startTime: ConfigType; endTime: ConfigType }[]
 ) {
   if (!availability.length) {
     return [];
@@ -91,6 +91,7 @@ export function getWorkingHours(
     }
     if (sameDayStartTime !== sameDayEndTime) {
       currentWorkingHours.push({
+        userId: schedule.userId,
         days: schedule.days,
         startTime: sameDayStartTime,
         endTime: sameDayEndTime,
@@ -100,6 +101,7 @@ export function getWorkingHours(
     // overflowing days constraint to 0-6 day range (Sunday-Saturday)
     if (startTime < MINUTES_DAY_START || endTime < MINUTES_DAY_START) {
       currentWorkingHours.push({
+        userId: schedule.userId,
         days: schedule.days.map((day) => (day - 1 >= 0 ? day - 1 : 6)),
         startTime: startTime + MINUTES_IN_DAY,
         endTime: Math.min(endTime + MINUTES_IN_DAY, MINUTES_DAY_END),
@@ -108,6 +110,7 @@ export function getWorkingHours(
     // else, check for overflow in the next day
     else if (startTime > MINUTES_DAY_END || endTime > MINUTES_IN_DAY) {
       currentWorkingHours.push({
+        userId: schedule.userId,
         days: schedule.days.map((day) => (day + 1) % 7),
         startTime: Math.max(startTime - MINUTES_IN_DAY, MINUTES_DAY_START),
         endTime: endTime - MINUTES_IN_DAY,
