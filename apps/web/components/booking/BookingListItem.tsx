@@ -280,11 +280,6 @@ function BookingListItem(booking: BookingItemProps) {
                 {t("paid")}
               </Badge>
             )}
-            {booking.paid && (
-              <Badge className="ltr:mr-2 rtl:ml-2" variant="green">
-                {t("paid")}
-              </Badge>
-            )}
             {recurringDates !== undefined && (
               <div className="mt-2 text-sm text-gray-400">
                 <RecurringBookingsTooltip booking={booking} recurringDates={recurringDates} />
