@@ -1467,5 +1467,7 @@
   "no_availability_in_month": "No availability in {{month}}",
   "view_next_month": "View next month",
   "send_code" : "Send code",
-  "number_verified": "Number Verified"
+  "number_verified": "Number Verified",
+  "create_your_first_team_webhook_description": "Create your first webhook for this team event type",
+  "create_webhook_team_event_type": "Create a webhook for this team event type"
 }
