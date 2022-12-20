@@ -1,4 +1,4 @@
-import { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import { GetServerSidePropsContext } from "next";
 import { ChangeEventHandler, useState } from "react";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
@@ -6,6 +6,7 @@ import { classNames } from "@calcom/lib";
 import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/client";
+import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { AllApps, AppsLayout, AppStoreCategories, Icon, TextField, TrendingAppsSlider } from "@calcom/ui";
 
 import { ssgInit } from "@server/lib/ssg";
@@ -30,10 +31,7 @@ function AppsSearch({
   );
 }
 
-export default function Apps({
-  categories,
-  appStore,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function Apps({ categories, appStore }: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
   const [searchText, setSearchText] = useState<string | undefined>(undefined);
 
@@ -52,12 +50,16 @@ export default function Apps({
           <TrendingAppsSlider items={appStore} />
         </>
       )}
-      <AllApps apps={appStore} searchText={searchText} />
+      <AllApps
+        apps={appStore}
+        searchText={searchText}
+        categories={categories.map((category) => category.name)}
+      />
     </AppsLayout>
   );
 }
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssg = await ssgInit(context);
 
   const session = await getSession(context);
