@@ -4,10 +4,7 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import {
-  schemaEventTypeCreateBodyParams,
-  schemaEventTypeReadPublic,
-} from "~/lib/validations/event-type";
+import { schemaEventTypeCreateBodyParams, schemaEventTypeReadPublic } from "~/lib/validations/event-type";
 
 /**
  * @swagger
@@ -62,8 +59,7 @@ async function postHandler(req: NextApiRequest) {
 
   await checkPermissions(req);
 
-  if (isAdmin && body.userId)
-    args = { data: { ...body, users: { connect: { id: body.userId } } } };
+  if (isAdmin && body.userId) args = { data: { ...body, users: { connect: { id: body.userId } } } };
 
   if (body.teamId) {
     const hasMembership = await prisma.membership.findFirst({
@@ -74,10 +70,7 @@ async function postHandler(req: NextApiRequest) {
       },
     });
 
-    if (
-      !hasMembership?.role ||
-      !["ADMIN", "OWNER"].includes(hasMembership.role)
-    ) {
+    if (!hasMembership?.role || !["ADMIN", "OWNER"].includes(hasMembership.role)) {
       throw new HttpError({
         statusCode: 401,
         message: "No permission to create an event-type for this team`",
@@ -103,8 +96,7 @@ async function checkPermissions(req: NextApiRequest) {
       message: "ADMIN required for `userId`",
     });
   /* Admin users are required to pass in a userId */
-  if (isAdmin && !body.userId)
-    throw new HttpError({ statusCode: 400, message: "`userId` required" });
+  if (isAdmin && !body.userId) throw new HttpError({ statusCode: 400, message: "`userId` required" });
 }
 
 export default defaultResponder(postHandler);

@@ -67,10 +67,7 @@ async function checkPermissions(req: NextApiRequest) {
     const membership = await prisma.membership.findFirst({
       where: { userId, teamId, role: { in: ["ADMIN", "OWNER"] } },
     });
-    if (
-      !membership ||
-      (membership.role !== "OWNER" && req.body.role === "OWNER")
-    )
+    if (!membership || (membership.role !== "OWNER" && req.body.role === "OWNER"))
       throw new HttpError({ statusCode: 403, message: "Forbidden" });
   }
 }
