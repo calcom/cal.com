@@ -22,6 +22,11 @@ export const EventTeamWebhooksTab = ({
 
   const { data: webhooks } = trpc.viewer.webhook.list.useQuery({ eventTypeId: eventType.id });
 
+  const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery({
+    variant: "other",
+    onlyInstalled: true,
+  });
+
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [webhookToEdit, setWebhookToEdit] = useState<Webhook>();
@@ -88,7 +93,7 @@ export const EventTeamWebhooksTab = ({
   };
   return (
     <div>
-      {team && webhooks && (
+      {team && webhooks && !isLoading && (
         <>
           <div>
             <div>
@@ -127,7 +132,11 @@ export const EventTeamWebhooksTab = ({
           {/* New webhook dialog */}
           <Dialog open={createModalOpen} onOpenChange={(isOpen) => !isOpen && setCreateModalOpen(false)}>
             <DialogContent title={t("create_webhook")} description={t("create_webhook_team_event_type")}>
-              <WebhookForm onSubmit={onCreateWebhook} onCancel={() => setCreateModalOpen(false)} />
+              <WebhookForm
+                onSubmit={onCreateWebhook}
+                onCancel={() => setCreateModalOpen(false)}
+                apps={installedApps?.items.map((app) => app.slug)}
+              />
             </DialogContent>
           </Dialog>
           {/* Edit webhook dialog */}
@@ -135,6 +144,7 @@ export const EventTeamWebhooksTab = ({
             <DialogContent title={t("edit_webhook")}>
               <WebhookForm
                 webhook={webhookToEdit}
+                apps={installedApps?.items.map((app) => app.slug)}
                 onCancel={() => setEditModalOpen(false)}
                 onSubmit={(values: WebhookFormSubmitData) => {
                   if (subscriberUrlReserved(values.subscriberUrl, webhookToEdit?.id || "")) {
