@@ -7,6 +7,7 @@ import { WebhookFormSubmitData } from "@calcom/features/webhooks/components/Webh
 import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Webhook } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Dialog, DialogContent, EmptyScreen, Icon, showToast } from "@calcom/ui";
 
@@ -21,9 +22,9 @@ export const EventTeamWebhooksTab = ({
 
   const { data: webhooks } = trpc.viewer.webhook.list.useQuery({ eventTypeId: eventType.id });
 
-  const [newWebhookModal, setNewWebhookModal] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [webhookToEdit, setWebhookToEdit] = useState(null);
+  const [webhookToEdit, setWebhookToEdit] = useState<Webhook>();
 
   const subscriberUrlReserved = (subscriberUrl: string, id: string): boolean => {
     return !!eventType.webhooks?.find(
@@ -31,11 +32,22 @@ export const EventTeamWebhooksTab = ({
     );
   };
 
+  const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
+    async onSuccess() {
+      setEditModalOpen(false);
+      await utils.viewer.webhook.list.invalidate();
+      showToast(t("webhook_updated_successfully"), "success");
+    },
+    onError(error) {
+      showToast(`${error.message}`, "error");
+    },
+  });
+
   const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
     async onSuccess() {
       showToast(t("webhook_created_successfully"), "success");
       await utils.viewer.webhook.list.invalidate();
-      setNewWebhookModal(false);
+      setCreateModalOpen(false);
     },
     onError(error) {
       showToast(`${error.message}`, "error");
@@ -69,7 +81,7 @@ export const EventTeamWebhooksTab = ({
         color="secondary"
         data-testid="new_webhook"
         StartIcon={Icon.FiPlus}
-        onClick={() => setNewWebhookModal(true)}>
+        onClick={() => setCreateModalOpen(true)}>
         {t("new_webhook")}
       </Button>
     );
@@ -90,7 +102,10 @@ export const EventTeamWebhooksTab = ({
                             key={webhook.id}
                             webhook={webhook}
                             lastItem={webhooks.length === index + 1}
-                            onEditWebhook={() => console.log("edit")}
+                            onEditWebhook={() => {
+                              setEditModalOpen(true);
+                              setWebhookToEdit(webhook);
+                            }}
                           />
                         );
                       })}
@@ -110,15 +125,42 @@ export const EventTeamWebhooksTab = ({
           </div>
 
           {/* New webhook dialog */}
-          <Dialog open={newWebhookModal} onOpenChange={(isOpen) => !isOpen && setNewWebhookModal(false)}>
-            <DialogContent>
-              <WebhookForm onSubmit={onCreateWebhook} />
+          <Dialog open={createModalOpen} onOpenChange={(isOpen) => !isOpen && setCreateModalOpen(false)}>
+            <DialogContent title={t("create_webhook")} description={t("create_webhook_team_event_type")}>
+              <WebhookForm onSubmit={onCreateWebhook} onCancel={() => setCreateModalOpen(false)} />
             </DialogContent>
           </Dialog>
           {/* Edit webhook dialog */}
           <Dialog open={editModalOpen} onOpenChange={(isOpen) => !isOpen && setEditModalOpen(false)}>
-            <DialogContent>
-              <WebhookForm onSubmit={async (values: WebhookFormSubmitData) => console.log("on submit")} />
+            <DialogContent title={t("edit_webhook")}>
+              <WebhookForm
+                webhook={webhookToEdit}
+                onCancel={() => setEditModalOpen(false)}
+                onSubmit={(values: WebhookFormSubmitData) => {
+                  if (subscriberUrlReserved(values.subscriberUrl, webhookToEdit?.id || "")) {
+                    showToast(t("webhook_subscriber_url_reserved"), "error");
+                    return;
+                  }
+
+                  if (values.changeSecret) {
+                    values.secret = values.newSecret.length ? values.newSecret : null;
+                  }
+
+                  if (!values.payloadTemplate) {
+                    values.payloadTemplate = null;
+                  }
+
+                  editWebhookMutation.mutate({
+                    id: webhookToEdit?.id || "",
+                    subscriberUrl: values.subscriberUrl,
+                    eventTriggers: values.eventTriggers,
+                    active: values.active,
+                    payloadTemplate: values.payloadTemplate,
+                    secret: values.secret,
+                    eventTypeId: webhookToEdit?.eventTypeId || undefined,
+                  });
+                }}
+              />
             </DialogContent>
           </Dialog>
         </>
