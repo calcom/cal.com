@@ -1223,6 +1223,7 @@
   "to": "To",
   "workflow_turned_on_successfully": "{{workflowName}} workflow turned {{offOn}} successfully",
   "download_responses": "Download Responses",
+  "download":"Download",
   "create_your_first_form": "Create your first form",
   "create_your_first_form_description": "With Routing Forms you can ask qualifying questions and route to the correct person or event type.",
   "create_your_first_webhook": "Create your first Webhook",

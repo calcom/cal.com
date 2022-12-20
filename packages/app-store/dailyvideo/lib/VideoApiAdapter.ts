@@ -147,6 +147,14 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     },
     updateMeeting: (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> =>
       createOrUpdateMeeting(`/rooms/${bookingRef.uid}`, event),
+    getRecordings: async (roomName: string) => {
+      try {
+        const res = await fetcher(`/recordings?room_name=${roomName}`, { method: "GET" });
+        return Promise.resolve(res);
+      } catch (err) {
+        throw new Error("Something went wrong! Unable to get recording");
+      }
+    },
   };
 };
 

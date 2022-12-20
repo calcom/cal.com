@@ -12,6 +12,7 @@ import getApps, { getLocationGroupedOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { DailyLocationType } from "@calcom/core/location";
+import { getRecordingsOfCalVideoByRoomName } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
@@ -1142,6 +1143,23 @@ const loggedInViewerRouter = router({
       return prev - (current._count?.recurringEventId - 1);
     }, count);
   }),
+  getCalVideoRecordings: authedProcedure
+    .input(
+      z.object({
+        roomName: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { roomName } = input;
+      try {
+        const res = await getRecordingsOfCalVideoByRoomName(roomName);
+        const api_key = res?.api_key;
+        return { recordings: res?.recordings ?? [], error: undefined, api_key };
+      } catch (err) {
+        console.warn(err);
+        return { recordings: [], error: err, api_key: undefined };
+      }
+    }),
 });
 
 export const viewerRouter = mergeRouters(

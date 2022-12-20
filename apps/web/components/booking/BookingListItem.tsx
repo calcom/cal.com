@@ -234,11 +234,13 @@ function BookingListItem(booking: BookingItemProps) {
         isOpenDialog={isOpenSetLocationDialog}
         setShowLocationModal={setIsOpenLocationDialog}
       />
-      <ViewRecordingsDialog
-        booking={booking}
-        isOpenDialog={viewRecordingsDialogIsOpen}
-        setIsOpenDialog={setViewRecordingsDialogIsOpen}
-      />
+      {showRecordingsButtons && (
+        <ViewRecordingsDialog
+          booking={booking}
+          isOpenDialog={viewRecordingsDialogIsOpen}
+          setIsOpenDialog={setViewRecordingsDialogIsOpen}
+        />
+      )}
       {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}
       <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
         <DialogContent>
