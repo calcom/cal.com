@@ -207,18 +207,18 @@ export async function getUserAvailability(
           if (
             // Only check OUR booking that matches the current eventTypeId
             // we don't care about another event type in this case as we dont need to know their booking limits
-            bookingEventTypeId == eventType?.id &&
-            dayjs(booking.start).isBetween(startDate, endDate)
+            !(bookingEventTypeId == eventType?.id && dayjs(booking.start).isBetween(startDate, endDate))
           ) {
-            // increment total and check against the limit, adding a busy time if condition is met.
-            total++;
-            if (total >= limit) {
-              bufferedBusyTimes.push({
-                start: startDate.toISOString(),
-                end: endDate.toISOString(),
-              });
-              break;
-            }
+            continue;
+          }
+          // increment total and check against the limit, adding a busy time if condition is met.
+          total++;
+          if (total >= limit) {
+            bufferedBusyTimes.push({
+              start: startDate.toISOString(),
+              end: endDate.toISOString(),
+            });
+            break;
           }
         }
       }
