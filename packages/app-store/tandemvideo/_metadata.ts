@@ -9,6 +9,7 @@ export const metadata = {
   title: "Tandem Video",
   imageSrc: "/api/app-store/tandemvideo/icon.svg",
   variant: "conferencing",
+  categories: ["video"],
   slug: "tandem",
   category: "video",
   logo: "/api/app-store/tandemvideo/icon.svg",

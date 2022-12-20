@@ -420,6 +420,7 @@ export default abstract class BaseCalendarService implements Calendar {
             ? event.destinationCalendar.externalId === calendar.url
             : false,
           integration: this.integrationName,
+          email: this.credentials.username ?? "",
         });
         return newCalendars;
       }, []);

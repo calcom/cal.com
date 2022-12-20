@@ -11,6 +11,7 @@
   "rating": 4.3,
   "reviews": 69,
   "category": "video",
+  "categories": ["video"],
   "slug": "msteams",
   "title": "MS Teams (Requires work/school account)",
   "trending": true,
