@@ -82,7 +82,6 @@ export async function getAppRegistryWithCredentials(userId: number) {
       ...remainingAppProps,
       categories: dbapp.categories,
       credentials: dbapp.credentials,
-      /** All apps from DB are considered installed by default. @TODO: Add and filter our by `enabled` property */
       installed: true,
     });
   }
