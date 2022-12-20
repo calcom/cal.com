@@ -10,6 +10,7 @@ export const metadata = {
   imageSrc: "/api/app-store/office365calendar/icon.svg",
   variant: "calendar",
   category: "calendar",
+  categories: ["calendar"],
   logo: "/api/app-store/office365calendar/icon.svg",
   publisher: "Cal.com",
   rating: 5,
