@@ -1,3 +1,4 @@
+import base64url from "base64url";
 import { createHmac } from "crypto";
 
 import { CallToAction, CallToActionTable, Separator } from "../components";
@@ -7,7 +8,8 @@ const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
 export const OrganizerRequestEmail = (props: React.ComponentProps<typeof OrganizerScheduledEmail>) => {
   const signedData = `${props.attendee.email}/${props.calEvent.uid}`;
-  const signature = createHmac("sha1", CALENDSO_ENCRYPTION_KEY).update(signedData).digest("base64");
+  const sha1 = createHmac("sha1", CALENDSO_ENCRYPTION_KEY).update(signedData).digest();
+  const signature = base64url(sha1);
   return (
     <OrganizerScheduledEmail
       title={
@@ -24,7 +26,7 @@ export const OrganizerRequestEmail = (props: React.ComponentProps<typeof Organiz
             label={props.calEvent.organizer.language.translate("accept")}
             href={`${process.env.NEXT_PUBLIC_WEBAPP_URL}/booking/direct/accept/${encodeURIComponent(
               props.attendee.email
-            )}/${encodeURIComponent(props.calEvent.uid as string)}/${encodeURIComponent(signature)}`}
+            )}/${encodeURIComponent(props.calEvent.uid as string)}/${signature}`}
           />
           <Separator />
           <CallToAction
@@ -32,7 +34,7 @@ export const OrganizerRequestEmail = (props: React.ComponentProps<typeof Organiz
             secondary
             href={`${process.env.NEXT_PUBLIC_WEBAPP_URL}/booking/direct/reject/${encodeURIComponent(
               props.attendee.email
-            )}/${encodeURIComponent(props.calEvent.uid as string)}/${encodeURIComponent(signature)}`}
+            )}/${encodeURIComponent(props.calEvent.uid as string)}/${signature}`}
           />
         </CallToActionTable>
       }
