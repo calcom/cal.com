@@ -52,6 +52,7 @@
   "still_waiting_for_approval": "Un evento aún está esperando su aprobación",
   "event_is_still_waiting": "La solicitud del evento todavía está esperando: {{attendeeName}} - {{date}} - {{eventType}}",
   "no_more_results": "No hay más resultados",
+  "no_results": "Sin resultados",
   "load_more_results": "Cargar más resultados",
   "integration_meeting_id": "ID de la reunión {{integrationName}}: {{meetingId}}",
   "confirmed_event_type_subject": "Confirma: {{eventType}} con {{name}} en {{date}}",

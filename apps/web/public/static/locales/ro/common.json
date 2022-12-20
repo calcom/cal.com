@@ -714,6 +714,7 @@
   "delete_account_confirmation_message": "Sigur doriți să vă ștergeți contul {{appName}}? Persoanele cărora le-ați transmis linkul contului dvs. nu vor mai putea rezerva folosindu-l și orice preferințe pe care le-ați salvat se vor pierde.",
   "integrations": "Integrări",
   "apps": "Aplicații",
+  "apps_listing": "Listare aplicații",
   "category_apps": " Aplicații {{category}}",
   "app_store": "App Store",
   "app_store_description": "Creăm conexiuni între oameni, tehnologii și locuri de muncă.",
@@ -1102,6 +1103,7 @@
   "event_limit_tab_description": "Cât de des puteți fi rezervat",
   "event_advanced_tab_description": "Setări calendar și mai multe...",
   "event_advanced_tab_title": "Avansat",
+  "event_setup_booking_limits_error": "Limitele de rezervare trebuie să fie în ordine crescătoare. [zi,săptămână,lună,an]",
   "select_which_cal": "Alegeți la ce calendar se adaugă rezervările",
   "custom_event_name": "Nume eveniment personalizat",
   "custom_event_name_description": "Creați nume de evenimente personalizate pentru a fi afișate pe evenimentul calendarului",
@@ -1372,5 +1374,9 @@
   "route_to": "Direcționați către",
   "test_preview_description": "Testați-vă formularul de redirecționare fără a trimite date",
   "test_routing": "Testați redirecționarea",
-  "booking_limit_reached": "A fost atinsă limita de rezervare pentru acest tip de eveniment"
+  "find_the_best_person": "Găsește cea mai bună persoană disponibilă și treci succesiv prin membrii echipei tale.",
+  "booking_limit_reached": "A fost atinsă limita de rezervare pentru acest tip de eveniment",
+  "keys_have_been_saved": "Cheile au fost salvate",
+  "radio": "Radio",
+  "event_type_duplicate_copy_text": "{{slug}}-copie"
 }
