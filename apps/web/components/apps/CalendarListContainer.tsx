@@ -159,6 +159,7 @@ function ConnectedCalendarsList(props: Props) {
         if (!data.connectedCalendars.length) {
           return null;
         }
+
         return (
           <List className="flex flex-col gap-6" noBorderTreatment>
             {data.connectedCalendars.map((item) => (
@@ -168,7 +169,7 @@ function ConnectedCalendarsList(props: Props) {
                     slug={item.integration.slug}
                     title={item.integration.title}
                     logo={item.integration.logo}
-                    description={item.primary?.externalId || "No external Id"}
+                    description={item.primary?.email ?? item.integration.description}
                     separate={true}
                     actions={
                       <div className="flex w-32 justify-end">
