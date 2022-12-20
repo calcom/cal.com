@@ -283,7 +283,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             if (metadata?.multipleDuration.length < 1) {
               throw new Error(t("event_setup_multiple_duration_error"));
             } else {
-              if (input.length && !metadata?.multipleDuration?.includes(input.length)) {
+              if (!input.length && !metadata?.multipleDuration?.includes(input.length)) {
                 throw new Error(t("event_setup_multiple_duration_default_error"));
               }
             }
