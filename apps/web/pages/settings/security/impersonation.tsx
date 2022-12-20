@@ -1,3 +1,4 @@
+import { GetServerSidePropsContext } from "next";
 import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -12,6 +13,8 @@ import {
   Skeleton,
   Switch,
 } from "@calcom/ui";
+
+import { ssrInit } from "@server/lib/ssr";
 
 const ProfileImpersonationView = () => {
   const { t } = useLocale();
@@ -39,7 +42,7 @@ const ProfileImpersonationView = () => {
 
   return (
     <>
-      <Meta title="Impersonation Settings" description="" />
+      <Meta title={t("impersonation")} description={t("impersonation_description")} />
       <Form
         form={formMethods}
         handleSubmit={({ disableImpersonation }) => {
@@ -73,5 +76,15 @@ const ProfileImpersonationView = () => {
 };
 
 ProfileImpersonationView.getLayout = getLayout;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
+};
 
 export default ProfileImpersonationView;

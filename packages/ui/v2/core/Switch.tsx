@@ -14,11 +14,11 @@ const Switch = (
     fitToHeight?: boolean;
   }
 ) => {
-  const { label, ...primitiveProps } = props;
+  const { label, fitToHeight, ...primitiveProps } = props;
   const id = useId();
 
   return (
-    <div className={classNames("flex h-auto w-auto flex-row items-center", props.fitToHeight && "h-fit")}>
+    <div className={classNames("flex h-auto w-auto flex-row items-center", fitToHeight && "h-fit")}>
       <PrimitiveSwitch.Root
         className={classNames(
           props.checked ? "bg-gray-900" : "bg-gray-200",

@@ -1,5 +1,6 @@
 import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
@@ -8,9 +9,18 @@ import { Avatar, Button, Form, Icon, ImageUploader, TextField } from "@calcom/ui
 
 import { NewTeamFormValues } from "../lib/types";
 
+const querySchema = z.object({
+  returnTo: z.string(),
+});
+
 export const CreateANewTeamForm = () => {
   const { t } = useLocale();
   const router = useRouter();
+
+  const returnToParsed = querySchema.safeParse(router.query);
+
+  const returnToParam = returnToParsed.success ? returnToParsed.data.returnTo : "/settings/teams";
+
   const newTeamFormMethods = useForm<NewTeamFormValues>();
 
   const createTeamMutation = trpc.viewer.teams.create.useMutation({
@@ -53,7 +63,7 @@ export const CreateANewTeamForm = () => {
                   className="mt-2"
                   name="name"
                   label={t("team_name")}
-                  value={value}
+                  defaultValue={value}
                   onChange={(e) => {
                     newTeamFormMethods.setValue("name", e?.target.value);
                     if (newTeamFormMethods.formState.touchedFields["slug"] === undefined) {
@@ -81,7 +91,7 @@ export const CreateANewTeamForm = () => {
                   "http://",
                   ""
                 )}/`}
-                value={value}
+                defaultValue={value}
                 onChange={(e) => {
                   newTeamFormMethods.setValue("slug", slugify(e?.target.value), {
                     shouldTouch: true,
@@ -119,7 +129,7 @@ export const CreateANewTeamForm = () => {
           <Button
             disabled={createTeamMutation.isLoading}
             color="secondary"
-            href="/settings"
+            href={returnToParam}
             className="w-full justify-center">
             {t("cancel")}
           </Button>

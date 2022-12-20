@@ -22,6 +22,10 @@ export {
   TextArea,
   TextAreaField,
   TextField,
+  InputFieldWithSelect,
+  Select,
+  SelectField,
+  SelectWithValidation,
 } from "./form";
 export { TopBanner } from "./top-banner";
 export type { TopBannerProps } from "./top-banner";

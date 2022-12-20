@@ -33,7 +33,7 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
   } = props;
 
   return (
-    <DialogContent type="creation" useOwnActionButtons={true}>
+    <DialogContent type="creation">
       <div className="flex">
         {variety && (
           <div className="mt-0.5 ltr:mr-3">
@@ -62,16 +62,14 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
         </div>
       </div>
       <div className="mt-5 flex flex-row-reverse gap-x-2 sm:mt-8">
-        <DialogClose disabled={isLoading} onClick={onConfirm} asChild>
-          {confirmBtn || (
-            <Button color="primary" loading={isLoading}>
-              {isLoading ? loadingText : confirmBtnText}
-            </Button>
-          )}
-        </DialogClose>
-        <DialogClose disabled={isLoading} asChild>
-          <Button color="secondary">{cancelBtnText}</Button>
-        </DialogClose>
+        {confirmBtn ? (
+          confirmBtn
+        ) : (
+          <DialogClose color="primary" loading={isLoading} onClick={(e) => onConfirm && onConfirm(e)}>
+            {isLoading ? loadingText : confirmBtnText}
+          </DialogClose>
+        )}
+        <DialogClose disabled={isLoading}>{cancelBtnText}</DialogClose>
       </div>
     </DialogContent>
   );

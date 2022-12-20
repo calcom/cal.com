@@ -46,7 +46,6 @@ async function handler(req: NextApiRequest) {
       name: parsedQuery.data.full_name,
       emailVerified: new Date(),
       locale: "en", // TODO: We should revisit this
-      plan: "PRO",
       identityProvider: IdentityProvider.CAL,
     },
   });

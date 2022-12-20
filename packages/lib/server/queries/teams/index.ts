@@ -1,4 +1,4 @@
-import { Prisma, UserPlan } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import prisma, { baseEventTypeSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -12,7 +12,6 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
     email: true,
     name: true,
     id: true,
-    plan: true,
     bio: true,
   });
   const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
@@ -62,7 +61,6 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
   const members = team.members.map((obj) => {
     return {
       ...obj.user,
-      isMissingSeat: obj.user.plan === UserPlan.FREE,
       role: obj.role,
       accepted: obj.accepted,
       disableImpersonation: obj.disableImpersonation,

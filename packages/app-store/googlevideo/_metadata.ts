@@ -29,6 +29,7 @@ export const metadata = {
       label: "Google Meet",
     },
   },
+  dirName: "googlevideo",
 } as AppMeta;
 
 export default metadata;

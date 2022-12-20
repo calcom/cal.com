@@ -13,5 +13,7 @@ export {
   TextArea,
   TextAreaField,
   TextField,
+  InputFieldWithSelect,
 } from "./inputs/Input";
 export { Label } from "./inputs/Label";
+export { Select, SelectField, SelectWithValidation, getReactSelectProps } from "./select";
