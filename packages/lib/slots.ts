@@ -66,7 +66,7 @@ function buildSlots({
     slotsTimeFrameAvailable.push(...userSlotsTimeFrameAvailable);
   });
 
-  const slots: { time: Dayjs; userIds?: number[] }[] = [];
+  const slots: { [x: string]: { time: Dayjs; userIds?: number[] } } = {};
 
   slotsTimeFrameAvailable.forEach((item) => {
     // XXX: Hack alert, as dayjs is supposedly not aware of timezone the current slot may have invalid UTC offset.
@@ -87,13 +87,22 @@ function buildSlots({
     // As the time has now fallen backwards, or forwards; this difference -
     // needs to be manually added as this is not done for us. Usually 0.
     slot.time = slot.time.add(startOfInviteeDay.utcOffset() - slot.time.utcOffset(), "minutes");
-    // Validating slot its not on the past
-    if (!slot.time.isBefore(startDate)) {
-      slots.push(slot);
+
+    if (slots[slot.time.format()]) {
+      slots[slot.time.format()] = {
+        ...slot,
+        userIds: [...(slots[slot.time.format()].userIds || []), ...(item.userIds || [])],
+      };
+      return;
     }
+    // Validating slot its not on the past
+    if (slot.time.isBefore(startDate)) {
+      return;
+    }
+    slots[slot.time.format()] = slot;
   });
 
-  return slots;
+  return Object.values(slots);
 }
 
 const getSlots = ({
@@ -158,9 +167,7 @@ const getSlots = ({
   ).filter((hours) => hours.days.includes(inviteeDate.day()));
 
   // Here we split working hour in chunks for every frequency available that can fit in whole working hours
-  const computedLocalAvailability: {
-    [x: number]: TimeFrame;
-  } = {};
+  const computedLocalAvailability: TimeFrame[] = [];
   let tempComputeTimeFrame: TimeFrame | undefined;
   const computeLength = localWorkingHours.length - 1;
   const makeTimeFrame = (item: typeof localWorkingHours[0]): TimeFrame => ({
@@ -168,14 +175,6 @@ const getSlots = ({
     startTime: item.startTime,
     endTime: item.endTime,
   });
-
-  const append = (t: TimeFrame) => {
-    if (computedLocalAvailability[t.startTime] && t.userIds) {
-      const userIds = computedLocalAvailability[t.startTime].userIds || [];
-      t.userIds.push(...userIds);
-    }
-    computedLocalAvailability[t.startTime] = t;
-  };
 
   localWorkingHours.forEach((item, index) => {
     if (!tempComputeTimeFrame) {
@@ -186,17 +185,17 @@ const getSlots = ({
         // to deal with time that across the day, e.g. from 11:59 to to 12:01
         tempComputeTimeFrame.endTime = item.endTime;
       } else {
-        append(tempComputeTimeFrame);
+        computedLocalAvailability.push(tempComputeTimeFrame);
         tempComputeTimeFrame = makeTimeFrame(item);
       }
     }
     if (index == computeLength) {
-      append(tempComputeTimeFrame);
+      computedLocalAvailability.push(tempComputeTimeFrame);
     }
   });
 
   return buildSlots({
-    computedLocalAvailability: Object.values(computedLocalAvailability),
+    computedLocalAvailability,
     startOfInviteeDay,
     startDate,
     frequency,
