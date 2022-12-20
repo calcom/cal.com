@@ -30,16 +30,15 @@ export const EventTypeFilter = () => {
   const [groupedEventTypes, setGroupedEventTypes] = useState<GroupedEventTypeState>();
   // Will be handled up the tree to redirect
   useEffect(() => {
-    if (eventTypes.data) {
-      // Group event types by team
-      const grouped = groupBy<IEventTypeFilter>(
-        eventTypes.data.filter((el) => el.team),
-        (item) => item?.team?.name || ""
-      ); // Add the team name
-      const individualEvents = eventTypes.data.filter((el) => !el.team);
-      // push indivdual events to the start of grouped array
-      setGroupedEventTypes({ user_own_event_types: individualEvents, ...grouped });
-    }
+    if (!eventTypes.data) return;
+    // Group event types by team
+    const grouped = groupBy<IEventTypeFilter>(
+      eventTypes.data.filter((el) => el.team),
+      (item) => item?.team?.name || ""
+    ); // Add the team name
+    const individualEvents = eventTypes.data.filter((el) => !el.team);
+    // push indivdual events to the start of grouped array
+    setGroupedEventTypes({ user_own_event_types: individualEvents, ...grouped });
   }, [eventTypes.data, user]);
 
   if (!user) return null;

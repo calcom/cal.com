@@ -238,7 +238,7 @@ export const bookingsRouter = router({
               },
             },
           ],
-          AND: [passedBookingsStatusFilter, ...filtersCombined],
+          AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
         },
         select: {
           ...bookingMinimalSelect,

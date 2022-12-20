@@ -16,7 +16,7 @@ export const PeopleFilter = () => {
 
   return (
     <AnimatedPopover
-      text={userNames && userNames.length > 0 ? `${userNames.join(",")}` : t("all_users_filter_label")}>
+      text={userNames && userNames.length > 0 ? `${userNames.join(", ")}` : t("all_users_filter_label")}>
       <div className="item-center flex px-4 py-[6px] focus-within:bg-gray-100">
         <div className="mr-2 flex h-6 w-6 items-center justify-center">
           <Icon.FiUser className="h-full w-full" />
@@ -30,7 +30,8 @@ export const PeopleFilter = () => {
           type="checkbox"
           checked={!query.userIds}
           onChange={() => {
-            removeByKey("userIds"); // Always clear on toggle  or not toggle (seems weird but when you know the behviour it works well )
+            // Always clear userIds on toggle as this is the toggle box for all users. No params means we are currently selecting all users
+            removeByKey("userIds");
           }}
           className="text-primary-600 focus:ring-primary-500 inline-flex h-4 w-4 place-self-center justify-self-end rounded border-gray-300 "
         />
