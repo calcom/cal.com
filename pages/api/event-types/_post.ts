@@ -4,7 +4,10 @@ import type { NextApiRequest } from "next";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
-import { schemaEventTypeCreateBodyParams, schemaEventTypeReadPublic } from "~/lib/validations/event-type";
+import {
+  schemaEventTypeCreateBodyParams,
+  schemaEventTypeReadPublic,
+} from "~/lib/validations/event-type";
 
 /**
  * @swagger
@@ -53,11 +56,34 @@ import { schemaEventTypeCreateBodyParams, schemaEventTypeReadPublic } from "~/li
 async function postHandler(req: NextApiRequest) {
   const { userId, isAdmin, prisma } = req;
   const body = schemaEventTypeCreateBodyParams.parse(req.body);
-  let args: Prisma.EventTypeCreateArgs = { data: { ...body, userId, users: { connect: { id: userId } } } };
+  let args: Prisma.EventTypeCreateArgs = {
+    data: { ...body, userId, users: { connect: { id: userId } } },
+  };
 
   await checkPermissions(req);
 
-  if (isAdmin && body.userId) args = { data: { ...body, users: { connect: { id: body.userId } } } };
+  if (isAdmin && body.userId)
+    args = { data: { ...body, users: { connect: { id: body.userId } } } };
+
+  if (body.teamId) {
+    const hasMembership = await prisma.membership.findFirst({
+      where: {
+        userId,
+        teamId: body.teamId,
+        accepted: true,
+      },
+    });
+
+    if (
+      !hasMembership?.role ||
+      !["ADMIN", "OWNER"].includes(hasMembership.role)
+    ) {
+      throw new HttpError({
+        statusCode: 401,
+        message: "No permission to create an event-type for this team`",
+      });
+    }
+  }
 
   const data = await prisma.eventType.create(args);
 
@@ -72,9 +98,13 @@ async function checkPermissions(req: NextApiRequest) {
   const body = schemaEventTypeCreateBodyParams.parse(req.body);
   /* Non-admin users can only create event types for themselves */
   if (!isAdmin && body.userId)
-    throw new HttpError({ statusCode: 401, message: "ADMIN required for `userId`" });
+    throw new HttpError({
+      statusCode: 401,
+      message: "ADMIN required for `userId`",
+    });
   /* Admin users are required to pass in a userId */
-  if (isAdmin && !body.userId) throw new HttpError({ statusCode: 400, message: "`userId` required" });
+  if (isAdmin && !body.userId)
+    throw new HttpError({ statusCode: 400, message: "`userId` required" });
 }
 
 export default defaultResponder(postHandler);
