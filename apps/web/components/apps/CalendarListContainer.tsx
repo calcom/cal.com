@@ -168,11 +168,7 @@ function ConnectedCalendarsList(props: Props) {
                     slug={item.integration.slug}
                     title={item.integration.title}
                     logo={item.integration.logo}
-                    description={
-                      (item.primary?.integration === "office365_calendar"
-                        ? item.primary?.email
-                        : item.primary?.externalId) ?? "No external Id"
-                    }
+                    description={item.primary?.email}
                     separate={true}
                     actions={
                       <div className="flex w-32 justify-end">
