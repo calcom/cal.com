@@ -81,7 +81,6 @@ export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
       const newValue = existingValue.filter((item) => item !== value);
       setQuery(key, newValue);
     } else {
-      console.log({ existingValue, value });
       // @ts-expect-error this is too much for TS it seems
       removeByKey(key);
     }
