@@ -46,7 +46,7 @@ const getScheduleSchema = z
 
 export type Slot = {
   time: string;
-  userId?: number | null;
+  userIds?: number[];
   attendees?: number;
   bookingUid?: string;
   users?: string[];
@@ -264,6 +264,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     availability.dateOverrides.map((override) => ({ userId: availability.userId, ...override }))
   );
   const workingHours = getAggregateWorkingHours(userAvailability, eventType.schedulingType);
+
   const computedAvailableSlots: Record<string, Slot[]> = {};
   const availabilityCheckProps = {
     eventLength: eventType.length,
@@ -320,7 +321,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
               return isAvailable;
             })
           : (() => {
-              const userSchedule = userAvailability.find(({ userId }) => slot.userId === userId);
+              const userSchedule = userAvailability.find(({ userId }) => slot.userIds?.includes(userId));
               if (!userSchedule) {
                 throw new TRPCError({
                   message: "Shouldn't happen that we don't have a matching user schedule here",
@@ -337,8 +338,8 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       );
 
     computedAvailableSlots[currentCheckedTime.format("YYYY-MM-DD")] = availableTimeSlots.map(
-      ({ time: time, userId }) => ({
-        userId,
+      ({ time: time, ...passThroughProps }) => ({
+        ...passThroughProps,
         time: time.toISOString(),
         users: eventType.users.map((user) => user.username || ""),
         // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
