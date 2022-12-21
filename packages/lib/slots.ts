@@ -67,7 +67,6 @@ function buildSlots({
   });
 
   const slots: { [x: string]: { time: Dayjs; userIds?: number[] } } = {};
-
   slotsTimeFrameAvailable.forEach((item) => {
     // XXX: Hack alert, as dayjs is supposedly not aware of timezone the current slot may have invalid UTC offset.
     const timeZone =
@@ -180,11 +179,10 @@ const getSlots = ({
       computedLocalAvailability.push(tempComputeTimeFrame);
     }
   });
-
   // an override precedes all the local working hour availability logic.
-  const activeOverrides = dateOverrides.filter((override) =>
-    dayjs.utc(override.start).tz(timeZone).isSame(startOfInviteeDay, "day")
-  );
+  const activeOverrides = dateOverrides.filter((override) => {
+    return dayjs.utc(override.start).isBetween(startOfInviteeDay, startOfInviteeDay.endOf("day"), null, "[)");
+  });
 
   if (!!activeOverrides.length) {
     const overrides = activeOverrides.flatMap((override) => ({
