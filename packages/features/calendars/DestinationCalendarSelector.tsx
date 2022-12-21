@@ -102,7 +102,9 @@ const DestinationCalendarSelector = ({
     query.data.connectedCalendars.map((selectedCalendar) => ({
       key: selectedCalendar.credentialId,
       label: `${selectedCalendar.integration.title?.replace(/calendar/i, "")} (${
-        selectedCalendar.primary?.name
+        selectedCalendar.primary?.integration === "office365_calendar"
+          ? selectedCalendar.primary?.email
+          : selectedCalendar.primary?.name
       })`,
       options: (selectedCalendar.calendars ?? [])
         .filter((cal) => cal.readOnly === false)

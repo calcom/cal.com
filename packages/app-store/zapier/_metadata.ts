@@ -7,6 +7,7 @@ export const metadata = {
   description: _package.description,
   installed: true,
   category: "automation",
+  categories: ["automation"],
   imageSrc: "/api/app-store/zapier/icon.svg",
   logo: "/api/app-store/zapier/icon.svg",
   publisher: "Cal.com",
