@@ -30,6 +30,12 @@ export interface ScreenshotImageProps {
   image: string;
 }
 
+interface WrapperProps {
+  children: React.ReactNode;
+  variant?: "light" | "dark";
+  rotateBackground?: boolean;
+}
+
 const joinMultipleNames = (names: string[] = []) => {
   const lastName = names.pop();
   return `${names.length > 0 ? `${names.join(", ")} & ${lastName}` : lastName}`;
@@ -87,15 +93,7 @@ export const constructGenericImage = ({ title, description }: GenericImageProps,
   return encodeUri ? encodeURIComponent(url) : url;
 };
 
-const Wrapper = ({
-  children,
-  variant = "light",
-  rotateBackground,
-}: {
-  children: React.ReactNode;
-  variant?: "light" | "dark";
-  rotateBackground?: boolean;
-}) => (
+const Wrapper = ({ children, variant = "light", rotateBackground }: WrapperProps) => (
   <div tw="flex w-full h-full">
     <img
       tw="flex absolute left-0 top-0 w-full h-[110%]"
