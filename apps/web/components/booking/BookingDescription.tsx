@@ -44,18 +44,17 @@ const BookingDescription: FC<Props> = (props) => {
   const { profile, eventType, isBookingPage = false, children } = props;
   const { date: bookingDate } = useRouterQuery("date");
   const { t } = useLocale();
-  const { duration, setQuery: setDuration } = useRouterQuery("duration");
+  const { duration = eventType.length.toString(), setQuery: setDuration } = useRouterQuery("duration");
+
   useEffect(() => {
-    if (eventType.metadata?.multipleDuration !== undefined) {
-      if (!duration) {
-        setDuration(eventType.length);
-      } else {
-        if (!eventType.metadata?.multipleDuration.includes(Number(duration))) {
-          setDuration(eventType.length);
-        }
-      }
+    if (
+      eventType.metadata?.multipleDuration &&
+      !eventType.metadata?.multipleDuration?.includes(Number(duration))
+    ) {
+      setDuration(eventType.length.toString());
     }
-  }, [setDuration, eventType.length, eventType.metadata?.multipleDuration, duration]);
+  }, [duration, setDuration, eventType.length, eventType.metadata?.multipleDuration]);
+
   let requiresConfirmation = eventType?.requiresConfirmation;
   let requiresConfirmationText = t("requires_confirmation");
   const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
