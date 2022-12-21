@@ -110,10 +110,16 @@ const SlotPicker = ({
 }) => {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
-  const { duration } = useRouterQuery("duration");
+  let { duration } = useRouterQuery("duration");
   const { date, setQuery: setDate } = useRouterQuery("date");
   const { month, setQuery: setMonth } = useRouterQuery("month");
   const router = useRouter();
+
+  // Showing error if event type doesn't have multiple duration and duration query param exists
+  const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+  if (!metadata?.multipleDuration && router.query.duration != undefined) {
+    duration = undefined;
+  }
 
   const [slotPickerRef] = useAutoAnimate<HTMLDivElement>();
 
@@ -262,12 +268,6 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const isBackgroundTransparent = useIsBackgroundTransparent();
-
-  // Showing error if event type doesn't have multiple duration and duration query param exists
-  const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
-  if (!metadata?.multipleDuration && router.query.duration != undefined) {
-    router.replace(`/500?error=${encodeURIComponent(t("error_event_type_duration"))}`);
-  }
 
   const [timeZone, setTimeZone] = useState<string>();
   const [timeFormat, setTimeFormat] = useState<TimeFormat>(detectBrowserTimeFormat);
