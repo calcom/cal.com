@@ -37,7 +37,6 @@ it("Sydney and Shiraz can live in harmony 🙏", async () => {
         ],
         "endTime": 360,
         "startTime": 780,
-        "userId": 1,
       },
       Object {
         "days": Array [
@@ -55,7 +54,6 @@ it("Sydney and Shiraz can live in harmony 🙏", async () => {
         ],
         "endTime": 1260,
         "startTime": 780,
-        "userId": 1,
       },
       Object {
         "days": Array [
@@ -63,7 +61,6 @@ it("Sydney and Shiraz can live in harmony 🙏", async () => {
         ],
         "endTime": 1260,
         "startTime": 780,
-        "userId": 1,
       },
     ]
   `);

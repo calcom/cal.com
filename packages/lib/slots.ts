@@ -70,7 +70,8 @@ function buildSlots({
 
   slotsTimeFrameAvailable.forEach((item) => {
     // XXX: Hack alert, as dayjs is supposedly not aware of timezone the current slot may have invalid UTC offset.
-    const timeZone = (startOfInviteeDay as unknown as { $x: { $timezone: string } })["$x"]["$timezone"];
+    const timeZone =
+      (startOfInviteeDay as unknown as { $x: { $timezone: string } })["$x"]["$timezone"] || "UTC";
     /*
      * @calcom/web:dev: 2022-11-06T00:00:00-04:00
      * @calcom/web:dev: 2022-11-06T01:00:00-04:00
