@@ -1,11 +1,11 @@
-import type { Credential } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { App } from "@calcom/types/App";
+import { AppFrontendPayload as App } from "@calcom/types/App";
+import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
 import { Button, Icon } from "../../..";
 import { showToast } from "../notifications";
@@ -123,8 +123,6 @@ export default function AppCard({ app, credentials, searchText }: AppCardProps) 
                       },
                     };
                   }
-                  props.color;
-                  //     ^?
                   return (
                     <Button
                       StartIcon={Icon.FiPlus}

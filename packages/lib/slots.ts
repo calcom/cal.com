@@ -13,6 +13,8 @@ export type GetSlots = {
 };
 export type TimeFrame = { startTime: number; endTime: number };
 
+const minimumOfOne = (input: number) => (input < 1 ? 1 : input);
+
 /**
  * TODO: What does this function do?
  * Why is it needed?
@@ -26,16 +28,24 @@ const splitAvailableTime = (
   let initialTime = startTimeMinutes;
   const finalizationTime = endTimeMinutes;
   const result = [] as TimeFrame[];
+
+  // Ensure that both the frequency and event length are at least 1 minute, if they
+  // would be zero, we would have an infinite loop in this while!
+  const frequencyMinimumOne = minimumOfOne(frequency);
+  const eventLengthMinimumOne = minimumOfOne(eventLength);
+
   while (initialTime < finalizationTime) {
-    const periodTime = initialTime + frequency;
-    const slotEndTime = initialTime + eventLength;
+    const periodTime = initialTime + frequencyMinimumOne;
+    const slotEndTime = initialTime + eventLengthMinimumOne;
     /*
     check if the slot end time surpasses availability end time of the user
     1 minute is added to round up the hour mark so that end of the slot is considered in the check instead of x9
     eg: if finalization time is 11:59, slotEndTime is 12:00, we ideally want the slot to be available
     */
     if (slotEndTime <= finalizationTime + 1) result.push({ startTime: initialTime, endTime: periodTime });
-    initialTime += frequency;
+    // Ensure that both the frequency and event length are at least 1 minute, if they
+    // would be zero, we would have an infinite loop in this while!
+    initialTime += frequencyMinimumOne;
   }
   return result;
 };

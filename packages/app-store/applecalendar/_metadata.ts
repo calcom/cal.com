@@ -10,6 +10,7 @@ export const metadata = {
   title: "Apple Calendar",
   imageSrc: "/api/app-store/applecalendar/icon.svg",
   variant: "calendar",
+  categories: ["calendar"],
   category: "calendar",
   logo: "/api/app-store/applecalendar/icon.svg",
   publisher: "Cal.com",
