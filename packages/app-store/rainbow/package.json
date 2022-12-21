@@ -7,9 +7,9 @@
   "description": "Web3 integration for token gating on Fungible Tokens, NFTs, and DAOs.",
   "dependencies": {
     "@calcom/lib": "*",
-    "@rainbow-me/rainbowkit": "^0.5.0",
-    "ethers": "^5.7.0",
-    "wagmi": "^0.6.4"
+    "@rainbow-me/rainbowkit": "^0.5.3",
+    "ethers": "^5.7.2",
+    "wagmi": "^0.6.8"
   },
   "devDependencies": {
     "@calcom/types": "*"
