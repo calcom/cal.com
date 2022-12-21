@@ -264,6 +264,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     availability.dateOverrides.map((override) => ({ userId: availability.userId, ...override }))
   );
   const workingHours = getAggregateWorkingHours(userAvailability, eventType.schedulingType);
+
   const computedAvailableSlots: Record<string, Slot[]> = {};
   const availabilityCheckProps = {
     eventLength: eventType.length,

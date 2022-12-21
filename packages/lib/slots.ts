@@ -137,11 +137,6 @@ const getSlots = ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const timeZone: string = (inviteeDate as any)["$x"]["$timezone"];
 
-  // an override precedes all the local working hour availability logic.
-  const activeOverrides = dateOverrides.filter((override) =>
-    dayjs.utc(override.start).tz(timeZone).isSame(startOfInviteeDay, "day")
-  );
-
   const workingHoursUTC = workingHours.map((schedule) => ({
     userId: schedule.userId,
     days: schedule.days,
@@ -185,6 +180,11 @@ const getSlots = ({
     }
   });
 
+  // an override precedes all the local working hour availability logic.
+  const activeOverrides = dateOverrides.filter((override) =>
+    dayjs.utc(override.start).tz(timeZone).isSame(startOfInviteeDay, "day")
+  );
+
   if (!!activeOverrides.length) {
     const overrides = activeOverrides.flatMap((override) => ({
       userIds: override.userId ? [override.userId] : [],
@@ -193,7 +193,7 @@ const getSlots = ({
     }));
     overrides.forEach((override) => {
       const index = computedLocalAvailability.findIndex(
-        (a) => override.userIds[0] && a.userIds?.includes(override.userIds[0])
+        (a) => !a.userIds?.length || (override.userIds[0] && a.userIds?.includes(override.userIds[0]))
       );
       if (index >= 0) {
         computedLocalAvailability[index] = override;
