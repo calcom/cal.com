@@ -275,14 +275,14 @@ export default async function main() {
     process.env.STRIPE_PRIVATE_KEY &&
     process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
     process.env.STRIPE_WEBHOOK_SECRET &&
-    process.env.STRIPE_PAYMENT_FEE_FIXED &&
-    process.env.STRIPE_PAYMENT_FEE_PERCENTAGE
+    process.env.PAYMENT_FEE_FIXED &&
+    process.env.PAYMENT_FEE_PERCENTAGE
   ) {
     await createApp("stripe", "stripepayment", ["payment"], "stripe_payment", {
       client_id: process.env.STRIPE_CLIENT_ID,
       client_secret: process.env.STRIPE_PRIVATE_KEY,
-      payment_fee_fixed: process.env.STRIPE_PAYMENT_FEE_FIXED,
-      payment_fee_percentage: process.env.STRIPE_PAYMENT_FEE_PERCENTAGE,
+      payment_fee_fixed: process.env.PAYMENT_FEE_FIXED,
+      payment_fee_percentage: process.env.PAYMENT_FEE_PERCENTAGE,
       public_key: process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY,
       webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
     });
