@@ -300,18 +300,26 @@ const useOptions = () => {
 
   const options = useMemo(() => {
     const end = dayjs().utc().endOf("day");
-    let t: Dayjs = dayjs().utc().startOf("day");
-
     const options: IOption[] = [];
-    while (t.isBefore(end)) {
+    for (
+      let t = dayjs().utc().startOf("day");
+      t.isBefore(end);
+      t = t.add(INCREMENT + (!t.add(INCREMENT).isSame(t, "day") ? -1 : 0), "minutes")
+    ) {
       options.push({
         value: t.toDate().valueOf(),
         label: dayjs(t)
           .utc()
           .format(timeFormat === 12 ? "h:mma" : "HH:mm"),
       });
-      t = t.add(INCREMENT, "minutes");
     }
+    // allow 23:59
+    options.push({
+      value: end.toDate().valueOf(),
+      label: dayjs(end)
+        .utc()
+        .format(timeFormat === 12 ? "h:mma" : "HH:mm"),
+    });
     return options;
   }, [timeFormat]);
 

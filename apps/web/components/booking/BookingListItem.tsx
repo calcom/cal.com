@@ -158,6 +158,10 @@ function BookingListItem(booking: BookingItemProps) {
     bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
   }
 
+  if (isPast && isPending && !isConfirmed) {
+    bookedActions = bookedActions.filter((action) => action.id !== "cancel");
+  }
+
   const RequestSentMessage = () => {
     return (
       <div className="ml-1 mr-8 flex text-gray-500" data-testid="request_reschedule_sent">
