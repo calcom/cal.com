@@ -321,18 +321,20 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
               return isAvailable;
             })
           : (() => {
-              const userSchedule = userAvailability.find(({ userId }) => slot.userIds?.includes(userId));
-              if (!userSchedule) {
-                throw new TRPCError({
-                  message: "Shouldn't happen that we don't have a matching user schedule here",
-                  code: "INTERNAL_SERVER_ERROR",
+              // The slot should be available for the atleast one of the slot owners.
+              return slot.userIds?.some((slotUserId) => {
+                const userSchedule = userAvailability.find(({ userId }) => userId === slotUserId);
+                if (!userSchedule) {
+                  throw new TRPCError({
+                    message: "Shouldn't happen that we don't have a matching user schedule here",
+                    code: "INTERNAL_SERVER_ERROR",
+                  });
+                }
+                return checkIfIsAvailable({
+                  time: slot.time,
+                  ...userSchedule,
+                  ...availabilityCheckProps,
                 });
-              }
-              // The slot should be available for the respective user.
-              return checkIfIsAvailable({
-                time: slot.time,
-                ...userSchedule,
-                ...availabilityCheckProps,
               });
             })()
       );
