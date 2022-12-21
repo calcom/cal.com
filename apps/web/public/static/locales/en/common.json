@@ -1350,6 +1350,7 @@
   "make_phone_number_required": "Make phone number required for booking event",
   "new_event_type_availability": "{{eventTypeTitle}} Availability",
   "error_editing_availability": "Error editing availability",
+  "error_event_type_duration": "Invalid duration parameter on a non-multiple-duration event type",
   "dont_have_permission": "You don't have permission to access this resource.",
   "saml_config": "Single Sign-On",
   "saml_description": "Allow team members to login using an Identity Provider",

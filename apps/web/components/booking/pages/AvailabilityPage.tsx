@@ -26,6 +26,7 @@ import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Icon, DatePicker } from "@calcom/ui";
 
@@ -97,7 +98,7 @@ const SlotPicker = ({
   weekStart = 0,
   ethSignature,
 }: {
-  eventType: Pick<EventType, "id" | "schedulingType" | "slug">;
+  eventType: Pick<EventType, "id" | "schedulingType" | "slug" | "metadata">;
   timeFormat: TimeFormat;
   onTimeFormatChange: (is24Hour: boolean) => void;
   timeZone?: string;
@@ -261,6 +262,12 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const isBackgroundTransparent = useIsBackgroundTransparent();
+
+  // Showing error if event type doesn't have multiple duration and duration query param exists
+  const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+  if (!metadata?.multipleDuration && router.query.duration != undefined) {
+    router.replace(`/500?error=${encodeURIComponent(t("error_event_type_duration"))}`);
+  }
 
   const [timeZone, setTimeZone] = useState<string>();
   const [timeFormat, setTimeFormat] = useState<TimeFormat>(detectBrowserTimeFormat);
