@@ -101,7 +101,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
             }
 
             return (
-              <div key={dayjs(slot.time).format()}>
+              <div data-slot-owner={(slot.userIds || []).join(",")} key={`${dayjs(slot.time).format()}`}>
+                {/* ^ data-slot-owner is helpful in debugging and used to identify the owners of the slot. Owners are the users which have the timeslot in their schedule. It doesn't consider if a user has that timeslot booked */}
                 {/* Current there is no way to disable Next.js Links */}
                 {seatsPerTimeSlot && slot.attendees && slot.attendees >= seatsPerTimeSlot ? (
                   <div

@@ -225,13 +225,19 @@ export async function getUserAvailability(
     }
   }
 
+  const userSchedule = currentUser.schedules.filter(
+    (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
+  )[0];
+
   const schedule =
     !eventType?.metadata?.config?.useHostSchedulesForTeamEvent && eventType?.schedule
       ? { ...eventType?.schedule }
       : {
-          ...currentUser.schedules.filter(
-            (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
-          )[0],
+          ...userSchedule,
+          availability: userSchedule.availability.map((a) => ({
+            ...a,
+            userId: currentUser.id,
+          })),
         };
 
   const startGetWorkingHours = performance.now();
