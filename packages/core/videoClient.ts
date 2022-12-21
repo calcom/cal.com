@@ -186,7 +186,7 @@ const getRecordingsOfCalVideoByRoomName = async (roomName: string) => {
   ]);
   const recordings = await videoAdapter?.getRecordings?.(roomName);
 
-  return { recordings, api_key: dailyAppKeys.api_key };
+  return { recordings };
 };
 
 export { getBusyVideoTimes, createMeeting, updateMeeting, deleteMeeting, getRecordingsOfCalVideoByRoomName };

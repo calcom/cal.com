@@ -1153,11 +1153,10 @@ const loggedInViewerRouter = router({
       const { roomName } = input;
       try {
         const res = await getRecordingsOfCalVideoByRoomName(roomName);
-        const api_key = res?.api_key;
-        return { recordings: res?.recordings ?? [], error: undefined, api_key };
+        return { recordings: res?.recordings ?? [], error: undefined };
       } catch (err) {
         console.warn(err);
-        return { recordings: [], error: err, api_key: undefined };
+        return { recordings: [], error: err };
       }
     }),
 });

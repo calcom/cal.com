@@ -62,7 +62,7 @@ export const FAKE_DAILY_CREDENTIAL: CredentialPayload & { invalid: boolean } = {
   invalid: false,
 };
 
-const fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
+export const fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
   const { api_key } = await getDailyAppKeys();
   return fetch(`https://api.daily.co/v1${endpoint}`, {
     method: "GET",

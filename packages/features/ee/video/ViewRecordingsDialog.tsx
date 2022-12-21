@@ -1,10 +1,12 @@
 import { useState } from "react";
 
+import dayjs from "@calcom/dayjs";
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
+import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
-import { Badge, Button, showToast } from "@calcom/ui";
+import { Loader, Button, showToast, Icon } from "@calcom/ui";
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
@@ -12,6 +14,7 @@ interface IViewRecordingsDialog {
   booking?: BookingItem;
   isOpenDialog: boolean;
   setIsOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
+  timeFormat: number | null | undefined;
 }
 
 type RecordingObjType = {
@@ -28,12 +31,30 @@ function convertStoMs(seconds: number) {
   // Bitwise Double Not is faster than Math.floor
   const minutes = ~~(seconds / 60);
   const extraSeconds = seconds % 60;
-  return `${minutes} minutes ${extraSeconds} seconds`;
+  return `${minutes}min  ${extraSeconds}sec`;
 }
 
+interface GetTimeSpanProps {
+  startTime: string | undefined;
+  endTime: string | undefined;
+  locale: string;
+  hour12: boolean;
+}
+
+const getTimeSpan = ({ startTime, endTime, locale, hour12 }: GetTimeSpanProps) => {
+  if (!startTime || !endTime) return "";
+  return (
+    new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "numeric", hour12 }).format(
+      new Date(startTime)
+    ) +
+    " - " +
+    new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "numeric", hour12 }).format(new Date(endTime))
+  );
+};
+
 export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
-  const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, booking } = props;
+  const { t, i18n } = useLocale();
+  const { isOpenDialog, setIsOpenDialog, booking, timeFormat } = props;
   const [downloadingRecordingId, setRecordingId] = useState("");
   // const roomName =
   //   booking?.references?.find((reference: PartialReference) => reference.type === "daily_video")?.meetingId ??
@@ -46,21 +67,24 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
     { roomName: roomName ?? "" },
     { enabled: !!roomName && isOpenDialog }
   );
-
-  const handleDownloadClick = async (recordingId: string, api_key: string | undefined) => {
+  const handleDownloadClick = async (recordingId: string) => {
     try {
-      if (!api_key) return;
       setRecordingId(recordingId);
-      const res = await fetch(`https://api.daily.co/v1/recordings/${recordingId}/access-link`, {
-        method: "GET",
+      const res = await fetch(`${WEBSITE_URL}/api/download-cal-video-recording?recordingId=${recordingId}`, {
         headers: {
-          Authorization: "Bearer " + api_key,
           "Content-Type": "application/json",
         },
-      }).then((res) => res.json());
-
-      window.open(res.download_link);
+      })
+        .then((res) => res.json())
+        .catch((err: any) => {
+          throw new Error(err);
+        });
+      console.log(res.download_link);
+      if (res?.download_link) {
+        window.location.href = res.download_link;
+      }
     } catch (err) {
+      console.log(err);
       showToast(t("something_went_wrong"), "error");
     }
     setRecordingId("");
@@ -69,38 +93,48 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent>
-        <DialogHeader title={t("recordings_title")} />
+        <DialogHeader
+          title={t("recordings_title")}
+          subtitle={`${booking?.title} - ${dayjs(booking?.startTime).format("ddd")} ${dayjs(
+            booking?.startTime
+          ).format("D")}, ${dayjs(booking?.startTime).format("MMM")} ${getTimeSpan({
+            startTime: booking?.startTime,
+            endTime: booking?.endTime,
+            locale: i18n.language,
+            hour12: timeFormat === 12,
+          })} `}
+        />
         <LicenseRequired>
-          <>
-            {data?.recordings?.total_count ? (
-              <>
-                {data.recordings.data?.map((recording: RecordingObjType, index: number) => {
-                  return (
-                    <div className="flex w-full items-center justify-between" key={recording.id}>
-                      <div className="flex items-center gap-2">
-                        <h1>
-                          {t("recording")} #{index + 1}
-                        </h1>
-                        <Badge variant="gray">{convertStoMs(recording.duration)}</Badge>
-                        <Badge variant="green">{recording.status.toUpperCase()}</Badge>
-                      </div>
-                      <Button
-                        className="ml-4 lg:ml-0"
-                        loading={downloadingRecordingId === recording.id}
-                        onClick={() => handleDownloadClick(recording.id, data.api_key)}>
-                        {t("download")}
-                      </Button>
+          {isLoading && <Loader />}
+          {data?.recordings?.total_count && (
+            <div className="flex flex-col gap-3">
+              {data.recordings.data?.map((recording: RecordingObjType, index: number) => {
+                return (
+                  <div
+                    className="flex w-full items-center justify-between rounded-md border py-2 px-4"
+                    key={recording.id}>
+                    <div className="flex flex-col">
+                      <h1 className="text-sm font-semibold">
+                        {t("recording")} {index + 1}
+                      </h1>
+                      <p className="text-sm font-normal text-gray-500">{convertStoMs(recording.duration)}</p>
                     </div>
-                  );
-                })}
-              </>
-            ) : (
-              <h1>No Recordings Found </h1>
-            )}
-          </>
+                    <Button
+                      StartIcon={Icon.FiDownload}
+                      className="ml-4 lg:ml-0"
+                      loading={downloadingRecordingId === recording.id}
+                      onClick={() => handleDownloadClick(recording.id)}>
+                      {t("download")}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {!isLoading && !data?.recordings?.total_count && <h1>No Recordings Found</h1>}
         </LicenseRequired>
         <DialogFooter>
-          <DialogClose />
+          <DialogClose className="border" />
         </DialogFooter>
       </DialogContent>
     </Dialog>
