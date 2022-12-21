@@ -239,7 +239,7 @@ function BookingListItem(booking: BookingItemProps) {
           booking={booking}
           isOpenDialog={viewRecordingsDialogIsOpen}
           setIsOpenDialog={setViewRecordingsDialogIsOpen}
-          timeFormat={user?.timeFormat}
+          timeFormat={user?.timeFormat ?? null}
         />
       )}
       {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}
