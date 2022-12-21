@@ -90,14 +90,16 @@ export const constructGenericImage = ({ title, description }: GenericImageProps,
 const Wrapper = ({
   children,
   variant = "light",
+  rotateBackground,
 }: {
   children: React.ReactNode;
   variant?: "light" | "dark";
+  rotateBackground?: boolean;
 }) => (
   <div tw="flex w-full h-full">
     <img
       tw="flex absolute left-0 top-0 w-full h-[110%]"
-      style={{ transform: "rotate(180deg)" }}
+      style={rotateBackground ? { transform: "rotate(180deg)" } : undefined}
       src={`${CAL_URL}/social-bg-${variant}-lines.jpg`}
       alt="background"
       width="1200"
@@ -243,7 +245,7 @@ export const Generic = ({ title, description }: GenericImageProps) => (
 );
 
 export const ScreenShot = ({ image }: ScreenshotImageProps) => (
-  <Wrapper>
+  <Wrapper rotateBackground>
     <div tw="h-full w-full flex flex-col justify-center items-center">
       <img
         src={image}
