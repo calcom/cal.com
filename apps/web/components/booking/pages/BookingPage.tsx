@@ -143,6 +143,7 @@ const BookingPage = ({
           isSuccessBookingPage: true,
           email: bookingForm.getValues("email"),
           eventTypeSlug: eventType.slug,
+          formerTime: booking?.startTime.toString(),
         },
       });
     },
@@ -158,6 +159,7 @@ const BookingPage = ({
           allRemainingBookings: true,
           email: bookingForm.getValues("email"),
           eventTypeSlug: eventType.slug,
+          formerTime: booking?.startTime.toString(),
         },
       });
     },
