@@ -58,17 +58,6 @@ import { BookPageProps } from "../../../pages/[user]/book";
 import { HashLinkPageProps } from "../../../pages/d/[link]/book";
 import { TeamBookingPageProps } from "../../../pages/team/[slug]/book";
 
-export const bookingPageSchema = z.object({
-  user: z.string(),
-  type: z.string(),
-  duration: z
-    .string()
-    .regex(/^\d+$/)
-    .transform((id) => parseInt(id))
-    .optional(),
-  date: z.string().optional(),
-});
-
 type BookingPageProps = BookPageProps | TeamBookingPageProps | HashLinkPageProps;
 
 type BookingFormValues = {

@@ -4,11 +4,11 @@ import { FC, ReactNode, useEffect } from "react";
 import dayjs from "@calcom/dayjs";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { Icon, Badge } from "@calcom/ui";
 
+import useRouterQuery from "@lib/hooks/useRouterQuery";
+
 import { UserAvatars } from "@components/booking/UserAvatars";
-import { bookingPageSchema } from "@components/booking/pages/BookingPage";
 import EventTypeDescriptionSafeHTML from "@components/eventtype/EventTypeDescriptionSafeHTML";
 
 import type { AvailabilityPageProps } from "../../pages/[user]/[type]";
@@ -42,20 +42,18 @@ interface Props {
 
 const BookingDescription: FC<Props> = (props) => {
   const { profile, eventType, isBookingPage = false, children } = props;
+  const { date: bookingDate } = useRouterQuery("date");
   const { t } = useLocale();
-  const {
-    data: { date: bookingDate, duration = eventType.length.toString() },
-    setQuery,
-  } = useTypedQuery(bookingPageSchema);
+  const { duration = eventType.length.toString(), setQuery: setDuration } = useRouterQuery("duration");
 
   useEffect(() => {
     if (
       eventType.metadata?.multipleDuration &&
       !eventType.metadata?.multipleDuration?.includes(Number(duration))
     ) {
-      setQuery("duration", eventType.length);
+      setDuration(eventType.length.toString());
     }
-  }, [duration, setQuery, eventType.length, eventType.metadata?.multipleDuration]);
+  }, [duration, setDuration, eventType.length, eventType.metadata?.multipleDuration]);
 
   let requiresConfirmation = eventType?.requiresConfirmation;
   let requiresConfirmationText = t("requires_confirmation");
@@ -142,13 +140,13 @@ const BookingDescription: FC<Props> = (props) => {
                       variant="gray"
                       size="lg"
                       className={classNames(
-                        duration === dur
+                        duration === dur.toString()
                           ? "bg-darkgray-200 text-darkgray-900 dark:bg-darkmodebrand dark:!text-darkmodebrandcontrast"
                           : "hover:bg-darkgray-200 dark:hover:bg-darkmodebrand hover:text-darkgray-900 dark:hover:text-darkmodebrandcontrast dark:bg-darkgray-200 bg-gray-200 text-gray-900 dark:text-white",
                         "cursor-pointer"
                       )}
                       onClick={() => {
-                        setQuery("duration", dur);
+                        setDuration(dur);
                       }}>
                       {dur} {t("minute_timeUnit")}
                     </Badge>
