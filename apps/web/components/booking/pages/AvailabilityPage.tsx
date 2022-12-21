@@ -26,7 +26,6 @@ import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Icon, DatePicker } from "@calcom/ui";
 
@@ -98,7 +97,7 @@ const SlotPicker = ({
   weekStart = 0,
   ethSignature,
 }: {
-  eventType: Pick<EventType, "id" | "schedulingType" | "slug" | "metadata">;
+  eventType: Pick<EventType, "id" | "schedulingType" | "slug">;
   timeFormat: TimeFormat;
   onTimeFormatChange: (is24Hour: boolean) => void;
   timeZone?: string;
@@ -110,16 +109,10 @@ const SlotPicker = ({
 }) => {
   const [selectedDate, setSelectedDate] = useState<Dayjs>();
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
-  let { duration } = useRouterQuery("duration");
+  const { duration } = useRouterQuery("duration");
   const { date, setQuery: setDate } = useRouterQuery("date");
   const { month, setQuery: setMonth } = useRouterQuery("month");
   const router = useRouter();
-
-  // Showing error if event type doesn't have multiple duration and duration query param exists
-  const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
-  if (!metadata?.multipleDuration && router.query.duration != undefined) {
-    duration = undefined;
-  }
 
   const [slotPickerRef] = useAutoAnimate<HTMLDivElement>();
 
