@@ -55,7 +55,7 @@ const BookingDescription: FC<Props> = (props) => {
         }
       }
     }
-  }, []);
+  }, [setDuration, eventType.length, eventType.metadata?.multipleDuration, duration]);
   let requiresConfirmation = eventType?.requiresConfirmation;
   let requiresConfirmationText = t("requires_confirmation");
   const rcThreshold = eventType?.metadata?.requiresConfirmationThreshold;
