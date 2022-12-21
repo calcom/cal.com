@@ -6,6 +6,7 @@ import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseReq
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import type { PartialReference } from "@calcom/types/EventManager";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
 import { Loader, Button, showToast, Icon } from "@calcom/ui";
 
@@ -62,12 +63,9 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
   const session = useSession();
   const belongsToActiveTeam = session?.data?.user?.belongsToActiveTeam ?? false;
   const [showUpgradeBanner, setShowUpgradeBanner] = useState<boolean>(false);
-  // const roomName =
-  //   booking?.references?.find((reference: PartialReference) => reference.type === "daily_video")?.meetingId ??
-  //   undefined;
-
-  // NOTE: this is just for testing
-  const roomName = "L6POqJ6OQtNnBjww8ac7";
+  const roomName =
+    booking?.references?.find((reference: PartialReference) => reference.type === "daily_video")?.meetingId ??
+    undefined;
 
   const { data, isLoading } = trpc.viewer.getCalVideoRecordings.useQuery(
     { roomName: roomName ?? "" },
@@ -114,7 +112,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
           {!showUpgradeBanner ? (
             <>
               {isLoading && <Loader />}
-              {data?.recordings?.total_count && (
+              {data?.recordings?.total_count > 0 && (
                 <div className="flex flex-col gap-3">
                   {data.recordings.data?.map((recording: RecordingObjType, index: number) => {
                     return (
@@ -150,7 +148,9 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
                   })}
                 </div>
               )}
-              {!isLoading && !data?.recordings?.total_count && <h1>No Recordings Found</h1>}
+              {!isLoading && !data?.recordings?.total_count && (
+                <h1 className="font-semibold">No Recordings Found</h1>
+              )}
             </>
           ) : (
             <TeamsUpgradeRecordingBanner />
