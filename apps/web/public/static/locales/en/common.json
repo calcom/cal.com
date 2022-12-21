@@ -1395,6 +1395,7 @@
   "attendee_email_info": "The person booking's email",
   "kbar_search_placeholder": "Type a command or search...",
   "invalid_credential": "Oh no! Looks like permission expired or was revoked. Please reinstall again.",
+  "reschedule_reason_success_page": "Reschedule reason",
   "choose_common_schedule_team_event": "Choose a common schedule",
   "choose_common_schedule_team_event_description": "Enable this if you want to use a common schedule between hosts. When disabled, each host will be booked based on their default schedule.",
   "reason": "Reason",
@@ -1470,5 +1471,7 @@
   "no_availability_in_month": "No availability in {{month}}",
   "view_next_month": "View next month",
   "send_code" : "Send code",
-  "number_verified": "Number Verified"
+  "number_verified": "Number Verified",
+  "create_your_first_team_webhook_description": "Create your first webhook for this team event type",
+  "create_webhook_team_event_type": "Create a webhook for this team event type"
 }
