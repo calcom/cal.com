@@ -5,6 +5,7 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 import { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
+import type { GetRecordingsResponse } from "@calcom/types/VideoApiAdapter";
 
 import { getDailyAppKeys } from "./getDailyAppKeys";
 
@@ -147,9 +148,9 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     },
     updateMeeting: (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> =>
       createOrUpdateMeeting(`/rooms/${bookingRef.uid}`, event),
-    getRecordings: async (roomName: string) => {
+    getRecordings: async (roomName: string): Promise<GetRecordingsResponse> => {
       try {
-        const res = await fetcher(`/recordings?room_name=${roomName}`, { method: "GET" });
+        const res = await fetcher(`/recordings?room_name=${roomName}`);
         return Promise.resolve(res);
       } catch (err) {
         throw new Error("Something went wrong! Unable to get recording");

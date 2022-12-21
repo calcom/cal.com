@@ -7,6 +7,7 @@ import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import type { PartialReference } from "@calcom/types/EventManager";
+import type { RecordingObj } from "@calcom/types/VideoApiAdapter";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
 import { Loader, Button, showToast, Icon } from "@calcom/ui";
 
@@ -20,16 +21,6 @@ interface IViewRecordingsDialog {
   setIsOpenDialog: React.Dispatch<React.SetStateAction<boolean>>;
   timeFormat: number | null;
 }
-
-type RecordingObjType = {
-  id: string;
-  room_name: string;
-  start_ts: number;
-  status: string;
-  max_participants: number;
-  duration: number;
-  share_token: string;
-};
 
 function convertStoMs(seconds: number) {
   // Bitwise Double Not is faster than Math.floor
@@ -114,7 +105,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
               {isLoading && <Loader />}
               {data?.recordings?.total_count > 0 && (
                 <div className="flex flex-col gap-3">
-                  {data?.recordings?.data?.map((recording: RecordingObjType, index: number) => {
+                  {data?.recordings?.data?.map((recording: RecordingObj, index: number) => {
                     return (
                       <div
                         className="flex w-full items-center justify-between rounded-md border py-2 px-4"
