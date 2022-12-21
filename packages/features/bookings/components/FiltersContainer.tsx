@@ -29,7 +29,7 @@ const filters: Filter[] = [
 
 export function FiltersContainer() {
   return (
-    <div className="flex space-x-2">
+    <div className="flex w-full space-x-2 overflow-x-scroll lg:justify-end">
       {filters.map((filter) => {
         if (!filter.showByDefault) {
           // TODO: check if any of the controllingQueryParams are present in the query params and show the filter if so
