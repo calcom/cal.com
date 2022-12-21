@@ -7,11 +7,7 @@ import { OrganizerScheduledEmail } from "./OrganizerScheduledEmail";
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
 export const OrganizerRequestEmail = (props: React.ComponentProps<typeof OrganizerScheduledEmail>) => {
-  const seedData = {
-    email: props.attendee.email,
-    bookingUid: props.calEvent.uid,
-    userId: props.calEvent.organizer.id,
-  };
+  const seedData = { bookingUid: props.calEvent.uid, userId: props.calEvent.organizer.id };
   const token = symmetricEncrypt(JSON.stringify(seedData), CALENDSO_ENCRYPTION_KEY);
   const actionHref = `${WEBAPP_URL}/api/link/?token=${token}`;
   return (

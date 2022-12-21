@@ -14,25 +14,23 @@ enum DirectAction {
   "reject" = "reject",
 }
 
-const querytSchema = z.object({
+const querySchema = z.object({
   action: z.nativeEnum(DirectAction),
   token: z.string(),
   reason: z.string().optional(),
 });
 
 const decryptedSchema = z.object({
-  email: z.string(),
   bookingUid: z.string(),
   userId: z.number().int(),
 });
 
 async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
-  const { action, token, reason } = querytSchema.parse(req.query);
-  const { bookingUid, email, userId } = decryptedSchema.parse(
+  const { action, token, reason } = querySchema.parse(req.query);
+  const { bookingUid, userId } = decryptedSchema.parse(
     JSON.parse(symmetricDecrypt(token, CALENDSO_ENCRYPTION_KEY))
   );
 
-  // Booking good to be accepted or rejected, proceeding to mark it
   /** We shape the session as required by tRPC router */
   async function sessionGetter() {
     return {

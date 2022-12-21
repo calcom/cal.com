@@ -228,8 +228,8 @@ const nextConfig = {
         permanent: false,
       },
       {
-        source: "/booking/direct/:action/:email/:bookingUid/:token",
-        destination: "/api/link?action=:action&email=:email&bookingUid=:bookingUid&token=:token",
+        source: "/booking/direct/:action/:email/:bookingUid/:oldToken",
+        destination: "/api/link?action=:action&email=:email&bookingUid=:bookingUid&oldToken=:oldToken",
         permanent: true,
       },
     ];

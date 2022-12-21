@@ -499,6 +499,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     startTime: dayjs(reqBody.start).utc().format(),
     endTime: dayjs(reqBody.end).utc().format(),
     organizer: {
+      id: organizerUser.id,
       name: organizerUser.name || "Nameless",
       email: organizerUser.email || "Email-less",
       timeZone: organizerUser.timeZone,
