@@ -1,4 +1,4 @@
-import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
+import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 
 import { WebhookForm } from "@calcom/features/webhooks/components";
@@ -13,7 +13,7 @@ import { Button, Dialog, DialogContent, EmptyScreen, Icon, showToast } from "@ca
 export const EventTeamWebhooksTab = ({
   eventType,
   team,
-}: Pick<EventTypeSetupInfered, "eventType" | "team">) => {
+}: Pick<EventTypeSetupProps, "eventType" | "team">) => {
   const { t } = useLocale();
 
   const utils = trpc.useContext();
