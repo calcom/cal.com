@@ -27,7 +27,7 @@ export const CallToAction = (props: { label: string; href: string; secondary?: b
       target="_blank"
       rel="noreferrer">
       {props.label}
-      <LinkIcon secondary />
+      <LinkIcon secondary={props.secondary} />
     </a>
   </p>
 );

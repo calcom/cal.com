@@ -149,13 +149,20 @@ function EventTypeSingleLayout({
       enabledWorkflowsNumber,
     });
     // If there is a team put this navigation item within the tabs
-    if (team)
+    if (team) {
       navigation.splice(2, 0, {
         name: "scheduling_type",
         href: `/event-types/${eventType.id}?tabName=team`,
         icon: Icon.FiUsers,
         info: eventType.schedulingType === "COLLECTIVE" ? "collective" : "round_robin",
       });
+      navigation.push({
+        name: "webhooks",
+        href: `/event-types/${eventType.id}?tabName=webhooks`,
+        icon: Icon.FiLink,
+        info: `${eventType.webhooks.filter((webhook) => webhook.active).length} ${t("active")}`,
+      });
+    }
     return navigation;
   }, [t, eventType, installedAppsNumber, enabledAppsNumber, enabledWorkflowsNumber, team]);
 

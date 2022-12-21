@@ -34,12 +34,14 @@ const NewWebhookView = () => {
     },
   });
 
-  const subscriberUrlReserved = (subscriberUrl: string, id: string): boolean => {
-    return !!webhooks?.find((webhook) => webhook.subscriberUrl === subscriberUrl && webhook.id !== id);
+  const subscriberUrlReserved = (subscriberUrl: string, id?: string): boolean => {
+    return !!webhooks?.find(
+      (webhook) => webhook.subscriberUrl === subscriberUrl && (!id || webhook.id !== id)
+    );
   };
 
   const onCreateWebhook = async (values: WebhookFormSubmitData) => {
-    if (values.id && subscriberUrlReserved(values.subscriberUrl, values.id)) {
+    if (subscriberUrlReserved(values.subscriberUrl, values.id)) {
       showToast(t("webhook_subscriber_url_reserved"), "error");
       return;
     }

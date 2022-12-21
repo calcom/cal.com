@@ -1,6 +1,6 @@
 import { BookingStatus } from "@prisma/client";
+import base64url from "base64url";
 import { createHmac } from "crypto";
-import { instance } from "gaxios";
 import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useState } from "react";
@@ -46,13 +46,13 @@ const requestSchema = z.object({
     .superRefine((data, ctx) => {
       refineParse(actionSchema.safeParse(data[0]), ctx);
       const signedData = `${data[1]}/${data[2]}`;
-      const sig = createHmac("sha1", CALENDSO_ENCRYPTION_KEY).update(signedData).digest("base64");
+      const sha1 = createHmac("sha1", CALENDSO_ENCRYPTION_KEY).update(signedData).digest();
+      const sig = base64url(sha1);
       if (data[3] !== sig) {
         ctx.addIssue({
           message: pageErrors.signature_mismatch,
           code: "custom",
         });
-        console.log(signedData, data, data[3], "==", sig);
       }
     }),
   reason: z.string().optional(),
@@ -175,7 +175,7 @@ export default function Directlink({ booking, reason, status }: inferSSRProps<ty
                         {t(getRecipientStart("MMMM").toLowerCase())} {getRecipientStart("D, YYYY")}
                         <br />
                         {getRecipientStart("h:mma")} - {getRecipientEnd("h:mma")}{" "}
-                        <span style={{ color: "#888888" }}>({booking.attendees[0].timeZone})</span>
+                        <span style={{ color: "#888888" }}>({booking?.user?.timeZone})</span>
                       </div>
                       {(booking?.user || booking?.attendees) && (
                         <>
