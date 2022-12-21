@@ -11,6 +11,7 @@ export const metadata = {
   imageSrc: "/api/app-store/exchange2013calendar/icon.svg",
   variant: "calendar",
   category: "calendar",
+  categories: ["calendar"],
   label: "Exchange Calendar",
   logo: "/api/app-store/exchange2013calendar/icon.svg",
   publisher: "Cal.com",
