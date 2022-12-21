@@ -114,7 +114,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
               {isLoading && <Loader />}
               {data?.recordings?.total_count > 0 && (
                 <div className="flex flex-col gap-3">
-                  {data.recordings.data?.map((recording: RecordingObjType, index: number) => {
+                  {data?.recordings?.data?.map((recording: RecordingObjType, index: number) => {
                     return (
                       <div
                         className="flex w-full items-center justify-between rounded-md border py-2 px-4"
@@ -138,6 +138,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
                         ) : (
                           <Button
                             color="secondary"
+                            tooltip={t("recordings_are_part_of_the_teams_plan")}
                             className="ml-4 lg:ml-0"
                             onClick={() => setShowUpgradeBanner(true)}>
                             {t("upgrade")}
