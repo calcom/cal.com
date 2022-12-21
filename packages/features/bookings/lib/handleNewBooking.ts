@@ -258,8 +258,9 @@ async function ensureAvailableUsers(
         recurringDatesInfo.allRecurringDates
       ) {
         let allBookingDates = recurringDatesInfo.allRecurringDates.map((strDate) => new Date(strDate));
+
         // CUSTOM_CODE First 3 Instances we check
-        allBookingDates = allBookingDates.slice(0, 3);
+        allBookingDates = allBookingDates?.sort()?.slice(0, 3);
 
         // Go through each date for the recurring event and check if each one's availability
         // DONE: Decreased computational complexity from O(2^n) to O(n) by refactoring this loop to stop
