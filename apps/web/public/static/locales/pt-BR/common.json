@@ -1410,5 +1410,18 @@
   "add_your_team_members": "Adicione membros da sua equipe ao seus tipos de evento. Use programação coletiva para incluir todos ou encontre a pessoa mais apropriada pela programação com round-robin.",
   "booking_limit_reached": "O limite de reseva para este tipo de evento foi atingido",
   "admin_has_disabled": "Um administrador desativou {{appName}}",
-  "disabled_app_affects_event_type": "Um administrador desativou {{appName}}, afetando seu tipo de evento {{eventType}}"
+  "disabled_app_affects_event_type": "Um administrador desativou {{appName}}, afetando seu tipo de evento {{eventType}}",
+  "disable_payment_app": "O administrador desativou {{appName}}, afetando o seu tipo de evento {{title}}. Os participantes ainda poderão reservar este tipo de evento, mas não será solicitado pagamento. Você poderá ocultar o tipo de evento para impedir isso até o adiministrador reativar seu método de pagamento.",
+  "payment_disabled_still_able_to_book": "Os participantes ainda poderão reservar este tipo de evento, mas não será solicitado pagamento. Você poderá ocultar o tipo de evento para impedir isso até o adiministrador reativar seu método de pagamento.",
+  "app_disabled_with_event_type": "O administrador desativou {{appName}}, afetando seu tipo de evento {{title}}.",
+  "app_disabled_video": "O administrador desativou {{appName}}, afetando seus tipos de evento. Se você tiver tipos de evento com {{appName}} como localização, o vídeo do Cal será definido como padrão.",
+  "app_disabled_subject": "{{appName}} foi desativado",
+  "navigate_installed_apps": "Ir para aplicativos instalados",
+  "disabled_calendar": "Se você tiver outro calendário instalado, novas reservas serão adicionadas a ele. Caso contrário, conecte um novo calendário para não perder novas reservas.",
+  "enable_apps": "Ativar aplicativos",
+  "enable_apps_description": "Ative aplicativos que os usuários possam integrar com o Cal.com",
+  "app_is_enabled": "{{appName}} foi ativado",
+  "app_is_disabled": "{{appName}} foi desativado",
+  "keys_have_been_saved": "As chaves foram salvas",
+  "disable_app": "Desativar aplicativo"
 }
