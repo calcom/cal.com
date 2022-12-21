@@ -16,9 +16,9 @@ const HAWAII_AND_NEWYORK_TEAM = [
     timeZone: "Pacific/Honolulu", // GMT -10 per 22th of Aug, 2022
     workingHours: [
       { userId: 1, days: [3, 4, 5], startTime: 0, endTime: 360 },
-      { userId: 1, days: [6], startTime: 0, endTime: 180 },
-      { userId: 1, days: [2, 3, 4], startTime: 780, endTime: 1439 },
-      { userId: 1, days: [5], startTime: 780, endTime: 1439 },
+      { userId: 2, days: [6], startTime: 0, endTime: 180 },
+      { userId: 3, days: [2, 3, 4], startTime: 780, endTime: 1439 },
+      { userId: 4, days: [5], startTime: 780, endTime: 1439 },
     ],
     busy: [],
     dateOverrides: [],
@@ -44,7 +44,7 @@ it("Sydney and Shiraz can live in harmony 🙏", async () => {
         ],
         "endTime": 180,
         "startTime": 0,
-        "userId": 1,
+        "userId": 2,
       },
       Object {
         "days": Array [
@@ -61,6 +61,59 @@ it("Sydney and Shiraz can live in harmony 🙏", async () => {
         ],
         "endTime": 1260,
         "startTime": 780,
+      },
+    ]
+  `);
+
+  expect(getAggregateWorkingHours(HAWAII_AND_NEWYORK_TEAM, "ROUND_ROBIN")).toMatchInlineSnapshot(`
+    Array [
+      Object {
+        "days": Array [
+          1,
+          2,
+          3,
+          4,
+          5,
+        ],
+        "endTime": 1260,
+        "startTime": 780,
+        "userId": 1,
+      },
+      Object {
+        "days": Array [
+          3,
+          4,
+          5,
+        ],
+        "endTime": 360,
+        "startTime": 0,
+        "userId": 1,
+      },
+      Object {
+        "days": Array [
+          6,
+        ],
+        "endTime": 180,
+        "startTime": 0,
+        "userId": 2,
+      },
+      Object {
+        "days": Array [
+          2,
+          3,
+          4,
+        ],
+        "endTime": 1439,
+        "startTime": 780,
+        "userId": 3,
+      },
+      Object {
+        "days": Array [
+          5,
+        ],
+        "endTime": 1439,
+        "startTime": 780,
+        "userId": 4,
       },
     ]
   `);
