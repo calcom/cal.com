@@ -4,6 +4,7 @@ import { NextRouter, useRouter } from "next/router";
 import { createRef, forwardRef, MutableRefObject, RefObject, useRef, useState } from "react";
 import { components, ControlProps } from "react-select";
 
+import { APP_NAME, EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
   Button,
@@ -19,8 +20,6 @@ import {
   TextArea,
   TextField,
 } from "@calcom/ui";
-
-import { EMBED_LIB_URL, WEBAPP_URL } from "@lib/config/constants";
 
 import ColorPicker from "@components/ui/colorpicker";
 import Select from "@components/ui/form/Select";
@@ -498,7 +497,9 @@ const tabs = [
       return (
         <>
           <div>
-            <small className="flex py-4 text-neutral-500">{t("place_where_cal_widget_appear")}</small>
+            <small className="flex py-4 text-neutral-500">
+              {t("place_where_cal_widget_appear", { appName: APP_NAME })}
+            </small>
           </div>
           <TextArea
             data-testid="embed-code"
@@ -622,10 +623,10 @@ const ChooseEmbedTypesDialogContent = () => {
     <DialogContent type="creation" size="lg">
       <div className="mb-4">
         <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
-          {t("how_you_want_add_cal_site")}
+          {t("how_you_want_add_cal_site", { appName: APP_NAME })}
         </h3>
         <div>
-          <p className="text-sm text-gray-500">{t("choose_ways_put_cal_site")}</p>
+          <p className="text-sm text-gray-500">{t("choose_ways_put_cal_site", { appName: APP_NAME })}</p>
         </div>
       </div>
       <div className="flex items-start">

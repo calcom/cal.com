@@ -43,6 +43,7 @@ import { metadata as weather_in_your_calendar_meta } from "./weather_in_your_cal
 import { metadata as whatsapp_meta } from "./whatsapp/_metadata";
 import { metadata as whereby_meta } from "./whereby/_metadata";
 import { metadata as wipemycalother_meta } from "./wipemycalother/_metadata";
+import { metadata as wordpress_meta } from "./wordpress/_metadata";
 import { metadata as zapier_meta } from "./zapier/_metadata";
 import { metadata as zoomvideo_meta } from "./zoomvideo/_metadata";
 
@@ -88,6 +89,7 @@ export const appStoreMetadata = {
   whatsapp: whatsapp_meta,
   whereby: whereby_meta,
   wipemycalother: wipemycalother_meta,
+  wordpress: wordpress_meta,
   zapier: zapier_meta,
   zoomvideo: zoomvideo_meta,
 };

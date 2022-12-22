@@ -15,7 +15,7 @@
   "dependencies": {
     "@calcom/lib": "*",
     "@calcom/trpc": "*",
-    "@formkit/auto-animate": "^1.0.0-beta.1",
+    "@formkit/auto-animate": "^1.0.0-beta.5",
     "@radix-ui/react-dialog": "^1.0.0",
     "@radix-ui/react-portal": "^1.0.0",
     "@radix-ui/react-select": "^0.1.1",

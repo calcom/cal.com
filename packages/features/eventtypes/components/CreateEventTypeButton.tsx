@@ -13,7 +13,6 @@ import { HttpError } from "@calcom/lib/http-error";
 import slugify from "@calcom/lib/slugify";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
-
 import {
   Alert,
   Avatar,
@@ -33,7 +32,7 @@ import {
   showToast,
   TextAreaField,
   TextField,
-} from "../../..";
+} from "@calcom/ui";
 
 // this describes the uniform data needed to create a new event type on Profile or Team
 export interface EventTypeParent {

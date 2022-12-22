@@ -504,7 +504,8 @@ export const eventTypesRouter = router({
       };
     }
 
-    if (input?.price) {
+    if (input?.price || input.metadata?.apps?.stripe?.price) {
+      data.price = input.price || input.metadata?.apps?.stripe?.price;
       const paymentCredential = await ctx.prisma.credential.findFirst({
         where: {
           userId: ctx.user.id,

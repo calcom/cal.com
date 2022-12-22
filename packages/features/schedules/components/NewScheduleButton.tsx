@@ -62,18 +62,13 @@ export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) 
           {t("new")}
         </Button>
       </DialogTrigger>
-      <DialogContent>
-        <div className="mb-8">
-          <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
-            {t("add_new_schedule")}
-          </h3>
-        </div>
+      <DialogContent title={t("add_new_schedule")}>
         <Form
           form={form}
           handleSubmit={(values) => {
             createMutation.mutate(values);
           }}>
-          <div className="mt-3 space-y-2">
+          <div className="space-y-2">
             <label htmlFor="label" className="block text-sm font-medium text-gray-700">
               {t("name")}
             </label>
@@ -89,10 +84,10 @@ export function NewScheduleButton({ name = "new-schedule" }: { name?: string }) 
             </div>
           </div>
           <DialogFooter>
+            <DialogClose />
             <Button type="submit" loading={createMutation.isLoading}>
               {t("continue")}
             </Button>
-            <DialogClose />
           </DialogFooter>
         </Form>
       </DialogContent>

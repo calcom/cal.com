@@ -47,7 +47,7 @@ export const RescheduleDialog = (props: IRescheduleDialog) => {
           </div>
           <div className="pt-1">
             <DialogHeader title={t("send_reschedule_request")} />
-            <p className="-mt-8 text-sm text-gray-500">{t("reschedule_modal_description")}</p>
+            <p className="text-sm text-gray-500">{t("reschedule_modal_description")}</p>
             <p className="mt-6 mb-2 text-sm font-bold text-black">
               {t("reason_for_reschedule_request")}
               <span className="font-normal text-gray-500"> (Optional)</span>
