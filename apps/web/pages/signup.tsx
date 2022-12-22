@@ -30,7 +30,6 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
   const router = useRouter();
   const telemetry = useTelemetry();
 
-  const [isFirstTry, setIsFirstTry] = useState(true);
   const [emailInvalidMessage, setEmailInvalidMessage] = useState("");
 
   const methods = useForm<FormValues>({
@@ -48,11 +47,9 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
     }
   };
 
-  const signUp: SubmitHandler<FormValues> = async (data) => {
-    let isValid = true;
-
+  const verifyEmail = async (email: string) => {
     await fetch("/api/auth/verifyEmail", {
-      body: JSON.stringify({ email: data.email }),
+      body: JSON.stringify({ email }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -60,13 +57,10 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
     })
       .then((response) => response.json())
       .then((result) => {
-        setEmailInvalidMessage("");
         const { verdict, suggestion } = result;
         if (verdict === "Valid") {
           setEmailInvalidMessage("");
-        } else if (isFirstTry) {
-          setIsFirstTry(false);
-          isValid = false;
+        } else {
           if (suggestion) {
             setEmailInvalidMessage(`Did you mean ${suggestion}?`);
           } else {
@@ -77,6 +71,10 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
       .catch((error) => {
         console.error("Error:", error);
       });
+  };
+
+  const signUp: SubmitHandler<FormValues> = async (data) => {
+    const isValid = true;
 
     if (isValid) {
       await fetch("/api/auth/signup", {
@@ -129,7 +127,14 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
                     required
                   />
                   <div>
-                    <EmailField {...register("email")} />
+                    <EmailField
+                      {...register("email")}
+                      onChange={(e) => {
+                        methods.register("email").onChange(e);
+                        setEmailInvalidMessage("");
+                      }}
+                      onBlur={(e) => verifyEmail(e.target.value)}
+                    />
                     <p className="mb-1 -mt-1 text-sm text-red-700">{emailInvalidMessage}</p>
                   </div>
                   <PasswordField
