@@ -226,6 +226,8 @@ async function ensureAvailableUsers(
   const availableUsers: typeof eventType.users = [];
   /** Let's start checking for availability */
   for (const user of eventType.users) {
+    console.log("getUserAvailability", user);
+
     const { busy: bufferedBusyTimes, workingHours } = await getUserAvailability(
       {
         userId: user.id,
@@ -244,6 +246,8 @@ async function ensureAvailableUsers(
         }
       )
     ) {
+      console.log("!isWithinAvailableHours", bufferedBusyTimes, workingHours);
+
       // user does not have availability at this time, skip user.
       continue;
     }
@@ -267,6 +271,8 @@ async function ensureAvailableUsers(
         // running at the first unavailable time.
         let i = 0;
         while (!foundConflict && i < allBookingDates.length) {
+          console.log("check conflict", allBookingDates[i++]);
+
           foundConflict = checkForConflicts(bufferedBusyTimes, allBookingDates[i++], eventType.length);
         }
       } else {
@@ -284,7 +290,9 @@ async function ensureAvailableUsers(
   }
   if (!availableUsers.length) {
     // CUSTOM_CODE First 3 Instances we check
-    throw new Error("Second or third session is unavailable. Please try another day or time.");
+    throw new Error(
+      "Could not book the meeting. Please try again or contact concierge@mento.co for support."
+    );
   }
   return availableUsers;
 }
