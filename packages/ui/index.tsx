@@ -27,7 +27,10 @@ export {
   Select,
   SelectField,
   SelectWithValidation,
+  TableActions,
+  DropdownActions,
 } from "./components";
+export type { ActionType } from "./components";
 export type { AvatarProps, BadgeProps, ButtonBaseProps, ButtonProps, TopBannerProps } from "./components";
 export { default as CheckboxField } from "./components/form/checkbox/Checkbox";
 /** ⬇️ TODO - Move these to components */
