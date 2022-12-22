@@ -4,14 +4,22 @@ import { NextRouter, useRouter } from "next/router";
 import { createRef, forwardRef, MutableRefObject, RefObject, useRef, useState } from "react";
 import { components, ControlProps } from "react-select";
 
+import { APP_NAME, EMBED_LIB_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components";
-import { InputLeading, Label, TextArea, TextField } from "@calcom/ui/form/fields";
-import { HorizontalTabs, showToast, Switch } from "@calcom/ui/v2";
-import { Dialog, DialogClose, DialogContent } from "@calcom/ui/v2/core/Dialog";
-
-import { EMBED_LIB_URL, WEBAPP_URL } from "@lib/config/constants";
+import {
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  HorizontalTabs,
+  Icon,
+  InputLeading,
+  Label,
+  showToast,
+  Switch,
+  TextArea,
+  TextField,
+} from "@calcom/ui";
 
 import ColorPicker from "@components/ui/colorpicker";
 import Select from "@components/ui/form/Select";
@@ -36,6 +44,7 @@ type PreviewState = {
   palette: {
     brandColor: string;
   };
+  hideEventTypeDetails: boolean;
 };
 const queryParamsForDialog = ["embedType", "embedTabName", "embedUrl"];
 
@@ -117,10 +126,12 @@ const getEmbedUIInstructionString = ({
   apiName,
   theme,
   brandColor,
+  hideEventTypeDetails,
 }: {
   apiName: string;
   theme?: string;
   brandColor: string;
+  hideEventTypeDetails: boolean;
 }) => {
   theme = theme !== "auto" ? theme : undefined;
   return getInstructionString({
@@ -133,6 +144,7 @@ const getEmbedUIInstructionString = ({
           brandColor,
         },
       },
+      hideEventTypeDetails: hideEventTypeDetails,
     },
   });
 };
@@ -245,18 +257,21 @@ const getEmbedTypeSpecificString = ({
     apiName: string;
     theme: PreviewState["theme"];
     brandColor: string;
+    hideEventTypeDetails: boolean;
   };
   if (embedFramework === "react") {
     uiInstructionStringArg = {
       apiName: "cal",
       theme: previewState.theme,
       brandColor: previewState.palette.brandColor,
+      hideEventTypeDetails: previewState.hideEventTypeDetails,
     };
   } else {
     uiInstructionStringArg = {
       apiName: "Cal",
       theme: previewState.theme,
       brandColor: previewState.palette.brandColor,
+      hideEventTypeDetails: previewState.hideEventTypeDetails,
     };
   }
   if (!frameworkCodes[embedType]) {
@@ -489,7 +504,9 @@ const tabs = [
       return (
         <>
           <div>
-            <small className="flex py-4 text-neutral-500">{t("place_where_cal_widget_appear")}</small>
+            <small className="flex py-4 text-neutral-500">
+              {t("place_where_cal_widget_appear", { appName: APP_NAME })}
+            </small>
           </div>
           <TextArea
             data-testid="embed-code"
@@ -610,13 +627,13 @@ const ChooseEmbedTypesDialogContent = () => {
   const { t } = useLocale();
   const router = useRouter();
   return (
-    <DialogContent type="creation" useOwnActionButtons size="lg">
+    <DialogContent type="creation" size="lg">
       <div className="mb-4">
         <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
-          {t("how_you_want_add_cal_site")}
+          {t("how_you_want_add_cal_site", { appName: APP_NAME })}
         </h3>
         <div>
-          <p className="text-sm text-gray-500">{t("choose_ways_put_cal_site")}</p>
+          <p className="text-sm text-gray-500">{t("choose_ways_put_cal_site", { appName: APP_NAME })}</p>
         </div>
       </div>
       <div className="flex items-start">
@@ -679,6 +696,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     theme: Theme.auto,
     floatingPopup: {},
     elementClick: {},
+    hideEventTypeDetails: false,
     palette: {
       brandColor: "#000000",
     },
@@ -743,6 +761,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
     name: "ui",
     arg: {
       theme: previewState.theme,
+      hideEventTypeDetails: previewState.hideEventTypeDetails,
       styles: {
         branding: {
           ...previewState.palette,
@@ -788,7 +807,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   ];
 
   return (
-    <DialogContent size="xl" className="p-0.5" type="creation" useOwnActionButtons>
+    <DialogContent size="xl" className="p-0.5" type="creation">
       <div className="flex">
         <div className="flex w-1/3 flex-col bg-gray-50 p-8">
           <h3 className="mb-2 flex text-xl font-bold leading-6 text-gray-900" id="modal-title">
@@ -801,7 +820,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             {embed.title}
           </h3>
           <hr className={classNames("mt-4", embedType === "element-click" ? "hidden" : "")} />
-          <div className="max-h-97 flex flex-col overflow-y-auto">
+          <div className="flex flex-col overflow-y-auto">
             <div className={classNames("mt-4 font-medium", embedType === "element-click" ? "hidden" : "")}>
               <Collapsible
                 open={isEmbedCustomizationOpen}
@@ -828,7 +847,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     <div className="text-sm">Embed Window Sizing</div>
                     <div className="justify-left flex items-center">
                       <TextField
-                        name="width"
                         labelProps={{ className: "hidden" }}
                         required
                         value={previewState.inline.width}
@@ -850,7 +868,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       <span className="p-2">×</span>
                       <TextField
                         labelProps={{ className: "hidden" }}
-                        name="height"
                         value={previewState.inline.height}
                         required
                         onChange={(e) => {
@@ -878,7 +895,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                     <div className="mb-2 text-sm">Button Text</div>
                     {/* Default Values should come from preview iframe */}
                     <TextField
-                      name="buttonText"
                       labelProps={{ className: "hidden" }}
                       onChange={(e) => {
                         setPreviewState((previewState) => {
@@ -994,6 +1010,20 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <div className="mt-6 text-sm">
+                    <div className="mb-4 flex items-center justify-start space-x-2">
+                      <Switch
+                        checked={previewState.hideEventTypeDetails}
+                        onCheckedChange={(checked) => {
+                          setPreviewState((previewState) => {
+                            return {
+                              ...previewState,
+                              hideEventTypeDetails: checked,
+                            };
+                          });
+                        }}
+                      />
+                      <div className="text-sm">{t("hide_eventtype_details")}</div>
+                    </div>
                     <Label className="">
                       <div className="mb-2">Theme</div>
                       <Select
@@ -1086,9 +1116,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       {t("copy_code")}
                     </Button>
                   ) : null}
-                  <DialogClose asChild>
-                    <Button color="secondary">{t("Close")}</Button>
-                  </DialogClose>
+                  <DialogClose />
                 </div>
               </div>
             );

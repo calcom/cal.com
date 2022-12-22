@@ -14,25 +14,34 @@ import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  COMPANY_NAME,
+  DESKTOP_APP_LINK,
+  JOIN_SLACK,
+  ROADMAP,
+  WEBAPP_URL,
+} from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import isCalcom from "@calcom/lib/isCalcom";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
-import Dropdown, {
+
+import {
+  Button,
+  Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@calcom/ui/Dropdown";
-import { Icon } from "@calcom/ui/Icon";
-import TimezoneChangeDialog from "@calcom/ui/TimezoneChangeDialog";
-import { Button } from "@calcom/ui/components/button";
-import showToast from "@calcom/ui/v2/core/notifications";
-import Tips from "@calcom/ui/v2/modules/tips/Tips";
+  Icon,
+  showToast,
+  TimezoneChangeDialog,
+  Tips,
+} from "../..";
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
@@ -130,7 +139,7 @@ const Layout = (props: LayoutProps) => {
     <>
       {!props.withoutSeo && (
         <HeadSeo
-          title={pageTitle ?? "Cal.com"}
+          title={pageTitle ?? APP_NAME}
           description={props.subtitle ? props.subtitle?.toString() : ""}
           nextSeoProps={{
             nofollow: true,
@@ -144,12 +153,14 @@ const Layout = (props: LayoutProps) => {
 
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
-      <div className="h-screen overflow-hidden">
-        <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
+      <div className="flex min-h-screen flex-col">
+        <div className="divide-y divide-black">
+          <TeamsUpgradeBanner />
+          <ImpersonatingBanner />
+        </div>
+        <div className="flex flex-1" data-testid="dashboard-shell">
           {props.SidebarContainer || <SideBarContainer />}
-          <div className="flex w-0 flex-1 flex-col overflow-hidden">
-            <TeamsUpgradeBanner />
-            <ImpersonatingBanner />
+          <div className="flex w-0 flex-1 flex-col">
             <MainContainer {...props} />
           </div>
         </div>
@@ -168,7 +179,6 @@ type LayoutProps = {
   children: ReactNode;
   CTA?: ReactNode;
   large?: boolean;
-  SettingsSidebarContainer?: ReactNode;
   MobileNavigationContainer?: ReactNode;
   SidebarContainer?: ReactNode;
   TopNavContainer?: ReactNode;
@@ -181,6 +191,8 @@ type LayoutProps = {
   withoutMain?: boolean;
   // Gives you the option to skip HeadSEO and render your own.
   withoutSeo?: boolean;
+  // Gives the ability to include actions to the right of the heading
+  actions?: JSX.Element;
 };
 
 const CustomBrandingContainer = () => {
@@ -192,8 +204,6 @@ export default function Shell(props: LayoutProps) {
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
   useTheme("light");
-  const { session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
-  if (!session && !props.isPublic) return null;
 
   return (
     <KBarRoot>
@@ -303,7 +313,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                     mutation.mutate({ away: !user?.away });
                     utils.viewer.me.invalidate();
                   }}
-                  className="flex min-w-max cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
+                  className="flex w-full min-w-max cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
                   <Icon.FiMoon
                     className={classNames(
                       user.away
@@ -531,7 +541,7 @@ const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMor
   Record<string, NavigationItemType[]>
 >(
   (items, item, index) => {
-    // We filter out the "more" separator in desktop navigation
+    // We filter out the "more" separator in` desktop navigation
     if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
     // Items for mobile bottom navigation
     if (index < moreSeparatorIndex + 1 && !item.onlyDesktop) items.mobileNavigationBottomItems.push(item);
@@ -705,20 +715,14 @@ const MobileNavigationMoreItem: React.FC<{
 };
 
 function DeploymentInfo() {
-  const query = useMeQuery();
-  const user = query.data;
-
   return (
     <small
       style={{
         fontSize: "0.5rem",
       }}
       className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
-      &copy; {new Date().getFullYear()} Cal.com, Inc. v.{pkg.version + "-"}
+      &copy; {new Date().getFullYear()} {COMPANY_NAME} v.{pkg.version + "-"}
       {process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"}
-      <span className="lowercase" data-testid={`plan-${user?.plan.toLowerCase()}`}>
-        -{user?.plan}
-      </span>
     </small>
   );
 }
@@ -736,59 +740,59 @@ function SideBarContainer() {
 
 function SideBar() {
   return (
-    <aside className="desktop-transparent hidden w-14 flex-col border-r border-gray-100 bg-gray-50 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
-      <div className="flex h-0 flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
-        <header className="items-center justify-between md:hidden lg:flex">
+    <div className="relative">
+      <aside className="desktop-transparent top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto border-r border-gray-100 bg-gray-50 md:sticky md:flex lg:w-56 lg:px-4">
+        <div className="flex flex-col pt-3 pb-32 lg:pt-5">
+          <header className="items-center justify-between md:hidden lg:flex">
+            <Link href="/event-types">
+              <a className="px-4">
+                <Logo small />
+              </a>
+            </Link>
+            <div className="flex space-x-2">
+              <button
+                color="minimal"
+                onClick={() => window.history.back()}
+                className="desktop-only group flex text-sm font-medium text-neutral-500 hover:text-neutral-900">
+                <Icon.FiArrowLeft className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
+              </button>
+              <button
+                color="minimal"
+                onClick={() => window.history.forward()}
+                className="desktop-only group flex text-sm font-medium text-neutral-500 hover:text-neutral-900">
+                <Icon.FiArrowRight className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
+              </button>
+              <KBarTrigger />
+            </div>
+          </header>
+
+          <hr className="desktop-only absolute -left-3 -right-3 mt-4 block w-full border-gray-200" />
+
+          {/* logo icon for tablet */}
           <Link href="/event-types">
-            <a className="px-4">
-              <Logo small />
+            <a className="text-center md:inline lg:hidden">
+              <Logo small icon />
             </a>
           </Link>
-          <div className="flex space-x-2">
-            <button
-              color="minimal"
-              onClick={() => window.history.back()}
-              className="desktop-only group flex text-sm font-medium text-neutral-500 hover:text-neutral-900">
-              <Icon.FiArrowLeft className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
-            </button>
-            <button
-              color="minimal"
-              onClick={() => window.history.forward()}
-              className="desktop-only group flex text-sm font-medium text-neutral-500 hover:text-neutral-900">
-              <Icon.FiArrowRight className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
-            </button>
-            <KBarTrigger />
+
+          <Navigation />
+        </div>
+
+        {isCalcom && <Tips />}
+
+        <div className="fixed left-1 bottom-0 w-4 bg-gray-50 before:absolute before:left-0 before:-top-20 before:h-20 before:w-48 before:bg-gradient-to-t before:from-gray-50 before:to-transparent lg:left-4 lg:w-48">
+          <div data-testid="user-dropdown-trigger">
+            <span className="hidden lg:inline">
+              <UserDropdown />
+            </span>
+            <span className="hidden md:inline lg:hidden">
+              <UserDropdown small />
+            </span>
           </div>
-        </header>
-
-        <hr className="desktop-only absolute -left-3 -right-3 mt-4 block w-full border-gray-200" />
-
-        {/* logo icon for tablet */}
-        <Link href="/event-types">
-          <a className="text-center md:inline lg:hidden">
-            <Logo small icon />
-          </a>
-        </Link>
-
-        <Navigation />
-      </div>
-
-      {isCalcom && <Tips />}
-      {/* Save it for next preview version
-       <div className="hidden mb-4 lg:block">
-        <UserV2OptInBanner />
-      </div> */}
-
-      <div data-testid="user-dropdown-trigger">
-        <span className="hidden lg:inline">
-          <UserDropdown />
-        </span>
-        <span className="hidden md:inline lg:hidden">
-          <UserDropdown small />
-        </span>
-      </div>
-      <DeploymentInfo />
-    </aside>
+          <DeploymentInfo />
+        </div>
+      </aside>
+    </div>
   );
 }
 
@@ -832,12 +836,13 @@ export function ShellMain(props: LayoutProps) {
             {props.CTA && (
               <div
                 className={classNames(
-                  props.backPath ? "relative" : "fixed right-4 bottom-[75px] z-40 ",
+                  props.backPath ? "relative" : "fixed right-4 bottom-[88px] z-40 ",
                   "flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto"
                 )}>
                 {props.CTA}
               </div>
             )}
+            {props.actions && props.actions}
           </header>
         )}
       </div>
@@ -848,35 +853,17 @@ export function ShellMain(props: LayoutProps) {
   );
 }
 
-const SettingsSidebarContainerDefault = () => null;
-
 function MainContainer({
-  SettingsSidebarContainer: SettingsSidebarContainerProp = <SettingsSidebarContainerDefault />,
   MobileNavigationContainer: MobileNavigationContainerProp = <MobileNavigationContainer />,
   TopNavContainer: TopNavContainerProp = <TopNavContainer />,
   ...props
 }: LayoutProps) {
-  const [sideContainerOpen, setSideContainerOpen] = props.drawerState || [false, noop];
-
   return (
-    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none">
+    <main className="relative z-0 flex-1 bg-white focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
-      {/* The following is used for settings navigation on medium and smaller screens */}
-      <div
-        className={classNames(
-          "overflow-none fixed z-40 m-0 h-screen w-screen overscroll-none bg-black opacity-50",
-          sideContainerOpen ? "" : "hidden"
-        )}
-        onClick={() => {
-          setSideContainerOpen(false);
-        }}
-      />
-      {SettingsSidebarContainerProp}
       <div className="max-w-full px-4 py-2 lg:py-8 lg:px-12">
         <ErrorBoundary>
-          {/* add padding to top for mobile when App Bar is fixed */}
-          <div className="pt-14 sm:hidden" />
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>
         {/* show bottom navigation for md and smaller (tablet and phones) on pages where back button doesn't exist */}
@@ -899,7 +886,7 @@ function TopNav() {
     <>
       <nav
         style={isEmbed ? { display: "none" } : {}}
-        className="fixed z-40 flex w-full items-center justify-between border-b border-gray-200 bg-gray-50 bg-opacity-50 py-1.5 px-4 backdrop-blur-lg sm:relative sm:p-4 md:hidden">
+        className="sticky top-0 z-40 flex w-full items-center justify-between border-b border-gray-200 bg-gray-50 bg-opacity-50 py-1.5 px-4 backdrop-blur-lg sm:p-4 md:hidden">
         <Link href="/event-types">
           <a>
             <Logo />

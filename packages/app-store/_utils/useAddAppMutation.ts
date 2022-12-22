@@ -18,13 +18,16 @@ type CustomUseMutationOptions =
   | Omit<UseMutationOptions<unknown, unknown, unknown, unknown>, "mutationKey" | "mutationFn" | "onSuccess">
   | undefined;
 
+type AddAppMutationData = { setupPending: boolean } | void;
 type UseAddAppMutationOptions = CustomUseMutationOptions & {
-  onSuccess: (data: { setupPending: boolean }) => void;
+  onSuccess: (data: AddAppMutationData) => void;
+  returnTo?: string;
 };
 
-function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutationOptions) {
+function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMutationOptions) {
+  const { returnTo, ...options } = allOptions || {};
   const mutation = useMutation<
-    { setupPending: boolean },
+    AddAppMutationData,
     Error,
     { type?: App["type"]; variant?: string; slug?: string; isOmniInstall?: boolean } | ""
   >(async (variables) => {
@@ -36,16 +39,17 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
       isOmniInstall = variables.isOmniInstall;
       type = variables.type;
     }
-    if (type === "sendgrid_other_calendar") {
-      type = "sendgrid";
+    if (type?.endsWith("_other_calendar")) {
+      type = type.split("_other_calendar")[0];
     }
     const state: IntegrationOAuthCallbackState = {
       returnTo:
+        returnTo ||
         WEBAPP_URL +
-        getInstalledAppPath(
-          { variant: variables && variables.variant, slug: variables && variables.slug },
-          location.search
-        ),
+          getInstalledAppPath(
+            { variant: variables && variables.variant, slug: variables && variables.slug },
+            location.search
+          ),
     };
     const stateStr = encodeURIComponent(JSON.stringify(state));
     const searchParams = `?state=${stateStr}`;
@@ -62,6 +66,7 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
 
     if (!isOmniInstall) {
       gotoUrl(json.url, json.newTab);
+      return;
     }
 
     // Skip redirection only if it is an OmniInstall and redirect URL isn't of some other origin
@@ -71,9 +76,10 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
     if (externalUrl) {
       // TODO: For Omni installation to authenticate and come back to the page where installation was initiated, some changes need to be done in all apps' add callbacks
       gotoUrl(json.url, json.newTab);
+      return;
     }
 
-    return { setupPending: !externalUrl && json.url.endsWith("/setup") };
+    return { setupPending: externalUrl || json.url.endsWith("/setup") };
   }, options);
 
   return mutation;

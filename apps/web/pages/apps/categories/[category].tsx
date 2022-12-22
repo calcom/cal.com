@@ -6,9 +6,7 @@ import { useRouter } from "next/router";
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
-import { SkeletonText } from "@calcom/ui/v2";
-import Shell from "@calcom/ui/v2/core/Shell";
-import AppCard from "@calcom/ui/v2/core/apps/AppCard";
+import { AppCard, Shell, SkeletonText } from "@calcom/ui";
 
 export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticProps>) {
   const { t, isLocaleReady } = useLocale();
@@ -49,13 +47,7 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
 }
 
 export const getStaticPaths = async () => {
-  const appStore = await getAppRegistry();
-  const paths = appStore.reduce((categories, app) => {
-    if (!categories.includes(app.category)) {
-      categories.push(app.category);
-    }
-    return categories;
-  }, [] as string[]);
+  const paths = Object.keys(AppCategories);
 
   return {
     paths: paths.map((category) => ({ params: { category } })),

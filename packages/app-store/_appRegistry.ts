@@ -1,7 +1,6 @@
-import type { Credential } from "@prisma/client";
-
-import prisma from "@calcom/prisma";
-import { App } from "@calcom/types/App";
+import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
+import { AppFrontendPayload as App } from "@calcom/types/App";
+import { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
 export async function getAppWithMetadata(app: { dirName: string }) {
   let appMetadata: App | null = null;
@@ -26,8 +25,11 @@ export async function getAppWithMetadata(app: { dirName: string }) {
 
 /** Mainly to use in listings for the frontend, use in getStaticProps or getServerSideProps */
 export async function getAppRegistry() {
-  const dbApps = await prisma.app.findMany({ select: { dirName: true, slug: true, categories: true } });
-  const apps = [] as Omit<App, "key">[];
+  const dbApps = await prisma.app.findMany({
+    where: { enabled: true },
+    select: { dirName: true, slug: true, categories: true, enabled: true },
+  });
+  const apps = [] as App[];
   for await (const dbapp of dbApps) {
     const app = await getAppWithMetadata(dbapp);
     if (!app) continue;
@@ -51,8 +53,17 @@ export async function getAppRegistry() {
 }
 
 export async function getAppRegistryWithCredentials(userId: number) {
-  const dbApps = await prisma.app.findMany({ include: { credentials: { where: { userId } } } });
-  const apps = [] as (Omit<App, "key"> & {
+  const dbApps = await prisma.app.findMany({
+    where: { enabled: true },
+    select: {
+      ...safeAppSelect,
+      credentials: {
+        where: { userId },
+        select: safeCredentialSelect,
+      },
+    },
+  });
+  const apps = [] as (App & {
     credentials: Credential[];
   })[];
   for await (const dbapp of dbApps) {
@@ -71,8 +82,7 @@ export async function getAppRegistryWithCredentials(userId: number) {
       ...remainingAppProps,
       categories: dbapp.categories,
       credentials: dbapp.credentials,
-      installed:
-        true /* All apps from DB are considered installed by default. @TODO: Add and filter our by `enabled` property */,
+      installed: true,
     });
   }
   return apps;

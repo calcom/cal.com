@@ -3,9 +3,7 @@ import { useRouter } from "next/router";
 import { ReactNode, useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui";
-import { showToast } from "@calcom/ui/v2";
-import { ListItem, ListItemText, ListItemTitle } from "@calcom/ui/v2/core/List";
+import { Icon, ListItem, ListItemText, ListItemTitle, showToast } from "@calcom/ui";
 
 import classNames from "@lib/classNames";
 
@@ -46,7 +44,7 @@ function IntegrationListItem(props: {
       expanded={!!props.children}
       className={classNames(
         props.separate ? "rounded-md" : "first:rounded-t-md last:rounded-b-md",
-        "my-0 flex-col border transition-colors duration-500 ",
+        "my-0 flex-col border transition-colors duration-500",
         highlight ? "bg-yellow-100" : ""
       )}>
       <div className={classNames("flex w-full flex-1 items-center space-x-2 p-4 rtl:space-x-reverse")}>

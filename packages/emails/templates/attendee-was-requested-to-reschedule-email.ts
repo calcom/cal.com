@@ -1,7 +1,7 @@
 import { createEvent, DateArray, Person } from "ics";
 
 import dayjs from "@calcom/dayjs";
-import { getCancelLink } from "@calcom/lib/CalEventParser";
+import { getManageLink } from "@calcom/lib/CalEventParser";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { renderEmail } from "..";
@@ -89,7 +89,7 @@ ${this.t("request_reschedule_subtitle", {
 })},
 ${this.getWhen()}
 ${this.t("need_to_reschedule_or_cancel")}
-${getCancelLink(this.calEvent)}
+${getManageLink(this.calEvent)}
 `.replace(/(<([^>]+)>)/gi, "");
   }
 }

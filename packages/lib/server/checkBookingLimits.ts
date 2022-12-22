@@ -62,7 +62,7 @@ export async function checkLimit({
             {
               id: eventId,
               bookings: {
-                some: {
+                every: {
                   startTime: {
                     gte: startDate,
                   },
@@ -86,7 +86,7 @@ export async function checkLimit({
       }
 
       throw new HttpError({
-        message: `Booking limit of ${limitingNumber}/${filter} reached for this eventType`,
+        message: `booking_limit_reached`,
         statusCode: 403,
       });
     }

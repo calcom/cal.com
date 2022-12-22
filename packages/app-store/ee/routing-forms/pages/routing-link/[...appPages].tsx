@@ -1,7 +1,6 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useState, useRef, FormEvent } from "react";
-import { useEffect } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 
@@ -13,10 +12,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
 import { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button } from "@calcom/ui/components";
-import showToast from "@calcom/ui/v2/core/notifications";
-
-import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
+import { Button, showToast } from "@calcom/ui";
 
 import FormInputFields from "../../components/FormInputFields";
 import { getSerializableForm } from "../../lib/getSerializableForm";
@@ -28,7 +24,6 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
   const formFillerIdRef = useRef(uuidv4());
   const isEmbed = useIsEmbed(restProps.isEmbed);
   useTheme(profile.theme);
-  useExposePlanGlobally(profile.plan);
   // TODO: We might want to prevent spam from a single user by having same formFillerId across pageviews
   // But technically, a user can fill form multiple times due to any number of reasons and we currently can't differentiate b/w that.
   // - like a network error
@@ -185,7 +180,6 @@ export const getServerSideProps = async function getServerSideProps(
           theme: true,
           brandColor: true,
           darkBrandColor: true,
-          plan: true,
         },
       },
     },
@@ -204,7 +198,6 @@ export const getServerSideProps = async function getServerSideProps(
         theme: form.user.theme,
         brandColor: form.user.brandColor,
         darkBrandColor: form.user.darkBrandColor,
-        plan: form.user.plan,
       },
       form: getSerializableForm(form),
     },

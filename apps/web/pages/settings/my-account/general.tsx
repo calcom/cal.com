@@ -1,24 +1,33 @@
+import { GetServerSidePropsContext } from "next";
 import { useRouter } from "next/router";
 import { useMemo } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Button } from "@calcom/ui/components/button";
-import { Form, Label } from "@calcom/ui/components/form";
-import Meta from "@calcom/ui/v2/core/Meta";
-import TimezoneSelect from "@calcom/ui/v2/core/TimezoneSelect";
-import Select from "@calcom/ui/v2/core/form/select";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
-import showToast from "@calcom/ui/v2/core/notifications";
-import { SkeletonContainer, SkeletonText, SkeletonButton } from "@calcom/ui/v2/core/skeleton";
+import {
+  Button,
+  Form,
+  getSettingsLayout as getLayout,
+  Label,
+  Meta,
+  Select,
+  showToast,
+  SkeletonButton,
+  SkeletonContainer,
+  SkeletonText,
+  TimezoneSelect,
+} from "@calcom/ui";
 
 import { withQuery } from "@lib/QueryCell";
 import { nameOfDay } from "@lib/core/i18n/weekday";
 
-const SkeletonLoader = () => {
+import { ssrInit } from "@server/lib/ssr";
+
+const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
+      <Meta title={title} description={description} />
       <div className="mt-6 mb-8 space-y-6 divide-y">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -42,14 +51,14 @@ const GeneralQueryView = () => {
   const { t } = useLocale();
 
   const { data: user, isLoading } = trpc.viewer.me.useQuery();
-  if (isLoading) return <SkeletonLoader />;
+  if (isLoading) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
   if (!user) {
     throw new Error(t("something_went_wrong"));
   }
   return (
     <WithQuery
       success={({ data }) => <GeneralView user={user} localeProp={data.locale} />}
-      customLoader={<SkeletonLoader />}
+      customLoader={<SkeletonLoader title={t("general")} description={t("general_description")} />}
     />
   );
 };
@@ -61,6 +70,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
 
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: () => {
+      reset(getValues());
       showToast(t("settings_updated_successfully"), "success");
     },
     onError: () => {
@@ -110,7 +120,12 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
       },
     },
   });
-
+  const {
+    formState: { isDirty, isSubmitting },
+    reset,
+    getValues,
+  } = formMethods;
+  const isDisabled = isSubmitting || !isDirty;
   return (
     <Form
       form={formMethods}
@@ -122,7 +137,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           weekStart: values.weekStart.value,
         });
       }}>
-      <Meta title="General" description="Manage settings for your language and timezone" />
+      <Meta title={t("general")} description={t("general_description")} />
       <Controller
         name="locale"
         render={({ field: { value, onChange } }) => (
@@ -151,7 +166,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
               id="timezone"
               value={value}
               onChange={(event) => {
-                if (event) formMethods.setValue("timeZone", event.value);
+                if (event) formMethods.setValue("timeZone", event.value, { shouldDirty: true });
               }}
             />
           </>
@@ -169,7 +184,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
               value={value}
               options={timeFormatOptions}
               onChange={(event) => {
-                if (event) formMethods.setValue("timeFormat", { ...event });
+                if (event) formMethods.setValue("timeFormat", { ...event }, { shouldDirty: true });
               }}
             />
           </>
@@ -190,13 +205,13 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
               value={value}
               options={weekStartOptions}
               onChange={(event) => {
-                if (event) formMethods.setValue("weekStart", { ...event });
+                if (event) formMethods.setValue("weekStart", { ...event }, { shouldDirty: true });
               }}
             />
           </>
         )}
       />
-      <Button color="primary" type="submit" className="mt-8">
+      <Button disabled={isDisabled} color="primary" type="submit" className="mt-8">
         <>{t("update")}</>
       </Button>
     </Form>
@@ -204,5 +219,15 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
 };
 
 GeneralQueryView.getLayout = getLayout;
+
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
+  const ssr = await ssrInit(context);
+
+  return {
+    props: {
+      trpcState: ssr.dehydrate(),
+    },
+  };
+};
 
 export default GeneralQueryView;

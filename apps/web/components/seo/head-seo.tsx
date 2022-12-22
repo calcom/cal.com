@@ -9,6 +9,7 @@ import {
   MeetingImageProps,
 } from "@calcom/lib/OgImages";
 import { getBrowserInfo } from "@calcom/lib/browser/browser.utils";
+import { APP_NAME } from "@calcom/lib/constants";
 import { truncateOnWord } from "@calcom/lib/text";
 
 import { getSeoImage, seoConfig } from "@lib/config/next-seo.config";
@@ -79,7 +80,7 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
   const image = getSeoImage("ogImage") + constructGenericImage({ title, description });
   const truncatedDescription = truncateOnWord(description, 158);
 
-  const pageTitle = title + " | Cal.com";
+  const pageTitle = title + " | " + APP_NAME;
   let seoObject = buildSeoMeta({
     title: pageTitle,
     image,

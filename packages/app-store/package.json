@@ -20,7 +20,8 @@
     "@calcom/trpc": "*",
     "@calcom/ui": "*",
     "@calcom/zoomvideo": "*",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "qs-stringify": "^1.2.1"
   },
   "devDependencies": {
     "@calcom/types": "*"

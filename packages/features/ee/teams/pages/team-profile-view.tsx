@@ -6,20 +6,29 @@ import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { CAL_URL } from "@calcom/lib/constants";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import objectKeys from "@calcom/lib/objectKeys";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Avatar, Button, Form, Label, TextArea, TextField } from "@calcom/ui/components";
-import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
-import { Dialog, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
-import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
-import LinkIconButton from "@calcom/ui/v2/core/LinkIconButton";
-import Meta from "@calcom/ui/v2/core/Meta";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
-import showToast from "@calcom/ui/v2/core/notifications";
+import {
+  Avatar,
+  Button,
+  ConfirmationDialogContent,
+  Dialog,
+  DialogTrigger,
+  Form,
+  getSettingsLayout as getLayout,
+  Icon,
+  ImageUploader,
+  Label,
+  LinkIconButton,
+  Meta,
+  showToast,
+  TextArea,
+  TextField,
+} from "@calcom/ui";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
@@ -78,7 +87,7 @@ const ProfileView = () => {
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
-  const permalink = `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team?.slug}`;
+  const permalink = `${CAL_URL?.replace(/^(https?:|)\/\//, "")}/team/${team?.slug}`;
 
   const deleteTeamMutation = trpc.viewer.teams.delete.useMutation({
     async onSuccess() {
@@ -124,7 +133,7 @@ const ProfileView = () => {
 
   return (
     <>
-      <Meta title="Profile" description="Manage settings for your team profile" />
+      <Meta title={t("profile")} description={t("profile_team_description")} />
       {!isLoading && (
         <>
           {isAdmin ? (
@@ -276,7 +285,7 @@ const ProfileView = () => {
             <Dialog>
               <DialogTrigger asChild>
                 <Button color="destructive" className="border" StartIcon={Icon.FiTrash2}>
-                  {t("delete_team")}
+                  {t("disband_team")}
                 </Button>
               </DialogTrigger>
               <ConfirmationDialogContent

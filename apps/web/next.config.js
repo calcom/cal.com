@@ -1,7 +1,7 @@
 require("dotenv").config({ path: "../../.env" });
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const { withSentryConfig } = require("@sentry/nextjs");
-
+const os = require("os");
 const withTM = require("next-transpile-modules")([
   "@calcom/app-store",
   "@calcom/core",
@@ -99,6 +99,13 @@ const nextConfig = {
           {
             from: "../../packages/app-store/**/static/**",
             to({ context, absoluteFilename }) {
+              // Adds compatibility for windows path
+              if (os.platform() === "win32") {
+                const absoluteFilenameWin = absoluteFilename.replaceAll("\\", "/");
+                const contextWin = context.replaceAll("\\", "/");
+                const appName = /app-store\/(.*)\/static/.exec(absoluteFilenameWin);
+                return Promise.resolve(`${contextWin}/public/app-store/${appName[1]}/[name][ext]`);
+              }
               const appName = /app-store\/(.*)\/static/.exec(absoluteFilename);
               return Promise.resolve(`${context}/public/app-store/${appName[1]}/[name][ext]`);
             },
@@ -141,6 +148,21 @@ const nextConfig = {
       {
         source: "/router",
         destination: "/apps/routing-forms/router",
+      },
+      {
+        source: "/success/:path*",
+        has: [
+          {
+            type: "query",
+            key: "uid",
+            value: "(?<uid>.*)",
+          },
+        ],
+        destination: "/booking/:uid/:path*",
+      },
+      {
+        source: "/cancel/:path*",
+        destination: "/booking/:path*",
       },
       /* TODO: have these files being served from another deployment or CDN {
         source: "/embed/embed.js",
@@ -204,6 +226,11 @@ const nextConfig = {
         ],
         destination: "/404",
         permanent: false,
+      },
+      {
+        source: "/booking/direct/:action/:email/:bookingUid/:oldToken",
+        destination: "/api/link?action=:action&email=:email&bookingUid=:bookingUid&oldToken=:oldToken",
+        permanent: true,
       },
     ];
 

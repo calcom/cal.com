@@ -2,9 +2,10 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import React, { PropsWithChildren, ReactNode } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components";
-import { DialogClose, DialogContent } from "@calcom/ui/v2";
+
+import { Icon } from "../../Icon";
+import { Button } from "../../components";
+import { DialogClose, DialogContent } from "./Dialog";
 
 export type ConfirmationDialogContentProps = {
   confirmBtn?: ReactNode;
@@ -32,7 +33,7 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
   } = props;
 
   return (
-    <DialogContent type="creation" useOwnActionButtons={true}>
+    <DialogContent type="creation">
       <div className="flex">
         {variety && (
           <div className="mt-0.5 ltr:mr-3">
@@ -61,16 +62,14 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
         </div>
       </div>
       <div className="mt-5 flex flex-row-reverse gap-x-2 sm:mt-8">
-        <DialogClose disabled={isLoading} onClick={onConfirm} asChild>
-          {confirmBtn || (
-            <Button color="primary" loading={isLoading}>
-              {isLoading ? loadingText : confirmBtnText}
-            </Button>
-          )}
-        </DialogClose>
-        <DialogClose disabled={isLoading} asChild>
-          <Button color="secondary">{cancelBtnText}</Button>
-        </DialogClose>
+        {confirmBtn ? (
+          confirmBtn
+        ) : (
+          <DialogClose color="primary" loading={isLoading} onClick={(e) => onConfirm && onConfirm(e)}>
+            {isLoading ? loadingText : confirmBtnText}
+          </DialogClose>
+        )}
+        <DialogClose disabled={isLoading}>{cancelBtnText}</DialogClose>
       </div>
     </DialogContent>
   );

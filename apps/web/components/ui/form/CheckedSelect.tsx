@@ -2,7 +2,7 @@ import React from "react";
 import { Props } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui";
 
 import Avatar from "@components/ui/Avatar";
 import Select from "@components/ui/form/Select";

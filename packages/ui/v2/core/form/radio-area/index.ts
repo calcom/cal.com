@@ -1,3 +1,3 @@
 export * as RadioGroup from "./RadioAreaGroup";
 export { default as Select } from "./Select";
-export * as Radio from "./Radio";
+export { Group, Indicator, Label, Radio, RadioField } from "./Radio";

@@ -2,7 +2,6 @@ import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
 import { useMemo, useState } from "react";
-import { Loader } from "react-feather";
 import { UseFormReturn } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
@@ -10,20 +9,27 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/Icon";
-import { Button, ButtonGroup, Label } from "@calcom/ui/components";
-import { HorizontalTabs, showToast, Switch, Tooltip, VerticalTabs } from "@calcom/ui/v2";
-import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
-import { Dialog } from "@calcom/ui/v2/core/Dialog";
-import Divider from "@calcom/ui/v2/core/Divider";
-import Dropdown, {
+import {
+  Button,
+  ButtonGroup,
+  ConfirmationDialogContent,
+  Dialog,
+  Divider,
+  Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@calcom/ui/v2/core/Dropdown";
-import Shell from "@calcom/ui/v2/core/Shell";
-import VerticalDivider from "@calcom/ui/v2/core/VerticalDivider";
-import { Skeleton } from "@calcom/ui/v2/core/skeleton";
+  HorizontalTabs,
+  Icon,
+  Label,
+  Shell,
+  showToast,
+  Skeleton,
+  Switch,
+  Tooltip,
+  VerticalDivider,
+  VerticalTabs,
+} from "@calcom/ui";
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import { EmbedButton, EmbedDialog } from "@components/Embed";
@@ -60,7 +66,7 @@ function getNavigation(props: {
       name: "availability",
       href: `/event-types/${eventType.id}?tabName=availability`,
       icon: Icon.FiCalendar,
-      info: `Working Hours`, // TODO: Get this from props
+      info: `default_schedule_name`, // TODO: Get this from props
     },
     {
       name: "event_limit_tab_title",
@@ -143,13 +149,20 @@ function EventTypeSingleLayout({
       enabledWorkflowsNumber,
     });
     // If there is a team put this navigation item within the tabs
-    if (team)
+    if (team) {
       navigation.splice(2, 0, {
         name: "scheduling_type",
         href: `/event-types/${eventType.id}?tabName=team`,
         icon: Icon.FiUsers,
         info: eventType.schedulingType === "COLLECTIVE" ? "collective" : "round_robin",
       });
+      navigation.push({
+        name: "webhooks",
+        href: `/event-types/${eventType.id}?tabName=webhooks`,
+        icon: Icon.FiLink,
+        info: `${eventType.webhooks.filter((webhook) => webhook.active).length} ${t("active")}`,
+      });
+    }
     return navigation;
   }, [t, eventType, installedAppsNumber, enabledAppsNumber, enabledWorkflowsNumber, team]);
 
@@ -202,7 +215,6 @@ function EventTypeSingleLayout({
               color="secondary"
               size="icon"
               StartIcon={Icon.FiLink}
-              combined
               tooltip={t("copy_link")}
               onClick={() => {
                 navigator.clipboard.writeText(permalink);
@@ -288,7 +300,7 @@ function EventTypeSingleLayout({
           </Button>
         </div>
       }>
-      <ClientSuspense fallback={<Loader />}>
+      <ClientSuspense fallback={<Icon.FiLoader />}>
         <div className="-mt-2 flex flex-col xl:flex-row xl:space-x-8">
           <div className="hidden xl:block">
             <VerticalTabs

@@ -1,17 +1,22 @@
+import { WebhookTriggerEvents } from "@prisma/client";
+
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/Icon";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import Switch from "@calcom/ui/v2/core/Switch";
-import { Tooltip } from "@calcom/ui/v2/core/Tooltip";
-import showToast from "@calcom/ui/v2/core/notifications";
+import { Badge, Button, Icon, showToast, Switch, Tooltip } from "@calcom/ui";
 
-export type TWebhook = RouterOutputs["viewer"]["webhook"]["list"][number];
+type WebhookProps = {
+  id: string;
+  subscriberUrl: string;
+  payloadTemplate: string | null;
+  active: boolean;
+  eventTriggers: WebhookTriggerEvents[];
+  secret: string | null;
+  eventTypeId: number | null;
+};
 
 export default function WebhookListItem(props: {
-  webhook: TWebhook;
+  webhook: WebhookProps;
   onEditWebhook: () => void;
   lastItem: boolean;
 }) {
@@ -55,6 +60,7 @@ export default function WebhookListItem(props: {
               id: webhook.id,
               active: !webhook.active,
               payloadTemplate: webhook.payloadTemplate,
+              eventTypeId: webhook.eventTypeId || undefined,
             })
           }
         />
@@ -67,7 +73,7 @@ export default function WebhookListItem(props: {
           size="icon"
           onClick={() => {
             // TODO: Confimation dialog before deleting
-            deleteWebhook.mutate({ id: webhook.id });
+            deleteWebhook.mutate({ id: webhook.id, eventTypeId: webhook.eventTypeId || undefined });
           }}
         />
       </div>

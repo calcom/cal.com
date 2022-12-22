@@ -1,8 +1,9 @@
 import classNames from "classnames";
-import { Check, Info } from "react-feather";
 import toast from "react-hot-toast";
 
-export default function showToast(message: string, variant: "success" | "warning" | "error") {
+import { Icon } from "@calcom/ui";
+
+export function showToast(message: string, variant: "success" | "warning" | "error") {
   switch (variant) {
     case "success":
       toast.custom(
@@ -12,7 +13,7 @@ export default function showToast(message: string, variant: "success" | "warning
               "data-testid-toast-success bg-brand-500 mb-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md",
               t.visible && "animate-fade-in-up"
             )}>
-            <Check className="h-4 w-4" />
+            <Icon.FiCheck className="h-4 w-4" />
             <p>{message}</p>
           </div>
         ),
@@ -27,7 +28,7 @@ export default function showToast(message: string, variant: "success" | "warning
               "animate-fade-in-up mb-2 flex h-9 items-center space-x-2 rounded-md bg-red-100 p-3 text-sm font-semibold text-red-900 shadow-md",
               t.visible && "animate-fade-in-up"
             )}>
-            <Info className="h-4 w-4" />
+            <Icon.FiInfo className="h-4 w-4" />
             <p>{message}</p>
           </div>
         ),
@@ -42,7 +43,7 @@ export default function showToast(message: string, variant: "success" | "warning
               "animate-fade-in-up bg-brand-500 mb-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md",
               t.visible && "animate-fade-in-up"
             )}>
-            <Info className="h-4 w-4" />
+            <Icon.FiInfo className="h-4 w-4" />
             <p>{message}</p>
           </div>
         ),
@@ -57,7 +58,7 @@ export default function showToast(message: string, variant: "success" | "warning
               "animate-fade-in-up bg-brand-500 mb-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md",
               t.visible && "animate-fade-in-up"
             )}>
-            <Check className="h-4 w-4" />
+            <Icon.FiCheck className="h-4 w-4" />
             <p>{message}</p>
           </div>
         ),
@@ -66,3 +67,4 @@ export default function showToast(message: string, variant: "success" | "warning
       break;
   }
 }
+export default showToast;
