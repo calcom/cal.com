@@ -227,6 +227,11 @@ const nextConfig = {
         destination: "/404",
         permanent: false,
       },
+      {
+        source: "/booking/direct/:action/:email/:bookingUid/:oldToken",
+        destination: "/api/link?action=:action&email=:email&bookingUid=:bookingUid&oldToken=:oldToken",
+        permanent: true,
+      },
     ];
 
     if (process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com") {

@@ -356,6 +356,35 @@ export const eventTypesRouter = router({
       },
     });
   }),
+  listWithTeam: authedProcedure.query(async ({ ctx }) => {
+    return await ctx.prisma.eventType.findMany({
+      where: {
+        OR: [
+          { userId: ctx.user.id },
+          {
+            team: {
+              members: {
+                some: {
+                  userId: ctx.user.id,
+                },
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        team: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        title: true,
+        slug: true,
+      },
+    });
+  }),
   create: authedProcedure.input(createEventTypeInput).mutation(async ({ ctx, input }) => {
     const { schedulingType, teamId, ...rest } = input;
     const userId = ctx.user.id;

@@ -642,4 +642,45 @@ export const viewerTeamsRouter = router({
     });
     return teams;
   }),
+  listMembers: authedProcedure
+    .input(
+      z.object({
+        teamIds: z.number().array().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const teams = await ctx.prisma.team.findMany({
+        where: {
+          id: {
+            in: input.teamIds,
+          },
+          members: {
+            some: {
+              user: {
+                id: ctx.user.id,
+              },
+            },
+          },
+        },
+        select: {
+          members: {
+            select: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatar: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      type UserMap = Record<number, typeof teams[number]["members"][number]["user"]>;
+      // flattern users to be unique by id
+      const users = teams
+        .flatMap((t) => t.members)
+        .reduce((acc, m) => (m.user.id in acc ? acc : { ...acc, [m.user.id]: m.user }), {} as UserMap);
+      return Object.values(users);
+    }),
 });

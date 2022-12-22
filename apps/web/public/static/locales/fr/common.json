@@ -1423,6 +1423,19 @@
   "app_is_enabled": "{{appName}} est activé",
   "app_is_disabled": "{{appName}} est désactivé",
   "keys_have_been_saved": "Les clés ont été enregistrées",
+  "disable_app": "Désactiver l'application",
   "disable_app_description": "Désactiver cette application peut causer des problèmes avec la façon dont vos utilisateurs interagissent avec Cal",
-  "admin_apps_description": "Activer les applications pour votre instance de Cal"
+  "edit_keys": "Modifier les clés",
+  "admin_apps_description": "Activer les applications pour votre instance de Cal",
+  "no_available_apps": "Il n'y a aucune application disponible",
+  "no_available_apps_description": "Veuillez vous assurer qu'il y a des applications dans votre déploiement sous 'packages/app-store'",
+  "no_apps": "Aucune application n'est activée dans cette instance de Cal",
+  "apps_settings": "Paramètres des applications",
+  "fill_this_field": "Veuillez remplir ce champ",
+  "options": "Options",
+  "enter_option": "Entrer l'option {{index}}",
+  "add_an_option": "Ajouter une option",
+  "radio": "Radio",
+  "event_type_duplicate_copy_text": "{{slug}}-copie",
+  "set_as_default": "Définir par défaut"
 }

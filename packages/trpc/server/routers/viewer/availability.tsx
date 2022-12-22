@@ -84,7 +84,13 @@ export const availabilityRouter = router({
     return {
       name: schedule.name,
       rawSchedule: schedule,
-      schedule: availability,
+      schedule: availability.map((a) =>
+        a.map((startAndEnd) => ({
+          ...startAndEnd,
+          // Turn our limited granularity into proper end of day.
+          end: new Date(startAndEnd.end.toISOString().replace("23:59:00.000Z", "23:59:59.999Z")),
+        }))
+      ),
       dateOverrides: schedule.availability.reduce((acc, override) => {
         // only iff future date override
         if (!override.date || override.date < new Date()) {
