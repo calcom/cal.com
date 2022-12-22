@@ -38,6 +38,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { TRPCError } from "@trpc/server";
 
 import { router, authedProcedure, authedRateLimitedProcedure } from "../../trpc";
+import { viewerTeamsRouter } from "./teams";
 
 function isSMSAction(action: WorkflowActions) {
   return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.SMS_NUMBER;
@@ -1089,9 +1090,8 @@ export const workflowsRouter = router({
     return verifiedNumbers;
   }),
   getWorkflowActionOptions: authedProcedure.query(async ({ ctx }) => {
-    const userId = ctx.user.id;
-    const hasTeamPlan = (await ctx.prisma.membership.count({ where: { userId } })) > 0;
+    const { hasTeamPlan } = await viewerTeamsRouter.createCaller(ctx).hasTeamPlan();
     const t = await getTranslation(ctx.user.locale, "common");
-    return getWorkflowActionOptions(t, hasTeamPlan);
+    return getWorkflowActionOptions(t, !!hasTeamPlan);
   }),
 });
