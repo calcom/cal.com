@@ -46,4 +46,3 @@ export { default as Switch } from "./Switch";
 export { default as Tooltip } from "./Tooltip";
 export { default as VerticalDivider } from "./VerticalDivider";
 export { default as WizardForm } from "./WizardForm";
-export { TipBanner } from "./Tips";
