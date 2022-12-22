@@ -22,6 +22,9 @@ docker_build:
 	       --build-arg NEXT_PUBLIC_SLOTS_PROXY_URL=${NEXT_PUBLIC_SLOTS_PROXY_URL} \
 	       --build-arg 'GLOBAL_WEBHOOK_SUBSCRIBERS=${GLOBAL_WEBHOOK_SUBSCRIBERS}' \
 	       --build-arg GLOBAL_WEBHOOK_SECRET=${GLOBAL_WEBHOOK_SECRET} \
+	       --build-arg NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN} \
+         --build-arg SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN} \
+         --build-arg SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT} \
 	       -t ${IMAGE} .
 
 .PHONY: docker_push

@@ -240,6 +240,8 @@ const nextConfig = {
 
 const sentryWebpackPluginOptions = {
   silent: true, // Suppresses all logs
+  dryRun: process.env.SENTRY_ENVIRONMENT !== "production",
+  authToken: process.env.SENTRY_AUTH_TOKEN,
 };
 
 const moduleExports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
