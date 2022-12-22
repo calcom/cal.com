@@ -1,36 +1,30 @@
 import React, { ComponentProps } from "react";
 
-import type { VerticalTabItemProps } from "../";
-import { HorizontalTabs, VerticalTabs } from "../";
-import { Icon } from "../../../Icon";
-import Shell from "../Shell";
-import type { HorizontalTabItemProps } from "../navigation/tabs/HorizontalTabItem";
+import { HorizontalTabs, Shell } from "@calcom/ui";
+import { VerticalTabItemProps, HorizontalTabItemProps } from "@calcom/ui/v2";
+
+import { FiltersContainer } from "../components/FiltersContainer";
 
 const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
   {
     name: "upcoming",
     href: "/bookings/upcoming",
-    icon: Icon.FiCalendar,
   },
   {
     name: "unconfirmed",
     href: "/bookings/unconfirmed",
-    icon: Icon.FiInbox,
   },
   {
     name: "recurring",
     href: "/bookings/recurring",
-    icon: Icon.FiRotateCcw,
   },
   {
     name: "past",
     href: "/bookings/past",
-    icon: Icon.FiSunset,
   },
   {
     name: "cancelled",
     href: "/bookings/cancelled",
-    icon: Icon.FiSlash,
   },
 ];
 
@@ -40,12 +34,10 @@ export default function BookingLayout({
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   return (
     <Shell {...rest}>
-      <div className="flex flex-col sm:space-x-2 xl:flex-row">
-        <div className="hidden xl:block">
-          <VerticalTabs tabs={tabs} sticky />
-        </div>
-        <div className="block xl:hidden">
+      <div className="flex max-w-6xl flex-col sm:space-x-2">
+        <div className="flex  flex-col lg:flex-row">
           <HorizontalTabs tabs={tabs} />
+          <FiltersContainer />
         </div>
         <main className="w-full max-w-6xl">{children}</main>
       </div>
