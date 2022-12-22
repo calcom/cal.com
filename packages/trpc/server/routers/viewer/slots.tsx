@@ -29,6 +29,7 @@ const getScheduleSchema = z
     eventTypeSlug: z.string(),
     // Event type length
     eventTypeLength: z.number().int(),
+    eventTypeTeamId: z.number().int().nullable().optional(),
     // invitee timezone
     timeZone: z.string().optional(),
     // or list of users (for dynamic events)
