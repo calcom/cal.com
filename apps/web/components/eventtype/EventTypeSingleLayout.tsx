@@ -33,6 +33,7 @@ import {
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import { EmbedButton, EmbedDialog } from "@components/Embed";
+import {TbWebhook} from 'react-icons/tb';
 
 type Props = {
   children: React.ReactNode;
@@ -159,7 +160,7 @@ function EventTypeSingleLayout({
       navigation.push({
         name: "webhooks",
         href: `/event-types/${eventType.id}?tabName=webhooks`,
-        icon: Icon.FiLink,
+        icon: TbWebhook,
         info: `${eventType.webhooks.filter((webhook) => webhook.active).length} ${t("active")}`,
       });
     }

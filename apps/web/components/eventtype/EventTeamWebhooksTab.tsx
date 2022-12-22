@@ -9,6 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Webhook } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Dialog, DialogContent, EmptyScreen, Icon, showToast } from "@calcom/ui";
+import {TbWebhook} from 'react-icons/tb';
 
 export const EventTeamWebhooksTab = ({
   eventType,
@@ -117,7 +118,7 @@ export const EventTeamWebhooksTab = ({
                   </>
                 ) : (
                   <EmptyScreen
-                    Icon={Icon.FiLink}
+                    Icon={TbWebhook}
                     headline={t("create_your_first_webhook")}
                     description={t("create_your_first_team_webhook_description", { appName: APP_NAME })}
                     buttonRaw={<NewWebhookButton />}
