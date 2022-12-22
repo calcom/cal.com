@@ -65,7 +65,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
     booking?.references?.find((reference: PartialReference) => reference.type === "daily_video")?.meetingId ??
     undefined;
 
-  const { data, isLoading } = trpc.viewer.getCalVideoRecordings.useQuery(
+  const { data: recordings, isLoading } = trpc.viewer.getCalVideoRecordings.useQuery(
     { roomName: roomName ?? "" },
     { enabled: !!roomName && isOpenDialog }
   );
@@ -110,9 +110,9 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
           {!showUpgradeBanner && (
             <>
               {isLoading && <RecordingListSkeleton />}
-              {data?.recordings?.total_count > 0 && (
+              {recordings?.data?.length > 0 && (
                 <div className="flex flex-col gap-3">
-                  {data?.recordings?.data?.map((recording: RecordingItemSchema, index: number) => {
+                  {recordings.data.map((recording: RecordingItemSchema, index: number) => {
                     return (
                       <div
                         className="flex w-full items-center justify-between rounded-md border py-2 px-4"
@@ -147,9 +147,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
                   })}
                 </div>
               )}
-              {!isLoading && !data?.recordings?.total_count && (
-                <h1 className="font-semibold">No Recordings Found</h1>
-              )}
+              {!isLoading && !recordings && <h1 className="font-semibold">No Recordings Found</h1>}
             </>
           )}
         </LicenseRequired>

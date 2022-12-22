@@ -168,7 +168,9 @@ const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
   return videoAdapter?.createMeeting(calEvent);
 };
 
-const getRecordingsOfCalVideoByRoomName = async (roomName: string) => {
+const getRecordingsOfCalVideoByRoomName = async (
+  roomName: string
+): Promise<GetRecordingsResponseSchema | undefined> => {
   let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
   try {
     dailyAppKeys = await getDailyAppKeys();
@@ -185,9 +187,7 @@ const getRecordingsOfCalVideoByRoomName = async (roomName: string) => {
       invalid: false,
     },
   ]);
-  const res: GetRecordingsResponseSchema | undefined = await videoAdapter?.getRecordings?.(roomName);
-
-  return res;
+  return videoAdapter?.getRecordings?.(roomName);
 };
 
 export { getBusyVideoTimes, createMeeting, updateMeeting, deleteMeeting, getRecordingsOfCalVideoByRoomName };
