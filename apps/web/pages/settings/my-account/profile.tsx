@@ -40,10 +40,9 @@ import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
 import { ssrInit } from "@server/lib/ssr";
 
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} />
       <div className="mt-6 mb-8 space-y-6 divide-y">
         <div className="flex items-center">
           <SkeletonAvatar className=" h-12 w-12 px-4" />
@@ -180,8 +179,7 @@ const ProfileView = () => {
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
-  if (isLoading || !user || isLoadingAvatar || !avatar)
-    return <SkeletonLoader title={t("profile")} description={t("profile_description")} />;
+  if (isLoading || !user || isLoadingAvatar || !avatar) return <SkeletonLoader />;
 
   const defaultValues = {
     username: user.username || "",
