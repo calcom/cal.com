@@ -4,10 +4,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (req.method !== "POST") {
     return;
   }
-  const data = req.body;
+  const { email } = req.body;
 
   await fetch("https://api.sendgrid.com/v3/validations/email", {
-    body: JSON.stringify({ email: data.email }),
+    body: JSON.stringify({ email }),
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${process.env.SENDGRID_VERIFICATION_KEY}`,

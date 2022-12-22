@@ -74,32 +74,28 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
   };
 
   const signUp: SubmitHandler<FormValues> = async (data) => {
-    const isValid = true;
-
-    if (isValid) {
-      await fetch("/api/auth/signup", {
-        body: JSON.stringify({
+    await fetch("/api/auth/signup", {
+      body: JSON.stringify({
+        ...data,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+    })
+      .then(handleErrors)
+      .then(async () => {
+        telemetry.event(telemetryEventTypes.login, collectPageParameters());
+        await signIn<"credentials">("credentials", {
           ...data,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-      })
-        .then(handleErrors)
-        .then(async () => {
-          telemetry.event(telemetryEventTypes.login, collectPageParameters());
-          await signIn<"credentials">("credentials", {
-            ...data,
-            callbackUrl: router.query.callbackUrl
-              ? `${WEBAPP_URL}/${router.query.callbackUrl}`
-              : `${WEBAPP_URL}/getting-started`,
-          });
-        })
-        .catch((err) => {
-          methods.setError("apiError", { message: err.message });
+          callbackUrl: router.query.callbackUrl
+            ? `${WEBAPP_URL}/${router.query.callbackUrl}`
+            : `${WEBAPP_URL}/getting-started`,
         });
-    }
+      })
+      .catch((err) => {
+        methods.setError("apiError", { message: err.message });
+      });
   };
 
   return (
