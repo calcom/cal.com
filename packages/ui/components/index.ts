@@ -29,5 +29,6 @@ export {
 } from "./form";
 export { TopBanner } from "./top-banner";
 export type { TopBannerProps } from "./top-banner";
+export { AnimatedPopover } from "./popover/index";
 export { TableActions, DropdownActions } from "./table/TableActions";
 export type { ActionType } from "./table/TableActions";
