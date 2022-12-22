@@ -186,7 +186,7 @@ const getRecordingsOfCalVideoByRoomName = async (roomName: string) => {
   ]);
   const recordings = await videoAdapter?.getRecordings?.(roomName);
 
-  return { recordings };
+  return { recordings: recordings ?? [] };
 };
 
 export { getBusyVideoTimes, createMeeting, updateMeeting, deleteMeeting, getRecordingsOfCalVideoByRoomName };

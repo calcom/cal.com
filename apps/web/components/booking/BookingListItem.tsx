@@ -220,7 +220,7 @@ function BookingListItem(booking: BookingItemProps) {
       },
     });
   };
-  const showRecordingsButtons = isPast && isConfirmed && booking.location === "integrations:daily";
+  const showRecordingsButtons = booking.location === "integrations:daily" && isPast && isConfirmed;
   return (
     <>
       <RescheduleDialog

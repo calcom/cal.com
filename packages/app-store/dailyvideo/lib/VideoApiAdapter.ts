@@ -1,11 +1,11 @@
 import { z } from "zod";
 
 import { handleErrorsJson } from "@calcom/lib/errors";
+import { GetRecordingsResponseSchema, getRecordingsResponseSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
-import type { GetRecordingsResponse } from "@calcom/types/VideoApiAdapter";
 
 import { getDailyAppKeys } from "./getDailyAppKeys";
 
@@ -106,9 +106,9 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     // Documentation at: https://docs.daily.co/reference#list-rooms
     // added a 1 hour buffer for room expiration
     const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 60;
-    const { scale_plan } = await getDailyAppKeys();
+    const { scale_plan: scalePlan } = await getDailyAppKeys();
 
-    if (scale_plan === "true") {
+    if (scalePlan === "true") {
       return {
         privacy: "public",
         properties: {
@@ -148,9 +148,11 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     },
     updateMeeting: (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> =>
       createOrUpdateMeeting(`/rooms/${bookingRef.uid}`, event),
-    getRecordings: async (roomName: string): Promise<GetRecordingsResponse> => {
+    getRecordings: async (roomName: string): Promise<GetRecordingsResponseSchema> => {
       try {
-        const res = await fetcher(`/recordings?room_name=${roomName}`);
+        const res = await fetcher(`/recordings?room_name=${roomName}`).then(
+          getRecordingsResponseSchema.parse
+        );
         return Promise.resolve(res);
       } catch (err) {
         throw new Error("Something went wrong! Unable to get recording");

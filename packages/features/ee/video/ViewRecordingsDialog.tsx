@@ -5,13 +5,14 @@ import dayjs from "@calcom/dayjs";
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { RecordingItemSchema } from "@calcom/prisma/zod-utils";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import type { PartialReference } from "@calcom/types/EventManager";
-import type { RecordingObj } from "@calcom/types/VideoApiAdapter";
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui";
-import { Loader, Button, showToast, Icon } from "@calcom/ui";
+import { Button, showToast, Icon } from "@calcom/ui";
 
-import TeamsUpgradeRecordingBanner from "./components/TeamUgradeRecordingBanner";
+import RecordingListSkeleton from "./components/RecordingListSkeleton";
+import UpgradeRecordingBanner from "./components/UpgradeRecordingBanner";
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
@@ -22,7 +23,7 @@ interface IViewRecordingsDialog {
   timeFormat: number | null;
 }
 
-function convertStoMs(seconds: number) {
+function convertSecondsToMs(seconds: number) {
   // Bitwise Double Not is faster than Math.floor
   const minutes = ~~(seconds / 60);
   const extraSeconds = seconds % 60;
@@ -33,24 +34,30 @@ interface GetTimeSpanProps {
   startTime: string | undefined;
   endTime: string | undefined;
   locale: string;
-  hour12: boolean;
+  isTimeFormatAMPM: boolean;
 }
 
-const getTimeSpan = ({ startTime, endTime, locale, hour12 }: GetTimeSpanProps) => {
+const getTimeSpan = ({ startTime, endTime, locale, isTimeFormatAMPM }: GetTimeSpanProps) => {
   if (!startTime || !endTime) return "";
-  return (
-    new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "numeric", hour12 }).format(
-      new Date(startTime)
-    ) +
-    " - " +
-    new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "numeric", hour12 }).format(new Date(endTime))
-  );
+
+  const formattedStartTime = new Intl.DateTimeFormat(locale, {
+    hour: "numeric",
+    minute: "numeric",
+    hour12: isTimeFormatAMPM,
+  }).format(new Date(startTime));
+  const formattedEndTime = new Intl.DateTimeFormat(locale, {
+    hour: "numeric",
+    minute: "numeric",
+    hour12: isTimeFormatAMPM,
+  }).format(new Date(endTime));
+
+  return `${formattedStartTime} - ${formattedEndTime}`;
 };
 
 export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
   const { t, i18n } = useLocale();
   const { isOpenDialog, setIsOpenDialog, booking, timeFormat } = props;
-  const [downloadingRecordingId, setRecordingId] = useState<string>("");
+  const [downloadingRecordingId, setRecordingId] = useState<string | null>(null);
   const session = useSession();
   const belongsToActiveTeam = session?.data?.user?.belongsToActiveTeam ?? false;
   const [showUpgradeBanner, setShowUpgradeBanner] = useState<boolean>(false);
@@ -74,38 +81,38 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
         .catch((err: any) => {
           throw new Error(err);
         });
-      console.log(res.download_link);
+
       if (res?.download_link) {
         window.location.href = res.download_link;
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
       showToast(t("something_went_wrong"), "error");
     }
-    setRecordingId("");
+    setRecordingId(null);
   };
+
+  const subtitle = `${booking?.title} - ${dayjs(booking?.startTime).format("ddd")} ${dayjs(
+    booking?.startTime
+  ).format("D")}, ${dayjs(booking?.startTime).format("MMM")} ${getTimeSpan({
+    startTime: booking?.startTime,
+    endTime: booking?.endTime,
+    locale: i18n.language,
+    isTimeFormatAMPM: timeFormat === 12,
+  })} `;
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent>
-        <DialogHeader
-          title={t("recordings_title")}
-          subtitle={`${booking?.title} - ${dayjs(booking?.startTime).format("ddd")} ${dayjs(
-            booking?.startTime
-          ).format("D")}, ${dayjs(booking?.startTime).format("MMM")} ${getTimeSpan({
-            startTime: booking?.startTime,
-            endTime: booking?.endTime,
-            locale: i18n.language,
-            hour12: timeFormat === 12,
-          })} `}
-        />
+        <DialogHeader title={t("recordings_title")} subtitle={subtitle} />
         <LicenseRequired>
-          {!showUpgradeBanner ? (
+          {showUpgradeBanner && <UpgradeRecordingBanner />}
+          {!showUpgradeBanner && (
             <>
-              {isLoading && <Loader />}
+              {isLoading && <RecordingListSkeleton />}
               {data?.recordings?.total_count > 0 && (
                 <div className="flex flex-col gap-3">
-                  {data?.recordings?.data?.map((recording: RecordingObj, index: number) => {
+                  {data?.recordings?.data?.map((recording: RecordingItemSchema, index: number) => {
                     return (
                       <div
                         className="flex w-full items-center justify-between rounded-md border py-2 px-4"
@@ -115,7 +122,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
                             {t("recording")} {index + 1}
                           </h1>
                           <p className="text-sm font-normal text-gray-500">
-                            {convertStoMs(recording.duration)}
+                            {convertSecondsToMs(recording.duration)}
                           </p>
                         </div>
                         {belongsToActiveTeam ? (
@@ -144,8 +151,6 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
                 <h1 className="font-semibold">No Recordings Found</h1>
               )}
             </>
-          ) : (
-            <TeamsUpgradeRecordingBanner />
           )}
         </LicenseRequired>
         <DialogFooter>

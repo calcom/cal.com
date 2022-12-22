@@ -4,7 +4,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon, Button } from "@calcom/ui";
 
-export default function TeamsUpgradeRecordingBanner() {
+export default function UpgradeRecordingBanner() {
   const { t } = useLocale();
   const router = useRouter();
 

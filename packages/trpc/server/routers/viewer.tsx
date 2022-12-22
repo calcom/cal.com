@@ -1155,7 +1155,7 @@ const loggedInViewerRouter = router({
         const res = await getRecordingsOfCalVideoByRoomName(roomName);
         return { recordings: res?.recordings ?? [], error: undefined };
       } catch (err) {
-        console.warn(err);
+        console.error(err);
         return { recordings: [], error: err };
       }
     }),

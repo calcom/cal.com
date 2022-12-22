@@ -1,3 +1,5 @@
+import { GetRecordingsResponseSchema } from "@calcom/prisma/zod-utils";
+
 import type { EventBusyDate } from "./Calendar";
 import { CredentialPayload } from "./Credential";
 
@@ -7,23 +9,6 @@ export interface VideoCallData {
   password: string;
   url: string;
 }
-
-export interface RecordingObj {
-  id: string;
-  room_name: string;
-  start_ts: number;
-  status: string;
-  max_participants: number;
-  duration: number;
-  share_token: string;
-}
-
-export type GetRecordingsResponse =
-  | {
-      total_count: number;
-      data: RecordingObjType[];
-    }
-  | Record<string, never>;
 
 // VideoApiAdapter is defined by the Video App. The App currently can choose to not define it. So, consider in type that VideoApiAdapter can be undefined.
 export type VideoApiAdapter =
@@ -36,7 +21,7 @@ export type VideoApiAdapter =
 
       getAvailability(dateFrom?: string, dateTo?: string): Promise<EventBusyDate[]>;
 
-      getRecordings?(roomName: string): Promise<GetRecordingsResponse>;
+      getRecordings?(roomName: string): Promise<GetRecordingsResponseSchema>;
     }
   | undefined;
 
