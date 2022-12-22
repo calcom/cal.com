@@ -185,7 +185,7 @@ const getRecordingsOfCalVideoByRoomName = async (roomName: string) => {
       invalid: false,
     },
   ]);
-  const res: GetRecordingsResponseSchema = await videoAdapter?.getRecordings?.(roomName);
+  const res: GetRecordingsResponseSchema | undefined = await videoAdapter?.getRecordings?.(roomName);
 
   return res;
 };

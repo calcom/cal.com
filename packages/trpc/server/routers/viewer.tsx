@@ -32,6 +32,7 @@ import {
 } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
+import { GetRecordingsResponseSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -1152,8 +1153,10 @@ const loggedInViewerRouter = router({
     .query(async ({ ctx, input }) => {
       const { roomName } = input;
       try {
-        const res = await getRecordingsOfCalVideoByRoomName(roomName);
-        return { recordings: res, error: undefined };
+        const res: GetRecordingsResponseSchema | undefined = await getRecordingsOfCalVideoByRoomName(
+          roomName
+        );
+        return { recordings: res ?? {}, error: undefined };
       } catch (err) {
         console.error(err);
         return { recordings: [], error: err };
