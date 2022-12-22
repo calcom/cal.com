@@ -7,7 +7,6 @@ import React, { Fragment, useEffect, useState } from "react";
 import CreateEventTypeButton from "@calcom/features/eventtypes/components/CreateEventTypeButton";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import isCalcom from "@calcom/lib/isCalcom";
 import { RouterOutputs, trpc, TRPCClientError } from "@calcom/trpc/react";
 import {
   Badge,
@@ -29,7 +28,6 @@ import {
   showToast,
   Switch,
   Tooltip,
-  TipBanner,
 } from "@calcom/ui";
 
 import { withQuery } from "@lib/QueryCell";
@@ -589,7 +587,6 @@ const EventTypesPage = () => {
           customLoader={<SkeletonLoader />}
           success={({ data }) => (
             <>
-              {isCalcom && <TipBanner />}
               {data.eventTypeGroups.map((group, index) => (
                 <Fragment key={group.profile.slug}>
                   {/* hide list heading when there is only one (current user) */}
@@ -608,6 +605,7 @@ const EventTypesPage = () => {
                   />
                 </Fragment>
               ))}
+
               {data.eventTypeGroups.length === 0 && <CreateFirstEventTypeView />}
               <EmbedDialog />
             </>
