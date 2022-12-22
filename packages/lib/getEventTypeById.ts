@@ -130,6 +130,17 @@ export default async function getEventTypeById({
       destinationCalendar: true,
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
+      webhooks: {
+        select: {
+          id: true,
+          subscriberUrl: true,
+          payloadTemplate: true,
+          active: true,
+          eventTriggers: true,
+          secret: true,
+          eventTypeId: true,
+        },
+      },
       workflows: {
         include: {
           workflow: {
