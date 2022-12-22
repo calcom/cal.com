@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
 import { useMemo, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
+import { TbWebhook } from "react-icons/tb";
 
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
@@ -33,7 +34,6 @@ import {
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import { EmbedButton, EmbedDialog } from "@components/Embed";
-import { TbWebhook } from 'react-icons/tb';
 
 type Props = {
   children: React.ReactNode;
