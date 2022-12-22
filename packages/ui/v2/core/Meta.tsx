@@ -52,9 +52,10 @@ export default function Meta({ title, description, backButton, CTA }: MetaType) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [title, description, backButton, CTA]);
 
+  const title_ = `${title} | Cal.com`;
   return (
     <Head>
-      <title>{title} | Cal.com</title>
+      <title>{title_}</title>
       <meta name="description" content={description} />
     </Head>
   );
