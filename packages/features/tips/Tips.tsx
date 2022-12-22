@@ -3,8 +3,7 @@ import { useEffect, useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
-
-import Card from "../../core/Card";
+import { Card } from "@calcom/ui";
 
 export const tips = [
   {
