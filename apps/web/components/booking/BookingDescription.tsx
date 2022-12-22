@@ -37,10 +37,14 @@ interface Props {
   children: ReactNode;
   isMobile?: boolean;
   rescheduleUid?: string;
+  user?:
+    | TeamBookingPageProps["userToBeBooked"]
+    | BookPageProps["userToBeBooked"]
+    | HashLinkPageProps["userToBeBooked"];
 }
 
 const BookingDescription: FC<Props> = (props) => {
-  const { profile, eventType, isBookingPage = false, children } = props;
+  const { profile, eventType, user, isBookingPage = false, children } = props;
   const { t } = useLocale();
   const { duration, setQuery: setDuration } = useRouterQuery("duration");
   useEffect(() => {
@@ -104,6 +108,16 @@ const BookingDescription: FC<Props> = (props) => {
         <AvailableEventLocations
           locations={eventType.locations as AvailabilityPageProps["eventType"]["locations"]}
         />
+        {user && (
+          <p
+            className={classNames(
+              "text-sm font-medium",
+              isBookingPage && "dark:text-darkgray-600 text-gray-600"
+            )}>
+            <Icon.FiUser className="mr-[10px] -mt-1 ml-[2px] inline-block h-4 w-4" />
+            {user.name}
+          </p>
+        )}
         <div
           className={classNames(
             "flex flex-nowrap text-sm font-medium",
