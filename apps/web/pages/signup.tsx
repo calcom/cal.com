@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
+import { useState } from "react";
 import { FormProvider, SubmitHandler, useForm } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
@@ -29,6 +30,9 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
   const router = useRouter();
   const telemetry = useTelemetry();
 
+  const [isFirstTry, setIsFirstTry] = useState(true);
+  const [emailInvalidMessage, setEmailInvalidMessage] = useState("");
+
   const methods = useForm<FormValues>({
     defaultValues: prepopulateFormValues,
   });
@@ -45,28 +49,59 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
   };
 
   const signUp: SubmitHandler<FormValues> = async (data) => {
-    await fetch("/api/auth/signup", {
-      body: JSON.stringify({
-        ...data,
-      }),
+    let isValid = true;
+
+    await fetch("/api/auth/verifyEmail", {
+      body: JSON.stringify({ email: data.email }),
       headers: {
         "Content-Type": "application/json",
       },
       method: "POST",
     })
-      .then(handleErrors)
-      .then(async () => {
-        telemetry.event(telemetryEventTypes.login, collectPageParameters());
-        await signIn<"credentials">("credentials", {
-          ...data,
-          callbackUrl: router.query.callbackUrl
-            ? `${WEBAPP_URL}/${router.query.callbackUrl}`
-            : `${WEBAPP_URL}/getting-started`,
-        });
+      .then((response) => response.json())
+      .then((result) => {
+        setEmailInvalidMessage("");
+        const { verdict, suggestion } = result;
+        if (verdict === "Valid") {
+          setEmailInvalidMessage("");
+        } else if (isFirstTry) {
+          setIsFirstTry(false);
+          isValid = false;
+          if (suggestion) {
+            setEmailInvalidMessage(`Did you mean ${suggestion}?`);
+          } else {
+            setEmailInvalidMessage("Please double check your email address");
+          }
+        }
       })
-      .catch((err) => {
-        methods.setError("apiError", { message: err.message });
+      .catch((error) => {
+        console.error("Error:", error);
       });
+
+    if (isValid) {
+      await fetch("/api/auth/signup", {
+        body: JSON.stringify({
+          ...data,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      })
+        .then(handleErrors)
+        .then(async () => {
+          telemetry.event(telemetryEventTypes.login, collectPageParameters());
+          await signIn<"credentials">("credentials", {
+            ...data,
+            callbackUrl: router.query.callbackUrl
+              ? `${WEBAPP_URL}/${router.query.callbackUrl}`
+              : `${WEBAPP_URL}/getting-started`,
+          });
+        })
+        .catch((err) => {
+          methods.setError("apiError", { message: err.message });
+        });
+    }
   };
 
   return (
@@ -93,7 +128,10 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
                     {...register("username")}
                     required
                   />
-                  <EmailField {...register("email")} />
+                  <div>
+                    <EmailField {...register("email")} />
+                    <p className="mb-1 -mt-1 text-sm text-red-700">{emailInvalidMessage}</p>
+                  </div>
                   <PasswordField
                     labelProps={{
                       className: "block text-sm font-medium text-gray-700",
