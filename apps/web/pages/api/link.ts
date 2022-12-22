@@ -9,8 +9,8 @@ import { createContext } from "@calcom/trpc/server/createContext";
 import { viewerRouter } from "@calcom/trpc/server/routers/viewer";
 
 enum DirectAction {
-  "accept" = "accept",
-  "reject" = "reject",
+  ACCEPT = "accept",
+  REJECT = "reject",
 }
 
 const querySchema = z.object({
@@ -53,7 +53,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
   await caller.bookings.confirm({
     bookingId: booking.id,
     recurringEventId: booking.recurringEventId || undefined,
-    confirmed: action === DirectAction.accept,
+    confirmed: action === DirectAction.ACCEPT,
     reason,
   });
 
