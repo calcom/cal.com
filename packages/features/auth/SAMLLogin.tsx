@@ -7,8 +7,7 @@ import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { trpc } from "@calcom/trpc/react";
-
-import { Button, Icon } from "../../..";
+import { Button, Icon } from "@calcom/ui";
 
 interface Props {
   samlTenantID: string;
@@ -20,7 +19,7 @@ const schema = z.object({
   email: z.string().email({ message: "Please enter a valid email" }),
 });
 
-export default function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Props) {
+export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Props) {
   const { t } = useLocale();
   const methods = useFormContext();
   const telemetry = useTelemetry();

@@ -103,7 +103,12 @@ export const bookingsRouter = router({
   get: authedProcedure
     .input(
       z.object({
-        status: z.enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"]),
+        filters: z.object({
+          teamIds: z.number().array().optional(),
+          userIds: z.number().array().optional(),
+          status: z.enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"]),
+          eventTypeIds: z.number().array().optional(),
+        }),
         limit: z.number().min(1).max(100).nullish(),
         cursor: z.number().nullish(), // <-- "cursor" needs to exist when using useInfiniteQuery, but can be any type
       })
@@ -114,7 +119,7 @@ export const bookingsRouter = router({
       const take = input.limit ?? 10;
       const skip = input.cursor ?? 0;
       const { prisma, user } = ctx;
-      const bookingListingByStatus = input.status;
+      const bookingListingByStatus = input.filters.status;
       const bookingListingFilters: Record<typeof bookingListingByStatus, Prisma.BookingWhereInput> = {
         upcoming: {
           endTime: { gte: new Date() },
@@ -175,7 +180,46 @@ export const bookingsRouter = router({
         cancelled: { startTime: "desc" },
         unconfirmed: { startTime: "asc" },
       };
-      const passedBookingsFilter = bookingListingFilters[bookingListingByStatus];
+
+      // TODO: Fix record typing
+      const bookingWhereInputFilters: Record<string, Prisma.BookingWhereInput> = {
+        teamIds: {
+          AND: [
+            {
+              eventType: {
+                team: {
+                  id: {
+                    in: input.filters?.teamIds,
+                  },
+                },
+              },
+            },
+          ],
+        },
+        userIds: {
+          AND: [
+            {
+              eventType: {
+                users: {
+                  some: {
+                    id: {
+                      in: input.filters?.userIds,
+                    },
+                  },
+                },
+              },
+            },
+          ],
+        },
+      };
+
+      const filtersCombined: Prisma.BookingWhereInput[] =
+        input.filters &&
+        Object.keys(input.filters).map((key) => {
+          return bookingWhereInputFilters[key];
+        });
+
+      const passedBookingsStatusFilter = bookingListingFilters[bookingListingByStatus];
       const orderBy = bookingListingOrderby[bookingListingByStatus];
 
       const bookingsQuery = await prisma.booking.findMany({
@@ -204,7 +248,7 @@ export const bookingsRouter = router({
               },
             },
           ],
-          AND: [passedBookingsFilter],
+          AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
         },
         select: {
           ...bookingMinimalSelect,

@@ -24,6 +24,7 @@ export {
   TextAreaField,
   TextField,
   TopBanner,
+  AnimatedPopover,
   Select,
   SelectField,
   SelectWithValidation,
@@ -45,8 +46,6 @@ export { default as TimezoneChangeDialog } from "./TimezoneChangeDialog";
 // export { default as Tooltip } from "./Tooltip";
 export {
   Alert,
-  CheckedTeamSelect,
-  CustomInputItem,
   EmptyScreen,
   HorizontalTabs,
   SettingsToggle,
@@ -57,6 +56,7 @@ export {
   SkeletonText,
   Swatch,
   Switch,
+  Card,
   VerticalTabs,
 } from "./v2";
 export type { AlertProps } from "./v2";
@@ -100,7 +100,6 @@ export { ToggleGroup } from "./v2/core/form/ToggleGroup";
 export { default as ImageUploader } from "./v2/core/ImageUploader";
 export { default as AdminLayout, getLayout as getAdminLayout } from "./v2/core/layouts/AdminLayout";
 export { default as AppsLayout } from "./v2/core/layouts/AppsLayout";
-export { default as BookingLayout } from "./v2/core/layouts/BookingLayout";
 export { default as InstalledAppsLayout } from "./v2/core/layouts/InstalledAppsLayout";
 export { default as SettingsLayout, getLayout as getSettingsLayout } from "./v2/core/layouts/SettingsLayout";
 export { default as WizardLayout, getLayout as getWizardLayout } from "./v2/core/layouts/WizardLayout";
@@ -118,8 +117,3 @@ export type { ITimezone, ITimezoneOption } from "./v2/core/TimezoneSelect";
 export { Tooltip } from "./v2/core/Tooltip";
 export { default as VerticalDivider } from "./v2/core/VerticalDivider";
 export { default as WizardForm } from "./v2/core/WizardForm";
-export { default as SAMLLogin } from "./v2/modules/auth/SAMLLogin";
-export { default as DatePicker } from "./v2/modules/booker/DatePicker";
-export { EventTypeDescriptionLazy } from "./v2/modules/event-types";
-export { EventTypeDescription } from "./v2/modules/event-types/EventTypeDescription";
-export { default as Tips } from "./v2/modules/tips/Tips";
