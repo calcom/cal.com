@@ -82,6 +82,9 @@
     "@types/react-dom": "^18.0.6"
   },
   "lint-staged": {
+    "(apps|packages)/**/*.{ts,tsx}": [
+      "yarn tsc --pretty --noEmit"
+    ],
     "(apps|packages)/**/*.{js,ts,jsx,tsx}": [
       "prettier --write",
       "eslint --fix"
