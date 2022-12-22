@@ -7,6 +7,7 @@ import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
+import { GetRecordingsResponseSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, EventBusyDate } from "@calcom/types/Calendar";
 import { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
@@ -184,9 +185,9 @@ const getRecordingsOfCalVideoByRoomName = async (roomName: string) => {
       invalid: false,
     },
   ]);
-  const recordings = await videoAdapter?.getRecordings?.(roomName);
+  const res: GetRecordingsResponseSchema = await videoAdapter?.getRecordings?.(roomName);
 
-  return { recordings: recordings ?? [] };
+  return res;
 };
 
 export { getBusyVideoTimes, createMeeting, updateMeeting, deleteMeeting, getRecordingsOfCalVideoByRoomName };
