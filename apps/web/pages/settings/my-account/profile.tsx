@@ -182,11 +182,11 @@ const ProfileView = () => {
   const isPageLoading = isLoading || !user || isLoadingAvatar || !avatar;
 
   const defaultValues = {
-    username: user.username || "",
-    avatar: avatar.avatar || "",
-    name: user.name || "",
-    email: user.email || "",
-    bio: user.bio || "",
+    username: user?.username || "",
+    avatar: avatar?.avatar || "",
+    name: user?.name || "",
+    email: user?.email || "",
+    bio: user?.bio || "",
   };
 
   return (
