@@ -52,7 +52,7 @@ jobs:
       TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
     services:
       postgres:
-        image: postgres:12.1
+        image: postgres:13
         env:
           POSTGRES_USER: postgres
           POSTGRES_DB: calendso
