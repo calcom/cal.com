@@ -26,6 +26,7 @@ const CustomInputTypeForm: FC<Props> = (props) => {
     { value: EventTypeCustomInputType.TEXTLONG, label: t("multiline_text") },
     { value: EventTypeCustomInputType.NUMBER, label: t("number") },
     { value: EventTypeCustomInputType.BOOL, label: t("checkbox") },
+    { value: EventTypeCustomInputType.HIDDEN, label: t("hidden") },
   ];
   const { selectedCustomInput } = props;
   const defaultValues = selectedCustomInput || { type: inputOptions[0].value };
