@@ -59,8 +59,8 @@ export async function getBusyTimes(params: {
         },
       },
     })
-    .then((bookings) =>
-      bookings.map(({ startTime, endTime, title, id, eventType }) => ({
+    .then((bookings) => {
+      return bookings.map(({ startTime, endTime, title, id, eventType }) => ({
         start: dayjs(startTime)
           .subtract((eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0), "minute")
           .toDate(),
@@ -69,8 +69,8 @@ export async function getBusyTimes(params: {
           .toDate(),
         title,
         source: `eventType-${eventType?.id}-booking-${id}`,
-      }))
-    );
+      }));
+    });
   logger.silly(`Busy Time from Cal Bookings ${JSON.stringify(busyTimes)}`);
   const endPrismaBookingGet = performance.now();
   logger.debug(`prisma booking get took ${endPrismaBookingGet - startPrismaBookingGet}ms`);
