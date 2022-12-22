@@ -62,9 +62,9 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
           setEmailInvalidMessage("");
         } else {
           if (suggestion) {
-            setEmailInvalidMessage(`Did you mean ${suggestion}?`);
+            setEmailInvalidMessage(t("email_suggestion", { suggestion: suggestion }));
           } else {
-            setEmailInvalidMessage("Please double check your email address");
+            setEmailInvalidMessage(t("double_check_email_address"));
           }
         }
       })
