@@ -1,4 +1,5 @@
 import superjson from "superjson";
+import { ZodError } from "zod";
 
 import rateLimit from "@calcom/lib/rateLimit";
 

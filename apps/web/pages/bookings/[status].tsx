@@ -5,9 +5,11 @@ import { Fragment } from "react";
 import { z } from "zod";
 
 import { WipeMyCalActionButton } from "@calcom/app-store/wipemycalother/components";
+import BookingLayout from "@calcom/features/bookings/layout/BookingLayout";
+import { filterQuerySchema, useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { RouterInputs, RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Alert, BookingLayout, Button, EmptyScreen, Icon } from "@calcom/ui";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import { Alert, Button, EmptyScreen, Icon } from "@calcom/ui";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
@@ -16,7 +18,7 @@ import SkeletonLoader from "@components/booking/SkeletonLoader";
 
 import { ssgInit } from "@server/lib/ssg";
 
-type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["status"];
+type BookingListingStatus = z.infer<typeof filterQuerySchema>["status"];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];
 
 type RecurringInfo = {
@@ -41,12 +43,19 @@ const querySchema = z.object({
 });
 
 export default function Bookings() {
+  const { data: filterQuery } = useFilterQuery();
   const router = useRouter();
   const { status } = router.isReady ? querySchema.parse(router.query) : { status: "upcoming" as const };
   const { t } = useLocale();
 
   const query = trpc.viewer.bookings.get.useInfiniteQuery(
-    { status, limit: 10 },
+    {
+      limit: 10,
+      filters: {
+        ...filterQuery,
+        status: filterQuery.status ?? status,
+      },
+    },
     {
       // first render has status `undefined`
       enabled: router.isReady,
@@ -165,7 +174,7 @@ export default function Bookings() {
           </>
         )}
         {query.status === "success" && isEmpty && (
-          <div className="flex items-center justify-center pt-2 xl:mx-6 xl:pt-0">
+          <div className="flex items-center justify-center pt-2 xl:pt-0">
             <EmptyScreen
               Icon={Icon.FiCalendar}
               headline={t("no_status_bookings_yet", { status: t(status).toLowerCase() })}

@@ -2,9 +2,9 @@ import { CheckCircleIcon } from "@heroicons/react/outline";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import Link from "next/link";
 import { ComponentProps, forwardRef } from "react";
-import { Icon } from "react-feather";
 
 import { classNames } from "@calcom/lib";
+import { SVGComponent } from "@calcom/types/SVGComponent";
 
 export const Dropdown = DropdownMenuPrimitive.Root;
 
@@ -98,8 +98,8 @@ DropdownMenuRadioItem.displayName = "DropdownMenuRadioItem";
 type DropdownItemProps = {
   children: React.ReactNode;
   color?: "destructive";
-  StartIcon?: Icon;
-  EndIcon?: Icon;
+  StartIcon?: SVGComponent;
+  EndIcon?: SVGComponent;
   href?: string;
   disabled?: boolean;
 } & ButtonOrLinkProps;
