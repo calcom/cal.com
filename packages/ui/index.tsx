@@ -46,8 +46,6 @@ export { default as TimezoneChangeDialog } from "./TimezoneChangeDialog";
 // export { default as Tooltip } from "./Tooltip";
 export {
   Alert,
-  CheckedTeamSelect,
-  CustomInputItem,
   EmptyScreen,
   HorizontalTabs,
   SettingsToggle,
@@ -58,6 +56,7 @@ export {
   SkeletonText,
   Swatch,
   Switch,
+  Card,
   VerticalTabs,
 } from "./v2";
 export type { AlertProps } from "./v2";
@@ -118,8 +117,3 @@ export type { ITimezone, ITimezoneOption } from "./v2/core/TimezoneSelect";
 export { Tooltip } from "./v2/core/Tooltip";
 export { default as VerticalDivider } from "./v2/core/VerticalDivider";
 export { default as WizardForm } from "./v2/core/WizardForm";
-export { default as SAMLLogin } from "./v2/modules/auth/SAMLLogin";
-export { default as DatePicker } from "./v2/modules/booker/DatePicker";
-export { EventTypeDescriptionLazy } from "./v2/modules/event-types";
-export { EventTypeDescription } from "./v2/modules/event-types/EventTypeDescription";
-export { default as Tips } from "./v2/modules/tips/Tips";

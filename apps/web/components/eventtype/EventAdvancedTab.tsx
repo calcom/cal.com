@@ -6,13 +6,13 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
+import CustomInputItem from "@calcom/features/eventtypes/components/CustomInputItem";
 import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
   Checkbox,
-  CustomInputItem,
   Dialog,
   DialogClose,
   DialogContent,

@@ -5,13 +5,14 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { Avatar, Button, EventTypeDescription, Icon } from "@calcom/ui";
+import { Avatar, Button, Icon } from "@calcom/ui";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
