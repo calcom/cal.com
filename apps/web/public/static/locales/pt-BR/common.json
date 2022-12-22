@@ -1423,5 +1423,18 @@
   "app_is_enabled": "{{appName}} foi ativado",
   "app_is_disabled": "{{appName}} foi desativado",
   "keys_have_been_saved": "As chaves foram salvas",
-  "disable_app": "Desativar aplicativo"
+  "disable_app": "Desativar aplicativo",
+  "disable_app_description": "Desativar este aplicativo pode causar problemas para a interação dos usuários com o Cal",
+  "edit_keys": "Editar chaves",
+  "no_available_apps": "Não há aplicativos disponíveis",
+  "no_available_apps_description": "Verifique se há aplicativos na sua implantação, em \"packages/app-store\"",
+  "no_apps": "Não há aplicativos ativados nesta instância do Cal",
+  "apps_settings": "Configurações do app",
+  "fill_this_field": "Preencha este campo",
+  "options": "Opções",
+  "enter_option": "insira a opção {{index}}",
+  "add_an_option": "Adicionar uma opção",
+  "radio": "Rádio",
+  "event_type_duplicate_copy_text": "{{slug}}-cópia",
+  "set_as_default": "Definir como padrão"
 }
