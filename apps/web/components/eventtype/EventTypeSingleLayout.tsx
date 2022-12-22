@@ -33,7 +33,7 @@ import {
 
 import { ClientSuspense } from "@components/ClientSuspense";
 import { EmbedButton, EmbedDialog } from "@components/Embed";
-import {TbWebhook} from 'react-icons/tb';
+import { TbWebhook } from 'react-icons/tb';
 
 type Props = {
   children: React.ReactNode;

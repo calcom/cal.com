@@ -9,7 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Webhook } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Dialog, DialogContent, EmptyScreen, Icon, showToast } from "@calcom/ui";
-import {TbWebhook} from 'react-icons/tb';
+import { TbWebhook } from 'react-icons/tb';
 
 export const EventTeamWebhooksTab = ({
   eventType,
