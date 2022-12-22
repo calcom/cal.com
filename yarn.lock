@@ -3766,10 +3766,10 @@
     intl-messageformat "9.13.0"
     tslib "^2.1.0"
 
-"@formkit/auto-animate@^1.0.0-beta.1":
-  version "1.0.0-beta.1"
-  resolved "https://registry.yarnpkg.com/@formkit/auto-animate/-/auto-animate-1.0.0-beta.1.tgz#aec5fd2ea5e499ceb7eb117c7fd1217a7f100748"
-  integrity sha512-I3OWOBaPZKSJL4bsooXI8kC3q7bcgibD2oML0P/Lir6MnbvUe/0/7EH8br024juvM/Ulm9C9xGx9CJUQYrOWSA==
+"@formkit/auto-animate@^1.0.0-beta.5":
+  version "1.0.0-beta.5"
+  resolved "https://registry.yarnpkg.com/@formkit/auto-animate/-/auto-animate-1.0.0-beta.5.tgz#3fe4d520a82909cdcffa8854f26bc26ca4562045"
+  integrity sha512-WoSwyhAZPOe6RB/IgicOtCHtrWwEpfKIZ/H/nxpKfnZL9CB6hhhBGU5bCdMRw7YpAUF2CDlQa+WWh+gCqz5lDg==
 
 "@gar/promisify@^1.0.1":
   version "1.1.3"

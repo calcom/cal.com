@@ -81,9 +81,7 @@ export default function PaymentComponent(props: Props) {
         error: new Error(`Payment failed: ${payload.error.message}`),
       });
     } else {
-      const params: { [k: string]: any } = {
-        uid: props.bookingUid,
-      };
+      const params: { [k: string]: any } = {};
 
       if (props.location) {
         if (props.location.includes("integration")) {
@@ -94,7 +92,7 @@ export default function PaymentComponent(props: Props) {
       }
 
       const query = stringify(params);
-      const successUrl = `/success?${query}`;
+      const successUrl = `/booking/${props.bookingUid}?${query}`;
 
       await router.push(successUrl);
     }

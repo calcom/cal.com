@@ -42,6 +42,7 @@ export const apiHandlers = {
   whatsapp: import("./whatsapp/api"),
   whereby: import("./whereby/api"),
   wipemycalother: import("./wipemycalother/api"),
+  wordpress: import("./wordpress/api"),
   zapier: import("./zapier/api"),
   zoomvideo: import("./zoomvideo/api"),
 };

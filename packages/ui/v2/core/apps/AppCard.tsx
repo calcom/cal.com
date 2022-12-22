@@ -1,5 +1,6 @@
 import type { Credential } from "@prisma/client";
 import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { InstallAppButton } from "@calcom/app-store/components";
@@ -12,9 +13,10 @@ import { showToast } from "../notifications";
 interface AppCardProps {
   app: App;
   credentials?: Credential[];
+  searchText?: string;
 }
 
-export default function AppCard({ app, credentials }: AppCardProps) {
+export default function AppCard({ app, credentials, searchText }: AppCardProps) {
   const { t } = useLocale();
   const router = useRouter();
   const mutation = useAddAppMutation(null, {
@@ -31,6 +33,11 @@ export default function AppCard({ app, credentials }: AppCardProps) {
 
   const allowedMultipleInstalls = app.categories && app.categories.indexOf("calendar") > -1;
   const appAdded = (credentials && credentials.length) || 0;
+  const [searchTextIndex, setSearchTextIndex] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    setSearchTextIndex(searchText ? app.name.toLowerCase().indexOf(searchText.toLowerCase()) : undefined);
+  }, [app.name, searchText]);
 
   return (
     <div className="relative flex h-64 flex-col rounded-md border border-gray-300 p-5">
@@ -38,7 +45,19 @@ export default function AppCard({ app, credentials }: AppCardProps) {
         <img src={app.logo} alt={app.name + " Logo"} className="mb-4 h-12 w-12 rounded-sm" />
       </div>
       <div className="flex items-center">
-        <h3 className="font-medium">{app.name}</h3>
+        <h3 className="font-medium">
+          {searchTextIndex != undefined && searchText ? (
+            <>
+              {app.name.substring(0, searchTextIndex)}
+              <span className="bg-yellow-300">
+                {app.name.substring(searchTextIndex, searchTextIndex + searchText.length)}
+              </span>
+              {app.name.substring(searchTextIndex + searchText.length)}
+            </>
+          ) : (
+            app.name
+          )}
+        </h3>
       </div>
       {/* TODO: add reviews <div className="flex text-sm text-gray-800">
           <span>{props.rating} stars</span> <StarIcon className="ml-1 mt-0.5 h-4 w-4 text-yellow-600" />
