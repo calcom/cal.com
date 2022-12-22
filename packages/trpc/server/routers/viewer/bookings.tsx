@@ -647,14 +647,10 @@ export const bookingsRouter = router({
 
     const tOrganizer = await getTranslation(user.locale ?? "en", "common");
 
-    const booking = await prisma.booking.findFirst({
+    const booking = await prisma.booking.findUniqueOrThrow({
       where: {
         id: bookingId,
       },
-      rejectOnNotFound() {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
-      },
-      // should trpc handle this error  ?
       select: {
         title: true,
         description: true,
