@@ -179,7 +179,7 @@ const ProfileView = () => {
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
-  if (isLoading || !user || isLoadingAvatar || !avatar) return <SkeletonLoader />;
+  const isPageLoading = isLoading || !user || isLoadingAvatar || !avatar;
 
   const defaultValues = {
     username: user.username || "",
