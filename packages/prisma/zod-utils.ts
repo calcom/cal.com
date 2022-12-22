@@ -220,6 +220,12 @@ export const teamMetadataSchema = z
   .partial()
   .nullable();
 
+export const bookingMetadataSchema = z
+  .object({
+    videoCallUrl: z.string().optional(),
+  })
+  .nullable();
+
 export const customInputOptionSchema = z.array(
   z.object({
     label: z.string(),

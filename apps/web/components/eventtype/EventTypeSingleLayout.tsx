@@ -2,7 +2,6 @@ import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
 import { useMemo, useState } from "react";
-import { Loader } from "react-feather";
 import { UseFormReturn } from "react-hook-form";
 
 import { classNames } from "@calcom/lib";
@@ -150,13 +149,20 @@ function EventTypeSingleLayout({
       enabledWorkflowsNumber,
     });
     // If there is a team put this navigation item within the tabs
-    if (team)
+    if (team) {
       navigation.splice(2, 0, {
         name: "scheduling_type",
         href: `/event-types/${eventType.id}?tabName=team`,
         icon: Icon.FiUsers,
         info: eventType.schedulingType === "COLLECTIVE" ? "collective" : "round_robin",
       });
+      navigation.push({
+        name: "webhooks",
+        href: `/event-types/${eventType.id}?tabName=webhooks`,
+        icon: Icon.FiLink,
+        info: `${eventType.webhooks.filter((webhook) => webhook.active).length} ${t("active")}`,
+      });
+    }
     return navigation;
   }, [t, eventType, installedAppsNumber, enabledAppsNumber, enabledWorkflowsNumber, team]);
 
@@ -294,7 +300,7 @@ function EventTypeSingleLayout({
           </Button>
         </div>
       }>
-      <ClientSuspense fallback={<Loader />}>
+      <ClientSuspense fallback={<Icon.FiLoader />}>
         <div className="-mt-2 flex flex-col xl:flex-row xl:space-x-8">
           <div className="hidden xl:block">
             <VerticalTabs

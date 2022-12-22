@@ -51,7 +51,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
   const watchDayRange = watch(name);
 
   return (
-    <div className="mb-1 flex w-full flex-col py-1 sm:flex-row">
+    <div className="mb-1 flex w-full flex-col px-5 py-1 sm:flex-row sm:px-0">
       {/* Label & switch container */}
       <div className="flex h-11 items-center justify-between sm:w-32">
         <div>
@@ -83,7 +83,6 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
           <SkeletonText className="mt-2.5 ml-1 h-6 w-48" />
         )}
       </>
-      <div className="my-2 h-[1px] w-full bg-gray-200 sm:hidden" />
     </div>
   );
 };
@@ -140,7 +139,7 @@ const Schedule = <
   const { i18n } = useLocale();
 
   return (
-    <>
+    <div className="divide-y sm:divide-none">
       {/* First iterate for each day */}
       {weekdayNames(i18n.language, weekStart, "long").map((weekday, num) => {
         const weekdayIndex = (num + weekStart) % 7;
@@ -155,7 +154,7 @@ const Schedule = <
           />
         );
       })}
-    </>
+    </div>
   );
 };
 
@@ -301,18 +300,26 @@ const useOptions = () => {
 
   const options = useMemo(() => {
     const end = dayjs().utc().endOf("day");
-    let t: Dayjs = dayjs().utc().startOf("day");
-
     const options: IOption[] = [];
-    while (t.isBefore(end)) {
+    for (
+      let t = dayjs().utc().startOf("day");
+      t.isBefore(end);
+      t = t.add(INCREMENT + (!t.add(INCREMENT).isSame(t, "day") ? -1 : 0), "minutes")
+    ) {
       options.push({
         value: t.toDate().valueOf(),
         label: dayjs(t)
           .utc()
           .format(timeFormat === 12 ? "h:mma" : "HH:mm"),
       });
-      t = t.add(INCREMENT, "minutes");
     }
+    // allow 23:59
+    options.push({
+      value: end.toDate().valueOf(),
+      label: dayjs(end)
+        .utc()
+        .format(timeFormat === 12 ? "h:mma" : "HH:mm"),
+    });
     return options;
   }, [timeFormat]);
 
