@@ -17,9 +17,6 @@ const requestQuery = z.object({
   recordingId: z.string(),
 });
 
-const checkIfEmptyObject = (obj: z.infer<typeof getAccessLinkSchema>) =>
-  Object.keys(obj).length === 0 && obj.constructor === Object;
-
 async function handler(
   req: NextApiRequest,
   res: NextApiResponse<z.infer<typeof getAccessLinkSchema> | void>
@@ -34,12 +31,11 @@ async function handler(
   try {
     const response = await fetcher(`/recordings/${recordingId}/access-link`).then(getAccessLinkSchema.parse);
 
-    // !response?.download_link was giving type error
-    if (checkIfEmptyObject(response)) {
-      return res.status(400);
+    if ("download_link" in response && response.download_link) {
+      return res.status(200).json(response);
     }
 
-    return res.status(200).json(response);
+    return res.status(400);
   } catch (err) {
     res.status(500);
   }

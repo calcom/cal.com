@@ -110,7 +110,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
           {!showUpgradeBanner && (
             <>
               {isLoading && <RecordingListSkeleton />}
-              {recordings?.data?.length > 0 && (
+              {recordings && "data" in recordings && recordings?.data?.length > 0 && (
                 <div className="flex flex-col gap-3">
                   {recordings.data.map((recording: RecordingItemSchema, index: number) => {
                     return (
@@ -147,7 +147,11 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
                   })}
                 </div>
               )}
-              {!isLoading && !recordings && <h1 className="font-semibold">No Recordings Found</h1>}
+              {!isLoading &&
+                (!recordings ||
+                  (recordings && "total_count" in recordings && recordings?.total_count === 0)) && (
+                  <h1 className="font-semibold">No Recordings Found</h1>
+                )}
             </>
           )}
         </LicenseRequired>
