@@ -3,9 +3,10 @@ import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
 import { useMemo } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 
+import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTeamSelect";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Avatar, Button, CheckedTeamSelect, Icon, Label, Select } from "@calcom/ui";
+import { Avatar, Button, Icon, Label, Select } from "@calcom/ui";
 
 interface IMemberToValue {
   id: number | null;
