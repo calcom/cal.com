@@ -2,7 +2,6 @@ import { UserPermissionRole } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import { CALENDSO_ENCRYPTION_KEY } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
@@ -28,7 +27,7 @@ const decryptedSchema = z.object({
 async function handler(req: NextApiRequest, res: NextApiResponse<Response>) {
   const { action, token, reason } = querySchema.parse(req.query);
   const { bookingUid, userId } = decryptedSchema.parse(
-    JSON.parse(symmetricDecrypt(token, CALENDSO_ENCRYPTION_KEY))
+    JSON.parse(symmetricDecrypt(token, process.env.CALENDSO_ENCRYPTION_KEY || ""))
   );
 
   /** We shape the session as required by tRPC router */
