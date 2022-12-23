@@ -32,7 +32,7 @@ import {
   updateWebUser as syncServicesUpdateWebUser,
 } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, userMetadata, GetRecordingsResponseSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -1182,7 +1182,11 @@ const loggedInViewerRouter = router({
                 duration: recording.duration,
               };
             });
-            return { data: recordings, total_count: recordings.length };
+            const finalRes: GetRecordingsResponseSchema = {
+              data: recordings,
+              total_count: recordings.length,
+            };
+            return finalRes;
           }
         }
         return res;

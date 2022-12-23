@@ -76,14 +76,11 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
         headers: {
           "Content-Type": "application/json",
         },
-      })
-        .then((res) => res.json())
-        .catch((err: any) => {
-          throw new Error(err);
-        });
+      });
+      const respBody = await res.json();
 
-      if (res?.download_link) {
-        window.location.href = res.download_link;
+      if (respBody?.download_link) {
+        window.location.href = respBody.download_link;
       }
     } catch (err) {
       console.error(err);
