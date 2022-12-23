@@ -32,7 +32,7 @@ import {
   updateWebUser as syncServicesUpdateWebUser,
 } from "@calcom/lib/sync/SyncServiceManager";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import { EventTypeMetaDataSchema, userMetadata, GetRecordingsResponseSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -1171,8 +1171,8 @@ const loggedInViewerRouter = router({
         const res = await getRecordingsOfCalVideoByRoomName(roomName);
 
         if (shouldHideRecordingsData) {
-          if (!!res && "data" in res && res.data.length > 0) {
-            const recordings = res.data.map((recording) => {
+          if (res && "data" in res && res.data.length > 0) {
+            res.data = res.data.map((recording) => {
               return {
                 id: "",
                 room_name: "",
@@ -1180,13 +1180,9 @@ const loggedInViewerRouter = router({
                 status: recording.status,
                 max_participants: recording.max_participants,
                 duration: recording.duration,
+                share_token: recording.share_token,
               };
             });
-            const finalRes: GetRecordingsResponseSchema = {
-              data: recordings,
-              total_count: recordings.length,
-            };
-            return finalRes;
           }
         }
         return res;
