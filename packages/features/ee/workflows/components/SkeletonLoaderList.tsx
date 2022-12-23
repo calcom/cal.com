@@ -2,7 +2,7 @@ import { Icon, SkeletonText } from "@calcom/ui";
 
 function SkeletonLoader() {
   return (
-    <ul className="mt-24 animate-pulse divide-y divide-neutral-200 rounded-md border border-gray-200 bg-white sm:overflow-hidden">
+    <ul className="animate-pulse divide-y divide-neutral-200 rounded-md border  border-gray-200 bg-white sm:overflow-hidden">
       <SkeletonItem />
       <SkeletonItem />
       <SkeletonItem />
