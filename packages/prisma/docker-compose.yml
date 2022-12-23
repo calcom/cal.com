@@ -19,7 +19,7 @@ services:
       timeout: 5s
       retries: 5
   postgres_is_ready:
-    image: postgres:13
+    image: postgres
     depends_on:
       postgres:
         condition: service_healthy
