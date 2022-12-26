@@ -167,7 +167,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
             <Button
               EndIcon={Icon.FiChevronDown}
               size="fab"
-              className="radix-state-open:bg-brand-500 radix-state-open:ring-2 radix-state-open:ring-brand-500 ring-offset-2">
+              className="radix-state-open:!bg-brand-500 radix-state-open:ring-2 radix-state-open:ring-brand-500 ring-offset-2 focus:border-none">
               {t("new")}
             </Button>
           </DropdownMenuTrigger>
