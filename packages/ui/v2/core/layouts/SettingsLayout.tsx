@@ -10,6 +10,7 @@ import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { Skeleton } from "@calcom/ui";
 
 import { Badge, Button, ErrorBoundary, Icon } from "../../..";
 import { useMeta } from "../Meta";
@@ -93,6 +94,16 @@ const useTabs = () => {
   const session = useSession();
 
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
+
+  tabs.map((tab) => {
+    if (tab.name === "my_account") {
+      tab.name = session.data?.user?.name || "my_account";
+      tab.icon = undefined;
+      tab.avatar = WEBAPP_URL + "/" + session.data?.user?.username + "/avatar.png";
+    }
+    return tab;
+  });
+
   // check if name is in adminRequiredKeys
   return tabs.filter((tab) => {
     if (isAdmin) return true;
@@ -100,7 +111,31 @@ const useTabs = () => {
   });
 };
 
-const SettingsSidebarContainer = ({ className = "" }) => {
+const BackButtonInSidebar = ({ name }: { name: string }) => {
+  return (
+    <Link href="/.">
+      <a
+        target="_self"
+        className="group my-6 flex h-6 max-h-6 w-64 flex-row items-center rounded-md py-2 px-3 text-sm font-medium leading-4 text-black hover:bg-gray-100 group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
+        data-testid={`vertical-tab-${name}`}>
+        <Icon.FiArrowLeft className="mr-[10px] h-4 w-4 stroke-[2px] md:mt-0" />
+        <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate">
+          {name}
+        </Skeleton>
+      </a>
+    </Link>
+  );
+};
+
+interface SettingsSidebarContainerProps {
+  className?: string;
+  navigationIsOpenedOnMobile?: boolean;
+}
+
+const SettingsSidebarContainer = ({
+  className = "",
+  navigationIsOpenedOnMobile,
+}: SettingsSidebarContainerProps) => {
   const { t } = useLocale();
   const router = useRouter();
   const tabsWithPermissions = useTabs();
@@ -127,16 +162,16 @@ const SettingsSidebarContainer = ({ className = "" }) => {
 
   return (
     <nav
-      className={`no-scrollbar flex w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll py-3 px-2 ${className}`}
+      className={classNames(
+        "no-scrollbar fixed left-0 top-0 z-10 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll bg-gray-50 px-2 pb-3 transition-transform lg:sticky lg:flex",
+        className,
+        navigationIsOpenedOnMobile
+          ? "translate-x-0 opacity-100"
+          : "-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100"
+      )}
       aria-label="Tabs">
       <>
-        <div className="desktop-only pt-4" />
-        <VerticalTabItem
-          name={t("back")}
-          href="/."
-          icon={Icon.FiArrowLeft}
-          textClassNames="text-md font-medium leading-none text-black"
-        />
+        <BackButtonInSidebar name={t("back")} />
         {tabsWithPermissions.map((tab) => {
           return tab.name !== "teams" ? (
             <React.Fragment key={tab.href}>
@@ -144,6 +179,9 @@ const SettingsSidebarContainer = ({ className = "" }) => {
                 <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 text-sm font-medium leading-none text-gray-600 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
                   {tab && tab.icon && (
                     <tab.icon className="mr-[12px] h-[16px] w-[16px] stroke-[2px] md:mt-0" />
+                  )}
+                  {!tab.icon && tab?.avatar && (
+                    <img className="mr-3 h-4 w-4 rounded-full" src={tab?.avatar} alt="User Avatar" />
                   )}
                   <p className="text-sm font-medium leading-5">{t(tab.name)}</p>
                 </div>
@@ -295,9 +333,12 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 
   return (
     <>
-      <nav className="fixed z-20 flex w-full items-center justify-between border-b border-gray-100 bg-gray-50 p-4 sm:relative lg:hidden">
+      <nav className="sticky top-0 z-20 flex w-full items-center justify-between border-b border-gray-100 bg-gray-50 p-4 sm:relative lg:hidden">
         <div className="flex items-center space-x-3 ">
-          <Button StartIcon={Icon.FiMenu} color="minimal" size="icon" onClick={props.onSideContainerOpen} />
+          <Button StartIcon={Icon.FiMenu} color="minimal" size="icon" onClick={props.onSideContainerOpen}>
+            <span className="sr-only">{t("show_navigation")}</span>
+          </Button>
+
           <a href="/" className="flex items-center space-x-2 rounded-md px-3 py-1 hover:bg-gray-200">
             <Icon.FiArrowLeft className="text-gray-700" />
             <p className="font-semibold text-black">{t("settings")}</p>
@@ -314,6 +355,7 @@ export default function SettingsLayout({
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   const router = useRouter();
   const state = useState(false);
+  const { t } = useLocale();
   const [sideContainerOpen, setSideContainerOpen] = state;
 
   useEffect(() => {
@@ -340,18 +382,21 @@ export default function SettingsLayout({
       withoutSeo={true}
       flexChildrenContainer
       {...rest}
-      SidebarContainer={<SettingsSidebarContainer className="hidden lg:flex" />}
+      SidebarContainer={
+        <>
+          {/* Mobile backdrop */}
+          {sideContainerOpen && (
+            <button
+              onClick={() => setSideContainerOpen(false)}
+              className="fixed top-0 left-0 z-10 h-full w-full bg-black/50">
+              <span className="sr-only">{t("hide_navigation")}</span>
+            </button>
+          )}
+          <SettingsSidebarContainer navigationIsOpenedOnMobile={sideContainerOpen} />
+        </>
+      }
       drawerState={state}
       MobileNavigationContainer={null}
-      SettingsSidebarContainer={
-        <div
-          className={classNames(
-            "fixed inset-y-0 z-50 m-0 h-screen w-56 transform overflow-x-hidden overflow-y-scroll border-gray-100 bg-gray-50 transition duration-200 ease-in-out",
-            sideContainerOpen ? "translate-x-0" : "-translate-x-full"
-          )}>
-          <SettingsSidebarContainer />
-        </div>
-      }
       TopNavContainer={
         <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
       }>
@@ -371,7 +416,7 @@ function ShellHeader() {
   const { meta } = useMeta();
   const { t, isLocaleReady } = useLocale();
   return (
-    <header className="mx-auto block justify-between pt-12 sm:flex sm:pt-8">
+    <header className="mx-auto block justify-between pt-8 sm:flex">
       <div className="mb-8 flex w-full items-center border-b border-gray-200 pb-8">
         {meta.backButton && (
           <a href="javascript:history.back()">

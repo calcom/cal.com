@@ -5,13 +5,14 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { Avatar, Button, EventTypeDescription, Icon } from "@calcom/ui";
+import { Avatar, Button, Icon } from "@calcom/ui";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -37,12 +38,12 @@ function TeamPage({ team }: TeamPageProps) {
   }, [telemetry, router.asPath]);
 
   const EventTypes = () => (
-    <ul className="">
+    <ul className="rounded-md border border-neutral-200 dark:border-neutral-700">
       {team.eventTypes.map((type, index) => (
         <li
           key={index}
           className={classNames(
-            "dark:bg-darkgray-100 dark:border-darkgray-200 group relative rounded-sm border border-neutral-200 bg-white hover:bg-gray-50 dark:hover:border-neutral-600",
+            "dark:bg-darkgray-100 group relative border-b border-neutral-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50 dark:border-neutral-700 dark:hover:border-neutral-600",
             !isEmbed && "bg-white"
           )}>
           <Link href={`/team/${team.slug}/${type.slug}`}>
@@ -96,9 +97,7 @@ function TeamPage({ team }: TeamPageProps) {
         {(showMembers.isOn || !team.eventTypes.length) && <Team team={team} />}
         {!showMembers.isOn && team.eventTypes.length > 0 && (
           <div className="mx-auto max-w-3xl ">
-            <div className="dark:border-darkgray-300 rounded-md border">
-              <EventTypes />
-            </div>
+            <EventTypes />
             <div className="relative mt-12">
               <div className="absolute inset-0 flex items-center" aria-hidden="true">
                 <div className="dark:border-darkgray-300 w-full border-t border-gray-200" />

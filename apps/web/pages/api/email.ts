@@ -13,10 +13,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     title: "30min between Pro Example and pro@example.com",
     description: null,
     additionalNotes: "asdasdas",
-    customInputs: {
-      "Custom input 01": "sadasdasdsadasd",
-      "Custom input 02": "asdasdasd",
-    },
     startTime: "2022-06-03T09:00:00-06:00",
     endTime: "2022-06-03T09:30:00-06:00",
     organizer: {
@@ -36,10 +32,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     location: "Zoom video",
     destinationCalendar: null,
     hideCalendarNotes: false,
-    uid: "bwPWLpjYrx4rZf6MCZdKgE",
+    uid: "xxyPr4cg2xx4XoS2KeMEQy",
     metadata: {},
-    cancellationReason: "It got late",
-    paymentInfo: { id: "pi_12312", link: "https://cal.com", reason: "no reason" },
     recurringEvent: null,
   };
 
@@ -48,12 +42,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   res.setHeader("Content-Type", "text/html");
   res.setHeader("Cache-Control", "no-cache, no-store, private, must-revalidate");
   res.write(
-    renderEmail("TeamInviteEmail", {
-      language: t,
-      from: "From",
-      to: "To",
-      teamName: "Team name",
-      joinLink: "Join link",
+    renderEmail("OrganizerRequestEmail", {
+      attendee: evt.attendees[0],
+      calEvent: evt,
     })
   );
   res.end();

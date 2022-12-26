@@ -17,6 +17,7 @@ import {
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import DatePicker from "@calcom/features/calendars/DatePicker";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
@@ -27,7 +28,7 @@ import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
 import { trpc } from "@calcom/trpc/react";
-import { Icon, DatePicker } from "@calcom/ui";
+import { Icon } from "@calcom/ui";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
@@ -151,7 +152,10 @@ const SlotPicker = ({
     eventTypeId: eventType.id,
     eventTypeSlug: eventType.slug,
     usernameList: users,
-    startTime: browsingDate?.startOf("month"),
+    startTime:
+      browsingDate === undefined || browsingDate.get("month") === dayjs.tz(undefined, timeZone).get("month")
+        ? dayjs.tz(undefined, timeZone).subtract(2, "days").startOf("day")
+        : browsingDate?.startOf("month"),
     endTime: browsingDate?.endOf("month"),
     timeZone,
     duration,

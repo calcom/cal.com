@@ -15,6 +15,7 @@ export default function AppCard({
   switchChecked,
   children,
   setAppData,
+  returnTo,
 }: {
   app: RouterOutputs["viewer"]["apps"][number];
   description?: React.ReactNode;
@@ -22,6 +23,7 @@ export default function AppCard({
   switchOnClick?: (e: boolean) => void;
   children?: React.ReactNode;
   setAppData: SetAppDataGeneric<typeof eventTypeAppCardZod>;
+  returnTo?: string;
 }) {
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
 
@@ -55,7 +57,11 @@ export default function AppCard({
               />
             </div>
           ) : (
-            <OmniInstallAppButton className="ml-auto flex items-center" appId={app.slug} />
+            <OmniInstallAppButton
+              className="ml-auto flex items-center"
+              appId={app.slug}
+              returnTo={returnTo}
+            />
           )}
         </div>
       </div>

@@ -168,6 +168,7 @@ const querySchema = z.object({
   changes: stringToBoolean,
   reschedule: stringToBoolean,
   isSuccessBookingPage: z.string().optional(),
+  formerTime: z.string().optional(),
 });
 
 export default function Success(props: SuccessProps) {
@@ -179,6 +180,7 @@ export default function Success(props: SuccessProps) {
     isSuccessBookingPage,
     cancel: isCancellationMode,
     changes,
+    formerTime,
   } = querySchema.parse(router.query);
 
   if ((isCancellationMode || changes) && typeof window !== "undefined") {
@@ -425,9 +427,11 @@ export default function Success(props: SuccessProps) {
                     <p className="text-neutral-600 dark:text-gray-300">{getTitle()}</p>
                   </div>
                   <div className="border-bookinglightest text-bookingdark dark:border-darkgray-300 mt-8 grid grid-cols-3 border-t pt-8 text-left dark:text-gray-300">
-                    {isCancelled && cancellationReason && (
+                    {(isCancelled || reschedule) && cancellationReason && (
                       <>
-                        <div className="font-medium">{t("reason")}</div>
+                        <div className="font-medium">
+                          {isCancelled ? t("reason") : t("reschedule_reason_success_page")}
+                        </div>
                         <div className="col-span-2 mb-6 last:mb-0">{cancellationReason}</div>
                       </>
                     )}
@@ -435,6 +439,19 @@ export default function Success(props: SuccessProps) {
                     <div className="col-span-2 mb-6 last:mb-0">{eventName}</div>
                     <div className="font-medium">{t("when")}</div>
                     <div className="col-span-2 mb-6 last:mb-0">
+                      {reschedule && !!formerTime && (
+                        <p className="line-through">
+                          <RecurringBookings
+                            eventType={props.eventType}
+                            duration={calculatedDuration}
+                            recurringBookings={props.recurringBookings}
+                            allRemainingBookings={allRemainingBookings}
+                            date={dayjs(formerTime)}
+                            is24h={is24h}
+                            isCancelled={isCancelled}
+                          />
+                        </p>
+                      )}
                       <RecurringBookings
                         eventType={props.eventType}
                         duration={calculatedDuration}
@@ -790,10 +807,10 @@ export function RecurringBookings({
         {eventType.recurringEvent?.count &&
           recurringBookingsSorted.slice(0, 4).map((dateStr: string, idx: number) => (
             <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-              {dayjs.tz(dateStr, timeZone()).format("MMMM DD, YYYY")}
+              {dayjs.tz(dateStr, timeZone()).format("dddd, DD MMMM YYYY")}
               <br />
-              {formatTime(dateStr, is24h ? 24 : 12, timeZone())} -{" "}
-              {formatTime(dayjs(dateStr).add(duration, "m"), is24h ? 24 : 12, timeZone())}{" "}
+              {formatTime(dateStr, is24h ? 24 : 12, timeZone().toLowerCase())} -{" "}
+              {formatTime(dayjs(dateStr).add(duration, "m"), is24h ? 24 : 12, timeZone().toLowerCase())}{" "}
               <span className="text-bookinglight">({timeZone()})</span>
             </div>
           ))}
@@ -808,10 +825,10 @@ export function RecurringBookings({
               {eventType.recurringEvent?.count &&
                 recurringBookingsSorted.slice(4).map((dateStr: string, idx: number) => (
                   <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-                    {dayjs.tz(dateStr, timeZone()).format("MMMM DD, YYYY")}
+                    {dayjs.tz(dateStr, timeZone()).format("dddd, DD MMMM YYYY")}
                     <br />
-                    {formatTime(dateStr, is24h ? 24 : 12, timeZone())} -{" "}
-                    {formatTime(dayjs(dateStr).add(duration, "m"), is24h ? 24 : 12, timeZone())}{" "}
+                    {formatTime(dateStr, is24h ? 24 : 12, timeZone().toLowerCase())} -{" "}
+                    {formatTime(dayjs(dateStr).add(duration, "m"), is24h ? 24 : 12, timeZone().toLowerCase())}{" "}
                     <span className="text-bookinglight">({timeZone()})</span>
                   </div>
                 ))}
@@ -824,10 +841,10 @@ export function RecurringBookings({
 
   return (
     <div className={classNames(isCancelled ? "line-through" : "")}>
-      {dayjs.tz(date, timeZone()).format("MMMM DD, YYYY")}
+      {dayjs.tz(date, timeZone()).format("dddd, DD MMMM YYYY")}
       <br />
-      {formatTime(date, is24h ? 24 : 12, timeZone())} -{" "}
-      {formatTime(dayjs(date).add(duration, "m"), is24h ? 24 : 12, timeZone())}{" "}
+      {formatTime(date, is24h ? 24 : 12, timeZone().toLowerCase())} -{" "}
+      {formatTime(dayjs(date).add(duration, "m"), is24h ? 24 : 12, timeZone().toLowerCase())}{" "}
       <span className="text-bookinglight">({timeZone()})</span>
     </div>
   );

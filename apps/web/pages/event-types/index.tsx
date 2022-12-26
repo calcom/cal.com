@@ -4,7 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { Fragment, useEffect, useState } from "react";
 
-import CreateEventTypeButton from "@calcom/features/eventtypes/components/CreateEventTypeButton";
+import {
+  CreateEventTypeButton,
+  EventTypeDescriptionLazy as EventTypeDescription,
+} from "@calcom/features/eventtypes/components";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc, TRPCClientError } from "@calcom/trpc/react";
@@ -22,7 +25,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   EmptyScreen,
-  EventTypeDescription,
   Icon,
   Shell,
   showToast,
@@ -256,7 +258,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
           const calLink = `${CAL_URL}/${embedLink}`;
           return (
             <li key={type.id}>
-              <div className="flex w-full items-center justify-between hover:bg-neutral-50">
+              <div className="flex w-full items-center justify-between hover:bg-gray-50">
                 <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                   {!(firstItem && firstItem.id === type.id) && (
                     <button
