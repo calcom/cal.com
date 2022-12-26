@@ -1390,7 +1390,7 @@
   "attendee_email_info": "البريد الإلكتروني للشخص الحجز",
   "kbar_search_placeholder": "اكتب أمرًا أو بحثًا...",
   "invalid_credential": "لا! يبدو أن الصلاحية انتهت أو تم إلغاؤها. يرجى إعادة التثبيت مرة أخرى.",
-  "choose_common_schedule_team_event": "اختر جدولاً زمنياً مشتركاً",
+  "choose_common_schedule_team_event": "اختر جدولًا زمنيًا مشتركًا",
   "choose_common_schedule_team_event_description": "قم بتمكين هذا الخيار إذا كنت ترغب في استخدام جدول زمني مشترك بين المضيفين. عند تعطيل هذا الخيار، سيتم حجز كل مضيف على أساس جدوله الافتراضي.",
   "reason": "السبب",
   "sender_id": "معرّف المرسل",
