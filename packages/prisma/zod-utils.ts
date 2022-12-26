@@ -241,6 +241,7 @@ export const customInputSchema = z.object({
   options: customInputOptionSchema.optional().nullable(),
   required: z.boolean(),
   placeholder: z.string(),
+  hasToBeCreated: z.boolean().optional(),
 });
 
 export type CustomInputSchema = z.infer<typeof customInputSchema>;
