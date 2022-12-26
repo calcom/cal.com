@@ -116,10 +116,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
     <Link href="/.">
       <a
         target="_self"
-        className={classNames(
-          "my-6 py-2 text-sm font-medium leading-none text-black",
-          "group flex h-6 max-h-6 w-64 flex-row items-center rounded-md px-3 leading-4 hover:bg-gray-100 group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
-        )}
+        className="group my-6 flex h-6 max-h-6 w-64 flex-row items-center rounded-md py-2 px-3 text-sm font-medium leading-4 text-black hover:bg-gray-100 group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
         data-testid={`vertical-tab-${name}`}>
         <Icon.FiArrowLeft className="mr-[10px] h-4 w-4 stroke-[2px] md:mt-0" />
         <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate">
