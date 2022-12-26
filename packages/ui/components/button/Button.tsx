@@ -46,8 +46,9 @@ const buttonClasses = cva(
         base: "h-9 px-4 py-2.5 ",
         lg: "h-[36px] px-4 py-2.5 ",
         icon: "flex justify-center min-h-[36px] min-w-[36px] ",
-        // fab = floating action button, used for the main action in a page. it uses the same primary classNames for desktop size
-        fab: "h-14 w-14 sm:h-9 sm:w-auto rounded-full justify-center sm:rounded-md sm:px-4 sm:py-2.5 shadow-lg sm:shadow-none radix-state-open:rotate-45 sm:radix-state-open:rotate-0 transition-transform radix-state-open:shadown-none",
+        // fab = floating action button, used for the main action in a page.
+        // it uses the same primary classNames for desktop size
+        fab: "h-14 w-14 sm:h-9 sm:w-auto rounded-full justify-center sm:rounded-md sm:px-4 sm:py-2.5 radix-state-open:rotate-45 sm:radix-state-open:rotate-0 transition-transform radix-state-open:shadown-none radix-state-open:ring-0 !shadow-none",
       },
       loading: {
         true: "cursor-wait",

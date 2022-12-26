@@ -171,7 +171,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
               {t("new")}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent sideOffset={14} align="end">
             <DropdownMenuLabel>
               <div className="max-w-48">{t("new_event_subtitle")}</div>
             </DropdownMenuLabel>
