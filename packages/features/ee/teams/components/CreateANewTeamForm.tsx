@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
@@ -19,7 +20,9 @@ export const CreateANewTeamForm = () => {
 
   const returnToParsed = querySchema.safeParse(router.query);
 
-  const returnToParam = returnToParsed.success ? returnToParsed.data.returnTo : "/settings/teams";
+  const returnToParam =
+    (returnToParsed.success ? getSafeRedirectUrl(returnToParsed.data.returnTo) : "/settings/teams") ||
+    "/settings/teams";
 
   const newTeamFormMethods = useForm<NewTeamFormValues>();
 
