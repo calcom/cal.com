@@ -1394,7 +1394,7 @@
   "reason": "Powód",
   "sender_id": "Identyfikator nadawcy",
   "sender_id_error_message": "Dozwolone są tylko litery, cyfry i spacje (maksymalnie 11 znaków)",
-  "test_routing_form": "Przetestuj formularz przekierowania",
+  "test_routing_form": "Testowanie formularza przekierowania",
   "test_preview": "Przetestuj podgląd",
   "route_to": "Przekieruj do",
   "test_preview_description": "Przetestuj swój formularz przekierowania bez przesyłania jakichkolwiek danych",
