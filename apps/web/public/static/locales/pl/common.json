@@ -1115,7 +1115,6 @@
   "error_updating_settings": "Błąd podczas aktualizacji ustawień",
   "personal_cal_url": "Mój osobisty adres URL aplikacji {{appName}}",
   "bio_hint": "Kilka zdań o Tobie. Pojawią się one na Twojej osobistej stronie URL.",
-  "timeformat_profile_hint": "To jest ustawienie wewnętrzne, które nie będzie miało wpływu na to, jak godziny będą wyświetlane Tobie lub komuś, kto dokonuje u Ciebie rezerwacji, na publicznych stronach rezerwacji.",
   "delete_account_modal_title": "Usuń konto",
   "confirm_delete_account_modal": "Czy na pewno chcesz usunąć swoje konto {{appName}}?",
   "delete_my_account": "Usuń konto",

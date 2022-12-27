@@ -117,7 +117,7 @@ const SettingsSidebarContainer = ({ className = "" }) => {
 
   return (
     <nav
-      className={`no-scrollbar flex w-56 flex-col space-y-1 overflow-scroll py-3 px-2 ${className}`}
+      className={`no-scrollbar flex w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll py-3 px-2 ${className}`}
       aria-label="Tabs">
       <>
         <div className="desktop-only pt-4" />

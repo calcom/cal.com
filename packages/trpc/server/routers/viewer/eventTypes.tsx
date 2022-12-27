@@ -11,7 +11,12 @@ import { validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
 import { _DestinationCalendarModel, _EventTypeCustomInputModel, _EventTypeModel } from "@calcom/prisma/zod";
-import { EventTypeMetaDataSchema, stringOrNumber } from "@calcom/prisma/zod-utils";
+import {
+  customInputSchema,
+  EventTypeMetaDataSchema,
+  stringOrNumber,
+  CustomInputSchema,
+} from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 
 import { TRPCError } from "@trpc/server";
@@ -30,7 +35,7 @@ function handlePeriodType(periodType: string | undefined): PeriodType | undefine
   return PeriodType[passedPeriodType];
 }
 
-function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: number) {
+function handleCustomInputs(customInputs: CustomInputSchema[], eventTypeId: number) {
   const cInputsIdsToDelete = customInputs.filter((input) => input.id > 0).map((e) => e.id);
   const cInputsToCreate = customInputs
     .filter((input) => input.id < 0)
@@ -39,6 +44,7 @@ function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: n
       label: input.label,
       required: input.required,
       placeholder: input.placeholder,
+      options: input.options || undefined,
     }));
   const cInputsToUpdate = customInputs
     .filter((input) => input.id > 0)
@@ -48,6 +54,7 @@ function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: n
         label: input.label,
         required: input.required,
         placeholder: input.placeholder,
+        options: input.options || undefined,
       },
       where: {
         id: input.id,
@@ -71,7 +78,7 @@ function handleCustomInputs(customInputs: EventTypeCustomInput[], eventTypeId: n
 const EventTypeUpdateInput = _EventTypeModel
   /** Optional fields */
   .extend({
-    customInputs: z.array(_EventTypeCustomInputModel),
+    customInputs: z.array(customInputSchema).optional(),
     destinationCalendar: _DestinationCalendarModel.pick({
       integration: true,
       externalId: true,

@@ -1127,7 +1127,6 @@
   "error_updating_settings": "Feil under oppdatering av innstillinger",
   "personal_cal_url": "Min personlige Cal URL",
   "bio_hint": "Noen setninger om deg selv. Dette vil vises på din personlige url-side.",
-  "timeformat_profile_hint": "Dette er en intern innstilling og vil ikke påvirke hvordan tidspunkt vises på offentlige bookingsider for deg eller noen som booker deg.",
   "delete_account_modal_title": "Slett Konto",
   "confirm_delete_account_modal": "Er du sikker på at du vil slette Cal.com-kontoen din?",
   "delete_my_account": "Slett kontoen min",

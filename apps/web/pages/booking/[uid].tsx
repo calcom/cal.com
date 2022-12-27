@@ -33,7 +33,7 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma, { baseUserSelect } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Button, EmailInput, Icon } from "@calcom/ui";
 
 import { timeZone } from "@lib/clock";
@@ -166,9 +166,11 @@ export default function Success(props: SuccessProps) {
   if ((isCancellationMode || changes) && typeof window !== "undefined") {
     window.scrollTo(0, document.body.scrollHeight);
   }
+
   const location: ReturnType<typeof getEventLocationValue> = Array.isArray(props.bookingInfo.location)
-    ? props.bookingInfo.location[0] || ""
-    : props.bookingInfo.location || "";
+    ? props.bookingInfo.location[0]
+    : // If there is no location set then we default to Cal Video
+      "integrations:daily";
 
   if (!location) {
     // Can't use logger.error because it throws error on client. stdout isn't available to it.
@@ -438,10 +440,37 @@ export default function Success(props: SuccessProps) {
                     )}
                     {customInputs &&
                       Object.keys(customInputs).map((key) => {
+                        // This breaks if you have two label that are the same.
+                        // TODO: Fix this in another PR
                         const customInput = customInputs[key as keyof typeof customInputs];
+                        const eventTypeCustomFound = eventType.customInputs?.find((ci) => ci.label === key);
                         return (
                           <>
-                            {customInput !== "" && (
+                            {eventTypeCustomFound?.type === "RADIO" && (
+                              <>
+                                <div className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
+                                  {eventTypeCustomFound.label}
+                                </div>
+                                <div className="col-span-3 mt-1 mb-2">
+                                  {eventTypeCustomFound.options &&
+                                    eventTypeCustomFound.options.map((option) => {
+                                      const selected = option.label == customInput;
+                                      return (
+                                        <div
+                                          key={option.label}
+                                          className={classNames(
+                                            "flex space-x-1",
+                                            !selected && "text-gray-500"
+                                          )}>
+                                          <p>{option.label}</p>
+                                          <span>{option.label === customInput && "✅"}</span>
+                                        </div>
+                                      );
+                                    })}
+                                </div>
+                              </>
+                            )}
+                            {eventTypeCustomFound?.type !== "RADIO" && customInput !== "" && (
                               <>
                                 <div className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">{key}</div>
                                 <div className="col-span-3 mt-2 mb-2">
@@ -769,6 +798,7 @@ const getEventTypesFromDB = async (id: number) => {
       requiresConfirmation: true,
       userId: true,
       successRedirectUrl: true,
+      customInputs: true,
       locations: true,
       price: true,
       currency: true,
@@ -835,22 +865,25 @@ const handleSeatsEventTypeOnBooking = (
     seatsShowAttendees: boolean | null;
     [x: string | number | symbol]: unknown;
   },
-  booking: Partial<
+  bookingInfo: Partial<
     Prisma.BookingGetPayload<{ include: { attendees: { select: { name: true; email: true } } } }>
   >,
   email: string
 ) => {
   if (eventType?.seatsPerTimeSlot !== null) {
     // @TODO: right now bookings with seats doesn't save every description that its entered by every user
-    delete booking.description;
+    delete bookingInfo.description;
   } else {
     return;
   }
   if (!eventType.seatsShowAttendees) {
-    const attendee = booking?.attendees?.find((a) => a.email === email);
-    booking["attendees"] = attendee ? [attendee] : [];
+    const attendee = bookingInfo?.attendees?.find((a) => {
+      return a.email === email;
+    });
+
+    bookingInfo["attendees"] = attendee ? [attendee] : [];
   }
-  return;
+  return bookingInfo;
 };
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
@@ -929,7 +962,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       select: baseUserSelect,
     });
     if (user) {
-      eventTypeRaw.users.push(user);
+      eventTypeRaw.users.push({
+        ...user,
+        avatar: "",
+        allowDynamicBooking: true,
+      });
     }
   }
 
@@ -945,6 +982,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     periodEndDate: eventTypeRaw.periodEndDate?.toString() ?? null,
     metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
+    customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
   };
 
   const profile = {
@@ -956,7 +994,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
 
-  if (bookingInfo !== null && email) {
+  if (bookingInfo !== null && email && eventType.seatsPerTimeSlot) {
     handleSeatsEventTypeOnBooking(eventType, bookingInfo, email);
   }
 
