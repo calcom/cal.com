@@ -66,6 +66,7 @@ export const bookEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
 
 export const availiblityPageEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   id: true,
+  teamId: true,
   title: true,
   availability: true,
   description: true,

@@ -70,6 +70,7 @@ const useSlots = ({
   eventTypeId,
   eventTypeSlug,
   eventTypeLength,
+  eventTypeTeamId,
   startTime,
   endTime,
   usernameList,
@@ -80,6 +81,7 @@ const useSlots = ({
   eventTypeId: number;
   eventTypeSlug: string;
   eventTypeLength: number;
+  eventTypeTeamId?: number | null;
   startTime?: Dayjs;
   endTime?: Dayjs;
   usernameList: string[];
@@ -92,6 +94,7 @@ const useSlots = ({
       eventTypeId,
       eventTypeSlug,
       eventTypeLength,
+      eventTypeTeamId,
       usernameList,
       startTime: startTime?.toISOString() || "",
       endTime: endTime?.toISOString() || "",
@@ -123,7 +126,7 @@ const SlotPicker = ({
   weekStart = 0,
   ethSignature,
 }: {
-  eventType: Pick<EventType, "id" | "schedulingType" | "slug" | "length">;
+  eventType: Pick<EventType, "id" | "schedulingType" | "slug" | "length" | "teamId">;
   timeFormat: TimeFormat;
   onTimeFormatChange: (is24Hour: boolean) => void;
   timeZone?: string;
@@ -169,6 +172,7 @@ const SlotPicker = ({
     eventTypeId: eventType.id,
     eventTypeSlug: eventType.slug,
     eventTypeLength: eventType.length,
+    eventTypeTeamId: eventType.teamId,
     usernameList: users,
     startTime: selectedDate?.startOf("day"),
     endTime: selectedDate?.endOf("day"),
@@ -180,6 +184,7 @@ const SlotPicker = ({
     eventTypeId: eventType.id,
     eventTypeSlug: eventType.slug,
     eventTypeLength: eventType.length,
+    eventTypeTeamId: eventType.teamId,
     usernameList: users,
     startTime: browsingDate?.startOf("month"),
     endTime: browsingDate?.endOf("month"),
