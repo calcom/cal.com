@@ -2,6 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventType } from "@prisma/client";
 import * as Popover from "@radix-ui/react-popover";
 import { useRouter } from "next/router";
+import type { NextRouter } from "next/router";
 import { useReducer, useEffect, useMemo, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { FormattedNumber, IntlProvider } from "react-intl";
@@ -48,33 +49,39 @@ import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type
 const useSlots = ({
   eventTypeId,
   eventTypeSlug,
+  eventTypeLength,
+  eventTypeTeamId,
   startTime,
   endTime,
   usernameList,
   timeZone,
   duration,
+  useSlotsProxy,
 }: {
   eventTypeId: number;
   eventTypeSlug: string;
+  eventTypeLength: number;
+  eventTypeTeamId?: number | null;
   startTime?: Dayjs;
   endTime?: Dayjs;
   usernameList: string[];
   timeZone?: string;
   duration?: string;
+  useSlotsProxy: boolean;
 }) => {
   const { data, isLoading, isPaused } = trpc.viewer.public.slots.getSchedule.useQuery(
     {
       eventTypeId,
       eventTypeSlug,
+      eventTypeLength,
+      eventTypeTeamId,
       usernameList,
       startTime: startTime?.toISOString() || "",
       endTime: endTime?.toISOString() || "",
       timeZone,
       duration,
     },
-    {
-      enabled: !!startTime && !!endTime,
-    }
+    { enabled: !!startTime && !!endTime, trpc: { context: { slotsProxyUrl: useSlotsProxy } } }
   );
   const [cachedSlots, setCachedSlots] = useState<NonNullable<typeof data>["slots"]>({});
 
@@ -99,7 +106,7 @@ const SlotPicker = ({
   weekStart = 0,
   ethSignature,
 }: {
-  eventType: Pick<EventType, "id" | "schedulingType" | "slug">;
+  eventType: Pick<EventType, "id" | "schedulingType" | "slug" | "length" | "teamId">;
   timeFormat: TimeFormat;
   onTimeFormatChange: (is24Hour: boolean) => void;
   timeZone?: string;
@@ -114,6 +121,7 @@ const SlotPicker = ({
   const { duration } = useRouterQuery("duration");
   const { date, setQuery: setDate } = useRouterQuery("date");
   const { month, setQuery: setMonth } = useRouterQuery("month");
+  const { useSlotsProxy } = useRouterQuery("useSlotsProxy");
   const router = useRouter();
 
   const [slotPickerRef] = useAutoAnimate<HTMLDivElement>();
@@ -143,20 +151,26 @@ const SlotPicker = ({
   const { slots: _1 } = useSlots({
     eventTypeId: eventType.id,
     eventTypeSlug: eventType.slug,
+    eventTypeLength: eventType.length,
+    eventTypeTeamId: eventType.teamId,
     usernameList: users,
     startTime: selectedDate?.startOf("day"),
     endTime: selectedDate?.endOf("day"),
     timeZone,
     duration,
+    useSlotsProxy: useSlotsProxy !== "false",
   });
   const { slots: _2, isLoading } = useSlots({
     eventTypeId: eventType.id,
     eventTypeSlug: eventType.slug,
+    eventTypeLength: eventType.length,
+    eventTypeTeamId: eventType.teamId,
     usernameList: users,
     startTime: browsingDate?.startOf("month"),
     endTime: browsingDate?.endOf("month"),
     timeZone,
     duration,
+    useSlotsProxy: useSlotsProxy !== "false",
   });
 
   const slots = useMemo(() => ({ ..._2, ..._1 }), [_1, _2]);
@@ -247,6 +261,25 @@ const dateQuerySchema = z.object({
 });
 
 export type Props = AvailabilityTeamPageProps | AvailabilityPageProps | DynamicAvailabilityPageProps;
+type WeekDayIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+function weekDayToNumber(weekDay: string): WeekDayIndex {
+  const index = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+    weekDay
+  );
+  return index === -1 ? 0 : (index as WeekDayIndex);
+}
+
+function getWeekStartFromRouterOrProfile(router: NextRouter, profile: Props["profile"]): WeekDayIndex {
+  if (router.query.weekStart) {
+    return weekDayToNumber(router.query.weekStart as string);
+  }
+
+  /* Allows providing weekStart as number */
+  return typeof profile.weekStart === "string"
+    ? weekDayToNumber(profile.weekStart)
+    : (profile.weekStart as WeekDayIndex);
+}
 
 const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const router = useRouter();
@@ -259,6 +292,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const isBackgroundTransparent = useIsBackgroundTransparent();
+  const weekStart = getWeekStartFromRouterOrProfile(router, profile);
 
   const [timeZone, setTimeZone] = useState<string>();
   const [timeFormat, setTimeFormat] = useState<TimeFormat>(detectBrowserTimeFormat);
@@ -418,19 +452,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                   )*/}
                 </div>
                 <SlotPicker
-                  weekStart={
-                    typeof profile.weekStart === "string"
-                      ? ([
-                          "Sunday",
-                          "Monday",
-                          "Tuesday",
-                          "Wednesday",
-                          "Thursday",
-                          "Friday",
-                          "Saturday",
-                        ].indexOf(profile.weekStart) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
-                      : profile.weekStart /* Allows providing weekStart as number */
-                  }
+                  weekStart={weekStart}
                   eventType={eventType}
                   timeFormat={timeFormat}
                   onTimeFormatChange={onTimeFormatChange}

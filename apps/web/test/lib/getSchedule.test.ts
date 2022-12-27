@@ -331,6 +331,7 @@ describe.skip("getSchedule", () => {
         {
           eventTypeId: eventType.id,
           eventTypeSlug: "",
+          eventTypeLength: 30,
           startTime: `${plus1DateString}T18:30:00.000Z`,
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: "Asia/Kolkata",
@@ -361,6 +362,7 @@ describe.skip("getSchedule", () => {
         {
           eventTypeId: eventType.id,
           eventTypeSlug: "",
+          eventTypeLength: 30,
           startTime: `${plus2DateString}T18:30:00.000Z`,
           endTime: `${plus3DateString}T18:29:59.999Z`,
           timeZone: "Asia/Kolkata", // GMT+5:30
@@ -450,6 +452,7 @@ describe.skip("getSchedule", () => {
       const scheduleForDayWithAGoogleCalendarBooking = await getSchedule(
         {
           eventTypeId: eventType.id,
+          eventTypeLength: 30,
           eventTypeSlug: "",
           startTime: `${plus1DateString}T18:30:00.000Z`,
           endTime: `${plus2DateString}T18:29:59.999Z`,
@@ -493,6 +496,7 @@ describe.skip("getSchedule", () => {
       const scheduleForTeamEventOnADayWithNoBooking = await getSchedule(
         {
           eventTypeId: 1,
+          eventTypeLength: 30,
           eventTypeSlug: "",
           startTime: `${todayDateString}T18:30:00.000Z`,
           endTime: `${plus1DateString}T18:29:59.999Z`,
@@ -523,6 +527,7 @@ describe.skip("getSchedule", () => {
       const scheduleForTeamEventOnADayWithOneBooking = await getSchedule(
         {
           eventTypeId: 1,
+          eventTypeLength: 30,
           eventTypeSlug: "",
           startTime: `${plus1DateString}T18:30:00.000Z`,
           endTime: `${plus2DateString}T18:29:59.999Z`,
@@ -572,6 +577,7 @@ describe.skip("getSchedule", () => {
       const scheduleOfTeamEventHavingAUserWithBlockedTimeInAnotherEvent = await getSchedule(
         {
           eventTypeId: 1,
+          eventTypeLength: 30,
           eventTypeSlug: "",
           startTime: `${plus1DateString}T18:30:00.000Z`,
           endTime: `${plus2DateString}T18:29:59.999Z`,
