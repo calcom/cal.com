@@ -45,6 +45,7 @@ const getTimeSpan = ({ startTime, endTime, locale, isTimeFormatAMPM }: GetTimeSp
     minute: "numeric",
     hour12: isTimeFormatAMPM,
   }).format(new Date(startTime));
+
   const formattedEndTime = new Intl.DateTimeFormat(locale, {
     hour: "numeric",
     minute: "numeric",
