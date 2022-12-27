@@ -24,7 +24,6 @@ import {
   TextArea,
   Tooltip,
 } from "@calcom/ui";
-import { ActionType, TableActions } from "@calcom/ui";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
