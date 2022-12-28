@@ -2,7 +2,7 @@ import { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import { Controller, useForm } from "react-hook-form";
 
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, ENABLE_PAID_FEATURES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -178,14 +178,14 @@ const AppearanceView = () => {
               <div className="mr-1 flex-grow">
                 <div className="flex items-center">
                   <p className="mr-2 font-semibold">{t("disable_cal_branding", { appName: APP_NAME })}</p>
-                  <Badge variant="gray">{t("pro")}</Badge>
+                  {!ENABLE_PAID_FEATURES ? <Badge variant="gray">{t("pro")}</Badge> : null}
                 </div>
                 <p className="mt-0.5  text-gray-600">{t("removes_cal_branding", { appName: APP_NAME })}</p>
               </div>
               <div className="flex-none">
                 <Switch
                   id="hideBranding"
-                  disabled={!session.data?.user.belongsToActiveTeam}
+                  disabled={!ENABLE_PAID_FEATURES && !session.data?.user.belongsToActiveTeam}
                   onCheckedChange={(checked) =>
                     formMethods.setValue("hideBranding", checked, { shouldDirty: true })
                   }

@@ -53,3 +53,4 @@ export const IS_STRIPE_ENABLED = !!(
 );
 /** Self hosted shouldn't checkout when creating teams unless required */
 export const IS_TEAM_BILLING_ENABLED = IS_STRIPE_ENABLED && (!IS_SELF_HOSTED || HOSTED_CAL_FEATURES);
+export const ENABLE_PAID_FEATURES = !IS_STRIPE_ENABLED && IS_SELF_HOSTED;
