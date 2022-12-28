@@ -103,8 +103,6 @@ export default class EventManager {
    */
   public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
-    // Fallback to cal video if no location is set
-    if (!evt.location) evt["location"] = "integrations:daily";
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
     const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
@@ -112,7 +110,7 @@ export default class EventManager {
     if (isDedicated) {
       const result = await this.createVideoEvent(evt);
 
-      if (result?.createdEvent) {
+      if (result.createdEvent) {
         evt.videoCallData = result.createdEvent;
         evt.location = result.originalEvent.location;
         result.type = result.createdEvent.type;
