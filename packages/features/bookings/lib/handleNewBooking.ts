@@ -290,9 +290,7 @@ async function ensureAvailableUsers(
   }
   if (!availableUsers.length) {
     // CUSTOM_CODE First 3 Instances we check
-    throw new Error(
-      "Could not book the meeting. Please try again or contact concierge@mento.co for support."
-    );
+    throw new Error("Please try again or contact concierge@mento.co for support.");
   }
   return availableUsers;
 }
