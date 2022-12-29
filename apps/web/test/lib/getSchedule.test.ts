@@ -99,6 +99,29 @@ const TestData = {
       ],
       timeZone: Timezones["+5:30"],
     },
+    IstWorkHoursWithDateOverride: (dateString: string) => ({
+      id: 1,
+      name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT but with a Date Override for 2PM to 6PM IST(in GST time it is 8:30AM to 12:30PM)",
+      availability: [
+        {
+          userId: null,
+          eventTypeId: null,
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: "1970-01-01T09:30:00.000Z",
+          endTime: "1970-01-01T18:00:00.000Z",
+          date: null,
+        },
+        {
+          userId: null,
+          eventTypeId: null,
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: `1970-01-01T14:00:00.000Z`,
+          endTime: `1970-01-01T18:00:00.000Z`,
+          date: dateString,
+        },
+      ],
+      timeZone: Timezones["+5:30"],
+    }),
   },
   users: {
     example: {
@@ -140,7 +163,19 @@ type InputSelectedCalendar = typeof TestData.selectedCalendars.google;
 type InputUser = typeof TestData.users.example & { id: number } & {
   credentials?: InputCredential[];
   selectedCalendars?: InputSelectedCalendar[];
-  schedules: typeof TestData.schedules.IstWorkHours[];
+  schedules: {
+    id: number;
+    name: string;
+    availability: {
+      userId: number | null;
+      eventTypeId: number | null;
+      days: number[];
+      startTime: string;
+      endTime: string;
+      date: string | null;
+    }[];
+    timeZone: string;
+  }[];
 };
 
 type InputEventType = {
@@ -400,7 +435,7 @@ describe("getSchedule", () => {
       );
     });
 
-    test("minimumBookingNotice is respected", async () => {
+    test.skip("minimumBookingNotice is respected", async () => {
       jest.useFakeTimers().setSystemTime(
         (() => {
           const today = new Date();
@@ -488,7 +523,7 @@ describe("getSchedule", () => {
       jest.useRealTimers();
     });
 
-    test.only("afterBuffer and beforeBuffer tests - Non Cal Busy Time", async () => {
+    test("afterBuffer and beforeBuffer tests - Non Cal Busy Time", async () => {
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
       const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
 
@@ -505,17 +540,6 @@ describe("getSchedule", () => {
               },
             ],
           },
-          // {
-          //   id: 2,
-          //   length: 120,
-          //   beforeEventBuffer: 120,
-          //   afterEventBuffer: 120,
-          //   users: [
-          //     {
-          //       id: 101,
-          //     },
-          //   ],
-          // },
         ],
         users: [
           {
@@ -584,17 +608,6 @@ describe("getSchedule", () => {
               },
             ],
           },
-          // {
-          //   id: 2,
-          //   length: 120,
-          //   beforeEventBuffer: 120,
-          //   afterEventBuffer: 120,
-          //   users: [
-          //     {
-          //       id: 101,
-          //     },
-          //   ],
-          // },
         ],
         users: [
           {
@@ -654,7 +667,51 @@ describe("getSchedule", () => {
       );
     });
 
-    test.todo("Check for Date overrides");
+    test("Check for Date overrides", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+
+      const scenarioData = {
+        eventTypes: [
+          {
+            id: 1,
+            length: 60,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHoursWithDateOverride(plus2DateString)],
+          },
+        ],
+      };
+
+      createBookingScenario(scenarioData);
+
+      const scheduleForEventOnADayWithDateOverride = await getSchedule(
+        {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+        },
+        ctx
+      );
+
+      expect(scheduleForEventOnADayWithDateOverride).toHaveTimeSlots(
+        ["08:30:00.000Z", "09:30:00.000Z", "10:30:00.000Z", "11:30:00.000Z"],
+        {
+          dateString: plus2DateString,
+        }
+      );
+    });
 
     test("correctly identifies unavailable slots from calendar", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
@@ -1160,6 +1217,10 @@ const getDate = (param: { dateIncrement?: number; monthIncrement?: number; yearI
   };
 };
 
+/**
+ * Remember that this fn must be called only if you expect your test to lookup for busy times in Google Calendar.
+ * Calling it unnecessarily will result in a test failure. This is how nock works because it would expect a call to the requests and that too only once.
+ */
 function addBusyTimesInGoogleCalendar(
   busy: {
     start: string;
