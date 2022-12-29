@@ -12,7 +12,7 @@ import {
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { bookEventTypeSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import getBooking, { GetBookingType } from "@lib/getBooking";
@@ -127,6 +127,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       periodStartDate: e.periodStartDate?.toString() ?? null,
       periodEndDate: e.periodEndDate?.toString() ?? null,
       schedulingType: null,
+      customInputs: customInputSchema.array().parse(e.customInputs || []),
       users: users.map((u) => ({
         id: u.id,
         name: u.name,

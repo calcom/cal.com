@@ -33,11 +33,6 @@
       "generator": "secret",
       "required": "true"
     },
-    "NEXT_PUBLIC_LICENSE_CONSENT": {
-      "description": "License consent",
-      "value": "true",
-      "required": "true"
-    },
     "CRON_API_KEY": {
       "description": "ApiKey for cronjobs",
       "value": ""

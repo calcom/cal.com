@@ -1,7 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { EventType } from "@prisma/client";
 import * as Popover from "@radix-ui/react-popover";
-import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import type { NextRouter } from "next/router";
 import { useReducer, useEffect, useMemo, useState } from "react";
@@ -20,7 +19,6 @@ import {
 } from "@calcom/embed-core/embed-iframe";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { WEBSITE_URL } from "@calcom/lib/constants";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -28,15 +26,11 @@ import notEmpty from "@calcom/lib/notEmpty";
 import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Icon, DatePicker } from "@calcom/ui";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
-// import { timeZone } from "@lib/clock";
-import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
-import { isBrandingHidden } from "@lib/isBrandingHidden";
 
 import Gates, { Gate, GateState } from "@components/Gates";
 import AvailableTimes from "@components/booking/AvailableTimes";
@@ -49,27 +43,11 @@ import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
 import type { DynamicAvailabilityPageProps } from "../../../pages/d/[link]/[slug]";
 import type { AvailabilityTeamPageProps } from "../../../pages/team/[slug]/[type]";
 
-// Get router variables
-const GoBackToPreviousPage = ({ t }: { t: TFunction }) => {
-  const router = useRouter();
-  const path = router.asPath.split("/");
-  path.pop(); // Remove the last item (where we currently are)
-  path.shift(); // Removes first item e.g. if we were visitng "/teams/test/30mins" the array will new look like ["teams","test"]
-  const slug = path.join("/");
-  return (
-    <div className="flex h-full flex-col justify-end">
-      <button title={t("profile")} onClick={() => router.replace(`${WEBSITE_URL}/${slug}`)}>
-        <Icon.FiArrowLeft className="dark:text-darkgray-600 h-4 w-4 text-black transition-opacity hover:cursor-pointer" />
-        <p className="sr-only">Go Back</p>
-      </button>
-    </div>
-  );
-};
-
 const useSlots = ({
   eventTypeId,
   eventTypeSlug,
   eventTypeLength,
+  eventTypeTeamId,
   startTime,
   endTime,
   usernameList,
@@ -80,6 +58,7 @@ const useSlots = ({
   eventTypeId: number;
   eventTypeSlug: string;
   eventTypeLength: number;
+  eventTypeTeamId?: number | null;
   startTime?: Dayjs;
   endTime?: Dayjs;
   usernameList: string[];
@@ -92,6 +71,7 @@ const useSlots = ({
       eventTypeId,
       eventTypeSlug,
       eventTypeLength,
+      eventTypeTeamId,
       usernameList,
       startTime: startTime?.toISOString() || "",
       endTime: endTime?.toISOString() || "",
@@ -123,7 +103,7 @@ const SlotPicker = ({
   weekStart = 0,
   ethSignature,
 }: {
-  eventType: Pick<EventType, "id" | "schedulingType" | "slug" | "length">;
+  eventType: Pick<EventType, "id" | "schedulingType" | "slug" | "length" | "teamId">;
   timeFormat: TimeFormat;
   onTimeFormatChange: (is24Hour: boolean) => void;
   timeZone?: string;
@@ -169,6 +149,7 @@ const SlotPicker = ({
     eventTypeId: eventType.id,
     eventTypeSlug: eventType.slug,
     eventTypeLength: eventType.length,
+    eventTypeTeamId: eventType.teamId,
     usernameList: users,
     startTime: selectedDate?.startOf("day"),
     endTime: selectedDate?.endOf("day"),
@@ -180,6 +161,7 @@ const SlotPicker = ({
     eventTypeId: eventType.id,
     eventTypeSlug: eventType.slug,
     eventTypeLength: eventType.length,
+    eventTypeTeamId: eventType.teamId,
     usernameList: users,
     startTime: browsingDate?.startOf("month"),
     endTime: browsingDate?.endOf("month"),
@@ -246,7 +228,7 @@ function TimezoneDropdown({
 
   return (
     <Popover.Root open={isTimeOptionsOpen} onOpenChange={setIsTimeOptionsOpen}>
-      <Popover.Trigger className="min-w-32 dark:text-darkgray-600 radix-state-open:bg-gray-200 dark:radix-state-open:bg-darkgray-200 group relative mb-2 -ml-2 inline-block rounded-md px-2 py-2 text-left text-gray-600">
+      <Popover.Trigger className="min-w-32 dark:text-darkgray-600 radix-state-open:bg-gray-200 dark:radix-state-open:bg-darkgray-200 group relative mb-2 -ml-2 !mt-2 inline-block self-start rounded-md px-2 py-2 text-left text-gray-600">
         <p className="flex items-center text-sm font-medium">
           <Icon.FiGlobe className="min-h-4 min-w-4 mr-[10px] ml-[2px] -mt-[2px] inline-block" />
           {timeZone}
@@ -328,9 +310,6 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   useEffect(() => {
     setTimeZone(localStorageTimeZone() || dayjs.tz.guess());
   }, []);
-
-  // TODO: Improve this;
-  useExposePlanGlobally(eventType.users.length === 1 ? eventType.users[0].plan : "PRO");
 
   const [recurringEventCount, setRecurringEventCount] = useState(eventType.recurringEvent?.count);
 
@@ -452,12 +431,6 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                     {timezoneDropdown}
                   </BookingDescription>
 
-                  {!isEmbed && (
-                    <div className="mt-auto hidden md:block">
-                      <GoBackToPreviousPage t={t} />
-                    </div>
-                  )}
-
                   {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
                     <div>
                       <p
@@ -485,7 +458,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                 />
               </div>
             </div>
-            {(!eventType.users[0] || !isBrandingHidden(eventType.users[0])) && !isEmbed && <PoweredByCal />}
+            {(!restProps.isBrandingHidden || isEmbed) && <PoweredByCal />}
           </div>
         </main>
       </div>

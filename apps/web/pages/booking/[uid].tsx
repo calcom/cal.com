@@ -33,13 +33,14 @@ import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/t
 import { localStorage } from "@calcom/lib/webstorage";
 import prisma, { baseUserSelect } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Button, EmailInput, Icon } from "@calcom/ui";
 
 import { timeZone } from "@lib/clock";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
+import EventReservationSchema from "@components/schemas/EventReservationSchema";
 import { HeadSeo } from "@components/seo/head-seo";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -55,26 +56,41 @@ function redirectToExternalUrl(url: string) {
 function RedirectionToast({ url }: { url: string }) {
   const [timeRemaining, setTimeRemaining] = useState(10);
   const [isToastVisible, setIsToastVisible] = useState(true);
-  const parsedSuccessUrl = new URL(document.URL);
-  const parsedExternalUrl = new URL(url);
-
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  /* @ts-ignore */ //https://stackoverflow.com/questions/49218765/typescript-and-iterator-type-iterableiteratort-is-not-an-array-type
-  for (const [name, value] of parsedExternalUrl.searchParams.entries()) {
-    parsedSuccessUrl.searchParams.set(name, value);
-  }
-
-  const urlWithSuccessParams =
-    parsedExternalUrl.origin +
-    parsedExternalUrl.pathname +
-    "?" +
-    parsedSuccessUrl.searchParams.toString() +
-    parsedExternalUrl.hash;
 
   const { t } = useLocale();
   const timerRef = useRef<number | null>(null);
+  const router = useRouter();
+  const { cancel: isCancellationMode } = querySchema.parse(router.query);
+  const urlWithSuccessParamsRef = useRef<string | null>();
+  if (isCancellationMode && timerRef.current) {
+    setIsToastVisible(false);
+  }
 
   useEffect(() => {
+    if (!isToastVisible && timerRef.current) {
+      window.clearInterval(timerRef.current);
+    }
+  }, [isToastVisible]);
+
+  useEffect(() => {
+    const parsedExternalUrl = new URL(url);
+
+    const parsedSuccessUrl = new URL(document.URL);
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    /* @ts-ignore */ //https://stackoverflow.com/questions/49218765/typescript-and-iterator-type-iterableiteratort-is-not-an-array-type
+    for (const [name, value] of parsedExternalUrl.searchParams.entries()) {
+      parsedSuccessUrl.searchParams.set(name, value);
+    }
+
+    const urlWithSuccessParams =
+      parsedExternalUrl.origin +
+      parsedExternalUrl.pathname +
+      "?" +
+      parsedSuccessUrl.searchParams.toString() +
+      parsedExternalUrl.hash;
+    urlWithSuccessParamsRef.current = urlWithSuccessParams;
+
     timerRef.current = window.setInterval(() => {
       if (timeRemaining > 0) {
         setTimeRemaining((timeRemaining) => {
@@ -88,7 +104,7 @@ function RedirectionToast({ url }: { url: string }) {
     return () => {
       window.clearInterval(timerRef.current as number);
     };
-  }, [timeRemaining, urlWithSuccessParams]);
+  }, [timeRemaining, url]);
 
   if (!isToastVisible) {
     return null;
@@ -111,7 +127,9 @@ function RedirectionToast({ url }: { url: string }) {
               <div className="order-3 mt-2 w-full flex-shrink-0 sm:order-2 sm:mt-0 sm:w-auto">
                 <button
                   onClick={() => {
-                    redirectToExternalUrl(urlWithSuccessParams);
+                    if (urlWithSuccessParamsRef.current) {
+                      redirectToExternalUrl(urlWithSuccessParamsRef.current);
+                    }
                   }}
                   className="flex w-full items-center justify-center rounded-sm border border-transparent bg-white px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50">
                   {t("continue")}
@@ -122,7 +140,6 @@ function RedirectionToast({ url }: { url: string }) {
                   type="button"
                   onClick={() => {
                     setIsToastVisible(false);
-                    window.clearInterval(timerRef.current as number);
                   }}
                   className="-mr-1 flex rounded-md p-2 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-white">
                   <Icon.FiX className="h-6 w-6 text-white" />
@@ -175,11 +192,15 @@ export default function Success(props: SuccessProps) {
     console.error(`No location found `);
   }
 
-  const name = props.bookingInfo?.user?.name;
   const email = props.bookingInfo?.user?.email;
   const status = props.bookingInfo?.status;
   const reschedule = props.bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = props.bookingInfo.cancellationReason;
+
+  const attendeeName =
+    typeof props?.bookingInfo?.attendees?.[0]?.name === "string"
+      ? props?.bookingInfo?.attendees?.[0]?.name
+      : "Nameless";
 
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const { data: session } = useSession();
@@ -201,8 +222,6 @@ export default function Success(props: SuccessProps) {
       query: { ...router.query },
     });
   }
-
-  const attendeeName = typeof name === "string" ? name : "Nameless";
 
   const eventNameObject = {
     attendeeName,
@@ -301,6 +320,19 @@ export default function Success(props: SuccessProps) {
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
+      {!isEmbed && (
+        <EventReservationSchema
+          reservationId={bookingInfo.uid}
+          eventName={eventName}
+          startTime={bookingInfo.startTime}
+          endTime={bookingInfo.endTime}
+          organizer={bookingInfo.user}
+          attendees={bookingInfo.attendees}
+          location={locationToDisplay}
+          description={bookingInfo.description}
+          status={status}
+        />
+      )}
       {userIsOwner && !isEmbed && (
         <div className="mt-2 ml-4 -mb-4">
           <Link href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}>
@@ -315,7 +347,9 @@ export default function Success(props: SuccessProps) {
       <CustomBranding lightVal={props.profile.brandColor} darkVal={props.profile.darkBrandColor} />
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
         <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
-          {eventType.successRedirectUrl ? <RedirectionToast url={eventType.successRedirectUrl} /> : null}{" "}
+          {isSuccessBookingPage && !isCancellationMode && eventType.successRedirectUrl ? (
+            <RedirectionToast url={eventType.successRedirectUrl} />
+          ) : null}{" "}
           <div
             className={classNames(
               shouldAlignCentrally ? "text-center" : "",
@@ -438,10 +472,37 @@ export default function Success(props: SuccessProps) {
                     )}
                     {customInputs &&
                       Object.keys(customInputs).map((key) => {
+                        // This breaks if you have two label that are the same.
+                        // TODO: Fix this in another PR
                         const customInput = customInputs[key as keyof typeof customInputs];
+                        const eventTypeCustomFound = eventType.customInputs?.find((ci) => ci.label === key);
                         return (
                           <>
-                            {customInput !== "" && (
+                            {eventTypeCustomFound?.type === "RADIO" && (
+                              <>
+                                <div className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">
+                                  {eventTypeCustomFound.label}
+                                </div>
+                                <div className="col-span-3 mt-1 mb-2">
+                                  {eventTypeCustomFound.options &&
+                                    eventTypeCustomFound.options.map((option) => {
+                                      const selected = option.label == customInput;
+                                      return (
+                                        <div
+                                          key={option.label}
+                                          className={classNames(
+                                            "flex space-x-1",
+                                            !selected && "text-gray-500"
+                                          )}>
+                                          <p>{option.label}</p>
+                                          <span>{option.label === customInput && "✅"}</span>
+                                        </div>
+                                      );
+                                    })}
+                                </div>
+                              </>
+                            )}
+                            {eventTypeCustomFound?.type !== "RADIO" && customInput !== "" && (
                               <>
                                 <div className="col-span-3 mt-8 border-t pt-8 pr-3 font-medium">{key}</div>
                                 <div className="col-span-3 mt-2 mb-2">
@@ -769,6 +830,7 @@ const getEventTypesFromDB = async (id: number) => {
       requiresConfirmation: true,
       userId: true,
       successRedirectUrl: true,
+      customInputs: true,
       locations: true,
       price: true,
       currency: true,
@@ -778,7 +840,6 @@ const getEventTypesFromDB = async (id: number) => {
           name: true,
           username: true,
           hideBranding: true,
-          plan: true,
           theme: true,
           brandColor: true,
           darkBrandColor: true,
@@ -835,22 +896,25 @@ const handleSeatsEventTypeOnBooking = (
     seatsShowAttendees: boolean | null;
     [x: string | number | symbol]: unknown;
   },
-  booking: Partial<
+  bookingInfo: Partial<
     Prisma.BookingGetPayload<{ include: { attendees: { select: { name: true; email: true } } } }>
   >,
   email: string
 ) => {
   if (eventType?.seatsPerTimeSlot !== null) {
     // @TODO: right now bookings with seats doesn't save every description that its entered by every user
-    delete booking.description;
+    delete bookingInfo.description;
   } else {
     return;
   }
   if (!eventType.seatsShowAttendees) {
-    const attendee = booking?.attendees?.find((a) => a.email === email);
-    booking["attendees"] = attendee ? [attendee] : [];
+    const attendee = bookingInfo?.attendees?.find((a) => {
+      return a.email === email;
+    });
+
+    bookingInfo["attendees"] = attendee ? [attendee] : [];
   }
-  return;
+  return bookingInfo;
 };
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
@@ -929,7 +993,11 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       select: baseUserSelect,
     });
     if (user) {
-      eventTypeRaw.users.push(user);
+      eventTypeRaw.users.push({
+        ...user,
+        avatar: "",
+        allowDynamicBooking: true,
+      });
     }
   }
 
@@ -945,6 +1013,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     periodEndDate: eventTypeRaw.periodEndDate?.toString() ?? null,
     metadata: EventTypeMetaDataSchema.parse(eventTypeRaw.metadata),
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
+    customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
   };
 
   const profile = {
@@ -956,7 +1025,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     slug: eventType.team?.slug || eventType.users[0]?.username || null,
   };
 
-  if (bookingInfo !== null && email) {
+  if (bookingInfo !== null && email && eventType.seatsPerTimeSlot) {
     handleSeatsEventTypeOnBooking(eventType, bookingInfo, email);
   }
 

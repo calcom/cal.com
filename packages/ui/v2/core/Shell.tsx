@@ -154,10 +154,10 @@ const Layout = (props: LayoutProps) => {
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
       <div className="h-screen overflow-hidden">
+        <TeamsUpgradeBanner />
         <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
           {props.SidebarContainer || <SideBarContainer />}
           <div className="flex w-0 flex-1 flex-col overflow-hidden">
-            <TeamsUpgradeBanner />
             <ImpersonatingBanner />
             <MainContainer {...props} />
           </div>
@@ -203,8 +203,6 @@ export default function Shell(props: LayoutProps) {
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
   useTheme("light");
-  const { session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
-  if (!session && !props.isPublic) return null;
 
   return (
     <KBarRoot>
@@ -314,7 +312,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                     mutation.mutate({ away: !user?.away });
                     utils.viewer.me.invalidate();
                   }}
-                  className="flex min-w-max cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
+                  className="flex w-full min-w-max cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
                   <Icon.FiMoon
                     className={classNames(
                       user.away
@@ -727,9 +725,6 @@ function DeploymentInfo() {
       className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
       &copy; {new Date().getFullYear()} {COMPANY_NAME} v.{pkg.version + "-"}
       {process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"}
-      <span className="lowercase" data-testid={`plan-${user?.plan.toLowerCase()}`}>
-        -{user?.plan}
-      </span>
     </small>
   );
 }

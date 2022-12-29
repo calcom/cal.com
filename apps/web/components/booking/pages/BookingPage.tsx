@@ -40,11 +40,11 @@ import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { AddressInput, Button, EmailInput, Form, Icon, PhoneInput, Tooltip } from "@calcom/ui";
+import { Group, RadioField } from "@calcom/ui";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
 import { ensureArray } from "@lib/ensureArray";
-import useMeQuery from "@lib/hooks/useMeQuery";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 import createBooking from "@lib/mutations/bookings/create-booking";
 import createRecurringBooking from "@lib/mutations/bookings/create-recurring-booking";
@@ -105,7 +105,6 @@ const BookingPage = ({
     {}
   );
   const stripeAppData = getStripeAppData(eventType);
-
   // Define duration now that we support multiple duration eventTypes
   let duration = eventType.length;
   if (queryDuration && !isNaN(Number(queryDuration))) {
@@ -252,7 +251,7 @@ const BookingPage = ({
   const bookingFormSchema = z
     .object({
       name: z.string().min(1),
-      email: z.string().email(),
+      email: z.string().trim().email(),
       phone: z
         .string()
         .refine((val) => isValidPhoneNumber(val))
@@ -763,6 +762,27 @@ const BookingPage = ({
                               className="-mt-px block text-sm font-medium text-gray-700 dark:text-white">
                               {input.label}
                             </label>
+                          </div>
+                        </div>
+                      )}
+                      {input.options && input.type === EventTypeCustomInputType.RADIO && (
+                        <div className="">
+                          <div className="flex">
+                            <Group
+                              onValueChange={(e) => {
+                                bookingForm.setValue(`customInputs.${input.id}`, e);
+                              }}>
+                              <>
+                                {input.options.map((option, i) => (
+                                  <RadioField
+                                    label={option.label}
+                                    key={`option.${i}.radio`}
+                                    value={option.label}
+                                    id={`option.${i}.radio`}
+                                  />
+                                ))}
+                              </>
+                            </Group>
                           </div>
                         </div>
                       )}

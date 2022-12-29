@@ -1,5 +1,4 @@
 import { expect } from "@playwright/test";
-import { UserPlan } from "@prisma/client";
 
 import { login } from "./fixtures/users";
 import { test } from "./lib/fixtures";
@@ -13,10 +12,10 @@ test.describe("user can login & logout succesfully", async () => {
   test.afterAll(async ({ users }) => {
     await users.deleteAll();
   });
-  test("login flow TRAIL user & logout using dashboard", async ({ page, users }) => {
+  test("login flow user & logout using dashboard", async ({ page, users }) => {
     // log in trail user
     await test.step("Log in", async () => {
-      const user = await users.create({ plan: UserPlan.TRIAL });
+      const user = await users.create();
       await user.login();
 
       const shellLocator = page.locator(`[data-testid=dashboard-shell]`);
@@ -24,11 +23,6 @@ test.describe("user can login & logout succesfully", async () => {
       // expects the home page for an authorized user
       await page.goto("/");
       await expect(shellLocator).toBeVisible();
-
-      // Asserts to read the tested plan
-      const planLocator = shellLocator.locator(`[data-testid=plan-trial]`);
-      await expect(planLocator).toBeVisible();
-      await expect(planLocator).toHaveText("-TRIAL");
     });
 
     //
@@ -62,27 +56,6 @@ test.describe("Login and logout tests", () => {
     // check if we are at the login page
     await page.goto("/");
     await expect(page.locator(`[data-testid=login-form]`)).toBeVisible();
-  });
-
-  // Test login with all plans
-  const plans = [UserPlan.PRO, UserPlan.FREE];
-  plans.forEach((plan) => {
-    test(`Should login with a ${plan} account`, async ({ page, users }) => {
-      // Create user and login
-      const user = await users.create({ plan });
-      await user.login();
-
-      const shellLocator = page.locator(`[data-testid=dashboard-shell]`);
-
-      // expects the home page for an authorized user
-      await page.goto("/");
-      await expect(shellLocator).toBeVisible();
-
-      // Asserts to read the tested plan
-      const planLocator = shellLocator.locator(`[data-testid=plan-${plan.toLowerCase()}]`);
-      await expect(planLocator).toBeVisible();
-      await expect(planLocator).toHaveText(`-${plan}`);
-    });
   });
 
   test.describe("Login flow validations", async () => {
