@@ -124,6 +124,7 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
           <Input
             ref={usernameRef}
             name="username"
+            value={inputUsernameValue}
             autoComplete="none"
             autoCapitalize="none"
             autoCorrect="none"
@@ -133,7 +134,6 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
                 ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
                 : ""
             )}
-            defaultValue={currentUsername}
             onChange={(event) => {
               event.preventDefault();
               setInputUsernameValue(event.target.value);

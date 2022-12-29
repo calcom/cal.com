@@ -40,6 +40,7 @@ import { timeZone } from "@lib/clock";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
+import EventReservationSchema from "@components/schemas/EventReservationSchema";
 import { HeadSeo } from "@components/seo/head-seo";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -175,11 +176,15 @@ export default function Success(props: SuccessProps) {
     console.error(`No location found `);
   }
 
-  const name = props.bookingInfo?.user?.name;
   const email = props.bookingInfo?.user?.email;
   const status = props.bookingInfo?.status;
   const reschedule = props.bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = props.bookingInfo.cancellationReason;
+
+  const attendeeName =
+    typeof props?.bookingInfo?.attendees?.[0]?.name === "string"
+      ? props?.bookingInfo?.attendees?.[0]?.name
+      : "Nameless";
 
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const { data: session } = useSession();
@@ -201,8 +206,6 @@ export default function Success(props: SuccessProps) {
       query: { ...router.query },
     });
   }
-
-  const attendeeName = typeof name === "string" ? name : "Nameless";
 
   const eventNameObject = {
     attendeeName,
@@ -301,6 +304,19 @@ export default function Success(props: SuccessProps) {
 
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
+      {!isEmbed && (
+        <EventReservationSchema
+          reservationId={bookingInfo.uid}
+          eventName={eventName}
+          startTime={bookingInfo.startTime}
+          endTime={bookingInfo.endTime}
+          organizer={bookingInfo.user}
+          attendees={bookingInfo.attendees}
+          location={locationToDisplay}
+          description={bookingInfo.description}
+          status={status}
+        />
+      )}
       {userIsOwner && !isEmbed && (
         <div className="mt-2 ml-4 -mb-4">
           <Link href={allRemainingBookings ? "/bookings/recurring" : "/bookings/upcoming"}>
