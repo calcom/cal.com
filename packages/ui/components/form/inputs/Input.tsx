@@ -1,5 +1,6 @@
 import React, { forwardRef, ReactElement, ReactNode, Ref, useCallback, useId, useState } from "react";
 import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn } from "react-hook-form";
+import TextareaAutosize from "react-textarea-autosize";
 
 import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -255,7 +256,8 @@ type TextAreaProps = JSX.IntrinsicElements["textarea"];
 
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextAreaInput(props, ref) {
   return (
-    <textarea
+    <TextareaAutosize
+      // @ts-expect-error how does typescript work? halp.
       ref={ref}
       {...props}
       className={classNames(

@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import MarkdownIt from "markdown-it";
 import { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -32,6 +33,7 @@ import { BadgeCheckIcon, Icon } from "@calcom/ui";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EmbedProps } from "@lib/withEmbedSsr";
 
+import UserBioSafeHTML from "@components/UserBioSafeHTML";
 import AvatarGroup from "@components/ui/AvatarGroup";
 import { AvatarSSR } from "@components/ui/AvatarSSR";
 
@@ -102,6 +104,17 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
     }
   }, [telemetry, router.asPath]);
   const isEventListEmpty = eventTypes.length === 0;
+
+  const md = new MarkdownIt("zero").enable([
+    //
+    "emphasis",
+    "list",
+    "newline",
+    "strikethrough",
+  ]);
+
+  const safeBio = user.bio ? md.render(user.bio) : null;
+
   return (
     <>
       <HeadSeo
@@ -142,7 +155,9 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                   <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
                 )}
               </h1>
-              <p className="dark:text-darkgray-600 text-s text-neutral-500">{user.bio}</p>
+              <p className="dark:text-darkgray-600 text-s text-neutral-500">
+                <UserBioSafeHTML bio={safeBio} />
+              </p>
             </div>
           )}
           <div

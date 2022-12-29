@@ -33,6 +33,7 @@ import {
   SkeletonContainer,
   SkeletonText,
   TextField,
+  TextAreaField,
 } from "@calcom/ui";
 
 import TwoFactor from "@components/auth/TwoFactor";
@@ -363,7 +364,7 @@ const ProfileForm = ({
         <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />
       </div>
       <div className="mt-8">
-        <TextField label={t("about")} hint={t("bio_hint")} {...formMethods.register("bio")} />
+        <TextAreaField label={t("about")} hint={t("bio_hint")} {...formMethods.register("bio")} />
       </div>
 
       <Button disabled={isDisabled} color="primary" className="mt-8" type="submit">
