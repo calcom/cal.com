@@ -60,21 +60,24 @@ export async function getBusyTimes(params: {
       },
     })
     .then((bookings) => {
-      return bookings.map(({ startTime, endTime, title, id, eventType }) => ({
-        start: dayjs(startTime)
-          .subtract((eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0), "minute")
-          .toDate(),
-        end: dayjs(endTime)
-          .add((eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0), "minute")
-          .toDate(),
-        title,
-        source: `eventType-${eventType?.id}-booking-${id}`,
-      }));
+      return bookings.map(({ startTime, endTime, title, id, eventType }) => {
+        return {
+          start: dayjs(startTime)
+            .subtract((eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0), "minute")
+            .toDate(),
+          end: dayjs(endTime)
+            .add((eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0), "minute")
+            .toDate(),
+          title,
+          source: `eventType-${eventType?.id}-booking-${id}`,
+        };
+      });
     });
   logger.silly(`Busy Time from Cal Bookings ${JSON.stringify(busyTimes)}`);
   const endPrismaBookingGet = performance.now();
   logger.debug(`prisma booking get took ${endPrismaBookingGet - startPrismaBookingGet}ms`);
   if (credentials?.length > 0) {
+    logger.silly(`Checking Busy time from Calendars in range ${startTime} to ${endTime}`);
     const calendarBusyTimes = await getBusyCalendarTimes(credentials, startTime, endTime, selectedCalendars);
 
     busyTimes.push(

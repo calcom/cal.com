@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import { BookingStatus, PeriodType } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/client";
 import { getSchedule, Slot } from "@calcom/trpc/server/routers/viewer/slots";
 
 import { prismaMock } from "../../../../tests/config/singleton";
@@ -86,7 +86,7 @@ const TestData = {
   schedules: {
     IstWorkHours: {
       id: 1,
-      name: "9:30AM to 6PM in India",
+      name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT",
       availability: [
         {
           userId: null,
@@ -146,11 +146,13 @@ type InputUser = typeof TestData.users.example & { id: number } & {
 type InputEventType = {
   id: number;
   title?: string;
-  length: number;
-  slotInterval: number;
-  minimumBookingNotice: number;
+  length?: number;
+  slotInterval?: number;
+  minimumBookingNotice?: number;
   users: { id: number }[];
   schedulingType?: SchedulingType;
+  beforeEventBuffer?: number;
+  afterEventBuffer?: number;
 };
 
 type InputBooking = {
@@ -193,8 +195,6 @@ describe("getSchedule", () => {
         eventTypes: [
           {
             id: 1,
-            minimumBookingNotice: 1440,
-            length: 30,
             // If `slotInterval` is set, it supersedes `length`
             slotInterval: 45,
             users: [
@@ -313,20 +313,357 @@ describe("getSchedule", () => {
       );
     });
 
-    test.todo("afterBuffer and beforeBuffer tests");
+    test("slots are available as per `length`, `slotInterval` of the event", async () => {
+      createBookingScenario({
+        eventTypes: [
+          {
+            id: 1,
+            length: 30,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+          {
+            id: 2,
+            length: 30,
+            slotInterval: 120,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+          },
+        ],
+      });
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+      const scheduleForEventWith30Length = await getSchedule(
+        {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+        },
+        ctx
+      );
+      expect(scheduleForEventWith30Length).toHaveTimeSlots(
+        [
+          `04:00:00.000Z`,
+          `04:30:00.000Z`,
+          `05:00:00.000Z`,
+          `05:30:00.000Z`,
+          `06:00:00.000Z`,
+          `06:30:00.000Z`,
+          `07:00:00.000Z`,
+          `07:30:00.000Z`,
+          `08:00:00.000Z`,
+          `08:30:00.000Z`,
+          `09:00:00.000Z`,
+          `09:30:00.000Z`,
+          `10:00:00.000Z`,
+          `10:30:00.000Z`,
+          `11:00:00.000Z`,
+          `11:30:00.000Z`,
+          `12:00:00.000Z`,
+        ],
+        {
+          dateString: plus2DateString,
+        }
+      );
+
+      const scheduleForEventWith30minsLengthAndSlotInterval2hrs = await getSchedule(
+        {
+          eventTypeId: 2,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+        },
+        ctx
+      );
+      // `slotInterval` takes precedence over `length`
+      expect(scheduleForEventWith30minsLengthAndSlotInterval2hrs).toHaveTimeSlots(
+        [`04:00:00.000Z`, `06:00:00.000Z`, `08:00:00.000Z`, `10:00:00.000Z`, `12:00:00.000Z`],
+        {
+          dateString: plus2DateString,
+        }
+      );
+    });
+
+    test("minimumBookingNotice is respected", async () => {
+      jest.useFakeTimers().setSystemTime(
+        (() => {
+          const today = new Date();
+          // Beginning of the day in current timezone of the system
+          return new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        })()
+      );
+
+      createBookingScenario({
+        eventTypes: [
+          {
+            id: 1,
+            length: 120,
+            minimumBookingNotice: 13 * 60, // Would take the minimum bookable time to be 18:30UTC+13 = 7:30AM UTC
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+          {
+            id: 2,
+            length: 120,
+            minimumBookingNotice: 10 * 60, // Would take the minimum bookable time to be 18:30UTC+10 = 4:30AM UTC
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+          },
+        ],
+      });
+      const { dateString: todayDateString } = getDate();
+      const { dateString: minus1DateString } = getDate({ dateIncrement: -1 });
+      const scheduleForEventWithBookingNotice13Hrs = await getSchedule(
+        {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${minus1DateString}T18:30:00.000Z`,
+          endTime: `${todayDateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+        },
+        ctx
+      );
+      expect(scheduleForEventWithBookingNotice13Hrs).toHaveTimeSlots(
+        [
+          /*`04:00:00.000Z`, `06:00:00.000Z`, - Minimum time slot is 07:30 UTC*/ `08:00:00.000Z`,
+          `10:00:00.000Z`,
+          `12:00:00.000Z`,
+        ],
+        {
+          dateString: todayDateString,
+        }
+      );
+
+      const scheduleForEventWithBookingNotice10Hrs = await getSchedule(
+        {
+          eventTypeId: 2,
+          eventTypeSlug: "",
+          startTime: `${minus1DateString}T18:30:00.000Z`,
+          endTime: `${todayDateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+        },
+        ctx
+      );
+      expect(scheduleForEventWithBookingNotice10Hrs).toHaveTimeSlots(
+        [
+          /*`04:00:00.000Z`, - Minimum bookable time slot is 04:30 UTC but next available is 06:00*/
+          `06:00:00.000Z`,
+          `08:00:00.000Z`,
+          `10:00:00.000Z`,
+          `12:00:00.000Z`,
+        ],
+        {
+          dateString: todayDateString,
+        }
+      );
+      jest.useRealTimers();
+    });
+
+    test.only("afterBuffer and beforeBuffer tests - Non Cal Busy Time", async () => {
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+      const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+
+      const scenarioData = {
+        eventTypes: [
+          {
+            id: 1,
+            length: 120,
+            beforeEventBuffer: 120,
+            afterEventBuffer: 120,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+          // {
+          //   id: 2,
+          //   length: 120,
+          //   beforeEventBuffer: 120,
+          //   afterEventBuffer: 120,
+          //   users: [
+          //     {
+          //       id: 101,
+          //     },
+          //   ],
+          // },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          },
+        ],
+        apps: [TestData.apps.googleCalendar],
+      };
+
+      createBookingScenario(scenarioData);
+
+      addBusyTimesInGoogleCalendar(
+        [
+          {
+            start: `${plus3DateString}T04:00:00.000Z`,
+            end: `${plus3DateString}T05:59:59.000Z`,
+          },
+        ],
+        scenarioData
+      );
+
+      const scheduleForEventOnADayWithNonCalBooking = await getSchedule(
+        {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus2DateString}T18:30:00.000Z`,
+          endTime: `${plus3DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+        },
+        ctx
+      );
+
+      expect(scheduleForEventOnADayWithNonCalBooking).toHaveTimeSlots(
+        [
+          // `04:00:00.000Z`, // - 4 AM is booked
+          // `06:00:00.000Z`, // - 6 AM is not available because 08:00AM slot has a `beforeEventBuffer`
+          `08:00:00.000Z`, // - 8 AM is available because of availability of 06:00 - 07:59
+          `10:00:00.000Z`,
+          `12:00:00.000Z`,
+        ],
+        {
+          dateString: plus3DateString,
+        }
+      );
+    });
+
+    test("afterBuffer and beforeBuffer tests - Cal Busy Time", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+      const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+
+      const scenarioData = {
+        eventTypes: [
+          {
+            id: 1,
+            length: 120,
+            beforeEventBuffer: 120,
+            afterEventBuffer: 120,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+          // {
+          //   id: 2,
+          //   length: 120,
+          //   beforeEventBuffer: 120,
+          //   afterEventBuffer: 120,
+          //   users: [
+          //     {
+          //       id: 101,
+          //     },
+          //   ],
+          // },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          },
+        ],
+        bookings: [
+          {
+            userId: 101,
+            eventTypeId: 1,
+            startTime: `${plus2DateString}T04:00:00.000Z`,
+            endTime: `${plus2DateString}T05:59:59.000Z`,
+            status: "ACCEPTED" as BookingStatus,
+          },
+        ],
+        apps: [TestData.apps.googleCalendar],
+      };
+
+      createBookingScenario(scenarioData);
+
+      addBusyTimesInGoogleCalendar(
+        [
+          {
+            start: `${plus3DateString}T04:00:00.000Z`,
+            end: `${plus3DateString}T05:59:59.000Z`,
+          },
+        ],
+        scenarioData
+      );
+
+      const scheduleForEventOnADayWithCalBooking = await getSchedule(
+        {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+        },
+        ctx
+      );
+
+      expect(scheduleForEventOnADayWithCalBooking).toHaveTimeSlots(
+        [
+          // `04:00:00.000Z`, // - 4 AM is booked
+          // `06:00:00.000Z`, // - 6 AM is not available because of afterBuffer(120 mins) of the existing booking(4-5:59AM slot)
+          // `08:00:00.000Z`, // - 8 AM is not available because of beforeBuffer(120mins) of possible booking at 08:00
+          `10:00:00.000Z`,
+          `12:00:00.000Z`,
+        ],
+        {
+          dateString: plus2DateString,
+        }
+      );
+    });
+
     test.todo("Check for Date overrides");
 
     test("correctly identifies unavailable slots from calendar", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
-      // An event with one accepted booking
-      createBookingScenario({
+      const scenarioData = {
         eventTypes: [
           {
             id: 1,
-            minimumBookingNotice: 1440,
-            length: 30,
             slotInterval: 45,
             users: [
               {
@@ -345,15 +682,19 @@ describe("getSchedule", () => {
           },
         ],
         apps: [TestData.apps.googleCalendar],
-      });
+      };
+      // An event with one accepted booking
+      createBookingScenario(scenarioData);
 
-      addBusyTimesInGoogleCalendar([
-        {
-          start: `${plus2DateString}T04:30:00.000Z`,
-          end: `${plus2DateString}T23:00:00.000Z`,
-        },
-      ]);
-
+      addBusyTimesInGoogleCalendar(
+        [
+          {
+            start: `${plus2DateString}T04:30:00.000Z`,
+            end: `${plus2DateString}T23:00:00.000Z`,
+          },
+        ],
+        scenarioData
+      );
       const scheduleForDayWithAGoogleCalendarBooking = await getSchedule(
         {
           eventTypeId: 1,
@@ -384,8 +725,6 @@ describe("getSchedule", () => {
           // An event having two users with one accepted booking
           {
             id: 1,
-            minimumBookingNotice: 0,
-            length: 30,
             slotInterval: 45,
             users: [
               {
@@ -398,8 +737,6 @@ describe("getSchedule", () => {
           },
           {
             id: 2,
-            minimumBookingNotice: 0,
-            length: 30,
             slotInterval: 45,
             users: [
               {
@@ -508,8 +845,6 @@ describe("getSchedule", () => {
           // An event having two users with one accepted booking
           {
             id: 1,
-            minimumBookingNotice: 0,
-            length: 30,
             slotInterval: 45,
             users: [
               {
@@ -523,8 +858,6 @@ describe("getSchedule", () => {
           },
           {
             id: 2,
-            minimumBookingNotice: 0,
-            length: 30,
             slotInterval: 45,
             users: [
               {
@@ -651,21 +984,31 @@ function getGoogleCalendarCredential() {
 
 function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
   const baseEventType = {
-    title: "Test EventType Title",
-    slug: "testslug",
+    title: "Base EventType Title",
+    slug: "base-event-type-slug",
     timeZone: null,
     beforeEventBuffer: 0,
     afterEventBuffer: 0,
     schedulingType: null,
+
+    //TODO: What is the purpose of periodStartDate and periodEndDate? Test these?
     periodStartDate: new Date("2022-01-21T09:03:48.000Z"),
     periodEndDate: new Date("2022-01-21T09:03:48.000Z"),
     periodCountCalendarDays: false,
     periodDays: 30,
     seatsPerTimeSlot: null,
     metadata: {},
+    minimumBookingNotice: 0,
   };
-
+  const foundEvents: Record<number, boolean> = {};
   const eventTypesWithUsers = eventTypes.map((eventType) => {
+    if (!eventType.slotInterval && !eventType.length) {
+      throw new Error("eventTypes[number]: slotInterval or length must be defined");
+    }
+    if (foundEvents[eventType.id]) {
+      throw new Error(`eventTypes[number]: id ${eventType.id} is not unique`);
+    }
+    foundEvents[eventType.id] = true;
     const users = eventType.users.map((userWithJustId) => {
       return usersStore.find((user) => user.id === userWithJustId.id);
     });
@@ -680,6 +1023,7 @@ function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   prismaMock.eventType.findUnique.mockImplementation(({ where }) => {
+    console.log("eventTypesWithUsers", eventTypesWithUsers);
     return new Promise((resolve) => {
       const eventType = eventTypesWithUsers.find((e) => e.id === where.id) as unknown as PrismaEventType & {
         users: PrismaUser[];
@@ -689,7 +1033,7 @@ function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
   });
 }
 
-async function addBookings(bookings: InputBooking[]) {
+async function addBookings(bookings: InputBooking[], eventTypes: InputEventType[]) {
   logger.silly("TestData: Creating Bookings", bookings);
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -711,6 +1055,7 @@ async function addBookings(bookings: InputBooking[]) {
             uid: uuidv4(),
             title: "Test Booking Title",
             ...booking,
+            eventType: eventTypes.find((eventType) => eventType.id === booking.eventTypeId),
           })) as unknown as PrismaBooking[]
       );
     });
@@ -728,8 +1073,7 @@ function addUsers(users: InputUser[]) {
     }) as unknown as PrismaUser[]
   );
 }
-
-function createBookingScenario(data: {
+type ScenarioData = {
   // TODO: Support multiple bookings and add tests with that.
   bookings?: InputBooking[];
   users: InputUser[];
@@ -737,8 +1081,17 @@ function createBookingScenario(data: {
   apps?: App[];
   selectedCalendars?: InputSelectedCalendar[];
   eventTypes: InputEventType[];
-}) {
+  calendarBusyTimes?: {
+    start: string;
+    end: string;
+  }[];
+};
+
+function createBookingScenario(data: ScenarioData) {
+  logger.silly("TestData: Creating Scenario", data);
+
   addUsers(data.users);
+
   const eventType = addEventTypes(data.eventTypes, data.users);
   if (data.apps) {
     prismaMock.app.findMany.mockResolvedValue(data.apps as PrismaApp[]);
@@ -756,7 +1109,8 @@ function createBookingScenario(data: {
     });
   }
   data.bookings = data.bookings || [];
-  addBookings(data.bookings);
+  addBookings(data.bookings, data.eventTypes);
+
   return {
     eventType,
   };
@@ -810,8 +1164,18 @@ function addBusyTimesInGoogleCalendar(
   busy: {
     start: string;
     end: string;
-  }[]
+  }[],
+  data: ScenarioData
 ) {
+  if (!data.users.find((u) => u.credentials && u.selectedCalendars)) {
+    throw new Error(
+      "Google Calendar mocking requires atleast one user with both `credentials` and `selectedCalendars`"
+    );
+  }
+  if (!data.apps?.find((app) => app.slug === "google-calendar")) {
+    throw new Error('Google Calendar mocking requires an app with slug "google-calendar"');
+  }
+  logger.silly("Adding busy times in Google Calendar", busy);
   nock("https://oauth2.googleapis.com").post("/token").reply(200, {
     access_token: "access_token",
     expiry_date: Infinity,

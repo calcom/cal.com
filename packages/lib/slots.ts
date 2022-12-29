@@ -2,6 +2,7 @@ import dayjs, { Dayjs } from "@calcom/dayjs";
 import { WorkingHours, TimeRange as DateOverride } from "@calcom/types/schedule";
 
 import { getWorkingHours } from "./availability";
+import logger from "./logger";
 
 export type GetSlots = {
   inviteeDate: Dayjs;
@@ -123,8 +124,14 @@ const getSlots = ({
   dateOverrides = [],
   eventLength,
 }: GetSlots) => {
+  debugger;
   // current date in invitee tz
   const startDate = dayjs().add(minimumBookingNotice, "minute");
+  if (minimumBookingNotice) {
+    logger.silly(
+      `Adjust startDate to ${startDate} from ${inviteeDate} for minimumBookingNotice of ${minimumBookingNotice}`
+    );
+  }
   // This code is ran client side, startOf() does some conversions based on the
   // local tz of the client. Sometimes this shifts the day incorrectly.
   const startOfDayUTC = dayjs.utc().set("hour", 0).set("minute", 0).set("second", 0);
