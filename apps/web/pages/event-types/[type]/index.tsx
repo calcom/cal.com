@@ -8,9 +8,10 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { StripeData } from "@calcom/app-store/stripepayment/lib/server";
-import getApps, { getEventTypeAppData, getLocationOptions } from "@calcom/app-store/utils";
+import { getEventTypeAppData, getLocationOptions } from "@calcom/app-store/utils";
 import { EventLocationType, LocationObject } from "@calcom/core/location";
 import { parseBookingLimit, parseRecurringEvent, validateBookingLimitOrder } from "@calcom/lib";
+import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { CAL_URL } from "@calcom/lib/constants";
 import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
 import findDurationType from "@calcom/lib/findDurationType";
@@ -282,7 +283,7 @@ const EventTypePage = (props: inferSSRProps<typeof getServerSideProps>) => {
             if (metadata?.multipleDuration.length < 1) {
               throw new Error(t("event_setup_multiple_duration_error"));
             } else {
-              if (!metadata?.multipleDuration?.includes(input.length)) {
+              if (input.length && !metadata?.multipleDuration?.includes(input.length)) {
                 throw new Error(t("event_setup_multiple_duration_default_error"));
               }
             }
@@ -340,7 +341,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     id: true,
     avatar: true,
     email: true,
-    plan: true,
     locale: true,
     defaultScheduleId: true,
   });
@@ -467,6 +467,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const credentials = await prisma.credential.findMany({
     where: {
       userId: session.user.id,
+      app: {
+        enabled: true,
+      },
     },
     select: {
       id: true,
@@ -474,6 +477,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       key: true,
       userId: true,
       appId: true,
+      invalid: true,
     },
   });
 
@@ -529,7 +533,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
   const currentUser = eventType.users.find((u) => u.id === session.user.id);
   const t = await getTranslation(currentUser?.locale ?? "en", "common");
-  const integrations = getApps(credentials);
+  const integrations = await getEnabledApps(credentials);
   const locationOptions = getLocationOptions(integrations, t);
 
   const eventTypeObject = Object.assign({}, eventType, {

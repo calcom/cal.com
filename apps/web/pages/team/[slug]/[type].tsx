@@ -1,4 +1,3 @@
-import { UserPlan } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 
 import { privacyFilteredLocations, LocationObject } from "@calcom/core/location";
@@ -61,7 +60,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
               username: true,
               timeZone: true,
               hideBranding: true,
-              plan: true,
               brandColor: true,
               darkBrandColor: true,
             },
@@ -131,7 +129,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       name: user.name,
       username: user.username,
       hideBranding: user.hideBranding,
-      plan: user.plan,
       timeZone: user.timeZone,
     })),
   });
@@ -145,8 +142,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
   return {
     props: {
-      // Team is always pro
-      plan: "PRO" as UserPlan,
       profile: {
         name: team.name || team.slug,
         slug: team.slug,

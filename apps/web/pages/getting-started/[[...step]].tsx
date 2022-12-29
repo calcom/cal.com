@@ -164,7 +164,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       weekStart: true,
       hideBranding: true,
       theme: true,
-      plan: true,
       brandColor: true,
       darkBrandColor: true,
       metadata: true,

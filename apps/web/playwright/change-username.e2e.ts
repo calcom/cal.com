@@ -1,7 +1,5 @@
 import { expect } from "@playwright/test";
-import { UserPlan } from "@prisma/client";
 
-import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import stripe from "@calcom/features/ee/payments/server/stripe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 

@@ -1,4 +1,4 @@
-import { PeriodType, Prisma, SchedulingType, UserPlan } from "@prisma/client";
+import { PeriodType, Prisma, SchedulingType } from "@prisma/client";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { userSelect } from "@calcom/prisma/selects";
@@ -15,7 +15,6 @@ type UsernameSlugLinkProps = {
     bio?: string | null;
     avatar?: string | null;
     theme?: string | null;
-    plan?: UserPlan;
     away?: boolean;
     verified?: boolean | null;
     allowDynamicBooking?: boolean | null;
@@ -41,7 +40,6 @@ const user: User = {
   name: "John doe",
   avatar: "",
   destinationCalendar: null,
-  plan: UserPlan.PRO,
   hideBranding: true,
   brandColor: "#797979",
   darkBrandColor: "#efefef",

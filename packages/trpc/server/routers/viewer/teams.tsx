@@ -1,4 +1,4 @@
-import { MembershipRole, Prisma, UserPlan } from "@prisma/client";
+import { MembershipRole, Prisma } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { z } from "zod";
 
@@ -45,10 +45,8 @@ export const viewerTeamsRouter = router({
         ...team,
         membership: {
           role: membership?.role as MembershipRole,
-          isMissingSeat: membership?.plan === UserPlan.FREE,
           accepted: membership?.accepted,
         },
-        requiresUpgrade: HOSTED_CAL_FEATURES ? !!team.members.find((m) => m.plan !== UserPlan.PRO) : false,
       };
     }),
   // Returns teams I a member of

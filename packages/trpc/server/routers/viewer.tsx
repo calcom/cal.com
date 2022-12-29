@@ -6,7 +6,6 @@ import z from "zod";
 import app_RoutingForms from "@calcom/app-store/ee/routing-forms/trpc-router";
 import ethRouter from "@calcom/app-store/rainbow/trpc/router";
 import { deleteStripeCustomer } from "@calcom/app-store/stripepayment/lib/customer";
-import { getCustomerAndCheckoutSession } from "@calcom/app-store/stripepayment/lib/getCustomerAndCheckoutSession";
 import stripe, { closePayments } from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumPlanProductId } from "@calcom/app-store/stripepayment/lib/utils";
 import getApps, { getLocationGroupedOptions } from "@calcom/app-store/utils";
@@ -17,8 +16,8 @@ import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
-import { CAL_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -37,6 +36,7 @@ import { TRPCError } from "@trpc/server";
 
 import { authedProcedure, mergeRouters, publicProcedure, router } from "../trpc";
 import { apiKeysRouter } from "./viewer/apiKeys";
+import { appsRouter } from "./viewer/apps";
 import { authRouter } from "./viewer/auth";
 import { availabilityRouter } from "./viewer/availability";
 import { bookingsRouter } from "./viewer/bookings";
@@ -158,7 +158,7 @@ const loggedInViewerRouter = router({
       locale: user.locale,
       timeFormat: user.timeFormat,
       timeZone: user.timeZone,
-      avatar: `${CAL_URL}/${user.username}/avatar.png`,
+      avatar: user.avatar,
       createdDate: user.createdDate,
       trialEndsAt: user.trialEndsAt,
       completedOnboarding: user.completedOnboarding,
@@ -167,7 +167,6 @@ const loggedInViewerRouter = router({
       identityProvider: user.identityProvider,
       brandColor: user.brandColor,
       darkBrandColor: user.darkBrandColor,
-      plan: user.plan,
       away: user.away,
       bio: user.bio,
       weekStart: user.weekStart,
@@ -176,6 +175,9 @@ const loggedInViewerRouter = router({
       metadata: user.metadata,
     };
   }),
+  avatar: authedProcedure.query(({ ctx }) => ({
+    avatar: ctx.user.rawAvatar,
+  })),
   deleteMe: authedProcedure
     .input(
       z.object({
@@ -299,9 +301,20 @@ const loggedInViewerRouter = router({
       });
     }),
   connectedCalendars: authedProcedure.query(async ({ ctx }) => {
-    const { user } = ctx;
+    const { user, prisma } = ctx;
+
+    const userCredentials = await prisma.credential.findMany({
+      where: {
+        userId: ctx.user.id,
+        app: {
+          categories: { has: AppCategories.calendar },
+          enabled: true,
+        },
+      },
+    });
+
     // get user's credentials + their connected integrations
-    const calendarCredentials = getCalendarCredentials(user.credentials);
+    const calendarCredentials = getCalendarCredentials(userCredentials);
 
     // get all the connected integrations' calendars (from third party)
     const connectedCalendars = await getConnectedCalendars(calendarCredentials, user.selectedCalendars);
@@ -412,7 +425,10 @@ const loggedInViewerRouter = router({
       const { user } = ctx;
       const { variant, exclude, onlyInstalled } = input;
       const { credentials } = user;
-      let apps = getApps(credentials).map(
+
+      const enabledApps = await getEnabledApps(credentials);
+
+      let apps = enabledApps.map(
         ({ credentials: _, credential: _1 /* don't leak to frontend */, ...app }) => {
           const credentialIds = credentials.filter((c) => c.type === app.type).map((c) => c.id);
           const invalidCredentialIds = credentials
@@ -426,19 +442,22 @@ const loggedInViewerRouter = router({
         }
       );
 
-      if (exclude) {
-        // exclusion filter
-        apps = apps.filter((item) => (exclude ? !exclude.includes(item.variant) : true));
-      }
       if (variant) {
         // `flatMap()` these work like `.filter()` but infers the types correctly
         apps = apps
           // variant check
           .flatMap((item) => (item.variant.startsWith(variant) ? [item] : []));
       }
+
+      if (exclude) {
+        // exclusion filter
+        apps = apps.filter((item) => (exclude ? !exclude.includes(item.variant) : true));
+      }
+
       if (onlyInstalled) {
         apps = apps.flatMap((item) => (item.credentialIds.length > 0 || item.isGlobal ? [item] : []));
       }
+
       return {
         items: apps,
       };
@@ -476,12 +495,12 @@ const loggedInViewerRouter = router({
       const { user } = ctx;
       const { credentials } = user;
 
-      const apps = getApps(credentials);
+      const apps = await getEnabledApps(credentials);
       return apps
         .filter((app) => app.extendsFeature?.includes(input.extendsFeature))
         .map((app) => ({
           ...app,
-          isInstalled: !!app.credentials.length,
+          isInstalled: !!app.credentials?.length,
         }));
     }),
   appCredentialsByType: authedProcedure
@@ -628,7 +647,6 @@ const loggedInViewerRouter = router({
           email: true,
           metadata: true,
           name: true,
-          plan: true,
           createdDate: true,
         },
       });
@@ -781,9 +799,11 @@ const loggedInViewerRouter = router({
         key: true,
         userId: true,
         appId: true,
+        invalid: true,
       },
     });
-    const integrations = getApps(credentials);
+
+    const integrations = await getEnabledApps(credentials);
 
     const t = await getTranslation(ctx.user.locale ?? "en", "common");
 
@@ -1143,5 +1163,6 @@ export const viewerRouter = mergeRouters(
     // After that there would just one merge call here for all the apps.
     appRoutingForms: app_RoutingForms,
     eth: ethRouter,
+    appsRouter,
   })
 );

@@ -62,6 +62,7 @@ function generateFiles() {
   const browserOutput = [`import dynamic from "next/dynamic"`];
   const metadataOutput = [];
   const schemasOutput = [];
+  const appKeysSchemasOutput = [];
   const serverOutput = [];
   const appDirs: { name: string; path: string }[] = [];
 
@@ -190,6 +191,20 @@ function generateFiles() {
     })
   );
 
+  appKeysSchemasOutput.push(
+    ...getObjectExporter("appKeysSchemas", {
+      fileToBeImported: "zod.ts",
+      // Import path must have / even for windows and not \
+      importBuilder: (app) =>
+        `import { appKeysSchema as ${getVariableName(app.name)}_keys_schema } from "./${app.path.replace(
+          /\\/g,
+          "/"
+        )}/zod";`,
+      // Key must be appId as this is used by eventType metadata and lookup is by appId
+      entryBuilder: (app) => `  "${getAppId(app)}":${getVariableName(app.name)}_keys_schema ,`,
+    })
+  );
+
   browserOutput.push(
     ...getObjectExporter("InstallAppButtonMap", {
       fileToBeImported: "components/InstallAppButton.tsx",
@@ -225,6 +240,7 @@ function generateFiles() {
     ["apps.server.generated.ts", serverOutput],
     ["apps.browser.generated.tsx", browserOutput],
     ["apps.schemas.generated.ts", schemasOutput],
+    ["apps.keys-schemas.generated.ts", appKeysSchemasOutput],
   ];
   filesToGenerate.forEach(([fileName, output]) => {
     fs.writeFileSync(`${APP_STORE_PATH}/${fileName}`, formatOutput(`${banner}${output.join("\n")}`));

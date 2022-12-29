@@ -105,7 +105,6 @@ export const availiblityPageEventTypeSelect = Prisma.validator<Prisma.EventTypeS
       name: true,
       username: true,
       hideBranding: true,
-      plan: true,
       timeZone: true,
     },
   },
