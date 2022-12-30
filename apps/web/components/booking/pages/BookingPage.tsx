@@ -800,6 +800,7 @@ const BookingPage = ({
                       {input.options && input.type === EventTypeCustomInputType.RADIO && (
                         <div className="flex">
                           <Group
+                            name={`customInputs.${input.id}`}
                             required={input.required}
                             onValueChange={(e) => {
                               bookingForm.setValue(`customInputs.${input.id}`, e);
