@@ -5,6 +5,7 @@ import superjson from "superjson";
 
 import "@calcom/embed-core/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import { CalComVersion } from "@calcom/lib/constants";
 import { httpBatchLink } from "@calcom/trpc/client/links/httpBatchLink";
 import { httpLink } from "@calcom/trpc/client/links/httpLink";
 import { loggerLink } from "@calcom/trpc/client/links/loggerLink";
@@ -19,7 +20,6 @@ import { seoConfig } from "@lib/config/next-seo.config";
 
 import I18nLanguageHandler from "@components/I18nLanguageHandler";
 
-import pkg from "../package.json";
 import "../styles/fonts.css";
 import "../styles/globals.css";
 
@@ -33,9 +33,6 @@ function MyApp(props: AppProps) {
   }
   // Use the layout defined at the page level, if available
   const getLayout = Component.getLayout ?? ((page) => page);
-  const calComVersion = `${pkg.version}-${
-    process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"
-  }`;
   return (
     <AppProviders {...props}>
       <DefaultSeo {...seoConfig.defaultNextSeo} />
@@ -49,7 +46,7 @@ function MyApp(props: AppProps) {
       </Head>
       <Script
         id="calcom-version"
-        dangerouslySetInnerHTML={{ __html: `window.CalComVersion = '${calComVersion}'` }}
+        dangerouslySetInnerHTML={{ __html: `window.CalComVersion = '${CalComVersion}'` }}
       />
       {getLayout(
         Component.requiresLicense ? (

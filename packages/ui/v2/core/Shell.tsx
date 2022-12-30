@@ -1,5 +1,4 @@
 import type { User } from "@prisma/client";
-import noop from "lodash/noop";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
@@ -22,6 +21,7 @@ import {
   JOIN_SLACK,
   ROADMAP,
   WEBAPP_URL,
+  CalComVersion,
 } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -42,9 +42,6 @@ import {
   showToast,
   TimezoneChangeDialog,
 } from "../..";
-
-/* TODO: Get this from endpoint */
-import pkg from "../../../../apps/web/package.json";
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
@@ -721,8 +718,7 @@ function DeploymentInfo() {
         fontSize: "0.5rem",
       }}
       className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
-      &copy; {new Date().getFullYear()} {COMPANY_NAME} v.{pkg.version + "-"}
-      {process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"}
+      &copy; {new Date().getFullYear()} {COMPANY_NAME} {CalComVersion}
     </small>
   );
 }
