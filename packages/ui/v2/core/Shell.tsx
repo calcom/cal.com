@@ -776,9 +776,8 @@ function SideBar() {
           </Link>
 
           <Navigation />
+          {isCalcom && <Tips />}
         </div>
-
-        {isCalcom && <Tips />}
 
         <div className="fixed left-1 bottom-0 w-4 bg-gray-50 before:absolute before:left-0 before:-top-20 before:h-20 before:w-48 before:bg-gradient-to-t before:from-gray-50 before:to-transparent lg:left-4 lg:w-48">
           <div data-testid="user-dropdown-trigger">
