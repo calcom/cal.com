@@ -7,10 +7,11 @@ import { v5 as uuidv5 } from "uuid";
 
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import CustomInputItem from "@calcom/features/eventtypes/components/CustomInputItem";
-import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
+import { APP_NAME, CAL_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
+  Badge,
   Button,
   Checkbox,
   Dialog,
@@ -256,13 +257,26 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   defaultValue={eventType.successRedirectUrl || ""}
                   {...formMethods.register("successRedirectUrl")}
                 />
+                <div className="mt-2 flex">
+                  <Checkbox
+                    description={t("disable_success_page")}
+                    // Disable if it's not Self Hosted or if the redirect url is not set
+                    disabled={!IS_SELF_HOSTED || !formMethods.watch("successRedirectUrl")}
+                    {...formMethods.register("metadata.disableSuccessPage")}
+                  />
+                  {/*TODO: Extract it out into a component*/}
+                  {!IS_SELF_HOSTED && (
+                    <Badge variant="orange" className="ml-2">
+                      Self Hosted Only
+                    </Badge>
+                  )}
+                </div>
               </div>
             </SettingsToggle>
           </>
         )}
       />
       <hr />
-
       <SettingsToggle
         data-testid="hashedLinkCheck"
         title={t("private_link")}
