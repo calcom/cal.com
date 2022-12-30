@@ -19,6 +19,7 @@ import { seoConfig } from "@lib/config/next-seo.config";
 
 import I18nLanguageHandler from "@components/I18nLanguageHandler";
 
+import pkg from "../package.json";
 import "../styles/fonts.css";
 import "../styles/globals.css";
 
@@ -32,7 +33,9 @@ function MyApp(props: AppProps) {
   }
   // Use the layout defined at the page level, if available
   const getLayout = Component.getLayout ?? ((page) => page);
-
+  const calComVersion = `${pkg.version}-${
+    process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"
+  }`;
   return (
     <AppProviders {...props}>
       <DefaultSeo {...seoConfig.defaultNextSeo} />
@@ -44,6 +47,10 @@ function MyApp(props: AppProps) {
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
+      <Script
+        id="calcom-version"
+        dangerouslySetInnerHTML={{ __html: `window.CalComVersion = '${calComVersion}'` }}
+      />
       {getLayout(
         Component.requiresLicense ? (
           <LicenseRequired>
