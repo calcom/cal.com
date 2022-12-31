@@ -313,7 +313,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                     mutation.mutate({ away: !user?.away });
                     utils.viewer.me.invalidate();
                   }}
-                  className="flex w-full min-w-max cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
+                  className="flex w-full min-w-max cursor-pointer items-center px-4 py-2 text-sm">
                   <Icon.FiMoon
                     className={classNames(
                       user.away
@@ -362,7 +362,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   href={JOIN_SLACK}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                  className="flex items-center px-4 py-2 text-sm text-gray-700">
                   <Icon.FiSlack strokeWidth={1.5} className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
                   {t("join_our_slack")}
                 </a>
@@ -379,7 +379,7 @@ function UserDropdown({ small }: { small?: boolean }) {
               <DropdownMenuItem>
                 <button
                   onClick={() => setHelpOpen(true)}
-                  className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                  className="flex w-full items-center px-4 py-2 text-sm text-gray-700">
                   <Icon.FiHelpCircle
                     className={classNames(
                       "text-gray-500 group-hover:text-neutral-500",
