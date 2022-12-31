@@ -1,4 +1,5 @@
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TopBanner } from "@calcom/ui";
@@ -15,9 +16,9 @@ function AdminPasswordBanner() {
         text={t("invalid_admin_password", { user: data.user.username })}
         variant="warning"
         actions={
-          <a className="border-b border-b-black" href="/auth/logout">
-            {t("change_password_admin")}
-          </a>
+          <Link href="/settings/security/password">
+            <a className="border-b border-b-black">{t("change_password_admin")}</a>
+          </Link>
         }
       />
     </>
