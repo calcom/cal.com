@@ -252,12 +252,14 @@ export const EmailField = forwardRef<HTMLInputElement, InputFieldProps>(function
   );
 });
 
-type TextAreaProps = JSX.IntrinsicElements["textarea"];
+type TextAreaProps = JSX.IntrinsicElements["textarea"] & {
+  hint?: ReactNode;
+};
 
 export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function TextAreaInput(props, ref) {
   return (
     <TextareaAutosize
-      // @ts-expect-error how does typescript work? halp.
+      // @ts-expect-error type needs to be fixed
       ref={ref}
       {...props}
       className={classNames(
