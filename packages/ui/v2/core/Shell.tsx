@@ -23,8 +23,6 @@ import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
 
-import VersionInfo from "@components/ui/VersionInfo";
-
 import {
   Button,
   Dropdown,
@@ -40,6 +38,7 @@ import {
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
+import VersionInfo from "./VersionInfo";
 import HeadSeo from "./head-seo";
 import { SkeletonText } from "./skeleton";
 
