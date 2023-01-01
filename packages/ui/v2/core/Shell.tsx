@@ -9,6 +9,7 @@ import { Toaster } from "react-hot-toast";
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
+import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
@@ -781,7 +782,9 @@ function SideBar() {
         </div>
 
         <div>
-          {!isCalcom && <Tips />}
+          <LicenseRequired toHide>
+            <Tips />
+          </LicenseRequired>
           <div data-testid="user-dropdown-trigger">
             <span className="hidden lg:inline">
               <UserDropdown />
