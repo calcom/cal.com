@@ -13,6 +13,7 @@ import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/Im
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
 import { Tips } from "@calcom/features/tips";
+import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
 import {
@@ -157,6 +158,7 @@ const Layout = (props: LayoutProps) => {
         <div className="divide-y divide-black">
           <TeamsUpgradeBanner />
           <ImpersonatingBanner />
+          <AdminPasswordBanner />
         </div>
         <div className="flex flex-1" data-testid="dashboard-shell">
           {props.SidebarContainer || <SideBarContainer />}
