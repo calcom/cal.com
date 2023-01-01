@@ -809,9 +809,9 @@ const BookingPage = ({
                               {input.options.map((option, i) => (
                                 <RadioField
                                   label={option.label}
-                                  key={`option.${i}.radio`}
+                                  key={`option.${input.id}.${i}.radio`}
                                   value={option.label}
-                                  id={`option.${i}.radio`}
+                                  id={`option.${input.id}.${i}.radio`}
                                 />
                               ))}
                             </>
