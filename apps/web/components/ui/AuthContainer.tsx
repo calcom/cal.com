@@ -1,10 +1,11 @@
 import classNames from "classnames";
 import React from "react";
 
-import { APP_NAME, CalComVersion, LOGO } from "@calcom/lib/constants";
+import { APP_NAME, LOGO } from "@calcom/lib/constants";
 
 import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
+import VersionInfo from "@components/ui/VersionInfo";
 
 interface Props {
   title: string;
@@ -36,8 +37,10 @@ export default function AuthContainer(props: React.PropsWithChildren<Props>) {
         <div className="border-1 mx-2 rounded-md border-gray-200 bg-white px-4 py-10 sm:px-10">
           {props.children}
         </div>
-        <div className="mt-8 text-center text-sm text-neutral-600">{props.footerText}</div>
-        <small className="my-4 mx-auto block text-center text-[9px] opacity-50">{CalComVersion}</small>
+        <div className="mt-8 text-center text-sm text-neutral-600">
+          {props.footerText}
+          <VersionInfo />
+        </div>
       </div>
     </div>
   );

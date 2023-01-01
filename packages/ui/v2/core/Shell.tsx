@@ -14,21 +14,15 @@ import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
 import { Tips } from "@calcom/features/tips";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import {
-  APP_NAME,
-  COMPANY_NAME,
-  DESKTOP_APP_LINK,
-  JOIN_SLACK,
-  ROADMAP,
-  WEBAPP_URL,
-  CalComVersion,
-} from "@calcom/lib/constants";
+import { APP_NAME, DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import isCalcom from "@calcom/lib/isCalcom";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
+
+import VersionInfo from "@components/ui/VersionInfo";
 
 import {
   Button,
@@ -711,18 +705,6 @@ const MobileNavigationMoreItem: React.FC<{
   );
 };
 
-function DeploymentInfo() {
-  return (
-    <small
-      style={{
-        fontSize: "0.5rem",
-      }}
-      className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
-      &copy; {new Date().getFullYear()} {COMPANY_NAME} {CalComVersion}
-    </small>
-  );
-}
-
 function SideBarContainer() {
   const { status } = useSession();
   const router = useRouter();
@@ -785,7 +767,7 @@ function SideBar() {
               <UserDropdown small />
             </span>
           </div>
-          <DeploymentInfo />
+          <VersionInfo />
         </div>
       </aside>
     </div>
