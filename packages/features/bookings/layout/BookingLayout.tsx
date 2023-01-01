@@ -34,7 +34,7 @@ export default function BookingLayout({
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
   return (
     <Shell {...rest}>
-      <div className="flex max-w-6xl flex-col sm:space-x-2">
+      <div className="flex max-w-6xl flex-col">
         <div className="flex  flex-col lg:flex-row">
           <HorizontalTabs tabs={tabs} />
           <FiltersContainer />

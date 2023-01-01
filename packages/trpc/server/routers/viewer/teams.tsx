@@ -683,4 +683,18 @@ export const viewerTeamsRouter = router({
         .reduce((acc, m) => (m.user.id in acc ? acc : { ...acc, [m.user.id]: m.user }), {} as UserMap);
       return Object.values(users);
     }),
+  hasTeamPlan: authedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.user.id;
+    const hasTeamPlan = await ctx.prisma.membership.findFirst({
+      where: {
+        userId,
+        team: {
+          slug: {
+            not: null,
+          },
+        },
+      },
+    });
+    return { hasTeamPlan: !!hasTeamPlan };
+  }),
 });
