@@ -744,7 +744,7 @@ function SideBar() {
   return (
     <div className="relative">
       <aside className="desktop-transparent top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto border-r border-gray-100 bg-gray-50 md:sticky md:flex lg:w-56 lg:px-4">
-        <div className="flex h-full flex-col justify-between pt-3 pb-32 lg:pt-5 ">
+        <div className="flex h-full flex-col justify-between py-3 lg:pt-5 ">
           <header className="items-center justify-between md:hidden lg:flex">
             <Link href="/event-types">
               <a className="px-4">
@@ -778,10 +778,10 @@ function SideBar() {
           </Link>
 
           <Navigation />
-          {isCalcom && <Tips />}
         </div>
 
-        <div className="fixed left-1 bottom-0 w-4 bg-gray-50 before:absolute before:left-0 before:-top-20 before:h-20 before:w-48 before:bg-gradient-to-t before:from-gray-50 before:to-transparent lg:left-4 lg:w-48">
+        <div>
+          {!isCalcom && <Tips />}
           <div data-testid="user-dropdown-trigger">
             <span className="hidden lg:inline">
               <UserDropdown />

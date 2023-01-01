@@ -87,7 +87,7 @@ export default function Tips() {
   const baseOriginalList = list.slice(0).reverse();
   return (
     <div
-      className="hidden pt-8 lg:grid"
+      className="hidden pt-8 pb-4 lg:grid"
       /* ref={animationRef} */
       style={{
         gridTemplateColumns: "1fr",
