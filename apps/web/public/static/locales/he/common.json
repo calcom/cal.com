@@ -611,7 +611,7 @@
   "monthly_other": "חודשים",
   "yearly_one": "שנה",
   "yearly_other": "שנים",
-  "plus_more": "ועוד {{count}}",
+  "plus_more": "{{count}} נוספים",
   "max": "מקסימום",
   "single_theme": "ערכת נושא בודדת",
   "brand_color": "צבע המותג",
