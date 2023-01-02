@@ -29,6 +29,8 @@ const LicenseRequired = ({ children, as = "", toHide = false, ...rest }: License
     <Component {...rest}>
       {hasValidLicense === null || hasValidLicense ? (
         !toHide && children
+      ) : toHide ? (
+        children
       ) : (
         <EmptyScreen
           Icon={Icon.FiAlertTriangle}
