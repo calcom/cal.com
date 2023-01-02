@@ -22,7 +22,6 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
-import Credits from "@calcom/ui/components/credits/Credits";
 
 import {
   Button,
@@ -39,6 +38,7 @@ import {
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
+import Credits from "./Credits";
 import HeadSeo from "./head-seo";
 import { SkeletonText } from "./skeleton";
 
