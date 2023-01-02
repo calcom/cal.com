@@ -363,7 +363,7 @@ function BookingListItem(booking: BookingItemProps) {
               <span> </span>
 
               {!!booking?.eventType?.price && !booking.paid && (
-                <Badge className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex" variant="orange">
+                <Badge className="hidden ltr:ml-2 ltr:mr-2 rtl:ml-2 sm:inline-flex" variant="orange">
                   {t("pending_payment")}
                 </Badge>
               )}

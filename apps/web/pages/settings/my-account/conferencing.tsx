@@ -76,13 +76,13 @@ const ConferencingLayout = () => {
             .map((app) => ({ ...app, title: app.title || app.name }))
             .map((app) => (
               <ListItem className="flex-col border-0" key={app.title}>
-                <div className="flex w-full flex-1 items-center space-x-2 p-4 rtl:space-x-reverse">
+                <div className="flex w-full flex-1 items-center space-x-2 p-4 rtl:space-x-reverse rtl:space-x-reverse">
                   {
                     // eslint-disable-next-line @next/next/no-img-element
                     app.logo && <img className="h-10 w-10" src={app.logo} alt={app.title} />
                   }
                   <div className="flex-grow truncate pl-2">
-                    <ListItemTitle component="h3" className="mb-1 space-x-2">
+                    <ListItemTitle component="h3" className="mb-1 space-x-2 rtl:space-x-reverse">
                       <h3 className="truncate text-sm font-medium text-neutral-900">{app.title}</h3>
                     </ListItemTitle>
                     <ListItemText component="p">{app.description}</ListItemText>

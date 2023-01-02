@@ -31,7 +31,7 @@ function SkeletonItem() {
   return (
     <li className="group flex w-full items-center justify-between p-3">
       <div className="flex-grow truncate text-sm">
-        <div className="flex justify-start space-x-2">
+        <div className="flex justify-start space-x-2 rtl:space-x-reverse">
           <SkeletonText className="h-10 w-10" />
           <div className="space-y-2">
             <SkeletonText className="h-4 w-32" />
