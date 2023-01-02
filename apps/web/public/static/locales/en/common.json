@@ -1481,5 +1481,7 @@
   "send_code" : "Send code",
   "number_verified": "Number Verified",
   "create_your_first_team_webhook_description": "Create your first webhook for this team event type",
-  "create_webhook_team_event_type": "Create a webhook for this team event type"
+  "create_webhook_team_event_type": "Create a webhook for this team event type",
+  "invalid_admin_password": "You are set as an admin but you do not have a password length of at least 15 characters",
+  "change_password_admin": "Change Password to gain admin access"
 }
