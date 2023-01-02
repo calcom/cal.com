@@ -1,8 +1,9 @@
 // @ts-check
+import validationFailure from "./_validationFailure.mjs";
 import { clientEnv, clientSchema, appStoreClientSchema } from "./schema.mjs";
 
-const _clientEnv = clientSchema.safeParse(clientEnv);
-const _appStoreClientEnv = appStoreClientSchema.safeParse(clientEnv);
+const parsedClientEnv = clientSchema.safeParse(clientEnv);
+const parseAppStoreClientEnv = appStoreClientSchema.safeParse(clientEnv);
 
 export const formatErrors = (
   /** @type {import('zod').ZodFormattedError<Map<string,string>,string>} */
@@ -17,17 +18,24 @@ export const formatErrors = (
     })
     .filter(Boolean);
 
-if (!_clientEnv.success || !_appStoreClientEnv.success) {
-  let errors = {};
-  if (_clientEnv.error) errors = { ...errors, ..._clientEnv.error.format() };
-  if (_appStoreClientEnv.error) errors = { ...errors, ..._appStoreClientEnv.error.format() };
-  console.error("❌ Invalid environment variables:\n", ...formatErrors(errors));
-  throw new Error("Invalid environment variables");
+if (!parsedClientEnv.success || !parseAppStoreClientEnv.success) {
+  /** @type {import('zod').ZodFormattedError<Map<string,string>,string>} */
+  let errors = {
+    _errors: [],
+  };
+  if (!parsedClientEnv.success)
+    if (parsedClientEnv.error) errors = { ...errors, ...parsedClientEnv.error.format() };
+
+  if (!parseAppStoreClientEnv.success)
+    if (parseAppStoreClientEnv.error) errors = { ...errors, ...parseAppStoreClientEnv.error.format() };
+  validationFailure(formatErrors(errors));
 }
 
-const clientEnvData = { ..._clientEnv.data, ..._appStoreClientEnv.data };
+const parseClientEnvData = parsedClientEnv.success ? parsedClientEnv.data : {};
+const parseAppStoreClientEnvData = parseAppStoreClientEnv.success ? parseAppStoreClientEnv.data : {};
+const clientEnvData = { ...parseClientEnvData, ...parseAppStoreClientEnvData };
 
-for (let key of Object.keys(_clientEnv.data)) {
+for (let key of Object.keys(parseClientEnvData)) {
   if (!key.startsWith("NEXT_PUBLIC_")) {
     console.warn("❌ Invalid public environment variable name:", key);
 

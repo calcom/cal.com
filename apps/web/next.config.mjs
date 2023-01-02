@@ -1,13 +1,14 @@
 import bundleAnalyzer from "@next/bundle-analyzer";
+import { withSentryConfig } from "@sentry/nextjs";
+import CopyWebpackPlugin from "copy-webpack-plugin";
 import { withAxiom } from "next-axiom";
 import NTM from "next-transpile-modules";
+import os from "os";
+
 import i18nConfig from "@calcom/config/next-i18next.config.js";
+
 import { env } from "../../env/server.mjs";
 
-require("dotenv").config({ path: "../../.env" });
-const CopyWebpackPlugin = require("copy-webpack-plugin");
-const { withSentryConfig } = require("@sentry/nextjs");
-const os = require("os");
 const withTM = NTM([
   "@calcom/app-store",
   "@calcom/core",
@@ -51,8 +52,8 @@ plugins.push(withAxiom);
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
-i18n: i18nConfig.i18n,
-productionBrowserSourceMaps: true,
+  i18n: i18nConfig.i18n,
+  productionBrowserSourceMaps: true,
   /* We already do type check on GH actions */
   typescript: {
     ignoreBuildErrors: !!process.env.CI,
@@ -249,4 +250,4 @@ const config = process.env.NEXT_PUBLIC_SENTRY_DSN
   ? withSentryConfig(moduleExports, sentryWebpackPluginOptions)
   : moduleExports;
 
-export default config
+export default config;

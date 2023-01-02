@@ -1,18 +1,21 @@
 // @ts-check
-import { config as dotEnvConfig } from "dotenv";
 import { z } from "zod";
 
+import { allEnv } from "./_env.mjs";
 import { transformValidator } from "./_transformValidator.mjs";
 
-dotEnvConfig({ path: "../../.env" });
-dotEnvConfig({ path: "../../packages/prisma/.env" });
-dotEnvConfig({ path: "../../.env.appStore" });
+export { allEnv } from "./_env.mjs";
+
+export const variablesDefinedInSchema = {};
+Object.entries(allEnv).forEach(([name]) => {
+  variablesDefinedInSchema[name] = null;
+});
 
 /**
  * Specify your server-side environment variables schema here.
  * This way you can ensure the app isn't built with invalid env vars.
  */
-export const serverSchema = z.object({
+const _serverSchema = z.object({
   API_KEY_PREFIX: z.string().optional(),
   CALCOM_LICENSE_KEY: z.string().optional(),
   CALCOM_TELEMETRY_DISABLED: z.union([z.literal(""), z.literal("1")]).optional(),
@@ -57,12 +60,23 @@ export const serverSchema = z.object({
   TWILIO_TOKEN: z.string().optional(),
 });
 
+const preprocess = (schema) => {
+  return (val) => {
+    for (const [envVariableName] of Object.entries(schema.shape)) {
+      if (!variablesDefinedInSchema[envVariableName]) {
+        variablesDefinedInSchema[envVariableName] = true;
+      }
+    }
+    return val;
+  };
+};
+export const serverSchema = z.preprocess(preprocess(_serverSchema), _serverSchema);
 /**
  * Specify your client-side environment variables schema here.
  * This way you can ensure the app isn't built with invalid env vars.
  * To expose them to the client, prefix them with `NEXT_PUBLIC_`.
  */
-export const clientSchema = z.object({
+const _clientSchema = z.object({
   NEXT_PUBLIC_CONSOLE_URL: z.string().url().optional(),
   NEXT_PUBLIC_EMBED_LIB_URL: z.string().url().optional(),
   NEXT_PUBLIC_HELPSCOUT_KEY: z.string().optional(),
@@ -72,7 +86,7 @@ export const clientSchema = z.object({
    * Set it to "1" if you need to run E2E tests locally
    **/
   NEXT_PUBLIC_IS_E2E: z.literal("1").optional(),
-  NEXT_PUBLIC_LICENSE_CONSENT: z.literal("agree").optional(),
+  NEXT_PUBLIC_LICENSE_CONSENT: z.union([z.literal("agree"), z.literal("")]).optional(),
   NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE: z.string().optional(),
   NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE: z.string().optional(),
   NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE: z.string().optional(),
@@ -82,11 +96,12 @@ export const clientSchema = z.object({
   NEXT_PUBLIC_ZENDESK_KEY: z.string().optional(),
 });
 
+export const clientSchema = z.preprocess(preprocess(_clientSchema), _clientSchema);
 /**
  * Specify your server-side environment variables schema here.
  * This way you can ensure the app isn't built with invalid env vars.
  */
-export const appStoreServerSchema = z.object({
+const _appStoreServerSchema = z.object({
   DAILY_API_KEY: z.string().optional(),
   DAILY_SCALE_PLAN: z.string().optional(),
   GIPHY_API_KEY: z.string().optional(),
@@ -139,44 +154,47 @@ export const appStoreServerSchema = z.object({
   ZOOM_CLIENT_SECRET: z.string().optional(),
 });
 
+export const appStoreServerSchema = z.preprocess(
+  preprocess(_appStoreServerSchema, "appStoreServerSchema"),
+  _appStoreServerSchema
+);
 /**
  * Specify your client-side environment variables schema here.
  * This way you can ensure the app isn't built with invalid env vars.
  * To expose them to the client, prefix them with `NEXT_PUBLIC_`.
  */
-export const appStoreClientSchema = z.object({
+const _appStoreClientSchema = z.object({
   NEXT_PUBLIC_STRIPE_PUBLIC_KEY: z.string().optional(),
 });
 
-/**
- * You can't destruct `process.env` as a regular object, so you have to do
- * it manually here. This is because Next.js evaluates this at build time,
- * and only used environment variables are included in the build.
- * @type {{ [k in keyof z.infer<typeof appStoreClientSchema>]: z.infer<typeof appStoreClientSchema>[k] | undefined }}
- */
-export const appStoreClientEnv = {
-  NEXT_PUBLIC_STRIPE_PUBLIC_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY,
-};
+export const appStoreClientSchema = z.preprocess(preprocess(_appStoreClientSchema), _appStoreClientSchema);
 
 /**
  * You can't destruct `process.env` as a regular object, so you have to do
  * it manually here. This is because Next.js evaluates this at build time,
  * and only used environment variables are included in the build.
- * @type {{ [k in keyof z.infer<typeof clientSchema>]: z.infer<typeof clientSchema>[k] | undefined }}
+ *
+ * @zomars - This is automatically solved by letting the codebase still use process.env directly. Validations of variables have been done and errors are thrown already if invalid.
+ * It is better to let the code use process.env directly because it would still allow any existing deployments to still be able to use their existing undefined vars.
+ * Also, the default behaviour of validation should be to show warnings and instead of crashing the build because invalid variable values might still be working.
+ * This behaviour can be modified using CRASH_ON_INVALID_ENV_VARS variable.
+ *
  */
-export const clientEnv = {
-  NEXT_PUBLIC_CONSOLE_URL: process.env.NEXT_PUBLIC_CONSOLE_URL,
-  NEXT_PUBLIC_EMBED_LIB_URL: process.env.NEXT_PUBLIC_EMBED_LIB_URL,
-  NEXT_PUBLIC_HELPSCOUT_KEY: process.env.NEXT_PUBLIC_HELPSCOUT_KEY,
-  NEXT_PUBLIC_INTERCOM_APP_ID: process.env.NEXT_PUBLIC_INTERCOM_APP_ID,
-  NEXT_PUBLIC_IS_E2E: process.env.NEXT_PUBLIC_IS_E2E,
-  NEXT_PUBLIC_LICENSE_CONSENT: process.env.NEXT_PUBLIC_LICENSE_CONSENT,
-  NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE: process.env.NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE,
-  NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE,
-  NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE: process.env.NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE,
-  NEXT_PUBLIC_TEAM_IMPERSONATION: process.env.NEXT_PUBLIC_TEAM_IMPERSONATION,
-  NEXT_PUBLIC_WEBAPP_URL: process.env.NEXT_PUBLIC_WEBAPP_URL,
-  NEXT_PUBLIC_WEBSITE_URL: process.env.NEXT_PUBLIC_WEBSITE_URL,
-  NEXT_PUBLIC_ZENDESK_KEY: process.env.NEXT_PUBLIC_ZENDESK_KEY,
+/*export const clientEnv = {
+  NEXT_PUBLIC_CONSOLE_URL: allEnv.NEXT_PUBLIC_CONSOLE_URL,
+  NEXT_PUBLIC_EMBED_LIB_URL: allEnv.NEXT_PUBLIC_EMBED_LIB_URL,
+  NEXT_PUBLIC_HELPSCOUT_KEY: allEnv.NEXT_PUBLIC_HELPSCOUT_KEY,
+  NEXT_PUBLIC_INTERCOM_APP_ID: allEnv.NEXT_PUBLIC_INTERCOM_APP_ID,
+  NEXT_PUBLIC_IS_E2E: allEnv.NEXT_PUBLIC_IS_E2E,
+  NEXT_PUBLIC_LICENSE_CONSENT: allEnv.NEXT_PUBLIC_LICENSE_CONSENT,
+  NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE: allEnv.NEXT_PUBLIC_STRIPE_FREE_PLAN_PRICE,
+  NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE: allEnv.NEXT_PUBLIC_STRIPE_PREMIUM_PLAN_PRICE,
+  NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE: allEnv.NEXT_PUBLIC_STRIPE_PRO_PLAN_PRICE,
+  NEXT_PUBLIC_TEAM_IMPERSONATION: allEnv.NEXT_PUBLIC_TEAM_IMPERSONATION,
+  NEXT_PUBLIC_WEBAPP_URL: allEnv.NEXT_PUBLIC_WEBAPP_URL,
+  NEXT_PUBLIC_WEBSITE_URL: allEnv.NEXT_PUBLIC_WEBSITE_URL,
+  NEXT_PUBLIC_ZENDESK_KEY: allEnv.NEXT_PUBLIC_ZENDESK_KEY,
   ...appStoreClientEnv,
-};
+};*/
+
+export const clientEnv = allEnv;
