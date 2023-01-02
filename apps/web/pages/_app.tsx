@@ -5,7 +5,6 @@ import superjson from "superjson";
 
 import "@calcom/embed-core/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { CalComVersion } from "@calcom/lib/constants";
 import { httpBatchLink } from "@calcom/trpc/client/links/httpBatchLink";
 import { httpLink } from "@calcom/trpc/client/links/httpLink";
 import { loggerLink } from "@calcom/trpc/client/links/loggerLink";
@@ -43,10 +42,6 @@ function MyApp(props: AppProps) {
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
-      <Script
-        id="calcom-version"
-        dangerouslySetInnerHTML={{ __html: `window.CalComVersion = '${CalComVersion}'` }}
-      />
       {getLayout(
         Component.requiresLicense ? (
           <LicenseRequired>
