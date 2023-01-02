@@ -36,7 +36,12 @@ export default function RoutingForms({
 
   function NewFormButton() {
     return (
-      <FormAction routingForm={null} data-testid="new-routing-form" StartIcon={Icon.FiPlus} action="create">
+      <FormAction
+        size="fab"
+        routingForm={null}
+        data-testid="new-routing-form"
+        StartIcon={Icon.FiPlus}
+        action="create">
         {t("new")}
       </FormAction>
     );
