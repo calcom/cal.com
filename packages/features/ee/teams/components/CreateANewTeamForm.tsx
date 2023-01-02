@@ -90,7 +90,7 @@ export const CreateANewTeamForm = () => {
                 addOnLeading={`${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace("https://", "")?.replace(
                   "http://",
                   ""
-                )}/`}
+                )}/team/`}
                 defaultValue={value}
                 onChange={(e) => {
                   newTeamFormMethods.setValue("slug", slugify(e?.target.value), {
