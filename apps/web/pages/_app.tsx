@@ -19,7 +19,6 @@ import { seoConfig } from "@lib/config/next-seo.config";
 
 import I18nLanguageHandler from "@components/I18nLanguageHandler";
 
-import "../styles/fonts.css";
 import "../styles/globals.css";
 
 function MyApp(props: AppProps) {
