@@ -154,10 +154,7 @@ const _appStoreServerSchema = z.object({
   ZOOM_CLIENT_SECRET: z.string().optional(),
 });
 
-export const appStoreServerSchema = z.preprocess(
-  preprocess(_appStoreServerSchema, "appStoreServerSchema"),
-  _appStoreServerSchema
-);
+export const appStoreServerSchema = z.preprocess(preprocess(_appStoreServerSchema), _appStoreServerSchema);
 /**
  * Specify your client-side environment variables schema here.
  * This way you can ensure the app isn't built with invalid env vars.
@@ -174,7 +171,7 @@ export const appStoreClientSchema = z.preprocess(preprocess(_appStoreClientSchem
  * it manually here. This is because Next.js evaluates this at build time,
  * and only used environment variables are included in the build.
  *
- * @zomars - This is automatically solved by letting the codebase still use process.env directly. Validations of variables have been done and errors are thrown already if invalid.
+ * @zomars - This is automatically solved by letting the codebase still use process.env directly. Validations on process.env have been done and errors are thrown already if invalid. So, it should be okay to let process.env used now
  * It is better to let the code use process.env directly because it would still allow any existing deployments to still be able to use their existing undefined vars.
  * Also, the default behaviour of validation should be to show warnings and instead of crashing the build because invalid variable values might still be working.
  * This behaviour can be modified using CRASH_ON_INVALID_ENV_VARS variable.
