@@ -14,14 +14,13 @@ Cal.com uses [TailwindCSS](https://tailwindcss.com) as a replacement for traditi
 
 CSS files should be stored in the `styles` directory within the codebase.
 
-Within the `styles` directory, you will find two CSS files, `fonts.css` and `global.css`. We suggest not to add to these files, and instead create new CSS files and import them into the application. This helps reduce conflicts when pulling in changes that we've made to either of the existing CSS files.
+Within the `styles` directory, you will find a single CSS file, `global.css`. We suggest not to add to this file, and instead create new CSS files and import them into the application. This helps reduce conflicts when pulling in changes that we've made to either of the existing CSS files.
 
 ## Adding new stylesheets
 Firstly, create the CSS file inside the `styles` directory.
 
 Then, open the `pages/_app.tsx` file, and you will see the following two lines:
 ```javascript
-import "../styles/fonts.css";
 import "../styles/globals.css";
 ```
 

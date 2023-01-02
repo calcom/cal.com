@@ -16,15 +16,7 @@ import { Tips } from "@calcom/features/tips";
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import {
-  APP_NAME,
-  DESKTOP_APP_LINK,
-  JOIN_SLACK,
-  ROADMAP,
-  WEBAPP_URL,
-  COMPANY_NAME,
-  CalComVersion,
-} from "@calcom/lib/constants";
+import { APP_NAME, DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
@@ -46,6 +38,7 @@ import {
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
+import Credits from "./Credits";
 import HeadSeo from "./head-seo";
 import { SkeletonText } from "./skeleton";
 
@@ -719,6 +712,7 @@ const MobileNavigationMoreItem: React.FC<{
 function SideBarContainer() {
   const { status } = useSession();
   const router = useRouter();
+
   // Make sure that Sidebar is rendered optimistically so that a refresh of pages when logged in have SideBar from the beginning.
   // This improves the experience of refresh on app store pages(when logged in) which are SSG.
   // Though when logged out, app store pages would temporarily show SideBar until session status is confirmed.
@@ -779,9 +773,7 @@ function SideBar() {
               <UserDropdown small />
             </span>
           </div>
-          <small className="mx-3 mt-1 mb-2 hidden text-[0.5rem] opacity-50 lg:block">
-            &copy; {new Date().getFullYear()} {COMPANY_NAME} {CalComVersion}
-          </small>
+          <Credits />
         </div>
       </aside>
     </div>
