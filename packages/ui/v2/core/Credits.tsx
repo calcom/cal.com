@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { COMPANY_NAME } from "@calcom/lib/constants";
@@ -16,7 +17,14 @@ export default function Credits() {
 
   return (
     <small className="mx-3 mt-1 mb-2 hidden text-[0.5rem] opacity-50 lg:block">
-      &copy; {new Date().getFullYear()} {COMPANY_NAME} {hasMounted && CalComVersion}
+      &copy; {new Date().getFullYear()} {COMPANY_NAME}{" "}
+      {hasMounted && (
+        <Link href="https://go.cal.com/releases">
+          <a target="_blank" className="hover:underline">
+            {CalComVersion}
+          </a>
+        </Link>
+      )}
     </small>
   );
 }
