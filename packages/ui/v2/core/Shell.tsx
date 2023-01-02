@@ -719,6 +719,7 @@ const MobileNavigationMoreItem: React.FC<{
 function SideBarContainer() {
   const { status } = useSession();
   const router = useRouter();
+
   // Make sure that Sidebar is rendered optimistically so that a refresh of pages when logged in have SideBar from the beginning.
   // This improves the experience of refresh on app store pages(when logged in) which are SSG.
   // Though when logged out, app store pages would temporarily show SideBar until session status is confirmed.
@@ -728,6 +729,11 @@ function SideBarContainer() {
 }
 
 function SideBar() {
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
   return (
     <div className="relative">
       <aside className="desktop-transparent top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto border-r border-gray-100 bg-gray-50 md:sticky md:flex lg:w-56 lg:px-4">
@@ -780,7 +786,7 @@ function SideBar() {
             </span>
           </div>
           <small className="mx-3 mt-1 mb-2 hidden text-[0.5rem] opacity-50 lg:block">
-            &copy; {new Date().getFullYear()} {COMPANY_NAME} {CalComVersion}
+            &copy; {new Date().getFullYear()} {COMPANY_NAME} {hasMounted && CalComVersion}
           </small>
         </div>
       </aside>
