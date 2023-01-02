@@ -47,10 +47,7 @@ function IntegrationListItem(props: {
         "my-0 flex-col border transition-colors duration-500",
         highlight ? "bg-yellow-100" : ""
       )}>
-      <div
-        className={classNames(
-          "flex w-full flex-1 items-center space-x-2 p-4 rtl:space-x-reverse rtl:space-x-reverse"
-        )}>
+      <div className={classNames("flex w-full flex-1 items-center space-x-2 p-4 rtl:space-x-reverse")}>
         {props.logo && <img className="h-11 w-11" src={props.logo} alt={title} />}
         <div className="flex-grow truncate pl-2">
           <ListItemTitle component="h3">

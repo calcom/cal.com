@@ -327,7 +327,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                       </div>
                     )}
                     {period.type === "RANGE" && (
-                      <div className="inline-flex space-x-2 ltr:ml-2 ltr:mr-2 rtl:ml-2 rtl:space-x-reverse rtl:space-x-reverse">
+                      <div className="inline-flex space-x-2 ltr:ml-2 ltr:mr-2 rtl:ml-2 rtl:space-x-reverse">
                         <Controller
                           name="periodDates"
                           control={formMethods.control}
