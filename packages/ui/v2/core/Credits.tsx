@@ -17,7 +17,12 @@ export default function Credits() {
 
   return (
     <small className="mx-3 mt-1 mb-2 hidden text-[0.5rem] opacity-50 lg:block">
-      &copy; {new Date().getFullYear()} {COMPANY_NAME}{" "}
+      &copy; {new Date().getFullYear()}{" "}
+      <Link href="https://go.cal.com/credits">
+        <a target="_blank" className="hover:underline">
+          {COMPANY_NAME}
+        </a>
+      </Link>{" "}
       {hasMounted && (
         <Link href="https://go.cal.com/releases">
           <a target="_blank" className="hover:underline">
