@@ -174,7 +174,6 @@ const querySchema = z.object({
 export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
-
   const {
     allRemainingBookings,
     isSuccessBookingPage,
@@ -1050,6 +1049,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
     customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
   };
+
+  if (eventType.metadata?.disableSuccessPage && eventType.successRedirectUrl) {
+    return {
+      redirect: {
+        destination: eventType.successRedirectUrl,
+        permanent: false,
+      },
+    };
+  }
 
   const profile = {
     name: eventType.team?.name || eventType.users[0]?.name || null,
