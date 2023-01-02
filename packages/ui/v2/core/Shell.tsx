@@ -9,6 +9,7 @@ import { Toaster } from "react-hot-toast";
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
+import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
@@ -747,7 +748,7 @@ function SideBar() {
   return (
     <div className="relative">
       <aside className="desktop-transparent top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto border-r border-gray-100 bg-gray-50 md:sticky md:flex lg:w-56 lg:px-4">
-        <div className="flex flex-col pt-3 pb-32 lg:pt-5">
+        <div className="flex h-full flex-col justify-between py-3 lg:pt-5 ">
           <header className="items-center justify-between md:hidden lg:flex">
             <Link href="/event-types">
               <a className="px-4">
@@ -783,9 +784,10 @@ function SideBar() {
           <Navigation />
         </div>
 
-        {isCalcom && <Tips />}
-
-        <div className="fixed bottom-0 w-4 bg-gray-50 before:absolute before:left-0 before:-top-20 before:h-20 before:w-48 before:bg-gradient-to-t before:from-gray-50 before:to-transparent ltr:left-1 rtl:right-1 md:w-14 md:px-2 lg:w-48 lg:px-0 ltr:lg:left-4 rtl:lg:right-4">
+        <div>
+          <LicenseRequired toHide>
+            <Tips />
+          </LicenseRequired>
           <div data-testid="user-dropdown-trigger">
             <span className="hidden lg:inline">
               <UserDropdown />
