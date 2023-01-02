@@ -37,6 +37,7 @@ export const EventTypeMetaDataSchema = z
     giphyThankYouPage: z.string().optional(),
     apps: z.object(appDataSchemas).partial().optional(),
     additionalNotesRequired: z.boolean().optional(),
+    disableSuccessPage: z.boolean().optional(),
     requiresConfirmationThreshold: z
       .object({
         time: z.number(),

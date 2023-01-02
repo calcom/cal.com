@@ -49,6 +49,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                     {...rest}
                     ref={ref}
                     type="checkbox"
+                    disabled={disabled}
                     className={classNames(
                       "text-primary-600 focus:ring-primary-500 mr-2 h-4 w-4 rounded border-gray-300 ",
                       !error && disabled
@@ -59,7 +60,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                     )}
                   />
                 </div>
-                <span className="text-sm ltr:ml-3 rtl:mr-3">{description}</span>
+                <span className="text-sm">{description}</span>
               </>
             )}
             {/* {informationIconText && <InfoBadge content={informationIconText}></InfoBadge>} */}
