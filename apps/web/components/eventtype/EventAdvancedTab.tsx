@@ -264,11 +264,15 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                     disabled={!IS_SELF_HOSTED || !formMethods.watch("successRedirectUrl")}
                     {...formMethods.register("metadata.disableSuccessPage")}
                   />
-                  {/*TODO: Extract it out into a component*/}
+                  {/*TODO: Extract it out into a component when used more than once*/}
                   {!IS_SELF_HOSTED && (
-                    <Badge variant="orange" className="ml-2">
-                      Self Hosted Only
-                    </Badge>
+                    <Link href="https://cal.com/pricing">
+                      <a target="_blank">
+                        <Badge variant="orange" className="ml-2">
+                          Platform Only
+                        </Badge>
+                      </a>
+                    </Link>
                   )}
                 </div>
               </div>
