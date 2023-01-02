@@ -109,7 +109,7 @@ function Select<
         IndicatorSeparator: () => null,
         Input: InputComponent,
       }}
-      className={classNames("text-sm", className)}
+      className={classNames("border-0 text-sm", className)}
       {...props}
     />
   );
