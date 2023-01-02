@@ -254,50 +254,53 @@ function UserDropdown({ small }: { small?: boolean }) {
   }
   return (
     <Dropdown open={menuOpen}>
-      <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
-        <button className="group flex w-full cursor-pointer appearance-none items-center  rounded-full p-2 text-left outline-none hover:bg-gray-200 sm:pl-3 md:rounded lg:pl-2">
-          <span
-            className={classNames(
-              small ? "h-6 w-6" : "h-8 w-8 ltr:mr-2 rtl:ml-3",
-              "relative flex-shrink-0 rounded-full bg-gray-300 "
-            )}>
-            {
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                className="rounded-full"
-                src={WEBAPP_URL + "/" + user.username + "/avatar.png"}
-                alt={user.username || "Nameless User"}
-              />
-            }
-            {!user.away && (
-              <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
-            )}
-            {user.away && (
-              <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-yellow-500" />
-            )}
-          </span>
-          {!small && (
-            <span className="flex flex-grow items-center truncate">
-              <span className="flex-grow truncate text-sm">
-                <span className="block truncate font-medium text-gray-900">
-                  {user.name || "Nameless User"}
-                </span>
-                <span className="block truncate font-normal text-gray-900">
-                  {user.username
-                    ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
-                      ? `cal.com/${user.username}`
-                      : `/${user.username}`
-                    : "No public page"}
-                </span>
-              </span>
-              <Icon.FiMoreVertical
-                className="h-4 w-4 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
-                aria-hidden="true"
-              />
+      <div className="ltr:sm:-ml-5 rtl:sm:-mr-5">
+        <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
+          <button className="group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-200 focus:outline-none focus:ring-0 sm:mx-2.5 sm:pl-3 md:rounded-none lg:rounded lg:pl-2">
+            <span
+              className={classNames(
+                small ? "h-6 w-6" : "h-8 w-8 ltr:mr-2 rtl:ml-3",
+                "relative flex-shrink-0 rounded-full bg-gray-300 "
+              )}>
+              {
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  className="rounded-full"
+                  src={WEBAPP_URL + "/" + user.username + "/avatar.png"}
+                  alt={user.username || "Nameless User"}
+                />
+              }
+              {!user.away && (
+                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
+              )}
+              {user.away && (
+                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-yellow-500" />
+              )}
             </span>
-          )}
-        </button>
-      </DropdownMenuTrigger>
+            {!small && (
+              <span className="flex flex-grow items-center truncate">
+                <span className="flex-grow truncate text-sm">
+                  <span className="block truncate font-medium text-gray-900">
+                    {user.name || "Nameless User"}
+                  </span>
+                  <span className="block truncate font-normal text-gray-900">
+                    {user.username
+                      ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
+                        ? `cal.com/${user.username}`
+                        : `/${user.username}`
+                      : "No public page"}
+                  </span>
+                </span>
+                <Icon.FiMoreVertical
+                  className="h-4 w-4 flex-shrink-0 text-gray-400 group-hover:text-gray-500 rtl:mr-2"
+                  aria-hidden="true"
+                />
+              </span>
+            )}
+          </button>
+        </DropdownMenuTrigger>
+      </div>
+
       <DropdownMenuPortal>
         <DropdownMenuContent
           onInteractOutside={() => {
@@ -782,7 +785,7 @@ function SideBar() {
 
         {isCalcom && <Tips />}
 
-        <div className="fixed left-1 bottom-0 w-4 bg-gray-50 before:absolute before:left-0 before:-top-20 before:h-20 before:w-48 before:bg-gradient-to-t before:from-gray-50 before:to-transparent lg:left-4 lg:w-48">
+        <div className="fixed bottom-0 w-4 bg-gray-50 before:absolute before:left-0 before:-top-20 before:h-20 before:w-48 before:bg-gradient-to-t before:from-gray-50 before:to-transparent ltr:left-1 rtl:right-1 md:w-14 md:px-2 lg:w-48 lg:px-0 ltr:lg:left-4 rtl:lg:right-4">
           <div data-testid="user-dropdown-trigger">
             <span className="hidden lg:inline">
               <UserDropdown />
@@ -838,7 +841,7 @@ export function ShellMain(props: LayoutProps) {
             {props.CTA && (
               <div
                 className={classNames(
-                  props.backPath ? "relative" : "fixed right-4 bottom-[88px] z-40 ",
+                  props.backPath ? "relative" : " fixed right-4 bottom-[88px] z-40 sm:z-auto",
                   "flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto"
                 )}>
                 {props.CTA}
