@@ -7,6 +7,7 @@ import prisma from "@calcom/prisma";
 
 import { decodeOAuthState } from "../../_utils/decodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 
 let client_id = "";
 let client_secret = "";
@@ -35,7 +36,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (code) {
     const token = await oAuth2Client.getToken(code);
-
     key = token.res?.data;
   }
 
@@ -48,5 +48,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
   const state = decodeOAuthState(req);
-  res.redirect(getSafeRedirectUrl(state?.returnTo) ?? "/apps/installed");
+  res.redirect(
+    getSafeRedirectUrl(state?.returnTo) ??
+      getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
+  );
 }

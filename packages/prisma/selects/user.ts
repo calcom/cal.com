@@ -7,6 +7,7 @@ export const availabilityUserSelect = Prisma.validator<Prisma.UserSelect>()({
   availability: true,
   id: true,
   startTime: true,
+  username: true,
   endTime: true,
   selectedCalendars: true,
   schedules: {
@@ -22,11 +23,8 @@ export const availabilityUserSelect = Prisma.validator<Prisma.UserSelect>()({
 export const baseUserSelect = Prisma.validator<Prisma.UserSelect>()({
   email: true,
   name: true,
-  username: true,
   destinationCalendar: true,
   locale: true,
-  plan: true,
-  avatar: true,
   hideBranding: true,
   theme: true,
   brandColor: true,
@@ -38,10 +36,9 @@ export const userSelect = Prisma.validator<Prisma.UserArgs>()({
   select: {
     email: true,
     name: true,
-    username: true,
+    allowDynamicBooking: true,
     destinationCalendar: true,
     locale: true,
-    plan: true,
     avatar: true,
     hideBranding: true,
     theme: true,

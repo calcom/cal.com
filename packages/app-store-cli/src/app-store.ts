@@ -2,14 +2,39 @@ import chokidar from "chokidar";
 import fs from "fs";
 import { debounce } from "lodash";
 import path from "path";
+import prettier from "prettier";
 
+import { AppMeta } from "@calcom/types/App";
+
+import prettierConfig from "../../config/prettier-preset";
+import execSync from "./execSync";
+
+function isFileThere(path) {
+  try {
+    fs.statSync(path);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
 let isInWatchMode = false;
 if (process.argv[2] === "--watch") {
   isInWatchMode = true;
 }
 
+const formatOutput = (source: string) => prettier.format(source, prettierConfig);
+
+const getVariableName = function (appName: string) {
+  return appName.replace("-", "_");
+};
+
+const getAppId = function (app: { name: string }) {
+  // Handle stripe separately as it's an old app with different dirName than slug/appId
+  return app.name === "stripepayment" ? "stripe" : app.name;
+};
+
 const APP_STORE_PATH = path.join(__dirname, "..", "..", "app-store");
-type App = {
+type App = Partial<AppMeta> & {
   name: string;
   path: string;
 };
@@ -35,8 +60,11 @@ function getAppName(candidatePath) {
 
 function generateFiles() {
   const browserOutput = [`import dynamic from "next/dynamic"`];
+  const metadataOutput = [];
+  const schemasOutput = [];
+  const appKeysSchemasOutput = [];
   const serverOutput = [];
-  const appDirs: App[] = [];
+  const appDirs: { name: string; path: string }[] = [];
 
   fs.readdirSync(`${APP_STORE_PATH}`).forEach(function (dir) {
     if (dir === "ee") {
@@ -65,9 +93,34 @@ function generateFiles() {
 
   function forEachAppDir(callback: (arg: App) => void) {
     for (let i = 0; i < appDirs.length; i++) {
-      callback(appDirs[i]);
+      const configPath = path.join(APP_STORE_PATH, appDirs[i].path, "config.json");
+      let app;
+
+      if (fs.existsSync(configPath)) {
+        app = JSON.parse(fs.readFileSync(configPath).toString());
+      } else {
+        app = {};
+      }
+
+      callback({
+        ...app,
+        name: appDirs[i].name,
+        path: appDirs[i].path,
+      });
     }
   }
+
+  forEachAppDir((app) => {
+    const templateDestinationDir = path.join(APP_STORE_PATH, app.path, "extensions");
+    const templateDestinationFilePath = path.join(templateDestinationDir, "EventTypeAppCard.tsx");
+    const zodDestinationFilePath = path.join(APP_STORE_PATH, app.path, "zod.ts");
+
+    if (app.extendsFeature === "EventType" && !isFileThere(templateDestinationFilePath)) {
+      execSync(`mkdir -p ${templateDestinationDir}`);
+      execSync(`cp ../app-store/_templates/extensions/EventTypeAppCard.tsx ${templateDestinationFilePath}`);
+      execSync(`cp ../app-store/_templates/zod.ts ${zodDestinationFilePath}`);
+    }
+  });
 
   function getObjectExporter(
     objectName,
@@ -77,13 +130,16 @@ function generateFiles() {
       entryBuilder,
     }: {
       fileToBeImported: string;
-      importBuilder: (arg: App) => string;
+      importBuilder?: (arg: App) => string;
       entryBuilder: (arg: App) => string;
     }
   ) {
     const output = [];
     forEachAppDir((app) => {
-      if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported))) {
+      if (
+        fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported)) &&
+        typeof importBuilder === "function"
+      ) {
         output.push(importBuilder(app));
       }
     });
@@ -104,37 +160,92 @@ function generateFiles() {
     ...getObjectExporter("apiHandlers", {
       fileToBeImported: "api/index.ts",
       // Import path must have / even for windows and not \
-      importBuilder: (app) => `const ${app.name}_api = import("./${app.path.replace(/\\/g, "/")}/api");`,
-      entryBuilder: (app) => `${app.name}:${app.name}_api,`,
+      entryBuilder: (app) => `  "${app.name}": import("./${app.path.replace(/\\/g, "/")}/api"),`,
     })
   );
 
-  browserOutput.push(
+  metadataOutput.push(
     ...getObjectExporter("appStoreMetadata", {
       fileToBeImported: "_metadata.ts",
       // Import path must have / even for windows and not \
       importBuilder: (app) =>
-        `import { metadata as ${app.name}_meta } from "./${app.path.replace(/\\/g, "/")}/_metadata";`,
-      entryBuilder: (app) => `${app.name}:${app.name}_meta,`,
+        `import { metadata as ${getVariableName(app.name)}_meta } from "./${app.path.replace(
+          /\\/g,
+          "/"
+        )}/_metadata";`,
+      entryBuilder: (app) => `  "${app.name}":${getVariableName(app.name)}_meta,`,
+    })
+  );
+
+  schemasOutput.push(
+    ...getObjectExporter("appDataSchemas", {
+      fileToBeImported: "zod.ts",
+      // Import path must have / even for windows and not \
+      importBuilder: (app) =>
+        `import { appDataSchema as ${getVariableName(app.name)}_schema } from "./${app.path.replace(
+          /\\/g,
+          "/"
+        )}/zod";`,
+      // Key must be appId as this is used by eventType metadata and lookup is by appId
+      entryBuilder: (app) => `  "${getAppId(app)}":${getVariableName(app.name)}_schema ,`,
+    })
+  );
+
+  appKeysSchemasOutput.push(
+    ...getObjectExporter("appKeysSchemas", {
+      fileToBeImported: "zod.ts",
+      // Import path must have / even for windows and not \
+      importBuilder: (app) =>
+        `import { appKeysSchema as ${getVariableName(app.name)}_keys_schema } from "./${app.path.replace(
+          /\\/g,
+          "/"
+        )}/zod";`,
+      // Key must be appId as this is used by eventType metadata and lookup is by appId
+      entryBuilder: (app) => `  "${getAppId(app)}":${getVariableName(app.name)}_keys_schema ,`,
     })
   );
 
   browserOutput.push(
     ...getObjectExporter("InstallAppButtonMap", {
       fileToBeImported: "components/InstallAppButton.tsx",
-      importBuilder: (app) =>
-        `const ${app.name}_installAppButton = dynamic(() =>import("./${app.path}/components/InstallAppButton"));`,
-      entryBuilder: (app) => `${app.name}:${app.name}_installAppButton,`,
+      entryBuilder: (app) =>
+        `  ${app.name}: dynamic(() =>import("./${app.path}/components/InstallAppButton")),`,
     })
   );
+
+  // TODO: Make a component map creator that accepts ComponentName and does the rest.
+  // TODO: dailyvideo has a slug of daily-video, so that mapping needs to be taken care of. But it is an old app, so it doesn't need AppSettings
+  browserOutput.push(
+    ...getObjectExporter("AppSettingsComponentsMap", {
+      fileToBeImported: "components/AppSettings.tsx",
+      entryBuilder: (app) => `  ${app.name}: dynamic(() =>import("./${app.path}/components/AppSettings")),`,
+    })
+  );
+
+  browserOutput.push(
+    ...getObjectExporter("EventTypeAddonMap", {
+      fileToBeImported: path.join("extensions", "EventTypeAppCard.tsx"),
+      entryBuilder: (app) =>
+        `  ${app.name}: dynamic(() =>import("./${app.path}/extensions/EventTypeAppCard")),`,
+    })
+  );
+
   const banner = `/**
     This file is autogenerated using the command \`yarn app-store:build --watch\`.
     Don't modify this file manually.
 **/
 `;
-  fs.writeFileSync(`${APP_STORE_PATH}/apps.server.generated.ts`, `${banner}${serverOutput.join("\n")}`);
-  fs.writeFileSync(`${APP_STORE_PATH}/apps.browser.generated.tsx`, `${banner}${browserOutput.join("\n")}`);
-  console.log("Generated `apps.server.generated.ts` and `apps.browser.generated.tsx`");
+  const filesToGenerate: [string, string[]][] = [
+    ["apps.metadata.generated.ts", metadataOutput],
+    ["apps.server.generated.ts", serverOutput],
+    ["apps.browser.generated.tsx", browserOutput],
+    ["apps.schemas.generated.ts", schemasOutput],
+    ["apps.keys-schemas.generated.ts", appKeysSchemasOutput],
+  ];
+  filesToGenerate.forEach(([fileName, output]) => {
+    fs.writeFileSync(`${APP_STORE_PATH}/${fileName}`, formatOutput(`${banner}${output.join("\n")}`));
+  });
+  console.log(`Generated ${filesToGenerate.map(([fileName]) => fileName).join(", ")}`);
 }
 
 const debouncedGenerateFiles = debounce(generateFiles);

@@ -1,0 +1,26 @@
+{
+  "name": "Microsoft 365/Teams (Requires work/school account)",
+  "description": "Microsoft Teams is a business communication platform and collaborative workspace included in Microsoft 365. It offers workspace chat and video conferencing, file storage, and application integration. Both web versions and desktop/mobile applications are available. NOTE: MUST HAVE A WORK / SCHOOL ACCOUNT",
+  "type": "office365_video",
+  "imageSrc": "/api/app-store/office365video/icon.svg",
+  "variant": "conferencing",
+  "logo": "/api/app-store/office365video/icon.svg",
+  "publisher": "Cal.com",
+  "url": "https://www.microsoft.com/en-ca/microsoft-teams/group-chat-software",
+  "verified": true,
+  "rating": 4.3,
+  "reviews": 69,
+  "category": "video",
+  "categories": ["video"],
+  "slug": "msteams",
+  "title": "MS Teams (Requires work/school account)",
+  "trending": true,
+  "email": "help@cal.com",
+  "appData": {
+    "location": {
+      "linkType": "dynamic",
+      "type": "integrations:office365_video",
+      "label": "MS Teams"
+    }
+  }
+}

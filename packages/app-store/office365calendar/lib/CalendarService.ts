@@ -1,5 +1,4 @@
-import { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-beta";
-import { Credential } from "@prisma/client";
+import { Calendar as OfficeCalendar, User } from "@microsoft/microsoft-graph-types-beta";
 
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
@@ -13,6 +12,7 @@ import type {
   IntegrationCalendar,
   NewCalendarEventType,
 } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 
 import { O365AuthCredentials } from "../types/Office365Calendar";
 import { getOfficeAppKeys } from "./getOfficeAppKeys";
@@ -45,7 +45,7 @@ export default class Office365CalendarService implements Calendar {
   auth: { getToken: () => Promise<string> };
   private apiGraphUrl = "https://graph.microsoft.com/v1.0";
 
-  constructor(credential: Credential) {
+  constructor(credential: CredentialPayload) {
     this.integrationName = "office365_calendar";
     this.auth = this.o365Auth(credential);
 
@@ -131,7 +131,7 @@ export default class Office365CalendarService implements Calendar {
         url: `/me/calendars/${calendarId}/calendarView${filter}`,
       }));
       const response = await this.apiGraphBatchCall(requests);
-      const responseBody = await handleErrorsJson(response);
+      const responseBody = await this.handleErrorJsonOffice365Calendar(response);
       let responseBatchApi: IBatchResponse = { responses: [] };
       if (typeof responseBody === "string") {
         responseBatchApi = this.handleTextJsonResponseWithHtmlInBody(responseBody);
@@ -157,21 +157,49 @@ export default class Office365CalendarService implements Calendar {
   }
 
   async listCalendars(): Promise<IntegrationCalendar[]> {
-    const response = await this.fetcher(`/me/calendars`);
-    const responseBody = (await handleErrorsJson(response)) as { value: OfficeCalendar[] };
-    return responseBody.value.map((cal) => {
+    const officeCalendars: OfficeCalendar[] = [];
+    // List calendars from MS are paginated
+    let finishedParsingCalendars = false;
+    // Store @odata.nextLink if in response
+    let requestLink = "/me/calendars";
+
+    while (!finishedParsingCalendars) {
+      const response = await this.fetcher(requestLink);
+      let responseBody = await handleErrorsJson<{ value: OfficeCalendar[]; "@odata.nextLink"?: string }>(
+        response
+      );
+      // If responseBody is valid then parse the JSON text
+      if (typeof responseBody === "string") {
+        responseBody = JSON.parse(responseBody) as { value: OfficeCalendar[] };
+      }
+
+      officeCalendars.push(...responseBody.value);
+
+      if (responseBody["@odata.nextLink"]) {
+        requestLink = responseBody["@odata.nextLink"].replace(this.apiGraphUrl, "");
+      } else {
+        finishedParsingCalendars = true;
+      }
+    }
+
+    const user = await this.fetcher("/me");
+    const userResponseBody = await handleErrorsJson<User>(user);
+    const email = userResponseBody.mail ?? userResponseBody.userPrincipalName;
+
+    return officeCalendars.map((cal: OfficeCalendar) => {
       const calendar: IntegrationCalendar = {
         externalId: cal.id ?? "No Id",
         integration: this.integrationName,
         name: cal.name ?? "No calendar name",
         primary: cal.isDefaultCalendar ?? false,
         readOnly: !cal.canEdit && true,
+        email: email ?? "",
       };
       return calendar;
     });
   }
 
-  private o365Auth = (credential: Credential) => {
+  private o365Auth = (credential: CredentialPayload) => {
     const isExpired = (expiryDate: number) => expiryDate < Math.round(+new Date() / 1000);
     const o365AuthCredentials = credential.key as O365AuthCredentials;
 
@@ -188,7 +216,7 @@ export default class Office365CalendarService implements Calendar {
           client_secret,
         }),
       });
-      const responseBody = await handleErrorsJson(response);
+      const responseBody = await handleErrorsJson<{ access_token: string; expires_in: number }>(response);
       o365AuthCredentials.access_token = responseBody.access_token;
       o365AuthCredentials.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in);
       await prisma.credential.update({
@@ -279,7 +307,7 @@ export default class Office365CalendarService implements Calendar {
     }
 
     const newResponse = await this.apiGraphBatchCall(newLinkRequest);
-    let newResponseBody = await handleErrorsJson(newResponse);
+    let newResponseBody = await handleErrorsJson<IBatchResponse | string>(newResponse);
 
     if (typeof newResponseBody === "string") {
       newResponseBody = this.handleTextJsonResponseWithHtmlInBody(newResponseBody);
@@ -320,7 +348,7 @@ export default class Office365CalendarService implements Calendar {
     await new Promise((r) => setTimeout(r, retryAfterTimeout));
 
     const newResponses = await this.apiGraphBatchCall(failedRequest);
-    let newResponseBody = await handleErrorsJson(newResponses);
+    let newResponseBody = await handleErrorsJson<IBatchResponse | string>(newResponses);
     if (typeof newResponseBody === "string") {
       newResponseBody = this.handleTextJsonResponseWithHtmlInBody(newResponseBody);
     }
@@ -388,5 +416,22 @@ export default class Office365CalendarService implements Calendar {
       },
       []
     );
+  };
+
+  private handleErrorJsonOffice365Calendar = <Type>(response: Response): Promise<Type | string> => {
+    if (response.headers.get("content-encoding") === "gzip") {
+      return response.text();
+    }
+
+    if (response.status === 204) {
+      return new Promise((resolve) => resolve({} as Type));
+    }
+
+    if (!response.ok && response.status < 200 && response.status >= 300) {
+      response.json().then(console.log);
+      throw Error(response.statusText);
+    }
+
+    return response.json();
   };
 }

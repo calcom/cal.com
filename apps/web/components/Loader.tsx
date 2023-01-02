@@ -1,1 +1,4 @@
-export { default } from "@calcom/ui/Loader";
+/**
+ * @deprecated Use custom Skeletons instead
+ **/
+export { Loader as default } from "@calcom/ui";

@@ -1,0 +1,195 @@
+@import url("../../../packages/features/calendars/weeklyview/styles/styles.css");
+
+.sbdocs {
+  font-family: 'Inter var' !important;
+  padding: 0!important;
+}
+
+#docs-root {
+  overflow: hidden;
+}
+
+.sbdocs.sbdocs-h1 {
+  font-family: "Cal Sans", "sans-serif" !important;
+  font-weight: 600;
+  font-size: 36px;
+  margin: 0 0 82px 0;
+}
+
+.sbdocs.sbdocs-h2 {
+  font-size: 20px;
+  font-weight: 500;
+  border: none;
+  border-top: 2px solid rgba(0, 0, 0, 0.12);
+  padding-top: 12px!important;
+  padding-bottom: 12px!important;
+  margin: 82px 0 0 0;
+}
+
+.sbdocs.sbdocs-p {
+  max-width: 560px;
+  margin: 0 0 12px 0;
+}
+
+.sbdocs.sbdocs-content {
+  width: 1200px;
+  max-width: 100%;
+}
+
+/** Docs table **/
+.custom-args-wrapper{
+  max-height: 400px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  margin-bottom: 1rem;
+}
+
+.docblock-argstable-body {
+  box-shadow: none!important;
+  font-size: 14px;
+}
+
+/* .docblock-argstable-head tr th, */
+.docblock-argstable-body tr td {
+  /* padding-left: 0!important; */
+  padding: 20px !important;
+}
+
+/** Column titles **/
+.docblock-argstable-body tr td > span,
+.docblock-argstable-head tr th > span {
+  color: #525252 !important;
+  font-weight: 500 !important;
+}
+
+.docblock-argstable-body div p,
+.docblock-argstable-body div span {
+  color: #8F8F8F !important;
+}
+
+/** Custom components **/
+.story-title {
+  margin: 0 0 82px 0;
+}
+
+.story-title.offset {
+  margin-top: 100px;
+}
+
+.story-title h1 {
+  font-family: "Cal Sans", "sans-serif" !important;
+  font-weight: 600;
+  font-size: 36px;
+}
+
+.story-title h1 span {
+  color: #9CA3AF;
+  font-family: 'Inter var';
+  font-weight: normal;
+  display: inline-block;
+  margin-left: 8px;
+}
+
+.story-title p {
+  color: #111827;
+  font-size: 16px;
+}
+
+.examples {
+  background-color: #F9FAFB;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.examples-content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 30px 0;
+}
+
+.examples-title {
+  color: #8F8F8F;
+  font-size: 14px;
+  margin-bottom: 30px;
+}
+
+.examples-item-title {
+  font-size: 12px;
+  color: #8F8F8F;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.examples-item {
+  margin: 0 20px;
+}
+
+.examples-footnote p,
+.examples-footnote ul,
+.examples-footnote li {
+  color: #8F8F8F;
+  font-size: 14px;
+}
+
+.examples-footnote ul {
+  padding-left: 8px;
+}
+
+.examples-footnote li {
+  margin: 0!important;
+}
+
+.story-note {
+  background-color: #F9FAFB;
+  font-size: 14px;
+  padding: 20px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+}
+
+.story-note > div {
+  max-width: 600px;
+}
+
+/** SB Docs Preview **/
+.sbdocs-preview {
+  width: 100vw;
+  left: calc((100vw - 1200px) / -2);
+  box-shadow: none !important;
+  margin: 0 !important;
+  border: none !important;
+  border-radius: none!important;
+}
+
+.docs-story > div:first-child {
+  padding: 0!important;
+  margin: 0!important;
+}
+
+.docs-story .innerZoomElementWrapper > div {
+  border: none !important;
+}
+
+.sb-main-padded {
+  padding: 0!important;
+}
+
+@media screen and (max-width: 1200px) {
+  .sbdocs-preview {
+    left: -24px;
+    width: calc(100vw + 48px);
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .sbdocs.sbdocs-content {
+    padding: 24px !important;
+  }
+}
+
+.docs-story {
+  padding: 24px !important;
+}

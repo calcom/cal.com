@@ -2,12 +2,11 @@ import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import stripejs, { StripeCardElementChangeEvent, StripeElementLocale } from "@stripe/stripe-js";
 import { useRouter } from "next/router";
 import { stringify } from "querystring";
-import React, { SyntheticEvent, useEffect, useState } from "react";
+import { SyntheticEvent, useEffect, useState } from "react";
 
 import { PaymentData } from "@calcom/app-store/stripepayment/lib/server";
-import Button from "@calcom/ui/Button";
-
-import { useLocale } from "@lib/hooks/useLocale";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button } from "@calcom/ui";
 
 const CARD_OPTIONS: stripejs.StripeCardElementOptions = {
   iconStyle: "solid" as const,
@@ -36,6 +35,7 @@ type Props = {
   user: { username: string | null };
   location?: string | null;
   bookingId: number;
+  bookingUid: string;
 };
 
 type States =
@@ -47,7 +47,6 @@ type States =
 export default function PaymentComponent(props: Props) {
   const { t, i18n } = useLocale();
   const router = useRouter();
-  const { email, name, date } = router.query;
   const [state, setState] = useState<States>({ status: "idle" });
   const stripe = useStripe();
   const elements = useElements();
@@ -67,7 +66,7 @@ export default function PaymentComponent(props: Props) {
   const handleSubmit = async (ev: SyntheticEvent) => {
     ev.preventDefault();
 
-    if (!stripe || !elements) return;
+    if (!stripe || !elements || !router.isReady) return;
     const card = elements.getElement(CardElement);
     if (!card) return;
     setState({ status: "processing" });
@@ -83,12 +82,8 @@ export default function PaymentComponent(props: Props) {
       });
     } else {
       const params: { [k: string]: any } = {
-        date,
-        type: props.eventType.id,
-        user: props.user.username,
-        email,
-        name,
-        bookingId: props.bookingId,
+        uid: props.bookingUid,
+        email: router.query.email,
       };
 
       if (props.location) {
@@ -100,7 +95,7 @@ export default function PaymentComponent(props: Props) {
       }
 
       const query = stringify(params);
-      const successUrl = `/success?${query}`;
+      const successUrl = `/booking/${props.bookingUid}?${query}`;
 
       await router.push(successUrl);
     }
@@ -110,6 +105,7 @@ export default function PaymentComponent(props: Props) {
       <CardElement id="card-element" options={CARD_OPTIONS} onChange={handleChange} />
       <div className="mt-2 flex justify-center">
         <Button
+          color="primary"
           type="submit"
           disabled={["processing", "error"].includes(state.status)}
           loading={state.status === "processing"}

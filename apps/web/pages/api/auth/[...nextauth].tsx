@@ -12,16 +12,18 @@ import path from "path";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { ErrorCode, isPasswordValid, verifyPassword } from "@calcom/lib/auth";
+import { APP_NAME, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
+import rateLimit from "@calcom/lib/rateLimit";
 import { serverConfig } from "@calcom/lib/serverConfig";
 import prisma from "@calcom/prisma";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import { ErrorCode, verifyPassword } from "@lib/auth";
 import CalComAdapter from "@lib/auth/next-auth-custom-adapter";
 import { randomString } from "@lib/random";
-import { hostedCal, isSAMLLoginEnabled, samlLoginUrl } from "@lib/saml";
 import slugify from "@lib/slugify";
 
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
@@ -51,6 +53,22 @@ const providers: Provider[] = [
       const user = await prisma.user.findUnique({
         where: {
           email: credentials.email.toLowerCase(),
+        },
+        select: {
+          role: true,
+          id: true,
+          username: true,
+          name: true,
+          email: true,
+          identityProvider: true,
+          password: true,
+          twoFactorEnabled: true,
+          twoFactorSecret: true,
+          teams: {
+            include: {
+              team: true,
+            },
+          },
         },
       });
 
@@ -100,12 +118,38 @@ const providers: Provider[] = [
         }
       }
 
+      const limiter = rateLimit({
+        intervalInMs: 60 * 1000, // 1 minute
+      });
+      await limiter.check(10, user.email); // 10 requests per minute
+      // Check if the user you are logging into has any active teams
+      const hasActiveTeams =
+        user.teams.filter((m) => {
+          if (!IS_TEAM_BILLING_ENABLED) return true;
+          const metadata = teamMetadataSchema.safeParse(m.team.metadata);
+          if (metadata.success && metadata.data?.subscriptionId) return true;
+          return false;
+        }).length > 0;
+
+      // authentication success- but does it meet the minimum password requirements?
+      if (user.role === "ADMIN" && !isPasswordValid(credentials.password, false, true)) {
+        return {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          name: user.name,
+          role: "INACTIVE_ADMIN",
+          belongsToActiveTeam: hasActiveTeams,
+        };
+      }
+
       return {
         id: user.id,
         username: user.username,
         email: user.email,
         name: user.name,
         role: user.role,
+        belongsToActiveTeam: hasActiveTeams,
       };
     },
   }),
@@ -129,7 +173,7 @@ if (isSAMLLoginEnabled) {
     version: "2.0",
     checks: ["pkce", "state"],
     authorization: {
-      url: `${samlLoginUrl}/api/auth/saml/authorize`,
+      url: `${WEBAPP_URL}/api/auth/saml/authorize`,
       params: {
         scope: "",
         response_type: "code",
@@ -137,10 +181,10 @@ if (isSAMLLoginEnabled) {
       },
     },
     token: {
-      url: `${samlLoginUrl}/api/auth/saml/token`,
+      url: `${WEBAPP_URL}/api/auth/saml/token`,
       params: { grant_type: "authorization_code" },
     },
-    userinfo: `${samlLoginUrl}/api/auth/saml/userinfo`,
+    userinfo: `${WEBAPP_URL}/api/auth/saml/userinfo`,
     profile: (profile) => {
       return {
         id: profile.id || "",
@@ -162,19 +206,25 @@ if (true) {
   const emailsDir = path.resolve(process.cwd(), "..", "..", "packages/emails", "templates");
   providers.push(
     EmailProvider({
+      type: "email",
       maxAge: 10 * 60 * 60, // Magic links are valid for 10 min only
       // Here we setup the sendVerificationRequest that calls the email template with the identifier (email) and token to verify.
       sendVerificationRequest: ({ identifier, url }) => {
+        const originalUrl = new URL(url);
+        const webappUrl = new URL(WEBAPP_URL);
+        if (originalUrl.origin !== webappUrl.origin) {
+          url = url.replace(originalUrl.origin, webappUrl.origin);
+        }
         const emailFile = readFileSync(path.join(emailsDir, "confirm-email.html"), {
           encoding: "utf8",
         });
         const emailTemplate = Handlebars.compile(emailFile);
         transporter.sendMail({
-          from: `${process.env.EMAIL_FROM}` || "Cal.com",
+          from: `${process.env.EMAIL_FROM}` || APP_NAME,
           to: identifier,
-          subject: "Your sign-in link for Cal.com",
+          subject: "Your sign-in link for " + APP_NAME,
           html: emailTemplate({
-            base_url: WEBSITE_URL,
+            base_url: WEBAPP_URL,
             signin_url: url,
             email: identifier,
           }),
@@ -191,38 +241,38 @@ export default NextAuth({
   session: {
     strategy: "jwt",
   },
-  cookies: defaultCookies(WEBSITE_URL?.startsWith("https://")),
+  cookies: defaultCookies(WEBAPP_URL?.startsWith("https://")),
   pages: {
     signIn: "/auth/login",
     signOut: "/auth/logout",
     error: "/auth/error", // Error code passed in query string as ?error=
+    verifyRequest: "/auth/verify",
     // newUser: "/auth/new", // New users will be directed here on first sign in (leave the property out if not of interest)
   },
   providers,
   callbacks: {
     async jwt({ token, user, account }) {
       const autoMergeIdentities = async () => {
-        if (!hostedCal) {
-          const existingUser = await prisma.user.findFirst({
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            where: { email: token.email! },
-          });
+        const existingUser = await prisma.user.findFirst({
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          where: { email: token.email! },
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            email: true,
+            role: true,
+          },
+        });
 
-          if (!existingUser) {
-            return token;
-          }
-
-          return {
-            id: existingUser.id,
-            username: existingUser.username,
-            name: existingUser.name,
-            email: existingUser.email,
-            role: existingUser.role,
-            impersonatedByUID: token?.impersonatedByUID as number,
-          };
+        if (!existingUser) {
+          return token;
         }
 
-        return token;
+        return {
+          ...existingUser,
+          ...token,
+        };
       };
 
       if (!user) {
@@ -231,12 +281,14 @@ export default NextAuth({
 
       if (account && account.type === "credentials") {
         return {
+          ...token,
           id: user.id,
           name: user.name,
           username: user.username,
           email: user.email,
           role: user.role,
-          impersonatedByUID: user?.impersonatedByUID as number,
+          impersonatedByUID: user?.impersonatedByUID,
+          belongsToActiveTeam: user?.belongsToActiveTeam,
         };
       }
 
@@ -265,12 +317,14 @@ export default NextAuth({
         }
 
         return {
+          ...token,
           id: existingUser.id,
           name: existingUser.name,
           username: existingUser.username,
           email: existingUser.email,
           role: existingUser.role,
           impersonatedByUID: token.impersonatedByUID as number,
+          belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
         };
       }
 
@@ -288,6 +342,7 @@ export default NextAuth({
           username: token.username as string,
           role: token.role as UserPermissionRole,
           impersonatedByUID: token.impersonatedByUID as number,
+          belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
         },
       };
       return calendsoSession;
@@ -295,16 +350,16 @@ export default NextAuth({
     async signIn(params) {
       const { user, account, profile } = params;
 
-      if (account.provider === "email") {
+      if (account?.provider === "email") {
         return true;
       }
       // In this case we've already verified the credentials in the authorize
       // callback so we can sign the user in.
-      if (account.type === "credentials") {
+      if (account?.type === "credentials") {
         return true;
       }
 
-      if (account.type !== "oauth") {
+      if (account?.type !== "oauth") {
         return false;
       }
 
@@ -316,12 +371,14 @@ export default NextAuth({
         return false;
       }
 
-      if (account.provider) {
+      if (account?.provider) {
         let idP: IdentityProvider = IdentityProvider.GOOGLE;
         if (account.provider === "saml") {
           idP = IdentityProvider.SAML;
         }
-        user.email_verified = user.email_verified || profile.email_verified;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore-error TODO validate email_verified key on profile
+        user.email_verified = user.email_verified || !!user.emailVerified || profile.email_verified;
 
         if (!user.email_verified) {
           return "/auth/error?error=unverified-email";
@@ -404,7 +461,7 @@ export default NextAuth({
                 emailVerified: new Date(Date.now()),
                 name: user.name,
                 identityProvider: idP,
-                identityProviderId: user.id as string,
+                identityProviderId: String(user.id),
               },
             });
 
@@ -427,7 +484,7 @@ export default NextAuth({
             name: user.name,
             email: user.email,
             identityProvider: idP,
-            identityProviderId: user.id as string,
+            identityProviderId: String(user.id),
           },
         });
         const linkAccountNewUserData = { ...account, userId: newUser.id };
@@ -441,8 +498,8 @@ export default NextAuth({
     async redirect({ url, baseUrl }) {
       // Allows relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`;
-      // Allows callback URLs on the same origin
-      else if (new URL(url).origin === new URL(baseUrl || WEBSITE_URL).origin) return url;
+      // Allows callback URLs on the same domain
+      else if (new URL(url).hostname === new URL(WEBAPP_URL).hostname) return url;
       return baseUrl;
     },
   },

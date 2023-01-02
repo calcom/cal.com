@@ -1,6 +1,5 @@
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
-import { LocationType } from "../locations";
 import _package from "./package.json";
 
 export const metadata = {
@@ -10,20 +9,26 @@ export const metadata = {
   type: "jitsi_video",
   imageSrc: "/api/app-store/jitsivideo/icon.svg",
   variant: "conferencing",
+  categories: ["video"],
   logo: "/api/app-store/jitsivideo/icon.svg",
   publisher: "Cal.com",
   url: "https://jitsi.org/",
   verified: true,
   rating: 0, // TODO: placeholder for now, pull this from TrustPilot or G2
   reviews: 0, // TODO: placeholder for now, pull this from TrustPilot or G2
-  category: "video",
   slug: "jitsi",
   title: "Jitsi Meet",
   trending: true,
   isGlobal: false,
   email: "help@cal.com",
-  locationType: LocationType.Jitsi,
-  locationLabel: "Jitsi Video",
-} as App;
+  appData: {
+    location: {
+      linkType: "dynamic",
+      type: "integrations:jitsi",
+      label: "Jitsi Video",
+    },
+  },
+  dirName: "jitsivideo",
+} as AppMeta;
 
 export default metadata;

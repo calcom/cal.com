@@ -12,6 +12,10 @@ const availabilitySchema = z.object({
   eventTypeId: stringOrNumber.optional(),
 });
 
+/**
+ * @deprecated Use TRCP's viewer.availability.user
+ */
+
 async function handler(req: NextApiRequest) {
   const { user: username, eventTypeId, dateTo, dateFrom } = availabilitySchema.parse(req.query);
   return getUserAvailability({

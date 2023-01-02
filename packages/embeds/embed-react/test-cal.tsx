@@ -45,9 +45,10 @@ function App() {
           notes: "Test Meeting",
           guests: ["janedoe@gmail.com"],
           theme: "dark",
-        }}></Cal>
+        }}
+      />
       <button data-cal-link="pro">Popup</button>
     </>
   );
 }
-ReactDom.render(<App></App>, document.getElementById("root"));
+ReactDom.render(<App />, document.getElementById("root"));

@@ -1,10 +1,10 @@
 import { GetStaticPropsContext } from "next";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
-import { DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
-import { Icon } from "@calcom/ui/Icon";
+import { COMPANY_NAME, DEVELOPER_DOCS, DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
+import { Icon } from "@calcom/ui";
 
 import { useLocale } from "@lib/hooks/useLocale";
 
@@ -22,13 +22,13 @@ export default function Custom404() {
     {
       title: t("documentation"),
       description: t("documentation_description"),
-      icon: Icon.FileText,
+      icon: Icon.FiFileText,
       href: DOCS_URL,
     },
     {
       title: t("blog"),
       description: t("blog_description"),
-      icon: Icon.BookOpen,
+      icon: Icon.FiBookOpen,
       href: `${WEBSITE_URL}/blog`,
     },
   ];
@@ -38,7 +38,7 @@ export default function Custom404() {
     setUrl(`${WEBSITE_URL}/signup?username=${username.replace("/", "")}`);
   }, [username]);
 
-  const isSuccessPage = router.asPath.startsWith("/success");
+  const isSuccessPage = router.asPath.startsWith("/booking");
   const isSubpage = router.asPath.includes("/", 2) || isSuccessPage;
   const isSignup = router.asPath.startsWith("/signup");
   const isCalcom = process.env.NEXT_PUBLIC_WEBAPP_URL === "https://app.cal.com";
@@ -64,7 +64,7 @@ export default function Custom404() {
                 <h1 className="font-cal mt-2 text-3xl font-extrabold text-gray-900">
                   {t("signup_requires")}
                 </h1>
-                <p className="mt-4">{t("signup_requires_description")}</p>
+                <p className="mt-4">{t("signup_requires_description", { companyName: COMPANY_NAME })}</p>
               </div>
               <div className="mt-12">
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
@@ -73,11 +73,11 @@ export default function Custom404() {
                 <ul role="list" className="mt-4">
                   <li className="border-2 border-green-500 px-4 py-2">
                     <a
-                      href={`${WEBSITE_URL}/pricing?infra`}
+                      href="https://console.cal.com"
                       className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                       <div className="flex-shrink-0">
                         <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
-                          <Icon.Check className="h-6 w-6 text-green-500" aria-hidden="true" />
+                          <Icon.FiCheck className="h-6 w-6 text-green-500" aria-hidden="true" />
                         </span>
                       </div>
                       <div className="min-w-0 flex-1">
@@ -92,7 +92,7 @@ export default function Custom404() {
                         <p className="text-base text-gray-500">{t("the_infrastructure_plan")}</p>
                       </div>
                       <div className="flex-shrink-0 self-center">
-                        <Icon.ChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
                       </div>
                     </a>
                   </li>
@@ -100,11 +100,11 @@ export default function Custom404() {
 
                 <ul role="list" className="divide-y divide-gray-200 border-gray-200">
                   <li className="px-4 py-2">
-                    <Link href={`${DOCS_URL}/self-hosting/installation`}>
+                    <Link href={`${DEVELOPER_DOCS}/self-hosting/installation`}>
                       <a className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
                         <div className="flex-shrink-0">
                           <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-50">
-                            <Icon.FileText className="h-6 w-6 text-gray-700" aria-hidden="true" />
+                            <Icon.FiFileText className="h-6 w-6 text-gray-700" aria-hidden="true" />
                           </span>
                         </div>
                         <div className="min-w-0 flex-1">
@@ -117,7 +117,7 @@ export default function Custom404() {
                           <p className="text-base text-gray-500">{t("prisma_studio_tip_description")}</p>
                         </div>
                         <div className="flex-shrink-0 self-center">
-                          <Icon.ChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                          <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
                         </div>
                       </a>
                     </Link>
@@ -163,7 +163,7 @@ export default function Custom404() {
                         <p className="text-base text-gray-500">{t("join_our_community")}</p>
                       </div>
                       <div className="flex-shrink-0 self-center">
-                        <Icon.ChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
                       </div>
                     </a>
                   </li>
@@ -190,12 +190,14 @@ export default function Custom404() {
                     {t("check_spelling_mistakes_or_go_back")}
                   </span>
                 ) : isCalcom ? (
-                  <Link href={url}>
-                    <a className="mt-2 inline-block text-lg">
-                      {t("the_username")} <strong className="text-blue-500">cal.com{username}</strong>{" "}
-                      {t("is_still_available")} <span className="text-blue-500">{t("register_now")}</span>.
-                    </a>
-                  </Link>
+                  <a target="_blank" href={url} className="mt-2 inline-block text-lg" rel="noreferrer">
+                    {t("the_username")}{" "}
+                    <strong className="text-blue-500">
+                      {new URL(WEBSITE_URL).hostname}
+                      {username}
+                    </strong>{" "}
+                    {t("is_still_available")} <span className="text-blue-500">{t("register_now")}</span>.
+                  </a>
                 ) : (
                   <span className="mt-2 inline-block text-lg">
                     {t("the_username")}{" "}
@@ -211,31 +213,31 @@ export default function Custom404() {
                 {!isSubpage && isCalcom && (
                   <ul role="list" className="mt-4">
                     <li className="border-2 border-green-500 px-4 py-2">
-                      <Link href={url}>
-                        <a className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
-                          <div className="flex-shrink-0">
-                            <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
-                              <Icon.Check className="h-6 w-6 text-green-500" aria-hidden="true" />
-                            </span>
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <h3 className="text-base font-medium text-gray-900">
-                              <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
-                                <span className="focus:outline-none">
-                                  <span className="absolute inset-0" aria-hidden="true" />
-                                  {t("register")} <strong className="text-green-500">{username}</strong>
-                                </span>
+                      <a
+                        href={url}
+                        target="_blank"
+                        className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse"
+                        rel="noreferrer">
+                        <div className="flex-shrink-0">
+                          <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
+                            <Icon.FiCheck className="h-6 w-6 text-green-500" aria-hidden="true" />
+                          </span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-base font-medium text-gray-900">
+                            <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
+                              <span className="focus:outline-none">
+                                <span className="absolute inset-0" aria-hidden="true" />
+                                {t("register")} <strong className="text-green-500">{username}</strong>
                               </span>
-                            </h3>
-                            <p className="text-base text-gray-500">
-                              {t("claim_username_and_schedule_events")}
-                            </p>
-                          </div>
-                          <div className="flex-shrink-0 self-center">
-                            <Icon.ChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                          </div>
-                        </a>
-                      </Link>
+                            </span>
+                          </h3>
+                          <p className="text-base text-gray-500">{t("claim_username_and_schedule_events")}</p>
+                        </div>
+                        <div className="flex-shrink-0 self-center">
+                          <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        </div>
+                      </a>
                     </li>
                   </ul>
                 )}
@@ -260,7 +262,7 @@ export default function Custom404() {
                             <p className="text-base text-gray-500">{link.description}</p>
                           </div>
                           <div className="flex-shrink-0 self-center">
-                            <Icon.ChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                            <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
                           </div>
                         </a>
                       </Link>
@@ -307,7 +309,7 @@ export default function Custom404() {
                         <p className="text-base text-gray-500">{t("join_our_community")}</p>
                       </div>
                       <div className="flex-shrink-0 self-center">
-                        <Icon.ChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
                       </div>
                     </a>
                   </li>

@@ -1,17 +1,19 @@
-import React, { SyntheticEvent, useState } from "react";
+import { SyntheticEvent, useState } from "react";
 
-import showToast from "@calcom/lib/notification";
-import Button from "@calcom/ui/Button";
-
-import { ErrorCode } from "@lib/auth";
-import { useLocale } from "@lib/hooks/useLocale";
+import { ErrorCode } from "@calcom/lib/auth";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { Button, showToast } from "@calcom/ui";
 
 const ChangePasswordSection = () => {
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
+  // hold display until the locale is loaded
+  if (!isLocaleReady) {
+    return null;
+  }
 
   const errorMessages: { [key: string]: string } = {
     [ErrorCode.IncorrectPassword]: t("current_incorrect_password"),

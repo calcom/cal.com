@@ -1,14 +1,18 @@
 import { User } from "@prisma/client";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { getSession } from "next-auth/react";
+import { z } from "zod";
 
 import prisma from "@calcom/prisma";
 
-import { asNumberOrThrow } from "@lib/asStringOrNull";
+const teamIdschema = z.object({
+  teamId: z.preprocess((a) => parseInt(z.string().parse(a), 10), z.number().positive()),
+});
 
 const auditAndReturnNextUser = async (
   impersonatedUser: Pick<User, "id" | "username" | "email" | "name" | "role">,
-  impersonatedByUID: number
+  impersonatedByUID: number,
+  hasTeam?: boolean
 ) => {
   // Log impersonations for audit purposes
   await prisma.impersonations.create({
@@ -33,6 +37,7 @@ const auditAndReturnNextUser = async (
     name: impersonatedUser.name,
     role: impersonatedUser.role,
     impersonatedByUID,
+    belongsToActiveTeam: hasTeam,
   };
 
   return obj;
@@ -50,7 +55,8 @@ const ImpersonationProvider = CredentialsProvider({
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore need to figure out how to correctly type this
     const session = await getSession({ req });
-    const teamId = creds?.teamId ? asNumberOrThrow(creds.teamId) : undefined;
+    // If teamId is present -> parse the teamId and throw error itn ot number. If not present teamId is set to undefined
+    const teamId = creds?.teamId ? teamIdschema.parse({ teamId: creds.teamId }).teamId : undefined;
 
     if (session?.user.username === creds?.username) {
       throw new Error("You cannot impersonate yourself.");
@@ -99,8 +105,14 @@ const ImpersonationProvider = CredentialsProvider({
       if (impersonatedUser.disableImpersonation) {
         throw new Error("This user has disabled Impersonation.");
       }
-      return auditAndReturnNextUser(impersonatedUser, session?.user.id as number);
+      return auditAndReturnNextUser(
+        impersonatedUser,
+        session?.user.id as number,
+        impersonatedUser.teams.length > 0 // If the user has any teams, they belong to an active team and we can set the hasActiveTeam ctx to true
+      );
     }
+
+    if (!teamId) throw new Error("You do not have permission to do this.");
 
     // Check session
     const sessionUserFromDb = await prisma.user.findUnique({
@@ -131,7 +143,11 @@ const ImpersonationProvider = CredentialsProvider({
       throw new Error("You do not have permission to do this.");
     }
 
-    return auditAndReturnNextUser(impersonatedUser, session?.user.id as number);
+    return auditAndReturnNextUser(
+      impersonatedUser,
+      session?.user.id as number,
+      impersonatedUser.teams.length > 0 // If the user has any teams, they belong to an active team and we can set the hasActiveTeam ctx to true
+    );
   },
 });
 

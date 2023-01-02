@@ -1,4 +1,4 @@
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
 import _package from "./package.json";
 
@@ -10,6 +10,7 @@ export const metadata = {
   title: "Apple Calendar",
   imageSrc: "/api/app-store/applecalendar/icon.svg",
   variant: "calendar",
+  categories: ["calendar"],
   category: "calendar",
   logo: "/api/app-store/applecalendar/icon.svg",
   publisher: "Cal.com",
@@ -20,6 +21,7 @@ export const metadata = {
   url: "https://cal.com/",
   verified: true,
   email: "help@cal.com",
-} as App;
+  dirName: "applecalendar",
+} as AppMeta;
 
 export default metadata;

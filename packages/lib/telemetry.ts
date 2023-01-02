@@ -1,8 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { CollectOpts, EventHandler } from "next-collect";
 import { useCollector } from "next-collect/client";
-// it's ok to do this since we're importing only types which are harmless
-// eslint-disable-next-line  @next/next/no-server-import-in-page
+// Importing types so we're not directly importing next/server
 import type { NextRequest, NextResponse } from "next/server";
 
 import { CONSOLE_URL } from "./constants";
@@ -90,14 +89,13 @@ export const extendEventData = (
     typeof req.headers?.get === "function"
       ? !!req.headers.get("x-vercel-id")
       : !!(req.headers as any)?.["x-vercel-id"];
-  const pageUrl = original?.page_url || (req as any)?.page?.name || undefined;
+  const pageUrl = original?.page_url || req.url || undefined;
   const cookies = req.cookies as { [key: string]: any };
   return {
     title: "",
     ipAddress: "",
     queryString: "",
     page_url: pageUrl,
-    licenseConsent: !!process.env.NEXT_PUBLIC_LICENSE_CONSENT,
     licensekey: process.env.CALCOM_LICENSE_KEY,
     isTeamBooking:
       original?.isTeamBooking === undefined

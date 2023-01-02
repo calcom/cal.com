@@ -1,14 +1,12 @@
 import { ClockIcon } from "@heroicons/react/outline";
+import { useMutation } from "@tanstack/react-query";
 import { Dispatch, SetStateAction, useState } from "react";
-import { useMutation } from "react-query";
 
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import logger from "@calcom/lib/logger";
-import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
-import Button from "@calcom/ui/Button";
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
+import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, showToast } from "@calcom/ui";
 
 interface IConfirmDialogWipe {
   isOpenDialog: boolean;
@@ -73,7 +71,7 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
     },
     {
       async onSettled() {
-        await utils.invalidateQueries(["viewer.bookings"]);
+        await utils.viewer.bookings.invalidate();
       },
     }
   );
@@ -93,7 +91,7 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
                 {initialDate.format(dateFormat)} - {endDate.format(dateFormat)}
               </strong>
             </p>
-            <p className="mt-6 mb-2 text-sm font-bold text-black">Are you sure? This can&apos;t be undone</p>
+            <p className="mt-6 mb-2 text-sm">Are you sure? This can&apos;t be undone</p>
           </div>
         </div>
 
@@ -103,6 +101,7 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
           </Button>
 
           <Button
+            color="primary"
             data-testid="send_request"
             disabled={isLoading}
             onClick={async () => {

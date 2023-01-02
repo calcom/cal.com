@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 
-async function middleware(prisma: PrismaClient) {
+function middleware(prisma: PrismaClient) {
   /***********************************/
   /* SOFT DELETE MIDDLEWARE */
   /***********************************/
@@ -15,7 +15,6 @@ async function middleware(prisma: PrismaClient) {
         params.args["data"] = { deleted: true };
       }
       if (params.action === "deleteMany") {
-        console.log("deletingMany");
         // Delete many queries
         params.action = "updateMany";
         if (params.args.data !== undefined) {

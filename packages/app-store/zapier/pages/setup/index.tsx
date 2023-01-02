@@ -1,13 +1,11 @@
-import { ClipboardCopyIcon } from "@heroicons/react/solid";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useState } from "react";
 import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import showToast from "@calcom/lib/notification";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Loader, Tooltip } from "@calcom/ui";
+import { Button, ClipboardCopyIcon, showToast, Tooltip } from "@calcom/ui";
 
 export interface IZapierSetupProps {
   inviteLink: string;
@@ -19,12 +17,12 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   const [newApiKey, setNewApiKey] = useState("");
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const integrations = trpc.useQuery(["viewer.integrations", { variant: "other" }]);
-  const oldApiKey = trpc.useQuery(["viewer.apiKeys.findKeyOfType", { appId: ZAPIER }]);
+  const integrations = trpc.viewer.integrations.useQuery({ variant: "automation" });
+  const oldApiKey = trpc.viewer.apiKeys.findKeyOfType.useQuery({ appId: ZAPIER });
 
-  const deleteApiKey = trpc.useMutation("viewer.apiKeys.delete");
+  const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation();
   const zapierCredentials: { credentialIds: number[] } | undefined = integrations.data?.items.find(
-    (item: { type: string }) => item.type === "zapier_other"
+    (item: { type: string }) => item.type === "zapier_automation"
   );
   const [credentialId] = zapierCredentials?.credentialIds || [false];
   const showContent = integrations.data && integrations.isSuccess && credentialId;
@@ -32,7 +30,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
 
   async function createApiKey() {
     const event = { note: "Zapier", expiresAt: null, appId: ZAPIER };
-    const apiKey = await utils.client.mutation("viewer.apiKeys.create", event);
+    const apiKey = await utils.client.viewer.apiKeys.create.mutate(event);
     if (oldApiKey.data) {
       deleteApiKey.mutate({
         id: oldApiKey.data.id,
@@ -42,22 +40,18 @@ export default function ZapierSetup(props: IZapierSetupProps) {
   }
 
   if (integrations.isLoading) {
-    return (
-      <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200">
-        <Loader />
-      </div>
-    );
+    return <div className="absolute z-50 flex h-screen w-full items-center bg-gray-200" />;
   }
 
   return (
     <div className="flex h-screen bg-gray-200">
       {showContent ? (
-        <div className="m-auto rounded bg-white p-10">
-          <div className="flex flex-row">
-            <div className="mr-5">
+        <div className="m-auto max-w-[43em] overflow-auto rounded bg-white pb-10 md:p-10">
+          <div className="md:flex md:flex-row">
+            <div className="invisible md:visible">
               <img className="h-11" src="/api/app-store/zapier/icon.svg" alt="Zapier Logo" />
             </div>
-            <div className="ml-5">
+            <div className="ml-2 mr-2 md:ml-5">
               <div className="text-gray-600">{t("setting_up_zapier")}</div>
               {!newApiKey ? (
                 <>
@@ -69,16 +63,18 @@ export default function ZapierSetup(props: IZapierSetupProps) {
               ) : (
                 <>
                   <div className="mt-1 text-xl">{t("your_unique_api_key")}</div>
-                  <div className="my-2 mt-3 flex">
-                    <div className="mr-1 w-full rounded bg-gray-100 p-3 pr-5">{newApiKey}</div>
-                    <Tooltip side="top" content="copy to clipboard">
+                  <div className="my-2 mt-3 flex-wrap sm:flex sm:flex-nowrap">
+                    <code className="h-full w-full whitespace-pre-wrap rounded-md bg-gray-100 py-[6px] pl-2 pr-2 sm:rounded-r-none sm:pr-5">
+                      {newApiKey}
+                    </code>
+                    <Tooltip side="top" content={t("copy_to_clipboard")}>
                       <Button
                         onClick={() => {
                           navigator.clipboard.writeText(newApiKey);
                           showToast(t("api_key_copied"), "success");
                         }}
                         type="button"
-                        className="px-4 text-base ">
+                        className="mt-4 text-base sm:mt-0 sm:rounded-l-none">
                         <ClipboardCopyIcon className="mr-2 h-5 w-5 text-neutral-100" />
                         {t("copy")}
                       </Button>
@@ -107,7 +103,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                   <li>You&apos;re set!</li>
                 </Trans>
               </ol>
-              <Link href="/apps/installed" passHref={true}>
+              <Link href="/apps/installed/automation?hl=zapier" passHref={true}>
                 <Button color="secondary">{t("done")}</Button>
               </Link>
             </div>

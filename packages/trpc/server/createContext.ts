@@ -1,12 +1,12 @@
-import { GetServerSidePropsContext } from "next";
-import { Session } from "next-auth";
+import type { GetServerSidePropsContext } from "next";
+import type { Session } from "next-auth";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import { getSession } from "@calcom/lib/auth";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getLocaleFromHeaders } from "@calcom/lib/i18n";
 import { defaultAvatarSrc } from "@calcom/lib/profile";
 import prisma from "@calcom/prisma";
-
-import { getLocaleFromHeaders } from "@lib/core/i18n/i18n.utils";
 
 import * as trpc from "@trpc/server";
 import { Maybe } from "@trpc/server";
@@ -49,7 +49,6 @@ async function getUserFromSession({
       identityProvider: true,
       brandColor: true,
       darkBrandColor: true,
-      plan: true,
       away: true,
       credentials: {
         select: {
@@ -58,6 +57,7 @@ async function getUserFromSession({
           key: true,
           userId: true,
           appId: true,
+          invalid: true,
         },
         orderBy: {
           id: "asc",
@@ -74,6 +74,8 @@ async function getUserFromSession({
       locale: true,
       timeFormat: true,
       trialEndsAt: true,
+      metadata: true,
+      role: true,
     },
   });
 
@@ -85,12 +87,14 @@ async function getUserFromSession({
   if (!email) {
     return null;
   }
-  const avatar = user.avatar || defaultAvatarSrc({ email });
+  const rawAvatar = user.avatar;
+  // This helps to prevent reaching the 4MB payload limit by avoiding base64 and instead passing the avatar url
+  user.avatar = rawAvatar ? `${WEBAPP_URL}/${user.username}/avatar.png` : defaultAvatarSrc({ email });
 
   const locale = user.locale || getLocaleFromHeaders(req);
   return {
     ...user,
-    avatar,
+    rawAvatar,
     email,
     username,
     locale,
@@ -101,9 +105,9 @@ async function getUserFromSession({
  * Creates context for an incoming request
  * @link https://trpc.io/docs/context
  */
-export const createContext = async ({ req }: CreateContextOptions) => {
+export const createContext = async ({ req }: CreateContextOptions, sessionGetter = getSession) => {
   // for API-response caching see https://trpc.io/docs/caching
-  const session = await getSession({ req });
+  const session = await sessionGetter({ req });
 
   const user = await getUserFromSession({ session, req });
   const locale = user?.locale ?? getLocaleFromHeaders(req);

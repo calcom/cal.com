@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import type { Session } from "next-auth";
 
+import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import prisma from "@calcom/prisma";
 import type { AppDeclarativeHandler, AppHandler } from "@calcom/types/AppHandler";
@@ -64,8 +65,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       await handler(req, res);
     } else {
       await defaultIntegrationAddHandler({ user: req.session?.user, ...handler });
-      redirectUrl = handler.redirectUrl;
-      res.json({ url: redirectUrl });
+      redirectUrl = handler.redirect?.url || getInstalledAppPath(handler);
+      res.json({ url: redirectUrl, newTab: handler.redirect?.newTab });
     }
     return res.status(200);
   } catch (error) {

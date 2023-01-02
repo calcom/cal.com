@@ -1,4 +1,4 @@
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
 import _package from "./package.json";
 
@@ -6,7 +6,8 @@ export const metadata = {
   name: "Zapier",
   description: _package.description,
   installed: true,
-  category: "other",
+  category: "automation",
+  categories: ["automation"],
   imageSrc: "/api/app-store/zapier/icon.svg",
   logo: "/api/app-store/zapier/icon.svg",
   publisher: "Cal.com",
@@ -15,11 +16,12 @@ export const metadata = {
   slug: "zapier",
   title: "Zapier",
   trending: true,
-  type: "zapier_other",
+  type: "zapier_automation",
   url: "https://cal.com/apps/zapier",
-  variant: "other",
+  variant: "automation",
   verified: true,
   email: "help@cal.com",
-} as App;
+  dirName: "zapier",
+} as AppMeta;
 
 export default metadata;

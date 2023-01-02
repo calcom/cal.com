@@ -1,6 +1,7 @@
-import type { Credential } from "@prisma/client";
+import { GetRecordingsResponseSchema } from "@calcom/prisma/zod-utils";
 
 import type { EventBusyDate } from "./Calendar";
+import { CredentialPayload } from "./Credential";
 
 export interface VideoCallData {
   type: string;
@@ -19,7 +20,9 @@ export type VideoApiAdapter =
       deleteMeeting(uid: string): Promise<unknown>;
 
       getAvailability(dateFrom?: string, dateTo?: string): Promise<EventBusyDate[]>;
+
+      getRecordings?(roomName: string): Promise<GetRecordingsResponseSchema>;
     }
   | undefined;
 
-export type VideoApiAdapterFactory = (credential: Credential) => VideoApiAdapter;
+export type VideoApiAdapterFactory = (credential: CredentialPayload) => VideoApiAdapter;

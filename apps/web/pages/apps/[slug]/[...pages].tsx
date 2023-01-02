@@ -1,39 +1,50 @@
 import { GetServerSidePropsContext } from "next";
-import { NextRouter, useRouter } from "next/router";
+import { useRouter } from "next/router";
 
-import RoutingFormsRoutingConfig from "@calcom/app-store/ee/routing_forms/pages/app-routing.config";
+import RoutingFormsRoutingConfig from "@calcom/app-store/ee/routing-forms/pages/app-routing.config";
+import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
 import prisma from "@calcom/prisma";
 import { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
-import { inferSSRProps } from "@calcom/types/inferSSRProps";
 
+import { AppProps } from "@lib/app-providers";
 import { getSession } from "@lib/auth";
+
+import { ssrInit } from "@server/lib/ssr";
+
+type AppPageType = {
+  getServerSideProps: AppGetServerSideProps;
+  // A component than can accept any properties
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  default: ((props: any) => JSX.Element) & Pick<AppProps["Component"], "isThemeSupported" | "getLayout">;
+};
+
+type Found = {
+  notFound: false;
+  Component: AppPageType["default"];
+  getServerSideProps: AppPageType["getServerSideProps"];
+};
+
+type NotFound = {
+  notFound: true;
+};
 
 // TODO: It is a candidate for apps.*.generated.*
 const AppsRouting = {
-  routing_forms: RoutingFormsRoutingConfig,
+  "routing-forms": RoutingFormsRoutingConfig,
+  typeform: TypeformRoutingConfig,
 };
 
 function getRoute(appName: string, pages: string[]) {
-  const routingConfig = AppsRouting[appName as keyof typeof AppsRouting];
-  type NotFound = {
-    notFound: true;
-  };
+  const routingConfig = AppsRouting[appName as keyof typeof AppsRouting] as Record<string, AppPageType>;
 
   if (!routingConfig) {
     return {
       notFound: true,
     } as NotFound;
   }
-
   const mainPage = pages[0];
-  const appPage = routingConfig[mainPage as keyof typeof routingConfig];
-  type Found = {
-    notFound: false;
-    // A component than can accept any properties
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    Component: ((props: any) => JSX.Element) & { isThemeSupported?: boolean };
-    getServerSideProps: AppGetServerSideProps;
-  };
+  const appPage = routingConfig[mainPage] as AppPageType;
+
   if (!appPage) {
     return {
       notFound: true,
@@ -42,7 +53,7 @@ function getRoute(appName: string, pages: string[]) {
   return { notFound: false, Component: appPage.default, ...appPage } as Found;
 }
 
-export default function AppPage(props: inferSSRProps<typeof getServerSideProps>) {
+const AppPage: AppPageType["default"] = function AppPage(props) {
   const appName = props.appName;
   const router = useRouter();
   const pages = router.query.pages as string[];
@@ -57,15 +68,33 @@ export default function AppPage(props: inferSSRProps<typeof getServerSideProps>)
     throw new Error("Route can't be undefined");
   }
   return <route.Component {...componentProps} />;
-}
+};
 
-AppPage.isThemeSupported = ({ router }: { router: NextRouter }) => {
+AppPage.isThemeSupported = ({ router }) => {
   const route = getRoute(router.query.slug as string, router.query.pages as string[]);
   if (route.notFound) {
     return false;
   }
-  return route.Component.isThemeSupported;
+  const isThemeSupported = route.Component.isThemeSupported;
+  if (typeof isThemeSupported === "function") {
+    return isThemeSupported({ router });
+  }
+
+  return !!isThemeSupported;
 };
+
+AppPage.getLayout = (page, router) => {
+  const route = getRoute(router.query.slug as string, router.query.pages as string[]);
+  if (route.notFound) {
+    return null;
+  }
+  if (!route.Component.getLayout) {
+    return page;
+  }
+  return route.Component.getLayout(page, router);
+};
+
+export default AppPage;
 
 export async function getServerSideProps(
   context: GetServerSidePropsContext<{
@@ -101,7 +130,8 @@ export async function getServerSideProps(
         appPages: string[];
       }>,
       prisma,
-      user
+      user,
+      ssrInit
     );
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore

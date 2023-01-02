@@ -5,7 +5,9 @@ import { z } from "zod";
 
 import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@calcom/emails";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import getStripeAppData from "@calcom/lib/getStripeAppData";
 import prisma from "@calcom/prisma";
+import { EventTypeModel } from "@calcom/prisma/zod";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
@@ -32,8 +34,8 @@ export const stripeDataSchema = stripeOAuthTokenSchema.extend({
 
 export type StripeData = z.infer<typeof stripeDataSchema>;
 
+/** Figure out a way to get this from the DB without too much wreckage. */
 const stripePrivateKey = process.env.STRIPE_PRIVATE_KEY!;
-
 const stripe = new Stripe(stripePrivateKey, {
   apiVersion: "2020-08-27",
 });
@@ -50,10 +52,7 @@ const stripeCredentialSchema = z.object({
 
 export async function handlePayment(
   evt: CalendarEvent,
-  selectedEventType: {
-    price: number;
-    currency: string;
-  },
+  selectedEventType: Pick<z.infer<typeof EventTypeModel>, "price" | "currency" | "metadata">,
   stripeCredential: { key: Prisma.JsonValue },
   booking: {
     user: { email: string | null; name: string | null; timeZone: string } | null;
@@ -64,13 +63,13 @@ export async function handlePayment(
 ) {
   const appKeys = await getAppKeysFromSlug("stripe");
   const { payment_fee_fixed, payment_fee_percentage } = stripeKeysSchema.parse(appKeys);
-
-  const paymentFee = Math.round(selectedEventType.price * payment_fee_percentage + payment_fee_fixed);
+  const stripeAppData = getStripeAppData(selectedEventType);
+  const paymentFee = Math.round(stripeAppData.price * payment_fee_percentage + payment_fee_fixed);
   const { stripe_user_id, stripe_publishable_key } = stripeCredentialSchema.parse(stripeCredential.key);
 
   const params: Stripe.PaymentIntentCreateParams = {
-    amount: selectedEventType.price,
-    currency: selectedEventType.currency,
+    amount: stripeAppData.price,
+    currency: stripeAppData.currency,
     payment_method_types: ["card"],
     application_fee_amount: paymentFee,
   };
@@ -86,9 +85,9 @@ export async function handlePayment(
           id: booking.id,
         },
       },
-      amount: selectedEventType.price,
+      amount: stripeAppData.price,
       fee: paymentFee,
-      currency: selectedEventType.currency,
+      currency: stripeAppData.currency,
       success: false,
       refunded: false,
       data: Object.assign({}, paymentIntent, {

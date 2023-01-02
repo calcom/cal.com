@@ -95,8 +95,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
   private async getUserById(userId: number) {
     let resultUser: User | null;
     try {
-      resultUser = await prisma.user.findUnique({
-        rejectOnNotFound: true,
+      resultUser = await prisma.user.findUniqueOrThrow({
         where: {
           id: userId,
         },
@@ -111,8 +110,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
   private async getEventFromEventId(eventTypeId: number) {
     let resultEventType;
     try {
-      resultEventType = await prisma.eventType.findUnique({
-        rejectOnNotFound: true,
+      resultEventType = await prisma.eventType.findUniqueOrThrow({
         where: {
           id: eventTypeId,
         },
@@ -151,64 +149,6 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
       throw new Error("Error while getting eventType");
     }
     return resultEventType;
-  }
-
-  public async buildLuckyUsers() {
-    if (!this.eventType && this.users && this.users.length) {
-      throw new Error("exec buildUsersFromInnerClass before calling this function");
-    }
-
-    // @TODO: user?.username gets flagged as null somehow, maybe a filter before map?
-    const filterUsernames = this.users.filter((user) => user && typeof user.username === "string");
-    const userUsernames = filterUsernames.map((user) => user.username) as string[]; // @TODO: hack
-    const users = await prisma.user.findMany({
-      where: {
-        username: { in: userUsernames },
-        eventTypes: {
-          some: {
-            id: this.eventType.id,
-          },
-        },
-      },
-      select: {
-        id: true,
-        username: true,
-        locale: true,
-      },
-    });
-
-    const userNamesWithBookingCounts = await Promise.all(
-      users.map(async (user) => ({
-        username: user.username,
-        bookingCount: await prisma.booking.count({
-          where: {
-            user: {
-              id: user.id,
-            },
-            startTime: {
-              gt: new Date(),
-            },
-            eventTypeId: this.eventType.id,
-          },
-        }),
-      }))
-    );
-    const luckyUsers = this.getLuckyUsers(this.users, userNamesWithBookingCounts);
-    this.users = luckyUsers;
-  }
-
-  private getLuckyUsers(
-    users: User[],
-    bookingCounts: {
-      username: string | null;
-      bookingCount: number;
-    }[]
-  ) {
-    if (!bookingCounts.length) users.slice(0, 1);
-
-    const [firstMostAvailableUser] = bookingCounts.sort((a, b) => (a.bookingCount > b.bookingCount ? 1 : -1));
-    const luckyUser = users.find((user) => user.username === firstMostAvailableUser?.username);
-    return luckyUser ? [luckyUser] : users;
   }
 
   public async buildTeamMembers() {
@@ -281,8 +221,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
   public async setUsersFromId(userId: User["id"]) {
     let resultUser: User | null;
     try {
-      resultUser = await prisma.user.findUnique({
-        rejectOnNotFound: true,
+      resultUser = await prisma.user.findUniqueOrThrow({
         where: {
           id: userId,
         },
@@ -314,7 +253,7 @@ export class CalendarEventBuilder implements ICalendarEventBuilder {
 
       const queryParams = new URLSearchParams();
       queryParams.set("rescheduleUid", `${booking.uid}`);
-      slug = `${slug}?${queryParams.toString()}`;
+      slug = `${slug}`;
       const rescheduleLink = `${WEBAPP_URL}/${slug}?${queryParams.toString()}`;
       this.rescheduleLink = rescheduleLink;
     } catch (error) {

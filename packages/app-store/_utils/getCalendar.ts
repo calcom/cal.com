@@ -1,15 +1,17 @@
-import { Credential } from "@prisma/client";
-
 import logger from "@calcom/lib/logger";
 import type { Calendar } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 
 import appStore from "..";
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
 
-export const getCalendar = (credential: Credential | null): Calendar | null => {
-  if (!credential) return null;
-  const { type: calendarType } = credential;
+export const getCalendar = (credential: CredentialPayload | null): Calendar | null => {
+  if (!credential || !credential.key) return null;
+  let { type: calendarType } = credential;
+  if (calendarType?.endsWith("_other_calendar")) {
+    calendarType = calendarType.split("_other_calendar")[0];
+  }
   const calendarApp = appStore[calendarType.split("_").join("") as keyof typeof appStore];
   if (!(calendarApp && "lib" in calendarApp && "CalendarService" in calendarApp.lib)) {
     log.warn(`calendar of type ${calendarType} is not implemented`);

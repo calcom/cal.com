@@ -1,25 +1,42 @@
 import { Prisma } from "@prisma/client";
+import dotEnv from "dotenv";
 import fs from "fs";
 import path from "path";
-import { uuid } from "short-uuid";
 
 import prisma from ".";
 
-require("dotenv").config({ path: "../../.env.appStore" });
+dotEnv.config({ path: "../../.env.appStore" });
+
+export const seededForm = {
+  id: "948ae412-d995-4865-875a-48302588de03",
+  name: "Seeded Form - Pro",
+};
 
 async function seedAppData() {
   const form = await prisma.app_RoutingForms_Form.findUnique({
     where: {
-      id: "948ae412-d995-4865-875a-48302588de03",
+      id: seededForm.id,
     },
   });
   if (form) {
     console.log(`Skipping Routing Form - Form Seed, "Seeded Form - Pro" already exists`);
     return;
   }
+
+  const proUser = await prisma.user.findFirst({
+    where: {
+      username: "pro",
+    },
+  });
+
+  if (!proUser) {
+    console.log(`Skipping Routing Form - Seeding - Pro User not found`);
+    return;
+  }
+
   await prisma.app_RoutingForms_Form.create({
     data: {
-      id: "948ae412-d995-4865-875a-48302588de03",
+      id: seededForm.id,
       routes: [
         {
           id: "8a898988-89ab-4cde-b012-31823f708642",
@@ -82,6 +99,26 @@ async function seedAppData() {
           },
         },
         {
+          id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
+          action: { type: "customPageMessage", value: "Multiselect chosen" },
+          queryValue: {
+            id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
+            type: "group",
+            children1: {
+              "b98a8abb-cdef-4012-b456-718262343d27": {
+                type: "rule",
+                properties: {
+                  field: "d4292635-9f12-17b1-9153-c3a854649182",
+                  value: [["Option-2"]],
+                  operator: "multiselect_equals",
+                  valueSrc: ["value"],
+                  valueType: ["multiselect"],
+                },
+              },
+            },
+          },
+        },
+        {
           id: "898899aa-4567-489a-bcde-f1823f708646",
           action: { type: "customPageMessage", value: "Fallback Message" },
           isFallback: true,
@@ -90,13 +127,21 @@ async function seedAppData() {
       ],
       fields: [
         { id: "c4296635-9f12-47b1-8153-c3a854649182", type: "text", label: "Test field", required: true },
+        {
+          id: "d4292635-9f12-17b1-9153-c3a854649182",
+          type: "multiselect",
+          label: "Multi Select",
+          identifier: "multi",
+          selectText: "Option-1\nOption-2",
+          required: false,
+        },
       ],
       user: {
         connect: {
           username: "pro",
         },
       },
-      name: "Seeded Form - Pro",
+      name: seededForm.name,
     },
   });
 }
@@ -113,8 +158,8 @@ async function createApp(
 ) {
   await prisma.app.upsert({
     where: { slug },
-    create: { slug, dirName, categories, keys },
-    update: { dirName, categories, keys },
+    create: { slug, dirName, categories, keys, enabled: true },
+    update: { dirName, categories, keys, enabled: true },
   });
   await prisma.credential.updateMany({
     where: { type },
@@ -127,10 +172,10 @@ export default async function main() {
   // Calendar apps
   await createApp("apple-calendar", "applecalendar", ["calendar"], "apple_calendar");
   await createApp("caldav-calendar", "caldavcalendar", ["calendar"], "caldav_calendar");
-  await createApp("exchange2013-calendar", "exchange2013calendar", ["calendar"], "exchange2013_calendar");
-  await createApp("exchange2016-calendar", "exchange2016calendar", ["calendar"], "exchange2016_calendar");
   try {
-    const { client_secret, client_id, redirect_uris } = JSON.parse(process.env.GOOGLE_API_CREDENTIALS).web;
+    const { client_secret, client_id, redirect_uris } = JSON.parse(
+      process.env.GOOGLE_API_CREDENTIALS || ""
+    ).web;
     await createApp("google-calendar", "googlecalendar", ["calendar"], "google_calendar", {
       client_id,
       client_secret,
@@ -152,6 +197,17 @@ export default async function main() {
     await createApp("msteams", "office365video", ["video"], "office365_video", {
       client_id: process.env.MS_GRAPH_CLIENT_ID,
       client_secret: process.env.MS_GRAPH_CLIENT_SECRET,
+    });
+  }
+  if (
+    process.env.LARK_OPEN_APP_ID &&
+    process.env.LARK_OPEN_APP_SECRET &&
+    process.env.LARK_OPEN_VERIFICATION_TOKEN
+  ) {
+    await createApp("lark-calendar", "larkcalendar", ["calendar"], "lark_calendar", {
+      app_id: process.env.LARK_OPEN_APP_ID,
+      app_secret: process.env.LARK_OPEN_APP_SECRET,
+      open_verification_token: process.env.LARK_OPEN_VERIFICATION_TOKEN,
     });
   }
   // Video apps
@@ -177,9 +233,15 @@ export default async function main() {
   await createApp("jitsi", "jitsivideo", ["video"], "jitsi_video");
   // Other apps
   if (process.env.HUBSPOT_CLIENT_ID && process.env.HUBSPOT_CLIENT_SECRET) {
-    await createApp("hubspot", "hubspotothercalendar", ["other"], "hubspot_other_calendar", {
+    await createApp("hubspot", "hubspot", ["other"], "hubspot_other_calendar", {
       client_id: process.env.HUBSPOT_CLIENT_ID,
       client_secret: process.env.HUBSPOT_CLIENT_SECRET,
+    });
+  }
+  if (process.env.SALESFORCE_CONSUMER_KEY && process.env.SALESFORCE_CONSUMER_SECRET) {
+    await createApp("salesforce", "salesforce", ["other"], "salesforce_other_calendar", {
+      consumer_key: process.env.SALESFORCE_CONSUMER_KEY,
+      consumer_secret: process.env.SALESFORCE_CONSUMER_SECRET,
     });
   }
   await createApp("wipe-my-cal", "wipemycalother", ["other"], "wipemycal_other");
@@ -199,22 +261,14 @@ export default async function main() {
   }
 
   if (process.env.ZAPIER_INVITE_LINK) {
-    await createApp("zapier", "zapier", ["other"], "zapier_other", {
+    await createApp("zapier", "zapier", ["automation"], "zapier_automation", {
       invite_link: process.env.ZAPIER_INVITE_LINK,
     });
   }
 
   // Web3 apps
   await createApp("huddle01", "huddle01video", ["web3", "video"], "huddle01_video");
-  await createApp("metamask", "metamask", ["web3"], "metamask_web3");
-  // Messaging apps
-  if (process.env.SLACK_CLIENT_ID && process.env.SLACK_CLIENT_SECRET && process.env.SLACK_SIGNING_SECRET) {
-    await createApp("slack", "slackmessaging", ["messaging"], "slack_messaging", {
-      client_id: process.env.SLACK_CLIENT_ID,
-      client_secret: process.env.SLACK_CLIENT_SECRET,
-      signing_secret: process.env.SLACK_SIGNING_SECRET,
-    });
-  }
+
   // Payment apps
   if (
     process.env.STRIPE_CLIENT_ID &&
@@ -242,3 +296,12 @@ export default async function main() {
 
   await seedAppData();
 }
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

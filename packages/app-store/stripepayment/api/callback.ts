@@ -4,7 +4,18 @@ import { stringify } from "querystring";
 
 import prisma from "@calcom/prisma";
 
+import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import stripe, { StripeData } from "../lib/server";
+
+function getReturnToValueFromQueryState(req: NextApiRequest) {
+  let returnTo = "";
+  try {
+    returnTo = JSON.parse(`${req.query.state}`).returnTo;
+  } catch (error) {
+    console.info("No 'returnTo' in req.query.state");
+  }
+  return returnTo;
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code, error, error_description } = req.query;
@@ -39,5 +50,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     },
   });
 
-  res.redirect("/apps/installed");
+  const returnTo = getReturnToValueFromQueryState(req);
+  res.redirect(returnTo || getInstalledAppPath({ variant: "payment", slug: "stripe" }));
 }

@@ -1,8 +1,7 @@
 <!-- PROJECT LOGO -->
 <p align="center">
   <a href="https://github.com/calcom/cal.com">
-    <img src="https://user-images.githubusercontent.com/8019099/133430653-24422d2a-3c8d-4052-9ad6-0580597151ee.png" alt="Logo">
-
+   <img src="https://user-images.githubusercontent.com/8019099/210054112-5955e812-a76e-4160-9ddd-58f2c72f1cce.png" alt="Logo">
   </a>
 
   <h3 align="center">Cal.com (formerly Calendso)</h3>
@@ -26,16 +25,19 @@
 <p align="center">
    <a href="https://cal.com/slack"><img src="https://img.shields.io/badge/Slack-calendso.slack.com-%234A154B" alt="Join Cal.com Slack"></a>
    <a href="https://www.producthunt.com/posts/calendso"><img src="https://img.shields.io/badge/Product%20Hunt-%231%20Product%20of%20the%20Month-%23DA552E" alt="Product Hunt"></a>
+   <a href="https://status.cal.com"><img src="https://betteruptime.com/status-badges/v1/monitor/a9kf.svg" alt="Uptime"></a>
    <a href="https://github.com/calcom/cal.com/stargazers"><img src="https://img.shields.io/github/stars/calcom/cal.com" alt="Github Stars"></a>
    <a href="https://news.ycombinator.com/item?id=26817795"><img src="https://img.shields.io/badge/Hacker%20News-311-%23FF6600" alt="Hacker News"></a>
    <a href="https://github.com/calcom/cal.com/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
    <a href="https://github.com/calcom/cal.com/pulse"><img src="https://img.shields.io/github/commit-activity/m/calcom/cal.com" alt="Commits-per-month"></a>
-   <a href="https://cal.com/pricing"><img src="https://img.shields.io/badge/Pricing-%2412%2Fmonth-brightgreen" alt="Pricing"></a>
+   <a href="https://cal.com/pricing"><img src="https://img.shields.io/badge/Pricing-Free-brightgreen" alt="Pricing"></a>
    <a href="https://jitsu.com?utm_source=github/calcom/cal.com"><img src="https://img.shields.io/badge/Metrics_tracked_by-JITSU-AA00FF?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAACKSURBVHgBrZDRCYAwDEQv6gCOoKO4hOCXI9QVnEZwiY5iF5GaVClaBNtioCSUvCR3tMJaxIfZgW4AGUoEPVwgPZoS0Dmgg3NBVDFNbMIsmYCak3J1jDk9iCQvsKJvkzr71N81Gj6vDT/LU2P6RhY63jcafk3YJEbgeZpiFyc/5HJKv8Ef273NSfABGbQfUZhnOSAAAAAASUVORK5CYII=" alt="Jitsu Tracked"></a>
    <img src="https://api.checklyhq.com/v1/badges/checks/5e048048-1b51-47ba-9209-60607507622e?responseTime=true" alt="Checkly Availability" />
    <a href="https://hub.docker.com/r/calendso/calendso"><img src="https://img.shields.io/docker/pulls/calendso/calendso"></a>
    <a href="https://twitter.com/calcom"><img src="https://img.shields.io/twitter/follow/calcom?style=flat"></a>
    <a href="https://twitch.tv/calcomtv"><img src="https://img.shields.io/twitch/status/calcomtv?style=flat"></a>
+   <a href="https://github.com/orgs/calcom/projects/9"><img src="https://img.shields.io/badge/Help%20Wanted-Contribute-blue"></a>
+   <a href="https://cal.com/figma"><img src="https://img.shields.io/badge/Figma-Design%20System-blueviolet"></a>
    <a href="https://calendso.slack.com/archives/C02BY67GMMW"><img src="https://img.shields.io/badge/translations-contribute-brightgreen" /></a>
    <a href="https://www.contributor-covenant.org/version/1/4/code-of-conduct/ "><img src="https://img.shields.io/badge/Contributor%20Covenant-1.4-purple" /></a>
 </p>
@@ -55,7 +57,7 @@ Calendly and other scheduling tools are awesome. It made our lives massively eas
 
 That's where Cal.com comes in. Self-hosted or hosted by us. White-label by design. API-driven and ready to be deployed on your own domain. Full control of your events and data.
 
-## Product of the Month: April
+## Product of the Month: April 2021
 
 #### Support us on [Product Hunt](https://www.producthunt.com/posts/calendso?utm_source=badge-top-post-badge&utm_medium=badge&utm_souce=badge-calendso)
 
@@ -84,7 +86,7 @@ To get a local copy up and running, please follow these simple steps.
 
 Here is what you need to be able to run Cal.
 
-- Node.js (Version: >=14.x <17)
+- Node.js (Version: >=15.x <17)
 - PostgreSQL
 - Yarn _(recommended)_
 
@@ -112,7 +114,10 @@ Here is what you need to be able to run Cal.
    yarn
    ```
 
-1. Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the .env file.
+1. Set up your .env file
+   - Duplicate `.env.example` to `.env`
+   - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the .env file.
+   - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the .env file.
 
 #### Quick start with `yarn dx`
 
@@ -133,7 +138,7 @@ echo 'NEXT_PUBLIC_DEBUG=1' >> .env
 
 #### Manual setup
 
-1. Configure environment variables in the `packages/prisma/.env` file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
+1. Configure environment variables in the `.env` file. Replace `<user>`, `<pass>`, `<db-host>`, `<db-port>` with their applicable values
 
    ```
    DATABASE_URL='postgresql://<user>:<pass>@<db-host>:<db-port>'
@@ -201,7 +206,7 @@ Be sure to set the environment variable `NEXTAUTH_URL` to the correct value. If 
 yarn test-e2e
 
 # To open last HTML report run:
-yarn workspace @calcom/web playwright-report
+yarn playwright show-report test-results/reports/playwright-html-report
 ```
 
 ### Upgrading from earlier versions
@@ -260,11 +265,15 @@ yarn workspace @calcom/web playwright-report
 
 ### Docker
 
-The Docker configuration for Cal is an effort powered by people within the community. Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
+The Docker configuration for Cal is an effort powered by people within the community.
 
 If you want to contribute to the Docker repository, [reply here](https://github.com/calcom/docker/discussions/32).
 
 The Docker configuration can be found [in our docker repository](https://github.com/calcom/docker).
+
+Issues with Docker? Find your answer or open a new discussion [here](https://github.com/calcom/docker/discussions) to ask the community.
+
+Cal.com, Inc. does not provide official support for Docker, but we will accept fixes and documentation. Use at your own risk.
 
 ### Heroku
 
@@ -274,13 +283,15 @@ The Docker configuration can be found [in our docker repository](https://github.
 
 ### Railway
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https%3A%2F%2Fgithub.com%2Fcalendso%2Fcalendso&plugins=postgresql&envs=GOOGLE_API_CREDENTIALS%2CBASE_URL%2CNEXTAUTH_URL%2CPORT&BASE_URLDefault=http%3A%2F%2Flocalhost%3A3000&NEXTAUTH_URLDefault=http%3A%2F%2Flocalhost%3A3000&PORTDefault=3000)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/cal)
 
 You can deploy Cal on [Railway](https://railway.app/) using the button above. The team at Railway also have a [detailed blog post](https://blog.railway.app/p/calendso) on deploying Cal on their platform.
 
 ### Vercel
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com&env=DATABASE_URL,NEXT_PUBLIC_WEBAPP_URL,NEXTAUTH_SECRET,NEXTAUTH_URL,CALENDSO_ENCRYPTION_KEY,NEXT_PUBLIC_LICENSE_CONSENT,CALCOM_LICENSE_KEY&envDescription=See%20all%20available%20env%20vars&envLink=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com%2Fblob%2Fmain%2F.env.example&project-name=cal&repo-name=cal.com)
+Currently Vercel Pro Plan is required to be able to Deploy this application with Vercel, due to limitations on the number of serverless functions on the free plan.
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com&env=DATABASE_URL,NEXT_PUBLIC_WEBAPP_URL,NEXTAUTH_URL,NEXTAUTH_SECRET,CRON_API_KEY,CALENDSO_ENCRYPTION_KEY&envDescription=See%20all%20available%20env%20vars&envLink=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com%2Fblob%2Fmain%2F.env.example&project-name=cal&repo-name=cal.com&build-command=cd%20../..%20%26%26%20yarn%20build&root-directory=apps%2Fweb%2F)
 
 <!-- ROADMAP -->
 
@@ -298,7 +309,7 @@ Please see our [contributing guide](/CONTRIBUTING.md).
 
 ### Good First Issues
 
-We have a list of [good first issues](https://github.com/calcom/cal.com/labels/✅%20good%20first%20issue) that contain bugs which have a relatively limited scope. This is a great place to get started, gain experience, and get familiar with our contribution process.
+We have a list of [help wanted](https://github.com/orgs/calcom/projects/1/views/25) that contain small features and bugs which have a relatively limited scope. This is a great place to get started, gain experience, and get familiar with our contribution process.
 
 ## Integrations
 
@@ -312,9 +323,26 @@ We have a list of [good first issues](https://github.com/calcom/cal.com/labels/�
 6. In the third page (Test Users), add the Google account(s) you'll using. Make sure the details are correct on the last page of the wizard and your consent screen will be configured.
 7. Now select [Credentials](https://console.cloud.google.com/apis/credentials) from the side pane and then select Create Credentials. Select the OAuth Client ID option.
 8. Select Web Application as the Application Type.
-9. Under Authorized redirect URI's, select Add URI and then add the URI `<Cal.com URL>/api/integrations/googlecalendar/callback` replacing Cal.com URL with the URI at which your application runs.
+9. Under Authorized redirect URI's, select Add URI and then add the URI `<Cal.com URL>/api/integrations/googlecalendar/callback` and `<Cal.com URL>/api/auth/callback/google` replacing Cal.com URL with the URI at which your application runs.
 10. The key will be created and you will be redirected back to the Credentials page. Select the newly generated client ID under OAuth 2.0 Client IDs.
 11. Select Download JSON. Copy the contents of this file and paste the entire JSON string in the .env file as the value for GOOGLE_API_CREDENTIALS key.
+
+#### _Adding google calendar to Cal.com App Store_
+
+After adding Google credentials, you can now Google Calendar App to the app store.
+You can repopulate the App store by running
+
+```
+cd packages/prisma
+yarn seed-app-store
+```
+
+You will need to complete a few more steps to activate Google Calendar App.
+Make sure to complete section "Obtaining the Google API Credentials". After the do the
+following
+
+1. Add extra redirect URL `<Cal.com URL>/api/auth/callback/google`
+1. Under 'OAuth concent screen', click "PUBLISH APP"
 
 ### Obtaining Microsoft Graph Client ID and Secret
 
@@ -325,56 +353,6 @@ We have a list of [good first issues](https://github.com/calcom/cal.com/labels/�
 5. Use **Application (client) ID** as the **MS_GRAPH_CLIENT_ID** attribute value in .env
 6. Click **Certificates & secrets** create a new client secret and use the value as the **MS_GRAPH_CLIENT_SECRET** attribute
 
-### Obtaining Slack Client ID and Secret and Signing Secret
-
-To test this you will need to create a Slack app for yourself on [their apps website](https://api.slack.com/apps).
-
-Copy and paste the app manifest below into the setting on your slack app. Be sure to replace `YOUR_DOMAIN` with your own domain or your proxy host if you're testing locally.
-
-<details>
-  <summary>App Manifest</summary>
-  
- ```yaml
- display_information:
-  name: Cal.com Slack
-features:
-  bot_user:
-    display_name: Cal.com Slack
-    always_online: false
-  slash_commands:
-    - command: /create-event
-      url: https://YOUR_DOMAIN/api/integrations/slackmessaging/commandHandler
-      description: Create an event within Cal!
-      should_escape: false
-    - command: /today
-      url: https://YOUR_DOMAIN/api/integrations/slackmessaging/commandHandler
-      description: View all your bookings for today
-      should_escape: false
-oauth_config:
-  redirect_urls:
-    - https://YOUR_DOMAIN/api/integrations/slackmessaging/callback
-  scopes:
-    bot:
-      - chat:write
-      - commands
-      - chat:write.public 
-settings:
-  interactivity:
-    is_enabled: true
-    request_url: https://YOUR_DOMAIN/api/integrations/slackmessaging/interactiveHandler
-    message_menu_options_url: https://YOUR_DOMAIN/api/integrations/slackmessaging/interactiveHandler
-  org_deploy_enabled: false
-  socket_mode_enabled: false
-  token_rotation_enabled: false
-```
-
-</details>
-
-Add the integration as normal - slack app - add. Follow the oauth flow to add it to a server.
-
-Next make sure you have your app running `yarn dx`. Then in the slack chat type one of these commands: `/create-event` or `/today`
-
-> NOTE: Next you will need to setup a proxy server like [ngrok](https://ngrok.com/) to allow your local host machine to be hosted on a public https server.
 
 ### Obtaining Zoom Client ID and Secret
 
@@ -408,7 +386,7 @@ Next make sure you have your app running `yarn dx`. Then in the slack chat type 
 4. Fill in any information you want in the "App info" tab
 5. Go to tab "Auth"
 6. Now copy the Client ID and Client Secret to your .env file into the `HUBSPOT_CLIENT_ID` and `HUBSPOT_CLIENT_SECRET` fields.
-7. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/hubspotothercalendar/callback` replacing Cal.com URL with the URI at which your application runs.
+7. Set the Redirect URL for OAuth `<Cal.com URL>/api/integrations/hubspot/callback` replacing Cal.com URL with the URI at which your application runs.
 8. In the "Scopes" section at the bottom of the page, make sure you select "Read" and "Write" for scope called `crm.objects.contacts`
 9. Click the "Save" button at the bottom footer.
 10. You're good to go. Now you can see any booking in Cal.com created as a meeting in HubSpot for your contacts.
@@ -440,14 +418,18 @@ Next make sure you have your app running `yarn dx`. Then in the slack chat type 
 2. Click ‘Get a Twilio phone number’
 3. Copy Account SID to your .env file into the TWILIO_SID field
 4. Copy Auth Token to your .env file into the TWILIO_TOKEN field
-5. Create a messaging service (Develop -> Messaging -> Services)
-6. Choose any name for the messaging service
-7. Click 'Add Senders'
-8. Choose phone number as sender type
-9. Add the listed phone number
-10. Leave all other fields as they are
-11. Complete setup and click ‘View my new Messaging Service’
-12. Copy Messaging Service SID to your .env file into the TWILIO_MESSAGING_SID field
+5. Copy your Twilio phone number to your .env file into the TWILIO_PHONE_NUMBER field
+6. Add your own sender id to the .env file into the NEXT_PUBLIC_SENDER_ID field (fallback is Cal)
+7. Create a messaging service (Develop -> Messaging -> Services)
+8. Choose any name for the messaging service
+9. Click 'Add Senders'
+10. Choose phone number as sender type
+11. Add the listed phone number
+12. Leave all other fields as they are
+13. Complete setup and click ‘View my new Messaging Service’
+14. Copy Messaging Service SID to your .env file into the TWILIO_MESSAGING_SID field
+15. Create a verify service
+16. Copy Verify Service SID to your .env file into the TWILIO_VERIFY_SID field
 
 <!-- LICENSE -->
 

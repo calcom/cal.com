@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/whatsapp",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "Schedule a chat with your guests or have a WhatsApp Video call.",
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}

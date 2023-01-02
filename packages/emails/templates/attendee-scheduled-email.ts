@@ -1,6 +1,6 @@
 import { createEvent, DateArray } from "ics";
 import { TFunction } from "next-i18next";
-import rrule from "rrule";
+import { RRule } from "rrule";
 
 import dayjs from "@calcom/dayjs";
 import { getRichDescription } from "@calcom/lib/CalEventParser";
@@ -12,14 +12,24 @@ import BaseEmail from "./_base-email";
 export default class AttendeeScheduledEmail extends BaseEmail {
   calEvent: CalendarEvent;
   attendee: Person;
+  showAttendees: boolean | undefined;
   t: TFunction;
 
-  constructor(calEvent: CalendarEvent, attendee: Person) {
+  constructor(calEvent: CalendarEvent, attendee: Person, showAttendees?: boolean | undefined) {
     super();
     this.name = "SEND_BOOKING_CONFIRMATION";
     this.calEvent = calEvent;
     this.attendee = attendee;
+    this.showAttendees = showAttendees;
     this.t = attendee.language.translate;
+
+    if (!this.showAttendees) {
+      this.calEvent.attendees = [
+        {
+          ...this.attendee,
+        },
+      ];
+    }
   }
 
   protected getiCalEventAsString(): string | undefined {
@@ -27,7 +37,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
     let recurrenceRule: string | undefined = undefined;
     if (this.calEvent.recurringEvent?.count) {
       // ics appends "RRULE:" already, so removing it from RRule generated string
-      recurrenceRule = new rrule(this.calEvent.recurringEvent).toString().replace("RRULE:", "");
+      recurrenceRule = new RRule(this.calEvent.recurringEvent).toString().replace("RRULE:", "");
     }
     const icsEvent = createEvent({
       start: dayjs(this.calEvent.startTime)
@@ -65,7 +75,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
       },
       to: `${this.attendee.name} <${this.attendee.email}>`,
       from: `${this.calEvent.organizer.name} <${this.getMailerOptions().from}>`,
-      replyTo: this.calEvent.organizer.email,
+      replyTo: [...this.calEvent.attendees.map(({ email }) => email), this.calEvent.organizer.email],
       subject: `${this.t("confirmed_event_type_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.team?.name || this.calEvent.organizer.name,

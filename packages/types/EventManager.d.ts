@@ -16,11 +16,14 @@ export interface PartialReference {
 
 export interface EventResult<T> {
   type: string;
+  appName: string;
   success: boolean;
   uid: string;
   createdEvent?: T;
   updatedEvent?: T | T[];
   originalEvent: CalendarEvent;
+  calError?: string;
+  calWarnings?: string[];
 }
 
 export interface CreateUpdateResult {

@@ -1,4 +1,4 @@
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
 import _package from "./package.json";
 
@@ -12,6 +12,7 @@ export const metadata = {
   ),
   slug: "stripe",
   category: "payment",
+  categories: ["payment"],
   logo: "/api/app-store/stripepayment/icon.svg",
   rating: 4.6,
   trending: true,
@@ -23,8 +24,10 @@ export const metadata = {
   url: "https://cal.com/",
   docsUrl: "https://stripe.com/docs",
   variant: "payment",
+  extendsFeature: "EventType",
   verified: true,
   email: "help@cal.com",
-} as App;
+  dirName: "stripepayment",
+} as AppMeta;
 
 export default metadata;

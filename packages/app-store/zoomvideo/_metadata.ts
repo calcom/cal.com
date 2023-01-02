@@ -1,12 +1,13 @@
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
-import { LocationType } from "../locations";
 import _package from "./package.json";
 
 export const metadata = {
+  linkType: "dynamic",
   name: "Zoom Video",
   description: _package.description,
   type: "zoom_video",
+  categories: ["video"],
   imageSrc: "/api/app-store/zoomvideo/icon.svg",
   variant: "conferencing",
   logo: "/api/app-store/zoomvideo/icon.svg",
@@ -20,8 +21,15 @@ export const metadata = {
   title: "Zoom Video",
   trending: true,
   email: "help@cal.com",
-  locationType: LocationType.Zoom,
-  locationLabel: "Zoom Video",
-} as App;
+  appData: {
+    location: {
+      default: false,
+      linkType: "dynamic",
+      type: "integrations:zoom",
+      label: "Zoom Video",
+    },
+  },
+  dirName: "zoomvideo",
+} as AppMeta;
 
 export default metadata;

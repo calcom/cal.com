@@ -1,9 +1,10 @@
-import { Credential } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
@@ -17,11 +18,25 @@ interface TandemToken {
   access_token: string;
 }
 
+interface ITandemRefreshToken {
+  expires_in?: number;
+  expiry_date?: number;
+  access_token: string;
+  refresh_token: string;
+}
+
+interface ITandemCreateMeetingResponse {
+  data: {
+    id: string;
+    event_link: string;
+  };
+}
+
 let client_id = "";
 let client_secret = "";
 let base_url = "";
 
-const tandemAuth = async (credential: Credential) => {
+const tandemAuth = async (credential: CredentialPayload) => {
   const appKeys = await getAppKeysFromSlug("tandem");
   if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
   if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
@@ -33,34 +48,33 @@ const tandemAuth = async (credential: Credential) => {
   const credentialKey = credential.key as unknown as TandemToken;
   const isTokenValid = (token: TandemToken) => token && token.access_token && token.expiry_date < Date.now();
 
-  const refreshAccessToken = (refreshToken: string) => {
-    fetch(`${base_url}/api/v1/oauth/v2/token`, {
+  const refreshAccessToken = async (refreshToken: string) => {
+    const result = await fetch(`${base_url}/api/v1/oauth/v2/token`, {
       method: "POST",
       body: new URLSearchParams({
         client_id,
         client_secret,
         code: refreshToken,
       }),
-    })
-      .then(handleErrorsJson)
-      .then(async (responseBody) => {
-        // set expiry date as offset from current time.
-        responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
-        delete responseBody.expires_in;
-        // Store new tokens in database.
-        await prisma.credential.update({
-          where: {
-            id: credential.id,
-          },
-          data: {
-            key: responseBody,
-          },
-        });
-        credentialKey.expiry_date = responseBody.expiry_date;
-        credentialKey.access_token = responseBody.access_token;
-        credentialKey.refresh_token = responseBody.refresh_token;
-        return credentialKey.access_token;
-      });
+    });
+    const responseBody = await handleErrorsJson<ITandemRefreshToken>(result);
+
+    // set expiry date as offset from current time.
+    responseBody.expiry_date = Math.round(Date.now() + (responseBody.expires_in || 0) * 1000);
+    delete responseBody.expires_in;
+    // Store new tokens in database.
+    await prisma.credential.update({
+      where: {
+        id: credential.id,
+      },
+      data: {
+        key: responseBody as unknown as Prisma.InputJsonValue,
+      },
+    });
+    credentialKey.expiry_date = responseBody.expiry_date;
+    credentialKey.access_token = responseBody.access_token;
+    credentialKey.refresh_token = responseBody.refresh_token;
+    return credentialKey.access_token;
   };
 
   return {
@@ -71,7 +85,7 @@ const tandemAuth = async (credential: Credential) => {
   };
 };
 
-const TandemVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
+const TandemVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
   const auth = tandemAuth(credential);
 
   const _parseDate = (date: string) => {
@@ -91,7 +105,7 @@ const TandemVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
     });
   };
 
-  const _translateResult = (result: { data: { id: string; event_link: string } }) => {
+  const _translateResult = (result: ITandemCreateMeetingResponse) => {
     return {
       type: "tandem_video",
       id: result.data.id as string,
@@ -115,9 +129,10 @@ const TandemVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
           "Content-Type": "application/json",
         },
         body: _translateEvent(event, "meeting"),
-      }).then(handleErrorsJson);
+      });
+      const responseBody = await handleErrorsJson<ITandemCreateMeetingResponse>(result);
 
-      return Promise.resolve(_translateResult(result));
+      return Promise.resolve(_translateResult(responseBody));
     },
 
     deleteMeeting: async (uid: string): Promise<void> => {
@@ -143,9 +158,10 @@ const TandemVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
           "Content-Type": "application/json",
         },
         body: _translateEvent(event, "updates"),
-      }).then(handleErrorsJson);
+      });
+      const responseBody = await handleErrorsJson<ITandemCreateMeetingResponse>(result);
 
-      return Promise.resolve(_translateResult(result));
+      return Promise.resolve(_translateResult(responseBody));
     },
   };
 };

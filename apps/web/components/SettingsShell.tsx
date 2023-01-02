@@ -1,8 +1,6 @@
 import React, { ComponentProps } from "react";
 
-import ErrorBoundary from "@calcom/ui/ErrorBoundary";
-import { Icon } from "@calcom/ui/Icon";
-import Shell from "@calcom/ui/Shell";
+import { ErrorBoundary, Icon, Shell } from "@calcom/ui";
 
 import NavTabs from "./NavTabs";
 
@@ -10,32 +8,32 @@ const tabs = [
   {
     name: "profile",
     href: "/settings/profile",
-    icon: Icon.User,
+    icon: Icon.FiUser,
   },
   {
     name: "teams",
     href: "/settings/teams",
-    icon: Icon.Users,
+    icon: Icon.FiUsers,
   },
   {
     name: "security",
     href: "/settings/security",
-    icon: Icon.Key,
+    icon: Icon.FiKey,
   },
   {
     name: "developer",
     href: "/settings/developer",
-    icon: Icon.Terminal,
+    icon: Icon.FiTerminal,
   },
   {
     name: "billing",
     href: "/settings/billing",
-    icon: Icon.CreditCard,
+    icon: Icon.FiCreditCard,
   },
   {
     name: "admin",
     href: "/settings/admin",
-    icon: Icon.Lock,
+    icon: Icon.FiLock,
     adminRequired: true,
   },
 ];

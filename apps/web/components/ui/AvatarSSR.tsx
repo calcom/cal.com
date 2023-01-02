@@ -15,12 +15,13 @@ export type AvatarProps = (
   className?: string;
   size?: number;
   title?: string;
+  href?: string;
   alt: string;
 };
 
 // defaultAvatarSrc from profile.tsx can't be used as it imports crypto
 function defaultAvatarSrc(md5: string) {
-  return `https://www.gravatar.com/avatar/${md5}?s=160&d=identicon&r=PG`;
+  return `https://www.gravatar.com/avatar/${md5}?s=160&d=mp&r=PG`;
 }
 
 // An SSR Supported version of Avatar component.
@@ -49,7 +50,7 @@ export function AvatarSSR(props: AvatarProps) {
   const avatar = imgSrc ? <img alt={alt} className={className} src={imgSrc} /> : null;
   return title ? (
     <Tooltip.Tooltip delayDuration={300}>
-      <Tooltip.TooltipTrigger className="cursor-default">{avatar}</Tooltip.TooltipTrigger>
+      <Tooltip.TooltipTrigger asChild>{avatar}</Tooltip.TooltipTrigger>
       <Tooltip.Content className="rounded-sm bg-black p-2 text-sm text-white">
         <Tooltip.Arrow />
         {title}

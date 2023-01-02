@@ -1,0 +1,15 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "n8n",
+  "slug": "n8n",
+  "type": "n8n_automation",
+  "imageSrc": "/api/app-store/n8n/icon.svg",
+  "logo": "/api/app-store/n8n/icon.svg",
+  "url": "https://cal.com/apps/n8n",
+  "variant": "automation",
+  "categories": ["automation"],
+  "publisher": "Cal.com, Inc.",
+  "email": "help@cal.com",
+  "description": "Automate without limits. The workflow automation platform that doesn't box you in, that you never outgrow",
+  "__createdUsingCli": true
+}

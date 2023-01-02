@@ -1,15 +1,16 @@
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
 import _package from "./package.json";
 
 export const metadata = {
-  name: "Office 365 / Outlook.com Calendar",
+  name: "Outlook Calendar",
   description: _package.description,
   type: "office365_calendar",
-  title: "Office 365 / Outlook.com Calendar",
+  title: "Outlook Calendar",
   imageSrc: "/api/app-store/office365calendar/icon.svg",
   variant: "calendar",
   category: "calendar",
+  categories: ["calendar"],
   logo: "/api/app-store/office365calendar/icon.svg",
   publisher: "Cal.com",
   rating: 5,
@@ -19,6 +20,7 @@ export const metadata = {
   url: "https://cal.com/",
   verified: true,
   email: "help@cal.com",
-} as App;
+  dirName: "office365calendar",
+} as AppMeta;
 
 export default metadata;

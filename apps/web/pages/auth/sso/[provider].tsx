@@ -3,14 +3,20 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
-import stripe from "@calcom/app-store/stripepayment/lib/server";
-import { getPremiumPlanPrice } from "@calcom/app-store/stripepayment/lib/utils";
+import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
+import stripe from "@calcom/features/ee/payments/server/stripe";
+import {
+  hostedCal,
+  isSAMLLoginEnabled,
+  samlProductID,
+  samlTenantID,
+  samlTenantProduct,
+} from "@calcom/features/ee/sso/lib/saml";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import prisma from "@calcom/prisma";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getSession } from "@lib/auth";
-import { hostedCal, isSAMLLoginEnabled, samlProductID, samlTenantID, samlTenantProduct } from "@lib/saml";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -155,7 +161,7 @@ const getStripePremiumUsernameUrl = async ({
     customer: customer.id,
     line_items: [
       {
-        price: getPremiumPlanPrice(),
+        price: getPremiumMonthlyPlanPriceId(),
         quantity: 1,
       },
     ],

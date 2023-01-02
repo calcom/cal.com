@@ -60,5 +60,14 @@ export function defaultCookies(useSecureCookies: boolean): CookiesOptions {
         httpOnly: true,
       },
     },
+    nonce: {
+      name: `${cookiePrefix}next-auth.nonce`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: useSecureCookies,
+      },
+    },
   };
 }

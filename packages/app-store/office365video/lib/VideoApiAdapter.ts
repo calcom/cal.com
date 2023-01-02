@@ -1,9 +1,10 @@
-import { Credential } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 import { handleErrorsJson, handleErrorsRaw } from "@calcom/lib/errors";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
@@ -32,8 +33,19 @@ interface O365AuthCredentials {
   ext_expires_in: number;
 }
 
+interface ITokenResponse {
+  expiry_date: number;
+  expires_in?: number;
+  token_type: string;
+  scope: string;
+  access_token: string;
+  refresh_token: string;
+  error?: string;
+  error_description?: string;
+}
+
 // Checks to see if our O365 user token is valid or if we need to refresh
-const o365Auth = async (credential: Credential) => {
+const o365Auth = async (credential: CredentialPayload) => {
   const appKeys = await getAppKeysFromSlug("msteams");
   if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
   if (typeof appKeys.client_secret === "string") client_secret = appKeys.client_secret;
@@ -49,16 +61,20 @@ const o365Auth = async (credential: Credential) => {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        scope: "User.Read OnlineMeetings.ReadWrite",
         client_id,
         refresh_token: refreshToken,
         grant_type: "refresh_token",
         client_secret,
       }),
     });
-    const responseBody = await handleErrorsJson(response);
+
+    const responseBody = await handleErrorsJson<ITokenResponse>(response);
+    if (responseBody?.error) {
+      console.error(responseBody);
+      throw new HttpError({ statusCode: 500, message: "Error contacting MS Teams" });
+    }
     // set expiry date as offset from current time.
-    responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
+    responseBody.expiry_date = Math.round(Date.now() + (responseBody?.expires_in || 0) * 1000);
     delete responseBody.expires_in;
     // Store new tokens in database.
     await prisma.credential.update({
@@ -66,7 +82,8 @@ const o365Auth = async (credential: Credential) => {
         id: credential.id,
       },
       data: {
-        key: responseBody,
+        // @NOTE: prisma doesn't know key its a JSON so do as responseBody
+        key: responseBody as unknown as Prisma.InputJsonValue,
       },
     });
     o365AuthCredentials.expiry_date = responseBody.expiry_date;
@@ -82,7 +99,7 @@ const o365Auth = async (credential: Credential) => {
   };
 };
 
-const TeamsVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
+const TeamsVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
   const auth = o365Auth(credential);
 
   const translateEvent = (event: CalendarEvent) => {
@@ -136,11 +153,15 @@ const TeamsVideoApiAdapter = (credential: Credential): VideoApiAdapter => {
 
       const resultObject = JSON.parse(resultString);
 
+      if (!resultObject.id || !resultObject.joinUrl || !resultObject.joinWebUrl) {
+        throw new HttpError({ statusCode: 500, message: "Error creating MS Teams meeting" });
+      }
+
       return Promise.resolve({
         type: "office365_video",
         id: resultObject.id,
         password: "",
-        url: resultObject.joinUrl,
+        url: resultObject.joinWebUrl || resultObject.joinUrl,
       });
     },
   };

@@ -1,7 +1,6 @@
 import { randomString } from "@calcom/lib/random";
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
-import { LocationType } from "../locations";
 import _package from "./package.json";
 
 export const metadata = {
@@ -11,6 +10,7 @@ export const metadata = {
   type: "huddle01_video",
   imageSrc: "/api/app-store/huddle01video/icon.svg",
   variant: "conferencing",
+  categories: ["video", "web3"],
   logo: "/api/app-store/huddle01video/icon.svg",
   publisher: "huddle01.com",
   url: "https://huddle01.com",
@@ -23,9 +23,15 @@ export const metadata = {
   trending: true,
   isGlobal: false,
   email: "support@huddle01.com",
-  locationType: LocationType.Huddle01,
-  locationLabel: "Huddle01 Video",
+  appData: {
+    location: {
+      linkType: "dynamic",
+      type: "integrations:huddle01",
+      label: "Huddle01 Video",
+    },
+  },
   key: { apikey: randomString(12) },
-} as App;
+  dirName: "huddle01video",
+} as AppMeta;
 
 export default metadata;

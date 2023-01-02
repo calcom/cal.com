@@ -1,7 +1,7 @@
 import React, { ErrorInfo } from "react";
 
 class ErrorBoundary extends React.Component<
-  { children: React.ReactNode },
+  { children: React.ReactNode; message?: string },
   { error: Error | null; errorInfo: ErrorInfo | null }
 > {
   constructor(props: { children: React.ReactNode } | Readonly<{ children: React.ReactNode }>) {
@@ -20,7 +20,7 @@ class ErrorBoundary extends React.Component<
       // Error path
       return (
         <div>
-          <h2>Something went wrong.</h2>
+          <h2>{this.props.message || "Something went wrong."}</h2>
           <details style={{ whiteSpace: "pre-wrap" }}>
             {this.state.error && this.state.error.toString()}
           </details>

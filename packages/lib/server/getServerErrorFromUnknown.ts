@@ -1,4 +1,4 @@
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
+import { PrismaClientKnownRequestError, NotFoundError } from "@prisma/client/runtime";
 import Stripe from "stripe";
 import { ZodError, ZodIssue } from "zod";
 
@@ -19,7 +19,7 @@ function parseZodErrorIssues(issues: ZodIssue[]): string {
         ? i.unionErrors.map((ue) => parseZodErrorIssues(ue.issues)).join("; ")
         : i.code === "unrecognized_keys"
         ? i.message
-        : `'${i.code}' in '${i.path}': ${i.message}`
+        : `${i.path.length ? `${i.code} in '${i.path}': ` : ""}${i.message}`
     )
     .join("; ");
 }
@@ -33,8 +33,17 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
       cause,
     });
   }
+  if (cause instanceof SyntaxError) {
+    return new HttpError({
+      statusCode: 500,
+      message: "Unexpected error, please reach out for our customer support.",
+    });
+  }
   if (cause instanceof PrismaClientKnownRequestError) {
     return new HttpError({ statusCode: 400, message: cause.message, cause });
+  }
+  if (cause instanceof NotFoundError) {
+    return new HttpError({ statusCode: 404, message: cause.message, cause });
   }
   if (cause instanceof Stripe.errors.StripeInvalidRequestError) {
     return new HttpError({ statusCode: 400, message: cause.message, cause });
@@ -50,5 +59,8 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
     return new Error(cause, { cause });
   }
 
-  return new HttpError({ statusCode: 500, message: `Unhandled error of type '${typeof cause}'` });
+  return new HttpError({
+    statusCode: 500,
+    message: `Unhandled error of type '${typeof cause}'. Please reach out for our customer support.`,
+  });
 }

@@ -1,7 +1,7 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import React from "react";
 
-import { Icon } from "@calcom/ui/Icon";
+import { Icon } from "@calcom/ui";
 
 import classNames from "@lib/classNames";
 import { useLocale } from "@lib/hooks/useLocale";
@@ -39,7 +39,7 @@ export const Select = function RadioAreaSelect(props: RadioAreaSelectProps) {
           disabled && "cursor-default bg-gray-200 focus:ring-0 "
         )}>
         {getLabel(props.value) ?? placeholder}
-        <Icon.ChevronDown className="float-right h-5 w-5 text-neutral-500" />
+        <Icon.FiChevronDown className="float-right h-5 w-5 text-neutral-500" />
       </CollapsibleTrigger>
       <CollapsibleContent>
         <RadioAreaGroup className="space-y-2 text-sm" name={props.name} onChange={props.onChange}>

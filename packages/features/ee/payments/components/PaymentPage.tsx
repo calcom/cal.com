@@ -4,15 +4,17 @@ import Head from "next/head";
 import { FC, useEffect, useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
-import { LocationOptionsToString } from "@calcom/app-store/locations";
+import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import getStripeAppData from "@calcom/lib/getStripeAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { isBrowserLocale24h } from "@calcom/lib/timeFormat";
-import { Icon } from "@calcom/ui/Icon";
+import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
+import { localStorage } from "@calcom/lib/webstorage";
+import { Icon } from "@calcom/ui";
 
 import type { PaymentPageProps } from "../pages/payment";
 import PaymentComponent from "./Payment";
@@ -21,12 +23,16 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   const { t } = useLocale();
   const [is24h, setIs24h] = useState(isBrowserLocale24h());
   const [date, setDate] = useState(dayjs.utc(props.booking.startTime));
+  const [timezone, setTimezone] = useState<string | null>(null);
   useTheme(props.profile.theme);
   const isEmbed = useIsEmbed();
+  const stripeAppData = getStripeAppData(props.eventType);
   useEffect(() => {
     let embedIframeWidth = 0;
-    setDate(date.tz(localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()));
-    setIs24h(!!localStorage.getItem("timeOption.is24hClock"));
+    const _timezone = localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess();
+    setTimezone(_timezone);
+    setDate(date.tz(_timezone));
+    setIs24h(!!getIs24hClockFromLocalStorage());
     if (isEmbed) {
       requestAnimationFrame(function fixStripeIframe() {
         // HACK: Look for stripe iframe and center position it just above the embed content
@@ -52,7 +58,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
     <div className="h-screen">
       <Head>
         <title>
-          {t("payment")} | {eventName} | Cal.com
+          {t("payment")} | {eventName} | {APP_NAME}
         </title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -73,7 +79,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                 aria-labelledby="modal-headline">
                 <div>
                   <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                    <Icon.CreditCard className="h-8 w-8 text-green-600" />
+                    <Icon.FiCreditCard className="h-8 w-8 text-green-600" />
                   </div>
 
                   <div className="mt-3 text-center sm:mt-5">
@@ -95,15 +101,13 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         {date.format("dddd, DD MMMM YYYY")}
                         <br />
                         {date.format(is24h ? "H:mm" : "h:mma")} - {props.eventType.length} mins{" "}
-                        <span className="text-gray-500">
-                          ({localStorage.getItem("timeOption.preferredTimeZone") || dayjs.tz.guess()})
-                        </span>
+                        <span className="text-gray-500">({timezone})</span>
                       </div>
                       {props.booking.location && (
                         <>
                           <div className="font-medium">{t("where")}</div>
                           <div className="col-span-2 mb-6">
-                            {LocationOptionsToString(props.booking.location, t)}
+                            {getSuccessPageLocationMessage(props.booking.location, t)}
                           </div>
                         </>
                       )}
@@ -111,9 +115,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                       <div className="col-span-2 mb-6">
                         <IntlProvider locale="en">
                           <FormattedNumber
-                            value={props.eventType.price / 100.0}
+                            value={stripeAppData.price / 100.0}
                             style="currency"
-                            currency={props.eventType.currency.toUpperCase()}
+                            currency={stripeAppData.currency.toUpperCase()}
                           />
                         </IntlProvider>
                       </div>
@@ -132,6 +136,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                         user={props.user}
                         location={props.booking.location}
                         bookingId={props.booking.id}
+                        bookingUid={props.booking.uid}
                       />
                     </Elements>
                   )}
@@ -141,7 +146,9 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                 </div>
                 {!props.profile.hideBranding && (
                   <div className="mt-4 border-t pt-4 text-center text-xs text-gray-400 dark:border-gray-900 dark:text-white">
-                    <a href={`${WEBSITE_URL}/signup`}>{t("create_booking_link_with_calcom")}</a>
+                    <a href={`${WEBSITE_URL}/signup`}>
+                      {t("create_booking_link_with_calcom", { appName: APP_NAME })}
+                    </a>
                   </div>
                 )}
               </div>

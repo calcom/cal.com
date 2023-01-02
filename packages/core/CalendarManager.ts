@@ -1,28 +1,26 @@
-import { Credential, SelectedCalendar } from "@prisma/client";
+import { SelectedCalendar } from "@prisma/client";
 import { createHash } from "crypto";
 import _ from "lodash";
 import cache from "memory-cache";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import getApps from "@calcom/app-store/utils";
-import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
-import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
+import { performance } from "@calcom/lib/server/perfObserver";
 import type { CalendarEvent, EventBusyDate, NewCalendarEventType } from "@calcom/types/Calendar";
+import { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { EventResult } from "@calcom/types/EventManager";
 
 const log = logger.getChildLogger({ prefix: ["CalendarManager"] });
 
-export const getCalendarCredentials = (credentials: Array<Credential>, userId: number) => {
+export const getCalendarCredentials = (credentials: Array<CredentialPayload>) => {
   const calendarCredentials = getApps(credentials)
     .filter((app) => app.type.endsWith("_calendar"))
     .flatMap((app) => {
       const credentials = app.credentials.flatMap((credential) => {
         const calendar = getCalendar(credential);
-        return app && calendar && app.variant === "calendar"
-          ? [{ integration: app, credential, calendar }]
-          : [];
+        return app.variant === "calendar" ? [{ integration: app, credential, calendar }] : [];
       });
       return credentials.length ? credentials : [];
     });
@@ -36,10 +34,17 @@ export const getConnectedCalendars = async (
 ) => {
   const connectedCalendars = await Promise.all(
     calendarCredentials.map(async (item) => {
-      const { calendar, integration, credential } = item;
-
-      const credentialId = credential.id;
       try {
+        const { calendar, integration, credential } = item;
+
+        // Don't leak credentials to the client
+        const credentialId = credential.id;
+        if (!calendar) {
+          return {
+            integration,
+            credentialId,
+          };
+        }
         const cals = await calendar.listCalendars();
         const calendars = _(cals)
           .map((cal) => ({
@@ -51,23 +56,38 @@ export const getConnectedCalendars = async (
           }))
           .sortBy(["primary"])
           .value();
-        const primary = calendars.find((item) => item.primary) ?? calendars[0];
+        const primary = calendars.find((item) => item.primary) ?? calendars.find((cal) => cal !== undefined);
         if (!primary) {
-          throw new Error("No primary calendar found");
+          return {
+            integration,
+            credentialId,
+            error: {
+              message: "No primary calendar found",
+            },
+          };
         }
+
         return {
-          integration,
+          integration: cleanIntegrationKeys(integration),
           credentialId,
           primary,
           calendars,
         };
-      } catch (_error) {
-        const error = getErrorFromUnknown(_error);
+      } catch (error) {
+        let errorMessage = "Could not get connected calendars";
+
+        // Here you can expect for specific errors
+        if (error instanceof Error) {
+          if (error.message === "invalid_grant") {
+            errorMessage = "Access token expired or revoked";
+          }
+        }
+
         return {
-          integration,
-          credentialId,
+          integration: cleanIntegrationKeys(item.integration),
+          credentialId: item.credential.id,
           error: {
-            message: error.message,
+            message: errorMessage,
           },
         };
       }
@@ -77,10 +97,26 @@ export const getConnectedCalendars = async (
   return connectedCalendars;
 };
 
+/**
+ * Important function to prevent leaking credentials to the client
+ * @param appIntegration
+ * @returns App
+ */
+const cleanIntegrationKeys = (
+  appIntegration: ReturnType<typeof getCalendarCredentials>[number]["integration"] & {
+    credentials?: Array<CredentialPayload>;
+    credential: CredentialPayload;
+  }
+) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { credentials, credential, ...rest } = appIntegration;
+  return rest;
+};
+
 const CACHING_TIME = 30_000; // 30 seconds
 
 const getCachedResults = async (
-  withCredentials: Credential[],
+  withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[]
@@ -93,7 +129,7 @@ const getCachedResults = async (
     /** Filter out nulls */
     if (!c) return [];
     /** We rely on the index so we can match credentials with calendars */
-    const { id, type } = calendarCredentials[i];
+    const { id, type, appId } = calendarCredentials[i];
     /** We just pass the calendars that matched the credential type,
      * TODO: Migrate credential type or appId
      */
@@ -112,7 +148,10 @@ const getCachedResults = async (
     }
     log.debug(`Cache MISS: Calendar Availability for key ${cacheKey}`);
     /** If we don't then we actually fetch external calendars (which can be very slow) */
-    const availability = await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars);
+    const availability = (await c.getAvailability(dateFrom, dateTo, passedSelectedCalendars)).map((a) => ({
+      ...a,
+      source: `${appId}`,
+    }));
     /** We save the availability to a few seconds so recurrent calls are nearly instant */
 
     cache.put(cacheHashedKey, availability, CACHING_TIME);
@@ -130,7 +169,7 @@ const getCachedResults = async (
 };
 
 export const getBusyCalendarTimes = async (
-  withCredentials: Credential[],
+  withCredentials: CredentialPayload[],
   dateFrom: string,
   dateTo: string,
   selectedCalendars: SelectedCalendar[]
@@ -141,17 +180,17 @@ export const getBusyCalendarTimes = async (
   } catch (error) {
     log.warn(error);
   }
-
   return results.reduce((acc, availability) => acc.concat(availability), []);
 };
 
 export const createEvent = async (
-  credential: Credential,
+  credential: CredentialWithAppName,
   calEvent: CalendarEvent
 ): Promise<EventResult<NewCalendarEventType>> => {
   const uid: string = getUid(calEvent);
   const calendar = getCalendar(credential);
   let success = true;
+  let calError: string | undefined = undefined;
 
   // Check if the disabledNotes flag is set to true
   if (calEvent.hideCalendarNotes) {
@@ -160,25 +199,40 @@ export const createEvent = async (
 
   // TODO: Surfice success/error messages coming from apps to improve end user visibility
   const creationResult = calendar
-    ? await calendar.createEvent(calEvent).catch(async (e) => {
-        await sendBrokenIntegrationEmail(calEvent, "calendar");
-        log.error("createEvent failed", e, calEvent);
+    ? await calendar.createEvent(calEvent).catch(async (error) => {
         success = false;
+        /**
+         * There is a time when selectedCalendar externalId doesn't match witch certain credential
+         * so google returns 404.
+         * */
+        if (error?.code === 404) {
+          return undefined;
+        }
+        if (error?.calError) {
+          calError = error.calError;
+        }
+        log.error("createEvent failed", error, calEvent);
+        // @TODO: This code will be off till we can investigate an error with it
+        //https://github.com/calcom/cal.com/issues/3949
+        // await sendBrokenIntegrationEmail(calEvent, "calendar");
         return undefined;
       })
     : undefined;
 
   return {
+    appName: credential.appName,
     type: credential.type,
     success,
     uid,
     createdEvent: creationResult,
     originalEvent: calEvent,
+    calError,
+    calWarnings: creationResult?.additionalInfo?.calWarnings || [],
   };
 };
 
 export const updateEvent = async (
-  credential: Credential,
+  credential: CredentialWithAppName,
   calEvent: CalendarEvent,
   bookingRefUid: string | null,
   externalCalendarId: string | null
@@ -186,6 +240,9 @@ export const updateEvent = async (
   const uid = getUid(calEvent);
   const calendar = getCalendar(credential);
   let success = false;
+  let calError: string | undefined = undefined;
+  let calWarnings: string[] | undefined = [];
+
   if (bookingRefUid === "") {
     log.error("updateEvent failed", "bookingRefUid is empty", calEvent, credential);
   }
@@ -198,22 +255,40 @@ export const updateEvent = async (
             return event;
           })
           .catch(async (e) => {
-            await sendBrokenIntegrationEmail(calEvent, "calendar");
+            // @TODO: This code will be off till we can investigate an error with it
+            // @see https://github.com/calcom/cal.com/issues/3949
+            // await sendBrokenIntegrationEmail(calEvent, "calendar");
             log.error("updateEvent failed", e, calEvent);
+            if (e?.calError) {
+              calError = e.calError;
+            }
             return undefined;
           })
       : undefined;
 
+  if (Array.isArray(updatedResult)) {
+    calWarnings = updatedResult.flatMap((res) => res.additionalInfo?.calWarnings ?? []);
+  } else {
+    calWarnings = updatedResult?.additionalInfo?.calWarnings || [];
+  }
+
   return {
+    appName: credential.appName,
     type: credential.type,
     success,
     uid,
     updatedEvent: updatedResult,
     originalEvent: calEvent,
+    calError,
+    calWarnings,
   };
 };
 
-export const deleteEvent = (credential: Credential, uid: string, event: CalendarEvent): Promise<unknown> => {
+export const deleteEvent = (
+  credential: CredentialPayload,
+  uid: string,
+  event: CalendarEvent
+): Promise<unknown> => {
   const calendar = getCalendar(credential);
   if (calendar) {
     return calendar.deleteEvent(uid, event);

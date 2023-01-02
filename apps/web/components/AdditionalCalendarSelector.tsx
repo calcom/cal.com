@@ -36,7 +36,7 @@ const ImageOption = (optionProps: OptionProps<{ [key: string]: string; type: App
 
 const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorProps): JSX.Element | null => {
   const { t } = useLocale();
-  const query = trpc.useQuery(["viewer.integrations", { variant: "calendar", onlyInstalled: true }]);
+  const query = trpc.viewer.integrations.useQuery({ variant: "calendar", onlyInstalled: true });
 
   return (
     <QueryCell
@@ -45,7 +45,7 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
         const options = data.items.map((item) => ({
           label: item.name,
           slug: item.slug,
-          image: item.imageSrc,
+          image: item.logo,
           type: item.type,
         }));
         return (

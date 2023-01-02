@@ -1,6 +1,5 @@
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
-import { LocationType } from "../locations";
 import _package from "./package.json";
 
 export const metadata = {
@@ -11,6 +10,7 @@ export const metadata = {
   imageSrc: "/api/app-store/dailyvideo/icon.svg",
   variant: "conferencing",
   url: "https://daily.co",
+  categories: ["calendar"],
   trending: true,
   logo: "/api/app-store/dailyvideo/icon.svg",
   publisher: "Cal.com",
@@ -22,9 +22,15 @@ export const metadata = {
   title: "Cal Video",
   isGlobal: true,
   email: "help@cal.com",
-  locationType: LocationType.Daily,
-  locationLabel: "Cal Video",
+  appData: {
+    location: {
+      linkType: "dynamic",
+      type: "integrations:daily",
+      label: "Cal Video",
+    },
+  },
   key: { apikey: process.env.DAILY_API_KEY },
-} as App;
+  dirName: "dailyvideo",
+} as AppMeta;
 
 export default metadata;

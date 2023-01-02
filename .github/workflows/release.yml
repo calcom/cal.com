@@ -1,0 +1,17 @@
+on:
+  workflow_dispatch:
+  push:
+    # Pattern matched against refs/tags
+    tags:
+      - "*" # Push events to every tag not containing /
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: main # Always checkout main even for tagged releases
+          fetch-depth: 0
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+      - run: git push origin +main:production

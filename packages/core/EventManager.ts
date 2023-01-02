@@ -1,12 +1,21 @@
-import { Credential, DestinationCalendar } from "@prisma/client";
-import async from "async";
+import { DestinationCalendar } from "@prisma/client";
 import merge from "lodash/merge";
 import { v5 as uuidv5 } from "uuid";
+import { z } from "zod";
 
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
+import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import prisma from "@calcom/prisma";
-import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
+import { Attendee } from "@calcom/prisma/client";
+import { createdEventSchema } from "@calcom/prisma/zod-utils";
+import type {
+  AdditionalInformation,
+  CalendarEvent,
+  NewCalendarEventType,
+  Person,
+} from "@calcom/types/Calendar";
+import { CredentialPayload, CredentialWithAppName } from "@calcom/types/Credential";
 import type { Event } from "@calcom/types/Event";
 import type {
   CreateUpdateResult,
@@ -16,55 +25,15 @@ import type {
 } from "@calcom/types/EventManager";
 
 import { createEvent, updateEvent } from "./CalendarManager";
-import { LocationType } from "./location";
 import { createMeeting, updateMeeting } from "./videoClient";
 
-export const isZoom = (location: string): boolean => {
-  return location === "integrations:zoom";
-};
-
-export const isDaily = (location: string): boolean => {
-  return location === "integrations:daily";
-};
-
-export const isHuddle01 = (location: string): boolean => {
-  return location === "integrations:huddle01";
-};
-
-export const isTandem = (location: string): boolean => {
-  return location === "integrations:tandem";
-};
-
-export const isTeams = (location: string): boolean => {
-  return location === "integrations:office365_video";
-};
-
-export const isJitsi = (location: string): boolean => {
-  return location === "integrations:jitsi";
-};
-
 export const isDedicatedIntegration = (location: string): boolean => {
-  return (
-    isZoom(location) ||
-    isDaily(location) ||
-    isHuddle01(location) ||
-    isTandem(location) ||
-    isJitsi(location) ||
-    isTeams(location)
-  );
+  return location !== "integrations:google:meet" && location.includes("integrations:");
 };
 
 export const getLocationRequestFromIntegration = (location: string) => {
-  if (
-    /** TODO: Handle this dynamically */
-    location === LocationType.GoogleMeet.valueOf() ||
-    location === LocationType.Zoom.valueOf() ||
-    location === LocationType.Daily.valueOf() ||
-    location === LocationType.Jitsi.valueOf() ||
-    location === LocationType.Huddle01.valueOf() ||
-    location === LocationType.Tandem.valueOf() ||
-    location === LocationType.Teams.valueOf()
-  ) {
+  const eventLocationType = getEventLocationTypeFromApp(location);
+  if (eventLocationType) {
     const requestId = uuidv5(location, uuidv5.URL);
 
     return {
@@ -84,6 +53,8 @@ export const processLocation = (event: CalendarEvent): CalendarEvent => {
   // If location is set to an integration location
   // Build proper transforms for evt object
   // Extend evt object with those transformations
+
+  // TODO: Rely on linkType:"dynamic" here. static links don't send their type. They send their URL directly.
   if (event.location?.includes("integration")) {
     const maybeLocationRequestObject = getLocationRequestFromIntegration(event.location);
 
@@ -94,13 +65,15 @@ export const processLocation = (event: CalendarEvent): CalendarEvent => {
 };
 
 type EventManagerUser = {
-  credentials: Credential[];
+  credentials: CredentialPayload[];
   destinationCalendar: DestinationCalendar | null;
 };
 
+type createdEventSchema = z.infer<typeof createdEventSchema>;
+
 export default class EventManager {
-  calendarCredentials: Credential[];
-  videoCredentials: Credential[];
+  calendarCredentials: CredentialWithAppName[];
+  videoCredentials: CredentialWithAppName[];
 
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
@@ -108,7 +81,12 @@ export default class EventManager {
    * @param user
    */
   constructor(user: EventManagerUser) {
-    const appCredentials = getApps(user.credentials).flatMap((app) => app.credentials);
+    const appCredentials = getApps(user.credentials).flatMap((app) =>
+      app.credentials.map((creds) => ({ ...creds, appName: app.name }))
+    );
+    // This includes all calendar-related apps, traditional calendars such as Google Calendar
+    // (type google_calendar) and non-traditional calendars such as CRMs like Close.com
+    // (type closecom_other_calendar)
     this.calendarCredentials = appCredentials.filter((cred) => cred.type.endsWith("_calendar"));
     this.videoCredentials = appCredentials.filter((cred) => cred.type.endsWith("_video"));
   }
@@ -121,6 +99,52 @@ export default class EventManager {
    * @param event
    */
   public async create(event: CalendarEvent): Promise<CreateUpdateResult> {
+    const evt = processLocation(event);
+    // Fallback to cal video if no location is set
+    if (!evt.location) evt["location"] = "integrations:daily";
+    const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
+
+    const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
+    // If and only if event type is a dedicated meeting, create a dedicated video meeting.
+    if (isDedicated) {
+      const result = await this.createVideoEvent(evt);
+
+      if (result?.createdEvent) {
+        evt.videoCallData = result.createdEvent;
+        evt.location = result.originalEvent.location;
+        result.type = result.createdEvent.type;
+      }
+
+      results.push(result);
+    }
+
+    // Create the calendar event with the proper video call data
+    results.push(...(await this.createAllCalendarEvents(evt)));
+
+    const referencesToCreate = results.map((result) => {
+      let createdEventObj: createdEventSchema | null = null;
+      if (typeof result?.createdEvent === "string") {
+        createdEventObj = createdEventSchema.parse(JSON.parse(result.createdEvent));
+      }
+
+      return {
+        type: result.type,
+        uid: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString() ?? "",
+        meetingId: createdEventObj ? createdEventObj.id : result.createdEvent?.id?.toString(),
+        meetingPassword: createdEventObj ? createdEventObj.password : result.createdEvent?.password,
+        meetingUrl: createdEventObj ? createdEventObj.onlineMeetingUrl : result.createdEvent?.url,
+        externalCalendarId: evt.destinationCalendar?.externalId,
+        credentialId: evt.destinationCalendar?.credentialId,
+      };
+    });
+
+    return {
+      results,
+      referencesToCreate,
+    };
+  }
+
+  public async updateLocation(event: CalendarEvent, booking: PartialBooking): Promise<CreateUpdateResult> {
     const evt = processLocation(event);
     const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
 
@@ -135,14 +159,17 @@ export default class EventManager {
       results.push(result);
     }
 
-    // Create the calendar event with the proper video call data
-    results.push(...(await this.createAllCalendarEvents(evt)));
+    // Update the calendar event with the proper video call data
+    const calendarReference = booking.references.find((reference) => reference.type.includes("_calendar"));
+    if (calendarReference) {
+      results.push(...(await this.updateAllCalendarEvents(evt, booking)));
+    }
 
     const referencesToCreate = results.map((result) => {
       return {
         type: result.type,
-        uid: result.createdEvent?.id.toString() ?? "",
-        meetingId: result.createdEvent?.id.toString(),
+        uid: result.createdEvent?.id?.toString() ?? "",
+        meetingId: result.createdEvent?.id?.toString(),
         meetingPassword: result.createdEvent?.password,
         meetingUrl: result.createdEvent?.url,
         externalCalendarId: evt.destinationCalendar?.externalId,
@@ -275,6 +302,7 @@ export default class EventManager {
   }
 
   public async updateCalendarAttendees(event: CalendarEvent, booking: PartialBooking) {
+    // @NOTE: This function is only used for updating attendees on a calendar event. Can we remove this?
     await this.updateAllCalendarEvents(event, booking);
   }
 
@@ -293,34 +321,51 @@ export default class EventManager {
   private async createAllCalendarEvents(event: CalendarEvent) {
     /** Can I use destinationCalendar here? */
     /* How can I link a DC to a cred? */
+    let createdEvents: EventResult<NewCalendarEventType>[] = [];
     if (event.destinationCalendar) {
       if (event.destinationCalendar.credentialId) {
-        const credential = await prisma.credential.findFirst({
-          where: {
-            id: event.destinationCalendar.credentialId,
-          },
-        });
+        const credential = this.calendarCredentials.find(
+          (c) => c.id === event.destinationCalendar?.credentialId
+        );
 
         if (credential) {
-          return [await createEvent(credential, event)];
+          const createdEvent = await createEvent(credential, event);
+          if (createdEvent) {
+            createdEvents.push(createdEvent);
+          }
+        }
+      } else {
+        const destinationCalendarCredentials = this.calendarCredentials.filter(
+          (c) => c.type === event.destinationCalendar?.integration
+        );
+        createdEvents = createdEvents.concat(
+          await Promise.all(destinationCalendarCredentials.map(async (c) => await createEvent(c, event)))
+        );
+      }
+    } else {
+      /**
+       *  Not ideal but, if we don't find a destination calendar,
+       * fallback to the first connected calendar
+       */
+      const [credential] = this.calendarCredentials.filter((cred) => cred.type === "calendar");
+      if (credential) {
+        const createdEvent = await createEvent(credential, event);
+        if (createdEvent) {
+          createdEvents.push(createdEvent);
         }
       }
-
-      const destinationCalendarCredentials = this.calendarCredentials.filter(
-        (c) => c.type === event.destinationCalendar?.integration
-      );
-      return Promise.all(destinationCalendarCredentials.map(async (c) => await createEvent(c, event)));
     }
 
-    /**
-     *  Not ideal but, if we don't find a destination calendar,
-     * fallback to the first connected calendar
-     */
-    const [credential] = this.calendarCredentials;
-    if (!credential) {
-      return [];
-    }
-    return [await createEvent(credential, event)];
+    // Taking care of non-traditional calendar integrations
+    createdEvents = createdEvents.concat(
+      await Promise.all(
+        this.calendarCredentials
+          .filter((cred) => cred.type.includes("other_calendar"))
+          .map(async (cred) => await createEvent(cred, event))
+      )
+    );
+
+    return createdEvents;
   }
 
   /**
@@ -330,7 +375,7 @@ export default class EventManager {
    * @private
    */
 
-  private getVideoCredential(event: CalendarEvent): Credential | undefined {
+  private getVideoCredential(event: CalendarEvent): CredentialWithAppName | undefined {
     if (!event.location) {
       return undefined;
     }
@@ -344,13 +389,13 @@ export default class EventManager {
       .sort((a, b) => {
         return b.id - a.id;
       })
-      .find((credential: Credential) => credential.type.includes(integrationName));
+      .find((credential: CredentialPayload) => credential.type.includes(integrationName));
 
     /**
      * This might happen if someone tries to use a location with a missing credential, so we fallback to Cal Video.
      * @todo remove location from event types that has missing credentials
      * */
-    if (!videoCredential) videoCredential = FAKE_DAILY_CREDENTIAL;
+    if (!videoCredential) videoCredential = { ...FAKE_DAILY_CREDENTIAL, appName: "FAKE" };
 
     return videoCredential;
   }
@@ -385,7 +430,7 @@ export default class EventManager {
    * @param booking
    * @private
    */
-  private updateAllCalendarEvents(
+  private async updateAllCalendarEvents(
     event: CalendarEvent,
     booking: PartialBooking
   ): Promise<Array<EventResult<NewCalendarEventType>>> {
@@ -394,14 +439,16 @@ export default class EventManager {
     try {
       // Bookings should only have one calendar reference
       calendarReference = booking.references.filter((reference) => reference.type.includes("_calendar"))[0];
-
-      if (!calendarReference) throw new Error("bookingRef");
-
+      if (!calendarReference) {
+        throw new Error("bookingRef");
+      }
       const { uid: bookingRefUid, externalCalendarId: bookingExternalCalendarId } = calendarReference;
 
-      if (!bookingExternalCalendarId) throw new Error("externalCalendarId");
+      if (!bookingExternalCalendarId) {
+        throw new Error("externalCalendarId");
+      }
 
-      const result = [];
+      let result = [];
       if (calendarReference.credentialId) {
         credential = this.calendarCredentials.filter(
           (credential) => credential.id === calendarReference?.credentialId
@@ -416,13 +463,38 @@ export default class EventManager {
         }
       }
 
+      // Taking care of non-traditional calendar integrations
+      result = result.concat(
+        this.calendarCredentials
+          .filter((cred) => cred.type.includes("other_calendar"))
+          .map(async (cred) => {
+            const calendarReference = booking.references.find((ref) => ref.type === cred.type);
+            if (!calendarReference)
+              if (!calendarReference) {
+                return {
+                  appName: cred.appName,
+                  type: cred.type,
+                  success: false,
+                  uid: "",
+                  originalEvent: event,
+                };
+              }
+            const { externalCalendarId: bookingExternalCalendarId, meetingId: bookingRefUid } =
+              calendarReference;
+            return await updateEvent(cred, event, bookingRefUid ?? null, bookingExternalCalendarId ?? null);
+          })
+      );
+
       return Promise.all(result);
     } catch (error) {
       let message = `Tried to 'updateAllCalendarEvents' but there was no '{thing}' for '${credential?.type}', userId: '${credential?.userId}', bookingId: '${booking?.id}'`;
-      if (error instanceof Error) message = message.replace("{thing}", error.message);
+      if (error instanceof Error) {
+        message = message.replace("{thing}", error.message);
+      }
       console.error(message);
       return Promise.resolve([
         {
+          appName: "none",
           type: calendarReference?.type || "calendar",
           success: false,
           uid: "",

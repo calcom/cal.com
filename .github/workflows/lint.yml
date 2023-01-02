@@ -6,6 +6,9 @@ on:
     paths:
       - "**.tsx?"
       - "**.jsx?"
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -27,7 +30,10 @@ jobs:
         if: steps.yarn-cache.outputs.cache-hit != 'true'
         run: yarn --frozen-lockfile
 
-      - name: Lint
+      - name: Test Code Linting
+        run: yarn lint
+
+      - name: Save Code Linting Reports
         run: yarn lint:report
         continue-on-error: true
 

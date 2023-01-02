@@ -1,9 +1,15 @@
+/**
+ * @deprecated file
+ * All new changes should be made to the V2 file in
+ * `/packages/features/ee/common/components/v2/LicenseRequired.tsx`
+ */
+import DOMPurify from "dompurify";
 import { useSession } from "next-auth/react";
 import React, { AriaRole, ComponentType, Fragment } from "react";
 
-import { CONSOLE_URL } from "@calcom/lib/constants";
-import EmptyScreen from "@calcom/ui/EmptyScreen";
-import { Icon } from "@calcom/ui/Icon";
+import { APP_NAME, CONSOLE_URL, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { EmptyScreen, Icon } from "@calcom/ui";
 
 type LicenseRequiredProps = {
   as?: keyof JSX.IntrinsicElements | "";
@@ -13,10 +19,14 @@ type LicenseRequiredProps = {
 };
 
 /**
+ * @deprecated file
+ * All new changes should be made to the V2 file in
+ * `/packages/features/ee/common/components/v2/LicenseRequired.tsx`
  * This component will only render it's children if the installation has a valid
  * license.
  */
 const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) => {
+  const { t } = useLocale();
   const session = useSession();
   const Component = as || Fragment;
   return (
@@ -25,21 +35,23 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
         children
       ) : (
         <EmptyScreen
-          Icon={Icon.AlertTriangle}
-          headline="This is an enterprise feature"
+          Icon={Icon.FiAlertTriangle}
+          headline={t("enterprise_license")}
           description={
-            <>
-              To enable this feature, get a deployment key at{" "}
-              <a href={CONSOLE_URL} target="_blank" rel="noopener noreferrer" className="underline">
-                Cal.com console
-              </a>{" "}
-              and add it to your .env as <code>CALCOM_LICENSE_KEY</code>. If your team already has a license,
-              please contact{" "}
-              <a href="mailto:peer@cal.com" className="underline">
-                peer@cal.com
-              </a>{" "}
-              for help.
-            </>
+            <div
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(
+                  t("enterprise_license_description", {
+                    consoleUrl: `<a href="${CONSOLE_URL}" target="_blank" rel="noopener noreferrer" class="underline">
+                ${APP_NAME}
+              </a>`,
+                    supportMail: `<a href="mailto:${SUPPORT_MAIL_ADDRESS}" class="underline">
+                ${SUPPORT_MAIL_ADDRESS}
+              </a>`,
+                  })
+                ),
+              }}
+            />
           }
         />
       )}

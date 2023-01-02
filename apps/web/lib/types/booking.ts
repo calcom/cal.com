@@ -1,5 +1,7 @@
 import { Attendee, Booking } from "@prisma/client";
 
+import { AppsStatus } from "@calcom/types/Calendar";
+
 export type BookingCreateBody = {
   email: string;
   end: string;
@@ -27,9 +29,11 @@ export type BookingCreateBody = {
   hasHashedBookingLink: boolean;
   hashedLink?: string | null;
   smsReminderNumber?: string;
+  ethSignature?: string;
 };
 
 export type BookingResponse = Booking & {
   paymentUid?: string;
   attendees: Attendee[];
+  appsStatus?: AppsStatus[];
 };

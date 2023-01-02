@@ -1,5 +1,6 @@
 import { DefaultSeo } from "next-seo";
 import Head from "next/head";
+import Script from "next/script";
 import superjson from "superjson";
 
 import "@calcom/embed-core/src/embed-iframe";
@@ -29,20 +30,29 @@ function MyApp(props: AppProps) {
   } else if (router.pathname === "/500") {
     pageStatus = "500";
   }
+  // Use the layout defined at the page level, if available
+  const getLayout = Component.getLayout ?? ((page) => page);
+
   return (
     <AppProviders {...props}>
       <DefaultSeo {...seoConfig.defaultNextSeo} />
       <I18nLanguageHandler />
+      <Script
+        id="page-status"
+        dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}
+      />
       <Head>
-        <script dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }} />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
-      {Component.requiresLicense ? (
-        <LicenseRequired>
+      {getLayout(
+        Component.requiresLicense ? (
+          <LicenseRequired>
+            <Component {...pageProps} err={err} />
+          </LicenseRequired>
+        ) : (
           <Component {...pageProps} err={err} />
-        </LicenseRequired>
-      ) : (
-        <Component {...pageProps} err={err} />
+        ),
+        router
       )}
     </AppProviders>
   );

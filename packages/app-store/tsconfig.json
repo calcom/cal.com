@@ -4,7 +4,9 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
+      /* A `package` should never import from `apps` ↓ */
       "@components/*": ["../../apps/web/components/*"],
+      /* A `package` should never import from `apps` ↓ */
       "@lib/*": ["../../apps/web/lib/*"],
       "@prisma/client/*": ["@calcom/prisma/client/*"]
     },
@@ -13,8 +15,8 @@
   "include": [
     "next-env.d.ts",
     "@calcom/types",
-    "../../packages/types/*.d.ts",
-    "../../packages/types/next-auth.d.ts",
+    "../types/*.d.ts",
+    "../types/next-auth.d.ts",
     "**/*.ts",
     "**/*.tsx",
     "../../apps/web/server/**/*.ts",

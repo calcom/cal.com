@@ -1,7 +1,6 @@
 import { validJson } from "@calcom/lib/jsonUtils";
-import type { App } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/types/App";
 
-import { LocationType } from "../locations";
 import _package from "./package.json";
 
 export const metadata = {
@@ -10,6 +9,7 @@ export const metadata = {
   installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
   slug: "google-meet",
   category: "video",
+  categories: ["video"],
   type: "google_video",
   title: "Google Meet",
   imageSrc: "/api/app-store/googlevideo/logo.webp",
@@ -23,8 +23,14 @@ export const metadata = {
   verified: true,
   isGlobal: true,
   email: "help@cal.com",
-  locationType: LocationType.GoogleMeet,
-  locationLabel: "Google Meet",
-} as App;
+  appData: {
+    location: {
+      linkType: "dynamic",
+      type: "integrations:google:meet",
+      label: "Google Meet",
+    },
+  },
+  dirName: "googlevideo",
+} as AppMeta;
 
 export default metadata;
