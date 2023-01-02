@@ -1,7 +1,7 @@
 import classNames from "classnames";
-import React, { useEffect, useState } from "react";
 
-import { APP_NAME, LOGO, COMPANY_NAME, CalComVersion } from "@calcom/lib/constants";
+import { APP_NAME, LOGO } from "@calcom/lib/constants";
+import Credits from "@calcom/ui/components/credits/Credits";
 
 import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
@@ -16,12 +16,6 @@ interface Props {
 }
 
 export default function AuthContainer(props: React.PropsWithChildren<Props>) {
-  const [hasMounted, setHasMounted] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
   return (
     <div className="flex min-h-screen flex-col justify-center bg-[#f3f4f6] py-12 sm:px-6 lg:px-8">
       <HeadSeo title={props.title} description={props.description} />
@@ -44,9 +38,7 @@ export default function AuthContainer(props: React.PropsWithChildren<Props>) {
         </div>
         <div className="mt-8 text-center text-sm text-neutral-600">
           {props.footerText}
-          <small className="mx-3 mt-1 mb-2 hidden text-[0.5rem] opacity-50 lg:block">
-            &copy; {new Date().getFullYear()} {COMPANY_NAME} {hasMounted && CalComVersion}
-          </small>
+          <Credits />
         </div>
       </div>
     </div>

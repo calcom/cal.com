@@ -16,20 +16,13 @@ import { Tips } from "@calcom/features/tips";
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import {
-  APP_NAME,
-  DESKTOP_APP_LINK,
-  JOIN_SLACK,
-  ROADMAP,
-  WEBAPP_URL,
-  COMPANY_NAME,
-  CalComVersion,
-} from "@calcom/lib/constants";
+import { APP_NAME, DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
+import Credits from "@calcom/ui/components/credits/Credits";
 
 import {
   Button,
@@ -729,11 +722,6 @@ function SideBarContainer() {
 }
 
 function SideBar() {
-  const [hasMounted, setHasMounted] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
   return (
     <div className="relative">
       <aside className="desktop-transparent top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto border-r border-gray-100 bg-gray-50 md:sticky md:flex lg:w-56 lg:px-4">
@@ -785,9 +773,7 @@ function SideBar() {
               <UserDropdown small />
             </span>
           </div>
-          <small className="mx-3 mt-1 mb-2 hidden text-[0.5rem] opacity-50 lg:block">
-            &copy; {new Date().getFullYear()} {COMPANY_NAME} {hasMounted && CalComVersion}
-          </small>
+          <Credits />
         </div>
       </aside>
     </div>
