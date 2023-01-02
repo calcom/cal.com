@@ -1,3 +1,6 @@
+/* TODO: Get this from endpoint */
+import pkg from "@calcom/web/package.json";
+
 const VERCEL_URL = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "";
 const RAILWAY_STATIC_URL = process.env.RAILWAY_STATIC_URL ? `https://${process.env.RAILWAY_STATIC_URL}` : "";
 const HEROKU_URL = process.env.HEROKU_APP_NAME ? `https://${process.env.HEROKU_APP_NAME}.herokuapp.com` : "";
@@ -53,3 +56,7 @@ export const IS_STRIPE_ENABLED = !!(
 );
 /** Self hosted shouldn't checkout when creating teams unless required */
 export const IS_TEAM_BILLING_ENABLED = IS_STRIPE_ENABLED && (!IS_SELF_HOSTED || HOSTED_CAL_FEATURES);
+
+export const CalComVersion = `v.${pkg.version}-${
+  process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"
+}-${process.env.CALCOM_LICENSE_KEY === "" ? "ee" : "ce"}`;
