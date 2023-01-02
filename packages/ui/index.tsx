@@ -117,4 +117,3 @@ export type { ITimezone, ITimezoneOption } from "./v2/core/TimezoneSelect";
 export { Tooltip } from "./v2/core/Tooltip";
 export { default as VerticalDivider } from "./v2/core/VerticalDivider";
 export { default as WizardForm } from "./v2/core/WizardForm";
-export { default as VersionInfo } from "./v2/core/VersionInfo";

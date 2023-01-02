@@ -16,10 +16,17 @@ import { Tips } from "@calcom/features/tips";
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { APP_NAME, DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  APP_NAME,
+  DESKTOP_APP_LINK,
+  JOIN_SLACK,
+  ROADMAP,
+  WEBAPP_URL,
+  COMPANY_NAME,
+  CalComVersion,
+} from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import isCalcom from "@calcom/lib/isCalcom";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
@@ -39,7 +46,6 @@ import {
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
-import VersionInfo from "./VersionInfo";
 import HeadSeo from "./head-seo";
 import { SkeletonText } from "./skeleton";
 
@@ -773,7 +779,9 @@ function SideBar() {
               <UserDropdown small />
             </span>
           </div>
-          <VersionInfo />
+          <small className="mx-3 mt-1 mb-2 hidden text-[0.5rem] opacity-50 lg:block">
+            &copy; {new Date().getFullYear()} {COMPANY_NAME} {CalComVersion}
+          </small>
         </div>
       </aside>
     </div>
