@@ -2,7 +2,7 @@ import classNames from "classnames";
 import React from "react";
 
 import { APP_NAME, LOGO } from "@calcom/lib/constants";
-import VersionInfo from "@calcom/ui/v2/core/VersionInfo";
+import { VersionInfo } from "@calcom/ui";
 
 import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
