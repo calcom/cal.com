@@ -56,7 +56,3 @@ export const IS_STRIPE_ENABLED = !!(
 );
 /** Self hosted shouldn't checkout when creating teams unless required */
 export const IS_TEAM_BILLING_ENABLED = IS_STRIPE_ENABLED && (!IS_SELF_HOSTED || HOSTED_CAL_FEATURES);
-
-export const CalComVersion = `v.${pkg.version}-${
-  process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"
-}-${process.env.CALCOM_LICENSE_KEY === "" ? "ee" : "ce"}`;
