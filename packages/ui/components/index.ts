@@ -32,3 +32,4 @@ export type { TopBannerProps } from "./top-banner";
 export { AnimatedPopover } from "./popover/index";
 export { TableActions, DropdownActions } from "./table/TableActions";
 export type { ActionType } from "./table/TableActions";
+export { Skeleton, SkeletonAvatar, SkeletonButton, SkeletonContainer, SkeletonText } from "./skeleton";
