@@ -1,6 +1,6 @@
+import { SkeletonText } from "../../../components/skeleton";
 import Meta from "../Meta";
 import { ShellSubHeading } from "../Shell";
-import { SkeletonText } from "../skeleton";
 
 function SkeletonLoader({
   className,

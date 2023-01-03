@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon } from "@calcom/ui";
 
-import { SkeletonText } from "../skeleton";
+import { SkeletonText } from "../../../components/skeleton";
 import Slider from "./Slider";
 
 export default function AppStoreCategories({

@@ -38,9 +38,9 @@ import {
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
+import { SkeletonText } from "../../components/skeleton";
 import Credits from "./Credits";
 import HeadSeo from "./head-seo";
-import { SkeletonText } from "./skeleton";
 
 /* TODO: Migate this */
 
