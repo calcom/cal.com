@@ -30,20 +30,18 @@ export {
   SelectWithValidation,
   TableActions,
   DropdownActions,
+  Icon,
+  ErrorBoundary,
 } from "./components";
 export type { ActionType } from "./components";
 export type { AvatarProps, BadgeProps, ButtonBaseProps, ButtonProps, TopBannerProps } from "./components";
 export { default as CheckboxField } from "./components/form/checkbox/Checkbox";
 /** ⬇️ TODO - Move these to components */
-export { default as ErrorBoundary } from "./ErrorBoundary";
 export { default as AddressInput } from "./form/AddressInputLazy";
 export { default as PhoneInput } from "./form/PhoneInputLazy";
 export { UnstyledSelect } from "./form/Select";
-export { BadgeCheckIcon, ClipboardCopyIcon, Icon, ShieldCheckIcon, StarIconSolid } from "./Icon";
-export { default as Loader } from "./Loader";
-export { default as Shell, ShellMain } from "./Shell";
+export { default as Loader } from "./v2/core/Loader";
 export { default as TimezoneChangeDialog } from "./TimezoneChangeDialog";
-// export { default as Tooltip } from "./Tooltip";
 export {
   Alert,
   EmptyScreen,
@@ -61,6 +59,15 @@ export {
 } from "./v2";
 export type { AlertProps } from "./v2";
 export { Segment, SegmentOption } from "./v2/core";
+export {
+  default as Shell,
+  ONBOARDING_INTRODUCED_AT,
+  ONBOARDING_NEXT_REDIRECT,
+  ShellMain,
+  shouldShowOnboarding,
+  MobileNavigationMoreItems,
+  ShellSubHeading,
+} from "./v2/core/Shell";
 export { default as AllApps } from "./v2/core/apps/AllApps";
 export { default as AppCard } from "./v2/core/apps/AppCard";
 export { default as AppStoreCategories } from "./v2/core/apps/Categories";
@@ -107,7 +114,6 @@ export { default as LinkIconButton } from "./v2/core/LinkIconButton";
 export { List, ListItem, ListItemText, ListItemTitle, ListLinkItem } from "./v2/core/List";
 export { default as MeetingTimeInTimezones } from "./v2/core/MeetingTimeInTimezones";
 export { default as Meta, MetaProvider } from "./v2/core/Meta";
-export { MobileNavigationMoreItems, ShellSubHeading } from "./v2/core/Shell";
 export { Skeleton } from "./v2/core/skeleton";
 export { StepCard } from "./v2/core/StepCard";
 export { default as Stepper } from "./v2/core/Stepper";

@@ -47,9 +47,9 @@ import {
 
 /* TODO: Get this from endpoint */
 import pkg from "../../../../apps/web/package.json";
-import ErrorBoundary from "../../ErrorBoundary";
-import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
-import Logo from "../../Logo";
+import { Logo } from "../../components";
+import { ErrorBoundary } from "../../components/errorBoundary";
+import { KBarContent, KBarRoot, KBarTrigger } from "./Kbar";
 import HeadSeo from "./head-seo";
 import { SkeletonText } from "./skeleton";
 

@@ -32,3 +32,6 @@ export type { TopBannerProps } from "./top-banner";
 export { AnimatedPopover } from "./popover/index";
 export { TableActions, DropdownActions } from "./table/TableActions";
 export type { ActionType } from "./table/TableActions";
+export { Icon } from "./icon";
+export { ErrorBoundary } from "./errorBoundary";
+export { Logo } from "./logo";
