@@ -1,5 +1,4 @@
 import { GetServerSidePropsContext } from "next";
-import { JSONObject } from "superjson/dist/types";
 
 import { LocationObject, privacyFilteredLocations } from "@calcom/app-store/locations";
 import { parseRecurringEvent } from "@calcom/lib";

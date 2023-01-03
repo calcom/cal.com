@@ -6,7 +6,6 @@ import { HelpScout, useChat } from "react-live-chat-loader";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import { Button, getSettingsLayout as getLayout, Icon, Meta } from "@calcom/ui";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -35,7 +34,6 @@ const CtaRow = ({ title, description, className, children }: CtaRowProps) => {
 
 const BillingView = () => {
   const { t } = useLocale();
-  const { data: user } = trpc.viewer.me.useQuery();
   const [, loadChat] = useChat();
   const [showChat, setShowChat] = useState(false);
   const router = useRouter();

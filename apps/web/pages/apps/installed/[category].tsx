@@ -32,7 +32,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   installed?: boolean;
   invalidCredentialIds?: number[];
 }) {
-  const { type, credentialIds, isGlobal, installed, invalidCredentialIds } = props;
+  const { type, credentialIds, isGlobal, installed } = props;
   const { t } = useLocale();
   const [credentialId] = credentialIds;
 
