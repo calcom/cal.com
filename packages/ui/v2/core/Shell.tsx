@@ -1,5 +1,4 @@
 import type { User } from "@prisma/client";
-import noop from "lodash/noop";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
@@ -17,17 +16,9 @@ import { Tips } from "@calcom/features/tips";
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import {
-  APP_NAME,
-  COMPANY_NAME,
-  DESKTOP_APP_LINK,
-  JOIN_SLACK,
-  ROADMAP,
-  WEBAPP_URL,
-} from "@calcom/lib/constants";
+import { APP_NAME, DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import isCalcom from "@calcom/lib/isCalcom";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
@@ -44,11 +35,8 @@ import {
   showToast,
   TimezoneChangeDialog,
 } from "../..";
-
-/* TODO: Get this from endpoint */
-import pkg from "../../../../apps/web/package.json";
-import { Logo } from "../../components";
-import { ErrorBoundary } from "../../components/errorBoundary";
+import { Logo, ErrorBoundary } from "../../components";
+import Credits from "./Credits";
 import { KBarContent, KBarRoot, KBarTrigger } from "./Kbar";
 import HeadSeo from "./head-seo";
 import { SkeletonText } from "./skeleton";
@@ -720,22 +708,10 @@ const MobileNavigationMoreItem: React.FC<{
   );
 };
 
-function DeploymentInfo() {
-  return (
-    <small
-      style={{
-        fontSize: "0.5rem",
-      }}
-      className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
-      &copy; {new Date().getFullYear()} {COMPANY_NAME} v.{pkg.version + "-"}
-      {process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"}
-    </small>
-  );
-}
-
 function SideBarContainer() {
   const { status } = useSession();
   const router = useRouter();
+
   // Make sure that Sidebar is rendered optimistically so that a refresh of pages when logged in have SideBar from the beginning.
   // This improves the experience of refresh on app store pages(when logged in) which are SSG.
   // Though when logged out, app store pages would temporarily show SideBar until session status is confirmed.
@@ -796,7 +772,7 @@ function SideBar() {
               <UserDropdown small />
             </span>
           </div>
-          <DeploymentInfo />
+          <Credits />
         </div>
       </aside>
     </div>
