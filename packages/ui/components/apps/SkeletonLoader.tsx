@@ -1,8 +1,8 @@
-import Meta from "../Meta";
-import { ShellSubHeading } from "../Shell";
-import { SkeletonText } from "../skeleton";
+import Meta from "../../v2/core/Meta";
+import { ShellSubHeading } from "../../v2/core/Shell";
+import { SkeletonText } from "../../v2/core/skeleton";
 
-function SkeletonLoader({
+export function SkeletonLoader({
   className,
   title,
   description,
@@ -24,8 +24,6 @@ function SkeletonLoader({
     </>
   );
 }
-
-export default SkeletonLoader;
 
 function SkeletonItem() {
   return (

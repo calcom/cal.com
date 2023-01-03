@@ -2,7 +2,8 @@ import { useRouter } from "next/router";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc/react";
-import { getSettingsLayout as getLayout, SkeletonLoader } from "@calcom/ui";
+// TODO(Sean): Figure out why this is using AppSkeletonLoader
+import { getSettingsLayout as getLayout, AppSkeletonLoader } from "@calcom/ui";
 
 import SAMLConfiguration from "../components/SAMLConfiguration";
 
@@ -25,7 +26,7 @@ const SAMLSSO = () => {
   );
 
   if (isLoading) {
-    return <SkeletonLoader />;
+    return <AppSkeletonLoader />;
   }
 
   if (!team) {

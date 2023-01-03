@@ -5,10 +5,10 @@ import { useEffect, useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Icon } from "../../..";
-import { SkeletonText } from "../skeleton";
+import { Icon } from "../..";
+import { SkeletonText } from "../../v2/core/skeleton";
 
-const Slider = <T extends string | unknown>({
+export const Slider = <T extends string | unknown>({
   title = "",
   className = "",
   items,
@@ -82,5 +82,3 @@ const Slider = <T extends string | unknown>({
     </div>
   );
 };
-
-export default Slider;
