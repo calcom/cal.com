@@ -1,6 +1,6 @@
 import fs from "fs";
 import matter from "gray-matter";
-import { GetStaticPaths, GetStaticPropsContext } from "next";
+import { GetServerSidePropsContext, GetStaticPaths, GetStaticPropsContext } from "next";
 import { MDXRemote } from "next-mdx-remote";
 import { serialize } from "next-mdx-remote/serialize";
 import Image from "next/image";
@@ -30,7 +30,7 @@ const components = {
   Slider: () => <></>,
 };
 
-function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
+function SingleAppPage({ data, source }: inferSSRProps<typeof getServerSideProps>) {
   return (
     <App
       name={data.name}
@@ -58,7 +58,7 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
   );
 }
 
-export const getServerSideProps = async (ctx: GetStaticPropsContext) => {
+export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   if (typeof ctx.params?.slug !== "string") return { notFound: true };
 
   const app = await prisma.app.findUnique({

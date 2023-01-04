@@ -71,6 +71,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     appStore = await getAppRegistry();
   }
 
+  appStore = appStore.filter((app) => !app.isTemplate);
+
   const categoryQuery = appStore.map(({ categories }) => ({
     categories: categories || [],
   }));

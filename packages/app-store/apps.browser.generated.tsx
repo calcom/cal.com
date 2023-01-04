@@ -29,11 +29,11 @@ export const InstallAppButtonMap = {
   zoomvideo: dynamic(() => import("./zoomvideo/components/InstallAppButton")),
 };
 export const AppSettingsComponentsMap = {
+  general_app_settings: dynamic(() => import("./templates/general_app_settings/components/AppSettings")),
   weather_in_your_calendar: dynamic(() => import("./weather_in_your_calendar/components/AppSettings")),
   zapier: dynamic(() => import("./zapier/components/AppSettings")),
 };
 export const EventTypeAddonMap = {
-  event_type_app_card: dynamic(() => import("./_templates/event_type_app_card/extensions/EventTypeAppCard")),
   fathom: dynamic(() => import("./fathom/extensions/EventTypeAppCard")),
   ga4: dynamic(() => import("./ga4/extensions/EventTypeAppCard")),
   giphy: dynamic(() => import("./giphy/extensions/EventTypeAppCard")),
@@ -41,4 +41,6 @@ export const EventTypeAddonMap = {
   qr_code: dynamic(() => import("./qr_code/extensions/EventTypeAppCard")),
   rainbow: dynamic(() => import("./rainbow/extensions/EventTypeAppCard")),
   stripepayment: dynamic(() => import("./stripepayment/extensions/EventTypeAppCard")),
+  event_type_analytics: dynamic(() => import("./templates/event_type_analytics/extensions/EventTypeAppCard")),
+  event_type_app_card: dynamic(() => import("./templates/event_type_app_card/extensions/EventTypeAppCard")),
 };

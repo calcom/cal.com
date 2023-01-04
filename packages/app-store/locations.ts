@@ -140,6 +140,12 @@ const locationsFromApps: EventLocationTypeFromApp[] = [];
 for (const [appName, meta] of Object.entries(appStoreMetadata)) {
   const location = meta.appData?.location;
   if (location) {
+    // TODO: This template variable replacement should happen once during app-store:build.
+    for (const [key, value] of Object.entries(location)) {
+      if (typeof value === "string") {
+        location[key] = value.replace(/{SLUG}/g, meta.slug).replace(/{TITLE}/g, meta.name);
+      }
+    }
     const newLocation = {
       ...location,
       messageForOrganizer: location.messageForOrganizer || `Set ${location.label} link`,

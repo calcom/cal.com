@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/template-event-type-app-card",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "A template showcasing how an app with EventType AppCard can be built",
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}

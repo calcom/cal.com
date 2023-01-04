@@ -133,6 +133,7 @@ export interface App {
   isProOnly?: boolean;
   appData?: EventLocationAppData;
   dirName?: string;
+  isTemplate?: boolean;
 }
 
 export type AppFrontendPayload = Omit<App, "key"> & {

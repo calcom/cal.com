@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/template-event-type-location-video-static",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "description": "It is a template showing how to add a static URL EventType location",
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  }
+}

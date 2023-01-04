@@ -136,7 +136,7 @@ export function getLocationGroupedOptions(integrations: ReturnType<typeof getApp
  * credentials, this should also get globally available apps.
  */
 function getApps(userCredentials: CredentialData[]) {
-  const apps = ALL_APPS.map((appMeta) => {
+  const apps = ALL_APPS.filter((app) => !app.isTemplate).map((appMeta) => {
     const credentials = userCredentials.filter((credential) => credential.type === appMeta.type);
     let locationOption: OptionTypeBase | null = null;
 

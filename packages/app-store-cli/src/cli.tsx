@@ -3,14 +3,26 @@ import { render } from "ink";
 import meow from "meow";
 import React from "react";
 
-import App from "./CliApp";
+import App from "./App";
 
 const cli = meow(
   `
 	Usage
-	  $ app-store create/delete/edit - Edit and Delete commands must be used on apps created using cli
+	  $ app-store create - Creates a new app    
 
-	Options
+    Options
+		[--template -t]  Template to use.
+
+    
+
+    $ app-store edit --slug - Edit the App identified by slug
+    Options
+		[--slug -s]  Slug. This is the name of app dir for apps created with cli.
+    
+
+
+    $ app-store delete --slug - Deletes the app identified by slug
+    Options
 		[--slug]  Slug. This is the name of app dir for apps created with cli.
 `,
   {
@@ -20,6 +32,11 @@ const cli = meow(
       },
       slug: {
         type: "string",
+        alias: "s",
+      },
+      template: {
+        type: "string",
+        alias: "t",
       },
     },
     allowUnknownFlags: false,
@@ -46,4 +63,5 @@ if (command === "delete" || command === "edit") {
     cli.showHelp();
   }
 }
-render(<App slug={slug} command={command} noDbUpdate={cli.flags.noDbUpdate} />);
+
+render(<App slug={slug} template={cli.flags.template} command={command} noDbUpdate={cli.flags.noDbUpdate} />);

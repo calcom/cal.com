@@ -3,7 +3,6 @@
     Don't modify this file manually.
 **/
 export const apiHandlers = {
-  event_type_app_card: import("./_templates/event_type_app_card/api"),
   amie: import("./amie/api"),
   applecalendar: import("./applecalendar/api"),
   around: import("./around/api"),
@@ -39,6 +38,11 @@ export const apiHandlers = {
   stripepayment: import("./stripepayment/api"),
   tandemvideo: import("./tandemvideo/api"),
   telegram: import("./telegram/api"),
+  event_type_analytics: import("./templates/event_type_analytics/api"),
+  event_type_app_card: import("./templates/event_type_app_card/api"),
+  event_type_location_video_static: import("./templates/event_type_location_video_static/api"),
+  general_app_settings: import("./templates/general_app_settings/api"),
+  link_as_an_app: import("./templates/link_as_an_app/api"),
   typeform: import("./typeform/api"),
   vimcal: import("./vimcal/api"),
   vital: import("./vital/api"),

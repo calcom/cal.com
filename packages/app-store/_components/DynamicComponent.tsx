@@ -6,9 +6,8 @@ export function DynamicComponent<T extends Record<string, any>>(props: {
   const { componentMap, slug, ...rest } = props;
   const dirName = slug === "stripe" ? "stripepayment" : slug;
 
-  if (!componentMap[dirName]) {
-    throw new Error('No component found for "' + dirName + '"');
-  }
+  // There can be apps with no matching component
+  if (!componentMap[slug]) return null;
 
   const Component = componentMap[dirName];
 
