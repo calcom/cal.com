@@ -29,6 +29,11 @@ export {
   SelectField,
   SelectWithValidation,
   TableActions,
+  Skeleton,
+  SkeletonAvatar,
+  SkeletonText,
+  SkeletonButton,
+  SkeletonContainer,
   DropdownActions,
   Icon,
   ErrorBoundary,
@@ -48,10 +53,6 @@ export {
   HorizontalTabs,
   SettingsToggle,
   showToast,
-  SkeletonAvatar,
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
   Swatch,
   Switch,
   Card,
@@ -114,7 +115,6 @@ export { default as LinkIconButton } from "./v2/core/LinkIconButton";
 export { List, ListItem, ListItemText, ListItemTitle, ListLinkItem } from "./v2/core/List";
 export { default as MeetingTimeInTimezones } from "./v2/core/MeetingTimeInTimezones";
 export { default as Meta, MetaProvider } from "./v2/core/Meta";
-export { Skeleton } from "./v2/core/skeleton";
 export { StepCard } from "./v2/core/StepCard";
 export { default as Stepper } from "./v2/core/Stepper";
 export { Steps } from "./v2/core/Steps";

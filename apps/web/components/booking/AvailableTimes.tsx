@@ -71,7 +71,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
           />
         </div>
       </div>
-      <div className="-mb-5 grid flex-grow grid-cols-1 gap-x-2 overflow-y-auto sm:block md:h-[364px]">
+      <div className="flex-grow overflow-y-auto sm:block md:h-[364px]">
         {slots.length > 0 &&
           slots.map((slot) => {
             type BookingURL = {
