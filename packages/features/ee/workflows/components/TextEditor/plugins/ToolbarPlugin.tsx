@@ -418,7 +418,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                         type="button"
                         onClick={() => format(key)}
                         className={classNames(
-                          "toolbar-item w-full",
+                          "toolbar-item w-full focus:ring-0",
                           blockType === key ? "w-full bg-gray-100" : ""
                         )}>
                         <>
