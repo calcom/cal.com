@@ -30,7 +30,6 @@ export { default as VerticalTabs, VerticalTabItem } from "./navigation/tabs/Vert
 export { default as showToast } from "./notifications";
 export { default as SettingsToggle } from "./SettingsToggle";
 export { default as Shell } from "./Shell";
-export { Skeleton, SkeletonAvatar, SkeletonButton, SkeletonContainer, SkeletonText } from "./skeleton";
 export { default as Stepper } from "./Stepper";
 export { default as Swatch } from "./Swatch";
 export { default as Switch } from "./Switch";

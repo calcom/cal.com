@@ -40,6 +40,11 @@ export {
   TableActions,
   TimezoneSelect,
   VerticalDivider,
+  Skeleton,
+  SkeletonAvatar,
+  SkeletonText,
+  SkeletonButton,
+  SkeletonContainer,
   DropdownActions,
   Icon,
   ErrorBoundary,
@@ -65,19 +70,7 @@ export { default as PhoneInput } from "./form/PhoneInputLazy";
 export { UnstyledSelect } from "./form/Select";
 export { default as Loader } from "./v2/core/Loader";
 export { default as TimezoneChangeDialog } from "./TimezoneChangeDialog";
-export {
-  HorizontalTabs,
-  SettingsToggle,
-  showToast,
-  SkeletonAvatar,
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
-  Swatch,
-  Switch,
-  Card,
-  VerticalTabs,
-} from "./v2";
+export { HorizontalTabs, SettingsToggle, showToast, Swatch, Switch, Card, VerticalTabs } from "./v2";
 export {
   default as Shell,
   ONBOARDING_INTRODUCED_AT,
@@ -130,7 +123,6 @@ export { default as WizardLayout, getLayout as getWizardLayout } from "./v2/core
 export { default as LinkIconButton } from "./v2/core/LinkIconButton";
 export { default as MeetingTimeInTimezones } from "./v2/core/MeetingTimeInTimezones";
 export { default as Meta, MetaProvider } from "./v2/core/Meta";
-export { Skeleton } from "./v2/core/skeleton";
 export { StepCard } from "./v2/core/StepCard";
 export { default as Stepper } from "./v2/core/Stepper";
 export { Steps } from "./v2/core/Steps";

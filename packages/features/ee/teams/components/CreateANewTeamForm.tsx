@@ -109,7 +109,7 @@ export const CreateANewTeamForm = () => {
             render={({ field: { value } }) => (
               <div className="flex items-center">
                 <Avatar alt="" imageSrc={value || null} gravatarFallbackMd5="newTeam" size="lg" />
-                <div className="ml-4">
+                <div className="ltr:ml-4 rtl:mr-4">
                   <ImageUploader
                     target="avatar"
                     id="avatar-upload"
@@ -125,7 +125,7 @@ export const CreateANewTeamForm = () => {
           />
         </div>
 
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 rtl:space-x-reverse">
           <Button
             disabled={createTeamMutation.isLoading}
             color="secondary"

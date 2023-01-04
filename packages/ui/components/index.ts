@@ -45,3 +45,4 @@ export { EmptyScreen } from "./empty-screen";
 export { List, ListItem, ListItemText, ListItemTitle, ListLinkItem } from "./list";
 export type { ListItemProps, ListProps } from "./list";
 export { HeadSeo } from "./head-seo";
+export { Skeleton, SkeletonAvatar, SkeletonButton, SkeletonContainer, SkeletonText } from "./skeleton";

@@ -10,7 +10,7 @@ export function showToast(message: string, variant: "success" | "warning" | "err
         (t) => (
           <div
             className={classNames(
-              "data-testid-toast-success bg-brand-500 mb-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md",
+              "data-testid-toast-success bg-brand-500 mb-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md rtl:space-x-reverse",
               t.visible && "animate-fade-in-up"
             )}>
             <Icon.FiCheck className="h-4 w-4" />
@@ -25,7 +25,7 @@ export function showToast(message: string, variant: "success" | "warning" | "err
         (t) => (
           <div
             className={classNames(
-              "animate-fade-in-up mb-2 flex h-9 items-center space-x-2 rounded-md bg-red-100 p-3 text-sm font-semibold text-red-900 shadow-md",
+              "animate-fade-in-up mb-2 flex h-9 items-center space-x-2 rounded-md bg-red-100 p-3 text-sm font-semibold text-red-900 shadow-md rtl:space-x-reverse",
               t.visible && "animate-fade-in-up"
             )}>
             <Icon.FiInfo className="h-4 w-4" />
@@ -40,7 +40,7 @@ export function showToast(message: string, variant: "success" | "warning" | "err
         (t) => (
           <div
             className={classNames(
-              "animate-fade-in-up bg-brand-500 mb-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md",
+              "animate-fade-in-up bg-brand-500 mb-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md rtl:space-x-reverse",
               t.visible && "animate-fade-in-up"
             )}>
             <Icon.FiInfo className="h-4 w-4" />
@@ -55,7 +55,7 @@ export function showToast(message: string, variant: "success" | "warning" | "err
         (t) => (
           <div
             className={classNames(
-              "animate-fade-in-up bg-brand-500 mb-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md",
+              "animate-fade-in-up bg-brand-500 mb-2 flex h-9 items-center space-x-2 rounded-md p-3 text-sm font-semibold text-white shadow-md rtl:space-x-reverse",
               t.visible && "animate-fade-in-up"
             )}>
             <Icon.FiCheck className="h-4 w-4" />

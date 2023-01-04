@@ -183,14 +183,14 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         <>
           {size === "fab" ? (
             <>
-              <StartIcon className="mr-2 hidden h-4 w-4 stroke-[1.5px] sm:inline-flex" />
+              <StartIcon className="hidden h-4 w-4 stroke-[1.5px] ltr:mr-2 rtl:ml-2 sm:inline-flex" />
               <Icon.FiPlus className="inline h-6 w-6 sm:hidden" />
             </>
           ) : (
             <StartIcon
               className={classNames(
                 "inline-flex",
-                size === "icon" ? "h-4 w-4 " : "mr-2 h-4 w-4 stroke-[1.5px]"
+                size === "icon" ? "h-4 w-4 " : "h-4 w-4 stroke-[1.5px] ltr:mr-2 rtl:ml-2"
               )}
             />
           )}
@@ -217,11 +217,11 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         <>
           {size === "fab" ? (
             <>
-              <EndIcon className="-mr-1 hidden h-5 w-5 ltr:ml-2 rtl:mr-2 sm:inline" />
+              <EndIcon className="-mr-1 hidden h-5 w-5 ltr:ml-2 rtl:-ml-1 rtl:mr-2 sm:inline" />
               <Icon.FiPlus className="inline h-6 w-6 sm:hidden" />
             </>
           ) : (
-            <EndIcon className="-mr-1 inline h-5 w-5 ltr:ml-2 rtl:mr-2" />
+            <EndIcon className="inline h-5 w-5 ltr:-mr-1 ltr:ml-2 rtl:mr-2" />
           )}
         </>
       )}
