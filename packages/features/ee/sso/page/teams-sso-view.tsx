@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc/react";
-import { SkeletonLoader } from "@calcom/ui";
+import { AppSkeletonLoader as SkeletonLoader } from "@calcom/ui";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import SAMLConfiguration from "../components/SAMLConfiguration";

@@ -9,7 +9,15 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { App } from "@calcom/types/App";
 import { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
-import { Alert, Button, EmptyScreen, Icon, List, ShellSubHeading, SkeletonLoader } from "@calcom/ui";
+import {
+  Alert,
+  Button,
+  EmptyScreen,
+  Icon,
+  List,
+  ShellSubHeading,
+  AppSkeletonLoader as SkeletonLoader,
+} from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
 
