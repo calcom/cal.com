@@ -15,7 +15,7 @@ export const DropdownMenuTrigger = forwardRef<HTMLButtonElement, DropdownMenuTri
       {...props}
       className={
         props.asChild
-          ? classNames(className, "radix-state-open:bg-gray-100 rounded-md ring-0")
+          ? classNames(className, "rounded-md ring-0")
           : `inline-flex items-center rounded-md bg-transparent px-3 py-2 text-sm font-medium text-gray-700 ring-0 hover:bg-gray-50 focus:bg-gray-100 group-hover:text-black ${className}`
       }
       ref={forwardedRef}
@@ -30,12 +30,13 @@ export const DropdownMenuPortal = DropdownMenuPrimitive.Portal;
 
 type DropdownMenuContentProps = ComponentProps<typeof DropdownMenuPrimitive["Content"]>;
 export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuContentProps>(
-  ({ children, align = "end", ...props }, forwardedRef) => {
+  ({ children, sideOffset = 2, align = "end", ...props }, forwardedRef) => {
     return (
       <DropdownMenuPrimitive.Content
         align={align}
         {...props}
-        className="shadow-dropdown w-50 relative z-10 mt-1 -ml-0 origin-top-right rounded-md border border-gray-200 bg-white text-sm"
+        sideOffset={sideOffset}
+        className="shadow-dropdown w-50 relative z-10 origin-top-right rounded-md border border-gray-200 bg-white text-sm"
         ref={forwardedRef}>
         {children}
       </DropdownMenuPrimitive.Content>
