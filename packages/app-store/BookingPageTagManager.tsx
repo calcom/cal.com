@@ -9,18 +9,14 @@ export type AppScript = { attrs?: Record<string, string> } & (
   | { src?: string; content: undefined }
 );
 
-export default function BookingPageTagManager({
-  eventType,
+export const Tags = ({
+  tags,
 }: {
-  eventType: Parameters<typeof getEventTypeAppData>[0];
-}) {
+  tags: { appId: string; scriptConfig: { scripts: AppScript[] }; trackingId: string }[];
+}) => {
   return (
     <>
-      {Object.entries(trackingApps).map(([appId, scriptConfig]) => {
-        const trackingId = getEventTypeAppData(eventType, appId as keyof typeof trackingApps)?.trackingId;
-        if (!trackingId) {
-          return null;
-        }
+      {tags.flatMap(({ appId, scriptConfig, trackingId }) => {
         const parseValue = <T extends string | undefined>(val: T): T =>
           val ? (val.replace(/\{TRACKING_ID\}/g, trackingId) as T) : val;
 
@@ -50,4 +46,23 @@ export default function BookingPageTagManager({
       })}
     </>
   );
+};
+
+export default function BookingPageTagManager({
+  eventType,
+}: {
+  eventType: Parameters<typeof getEventTypeAppData>[0];
+}) {
+  const tags = Object.entries(trackingApps).map(([appId, scriptConfig]) => {
+    const trackingId = getEventTypeAppData(eventType, appId as keyof typeof trackingApps)?.trackingId;
+    if (!trackingId) {
+      return null;
+    }
+    return {
+      appId,
+      scriptConfig,
+      trackingId,
+    };
+  });
+  return <Tags tags={tags} />;
 }

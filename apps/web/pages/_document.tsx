@@ -1,8 +1,9 @@
 import Document, { DocumentContext, Head, Html, Main, NextScript, DocumentProps } from "next/document";
 import Script from "next/script";
 
-type Props = Record<string, unknown> & DocumentProps;
+import { appScripts } from "@calcom/app-store/appScripts";
 
+type Props = Record<string, unknown> & DocumentProps;
 function toRunBeforeReactOnClient() {
   const calEmbedMode = typeof new URL(document.URL).searchParams.get("embed") === "string";
   /* Iframe Name */

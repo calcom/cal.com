@@ -16,6 +16,7 @@ import { metadata as exchangecalendar_meta } from "./exchangecalendar/_metadata"
 import { metadata as fathom_meta } from "./fathom/_metadata";
 import { metadata as ga4_meta } from "./ga4/_metadata";
 import { metadata as giphy_meta } from "./giphy/_metadata";
+import { metadata as google_tag_manager_meta } from "./google_tag_manager/_metadata";
 import { metadata as googlecalendar_meta } from "./googlecalendar/_metadata";
 import { metadata as googlevideo_meta } from "./googlevideo/_metadata";
 import { metadata as hubspot_meta } from "./hubspot/_metadata";
@@ -65,6 +66,7 @@ export const appStoreMetadata = {
   fathom: fathom_meta,
   ga4: ga4_meta,
   giphy: giphy_meta,
+  google_tag_manager: google_tag_manager_meta,
   googlecalendar: googlecalendar_meta,
   googlevideo: googlevideo_meta,
   hubspot: hubspot_meta,

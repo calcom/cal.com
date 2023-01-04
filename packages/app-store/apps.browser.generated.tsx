@@ -29,6 +29,7 @@ export const InstallAppButtonMap = {
   zoomvideo: dynamic(() => import("./zoomvideo/components/InstallAppButton")),
 };
 export const AppSettingsComponentsMap = {
+  google_tag_manager: dynamic(() => import("./google_tag_manager/components/AppSettings")),
   weather_in_your_calendar: dynamic(() => import("./weather_in_your_calendar/components/AppSettings")),
   zapier: dynamic(() => import("./zapier/components/AppSettings")),
 };

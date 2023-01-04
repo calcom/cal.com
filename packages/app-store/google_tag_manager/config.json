@@ -1,0 +1,18 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Google Tag Manager",
+  "slug": "google_tag_manager",
+  "type": "google_tag_manager_other",
+  "imageSrc": "/api/app-store/google_tag_manager/icon.svg",
+  "logo": "/api/app-store/google_tag_manager/icon.svg",
+  "url": "https://support.google.com/tagmanager/answer/6102821?hl=en",
+  "variant": "other",
+  "categories": [
+    "other"
+  ],
+  "publisher": "Cal.com, Inc.",
+  "email": "support@cal.com",
+  "description": "Google Tag Manager is a tag management system (TMS) that allows you to quickly and easily update measurement codes and related code fragments collectively known as tags on your website or mobile app",
+  "extendsFeature": "User",
+  "__createdUsingCli": true
+}

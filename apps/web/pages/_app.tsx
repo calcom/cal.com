@@ -3,6 +3,7 @@ import Head from "next/head";
 import Script from "next/script";
 import superjson from "superjson";
 
+import AppTagManager from "@calcom/app-store/AppTagManager";
 import "@calcom/embed-core/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { httpBatchLink } from "@calcom/trpc/client/links/httpBatchLink";
@@ -39,6 +40,7 @@ function MyApp(props: AppProps) {
         id="page-status"
         dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}
       />
+      <AppTagManager />
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>

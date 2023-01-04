@@ -16,6 +16,7 @@ export const apiHandlers = {
   fathom: import("./fathom/api"),
   ga4: import("./ga4/api"),
   giphy: import("./giphy/api"),
+  google_tag_manager: import("./google_tag_manager/api"),
   googlecalendar: import("./googlecalendar/api"),
   hubspot: import("./hubspot/api"),
   huddle01video: import("./huddle01video/api"),
