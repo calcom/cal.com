@@ -109,7 +109,7 @@
   "upgrade_to_per_seat": "Upgrade auf Pro-Mitglied lizensierung",
   "team_upgrade_seats_details": "Von den {{memberCount}} Mitgliedern in Ihrem Team sind {{unpaidCount}} Sitze(n) unbezahlt. Bei ${{seatPrice}}/m pro Sitzplatz betragen die geschätzten Gesamtkosten Ihrer Mitgliedschaft ${{totalCost}}/m.",
   "team_upgrade_banner_description": "Vielen Dank, dass Sie unseren neuen Teamplan getestet haben. Wir haben festgestellt, dass Ihr Team „{{teamName}}“ aktualisiert werden muss.",
-  "team_upgrade_banner_action": "Hier aufrüsten",
+  "team_upgrade_banner_action": "Klicke zum aktualisiert",
   "team_upgraded_successfully": "Das Update für Ihr Team war erfolgreich!",
   "use_link_to_reset_password": "Benutzen Sie den Link, um Ihr Passwort zurückzusetzen",
   "hey_there": "Hallo,",
