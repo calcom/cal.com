@@ -26,6 +26,16 @@ export interface GenericImageProps {
   description: string;
 }
 
+export interface ScreenshotImageProps {
+  image: string;
+}
+
+interface WrapperProps {
+  children: React.ReactNode;
+  variant?: "light" | "dark";
+  rotateBackground?: boolean;
+}
+
 const joinMultipleNames = (names: string[] = []) => {
   const lastName = names.pop();
   return `${names.length > 0 ? `${names.join(", ")} & ${lastName}` : lastName}`;
@@ -39,8 +49,11 @@ const joinMultipleNames = (names: string[] = []) => {
  * 4. Team event (round robin) http://localhost:3000/api/social/og/image?type=meeting&title=Round%20Robin%20Seeded%20Team%20Event&meetingProfileName=Seeded%20Team
  * 5. Dynamic collective (2 persons) http://localhost:3000/api/social/og/image?type=meeting&title=15min&meetingProfileName=Team%20Pro%20Example,%20Pro%20Example&names=Team%20Pro%20Example&names=Pro%20Example&usernames=teampro&usernames=pro
  */
-export const constructMeetingImage = ({ title, users = [], profile }: MeetingImageProps): string => {
-  return [
+export const constructMeetingImage = (
+  { title, users = [], profile }: MeetingImageProps,
+  encodeUri = true
+): string => {
+  const url = [
     `?type=meeting`,
     `&title=${encodeURIComponent(title)}`,
     `&meetingProfileName=${encodeURIComponent(profile.name)}`,
@@ -49,41 +62,42 @@ export const constructMeetingImage = ({ title, users = [], profile }: MeetingIma
     `${users.map((user) => `&usernames=${encodeURIComponent(user.username)}`).join("")}`,
     // Joining a multiline string for readability.
   ].join("");
+
+  return encodeUri ? encodeURIComponent(url) : url;
 };
 
 /**
  * Test url:
  * http://localhost:3000/api/social/og/image?type=app&name=Huddle01&slug=/api/app-store/huddle01video/icon.svg&description=Huddle01%20is%20a%20new%20video%20conferencing%20software%20native%20to%20Web3%20and%20is%20comparable%20to%20a%20decentralized%20version%20of%20Zoom.%20It%20supports%20conversations%20for...
  */
-export const constructAppImage = ({ name, slug, description }: AppImageProps): string => {
-  return [
+export const constructAppImage = ({ name, slug, description }: AppImageProps, encodeUri = true): string => {
+  const url = [
     `?type=app`,
     `&name=${encodeURIComponent(name)}`,
     `&slug=${encodeURIComponent(slug)}`,
     `&description=${encodeURIComponent(description)}`,
     // Joining a multiline string for readability.
   ].join("");
+
+  return encodeUri ? encodeURIComponent(url) : url;
 };
 
-export const constructGenericImage = ({ title, description }: GenericImageProps) => {
-  return [
+export const constructGenericImage = ({ title, description }: GenericImageProps, encodeUri = true) => {
+  const url = [
     `?type=generic`,
     `&title=${encodeURIComponent(title)}`,
     `&description=${encodeURIComponent(description)}`,
     // Joining a multiline string for readability.
   ].join("");
+
+  return encodeUri ? encodeURIComponent(url) : url;
 };
 
-const Wrapper = ({
-  children,
-  variant = "light",
-}: {
-  children: React.ReactNode;
-  variant?: "light" | "dark";
-}) => (
+const Wrapper = ({ children, variant = "light", rotateBackground }: WrapperProps) => (
   <div tw="flex w-full h-full">
     <img
       tw="flex absolute left-0 top-0 w-full h-[110%]"
+      style={rotateBackground ? { transform: "rotate(180deg)" } : undefined}
       src={`${CAL_URL}/social-bg-${variant}-lines.jpg`}
       alt="background"
       width="1200"
@@ -224,6 +238,21 @@ export const Generic = ({ title, description }: GenericImageProps) => (
           {description}
         </div>
       </div>
+    </div>
+  </Wrapper>
+);
+
+export const ScreenShot = ({ image }: ScreenshotImageProps) => (
+  <Wrapper rotateBackground>
+    <div tw="h-full w-full flex flex-col justify-center items-center">
+      <img
+        src={image}
+        width="1024"
+        height="576"
+        alt="screenshot"
+        tw="rounded-2xl mt-[140px] object-cover"
+        style={{ boxShadow: "0 0 45px -3px rgba(0,0,0,.3)" }}
+      />
     </div>
   </Wrapper>
 );

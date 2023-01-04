@@ -3,7 +3,7 @@ import { Props } from "react-phone-number-input/react-hook-form";
 
 import { EventLocationType } from "@calcom/app-store/locations";
 
-import { Icon } from "../Icon";
+import { Icon } from "../components/icon";
 
 type BookingFormValues = {
   name: string;

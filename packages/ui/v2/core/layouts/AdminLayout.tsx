@@ -2,7 +2,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import React, { ComponentProps, useEffect } from "react";
 
-import ErrorBoundary from "../../../ErrorBoundary";
+import { ErrorBoundary } from "../../..";
 import Shell from "../Shell";
 import SettingsLayout from "./SettingsLayout";
 import { UserPermissionRole } from ".prisma/client";

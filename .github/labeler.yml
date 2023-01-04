@@ -3,3 +3,10 @@
 
 automerge:
   - apps/web/public/static/locales/**/*.json
+
+"❗️ migrations":
+  - packages/prisma/migrations/**/migration.sql
+
+"❗️ .env changes":
+  - .env.example
+  - .env.appStore.example

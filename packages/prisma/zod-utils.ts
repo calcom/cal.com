@@ -37,6 +37,7 @@ export const EventTypeMetaDataSchema = z
     giphyThankYouPage: z.string().optional(),
     apps: z.object(appDataSchemas).partial().optional(),
     additionalNotesRequired: z.boolean().optional(),
+    disableSuccessPage: z.boolean().optional(),
     requiresConfirmationThreshold: z
       .object({
         time: z.number(),
@@ -220,6 +221,12 @@ export const teamMetadataSchema = z
   .partial()
   .nullable();
 
+export const bookingMetadataSchema = z
+  .object({
+    videoCallUrl: z.string().optional(),
+  })
+  .nullable();
+
 export const customInputOptionSchema = z.array(
   z.object({
     label: z.string(),
@@ -235,9 +242,34 @@ export const customInputSchema = z.object({
   options: customInputOptionSchema.optional().nullable(),
   required: z.boolean(),
   placeholder: z.string(),
+  hasToBeCreated: z.boolean().optional(),
 });
 
 export type CustomInputSchema = z.infer<typeof customInputSchema>;
+
+export const recordingItemSchema = z.object({
+  id: z.string(),
+  room_name: z.string(),
+  start_ts: z.number(),
+  status: z.string(),
+  max_participants: z.number(),
+  duration: z.number(),
+  share_token: z.string(),
+});
+
+export const recordingItemsSchema = z.array(recordingItemSchema);
+
+export type RecordingItemSchema = z.infer<typeof recordingItemSchema>;
+
+export const getRecordingsResponseSchema = z.union([
+  z.object({
+    total_count: z.number(),
+    data: recordingItemsSchema,
+  }),
+  z.object({}),
+]);
+
+export type GetRecordingsResponseSchema = z.infer<typeof getRecordingsResponseSchema>;
 
 /**
  * Ensures that it is a valid HTTP URL

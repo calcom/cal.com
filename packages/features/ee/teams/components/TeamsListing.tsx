@@ -64,7 +64,7 @@ export function TeamsListing() {
                 <div className="mt-3 px-14">
                   <h1 className="font-cal text-3xl">{t("calcom_is_better_with_team")}</h1>
                   <p className="my-4 max-w-sm text-gray-600">{t("add_your_team_members")}</p>
-                  <div className="space-y-2 sm:space-x-2">
+                  <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
                     <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
                       {t("create_team")}
                     </Button>

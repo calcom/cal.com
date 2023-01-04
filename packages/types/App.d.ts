@@ -89,10 +89,10 @@ export interface App {
   /*
    * @deprecated Use categories
    */
-  category: string;
+  category?: string;
 
   /** The category to which this app belongs, currently we have `calendar`, `payment` or `video`  */
-  categories?: string[];
+  categories: string[];
   /**
    * `User` is the broadest category. `EventType` is when you want to add features to EventTypes.
    * See https://app.gitbook.com/o/6snd8PyPYMhg0wUw6CeQ/s/VXRprBTuMlihk37NQgUU/~/changes/6xkqZ4qvJ3Xh9k8UaWaZ/engineering/product-specs/app-store#user-apps for more details
@@ -121,9 +121,6 @@ export interface App {
   isGlobal?: boolean;
   /** A contact email, mainly to ask for support */
   email: string;
-
-  /** Needed API Keys (usually for global apps) */
-  key?: Prisma.JsonValue;
   /** Needed API Keys (usually for global apps) */
   key?: Prisma.JsonValue;
   /** If not free, what kind of fees does the app have */
@@ -137,5 +134,10 @@ export interface App {
   appData?: EventLocationAppData;
   dirName?: string;
 }
+
+export type AppFrontendPayload = Omit<App, "key"> & {
+  /** We should type error if keys are leaked to the frontend */
+  key?: never;
+};
 
 export type AppMeta = Optional<App, "rating" | "trending" | "reviews" | "verified">;

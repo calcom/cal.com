@@ -1,5 +1,5 @@
 import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
-import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable,VariantsRow } from '@calcom/storybook/components'
+import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable,VariantRow } from '@calcom/storybook/components'
 import { Icon } from "@calcom/ui";
 
 import Checkbox from './Checkbox';
@@ -49,18 +49,18 @@ Checkboxes are used in forms and databases to indicate an answer to a question, 
 <Canvas>
   <Story name="Checkbox">
     <VariantsTable titles={[""]} columnMinWidth={150}>
-      <VariantsRow variant="Default">
+      <VariantRow variant="Default">
         <Checkbox label="Default"  />
         <Checkbox label="Error" error/>
         <Checkbox label="Disabled"  disabled/>
         <Checkbox label="Disabled Checked"  checked disabled />
-      </VariantsRow>
-        <VariantsRow variant="Description As Label">
+      </VariantRow>
+        <VariantRow variant="Description As Label">
           <Checkbox description="Default" descriptionAsLabel  />
           <Checkbox description="Error" error descriptionAsLabel/>
           <Checkbox description="Disabled"  disabled descriptionAsLabel/>
           <Checkbox description="Disabled Checked"  checked disabled descriptionAsLabel/>
-      </VariantsRow>
+      </VariantRow>
     </VariantsTable>
   </Story>
 </Canvas>
