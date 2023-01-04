@@ -1,7 +1,6 @@
 import parser from "accept-language-parser";
 import { IncomingMessage } from "http";
 
-import prisma from "@calcom/prisma";
 import { Maybe } from "@calcom/trpc/server";
 
 import { getSession } from "@lib/auth";
@@ -17,6 +16,7 @@ export function getLocaleFromHeaders(req: IncomingMessage): string {
 }
 
 export const getOrSetUserLocaleFromHeaders = async (req: IncomingMessage): Promise<string> => {
+  const prisma = (await import("@calcom/prisma")).default;
   const session = await getSession({ req });
   const preferredLocale = getLocaleFromHeaders(req);
 

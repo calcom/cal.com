@@ -42,7 +42,7 @@ export function ScheduleListItem({
         <div className="group flex w-full items-center justify-between hover:bg-neutral-50 sm:px-6">
           <Link href={"/availability/" + schedule.id}>
             <a className="flex-grow truncate text-sm" title={schedule.name}>
-              <div className="space-x-2">
+              <div className="space-x-2 rtl:space-x-reverse">
                 <span className="truncate font-medium text-neutral-900">{schedule.name}</span>
                 {schedule.isDefault && (
                   <Badge variant="success" className="text-xs">
@@ -73,7 +73,7 @@ export function ScheduleListItem({
           </Link>
         </div>
         <Dropdown>
-          <DropdownMenuTrigger asChild className="mr-5">
+          <DropdownMenuTrigger asChild className="mx-5">
             <Button type="button" size="icon" color="secondary" StartIcon={Icon.FiMoreHorizontal} />
           </DropdownMenuTrigger>
           {!isLoading && data && (

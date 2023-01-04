@@ -16,7 +16,7 @@ import {
   getSettingsLayout as getLayout,
   Icon,
   Meta,
-  SkeletonLoader,
+  AppSkeletonLoader as SkeletonLoader,
 } from "@calcom/ui";
 
 import { ssrInit } from "@server/lib/ssr";

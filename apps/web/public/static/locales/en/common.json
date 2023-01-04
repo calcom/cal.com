@@ -1484,5 +1484,6 @@
   "create_webhook_team_event_type": "Create a webhook for this team event type",
   "disable_success_page":"Disable Success Page (only works if you have a redirect URL)",
   "invalid_admin_password": "You are set as an admin but you do not have a password length of at least 15 characters",
-  "change_password_admin": "Change Password to gain admin access"
+  "change_password_admin": "Change Password to gain admin access",
+  "username_already_taken": "Username is already taken"
 }
