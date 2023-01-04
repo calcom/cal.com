@@ -94,7 +94,7 @@ export const SearchDialog = (props: ISearchDialog) => {
         setGifImage("");
         setSelectedMode(mode);
       }}>
-      <Icon color={selectedMode === mode ? "black" : "grey"} className="mr-2 h-4 w-4" />
+      <Icon color={selectedMode === mode ? "black" : "grey"} className="h-4 w-4 ltr:mr-2 rtl:ml-2" />
       {text}
     </div>
   );
@@ -120,7 +120,9 @@ export const SearchDialog = (props: ISearchDialog) => {
           {renderTab(SearchIcon, t("search_giphy"), MODE_SEARCH)}
           {renderTab(LinkIcon, t("add_link_from_giphy"), MODE_URL)}
         </div>
-        <form className="flex w-full justify-center space-x-2 space-y-2" onSubmit={handleFormSubmit}>
+        <form
+          className="flex w-full justify-center space-x-2 space-y-2 rtl:space-x-reverse"
+          onSubmit={handleFormSubmit}>
           <div className="relative block w-full pt-2">
             <input
               type="text"
@@ -141,7 +143,7 @@ export const SearchDialog = (props: ISearchDialog) => {
           </Button>
         </form>
         {gifImage && (
-          <div className="flex flex-col items-center space-x-2 space-y-2 pt-3">
+          <div className="flex flex-col items-center space-x-2 space-y-2 pt-3 rtl:space-x-reverse">
             <div className="flex w-full items-center justify-center bg-gray-100">
               {isLoading ? (
                 <div className="flex h-[200px] w-full items-center justify-center bg-gray-400 pt-3 pb-3">
@@ -173,7 +175,7 @@ export const SearchDialog = (props: ISearchDialog) => {
         )}
         {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
         {gifImage && selectedMode === MODE_SEARCH && (
-          <div className="mt-4 flex items-center justify-between space-x-2">
+          <div className="mt-4 flex items-center justify-between space-x-2 rtl:space-x-reverse">
             <div className="text-sm font-light text-neutral-500">Not the perfect GIF?</div>
             <Button
               size="sm"

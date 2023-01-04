@@ -18,7 +18,7 @@ export const TeamsMemberFilter = () => {
     <AnimatedPopover
       text={teamNames && teamNames.length > 0 ? `${teamNames.join(", ")}` : t("all_bookings_filter_label")}>
       <div className="item-center flex px-4 py-[6px] focus-within:bg-gray-100">
-        <div className="mr-2 flex h-6 w-6 items-center justify-center">
+        <div className="flex h-6 w-6 items-center justify-center ltr:mr-2 rtl:ml-2">
           <Icon.FiLayers className="h-full w-full" />
         </div>
         <label

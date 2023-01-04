@@ -249,7 +249,7 @@ function UserDropdown({ small }: { small?: boolean }) {
           <button className="group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-200 focus:outline-none focus:ring-0 sm:mx-2.5 sm:pl-3 md:rounded-none lg:rounded lg:pl-2">
             <span
               className={classNames(
-                small ? "h-6 w-6" : "h-8 w-8 ltr:mr-2 rtl:ml-3",
+                small ? "h-6 w-6" : "h-8 w-8 ltr:mr-2 rtl:ml-2",
                 "relative flex-shrink-0 rounded-full bg-gray-300 "
               )}>
               {
@@ -282,7 +282,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   </span>
                 </span>
                 <Icon.FiMoreVertical
-                  className="h-4 w-4 flex-shrink-0 text-gray-400 group-hover:text-gray-500 rtl:mr-2"
+                  className="h-4 w-4 flex-shrink-0 text-gray-400 group-hover:text-gray-500 ltr:mr-2 rtl:ml-2 rtl:mr-4"
                   aria-hidden="true"
                 />
               </span>
@@ -308,13 +308,13 @@ function UserDropdown({ small }: { small?: boolean }) {
                     mutation.mutate({ away: !user?.away });
                     utils.viewer.me.invalidate();
                   }}
-                  className="flex w-full min-w-max cursor-pointer items-center px-4 py-2 text-sm">
+                  className="flex w-full min-w-max cursor-pointer items-center px-4 py-2 text-sm ltr:flex-row rtl:flex-row-reverse">
                   <Icon.FiMoon
                     className={classNames(
                       user.away
                         ? "text-purple-500 group-hover:text-purple-700"
                         : "text-gray-500 group-hover:text-gray-700",
-                      "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-3"
+                      "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2"
                     )}
                     aria-hidden="true"
                   />
@@ -329,8 +329,8 @@ function UserDropdown({ small }: { small?: boolean }) {
                       target="_blank"
                       rel="noopener noreferrer"
                       href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
-                      className="flex items-center px-4 py-2 text-sm text-gray-700">
-                      <Icon.FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
+                      <Icon.FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" />{" "}
                       {t("view_public_page")}
                     </a>
                   </DropdownMenuItem>
@@ -344,8 +344,8 @@ function UserDropdown({ small }: { small?: boolean }) {
                         );
                         showToast(t("link_copied"), "success");
                       }}
-                      className="flex items-center px-4 py-2 text-sm text-gray-700">
-                      <Icon.FiLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
+                      <Icon.FiLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" />{" "}
                       {t("copy_public_page_link")}
                     </a>
                   </DropdownMenuItem>
@@ -357,8 +357,8 @@ function UserDropdown({ small }: { small?: boolean }) {
                   href={JOIN_SLACK}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center px-4 py-2 text-sm text-gray-700">
-                  <Icon.FiSlack strokeWidth={1.5} className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
+                  <Icon.FiSlack strokeWidth={1.5} className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" />{" "}
                   {t("join_our_slack")}
                 </a>
               </DropdownMenuItem>
@@ -367,18 +367,18 @@ function UserDropdown({ small }: { small?: boolean }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   href={ROADMAP}
-                  className="flex items-center px-4 py-2 text-sm text-gray-700">
-                  <Icon.FiMap className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" /> {t("visit_roadmap")}
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
+                  <Icon.FiMap className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" /> {t("visit_roadmap")}
                 </a>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <button
                   onClick={() => setHelpOpen(true)}
-                  className="flex w-full items-center px-4 py-2 text-sm text-gray-700">
+                  className="flex w-full items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
                   <Icon.FiHelpCircle
                     className={classNames(
                       "text-gray-500 group-hover:text-neutral-500",
-                      "h-4 w-4 flex-shrink-0 ltr:mr-2"
+                      "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2"
                     )}
                     aria-hidden="true"
                   />
@@ -391,8 +391,8 @@ function UserDropdown({ small }: { small?: boolean }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   href={DESKTOP_APP_LINK}
-                  className="desktop-hidden hidden items-center px-4 py-2 text-sm text-gray-700 lg:flex">
-                  <Icon.FiDownload className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                  className="desktop-hidden hidden items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse lg:flex">
+                  <Icon.FiDownload className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" />{" "}
                   {t("download_desktop_app")}
                 </a>
               </DropdownMenuItem>
@@ -401,11 +401,11 @@ function UserDropdown({ small }: { small?: boolean }) {
               <DropdownMenuItem>
                 <a
                   onClick={() => signOut({ callbackUrl: "/auth/logout" })}
-                  className="flex cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
+                  className="flex cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900 ltr:flex-row rtl:flex-row-reverse">
                   <Icon.FiLogOut
                     className={classNames(
                       "text-gray-500 group-hover:text-gray-700",
-                      "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-3"
+                      "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2"
                     )}
                     aria-hidden="true"
                   />
@@ -732,7 +732,7 @@ function SideBar() {
                 <Logo small />
               </a>
             </Link>
-            <div className="flex space-x-2">
+            <div className="flex space-x-2 rtl:space-x-reverse">
               <button
                 color="minimal"
                 onClick={() => window.history.back()}
@@ -820,7 +820,7 @@ export function ShellMain(props: LayoutProps) {
             {props.CTA && (
               <div
                 className={classNames(
-                  props.backPath ? "relative" : " fixed right-4 bottom-[88px] z-40 sm:z-auto",
+                  props.backPath ? "relative" : " fixed bottom-[88px] z-40 ltr:right-4 rtl:left-4 sm:z-auto",
                   "flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto"
                 )}>
                 {props.CTA}

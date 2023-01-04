@@ -156,7 +156,7 @@ const CalendarsView = () => {
                             )
                           }
                           <div className="flex-grow truncate pl-2">
-                            <ListItemTitle component="h3" className="mb-1 space-x-2">
+                            <ListItemTitle component="h3" className="mb-1 space-x-2 rtl:space-x-reverse">
                               <Link href={"/apps/" + item.integration.slug}>
                                 {item.integration.name || item.integration.title}
                               </Link>
