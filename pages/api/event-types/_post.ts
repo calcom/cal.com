@@ -6,6 +6,8 @@ import { defaultResponder } from "@calcom/lib/server";
 
 import { schemaEventTypeCreateBodyParams, schemaEventTypeReadPublic } from "~/lib/validations/event-type";
 
+import checkTeamEventEditPermission from "./_utils/checkTeamEventEditPermission";
+
 /**
  * @swagger
  * /event-types:
@@ -61,22 +63,7 @@ async function postHandler(req: NextApiRequest) {
 
   if (isAdmin && body.userId) args = { data: { ...body, users: { connect: { id: body.userId } } } };
 
-  if (body.teamId) {
-    const hasMembership = await prisma.membership.findFirst({
-      where: {
-        userId,
-        teamId: body.teamId,
-        accepted: true,
-      },
-    });
-
-    if (!hasMembership?.role || !["ADMIN", "OWNER"].includes(hasMembership.role)) {
-      throw new HttpError({
-        statusCode: 401,
-        message: "No permission to create an event-type for this team`",
-      });
-    }
-  }
+  await checkTeamEventEditPermission(req, body);
 
   const data = await prisma.eventType.create(args);
 
