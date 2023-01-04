@@ -10,12 +10,17 @@ import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Skeleton } from "@calcom/ui";
-import { Badge, Button, ErrorBoundary, Icon } from "@calcom/ui";
-import { useMeta } from "@calcom/ui/v2/core/Meta";
-import Shell from "@calcom/ui/v2/core/Shell";
-import { VerticalTabItemProps } from "@calcom/ui/v2/core/navigation/tabs/VerticalTabItem";
-import { VerticalTabItem } from "@calcom/ui/v2/core/navigation/tabs/VerticalTabs";
+import {
+  Badge,
+  Button,
+  ErrorBoundary,
+  Icon,
+  VerticalTabItemProps,
+  VerticalTabItem,
+  Shell,
+  Skeleton,
+  useMeta,
+} from "@calcom/ui";
 
 const tabs: VerticalTabItemProps[] = [
   {

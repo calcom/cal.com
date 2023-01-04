@@ -59,7 +59,9 @@ export {
   Switch,
   Card,
   VerticalTabs,
+  VerticalTabItem,
 } from "./v2";
+export type { VerticalTabItemProps } from "./v2";
 export type { AlertProps } from "./v2";
 export { Segment, SegmentOption } from "./v2/core";
 export { default as AllApps } from "./v2/core/apps/AllApps";
@@ -102,7 +104,7 @@ export { default as ImageUploader } from "./v2/core/ImageUploader";
 export { default as LinkIconButton } from "./v2/core/LinkIconButton";
 export { List, ListItem, ListItemText, ListItemTitle, ListLinkItem } from "./v2/core/List";
 export { default as MeetingTimeInTimezones } from "./v2/core/MeetingTimeInTimezones";
-export { default as Meta, MetaProvider } from "./v2/core/Meta";
+export { default as Meta, MetaProvider, useMeta } from "./v2/core/Meta";
 export { MobileNavigationMoreItems, ShellSubHeading } from "./v2/core/Shell";
 export { StepCard } from "./v2/core/StepCard";
 export { default as Stepper } from "./v2/core/Stepper";
