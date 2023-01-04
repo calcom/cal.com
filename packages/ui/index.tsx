@@ -67,6 +67,7 @@ export {
 } from "./v2";
 export type { AlertProps } from "./v2";
 export { Segment, SegmentOption } from "./v2/core";
+export { default as Shell, ShellMain, MobileNavigationMoreItems, ShellSubHeading } from "./v2/core/Shell";
 export { default as Banner } from "./v2/core/banner";
 export { default as ColorPicker } from "./v2/core/colorpicker";
 export { default as ConfirmationDialogContent } from "./v2/core/ConfirmationDialogContent";
