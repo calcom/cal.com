@@ -1,6 +1,5 @@
 import { FieldValues, useFormContext } from "react-hook-form";
 
-// TODO: Refactor import once V1 migration has happened
 import { Icon } from "../../../components/icon";
 
 export function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
