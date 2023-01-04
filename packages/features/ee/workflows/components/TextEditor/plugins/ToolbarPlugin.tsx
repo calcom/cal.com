@@ -397,7 +397,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
   return (
     <div className="toolbar flex" ref={toolbarRef}>
       <>
-        {supportedBlockTypes.has(blockType) && (
+        {!props.excludedToolbarItems?.includes("blockType") && supportedBlockTypes.has(blockType) && (
           <>
             <Dropdown>
               <DropdownMenuTrigger className="toolbar-item w-36 text-gray-500">
@@ -435,42 +435,52 @@ export default function ToolbarPlugin(props: TextEditorProps) {
         )}
 
         <>
-          <button
-            type="button"
-            onClick={() => {
-              editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
-              if (isItalic) {
-                editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
-              }
-            }}
-            className={"toolbar-item spaced " + (isBold ? "active" : "")}
-            aria-label="Format Bold">
-            <i className="format bold" />
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
-              if (isBold) {
+          {!props.excludedToolbarItems?.includes("bold") && (
+            <button
+              type="button"
+              onClick={() => {
                 editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
-              }
-            }}
-            className={"toolbar-item spaced " + (isItalic ? "active" : "")}
-            aria-label="Format Italics">
-            <i className="format italic" />
-          </button>
-          <button
-            type="button"
-            onClick={insertLink}
-            className={"toolbar-item spaced " + (isLink ? "active" : "")}
-            aria-label="Insert Link">
-            <i className="format link" />
-          </button>
-          {isLink && createPortal(<FloatingLinkEditor editor={editor} />, document.body)}{" "}
+                if (isItalic) {
+                  editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
+                }
+              }}
+              className={"toolbar-item spaced " + (isBold ? "active" : "")}
+              aria-label="Format Bold">
+              <i className="format bold" />
+            </button>
+          )}
+          {!props.excludedToolbarItems?.includes("italic") && (
+            <button
+              type="button"
+              onClick={() => {
+                editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
+                if (isBold) {
+                  editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
+                }
+              }}
+              className={"toolbar-item spaced " + (isItalic ? "active" : "")}
+              aria-label="Format Italics">
+              <i className="format italic" />
+            </button>
+          )}
+          {!props.excludedToolbarItems?.includes("link") && (
+            <>
+              <button
+                type="button"
+                onClick={insertLink}
+                className={"toolbar-item spaced " + (isLink ? "active" : "")}
+                aria-label="Insert Link">
+                <i className="format link" />
+              </button>
+              {isLink && createPortal(<FloatingLinkEditor editor={editor} />, document.body)}{" "}
+            </>
+          )}
         </>
-        <div className="ml-auto">
-          <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} isTextEditor={true} />
-        </div>
+        {!props.excludedToolbarItems?.includes("addVariable") && (
+          <div className="ml-auto">
+            <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} isTextEditor={true} />
+          </div>
+        )}
       </>
     </div>
   );
