@@ -2,7 +2,6 @@ import { useRouter } from "next/router";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc/react";
-// TODO(Sean): Figure out why this is using AppSkeletonLoader
 import { getSettingsLayout as getLayout, AppSkeletonLoader } from "@calcom/ui";
 
 import SAMLConfiguration from "../components/SAMLConfiguration";
