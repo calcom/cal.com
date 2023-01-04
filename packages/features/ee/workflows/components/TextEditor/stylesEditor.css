@@ -129,7 +129,6 @@ pre::-webkit-scrollbar-thumb {
 .toolbar button.toolbar-item {
   border: 0;
   display: flex;
-  background: none;
   border-radius: 10px;
   padding: 8px;
   cursor: pointer;
