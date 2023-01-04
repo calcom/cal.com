@@ -35,6 +35,8 @@ export {
   SkeletonButton,
   SkeletonContainer,
   DropdownActions,
+  Icon,
+  ErrorBoundary,
   TrendingAppsSlider,
   AppCard,
   AllApps,
@@ -47,15 +49,11 @@ export type { ActionType } from "./components";
 export type { AvatarProps, BadgeProps, ButtonBaseProps, ButtonProps, TopBannerProps } from "./components";
 export { default as CheckboxField } from "./components/form/checkbox/Checkbox";
 /** ⬇️ TODO - Move these to components */
-export { default as ErrorBoundary } from "./ErrorBoundary";
 export { default as AddressInput } from "./form/AddressInputLazy";
 export { default as PhoneInput } from "./form/PhoneInputLazy";
 export { UnstyledSelect } from "./form/Select";
-export { BadgeCheckIcon, ClipboardCopyIcon, Icon, ShieldCheckIcon, StarIconSolid } from "./Icon";
-export { default as Loader } from "./Loader";
-export { default as Shell, ShellMain } from "./Shell";
+export { default as Loader } from "./v2/core/Loader";
 export { default as TimezoneChangeDialog } from "./TimezoneChangeDialog";
-// export { default as Tooltip } from "./Tooltip";
 export {
   Alert,
   EmptyScreen,
@@ -69,6 +67,7 @@ export {
 } from "./v2";
 export type { AlertProps } from "./v2";
 export { Segment, SegmentOption } from "./v2/core";
+export { default as Shell, ShellMain, MobileNavigationMoreItems, ShellSubHeading } from "./v2/core/Shell";
 export { default as Banner } from "./v2/core/banner";
 export { default as ColorPicker } from "./v2/core/colorpicker";
 export { default as ConfirmationDialogContent } from "./v2/core/ConfirmationDialogContent";
@@ -110,7 +109,6 @@ export { default as LinkIconButton } from "./v2/core/LinkIconButton";
 export { List, ListItem, ListItemText, ListItemTitle, ListLinkItem } from "./v2/core/List";
 export { default as MeetingTimeInTimezones } from "./v2/core/MeetingTimeInTimezones";
 export { default as Meta, MetaProvider } from "./v2/core/Meta";
-export { MobileNavigationMoreItems, ShellSubHeading } from "./v2/core/Shell";
 export { StepCard } from "./v2/core/StepCard";
 export { default as Stepper } from "./v2/core/Stepper";
 export { Steps } from "./v2/core/Steps";
