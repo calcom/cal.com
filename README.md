@@ -353,7 +353,6 @@ following
 5. Use **Application (client) ID** as the **MS_GRAPH_CLIENT_ID** attribute value in .env
 6. Click **Certificates & secrets** create a new client secret and use the value as the **MS_GRAPH_CLIENT_SECRET** attribute
 
-
 ### Obtaining Zoom Client ID and Secret
 
 1. Open [Zoom Marketplace](https://marketplace.zoom.us/) and sign in with your Zoom account.
