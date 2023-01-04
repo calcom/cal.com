@@ -1,6 +1,11 @@
 import { classNames } from "@calcom/lib";
 
-export default function VerticalDivider({ className, ...props }: JSX.IntrinsicElements["svg"]) {
+export function Divider({ className, ...props }: JSX.IntrinsicElements["hr"]) {
+  className = classNames(className, "gray-200");
+  return <hr className={className} {...props} />;
+}
+
+export function VerticalDivider({ className, ...props }: JSX.IntrinsicElements["svg"]) {
   className = classNames(className, "mx-3");
   return (
     <svg

@@ -17,3 +17,5 @@ export {
 } from "./inputs/Input";
 export { Label } from "./inputs/Label";
 export { Select, SelectField, SelectWithValidation, getReactSelectProps } from "./select";
+export { TimezoneSelect } from "./timezone-select";
+export type { ITimezone, ITimezoneOption } from "./timezone-select";

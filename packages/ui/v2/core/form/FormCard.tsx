@@ -1,7 +1,7 @@
 import { classNames } from "@calcom/lib";
 
 import { Icon } from "../../..";
-import Divider from "../Divider";
+import { Divider } from "../../../components/divider";
 
 type Action = { check: () => boolean; fn: () => void };
 export default function FormCard({

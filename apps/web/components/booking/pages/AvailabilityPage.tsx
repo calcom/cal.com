@@ -28,7 +28,7 @@ import { getRecurringFreq } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { detectBrowserTimeFormat, setIs24hClockInLocalStorage, TimeFormat } from "@calcom/lib/timeFormat";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
+import { Icon, HeadSeo } from "@calcom/ui";
 
 import { timeZone as localStorageTimeZone } from "@lib/clock";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
@@ -37,7 +37,6 @@ import Gates, { Gate, GateState } from "@components/Gates";
 import AvailableTimes from "@components/booking/AvailableTimes";
 import BookingDescription from "@components/booking/BookingDescription";
 import TimeOptions from "@components/booking/TimeOptions";
-import { HeadSeo } from "@components/seo/head-seo";
 import PoweredByCal from "@components/ui/PoweredByCal";
 
 import type { AvailabilityPageProps } from "../../../pages/[user]/[type]";
