@@ -5,8 +5,8 @@ import { useEffect, useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Icon } from "../..";
-import { SkeletonText } from "../../v2/core/skeleton";
+import { Icon } from "../../Icon";
+import { SkeletonText } from "../skeleton";
 
 export const Slider = <T extends string | unknown>({
   title = "",

@@ -62,7 +62,7 @@ export function CalendarSwitch(props: {
     }
   );
   return (
-    <div className="flex space-x-2 py-1">
+    <div className="flex space-x-2 py-1 rtl:space-x-reverse">
       <Switch
         key={props.externalId}
         name="enabled"

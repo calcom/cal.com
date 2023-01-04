@@ -29,6 +29,11 @@ export {
   SelectField,
   SelectWithValidation,
   TableActions,
+  Skeleton,
+  SkeletonAvatar,
+  SkeletonText,
+  SkeletonButton,
+  SkeletonContainer,
   DropdownActions,
   TrendingAppsSlider,
   AppCard,
@@ -57,10 +62,6 @@ export {
   HorizontalTabs,
   SettingsToggle,
   showToast,
-  SkeletonAvatar,
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
   Swatch,
   Switch,
   Card,
@@ -110,7 +111,6 @@ export { List, ListItem, ListItemText, ListItemTitle, ListLinkItem } from "./v2/
 export { default as MeetingTimeInTimezones } from "./v2/core/MeetingTimeInTimezones";
 export { default as Meta, MetaProvider } from "./v2/core/Meta";
 export { MobileNavigationMoreItems, ShellSubHeading } from "./v2/core/Shell";
-export { Skeleton } from "./v2/core/skeleton";
 export { StepCard } from "./v2/core/StepCard";
 export { default as Stepper } from "./v2/core/Stepper";
 export { Steps } from "./v2/core/Steps";

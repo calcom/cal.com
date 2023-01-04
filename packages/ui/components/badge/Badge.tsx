@@ -53,8 +53,8 @@ export const Badge = function Badge(props: BadgeProps) {
         className
       )}>
       <>
-        {StartIcon && <StartIcon className="mr-1 h-3 w-3 stroke-[3px]" />}
-        {withDot && <GoPrimitiveDot className="mr-1 h-3 w-3 stroke-[3px]" />}
+        {StartIcon && <StartIcon className="h-3 w-3 stroke-[3px] ltr:mr-1 rtl:ml-1" />}
+        {withDot && <GoPrimitiveDot className="h-3 w-3 stroke-[3px] ltr:mr-1 rtl:ml-1" />}
         {props.children}
       </>
     </div>
