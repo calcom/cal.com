@@ -163,11 +163,11 @@ const SettingsSidebarContainer = ({
   return (
     <nav
       className={classNames(
-        "no-scrollbar fixed left-0 top-0 z-10 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll bg-gray-50 px-2 pb-3 transition-transform lg:sticky lg:flex",
+        "no-scrollbar fixed top-0 bottom-0 z-10 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll bg-gray-50 px-2 pb-3 transition-transform ltr:left-0 rtl:right-0 lg:sticky lg:flex",
         className,
         navigationIsOpenedOnMobile
           ? "translate-x-0 opacity-100"
-          : "-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100"
+          : "opacity-0 ltr:-translate-x-full rtl:translate-x-full lg:translate-x-0 lg:opacity-100"
       )}
       aria-label="Tabs">
       <>
