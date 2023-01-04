@@ -73,6 +73,7 @@ function RedirectionToast({ url }: { url: string }) {
     }
   }, [isToastVisible]);
 
+  // draft pr
   useEffect(() => {
     const parsedExternalUrl = new URL(url);
 
