@@ -15,7 +15,7 @@ import {
   List,
   ShellSubHeading,
   showToast,
-  SkeletonLoader,
+  AppSkeletonLoader as SkeletonLoader,
   Switch,
 } from "@calcom/ui";
 
