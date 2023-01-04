@@ -4,8 +4,7 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import Button from "@calcom/ui/Button";
-import { Icon } from "@calcom/ui/Icon";
+import { Button, Icon } from "@calcom/ui";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 

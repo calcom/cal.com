@@ -1,6 +1,4 @@
-import React from "react";
-
-import { ShieldCheckIcon } from "@calcom/ui/Icon";
+import { ShieldCheckIcon } from "@calcom/ui";
 
 const TwoFactorModalHeader = ({ title, description }: { title: string; description: string }) => {
   return (

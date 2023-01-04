@@ -1,5 +1,4 @@
-import { Icon } from "@calcom/ui/Icon";
-import { SkeletonAvatar, SkeletonContainer, SkeletonText } from "@calcom/ui/v2";
+import { Icon, SkeletonAvatar, SkeletonContainer, SkeletonText } from "@calcom/ui";
 
 function SkeletonLoader() {
   return (
@@ -37,7 +36,7 @@ function SkeletonItem() {
             </li>
             <li className="flex items-center whitespace-nowrap">
               <Icon.FiUser className="mt-0.5 mr-1.5 inline h-4 w-4 text-gray-200" />
-              <SkeletonText className="h-4 w-16" />
+              <SkeletonText className="h-4 w-12" />
             </li>
           </ul>
         </div>

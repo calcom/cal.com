@@ -46,7 +46,7 @@ export default function Meta({ title, description, backButton, CTA }: MetaType) 
 
   /* @TODO: maybe find a way to have this data on first render to prevent flicker */
   useEffect(() => {
-    if (meta.title !== title || meta.description !== description) {
+    if (meta.title !== title || meta.description !== description || meta.CTA !== CTA) {
       setMeta({ title, description, backButton, CTA });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -5,7 +5,7 @@ import { Props } from "react-select";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import Select from "./select";
+import { Select } from "../../../components/form/select";
 
 export type Option = {
   value: string;
@@ -40,7 +40,7 @@ const InputOption: React.FC<OptionProps<any, boolean, GroupBase<any>>> = ({
       innerProps={props}>
       <input
         type="checkbox"
-        className="text-primary-600 focus:ring-primary-500 mr-2 h-4 w-4 rounded border-gray-300"
+        className="text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300 ltr:mr-2 rtl:ml-2"
         checked={isSelected}
         readOnly
       />

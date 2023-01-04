@@ -1,5 +1,6 @@
 import { DefaultSeo } from "next-seo";
 import Head from "next/head";
+import Script from "next/script";
 import superjson from "superjson";
 
 import "@calcom/embed-core/src/embed-iframe";
@@ -18,7 +19,6 @@ import { seoConfig } from "@lib/config/next-seo.config";
 
 import I18nLanguageHandler from "@components/I18nLanguageHandler";
 
-import "../styles/fonts.css";
 import "../styles/globals.css";
 
 function MyApp(props: AppProps) {
@@ -31,13 +31,15 @@ function MyApp(props: AppProps) {
   }
   // Use the layout defined at the page level, if available
   const getLayout = Component.getLayout ?? ((page) => page);
-
   return (
     <AppProviders {...props}>
       <DefaultSeo {...seoConfig.defaultNextSeo} />
       <I18nLanguageHandler />
+      <Script
+        id="page-status"
+        dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}
+      />
       <Head>
-        <script dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }} />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
       {getLayout(

@@ -4,9 +4,15 @@ import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/Icon";
-import { Avatar, Button } from "@calcom/ui/components";
-import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@calcom/ui/v2";
+import {
+  Avatar,
+  Button,
+  Dropdown,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  Icon,
+} from "@calcom/ui";
 
 interface Props {
   team: {
@@ -60,7 +66,7 @@ export default function TeamInviteListItem(props: Props) {
         alt="Team Logo"
         className=""
       />
-      <div className="ml-3 inline-block">
+      <div className="inline-block ltr:ml-3 rtl:mr-3">
         <span className="text-sm font-semibold text-black">{team.name}</span>
         <span className="block text-sm leading-5 text-gray-700">
           {t("invited_by_team", { teamName: team.name, role: t(team.role.toLocaleLowerCase()) })}

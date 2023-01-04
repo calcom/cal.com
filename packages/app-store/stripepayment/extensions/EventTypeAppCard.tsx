@@ -1,16 +1,18 @@
+import { useRouter } from "next/router";
 import { useState } from "react";
 import { FormattedNumber, IntlProvider } from "react-intl";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { TextField } from "@calcom/ui/components";
-import { Alert } from "@calcom/ui/v2";
+import { Alert, TextField } from "@calcom/ui";
 
 import { appDataSchema } from "../zod";
 
 const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ app, eventType }) {
+  const { asPath } = useRouter();
   const [getAppData, setAppData] = useAppContextWithSchema<typeof appDataSchema>();
   const price = getAppData("price");
   const currency = getAppData("currency");
@@ -29,6 +31,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       .trim();
   return (
     <AppCard
+      returnTo={WEBAPP_URL + asPath}
       setAppData={setAppData}
       app={app}
       switchChecked={requirePayment}
@@ -62,7 +65,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
                 className="block w-full rounded-sm border-gray-300 pl-2 pr-12 text-sm"
                 placeholder="Price"
                 onChange={(e) => {
-                  setAppData("price", e.target.valueAsNumber * 100);
+                  setAppData("price", Number(e.target.value) * 100);
                 }}
                 value={price > 0 ? price / 100 : undefined}
               />

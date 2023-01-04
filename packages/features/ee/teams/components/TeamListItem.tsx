@@ -6,22 +6,23 @@ import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/getPlaceholderAvatar";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components/button";
-import { ButtonGroup } from "@calcom/ui/components/buttonGroup";
-import ConfirmationDialogContent from "@calcom/ui/v2/core/ConfirmationDialogContent";
-import { Dialog, DialogTrigger } from "@calcom/ui/v2/core/Dialog";
-import Dropdown, {
+import {
+  Avatar,
+  Button,
+  ButtonGroup,
+  ConfirmationDialogContent,
+  Dialog,
+  DialogTrigger,
+  Dropdown,
   DropdownItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@calcom/ui/v2/core/Dropdown";
-import { Tooltip } from "@calcom/ui/v2/core/Tooltip";
-import showToast from "@calcom/ui/v2/core/notifications";
-
-import Avatar from "@components/ui/Avatar";
+  Icon,
+  showToast,
+  Tooltip,
+} from "@calcom/ui";
 
 import { TeamRole } from "./TeamPill";
 
@@ -65,12 +66,12 @@ export default function TeamListItem(props: Props) {
   const teamInfo = (
     <div className="flex px-5 py-5">
       <Avatar
-        size={9}
+        size="sm"
         imageSrc={getPlaceholderAvatar(team?.logo, team?.name as string)}
         alt="Team Logo"
         className="min-h-9 min-w-9 h-9 w-9 rounded-full"
       />
-      <div className="ml-3 inline-block">
+      <div className="inline-block ltr:ml-3 rtl:mr-3">
         <span className="text-sm font-bold text-neutral-700">{team.name}</span>
         <span className="block text-xs text-gray-400">
           {team.slug ? `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}` : "Unpublished team"}
@@ -102,7 +103,11 @@ export default function TeamListItem(props: Props) {
                 <Button type="button" color="secondary" onClick={declineInvite}>
                   {t("reject")}
                 </Button>
-                <Button type="button" color="primary" className="ltr:ml-2 rtl:mr-2" onClick={acceptInvite}>
+                <Button
+                  type="button"
+                  color="primary"
+                  className="ltr:ml-2 ltr:mr-2 rtl:ml-2"
+                  onClick={acceptInvite}>
                   {t("accept")}
                 </Button>
               </div>
@@ -150,7 +155,6 @@ export default function TeamListItem(props: Props) {
                       }}
                       size="icon"
                       StartIcon={Icon.FiLink}
-                      combined
                     />
                   </Tooltip>
                 )}

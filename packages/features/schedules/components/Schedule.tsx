@@ -1,15 +1,15 @@
-import { useCallback, useEffect, useMemo, useState, Fragment } from "react";
-import { Controller, useFieldArray, useFormContext } from "react-hook-form";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import type {
-  UseFieldArrayRemove,
-  FieldValues,
+  ArrayPath,
+  Control,
+  ControllerRenderProps,
+  FieldArrayWithId,
   FieldPath,
   FieldPathValue,
-  FieldArrayWithId,
-  ArrayPath,
-  ControllerRenderProps,
-  Control,
+  FieldValues,
+  UseFieldArrayRemove,
 } from "react-hook-form";
+import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import { GroupBase, Props } from "react-select";
 
 import dayjs, { ConfigType, Dayjs } from "@calcom/dayjs";
@@ -19,11 +19,18 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { TimeRange } from "@calcom/types/schedule";
-import { Icon } from "@calcom/ui";
-import Dropdown, { DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui/Dropdown";
-import { Button } from "@calcom/ui/components/button";
-import { Select, Switch } from "@calcom/ui/v2";
-import { SkeletonText } from "@calcom/ui/v2/core/skeleton";
+import {
+  Button,
+  Dropdown,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  Icon,
+  Select,
+  SkeletonText,
+  Switch,
+} from "@calcom/ui";
+
+export type { TimeRange };
 
 export type FieldPathByValue<TFieldValues extends FieldValues, TValue> = {
   [Key in FieldPath<TFieldValues>]: FieldPathValue<TFieldValues, Key> extends TValue ? Key : never;
@@ -35,7 +42,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
   control,
   CopyButton,
 }: {
-  name: string;
+  name: ArrayPath<TFieldValues>;
   weekday: string;
   control: Control<TFieldValues>;
   CopyButton: JSX.Element;
@@ -44,22 +51,25 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
   const watchDayRange = watch(name);
 
   return (
-    <div className="mb-1 flex w-full flex-col py-1 sm:flex-row">
+    <div className="mb-1 flex w-full flex-col px-5 py-1 sm:flex-row sm:px-0">
       {/* Label & switch container */}
       <div className="flex h-11 items-center justify-between sm:w-32">
         <div>
-          <label className="flex flex-row items-center space-x-2">
+          <label className="flex flex-row items-center space-x-2 rtl:space-x-reverse">
             <div>
               <Switch
                 disabled={!watchDayRange}
                 defaultChecked={watchDayRange && watchDayRange.length > 0}
                 checked={watchDayRange && !!watchDayRange.length}
                 onCheckedChange={(isChecked) => {
-                  setValue(name, isChecked ? [DEFAULT_DAY_RANGE] : []);
+                  setValue(name, (isChecked ? [DEFAULT_DAY_RANGE] : []) as TFieldValues[typeof name]);
                 }}
               />
             </div>
             <span className="inline-block min-w-[88px] text-sm capitalize">{weekday}</span>
+            {watchDayRange && !!watchDayRange.length && (
+              <div className="mt-1 mb-1 sm:hidden">{CopyButton}</div>
+            )}
           </label>
         </div>
       </div>
@@ -67,13 +77,12 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
         {watchDayRange ? (
           <div className="flex sm:ml-2">
             <DayRanges control={control} name={name} />
-            {!!watchDayRange.length && <div className="mt-1">{CopyButton}</div>}
+            {!!watchDayRange.length && <div className="mt-1 hidden sm:block">{CopyButton}</div>}
           </div>
         ) : (
           <SkeletonText className="mt-2.5 ml-1 h-6 w-48" />
         )}
       </>
-      <div className="my-2 h-[1px] w-full bg-gray-200 sm:hidden" />
     </div>
   );
 };
@@ -130,11 +139,11 @@ const Schedule = <
   const { i18n } = useLocale();
 
   return (
-    <>
+    <div className="divide-y sm:divide-none">
       {/* First iterate for each day */}
       {weekdayNames(i18n.language, weekStart, "long").map((weekday, num) => {
         const weekdayIndex = (num + weekStart) % 7;
-        const dayRangeName = `${name}.${weekdayIndex}`;
+        const dayRangeName = `${name}.${weekdayIndex}` as ArrayPath<TFieldValues>;
         return (
           <ScheduleDay
             name={dayRangeName}
@@ -145,22 +154,22 @@ const Schedule = <
           />
         );
       })}
-    </>
+    </div>
   );
 };
 
-const DayRanges = <TFieldValues extends FieldValues>({
+export const DayRanges = <TFieldValues extends FieldValues>({
   name,
   control,
 }: {
-  name: string;
-  control: Control<TFieldValues>;
+  name: ArrayPath<TFieldValues>;
+  control?: Control<TFieldValues>;
 }) => {
   const { t } = useLocale();
 
   const { remove, fields, append } = useFieldArray({
     control,
-    name: name as unknown as ArrayPath<TFieldValues>,
+    name,
   });
 
   return (
@@ -216,7 +225,7 @@ const RemoveTimeButton = ({
 const TimeRangeField = ({ className, value, onChange }: { className?: string } & ControllerRenderProps) => {
   // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
   return (
-    <div className={classNames("mx-1", className)}>
+    <div className={className}>
       <LazySelect
         className="inline-block h-9 w-[100px]"
         value={value.start}
@@ -291,18 +300,26 @@ const useOptions = () => {
 
   const options = useMemo(() => {
     const end = dayjs().utc().endOf("day");
-    let t: Dayjs = dayjs().utc().startOf("day");
-
     const options: IOption[] = [];
-    while (t.isBefore(end)) {
+    for (
+      let t = dayjs().utc().startOf("day");
+      t.isBefore(end);
+      t = t.add(INCREMENT + (!t.add(INCREMENT).isSame(t, "day") ? -1 : 0), "minutes")
+    ) {
       options.push({
         value: t.toDate().valueOf(),
         label: dayjs(t)
           .utc()
           .format(timeFormat === 12 ? "h:mma" : "HH:mm"),
       });
-      t = t.add(INCREMENT, "minutes");
     }
+    // allow 23:59
+    options.push({
+      value: end.toDate().valueOf(),
+      label: dayjs(end)
+        .utc()
+        .format(timeFormat === 12 ? "h:mma" : "HH:mm"),
+    });
     return options;
   }, [timeFormat]);
 
@@ -383,8 +400,8 @@ const CopyTimes = ({
         </ol>
       </div>
       <hr />
-      <div className="space-x-2 px-2">
-        <Button color="minimalSecondary" onClick={() => onCancel()}>
+      <div className="space-x-2 px-2 rtl:space-x-reverse">
+        <Button color="minimal" onClick={() => onCancel()}>
           {t("cancel")}
         </Button>
         <Button color="primary" onClick={() => onClick(selected)}>

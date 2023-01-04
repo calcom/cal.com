@@ -1,6 +1,5 @@
 /* eslint-disable playwright/no-skipped-test */
 import { expect } from "@playwright/test";
-import { UserPlan } from "@prisma/client";
 
 import { test } from "./lib/fixtures";
 
@@ -9,7 +8,7 @@ test.describe.configure({ mode: "serial" });
 test.describe("Onboarding", () => {
   test.describe("Onboarding v2", () => {
     test("Onboarding Flow", async ({ page, users }) => {
-      const user = await users.create({ plan: UserPlan.TRIAL, completedOnboarding: false, name: null });
+      const user = await users.create({ completedOnboarding: false, name: null });
       await user.login();
 
       // tests whether the user makes it to /getting-started

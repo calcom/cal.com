@@ -1,12 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Avatar } from "@calcom/ui/components/avatar";
-import Select from "@calcom/ui/form/Select";
-import TimezoneSelect, { ITimezone } from "@calcom/ui/form/TimezoneSelect";
-import DatePicker from "@calcom/ui/v2/core/form/DatePicker";
+import type { ITimezone } from "@calcom/ui";
+import { Avatar, DatePickerField as DatePicker, Select, TimezoneSelect } from "@calcom/ui";
 
 import LicenseRequired from "../../common/components/LicenseRequired";
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
@@ -39,7 +37,7 @@ export default function TeamAvailabilityModal(props: Props) {
               alt={props.member?.name || ""}
               className="h-14 w-14 rounded-full"
             />
-            <div className="ml-3 inline-block pt-1">
+            <div className="inline-block pt-1 ltr:ml-3 rtl:mr-3">
               <span className="text-lg font-bold text-neutral-700">{props.member?.name}</span>
               <span className="-mt-1 block text-sm text-gray-400">{props.member?.email}</span>
             </div>

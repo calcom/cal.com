@@ -3,18 +3,21 @@ import Link from "next/link";
 import { Fragment } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
+import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/Icon";
-import SkeletonLoader from "@calcom/ui/apps/SkeletonLoader";
-import { Button } from "@calcom/ui/components";
-import { Alert, EmptyScreen } from "@calcom/ui/v2";
-import { List } from "@calcom/ui/v2/core/List";
-import { ShellSubHeading } from "@calcom/ui/v2/core/Shell";
-import Switch from "@calcom/ui/v2/core/Switch";
-import showToast from "@calcom/ui/v2/core/notifications";
-import DisconnectIntegration from "@calcom/ui/v2/modules/integrations/DisconnectIntegration";
+import {
+  Alert,
+  Button,
+  EmptyScreen,
+  Icon,
+  List,
+  ShellSubHeading,
+  showToast,
+  SkeletonLoader,
+  Switch,
+} from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -156,6 +159,7 @@ function ConnectedCalendarsList(props: Props) {
         if (!data.connectedCalendars.length) {
           return null;
         }
+
         return (
           <List className="flex flex-col gap-6" noBorderTreatment>
             {data.connectedCalendars.map((item) => (
@@ -165,7 +169,7 @@ function ConnectedCalendarsList(props: Props) {
                     slug={item.integration.slug}
                     title={item.integration.title}
                     logo={item.integration.logo}
-                    description={item.primary?.externalId || "No external Id"}
+                    description={item.primary?.email ?? item.integration.description}
                     separate={true}
                     actions={
                       <div className="flex w-32 justify-end">

@@ -1,28 +1,27 @@
-import { forwardRef, ReactElement, ReactNode, Ref, useCallback, useId, useState } from "react";
-import React from "react";
-import { Eye, EyeOff } from "react-feather";
+import React, { forwardRef, ReactElement, ReactNode, Ref, useCallback, useId, useState } from "react";
 import { FieldValues, FormProvider, SubmitHandler, useFormContext, UseFormReturn } from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert } from "@calcom/ui/v2/core/Alert";
-import { Tooltip } from "@calcom/ui/v2/core/Tooltip";
-import showToast from "@calcom/ui/v2/core/notifications";
-import { Skeleton } from "@calcom/ui/v2/core/skeleton";
 
+import { Alert, Icon, showToast, Skeleton, Tooltip, UnstyledSelect } from "../../..";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 
-type InputProps = JSX.IntrinsicElements["input"];
+type InputProps = JSX.IntrinsicElements["input"] & { isFullWidth?: boolean };
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(props, ref) {
+export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
+  { isFullWidth = true, ...props },
+  ref
+) {
   return (
     <input
       {...props}
       ref={ref}
       className={classNames(
-        "mb-2 block h-9 w-full rounded-md border border-gray-300 py-2 px-3 text-sm placeholder:text-gray-400 hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
+        "mb-2 block h-9 rounded-md border border-gray-300 py-2 px-3 text-sm placeholder:text-gray-400 hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
+        isFullWidth && "w-full",
         props.className
       )}
     />
@@ -31,7 +30,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(pro
 
 export function InputLeading(props: JSX.IntrinsicElements["div"]) {
   return (
-    <span className="inline-flex flex-shrink-0 items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
+    <span className="inline-flex flex-shrink-0 items-center rounded-l-sm border border-gray-300 bg-gray-50 px-3 text-gray-500 ltr:border-r-0 rtl:border-l-0 sm:text-sm">
       {props.children}
     </span>
   );
@@ -43,7 +42,9 @@ type InputFieldProps = {
   hintErrors?: string[];
   addOnLeading?: ReactNode;
   addOnSuffix?: ReactNode;
+  inputIsFullWidth?: boolean;
   addOnFilled?: boolean;
+  addOnClassname?: string;
   error?: string;
   labelSrOnly?: boolean;
   containerClassName?: string;
@@ -67,7 +68,7 @@ const Addon = ({ isFilled, children, className, error }: AddonProps) => (
       isFilled && "bg-gray-100",
       className
     )}>
-    <div className={classNames("flex h-full flex-col justify-center px-1 text-sm", error && "text-red-900")}>
+    <div className={classNames("flex h-full flex-col justify-center text-sm", error && "text-red-900")}>
       <span className="whitespace-nowrap py-2.5">{children}</span>
     </div>
   </div>
@@ -87,14 +88,20 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     addOnLeading,
     addOnSuffix,
     addOnFilled = true,
+    addOnClassname,
+    inputIsFullWidth,
     hint,
+    type,
     hintErrors,
     labelSrOnly,
     containerClassName,
+    readOnly,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     t: __t,
     ...passThrough
   } = props;
+
+  const [inputValue, setInputValue] = useState<string>("");
 
   return (
     <div className={classNames(containerClassName)}>
@@ -111,30 +118,69 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
       {addOnLeading || addOnSuffix ? (
         <div className="relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1">
           {addOnLeading && (
-            <Addon isFilled={addOnFilled} className="rounded-l-md border-r-0">
+            <Addon
+              isFilled={addOnFilled}
+              className={classNames(
+                "ltr:rounded-l-md ltr:border-r-0 rtl:rounded-r-md rtl:border-l-0",
+                addOnClassname
+              )}>
               {addOnLeading}
             </Addon>
           )}
           <Input
             id={id}
+            type={type}
             placeholder={placeholder}
+            isFullWidth={inputIsFullWidth}
             className={classNames(
               className,
-              addOnLeading && "rounded-l-none",
-              addOnSuffix && "rounded-r-none",
+              addOnLeading && "ltr:rounded-l-none rtl:rounded-r-none",
+              addOnSuffix && "ltr:rounded-r-none rtl:rounded-l-none",
+              type === "search" && "pr-8",
               "!my-0 !ring-0"
             )}
             {...passThrough}
+            {...(type == "search" && {
+              onChange: (e) => {
+                console.log(e.target.value);
+                setInputValue(e.target.value);
+                props.onChange && props.onChange(e);
+              },
+              value: inputValue,
+            })}
+            readOnly={readOnly}
             ref={ref}
           />
           {addOnSuffix && (
-            <Addon isFilled={addOnFilled} className="rounded-r-md border-l-0">
+            <Addon
+              isFilled={addOnFilled}
+              className={classNames(
+                "ltr:rounded-r-md ltr:border-l-0 rtl:rounded-l-md rtl:border-r-0",
+                addOnClassname
+              )}>
               {addOnSuffix}
             </Addon>
           )}
+          {type === "search" && inputValue?.toString().length > 0 && (
+            <Icon.FiX
+              className="absolute top-2.5 h-4 w-4 cursor-pointer text-gray-500 ltr:right-2 rtl:left-2"
+              onClick={(e) => {
+                setInputValue("");
+                props.onChange && props.onChange(e as unknown as React.ChangeEvent<HTMLInputElement>);
+              }}
+            />
+          )}
         </div>
       ) : (
-        <Input id={id} placeholder={placeholder} className={className} {...passThrough} ref={ref} />
+        <Input
+          id={id}
+          type={type}
+          placeholder={placeholder}
+          className={className}
+          {...passThrough}
+          ref={ref}
+          isFullWidth={inputIsFullWidth}
+        />
       )}
       <HintsOrErrors hintErrors={hintErrors} fieldName={name} t={t} />
       {hint && <div className="text-gray mt-2 flex items-center text-sm text-gray-700">{hint}</div>}
@@ -165,18 +211,18 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
         placeholder={props.placeholder || "•••••••••••••"}
         ref={ref}
         {...props}
-        className={classNames("mb-0 border-r-0 pr-10", props.className)}
+        className={classNames("mb-0 ltr:border-r-0 ltr:pr-10 rtl:border-l-0 rtl:pl-10", props.className)}
         addOnFilled={false}
         addOnSuffix={
           <Tooltip content={textLabel}>
             <button
-              className="absolute right-3 bottom-0 h-9 text-gray-900"
+              className="absolute bottom-0 h-9 text-gray-900 ltr:right-3 rtl:left-3"
               type="button"
               onClick={() => toggleIsPasswordVisible()}>
               {isPasswordVisible ? (
-                <EyeOff className="h-4 stroke-[2.5px]" />
+                <Icon.FiEyeOff className="h-4 stroke-[2.5px]" />
               ) : (
-                <Eye className="h-4 stroke-[2.5px]" />
+                <Icon.FiEye className="h-4 stroke-[2.5px]" />
               )}
               <span className="sr-only">{textLabel}</span>
             </button>
@@ -223,7 +269,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(function 
       ref={ref}
       {...props}
       className={classNames(
-        "block w-full rounded-md border border-gray-300 py-2 px-3 hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1 sm:text-sm",
+        "block w-full rounded-md border border-gray-300 py-2 px-3 text-sm hover:border-gray-400 focus:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-neutral-800 focus:ring-offset-1",
         props.className
       )}
     />
@@ -296,25 +342,7 @@ const PlainForm = <T extends FieldValues>(props: FormProps<T>, ref: Ref<HTMLForm
             });
         }}
         {...passThrough}>
-        {
-          /* @see https://react-hook-form.com/advanced-usage/#SmartFormComponent */
-          React.Children.map(props.children, (child) => {
-            return typeof child !== "string" &&
-              typeof child !== "number" &&
-              typeof child !== "boolean" &&
-              child &&
-              "props" in child &&
-              child.props.name
-              ? React.createElement(child.type, {
-                  ...{
-                    ...child.props,
-                    register: form.register,
-                    key: child.props.name,
-                  },
-                })
-              : child;
-          })
-        }
+        {props.children}
       </form>
     </FormProvider>
   );
@@ -342,6 +370,17 @@ export function InputGroupBox(props: JSX.IntrinsicElements["div"]) {
   );
 }
 
-export const MinutesField = forwardRef<HTMLInputElement, InputFieldProps>(function MinutesField(props, ref) {
-  return <InputField ref={ref} type="number" min={0} {...props} addOnSuffix="mins" />;
+export const InputFieldWithSelect = forwardRef<
+  HTMLInputElement,
+  InputFieldProps & { selectProps: typeof UnstyledSelect }
+>(function EmailField(props, ref) {
+  return (
+    <InputField
+      ref={ref}
+      {...props}
+      inputIsFullWidth={false}
+      addOnClassname="!px-0"
+      addOnSuffix={<UnstyledSelect {...props.selectProps} />}
+    />
+  );
 });

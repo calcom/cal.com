@@ -39,6 +39,7 @@ export type EventBusyDetails = EventBusyDate & {
 };
 
 export type CalendarServiceType = typeof Calendar;
+export type AdditionalInfo = Record<string, unknown> & { calWarnings?: string[] };
 
 export type NewCalendarEventType = {
   uid: string;
@@ -46,7 +47,7 @@ export type NewCalendarEventType = {
   type: string;
   password: string;
   url: string;
-  additionalInfo: Record<string, unknown>;
+  additionalInfo: AdditionalInfo;
 };
 
 export type CalendarEventType = {
@@ -119,6 +120,8 @@ export type AppsStatus = {
   type: typeof App["type"];
   success: number;
   failures: number;
+  errors: string[];
+  warnings?: string[];
 };
 
 // If modifying this interface, probably should update builders/calendarEvent files
@@ -175,6 +178,8 @@ export interface IntegrationCalendar extends Ensure<Partial<SelectedCalendar>, "
   primary?: boolean;
   name?: string;
   readOnly?: boolean;
+  // For displaying the connected email address
+  email?: string;
 }
 
 export interface Calendar {

@@ -107,7 +107,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         <StartIcon
           className={classNames(
             "inline",
-            size === "icon" ? "h-4 w-4 " : "-ml-1 h-4 w-4 ltr:mr-2 rtl:ml-2 rtl:-mr-1",
+            size === "icon" ? "h-4 w-4 " : "h-4 w-4 ltr:-ml-1 ltr:mr-2 rtl:ml-2 rtl:-mr-1",
             startIconClassName || ""
           )}
         />
@@ -133,7 +133,9 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
         </div>
       )}
       {EndIcon && (
-        <EndIcon className={classNames("-mr-1 inline h-5 w-5 ltr:ml-2 rtl:mr-2", endIconClassName || "")} />
+        <EndIcon
+          className={classNames("inline h-5 w-5 ltr:-mr-1 ltr:ml-2 rtl:mr-2", endIconClassName || "")}
+        />
       )}
     </>
   );

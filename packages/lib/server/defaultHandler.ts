@@ -5,7 +5,7 @@ type Handlers = {
 };
 
 /** Allows us to split big API handlers by method */
-const defaultHandler = (handlers: Handlers) => async (req: NextApiRequest, res: NextApiResponse) => {
+export const defaultHandler = (handlers: Handlers) => async (req: NextApiRequest, res: NextApiResponse) => {
   const handler = (await handlers[req.method as keyof typeof handlers])?.default;
   // auto catch unsupported methods.
   if (!handler) {
@@ -22,5 +22,3 @@ const defaultHandler = (handlers: Handlers) => async (req: NextApiRequest, res: 
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
-
-export default defaultHandler;

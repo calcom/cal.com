@@ -1,20 +1,26 @@
 import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Avatar, Button } from "@calcom/ui/components";
-import { Form, TextField } from "@calcom/ui/components/form";
-import ImageUploader from "@calcom/ui/v2/core/ImageUploader";
+import { Avatar, Button, Form, Icon, ImageUploader, TextField } from "@calcom/ui";
 
 import { NewTeamFormValues } from "../lib/types";
+
+const querySchema = z.object({
+  returnTo: z.string(),
+});
 
 export const CreateANewTeamForm = () => {
   const { t } = useLocale();
   const router = useRouter();
+
+  const returnToParsed = querySchema.safeParse(router.query);
+
+  const returnToParam = returnToParsed.success ? returnToParsed.data.returnTo : "/settings/teams";
+
   const newTeamFormMethods = useForm<NewTeamFormValues>();
 
   const createTeamMutation = trpc.viewer.teams.create.useMutation({
@@ -38,7 +44,11 @@ export const CreateANewTeamForm = () => {
 
   return (
     <>
-      <Form form={newTeamFormMethods} handleSubmit={(v) => createTeamMutation.mutate(v)}>
+      <Form
+        form={newTeamFormMethods}
+        handleSubmit={(v) => {
+          if (!createTeamMutation.isLoading) createTeamMutation.mutate(v);
+        }}>
         <div className="mb-8">
           <Controller
             name="name"
@@ -53,7 +63,7 @@ export const CreateANewTeamForm = () => {
                   className="mt-2"
                   name="name"
                   label={t("team_name")}
-                  value={value}
+                  defaultValue={value}
                   onChange={(e) => {
                     newTeamFormMethods.setValue("name", e?.target.value);
                     if (newTeamFormMethods.formState.touchedFields["slug"] === undefined) {
@@ -77,8 +87,11 @@ export const CreateANewTeamForm = () => {
                 className="mt-2"
                 name="slug"
                 label={t("team_url")}
-                addOnLeading={`${WEBAPP_URL}/team/`}
-                value={value}
+                addOnLeading={`${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace("https://", "")?.replace(
+                  "http://",
+                  ""
+                )}/team/`}
+                defaultValue={value}
                 onChange={(e) => {
                   newTeamFormMethods.setValue("slug", slugify(e?.target.value), {
                     shouldTouch: true,
@@ -96,7 +109,7 @@ export const CreateANewTeamForm = () => {
             render={({ field: { value } }) => (
               <div className="flex items-center">
                 <Avatar alt="" imageSrc={value || null} gravatarFallbackMd5="newTeam" size="lg" />
-                <div className="ml-4">
+                <div className="ltr:ml-4 rtl:mr-4">
                   <ImageUploader
                     target="avatar"
                     id="avatar-upload"
@@ -112,11 +125,20 @@ export const CreateANewTeamForm = () => {
           />
         </div>
 
-        <div className="flex space-x-2">
-          <Button color="secondary" href="/settings" className="w-full justify-center">
+        <div className="flex space-x-2 rtl:space-x-reverse">
+          <Button
+            disabled={createTeamMutation.isLoading}
+            color="secondary"
+            href={returnToParam}
+            className="w-full justify-center">
             {t("cancel")}
           </Button>
-          <Button color="primary" type="submit" EndIcon={Icon.FiArrowRight} className="w-full justify-center">
+          <Button
+            disabled={createTeamMutation.isLoading}
+            color="primary"
+            type="submit"
+            EndIcon={Icon.FiArrowRight}
+            className="w-full justify-center">
             {t("continue")}
           </Button>
         </div>

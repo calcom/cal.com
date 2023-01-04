@@ -1,20 +1,34 @@
-import { EventTypeCustomInput } from "@prisma/client/";
 import Link from "next/link";
-import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
+import type { CustomInputParsed, EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
-import { CAL_URL } from "@calcom/lib/constants";
+import CustomInputItem from "@calcom/features/eventtypes/components/CustomInputItem";
+import { APP_NAME, CAL_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Checkbox, Button, TextField, Label } from "@calcom/ui/components";
-import { CustomInputItem, Dialog, DialogContent, SettingsToggle, showToast, Tooltip } from "@calcom/ui/v2";
+import {
+  Badge,
+  Button,
+  Checkbox,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  Icon,
+  Label,
+  SettingsToggle,
+  showToast,
+  TextField,
+  Tooltip,
+} from "@calcom/ui";
 
 import CustomInputTypeForm from "@components/eventtype/CustomInputTypeForm";
+
+import RequiresConfirmationController from "./RequiresConfirmationController";
 
 const generateHashedLink = (id: number) => {
   const translator = short();
@@ -23,7 +37,19 @@ const generateHashedLink = (id: number) => {
   return uid;
 };
 
-export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered, "eventType" | "team">) => {
+const getRandomId = (length = 8) => {
+  return (
+    -1 *
+    parseInt(
+      Math.ceil(Math.random() * Date.now())
+        .toPrecision(length)
+        .toString()
+        .replace(".", "")
+    )
+  );
+};
+
+export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, "eventType" | "team">) => {
   const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
@@ -31,13 +57,13 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!eventType.hashedLink);
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!eventType.successRedirectUrl);
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
-  const [customInputs, setCustomInputs] = useState<EventTypeCustomInput[]>(
+  const [customInputs, setCustomInputs] = useState<CustomInputParsed[]>(
     eventType.customInputs.sort((a, b) => a.id - b.id) || []
   );
-  const [selectedCustomInput, setSelectedCustomInput] = useState<EventTypeCustomInput | undefined>(undefined);
+  const [selectedCustomInput, setSelectedCustomInput] = useState<CustomInputParsed | undefined>(undefined);
   const [selectedCustomInputModalOpen, setSelectedCustomInputModalOpen] = useState(false);
+  const [requiresConfirmation, setRequiresConfirmation] = useState(eventType.requiresConfirmation);
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
-
   const seatsEnabled = formMethods.getValues("seatsPerTimeSlotEnabled");
 
   const removeCustom = (index: number) => {
@@ -49,6 +75,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
   useEffect(() => {
     !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0]?.id ?? team?.id));
   }, [eventType.users, hashedUrl, team?.id]);
+
+  useEffect(() => {
+    if (eventType.customInputs) {
+      setCustomInputs(eventType.customInputs.sort((a, b) => a.id - b.id));
+    }
+  }, [eventType.customInputs]);
 
   return (
     <div className="flex flex-col space-y-8">
@@ -74,6 +106,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               defaultValue={eventType.destinationCalendar || undefined}
               render={({ field: { onChange, value } }) => (
                 <DestinationCalendarSelector
+                  destinationCalendar={eventType.destinationCalendar}
                   value={value ? value.externalId : undefined}
                   onChange={onChange}
                   hidePlaceholder
@@ -88,7 +121,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
         <TextField
           label={t("event_name")}
           type="text"
-          placeholder={t("meeting_with_user")}
+          placeholder={t("meeting_with_user", { attendeeName: eventType.users[0]?.name })}
           defaultValue={eventType.eventName || ""}
           {...formMethods.register("eventName")}
           addOnSuffix={
@@ -97,7 +130,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               StartIcon={Icon.FiEdit}
               size="icon"
               color="minimal"
-              className="hover:stroke-3 hover:bg-transparent hover:text-black"
+              className="hover:stroke-3 min-w-fit px-0 hover:bg-transparent hover:text-black"
               onClick={() => setShowEventNameTip((old) => !old)}
             />
           }
@@ -112,15 +145,13 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
           onCheckedChange={(e) => {
             if (e && customInputs.length === 0) {
               // Push a placeholders
-              setSelectedCustomInput(undefined);
               setSelectedCustomInputModalOpen(true);
             } else if (!e) {
-              setCustomInputs([]);
               formMethods.setValue("customInputs", []);
             }
           }}>
-          <ul className="my-4">
-            {customInputs.map((customInput: EventTypeCustomInput, idx: number) => (
+          <ul className="my-4 rounded-md border">
+            {customInputs.map((customInput, idx) => (
               <CustomInputItem
                 key={idx}
                 question={customInput.label}
@@ -143,24 +174,17 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                 setSelectedCustomInput(undefined);
                 setSelectedCustomInputModalOpen(true);
               }}>
-              Add an input
+              {t("add_input")}
             </Button>
           )}
         </SettingsToggle>
       </div>
       <hr />
-      <Controller
-        name="requiresConfirmation"
-        defaultValue={eventType.requiresConfirmation}
-        render={({ field: { value, onChange } }) => (
-          <SettingsToggle
-            title={t("requires_confirmation")}
-            description={t("requires_confirmation_description")}
-            checked={value}
-            onCheckedChange={(e) => onChange(e)}
-            disabled={seatsEnabled}
-          />
-        )}
+      <RequiresConfirmationController
+        seatsEnabled={seatsEnabled}
+        metadata={eventType.metadata}
+        requiresConfirmation={requiresConfirmation}
+        onRequiresConfirmation={setRequiresConfirmation}
       />
       <hr />
       <Controller
@@ -233,17 +257,34 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                   defaultValue={eventType.successRedirectUrl || ""}
                   {...formMethods.register("successRedirectUrl")}
                 />
+                <div className="mt-2 flex">
+                  <Checkbox
+                    description={t("disable_success_page")}
+                    // Disable if it's not Self Hosted or if the redirect url is not set
+                    disabled={!IS_SELF_HOSTED || !formMethods.watch("successRedirectUrl")}
+                    {...formMethods.register("metadata.disableSuccessPage")}
+                  />
+                  {/*TODO: Extract it out into a component when used more than once*/}
+                  {!IS_SELF_HOSTED && (
+                    <Link href="https://cal.com/pricing">
+                      <a target="_blank">
+                        <Badge variant="orange" className="ml-2">
+                          Platform Only
+                        </Badge>
+                      </a>
+                    </Link>
+                  )}
+                </div>
               </div>
             </SettingsToggle>
           </>
         )}
       />
       <hr />
-
       <SettingsToggle
         data-testid="hashedLinkCheck"
         title={t("private_link")}
-        description={t("private_link_description")}
+        description={t("private_link_description", { appName: APP_NAME })}
         checked={hashedLinkVisible}
         onCheckedChange={(e) => {
           formMethods.setValue("hashedLink", e ? hashedUrl : undefined);
@@ -296,6 +337,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               if (e) {
                 formMethods.setValue("disableGuests", true);
                 formMethods.setValue("requiresConfirmation", false);
+                setRequiresConfirmation(false);
                 formMethods.setValue("seatsPerTimeSlot", 2);
               } else {
                 formMethods.setValue("seatsPerTimeSlot", null);
@@ -341,15 +383,11 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
           <DialogContent
             title={t("custom_event_name")}
             description={t("custom_event_name_description")}
-            type="creation"
-            actionText="Create"
-            // Set event name back to what it was on close
-            actionOnClose={() => formMethods.setValue("eventName", eventType.eventName ?? "")}
-            actionOnClick={() => setShowEventNameTip(false)}>
+            type="creation">
             <TextField
               label={t("event_name")}
               type="text"
-              placeholder={t("meeting_with_user")}
+              placeholder={t("meeting_with_user", { attendeeName: eventType.users[0]?.name })}
               defaultValue={eventType.eventName || ""}
               {...formMethods.register("eventName")}
             />
@@ -359,42 +397,61 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
               <p>{`{HOST/ATTENDEE} = ${t("dynamically_display_attendee_or_organizer")}`}</p>
               <p>{`{LOCATION} = ${t("event_location")}`}</p>
             </div>
+            <DialogFooter>
+              <Button color="primary" onClick={() => setShowEventNameTip(false)}>
+                {t("create")}
+              </Button>
+              <DialogClose onClick={() => formMethods.setValue("eventName", eventType.eventName ?? "")} />
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
       <Controller
         name="customInputs"
         control={formMethods.control}
-        defaultValue={eventType.customInputs.sort((a, b) => a.id - b.id) || []}
+        defaultValue={customInputs}
         render={() => (
           <Dialog open={selectedCustomInputModalOpen} onOpenChange={setSelectedCustomInputModalOpen}>
             <DialogContent
               type="creation"
               Icon={Icon.FiPlus}
               title={t("add_new_custom_input_field")}
-              useOwnActionButtons
               description={t("this_input_will_shown_booking_this_event")}>
               <CustomInputTypeForm
                 selectedCustomInput={selectedCustomInput}
                 onSubmit={(values) => {
-                  const customInput: EventTypeCustomInput = {
-                    id: -1,
+                  const customInput: CustomInputParsed = {
+                    id: getRandomId(),
                     eventTypeId: -1,
                     label: values.label,
                     placeholder: values.placeholder,
                     required: values.required,
                     type: values.type,
+                    options: values.options,
+                    hasToBeCreated: true,
                   };
-
                   if (selectedCustomInput) {
                     selectedCustomInput.label = customInput.label;
                     selectedCustomInput.placeholder = customInput.placeholder;
                     selectedCustomInput.required = customInput.required;
                     selectedCustomInput.type = customInput.type;
+                    selectedCustomInput.options = customInput.options || undefined;
+                    selectedCustomInput.hasToBeCreated = false;
+                    // Update by id
+                    const inputIndex = customInputs.findIndex((input) => input.id === values.id);
+                    customInputs[inputIndex] = selectedCustomInput;
+                    setCustomInputs(customInputs);
+                    formMethods.setValue("customInputs", customInputs);
                   } else {
-                    setCustomInputs(customInputs.concat(customInput));
-                    formMethods.setValue("customInputs", customInputs.concat(customInput));
+                    const concatted = customInputs.concat({
+                      ...customInput,
+                      options: customInput.options,
+                    });
+                    console.log(concatted);
+                    setCustomInputs(concatted);
+                    formMethods.setValue("customInputs", concatted);
                   }
+
                   setSelectedCustomInputModalOpen(false);
                 }}
                 onCancel={() => {

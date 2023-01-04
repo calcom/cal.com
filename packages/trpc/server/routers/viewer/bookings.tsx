@@ -30,7 +30,7 @@ import {
 } from "@calcom/emails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import sendPayload, { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
@@ -103,7 +103,12 @@ export const bookingsRouter = router({
   get: authedProcedure
     .input(
       z.object({
-        status: z.enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"]),
+        filters: z.object({
+          teamIds: z.number().array().optional(),
+          userIds: z.number().array().optional(),
+          status: z.enum(["upcoming", "recurring", "past", "cancelled", "unconfirmed"]),
+          eventTypeIds: z.number().array().optional(),
+        }),
         limit: z.number().min(1).max(100).nullish(),
         cursor: z.number().nullish(), // <-- "cursor" needs to exist when using useInfiniteQuery, but can be any type
       })
@@ -114,7 +119,7 @@ export const bookingsRouter = router({
       const take = input.limit ?? 10;
       const skip = input.cursor ?? 0;
       const { prisma, user } = ctx;
-      const bookingListingByStatus = input.status;
+      const bookingListingByStatus = input.filters.status;
       const bookingListingFilters: Record<typeof bookingListingByStatus, Prisma.BookingWhereInput> = {
         upcoming: {
           endTime: { gte: new Date() },
@@ -175,7 +180,46 @@ export const bookingsRouter = router({
         cancelled: { startTime: "desc" },
         unconfirmed: { startTime: "asc" },
       };
-      const passedBookingsFilter = bookingListingFilters[bookingListingByStatus];
+
+      // TODO: Fix record typing
+      const bookingWhereInputFilters: Record<string, Prisma.BookingWhereInput> = {
+        teamIds: {
+          AND: [
+            {
+              eventType: {
+                team: {
+                  id: {
+                    in: input.filters?.teamIds,
+                  },
+                },
+              },
+            },
+          ],
+        },
+        userIds: {
+          AND: [
+            {
+              eventType: {
+                users: {
+                  some: {
+                    id: {
+                      in: input.filters?.userIds,
+                    },
+                  },
+                },
+              },
+            },
+          ],
+        },
+      };
+
+      const filtersCombined: Prisma.BookingWhereInput[] =
+        input.filters &&
+        Object.keys(input.filters).map((key) => {
+          return bookingWhereInputFilters[key];
+        });
+
+      const passedBookingsStatusFilter = bookingListingFilters[bookingListingByStatus];
       const orderBy = bookingListingOrderby[bookingListingByStatus];
 
       const bookingsQuery = await prisma.booking.findMany({
@@ -204,7 +248,7 @@ export const bookingsRouter = router({
               },
             },
           ],
-          AND: [passedBookingsFilter],
+          AND: [passedBookingsStatusFilter, ...(filtersCombined ?? [])],
         },
         select: {
           ...bookingMinimalSelect,
@@ -235,6 +279,7 @@ export const bookingsRouter = router({
             },
           },
           rescheduled: true,
+          references: true,
         },
         orderBy,
         take: take + 1,
@@ -356,6 +401,7 @@ export const bookingsRouter = router({
           dynamicEventSlugRef: true,
           dynamicGroupSlugRef: true,
           destinationCalendar: true,
+          smsReminderNumber: true,
         },
         where: {
           uid: bookingId,
@@ -528,7 +574,10 @@ export const bookingsRouter = router({
         };
         const webhooks = await getWebhooks(subscriberOptions);
         const promises = webhooks.map((webhook) =>
-          sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, evt).catch((e) => {
+          sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
+            ...evt,
+            smsReminderNumber: bookingToReschedule.smsReminderNumber || undefined,
+          }).catch((e) => {
             console.error(
               `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}`,
               e
@@ -643,14 +692,10 @@ export const bookingsRouter = router({
 
     const tOrganizer = await getTranslation(user.locale ?? "en", "common");
 
-    const booking = await prisma.booking.findFirst({
+    const booking = await prisma.booking.findUniqueOrThrow({
       where: {
         id: bookingId,
       },
-      rejectOnNotFound() {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Booking not found" });
-      },
-      // should trpc handle this error  ?
       select: {
         title: true,
         description: true,
@@ -665,6 +710,10 @@ export const bookingsRouter = router({
             recurringEvent: true,
             title: true,
             requiresConfirmation: true,
+            currency: true,
+            length: true,
+            description: true,
+            price: true,
             workflows: {
               include: {
                 workflow: {
@@ -731,7 +780,7 @@ export const bookingsRouter = router({
         },
       });
 
-      return { message: "Booking confirmed" };
+      return { message: "Booking confirmed", status: BookingStatus.ACCEPTED };
     }
     const attendeesListPromises = booking.attendees.map(async (attendee) => {
       return {
@@ -913,21 +962,23 @@ export const bookingsRouter = router({
       }
 
       //Workflows - set reminders for confirmed events
-
       try {
-        for (const updatedBooking of updatedBookings) {
-          if (updatedBooking.eventType?.workflows) {
+        for (let index = 0; index < updatedBookings.length; index++) {
+          if (updatedBookings[index].eventType?.workflows) {
             const evtOfBooking = evt;
-            evtOfBooking.startTime = updatedBooking.startTime.toISOString();
-            evtOfBooking.endTime = updatedBooking.endTime.toISOString();
-            evtOfBooking.uid = updatedBooking.uid;
+            evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
+            evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
+            evtOfBooking.uid = updatedBookings[index].uid;
+
+            const isFirstBooking = index === 0;
 
             await scheduleWorkflowReminders(
-              updatedBooking.eventType.workflows,
-              updatedBooking.smsReminderNumber,
+              updatedBookings[index]?.eventType?.workflows || [],
+              updatedBookings[index].smsReminderNumber,
               evtOfBooking,
               false,
-              false
+              false,
+              isFirstBooking
             );
           }
         }
@@ -944,6 +995,14 @@ export const bookingsRouter = router({
           triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
         };
 
+        const subscriberOptionsBookingCreated = {
+          userId: booking.userId || 0,
+          eventTypeId: booking.eventTypeId || 0,
+          triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
+        };
+
+        const subscribersBookingCreated = await getWebhooks(subscriberOptionsBookingCreated);
+
         const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
 
         subscribersMeetingEnded.forEach((subscriber) => {
@@ -951,6 +1010,32 @@ export const bookingsRouter = router({
             scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
           });
         });
+
+        const eventTypeInfo: EventTypeInfo = {
+          eventTitle: booking.eventType?.title,
+          eventDescription: booking.eventType?.description,
+          requiresConfirmation: booking.eventType?.requiresConfirmation || null,
+          price: booking.eventType?.price,
+          currency: booking.eventType?.currency,
+          length: booking.eventType?.length,
+        };
+
+        const promises = subscribersBookingCreated.map((sub) =>
+          sendPayload(sub.secret, WebhookTriggerEvents.BOOKING_CREATED, new Date().toISOString(), sub, {
+            ...evt,
+            ...eventTypeInfo,
+            bookingId,
+            eventTypeId: booking.eventType?.id,
+            status: "ACCEPTED",
+            smsReminderNumber: booking.smsReminderNumber || undefined,
+          }).catch((e) => {
+            console.error(
+              `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}`,
+              e
+            );
+          })
+        );
+        await Promise.all(promises);
       } catch (error) {
         // Silently fail
         console.error(error);
@@ -985,6 +1070,10 @@ export const bookingsRouter = router({
 
       await sendDeclinedEmails(evt);
     }
-    return { message: "Booking " + confirmed ? "confirmed" : "rejected" };
+
+    const message = "Booking " + confirmed ? "confirmed" : "rejected";
+    const status = confirmed ? BookingStatus.ACCEPTED : BookingStatus.REJECTED;
+
+    return { message, status };
   }),
 });

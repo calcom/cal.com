@@ -5,11 +5,7 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui/Icon";
-import { Button } from "@calcom/ui/components";
-import { showToast } from "@calcom/ui/v2/core";
-import Meta from "@calcom/ui/v2/core/Meta";
-import { getLayout } from "@calcom/ui/v2/core/layouts/SettingsLayout";
+import { Button, getSettingsLayout as getLayout, Icon, Meta, showToast } from "@calcom/ui";
 
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import MemberInvitationModal from "../components/MemberInvitationModal";
@@ -50,7 +46,25 @@ const MembersView = () => {
 
   return (
     <>
-      <Meta title="Team Members" description="Users that are in the group" />
+      <Meta
+        title={t("team_members")}
+        description={t("members_team_description")}
+        CTA={
+          isAdmin ? (
+            <Button
+              type="button"
+              color="primary"
+              StartIcon={Icon.FiPlus}
+              className="ml-auto"
+              onClick={() => setShowMemberInvitationModal(true)}
+              data-testid="new-member-button">
+              {t("add")}
+            </Button>
+          ) : (
+            <></>
+          )
+        }
+      />
       {!isLoading && (
         <>
           <div>
@@ -71,19 +85,6 @@ const MembersView = () => {
                   />
                 )}
               </>
-            )}
-            {isAdmin && (
-              <div className="relative mb-5 flex w-full items-center ">
-                <Button
-                  type="button"
-                  color="primary"
-                  StartIcon={Icon.FiPlus}
-                  className="ml-auto"
-                  onClick={() => setShowMemberInvitationModal(true)}
-                  data-testid="new-member-button">
-                  {t("add")}
-                </Button>
-              </div>
             )}
             <div>
               <ul className="divide-y divide-gray-200 rounded-md border ">
@@ -112,7 +113,7 @@ const MembersView = () => {
                 inviteMemberMutation.mutate({
                   teamId,
                   language: i18n.language,
-                  role: values.role.value,
+                  role: values.role,
                   usernameOrEmail: values.emailOrUsername,
                   sendEmailInvitation: values.sendInviteEmail,
                 });

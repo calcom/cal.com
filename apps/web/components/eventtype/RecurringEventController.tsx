@@ -5,8 +5,7 @@ import { useFormContext } from "react-hook-form";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Frequency } from "@calcom/prisma/zod-utils";
 import type { RecurringEvent } from "@calcom/types/Calendar";
-import { Alert } from "@calcom/ui/Alert";
-import { Select, SettingsToggle } from "@calcom/ui/v2";
+import { Alert, Select, SettingsToggle } from "@calcom/ui";
 
 type RecurringEventControllerProps = {
   recurringEvent: RecurringEvent | null;
@@ -58,7 +57,7 @@ export default function RecurringEventController({
               {recurringEventState && (
                 <div data-testid="recurring-event-collapsible" className="text-sm">
                   <div className="flex items-center">
-                    <p className="mr-2 text-neutral-900">{t("repeats_every")}</p>
+                    <p className="text-neutral-900 ltr:mr-2 rtl:ml-2">{t("repeats_every")}</p>
                     <input
                       type="number"
                       min="1"
@@ -90,7 +89,7 @@ export default function RecurringEventController({
                     />
                   </div>
                   <div className="mt-4 flex items-center">
-                    <p className="mr-2 text-neutral-900">{t("for_a_maximum_of")}</p>
+                    <p className="text-neutral-900 ltr:mr-2 rtl:ml-2">{t("for_a_maximum_of")}</p>
                     <input
                       type="number"
                       min="1"
@@ -106,7 +105,7 @@ export default function RecurringEventController({
                         setRecurringEventState(newVal);
                       }}
                     />
-                    <p className="mr-2 text-neutral-900">
+                    <p className="text-neutral-900 ltr:mr-2 rtl:ml-2">
                       {t("events", {
                         count: recurringEventState.count,
                       })}

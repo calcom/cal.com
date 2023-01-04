@@ -9,7 +9,9 @@ import {
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { getSenderId } from "../alphanumericSenderIdSupport";
 import * as twilio from "./smsProviders/twilioProvider";
 import customTemplate, { VariablesType } from "./templates/customTemplate";
 import smsReminderTemplate from "./templates/smsReminderTemplate";
@@ -35,6 +37,7 @@ export type BookingInfo = {
   location?: string | null;
   additionalNotes?: string | null;
   customInputs?: Prisma.JsonValue;
+  metadata?: Prisma.JsonValue;
 };
 
 export const scheduleSMSReminder = async (
@@ -48,13 +51,30 @@ export const scheduleSMSReminder = async (
   },
   message: string,
   workflowStepId: number,
-  template: WorkflowTemplates
+  template: WorkflowTemplates,
+  sender: string,
+  userId: number,
+  isVerificationPending = false
 ) => {
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
   const timeUnit: timeUnitLowerCase | undefined = timeSpan.timeUnit?.toLocaleLowerCase() as timeUnitLowerCase;
   let scheduledDate = null;
+
+  const senderID = getSenderId(reminderPhone, sender);
+
+  //SMS_ATTENDEE action does not need to be verified
+  //isVerificationPending is from all already existing workflows (once they edit their workflow, they will also have to verify the number)
+  async function getIsNumberVerified() {
+    if (action === WorkflowActions.SMS_ATTENDEE) return true;
+    const verifiedNumber = await prisma.verifiedNumber.findFirst({
+      where: { userId, phoneNumber: reminderPhone || "" },
+    });
+    if (!!verifiedNumber) return true;
+    return isVerificationPending;
+  }
+  const isNumberVerified = await getIsNumberVerified();
 
   if (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT) {
     scheduledDate = timeSpan.time && timeUnit ? dayjs(startTime).subtract(timeSpan.time, timeUnit) : null;
@@ -83,13 +103,14 @@ export const scheduleSMSReminder = async (
         location: evt.location,
         additionalNotes: evt.additionalNotes,
         customInputs: evt.customInputs,
+        meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
       };
       const customMessage = await customTemplate(message, variables, evt.organizer.language.locale);
       message = customMessage.text;
       break;
   }
 
-  if (message.length > 0 && reminderPhone) {
+  if (message.length > 0 && reminderPhone && isNumberVerified) {
     //send SMS when event is booked/cancelled/rescheduled
     if (
       triggerEvent === WorkflowTriggerEvents.NEW_EVENT ||
@@ -97,7 +118,7 @@ export const scheduleSMSReminder = async (
       triggerEvent === WorkflowTriggerEvents.RESCHEDULE_EVENT
     ) {
       try {
-        await twilio.sendSMS(reminderPhone, message);
+        await twilio.sendSMS(reminderPhone, message, senderID);
       } catch (error) {
         console.log(`Error sending SMS with error ${error}`);
       }
@@ -112,7 +133,12 @@ export const scheduleSMSReminder = async (
         !scheduledDate.isAfter(currentDate.add(7, "day"))
       ) {
         try {
-          const scheduledSMS = await twilio.scheduleSMS(reminderPhone, message, scheduledDate.toDate());
+          const scheduledSMS = await twilio.scheduleSMS(
+            reminderPhone,
+            message,
+            scheduledDate.toDate(),
+            senderID
+          );
 
           await prisma.workflowReminder.create({
             data: {

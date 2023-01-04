@@ -7,7 +7,7 @@ import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 
 import { InstallAppButtonMap } from "./apps.browser.generated";
-import { InstallAppButtonProps } from "./types";
+import type { InstallAppButtonProps } from "./types";
 
 export const InstallAppButtonWithoutPlanCheck = (
   props: {

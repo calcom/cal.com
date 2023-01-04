@@ -9,6 +9,7 @@ export const metadata = {
   installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
   slug: "google-meet",
   category: "video",
+  categories: ["video"],
   type: "google_video",
   title: "Google Meet",
   imageSrc: "/api/app-store/googlevideo/logo.webp",
@@ -29,6 +30,7 @@ export const metadata = {
       label: "Google Meet",
     },
   },
+  dirName: "googlevideo",
 } as AppMeta;
 
 export default metadata;

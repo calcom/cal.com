@@ -1,30 +1,38 @@
 import { BookingStatus } from "@prisma/client";
 import { useRouter } from "next/router";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 
 import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
+import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { RouterInputs, RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
-import { Icon } from "@calcom/ui/Icon";
-import { Badge } from "@calcom/ui/components/badge";
-import { Button } from "@calcom/ui/components/button";
-import { TextArea } from "@calcom/ui/form/fields";
-import MeetingTimeInTimezones from "@calcom/ui/v2/core/MeetingTimeInTimezones";
-import Tooltip from "@calcom/ui/v2/core/Tooltip";
-import showToast from "@calcom/ui/v2/core/notifications";
+import {
+  Badge,
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  Icon,
+  MeetingTimeInTimezones,
+  showToast,
+  TextArea,
+  Tooltip,
+  ActionType,
+  TableActions,
+} from "@calcom/ui";
 
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
-import TableActions, { ActionType } from "@components/ui/TableActions";
 
-type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["status"];
+type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
 
 type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number];
 
@@ -42,10 +50,15 @@ function BookingListItem(booking: BookingItemProps) {
   const router = useRouter();
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
+  const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
   const mutation = trpc.viewer.bookings.confirm.useMutation({
-    onSuccess: () => {
-      setRejectionDialogIsOpen(false);
-      showToast(t("booking_confirmation_success"), "success");
+    onSuccess: (data) => {
+      if (data.status === BookingStatus.REJECTED) {
+        setRejectionDialogIsOpen(false);
+        showToast(t("booking_rejection_success"), "success");
+      } else {
+        showToast(t("booking_confirmation_success"), "success");
+      }
       utils.viewer.bookings.invalidate();
     },
     onError: () => {
@@ -102,13 +115,26 @@ function BookingListItem(booking: BookingItemProps) {
     },
   ];
 
+  const showRecordingActions: ActionType[] = [
+    {
+      id: "view_recordings",
+      label: t("view_recordings"),
+      onClick: () => {
+        setViewRecordingsDialogIsOpen(true);
+      },
+      disabled: mutation.isLoading,
+    },
+  ];
+
   let bookedActions: ActionType[] = [
     {
       id: "cancel",
       label: isTabRecurring && isRecurring ? t("cancel_all_remaining") : t("cancel"),
       /* When cancelling we need to let the UI and the API know if the intention is to
          cancel all remaining bookings or just that booking instance. */
-      href: `/cancel/${booking.uid}${isTabRecurring && isRecurring ? "?allRemainingBookings=true" : ""}`,
+      href: `/booking/${booking.uid}?cancel=true${
+        isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
+      }`,
       icon: Icon.FiX,
     },
     {
@@ -146,6 +172,10 @@ function BookingListItem(booking: BookingItemProps) {
     bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
   }
 
+  if (isPast && isPending && !isConfirmed) {
+    bookedActions = bookedActions.filter((action) => action.id !== "cancel");
+  }
+
   const RequestSentMessage = () => {
     return (
       <div className="ml-1 mr-8 flex text-gray-500" data-testid="request_reschedule_sent">
@@ -181,30 +211,16 @@ function BookingListItem(booking: BookingItemProps) {
     .concat(booking.recurringInfo?.bookings[BookingStatus.PENDING])
     .sort((date1: Date, date2: Date) => date1.getTime() - date2.getTime());
 
-  const location = booking.location || "";
-
   const onClickTableData = () => {
     router.push({
-      pathname: "/success",
+      pathname: `/booking/${booking.uid}`,
       query: {
-        date: booking.startTime,
-        // TODO: Booking when fetched should have id 0 already(for Dynamic Events).
-        type: booking.eventType.id || 0,
-        eventSlug: booking.eventType.slug,
-        username: user?.username || "",
-        name: booking.attendees[0] ? booking.attendees[0].name : undefined,
+        allRemainingBookings: isTabRecurring,
         email: booking.attendees[0] ? booking.attendees[0].email : undefined,
-        location: location,
-        eventName: booking.eventType.eventName || "",
-        bookingId: booking.id,
-        recur: booking.recurringEventId,
-        reschedule: isConfirmed,
-        listingStatus: booking.listingStatus,
-        status: booking.status,
       },
     });
   };
-
+  const showRecordingsButtons = booking.location === "integrations:daily" && isPast && isConfirmed;
   return (
     <>
       <RescheduleDialog
@@ -218,7 +234,14 @@ function BookingListItem(booking: BookingItemProps) {
         isOpenDialog={isOpenSetLocationDialog}
         setShowLocationModal={setIsOpenLocationDialog}
       />
-
+      {showRecordingsButtons && (
+        <ViewRecordingsDialog
+          booking={booking}
+          isOpenDialog={viewRecordingsDialogIsOpen}
+          setIsOpenDialog={setViewRecordingsDialogIsOpen}
+          timeFormat={user?.timeFormat ?? null}
+        />
+      )}
       {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}
       <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
         <DialogContent>
@@ -237,9 +260,7 @@ function BookingListItem(booking: BookingItemProps) {
           />
 
           <DialogFooter>
-            <DialogClose>
-              <Button color="secondary">{t("cancel")}</Button>
-            </DialogClose>
+            <DialogClose />
 
             <Button
               disabled={mutation.isLoading}
@@ -252,7 +273,7 @@ function BookingListItem(booking: BookingItemProps) {
         </DialogContent>
       </Dialog>
 
-      <tr className="flex flex-col hover:bg-neutral-50 sm:flex-row">
+      <tr className="group flex flex-col hover:bg-neutral-50 sm:flex-row">
         <td
           className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:min-w-[12rem]"
           onClick={onClickTableData}>
@@ -279,9 +300,9 @@ function BookingListItem(booking: BookingItemProps) {
                 {booking.eventType.team.name}
               </Badge>
             )}
-            {!!booking?.eventType?.price && !booking.paid && (
-              <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
-                {t("pending_payment")}
+            {booking.paid && (
+              <Badge className="ltr:mr-2 rtl:ml-2" variant="green">
+                {t("paid")}
               </Badge>
             )}
             {recurringDates !== undefined && (
@@ -342,12 +363,14 @@ function BookingListItem(booking: BookingItemProps) {
               <span> </span>
 
               {!!booking?.eventType?.price && !booking.paid && (
-                <Tag className="hidden ltr:ml-2 rtl:mr-2 sm:inline-flex">Pending payment</Tag>
+                <Badge className="hidden ltr:ml-2 ltr:mr-2 rtl:ml-2 sm:inline-flex" variant="orange">
+                  {t("pending_payment")}
+                </Badge>
               )}
             </div>
             {booking.description && (
               <div
-                className="max-w-10/12 sm:max-w-40 md:max-w-56 xl:max-w-80 lg:max-w-64 truncate text-sm text-gray-600"
+                className="max-w-10/12 sm:max-w-32 md:max-w-52 xl:max-w-80 truncate text-sm text-gray-600"
                 title={booking.description}>
                 &quot;{booking.description}&quot;
               </div>
@@ -375,6 +398,7 @@ function BookingListItem(booking: BookingItemProps) {
             </>
           ) : null}
           {isPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
+          {showRecordingsButtons && <TableActions actions={showRecordingActions} />}
           {isCancelled && booking.rescheduled && (
             <div className="hidden h-full items-center md:flex">
               <RequestSentMessage />
@@ -467,8 +491,9 @@ const FirstAttendee = ({
   user: UserProps;
   currentEmail: string | null | undefined;
 }) => {
+  const { t } = useLocale();
   return user.email === currentEmail ? (
-    <div className="inline-block">You</div>
+    <div className="inline-block">{t("you")}</div>
   ) : (
     <a
       key={user.email}
@@ -480,18 +505,18 @@ const FirstAttendee = ({
   );
 };
 
-const Attendee: React.FC<{ email: string; children: React.ReactNode }> = ({ email, children }) => {
+type AttendeeProps = {
+  name?: string;
+  email: string;
+};
+
+const Attendee = ({ email, name }: AttendeeProps) => {
   return (
-    <a className=" hover:text-blue-500" href={"mailto:" + email} onClick={(e) => e.stopPropagation()}>
-      {children}
+    <a className="hover:text-blue-500" href={"mailto:" + email} onClick={(e) => e.stopPropagation()}>
+      {name || email}
     </a>
   );
 };
-
-interface AttendeeProps {
-  name: string;
-  email: string;
-}
 
 const DisplayAttendees = ({
   attendees,
@@ -500,50 +525,32 @@ const DisplayAttendees = ({
 }: {
   attendees: AttendeeProps[];
   user: UserProps | null;
-  currentEmail: string | null | undefined;
+  currentEmail?: string | null;
 }) => {
-  if (attendees.length === 1) {
-    return (
-      <div className="text-sm text-gray-900">
-        {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
-        <span>&nbsp;and&nbsp;</span>
-        <Attendee email={attendees[0].email}>{attendees[0].name}</Attendee>
-      </div>
-    );
-  } else if (attendees.length === 2) {
-    return (
-      <div className="text-sm text-gray-900">
-        {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
-        <span>,&nbsp;</span>
-        <Attendee email={attendees[0].email}>{attendees[0].name}</Attendee>
-        <div className="inline-block text-sm text-gray-900">&nbsp;and&nbsp;</div>
-        <Attendee email={attendees[1].email}>{attendees[1].name}</Attendee>
-      </div>
-    );
-  } else {
-    return (
-      <div className="text-sm text-gray-900">
-        {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
-        <span>,&nbsp;</span>
-        <Attendee email={attendees[0].email}>{attendees[0].name}</Attendee>
-        <span>&nbsp;&&nbsp;</span>
-        <Tooltip
-          content={attendees.slice(1).map((attendee, key) => (
-            <p key={key}>{attendee.name}</p>
-          ))}>
-          <div className="inline-block">{attendees.length - 1} more</div>
-        </Tooltip>
-      </div>
-    );
-  }
-};
-
-const Tag = ({ children, className = "" }: React.PropsWithChildren<{ className?: string }>) => {
+  const { t } = useLocale();
   return (
-    <span
-      className={`inline-flex items-center rounded-sm bg-yellow-100 px-1.5 py-0.5 text-xs font-medium text-yellow-800 ${className}`}>
-      {children}
-    </span>
+    <div className="text-sm text-gray-900">
+      {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
+      {attendees.length > 1 ? <span>,&nbsp;</span> : <span>&nbsp;{t("and")}&nbsp;</span>}
+      <Attendee {...attendees[0]} />
+      {attendees.length > 1 && (
+        <>
+          <div className="inline-block text-sm text-gray-900">&nbsp;{t("and")}&nbsp;</div>
+          {attendees.length > 2 ? (
+            <Tooltip
+              content={attendees.slice(1).map((attendee) => (
+                <p key={attendee.email}>
+                  <Attendee {...attendee} />
+                </p>
+              ))}>
+              <div className="inline-block">{t("plus_more", { count: attendees.length - 1 })}</div>
+            </Tooltip>
+          ) : (
+            <Attendee {...attendees[1]} />
+          )}
+        </>
+      )}
+    </div>
   );
 };
 

@@ -6,6 +6,7 @@ import {
   WorkflowTriggerEvents,
 } from "@prisma/client";
 
+import { SENDER_ID } from "@calcom/lib/constants";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { scheduleEmailReminder } from "./emailReminderManager";
@@ -18,9 +19,10 @@ export const scheduleWorkflowReminders = async (
     };
   })[],
   smsReminderNumber: string | null,
-  evt: CalendarEvent,
+  evt: CalendarEvent & { metadata?: { videoCallUrl: string } },
   needsConfirmation: boolean,
-  isRescheduleEvent: boolean
+  isRescheduleEvent: boolean,
+  isFirstRecurringEvent: boolean
 ) => {
   if (workflows.length > 0 && !needsConfirmation) {
     workflows.forEach((workflowReference) => {
@@ -29,7 +31,9 @@ export const scheduleWorkflowReminders = async (
       const workflow = workflowReference.workflow;
       if (
         workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT ||
-        (workflow.trigger === WorkflowTriggerEvents.NEW_EVENT && !isRescheduleEvent) ||
+        (workflow.trigger === WorkflowTriggerEvents.NEW_EVENT &&
+          !isRescheduleEvent &&
+          isFirstRecurringEvent) ||
         (workflow.trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT && isRescheduleEvent) ||
         workflow.trigger === WorkflowTriggerEvents.AFTER_EVENT
       ) {
@@ -47,12 +51,14 @@ export const scheduleWorkflowReminders = async (
               },
               step.reminderBody || "",
               step.id,
-              step.template
+              step.template,
+              step.sender || SENDER_ID,
+              workflow.userId,
+              step.numberVerificationPending
             );
           } else if (
             step.action === WorkflowActions.EMAIL_ATTENDEE ||
-            step.action === WorkflowActions.EMAIL_HOST ||
-            step.action === WorkflowActions.EMAIL_ADDRESS
+            step.action === WorkflowActions.EMAIL_HOST
           ) {
             let sendTo = "";
 
@@ -63,9 +69,8 @@ export const scheduleWorkflowReminders = async (
               case WorkflowActions.EMAIL_ATTENDEE:
                 sendTo = evt.attendees[0].email;
                 break;
-              case WorkflowActions.EMAIL_ADDRESS:
-                sendTo = step.sendTo || "";
             }
+
             scheduleEmailReminder(
               evt,
               workflow.trigger,
@@ -115,12 +120,14 @@ export const sendCancelledReminders = async (
               },
               step.reminderBody || "",
               step.id,
-              step.template
+              step.template,
+              step.sender || SENDER_ID,
+              workflow.userId,
+              step.numberVerificationPending
             );
           } else if (
             step.action === WorkflowActions.EMAIL_ATTENDEE ||
-            step.action === WorkflowActions.EMAIL_HOST ||
-            step.action === WorkflowActions.EMAIL_ADDRESS
+            step.action === WorkflowActions.EMAIL_HOST
           ) {
             let sendTo = "";
 
@@ -131,8 +138,6 @@ export const sendCancelledReminders = async (
               case WorkflowActions.EMAIL_ATTENDEE:
                 sendTo = evt.attendees[0].email;
                 break;
-              case WorkflowActions.EMAIL_ADDRESS:
-                sendTo = step.sendTo || "";
             }
             scheduleEmailReminder(
               evt,

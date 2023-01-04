@@ -10,6 +10,7 @@ export const metadata = {
   type: "huddle01_video",
   imageSrc: "/api/app-store/huddle01video/icon.svg",
   variant: "conferencing",
+  categories: ["video", "web3"],
   logo: "/api/app-store/huddle01video/icon.svg",
   publisher: "huddle01.com",
   url: "https://huddle01.com",
@@ -30,6 +31,7 @@ export const metadata = {
     },
   },
   key: { apikey: randomString(12) },
+  dirName: "huddle01video",
 } as AppMeta;
 
 export default metadata;

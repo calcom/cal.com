@@ -37,7 +37,7 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
     <ToggleGroupPrimitive
       value={yesNoValue}
       type="single"
-      className="space-x-2 rounded-sm"
+      className="space-x-2 rounded-sm rtl:space-x-reverse"
       onValueChange={(yesNoValue: "yes" | "no") => {
         setYesNoValue(yesNoValue);
         onValueChange(boolean(yesNoValue));

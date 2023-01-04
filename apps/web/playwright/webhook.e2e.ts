@@ -57,6 +57,7 @@ test("add webhook & test that creating an event triggers a webhook call", async 
     attendee.timeZone = dynamic;
     attendee.language = dynamic;
   }
+  body.payload.organizer.id = dynamic;
   body.payload.organizer.email = dynamic;
   body.payload.organizer.timeZone = dynamic;
   body.payload.organizer.language = dynamic;
@@ -65,6 +66,9 @@ test("add webhook & test that creating an event triggers a webhook call", async 
   body.payload.additionalInformation = dynamic;
   body.payload.requiresConfirmation = dynamic;
   body.payload.eventTypeId = dynamic;
+  body.payload.videoCallData = dynamic;
+  body.payload.appsStatus = dynamic;
+  body.payload.metadata.videoCallUrl = dynamic;
 
   // if we change the shape of our webhooks, we can simply update this by clicking `u`
   // console.log("BODY", body);

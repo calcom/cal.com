@@ -1,12 +1,11 @@
 import classNames from "classnames";
-import React, { useEffect, useState } from "react";
-import { components } from "react-select";
-import { SingleValueProps, OptionProps } from "react-select";
+import { useEffect, useState } from "react";
+import { components, OptionProps, SingleValueProps } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { DestinationCalendar } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import Select from "@calcom/ui/v2/core/form/select";
+import { Select } from "@calcom/ui";
 
 interface Props {
   onChange: (value: { externalId: string; integration: string }) => void;
@@ -103,7 +102,9 @@ const DestinationCalendarSelector = ({
     query.data.connectedCalendars.map((selectedCalendar) => ({
       key: selectedCalendar.credentialId,
       label: `${selectedCalendar.integration.title?.replace(/calendar/i, "")} (${
-        selectedCalendar.primary?.name
+        selectedCalendar.primary?.integration === "office365_calendar"
+          ? selectedCalendar.primary?.email
+          : selectedCalendar.primary?.name
       })`,
       options: (selectedCalendar.calendars ?? [])
         .filter((cal) => cal.readOnly === false)
@@ -115,6 +116,11 @@ const DestinationCalendarSelector = ({
           value: `${cal.integration}:${cal.externalId}`,
         })),
     })) ?? [];
+
+  // Get primary calendar, which is shown in the placeholder since this is the calendar that will
+  // be used when no destination calendar is selected.
+  const primaryCalendar = query.data.connectedCalendars.filter((cal) => Boolean(cal.primary))[0];
+
   return (
     <div className="relative" title={`${t("select_destination_calendar")}: ${selectedOption?.label || ""}`}>
       <Select
@@ -124,7 +130,8 @@ const DestinationCalendarSelector = ({
             `${t("select_destination_calendar")}`
           ) : (
             <span>
-              {t("default_calendar_selected")} ({destinationCalendar?.externalId})
+              {t("default_calendar_selected")}{" "}
+              {primaryCalendar?.primary?.externalId && `(${primaryCalendar?.primary?.externalId})`}
             </span>
           )
         }

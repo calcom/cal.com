@@ -7,8 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import { nameOfDay } from "@calcom/lib/weekday";
 import type { Slot } from "@calcom/trpc/server/routers/viewer/slots";
-import { SkeletonContainer, SkeletonText } from "@calcom/ui";
-import { ToggleGroup } from "@calcom/ui/v2/core/form/ToggleGroup";
+import { SkeletonContainer, SkeletonText, ToggleGroup } from "@calcom/ui";
 
 import classNames from "@lib/classNames";
 import { timeZone } from "@lib/clock";
@@ -58,7 +57,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
             {nameOfDay(i18n.language, Number(date.format("d")), "short")}
           </span>
           <span className="text-bookinglight font-medium">
-            , {date.toDate().toLocaleString(i18n.language, { month: "long" })} {date.format(" D ")}
+            , {date.toDate().toLocaleString(i18n.language, { month: "short" })} {date.format(" D ")}
           </span>
         </div>
         <div className="ml-auto">
@@ -72,7 +71,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
           />
         </div>
       </div>
-      <div className="-mb-5 grid flex-grow grid-cols-1 gap-x-2 overflow-y-auto sm:block md:h-[364px]">
+      <div className="flex-grow overflow-y-auto sm:block md:h-[364px]">
         {slots.length > 0 &&
           slots.map((slot) => {
             type BookingURL = {
@@ -102,7 +101,8 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
             }
 
             return (
-              <div key={dayjs(slot.time).format()}>
+              <div data-slot-owner={(slot.userIds || []).join(",")} key={`${dayjs(slot.time).format()}`}>
+                {/* ^ data-slot-owner is helpful in debugging and used to identify the owners of the slot. Owners are the users which have the timeslot in their schedule. It doesn't consider if a user has that timeslot booked */}
                 {/* Current there is no way to disable Next.js Links */}
                 {seatsPerTimeSlot && slot.attendees && slot.attendees >= seatsPerTimeSlot ? (
                   <div
@@ -152,13 +152,13 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
         {isLoading && !slots.length && (
           <>
             <SkeletonContainer className="mb-2">
-              <SkeletonText width="full" height="20" />
+              <SkeletonText className="h-5 w-full" />
             </SkeletonContainer>
             <SkeletonContainer className="mb-2">
-              <SkeletonText width="full" height="20" />
+              <SkeletonText className="h-5 w-full" />
             </SkeletonContainer>
             <SkeletonContainer className="mb-2">
-              <SkeletonText width="full" height="20" />
+              <SkeletonText className="h-5 w-full" />
             </SkeletonContainer>
           </>
         )}

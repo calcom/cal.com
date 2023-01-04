@@ -20,7 +20,9 @@ const handler: AppDeclarativeHandler = {
       },
     });
   },
-  redirectUrl: "/apps/routing-forms/forms",
+  redirect: {
+    url: "/apps/routing-forms/forms",
+  },
 };
 
 export default handler;

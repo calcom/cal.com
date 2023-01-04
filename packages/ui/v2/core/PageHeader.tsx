@@ -1,12 +1,12 @@
 import { ReactNode } from "react";
 
-import { Badge, badgeClassNameByVariant } from "../../components/badge";
+import { Badge, BadgeProps } from "../../components/badge";
 
 type Props = {
   title: string;
   description?: string;
   badgeText?: string;
-  badgeVariant?: keyof typeof badgeClassNameByVariant;
+  badgeVariant?: BadgeProps["variant"];
   infoIcon?: string;
   rightAlignedComponent?: ReactNode;
 };
@@ -15,7 +15,7 @@ function PageHeader({ title, description, rightAlignedComponent, badgeText, badg
   return (
     <div className="flex items-center">
       <div className="mr-4 flex-col">
-        <div className="flex w-full items-center space-x-2">
+        <div className="flex w-full items-center space-x-2 rtl:space-x-reverse">
           <h1 className="font-cal text-xl font-semibold text-black">{title}</h1>
           {badgeText && badgeVariant && <Badge variant={badgeVariant}>{badgeText}</Badge>}
         </div>

@@ -1,5 +1,4 @@
 import type { User } from "@prisma/client";
-import noop from "lodash/noop";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
@@ -9,37 +8,39 @@ import { Toaster } from "react-hot-toast";
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
+import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
+import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
+import { Tips } from "@calcom/features/tips";
+import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import classNames from "@calcom/lib/classNames";
-import { JOIN_SLACK, ROADMAP, DESKTOP_APP_LINK, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME, DESKTOP_APP_LINK, JOIN_SLACK, ROADMAP, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import isCalcom from "@calcom/lib/isCalcom";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
-import Dropdown, {
+
+import {
+  Button,
+  Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuPortal,
-} from "@calcom/ui/Dropdown";
-import { Icon } from "@calcom/ui/Icon";
-import TimezoneChangeDialog from "@calcom/ui/TimezoneChangeDialog";
-import { Button } from "@calcom/ui/components/button";
-import showToast from "@calcom/ui/v2/core/notifications";
-import Tips from "@calcom/ui/v2/modules/tips/Tips";
-
-/* TODO: Get this from endpoint */
-import pkg from "../../../../apps/web/package.json";
+  Icon,
+  showToast,
+  TimezoneChangeDialog,
+} from "../..";
 import ErrorBoundary from "../../ErrorBoundary";
 import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
 import Logo from "../../Logo";
+import { SkeletonText } from "../../components/skeleton";
+import Credits from "./Credits";
 import HeadSeo from "./head-seo";
-import { SkeletonText } from "./skeleton";
 
 /* TODO: Migate this */
 
@@ -129,7 +130,7 @@ const Layout = (props: LayoutProps) => {
     <>
       {!props.withoutSeo && (
         <HeadSeo
-          title={pageTitle ?? "Cal.com"}
+          title={pageTitle ?? APP_NAME}
           description={props.subtitle ? props.subtitle?.toString() : ""}
           nextSeoProps={{
             nofollow: true,
@@ -143,12 +144,17 @@ const Layout = (props: LayoutProps) => {
 
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
-
-      <div className="flex h-screen overflow-hidden" data-testid="dashboard-shell">
-        {props.SidebarContainer || <SideBarContainer />}
-        <div className="flex w-0 flex-1 flex-col overflow-hidden">
+      <div className="flex min-h-screen flex-col">
+        <div className="divide-y divide-black">
+          <TeamsUpgradeBanner />
           <ImpersonatingBanner />
-          <MainContainer {...props} />
+          <AdminPasswordBanner />
+        </div>
+        <div className="flex flex-1" data-testid="dashboard-shell">
+          {props.SidebarContainer || <SideBarContainer />}
+          <div className="flex w-0 flex-1 flex-col">
+            <MainContainer {...props} />
+          </div>
         </div>
       </div>
     </>
@@ -165,7 +171,6 @@ type LayoutProps = {
   children: ReactNode;
   CTA?: ReactNode;
   large?: boolean;
-  SettingsSidebarContainer?: ReactNode;
   MobileNavigationContainer?: ReactNode;
   SidebarContainer?: ReactNode;
   TopNavContainer?: ReactNode;
@@ -178,6 +183,8 @@ type LayoutProps = {
   withoutMain?: boolean;
   // Gives you the option to skip HeadSEO and render your own.
   withoutSeo?: boolean;
+  // Gives the ability to include actions to the right of the heading
+  actions?: JSX.Element;
 };
 
 const CustomBrandingContainer = () => {
@@ -189,8 +196,6 @@ export default function Shell(props: LayoutProps) {
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
   useTheme("light");
-  const { session } = useRedirectToLoginIfUnauthenticated(props.isPublic);
-  if (!session && !props.isPublic) return null;
 
   return (
     <KBarRoot>
@@ -239,50 +244,53 @@ function UserDropdown({ small }: { small?: boolean }) {
   }
   return (
     <Dropdown open={menuOpen}>
-      <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
-        <button className="group flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-100 sm:pl-3 md:rounded-none lg:pl-2">
-          <span
-            className={classNames(
-              small ? "h-8 w-8" : "h-9 w-9 ltr:mr-2 rtl:ml-3",
-              "relative flex-shrink-0 rounded-full bg-gray-300 "
-            )}>
-            {
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                className="rounded-full"
-                src={WEBAPP_URL + "/" + user.username + "/avatar.png"}
-                alt={user.username || "Nameless User"}
-              />
-            }
-            {!user.away && (
-              <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
-            )}
-            {user.away && (
-              <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-yellow-500" />
-            )}
-          </span>
-          {!small && (
-            <span className="flex flex-grow items-center truncate">
-              <span className="flex-grow truncate text-sm">
-                <span className="block truncate font-medium text-gray-900">
-                  {user.name || "Nameless User"}
-                </span>
-                <span className="block truncate font-normal text-neutral-500">
-                  {user.username
-                    ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
-                      ? `cal.com/${user.username}`
-                      : `/${user.username}`
-                    : "No public page"}
-                </span>
-              </span>
-              <Icon.FiMoreVertical
-                className="h-4 w-4 flex-shrink-0 text-gray-400 group-hover:text-gray-500"
-                aria-hidden="true"
-              />
+      <div className="ltr:sm:-ml-5 rtl:sm:-mr-5">
+        <DropdownMenuTrigger asChild onClick={() => setMenuOpen((menuOpen) => !menuOpen)}>
+          <button className="group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-200 focus:outline-none focus:ring-0 sm:mx-2.5 sm:pl-3 md:rounded-none lg:rounded lg:pl-2">
+            <span
+              className={classNames(
+                small ? "h-6 w-6" : "h-8 w-8 ltr:mr-2 rtl:ml-2",
+                "relative flex-shrink-0 rounded-full bg-gray-300 "
+              )}>
+              {
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  className="rounded-full"
+                  src={WEBAPP_URL + "/" + user.username + "/avatar.png"}
+                  alt={user.username || "Nameless User"}
+                />
+              }
+              {!user.away && (
+                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
+              )}
+              {user.away && (
+                <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-yellow-500" />
+              )}
             </span>
-          )}
-        </button>
-      </DropdownMenuTrigger>
+            {!small && (
+              <span className="flex flex-grow items-center truncate">
+                <span className="flex-grow truncate text-sm">
+                  <span className="block truncate font-medium text-gray-900">
+                    {user.name || "Nameless User"}
+                  </span>
+                  <span className="block truncate font-normal text-gray-900">
+                    {user.username
+                      ? process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com"
+                        ? `cal.com/${user.username}`
+                        : `/${user.username}`
+                      : "No public page"}
+                  </span>
+                </span>
+                <Icon.FiMoreVertical
+                  className="h-4 w-4 flex-shrink-0 text-gray-400 group-hover:text-gray-500 ltr:mr-2 rtl:ml-2 rtl:mr-4"
+                  aria-hidden="true"
+                />
+              </span>
+            )}
+          </button>
+        </DropdownMenuTrigger>
+      </div>
+
       <DropdownMenuPortal>
         <DropdownMenuContent
           onInteractOutside={() => {
@@ -300,13 +308,13 @@ function UserDropdown({ small }: { small?: boolean }) {
                     mutation.mutate({ away: !user?.away });
                     utils.viewer.me.invalidate();
                   }}
-                  className="flex min-w-max cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
+                  className="flex w-full min-w-max cursor-pointer items-center px-4 py-2 text-sm ltr:flex-row rtl:flex-row-reverse">
                   <Icon.FiMoon
                     className={classNames(
                       user.away
                         ? "text-purple-500 group-hover:text-purple-700"
                         : "text-gray-500 group-hover:text-gray-700",
-                      "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-3"
+                      "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2"
                     )}
                     aria-hidden="true"
                   />
@@ -321,8 +329,8 @@ function UserDropdown({ small }: { small?: boolean }) {
                       target="_blank"
                       rel="noopener noreferrer"
                       href={`${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`}
-                      className="flex items-center px-4 py-2 text-sm text-gray-700">
-                      <Icon.FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
+                      <Icon.FiExternalLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" />{" "}
                       {t("view_public_page")}
                     </a>
                   </DropdownMenuItem>
@@ -336,8 +344,8 @@ function UserDropdown({ small }: { small?: boolean }) {
                         );
                         showToast(t("link_copied"), "success");
                       }}
-                      className="flex items-center px-4 py-2 text-sm text-gray-700">
-                      <Icon.FiLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
+                      <Icon.FiLink className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" />{" "}
                       {t("copy_public_page_link")}
                     </a>
                   </DropdownMenuItem>
@@ -349,8 +357,8 @@ function UserDropdown({ small }: { small?: boolean }) {
                   href={JOIN_SLACK}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
-                  <Icon.FiSlack strokeWidth={1.5} className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
+                  <Icon.FiSlack strokeWidth={1.5} className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" />{" "}
                   {t("join_our_slack")}
                 </a>
               </DropdownMenuItem>
@@ -359,18 +367,18 @@ function UserDropdown({ small }: { small?: boolean }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   href={ROADMAP}
-                  className="flex items-center px-4 py-2 text-sm text-gray-700">
-                  <Icon.FiMap className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" /> {t("visit_roadmap")}
+                  className="flex items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
+                  <Icon.FiMap className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" /> {t("visit_roadmap")}
                 </a>
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <button
                   onClick={() => setHelpOpen(true)}
-                  className="flex w-full items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900">
+                  className="flex w-full items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
                   <Icon.FiHelpCircle
                     className={classNames(
                       "text-gray-500 group-hover:text-neutral-500",
-                      "h-4 w-4 flex-shrink-0 ltr:mr-2"
+                      "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2"
                     )}
                     aria-hidden="true"
                   />
@@ -383,8 +391,8 @@ function UserDropdown({ small }: { small?: boolean }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   href={DESKTOP_APP_LINK}
-                  className="desktop-hidden hidden items-center px-4 py-2 text-sm text-gray-700 lg:flex">
-                  <Icon.FiDownload className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" />{" "}
+                  className="desktop-hidden hidden items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse lg:flex">
+                  <Icon.FiDownload className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-2" />{" "}
                   {t("download_desktop_app")}
                 </a>
               </DropdownMenuItem>
@@ -393,11 +401,11 @@ function UserDropdown({ small }: { small?: boolean }) {
               <DropdownMenuItem>
                 <a
                   onClick={() => signOut({ callbackUrl: "/auth/logout" })}
-                  className="flex cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900">
+                  className="flex cursor-pointer items-center px-4 py-2 text-sm hover:bg-gray-100 hover:text-gray-900 ltr:flex-row rtl:flex-row-reverse">
                   <Icon.FiLogOut
                     className={classNames(
                       "text-gray-500 group-hover:text-gray-700",
-                      "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-3"
+                      "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2"
                     )}
                     aria-hidden="true"
                   />
@@ -528,7 +536,7 @@ const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMor
   Record<string, NavigationItemType[]>
 >(
   (items, item, index) => {
-    // We filter out the "more" separator in desktop navigation
+    // We filter out the "more" separator in` desktop navigation
     if (item.name !== MORE_SEPARATOR_NAME) items.desktopNavigationItems.push(item);
     // Items for mobile bottom navigation
     if (index < moreSeparatorIndex + 1 && !item.onlyDesktop) items.mobileNavigationBottomItems.push(item);
@@ -701,28 +709,10 @@ const MobileNavigationMoreItem: React.FC<{
   );
 };
 
-function DeploymentInfo() {
-  const query = useMeQuery();
-  const user = query.data;
-
-  return (
-    <small
-      style={{
-        fontSize: "0.5rem",
-      }}
-      className="mx-3 mt-1 mb-2 hidden opacity-50 lg:block">
-      &copy; {new Date().getFullYear()} Cal.com, Inc. v.{pkg.version + "-"}
-      {process.env.NEXT_PUBLIC_WEBSITE_URL === "https://cal.com" ? "h" : "sh"}
-      <span className="lowercase" data-testid={`plan-${user?.plan.toLowerCase()}`}>
-        -{user?.plan}
-      </span>
-    </small>
-  );
-}
-
 function SideBarContainer() {
   const { status } = useSession();
   const router = useRouter();
+
   // Make sure that Sidebar is rendered optimistically so that a refresh of pages when logged in have SideBar from the beginning.
   // This improves the experience of refresh on app store pages(when logged in) which are SSG.
   // Though when logged out, app store pages would temporarily show SideBar until session status is confirmed.
@@ -733,59 +723,60 @@ function SideBarContainer() {
 
 function SideBar() {
   return (
-    <aside className="desktop-transparent hidden w-14 flex-col border-r border-gray-100 bg-gray-50 md:flex lg:w-56 lg:flex-shrink-0 lg:px-4">
-      <div className="flex h-0 flex-1 flex-col overflow-y-auto pt-3 pb-4 lg:pt-5">
-        <header className="items-center justify-between md:hidden lg:flex">
+    <div className="relative">
+      <aside className="desktop-transparent top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto border-r border-gray-100 bg-gray-50 md:sticky md:flex lg:w-56 lg:px-4">
+        <div className="flex h-full flex-col justify-between py-3 lg:pt-5 ">
+          <header className="items-center justify-between md:hidden lg:flex">
+            <Link href="/event-types">
+              <a className="px-4">
+                <Logo small />
+              </a>
+            </Link>
+            <div className="flex space-x-2 rtl:space-x-reverse">
+              <button
+                color="minimal"
+                onClick={() => window.history.back()}
+                className="desktop-only group flex text-sm font-medium text-neutral-500 hover:text-neutral-900">
+                <Icon.FiArrowLeft className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
+              </button>
+              <button
+                color="minimal"
+                onClick={() => window.history.forward()}
+                className="desktop-only group flex text-sm font-medium text-neutral-500 hover:text-neutral-900">
+                <Icon.FiArrowRight className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
+              </button>
+              <KBarTrigger />
+            </div>
+          </header>
+
+          <hr className="desktop-only absolute -left-3 -right-3 mt-4 block w-full border-gray-200" />
+
+          {/* logo icon for tablet */}
           <Link href="/event-types">
-            <a className="px-4">
-              <Logo small />
+            <a className="text-center md:inline lg:hidden">
+              <Logo small icon />
             </a>
           </Link>
-          <div className="flex space-x-2">
-            <button
-              color="minimal"
-              onClick={() => window.history.back()}
-              className="desktop-only group flex text-sm font-medium text-neutral-500 hover:text-neutral-900">
-              <Icon.FiArrowLeft className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
-            </button>
-            <button
-              color="minimal"
-              onClick={() => window.history.forward()}
-              className="desktop-only group flex text-sm font-medium text-neutral-500 hover:text-neutral-900">
-              <Icon.FiArrowRight className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
-            </button>
-            <KBarTrigger />
+
+          <Navigation />
+        </div>
+
+        <div>
+          <LicenseRequired toHide>
+            <Tips />
+          </LicenseRequired>
+          <div data-testid="user-dropdown-trigger">
+            <span className="hidden lg:inline">
+              <UserDropdown />
+            </span>
+            <span className="hidden md:inline lg:hidden">
+              <UserDropdown small />
+            </span>
           </div>
-        </header>
-
-        <hr className="desktop-only absolute -left-3 -right-3 mt-4 block w-full border-gray-200" />
-
-        {/* logo icon for tablet */}
-        <Link href="/event-types">
-          <a className="text-center md:inline lg:hidden">
-            <Logo small icon />
-          </a>
-        </Link>
-
-        <Navigation />
-      </div>
-
-      {isCalcom && <Tips />}
-      {/* Save it for next preview version
-       <div className="hidden mb-4 lg:block">
-        <UserV2OptInBanner />
-      </div> */}
-
-      <div data-testid="user-dropdown-trigger">
-        <span className="hidden lg:inline">
-          <UserDropdown />
-        </span>
-        <span className="hidden md:inline lg:hidden">
-          <UserDropdown small />
-        </span>
-      </div>
-      <DeploymentInfo />
-    </aside>
+          <Credits />
+        </div>
+      </aside>
+    </div>
   );
 }
 
@@ -829,12 +820,13 @@ export function ShellMain(props: LayoutProps) {
             {props.CTA && (
               <div
                 className={classNames(
-                  props.backPath ? "relative" : "fixed right-4 bottom-[75px] z-40 ",
+                  props.backPath ? "relative" : " fixed bottom-[88px] z-40 ltr:right-4 rtl:left-4 sm:z-auto",
                   "flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto"
                 )}>
                 {props.CTA}
               </div>
             )}
+            {props.actions && props.actions}
           </header>
         )}
       </div>
@@ -845,35 +837,17 @@ export function ShellMain(props: LayoutProps) {
   );
 }
 
-const SettingsSidebarContainerDefault = () => null;
-
 function MainContainer({
-  SettingsSidebarContainer: SettingsSidebarContainerProp = <SettingsSidebarContainerDefault />,
   MobileNavigationContainer: MobileNavigationContainerProp = <MobileNavigationContainer />,
   TopNavContainer: TopNavContainerProp = <TopNavContainer />,
   ...props
 }: LayoutProps) {
-  const [sideContainerOpen, setSideContainerOpen] = props.drawerState || [false, noop];
-
   return (
-    <main className="relative z-0 flex flex-1 flex-col overflow-y-auto bg-white focus:outline-none">
+    <main className="relative z-0 flex-1 bg-white focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
-      {/* The following is used for settings navigation on medium and smaller screens */}
-      <div
-        className={classNames(
-          "overflow-none fixed z-40 m-0 h-screen w-screen overscroll-none bg-black opacity-50",
-          sideContainerOpen ? "" : "hidden"
-        )}
-        onClick={() => {
-          setSideContainerOpen(false);
-        }}
-      />
-      {SettingsSidebarContainerProp}
       <div className="max-w-full px-4 py-2 lg:py-8 lg:px-12">
         <ErrorBoundary>
-          {/* add padding to top for mobile when App Bar is fixed */}
-          <div className="pt-14 sm:hidden" />
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>
         {/* show bottom navigation for md and smaller (tablet and phones) on pages where back button doesn't exist */}
@@ -896,7 +870,7 @@ function TopNav() {
     <>
       <nav
         style={isEmbed ? { display: "none" } : {}}
-        className="fixed z-40 flex w-full items-center justify-between border-b border-gray-200 bg-gray-50 bg-opacity-50 py-1.5 px-4 backdrop-blur-lg sm:relative sm:p-4 md:hidden">
+        className="sticky top-0 z-40 flex w-full items-center justify-between border-b border-gray-200 bg-gray-50 bg-opacity-50 py-1.5 px-4 backdrop-blur-lg sm:p-4 md:hidden">
         <Link href="/event-types">
           <a>
             <Logo />

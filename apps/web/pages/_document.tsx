@@ -1,12 +1,14 @@
 import Document, { DocumentContext, Head, Html, Main, NextScript, DocumentProps } from "next/document";
+import Script from "next/script";
+
+import { getDirFromLang } from "@calcom/lib/i18n";
 
 type Props = Record<string, unknown> & DocumentProps;
 
 function toRunBeforeReactOnClient() {
-  const calEmbedMode =
-    location.search.includes("embed=") ||
-    /* Iframe Name */
-    window.name.includes("cal-embed");
+  const calEmbedMode = typeof new URL(document.URL).searchParams.get("embed") === "string";
+  /* Iframe Name */
+  window.name.includes("cal-embed");
 
   window.isEmbed = () => {
     // Once an embed mode always an embed mode
@@ -47,7 +49,7 @@ class MyDocument extends Document<Props> {
 
   render() {
     const { locale } = this.props.__NEXT_DATA__;
-    const dir = locale === "ar" || locale === "he" ? "rtl" : "ltr";
+    const dir = getDirFromLang(locale);
     return (
       <Html lang={locale} dir={dir}>
         <Head>
@@ -70,7 +72,9 @@ class MyDocument extends Document<Props> {
           {/* Define isEmbed here so that it can be shared with App(embed-iframe) as well as the following code to change background and hide body
             Persist the embed mode in sessionStorage because query param might get lost during browsing.
           */}
-          <script
+          <Script
+            id="run-before-client"
+            strategy="beforeInteractive"
             dangerouslySetInnerHTML={{
               __html: `(${toRunBeforeReactOnClient.toString()})()`,
             }}

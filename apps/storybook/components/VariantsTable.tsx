@@ -19,7 +19,7 @@ export function VariantsTable({
     <div
       className={classNames(
         isDark &&
-          "relative py-8 before:absolute before:left-0 before:top-0 before:block before:h-full before:w-screen before:bg-[#22252A]"
+          "relative py-8 before:absolute before:left-0 before:top-0 before:block before:h-full before:w-screen before:bg-[#1C1C1C]"
       )}>
       <div className="z-1 relative mx-auto w-full max-w-[1200px] overflow-auto pr-8 pt-6">
         <table>

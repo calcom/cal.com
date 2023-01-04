@@ -1,14 +1,12 @@
-import React, { useState, useEffect, CSSProperties } from "react";
+import { CSSProperties, useEffect, useState } from "react";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 
 import dayjs from "@calcom/dayjs";
 import { CAL_URL } from "@calcom/lib/constants";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Avatar } from "@calcom/ui/components/avatar";
-import Select from "@calcom/ui/form/Select";
-import TimezoneSelect, { ITimezone } from "@calcom/ui/form/TimezoneSelect";
-import DatePicker from "@calcom/ui/v2/core/form/DatePicker";
+import type { ITimezone } from "@calcom/ui";
+import { Avatar, DatePickerField as DatePicker, Select, TimezoneSelect } from "@calcom/ui";
 
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 
@@ -49,7 +47,7 @@ export default function TeamAvailabilityScreen(props: Props) {
                 alt={member?.name || ""}
                 className="min-w-10 min-h-10 mt-1 h-10 w-10 rounded-full"
               />
-              <div className="ml-3 inline-block overflow-hidden pt-1">
+              <div className="inline-block overflow-hidden pt-1 ltr:ml-3 rtl:mr-3">
                 <span className="truncate text-lg font-bold text-neutral-700">{member?.name}</span>
                 <span className="-mt-1 block truncate text-sm text-gray-400">{member?.email}</span>
               </div>

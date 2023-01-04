@@ -4,9 +4,9 @@ import "@glidejs/glide/dist/css/glide.theme.min.css";
 import { useEffect, useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/Icon";
 
-import { SkeletonText } from "../skeleton";
+import { Icon } from "../../..";
+import { SkeletonText } from "../../../components/skeleton";
 
 const Slider = <T extends string | unknown>({
   title = "",

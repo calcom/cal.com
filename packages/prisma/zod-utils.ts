@@ -1,3 +1,5 @@
+import { EventTypeCustomInputType } from "@prisma/client";
+import { UnitTypeLongPlural } from "dayjs";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 
 /* eslint-disable no-underscore-dangle */
@@ -25,13 +27,23 @@ export enum Frequency {
   SECONDLY = 6,
 }
 
+export const RequiresConfirmationThresholdUnits: z.ZodType<UnitTypeLongPlural> = z.enum(["hours", "minutes"]);
+
 export const EventTypeMetaDataSchema = z
   .object({
     smartContractAddress: z.string().optional(),
     blockchainId: z.number().optional(),
+    multipleDuration: z.number().array().optional(),
     giphyThankYouPage: z.string().optional(),
     apps: z.object(appDataSchemas).partial().optional(),
     additionalNotesRequired: z.boolean().optional(),
+    disableSuccessPage: z.boolean().optional(),
+    requiresConfirmationThreshold: z
+      .object({
+        time: z.number(),
+        unit: RequiresConfirmationThresholdUnits,
+      })
+      .optional(),
     config: z
       .object({
         useHostSchedulesForTeamEvent: z.boolean().optional(),
@@ -153,7 +165,7 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
     allRecurringDates: z.string().array().optional(),
     currentRecurringIndex: z.number().optional(),
     rescheduleReason: z.string().optional(),
-    smsReminderNumber: z.string().optional(),
+    smsReminderNumber: z.string().optional().nullable(),
     appsStatus: z
       .array(
         z.object({
@@ -161,6 +173,8 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
           success: z.number(),
           failures: z.number(),
           type: z.string(),
+          errors: z.string().array(),
+          warnings: z.string().array().optional(),
         })
       )
       .optional(),
@@ -194,8 +208,6 @@ export const userMetadata = z
     stripeCustomerId: z.string().optional(),
     vitalSettings: vitalSettingsUpdateSchema.optional(),
     isPremium: z.boolean().optional(),
-    intentUsername: z.string().optional(),
-    checkoutSessionId: z.string().nullable().optional(),
   })
   .nullable();
 
@@ -208,6 +220,56 @@ export const teamMetadataSchema = z
   })
   .partial()
   .nullable();
+
+export const bookingMetadataSchema = z
+  .object({
+    videoCallUrl: z.string().optional(),
+  })
+  .nullable();
+
+export const customInputOptionSchema = z.array(
+  z.object({
+    label: z.string(),
+    type: z.string(),
+  })
+);
+
+export const customInputSchema = z.object({
+  id: z.number(),
+  eventTypeId: z.number(),
+  label: z.string(),
+  type: z.nativeEnum(EventTypeCustomInputType),
+  options: customInputOptionSchema.optional().nullable(),
+  required: z.boolean(),
+  placeholder: z.string(),
+  hasToBeCreated: z.boolean().optional(),
+});
+
+export type CustomInputSchema = z.infer<typeof customInputSchema>;
+
+export const recordingItemSchema = z.object({
+  id: z.string(),
+  room_name: z.string(),
+  start_ts: z.number(),
+  status: z.string(),
+  max_participants: z.number(),
+  duration: z.number(),
+  share_token: z.string(),
+});
+
+export const recordingItemsSchema = z.array(recordingItemSchema);
+
+export type RecordingItemSchema = z.infer<typeof recordingItemSchema>;
+
+export const getRecordingsResponseSchema = z.union([
+  z.object({
+    total_count: z.number(),
+    data: recordingItemsSchema,
+  }),
+  z.object({}),
+]);
+
+export type GetRecordingsResponseSchema = z.infer<typeof getRecordingsResponseSchema>;
 
 /**
  * Ensures that it is a valid HTTP URL

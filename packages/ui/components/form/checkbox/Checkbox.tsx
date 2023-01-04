@@ -8,6 +8,7 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
   descriptionAsLabel?: boolean;
   informationIconText?: string;
   error?: boolean;
+  className?: string;
 };
 
 const CheckboxField = forwardRef<HTMLInputElement, Props>(
@@ -48,16 +49,18 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                     {...rest}
                     ref={ref}
                     type="checkbox"
+                    disabled={disabled}
                     className={classNames(
-                      "text-primary-600 focus:ring-primary-500 mr-2 h-4 w-4 rounded border-gray-300 ",
+                      "text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300 ltr:mr-2 rtl:ml-2 ",
                       !error && disabled
                         ? "bg-gray-300 checked:bg-gray-300"
                         : "checked:bg-gray-800 hover:bg-gray-100",
-                      error && "border-red-800 checked:bg-red-800 hover:bg-red-400"
+                      error && "border-red-800 checked:bg-red-800 hover:bg-red-400",
+                      rest.className
                     )}
                   />
                 </div>
-                <span className="text-sm ltr:ml-3 rtl:mr-3">{description}</span>
+                <span className="text-sm">{description}</span>
               </>
             )}
             {/* {informationIconText && <InfoBadge content={informationIconText}></InfoBadge>} */}

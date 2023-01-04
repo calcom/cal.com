@@ -1,4 +1,3 @@
-import { UserPlan } from "@prisma/client";
 import classNames from "classnames";
 import { GetServerSidePropsContext } from "next";
 import dynamic from "next/dynamic";
@@ -13,6 +12,7 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import defaultEvents, {
@@ -27,9 +27,8 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { BadgeCheckIcon, Icon } from "@calcom/ui/Icon";
+import { BadgeCheckIcon, Icon } from "@calcom/ui";
 
-import { useExposePlanGlobally } from "@lib/hooks/useExposePlanGlobally";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EmbedProps } from "@lib/withEmbedSsr";
 
@@ -38,7 +37,6 @@ import { AvatarSSR } from "@components/ui/AvatarSSR";
 
 import { ssrInit } from "@server/lib/ssr";
 
-const EventTypeDescription = dynamic(() => import("@calcom/ui/v2/modules/event-types/EventTypeDescription"));
 const HeadSeo = dynamic(() => import("@components/seo/head-seo"));
 export default function User(props: inferSSRProps<typeof getServerSideProps> & EmbedProps) {
   const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
@@ -61,7 +59,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
       {eventTypes.map((type, index) => (
         <li
           key={index}
-          className="dark:bg-darkgray-100 dark:border-darkgray-200 group relative rounded-sm border border-neutral-200 bg-white dark:hover:border-neutral-600">
+          className="dark:bg-darkgray-100 group relative border-b border-neutral-200 bg-white  first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50 dark:border-neutral-700 dark:hover:border-neutral-600">
           <Icon.FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
           <Link href={getUsernameSlugLink({ users: props.users, slug: type.slug })}>
             <a className="flex justify-between px-6 py-4" data-testid="event-type-link">
@@ -71,7 +69,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
               </div>
               <div className="mt-1 self-center">
                 <AvatarGroup
-                  border="border-2 border-white"
+                  border="border-2 border-white dark:border-darkgray-100"
                   truncateAfter={4}
                   className="flex flex-shrink-0"
                   size={10}
@@ -94,7 +92,6 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const query = { ...router.query };
   delete query.user; // So it doesn't display in the Link (and make tests fail)
-  useExposePlanGlobally("PRO");
   const nameOrUsername = user.name || user.username || "";
   const telemetry = useTelemetry();
 
@@ -274,7 +271,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       darkBrandColor: true,
       avatar: true,
       theme: true,
-      plan: true,
       away: true,
       verified: true,
       allowDynamicBooking: true,

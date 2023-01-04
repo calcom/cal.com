@@ -4,8 +4,7 @@ import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Form, TextField } from "@calcom/ui/components";
-import { Alert } from "@calcom/ui/v2";
+import { Alert, Button, Form, TextField } from "@calcom/ui";
 
 export default function Exchange2016CalendarSetup() {
   const { t } = useLocale();
@@ -78,7 +77,7 @@ export default function Exchange2016CalendarSetup() {
               </fieldset>
 
               {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
-              <div className="mt-5 justify-end space-x-2 sm:mt-4 sm:flex">
+              <div className="mt-5 justify-end space-x-2 rtl:space-x-reverse sm:mt-4 sm:flex">
                 <Button type="button" color="secondary" onClick={() => router.back()}>
                   {t("cancel")}
                 </Button>

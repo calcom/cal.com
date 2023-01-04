@@ -53,7 +53,7 @@ type DropdownMenuItemProps = ComponentProps<typeof DropdownMenuPrimitive["Checkb
 export const DropdownMenuItem = forwardRef<HTMLDivElement, DropdownMenuItemProps>(
   ({ className = "", ...props }, forwardedRef) => (
     <DropdownMenuPrimitive.Item
-      className={`text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 ${className}`}
+      className={`text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 focus:outline-none ${className}`}
       {...props}
       ref={forwardedRef}
     />

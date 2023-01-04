@@ -11,6 +11,7 @@ export const metadata = {
   imageSrc: "/api/app-store/caldavcalendar/icon.svg",
   variant: "calendar",
   category: "calendar",
+  categories: ["calendar"],
   logo: "/api/app-store/caldavcalendar/icon.svg",
   publisher: "Cal.com",
   rating: 5,
@@ -23,5 +24,4 @@ export const metadata = {
 } as App;
 
 export * as api from "./api";
-export * as components from "./components";
 export * as lib from "./lib";

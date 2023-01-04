@@ -1,29 +1,65 @@
-import { InferGetStaticPropsType, NextPageContext } from "next";
+import { GetServerSidePropsContext } from "next";
+import { ChangeEventHandler, useState } from "react";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
+import { classNames } from "@calcom/lib";
 import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/client";
-import AllApps from "@calcom/ui/v2/core/apps/AllApps";
-import AppStoreCategories from "@calcom/ui/v2/core/apps/Categories";
-import TrendingAppsSlider from "@calcom/ui/v2/core/apps/TrendingAppsSlider";
-import AppsLayout from "@calcom/ui/v2/core/layouts/AppsLayout";
+import { inferSSRProps } from "@calcom/types/inferSSRProps";
+import { AllApps, AppsLayout, AppStoreCategories, Icon, TextField, TrendingAppsSlider } from "@calcom/ui";
 
 import { ssgInit } from "@server/lib/ssg";
 
-export default function Apps({ appStore, categories }: InferGetStaticPropsType<typeof getServerSideProps>) {
+function AppsSearch({
+  onChange,
+  className,
+}: {
+  onChange: ChangeEventHandler<HTMLInputElement>;
+  className?: string;
+}) {
+  return (
+    <TextField
+      className="!border-gray-100 bg-gray-100 !pl-0 focus:!ring-offset-0"
+      addOnLeading={<Icon.FiSearch className="h-4 w-4 text-gray-500" />}
+      addOnClassname="!border-gray-100"
+      containerClassName={classNames("focus:!ring-offset-0", className)}
+      type="search"
+      autoComplete="false"
+      onChange={onChange}
+    />
+  );
+}
+
+export default function Apps({ categories, appStore }: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();
+  const [searchText, setSearchText] = useState<string | undefined>(undefined);
 
   return (
-    <AppsLayout isPublic heading={t("app_store")} subtitle={t("app_store_description")}>
-      <AppStoreCategories categories={categories} />
-      <TrendingAppsSlider items={appStore} />
-      <AllApps apps={appStore} />
+    <AppsLayout
+      isPublic
+      heading={t("app_store")}
+      subtitle={t("app_store_description")}
+      actions={(className) => (
+        <AppsSearch className={className} onChange={(e) => setSearchText(e.target.value)} />
+      )}
+      emptyStore={!appStore.length}>
+      {!searchText && (
+        <>
+          <AppStoreCategories categories={categories} />
+          <TrendingAppsSlider items={appStore} />
+        </>
+      )}
+      <AllApps
+        apps={appStore}
+        searchText={searchText}
+        categories={categories.map((category) => category.name)}
+      />
     </AppsLayout>
   );
 }
 
-export const getServerSideProps = async (context: NextPageContext) => {
+export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssg = await ssgInit(context);
 
   const session = await getSession(context);
@@ -46,7 +82,6 @@ export const getServerSideProps = async (context: NextPageContext) => {
   }, {} as Record<string, number>);
   return {
     props: {
-      trpcState: ssg.dehydrate(),
       categories: Object.entries(categories)
         .map(([name, count]): { name: AppCategories; count: number } => ({
           name: name as AppCategories,
@@ -56,6 +91,7 @@ export const getServerSideProps = async (context: NextPageContext) => {
           return b.count - a.count;
         }),
       appStore,
+      trpcState: ssg.dehydrate(),
     },
   };
 };

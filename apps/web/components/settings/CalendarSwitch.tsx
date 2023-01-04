@@ -2,10 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
-import { Badge } from "@calcom/ui/components/badge";
-import Switch from "@calcom/ui/v2/core/Switch";
-import showToast from "@calcom/ui/v2/core/notifications";
+import { Badge, Icon, showToast, Switch } from "@calcom/ui";
 
 export function CalendarSwitch(props: {
   type: string;
@@ -65,7 +62,7 @@ export function CalendarSwitch(props: {
     }
   );
   return (
-    <div className="flex space-x-2 py-1">
+    <div className="flex space-x-2 py-1 rtl:space-x-reverse">
       <Switch
         key={props.externalId}
         name="enabled"

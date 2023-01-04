@@ -3,9 +3,7 @@ import Link from "next/link";
 
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui/Icon";
-import Shell from "@calcom/ui/Shell";
-import { SkeletonText } from "@calcom/ui/v2";
+import { Icon, Shell, SkeletonText } from "@calcom/ui";
 
 export default function Apps({ categories }: InferGetStaticPropsType<typeof getStaticProps>) {
   const { t, isLocaleReady } = useLocale();
@@ -46,7 +44,9 @@ export default function Apps({ categories }: InferGetStaticPropsType<typeof getS
 export const getStaticProps = async () => {
   const appStore = await getAppRegistry();
   const categories = appStore.reduce((c, app) => {
-    c[app.category] = c[app.category] ? c[app.category] + 1 : 1;
+    for (const category of app.categories) {
+      c[category] = c[category] ? c[category] + 1 : 1;
+    }
     return c;
   }, {} as Record<string, number>);
 

@@ -1,6 +1,6 @@
 import { App_RoutingForms_Form } from "@prisma/client";
 import { useEffect, useState } from "react";
-import { useForm, UseFormReturn, Controller } from "react-hook-form";
+import { Controller, useForm, UseFormReturn } from "react-hook-form";
 
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -8,24 +8,35 @@ import { trpc } from "@calcom/trpc/react";
 import {
   AppGetServerSidePropsContext,
   AppPrisma,
-  AppUser,
   AppSsrInit,
+  AppUser,
 } from "@calcom/types/AppGetServerSideProps";
-import { Icon } from "@calcom/ui";
-import { Dialog, DialogContent, DialogClose, DialogFooter, DialogHeader } from "@calcom/ui/Dialog";
-import { Button, ButtonGroup } from "@calcom/ui/components";
-import { Form, TextAreaField, TextField } from "@calcom/ui/components/form";
-import { showToast, DropdownMenuSeparator, Tooltip, VerticalDivider } from "@calcom/ui/v2";
-import Meta from "@calcom/ui/v2/core/Meta";
-import SettingsToggle from "@calcom/ui/v2/core/SettingsToggle";
-import { ShellMain } from "@calcom/ui/v2/core/Shell";
-import Banner from "@calcom/ui/v2/core/banner";
+import {
+  Banner,
+  Button,
+  ButtonGroup,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DropdownMenuSeparator,
+  Form,
+  Icon,
+  Meta,
+  SettingsToggle,
+  ShellMain,
+  showToast,
+  TextAreaField,
+  TextField,
+  Tooltip,
+  VerticalDivider,
+} from "@calcom/ui";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
 import { processRoute } from "../lib/processRoute";
 import { RoutingPages } from "../pages/route-builder/[...appPages]";
-import { SerializableForm } from "../types/types";
-import { Response, Route } from "../types/types";
+import { Response, Route, SerializableForm } from "../types/types";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
 import RoutingNavBar from "./RoutingNavBar";
@@ -109,6 +120,7 @@ const Actions = ({
         {typeformApp?.isInstalled ? (
           <FormActionsDropdown form={form}>
             <FormAction
+              data-testid="copy-redirect-url"
               routingForm={form}
               action="copyRedirectUrl"
               color="minimal"
@@ -161,6 +173,7 @@ const Actions = ({
           </FormAction>
           {typeformApp ? (
             <FormAction
+              data-testid="copy-redirect-url"
               routingForm={form}
               action="copyRedirectUrl"
               color="minimal"
@@ -283,7 +296,10 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     />
                   </div>
                   <div className="mt-6">
-                    <Button color="secondary" onClick={() => setIsTestPreviewOpen(true)}>
+                    <Button
+                      color="secondary"
+                      data-testid="test-preview"
+                      onClick={() => setIsTestPreviewOpen(true)}>
                       {t("test_preview")}
                     </Button>
                   </div>
@@ -326,16 +342,19 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     <div className="mt-2">
                       {RoutingPages.map((page) => {
                         if (page.value === decidedAction.type) {
-                          return <>{page.label}</>;
+                          return <div data-testid="test-routing-result-type">{page.label}</div>;
                         }
                       })}
                       :{" "}
                       {decidedAction.type === "customPageMessage" ? (
-                        <span className="text-gray-700">{decidedAction.value}</span>
+                        <span className="text-gray-700" data-testid="test-routing-result">
+                          {decidedAction.value}
+                        </span>
                       ) : decidedAction.type === "externalRedirectUrl" ? (
                         <span className="text-gray-700 underline">
                           <a
                             target="_blank"
+                            data-testid="test-routing-result"
                             href={
                               decidedAction.value.includes("https://") ||
                               decidedAction.value.includes("http://")
@@ -348,7 +367,11 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                         </span>
                       ) : (
                         <span className="text-gray-700 underline">
-                          <a target="_blank" href={`/${decidedAction.value}`} rel="noreferrer">
+                          <a
+                            target="_blank"
+                            href={`/${decidedAction.value}`}
+                            rel="noreferrer"
+                            data-testid="test-routing-result">
                             {decidedAction.value}
                           </a>
                         </span>
@@ -358,18 +381,18 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                 )}
               </div>
               <DialogFooter>
-                <DialogClose asChild>
-                  <Button
-                    color="secondary"
-                    onClick={() => {
-                      setIsTestPreviewOpen(false);
-                      setDecidedAction(null);
-                      setResponse({});
-                    }}>
-                    {t("close")}
-                  </Button>
+                <DialogClose
+                  color="secondary"
+                  onClick={() => {
+                    setIsTestPreviewOpen(false);
+                    setDecidedAction(null);
+                    setResponse({});
+                  }}>
+                  {t("close")}
                 </DialogClose>
-                <Button type="submit">{t("Test Routing")}</Button>
+                <Button type="submit" data-testid="test-routing">
+                  {t("test_routing")}
+                </Button>
               </DialogFooter>
             </form>
           </div>

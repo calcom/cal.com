@@ -3,10 +3,7 @@ import { useForm } from "react-hook-form";
 
 import { ErrorCode } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui/components/button";
-import { Form, Label } from "@calcom/ui/components/form";
-import { PasswordField } from "@calcom/ui/components/form";
-import { Dialog, DialogContent } from "@calcom/ui/v2/core/Dialog";
+import { Button, Dialog, DialogContent, Form, Label, PasswordField } from "@calcom/ui";
 
 import TwoFactor from "@components/auth/TwoFactor";
 
@@ -75,11 +72,7 @@ const DisableTwoFactorAuthModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        title={t("disable_2fa")}
-        description={t("disable_2fa_recommendation")}
-        type="creation"
-        useOwnActionButtons>
+      <DialogContent title={t("disable_2fa")} description={t("disable_2fa_recommendation")} type="creation">
         <Form form={form} handleSubmit={handleDisable}>
           <div className="mb-4">
             <PasswordField
@@ -97,7 +90,7 @@ const DisableTwoFactorAuthModal = ({
           </div>
 
           <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-            <Button type="submit" className="ltr:ml-2 rtl:mr-2" disabled={isDisabling}>
+            <Button type="submit" className="ltr:ml-2 ltr:mr-2 rtl:ml-2" disabled={isDisabling}>
               {t("disable")}
             </Button>
             <Button color="secondary" onClick={onCancel}>

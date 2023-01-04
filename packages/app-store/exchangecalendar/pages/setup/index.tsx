@@ -6,8 +6,7 @@ import { Toaster } from "react-hot-toast";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, EmailField, Form, PasswordField, TextField } from "@calcom/ui/components";
-import { Alert, SelectField, Switch } from "@calcom/ui/v2";
+import { Alert, Button, EmailField, Form, PasswordField, SelectField, Switch, TextField } from "@calcom/ui";
 
 import { ExchangeAuthentication } from "../../enums";
 
@@ -121,7 +120,7 @@ export default function ExchangeSetup() {
                     />
                   </fieldset>
                   {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
-                  <div className="mt-4 flex justify-end space-x-2">
+                  <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
                     <Button type="button" color="secondary" onClick={() => router.back()}>
                       {t("cancel")}
                     </Button>

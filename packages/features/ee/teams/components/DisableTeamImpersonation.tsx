@@ -1,7 +1,7 @@
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { showToast, Switch } from "@calcom/ui/v2/core";
+import { showToast, Switch } from "@calcom/ui";
 
 const DisableTeamImpersonation = ({
   teamId,
@@ -49,9 +49,9 @@ const DisableTeamImpersonation = ({
         <div className="mt-5 sm:mt-0 sm:self-center">
           <Switch
             disabled={disabled}
-            defaultChecked={query.data?.disableImpersonation}
+            defaultChecked={!query.data?.disableImpersonation}
             onCheckedChange={(isChecked) => {
-              mutation.mutate({ teamId, memberId, disableImpersonation: isChecked });
+              mutation.mutate({ teamId, memberId, disableImpersonation: !isChecked });
             }}
           />
         </div>

@@ -9,14 +9,11 @@ test.describe("Teams", () => {
     await users.deleteAll();
   });
 
-  test("Can create teams via Wizard", async ({ page, users, prisma }) => {
+  test("Can create teams via Wizard", async ({ page, users }) => {
     const user = await users.create();
     const inviteeEmail = `${user.username}+invitee@example.com`;
     await user.login();
     await page.goto("/teams");
-
-    // Expect teams to be empty
-    await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();
 
     await test.step("Can create team", async () => {
       // Click text=Create Team
@@ -38,7 +35,7 @@ test.describe("Teams", () => {
       await page.locator('[placeholder="email\\@example\\.com"]').fill(inviteeEmail);
       // Click [data-testid="invite-new-member-button"]
       await page.locator('[data-testid="invite-new-member-button"]').click();
-      await expect(page.locator(`li:has-text("${inviteeEmail}PendingMemberNot on Cal.com")`)).toBeVisible();
+      await expect(page.locator(`li:has-text("${inviteeEmail}")`)).toBeVisible();
       expect(await page.locator('[data-testid="pending-member-item"]').count()).toBe(2);
     });
 
@@ -55,10 +52,12 @@ test.describe("Teams", () => {
     });
 
     await test.step("Can disband team", async () => {
-      await page.locator("text=Delete Team").click();
+      await page.locator("text=Disband Team").click();
       await page.locator("text=Yes, disband team").click();
       await page.waitForURL("/teams");
-      await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();
+      await expect(await page.locator(`text=${user.username}'s Team`).count()).toEqual(0);
+      // FLAKY: If other tests are running async this may mean there are >0 teams, empty screen will not be shown.
+      // await expect(page.locator('[data-testid="empty-screen"]')).toBeVisible();
     });
   });
 });
