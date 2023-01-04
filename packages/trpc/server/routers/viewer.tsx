@@ -12,12 +12,14 @@ import getApps, { getLocationGroupedOptions } from "@calcom/app-store/utils";
 import { cancelScheduledJobs } from "@calcom/app-store/zapier/lib/nodeScheduler";
 import { getCalendarCredentials, getConnectedCalendars } from "@calcom/core/CalendarManager";
 import { DailyLocationType } from "@calcom/core/location";
+import { getRecordingsOfCalVideoByRoomName } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails, sendFeedbackEmail } from "@calcom/emails";
 import { samlTenantProduct } from "@calcom/features/ee/sso/lib/saml";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getEnabledApps from "@calcom/lib/apps/getEnabledApps";
 import { ErrorCode, verifyPassword } from "@calcom/lib/auth";
+import { IS_SELF_HOSTED, IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import getStripeAppData from "@calcom/lib/getStripeAppData";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
@@ -1138,10 +1140,58 @@ const loggedInViewerRouter = router({
     });
     return recurringGrouping.reduce((prev, current) => {
       // recurringEventId is the total number of recurring instances for a booking
-      // we need to substract all but one, to represent a single recurring booking
+      // we need to subtract all but one, to represent a single recurring booking
       return prev - (current._count?.recurringEventId - 1);
     }, count);
   }),
+  getCalVideoRecordings: authedProcedure
+    .input(
+      z.object({
+        roomName: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { roomName } = input;
+      let shouldHideRecordingsData = false;
+      // If self-hosted, he should be able to get recordings
+      if (IS_TEAM_BILLING_ENABLED) {
+        // If user is not a team member, throw error
+        const { hasTeamPlan } = await viewerTeamsRouter.createCaller(ctx).hasTeamPlan();
+        if (!hasTeamPlan) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "You are not a team plan.",
+          });
+        } else {
+          shouldHideRecordingsData = true;
+        }
+      }
+
+      try {
+        const res = await getRecordingsOfCalVideoByRoomName(roomName);
+
+        if (shouldHideRecordingsData) {
+          if (res && "data" in res && res.data.length > 0) {
+            res.data = res.data.map((recording) => {
+              return {
+                id: "",
+                room_name: "",
+                start_ts: recording.start_ts,
+                status: recording.status,
+                max_participants: recording.max_participants,
+                duration: recording.duration,
+                share_token: recording.share_token,
+              };
+            });
+          }
+        }
+        return res;
+      } catch (err) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+        });
+      }
+    }),
 });
 
 export const viewerRouter = mergeRouters(

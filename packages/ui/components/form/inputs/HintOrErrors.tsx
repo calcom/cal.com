@@ -1,8 +1,6 @@
-import { X, Circle, Check } from "react-feather";
 import { FieldValues, useFormContext } from "react-hook-form";
 
-// TODO: Refactor import once V1 migration has happened
-import { Icon } from "../../../Icon";
+import { Icon } from "../../../components/icon";
 
 export function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
   hintErrors?: string[];
@@ -50,12 +48,12 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
                 className={error !== undefined ? (submitted ? "text-red-700" : "") : "text-green-600"}>
                 {error !== undefined ? (
                   submitted ? (
-                    <X size="12" strokeWidth="3" className="mr-2 -ml-1 inline-block" />
+                    <Icon.FiX size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />
                   ) : (
-                    <Circle fill="currentColor" size="5" className="mr-2 inline-block" />
+                    <Icon.FiCircle fill="currentColor" size="5" className="inline-block ltr:mr-2 rtl:ml-2" />
                   )
                 ) : (
-                  <Check size="12" strokeWidth="3" className="mr-2 -ml-1 inline-block" />
+                  <Icon.FiCheck size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />
                 )}
                 {t(`${fieldName}_hint_${key}`)}
               </li>
@@ -88,9 +86,9 @@ export function HintsOrErrors<T extends FieldValues = FieldValues>(props: {
           return (
             <li key={key} className={!!dirty ? "text-green-600" : ""}>
               {!!dirty ? (
-                <Icon.FiCheck size="12" strokeWidth="3" className="mr-2 -ml-1 inline-block" />
+                <Icon.FiCheck size="12" strokeWidth="3" className="-ml-1 inline-block ltr:mr-2 rtl:ml-2" />
               ) : (
-                <Icon.FiCircle fill="currentColor" size="5" className="mr-2 inline-block" />
+                <Icon.FiCircle fill="currentColor" size="5" className="inline-block ltr:mr-2 rtl:ml-2" />
               )}
               {t(`${fieldName}_hint_${key}`)}
             </li>

@@ -47,13 +47,7 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
 }
 
 export const getStaticPaths = async () => {
-  const appStore = await getAppRegistry();
-  const paths = appStore.reduce((categories, app) => {
-    if (!categories.includes(app.category)) {
-      categories.push(app.category);
-    }
-    return categories;
-  }, [] as string[]);
+  const paths = Object.keys(AppCategories);
 
   return {
     paths: paths.map((category) => ({ params: { category } })),

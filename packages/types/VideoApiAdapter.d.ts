@@ -1,3 +1,5 @@
+import { GetRecordingsResponseSchema } from "@calcom/prisma/zod-utils";
+
 import type { EventBusyDate } from "./Calendar";
 import { CredentialPayload } from "./Credential";
 
@@ -18,6 +20,8 @@ export type VideoApiAdapter =
       deleteMeeting(uid: string): Promise<unknown>;
 
       getAvailability(dateFrom?: string, dateTo?: string): Promise<EventBusyDate[]>;
+
+      getRecordings?(roomName: string): Promise<GetRecordingsResponseSchema>;
     }
   | undefined;
 

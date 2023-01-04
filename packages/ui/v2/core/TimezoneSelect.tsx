@@ -6,7 +6,7 @@ import BaseSelect, {
   Props as SelectProps,
 } from "react-timezone-select";
 
-import { getReactSelectProps } from "../..";
+import { getReactSelectProps } from "../../components/form";
 
 function TimezoneSelect({ className, components, ...props }: SelectProps) {
   const reactSelectProps = useMemo(() => {

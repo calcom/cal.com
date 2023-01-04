@@ -9,15 +9,18 @@ function Stepper<T extends DefaultStep>(props: {
   step: number;
   steps: T[];
   disableSteps?: boolean;
+  stepLabel?: (currentStep: number, totalSteps: number) => string;
 }) {
-  const { href, steps } = props;
+  const {
+    href,
+    steps,
+    stepLabel = (currentStep, totalSteps) => `Step ${currentStep} of ${totalSteps}`,
+  } = props;
   return (
     <>
       {steps.length > 1 && (
         <nav className="flex items-center justify-center" aria-label="Progress">
-          <p className="text-sm font-medium">
-            Step {props.step} of {steps.length}
-          </p>
+          <p className="text-sm font-medium">{stepLabel(props.step, steps.length)}</p>
           <ol role="list" className="ml-8 flex items-center space-x-5">
             {steps.map((mapStep, index) => (
               <li key={mapStep.title}>

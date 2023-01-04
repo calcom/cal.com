@@ -4,7 +4,7 @@ import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavi
 import { InstalledAppVariants } from "@calcom/app-store/utils";
 import { trpc } from "@calcom/trpc/react";
 
-import { Icon } from "../../../Icon";
+import { Icon } from "../../../components/icon";
 import Shell from "../Shell";
 import type { HorizontalTabItemProps } from "../navigation/tabs/HorizontalTabItem";
 import type { VerticalTabItemProps } from "../navigation/tabs/VerticalTabItem";
@@ -54,9 +54,12 @@ export default function InstalledAppsLayout({
   if (query.data?.items.length === 0) {
     actualTabs = tabs.filter((tab) => tab.name !== InstalledAppVariants.payment);
   }
+
   return (
     <Shell {...rest}>
-      <AppCategoryNavigation baseURL="/apps/installed" containerClassname="w-full xl:mx-5 xl:w-4/5 xl:pr-5">
+      <AppCategoryNavigation
+        baseURL="/apps/installed"
+        containerClassname="w-full xl:mx-5 xl:w-4/5 xl:max-w-2xl xl:pr-5">
         {children}
       </AppCategoryNavigation>
     </Shell>

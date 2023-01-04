@@ -9,6 +9,7 @@ import { DailyLocationType } from "@calcom/app-store/locations";
 import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
 import { validateBookingLimitOrder } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
+import getEventTypeById from "@calcom/lib/getEventTypeById";
 import { baseEventTypeSelect, baseUserSelect } from "@calcom/prisma";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import {
@@ -36,9 +37,10 @@ function handlePeriodType(periodType: string | undefined): PeriodType | undefine
 }
 
 function handleCustomInputs(customInputs: CustomInputSchema[], eventTypeId: number) {
-  const cInputsIdsToDelete = customInputs.filter((input) => input.id > 0).map((e) => e.id);
+  const cInputsIdsToDeleteOrUpdated = customInputs.filter((input) => !input.hasToBeCreated);
+  const cInputsIdsToDelete = cInputsIdsToDeleteOrUpdated.map((e) => e.id);
   const cInputsToCreate = customInputs
-    .filter((input) => input.id < 0)
+    .filter((input) => input.hasToBeCreated)
     .map((input) => ({
       type: input.type,
       label: input.label,
@@ -46,20 +48,18 @@ function handleCustomInputs(customInputs: CustomInputSchema[], eventTypeId: numb
       placeholder: input.placeholder,
       options: input.options || undefined,
     }));
-  const cInputsToUpdate = customInputs
-    .filter((input) => input.id > 0)
-    .map((input) => ({
-      data: {
-        type: input.type,
-        label: input.label,
-        required: input.required,
-        placeholder: input.placeholder,
-        options: input.options || undefined,
-      },
-      where: {
-        id: input.id,
-      },
-    }));
+  const cInputsToUpdate = cInputsIdsToDeleteOrUpdated.map((input) => ({
+    data: {
+      type: input.type,
+      label: input.label,
+      required: input.required,
+      placeholder: input.placeholder,
+      options: input.options || undefined,
+    },
+    where: {
+      id: input.id,
+    },
+  }));
 
   return {
     deleteMany: {
@@ -356,6 +356,35 @@ export const eventTypesRouter = router({
       },
     });
   }),
+  listWithTeam: authedProcedure.query(async ({ ctx }) => {
+    return await ctx.prisma.eventType.findMany({
+      where: {
+        OR: [
+          { userId: ctx.user.id },
+          {
+            team: {
+              members: {
+                some: {
+                  userId: ctx.user.id,
+                },
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        team: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        title: true,
+        slug: true,
+      },
+    });
+  }),
   create: authedProcedure.input(createEventTypeInput).mutation(async ({ ctx, input }) => {
     const { schedulingType, teamId, ...rest } = input;
     const userId = ctx.user.id;
@@ -407,7 +436,7 @@ export const eventTypesRouter = router({
           throw new TRPCError({ code: "BAD_REQUEST", message: "URL Slug already exists for given user." });
         }
       }
-      throw e;
+      throw new TRPCError({ code: "BAD_REQUEST" });
     }
   }),
   get: eventOwnerProcedure
@@ -434,15 +463,15 @@ export const eventTypesRouter = router({
       if (!user) {
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       }
-      return await ctx.prisma.eventType.findUnique({
-        where: {
-          id: input.id,
-        },
-        include: {
-          team: true,
-          users: true,
-        },
+
+      const res = await getEventTypeById({
+        eventTypeId: input.id,
+        userId: ctx.user.id,
+        prisma: ctx.prisma,
+        isTrpcCall: true,
       });
+
+      return res;
     }),
   update: eventOwnerProcedure.input(EventTypeUpdateInput.strict()).mutation(async ({ ctx, input }) => {
     const {
@@ -456,8 +485,14 @@ export const eventTypesRouter = router({
       users,
       id,
       hashedLink,
+      // Extract this from the input so it doesn't get saved in the db
+      // eslint-disable-next-line
+      userId,
+      // eslint-disable-next-line
+      teamId,
       ...rest
     } = input;
+
     const data: Prisma.EventTypeUpdateInput = {
       ...rest,
       metadata: rest.metadata === null ? Prisma.DbNull : rest.metadata,
@@ -500,11 +535,20 @@ export const eventTypesRouter = router({
     }
 
     if (schedule) {
-      data.schedule = {
-        connect: {
+      // Check that the schedule belongs to the user
+      const userScheduleQuery = await ctx.prisma.schedule.findFirst({
+        where: {
+          userId: ctx.user.id,
           id: schedule,
         },
-      };
+      });
+      if (userScheduleQuery) {
+        data.schedule = {
+          connect: {
+            id: schedule,
+          },
+        };
+      }
     }
 
     if (users) {
@@ -607,111 +651,114 @@ export const eventTypesRouter = router({
       };
     }),
   duplicate: eventOwnerProcedure.input(EventTypeDuplicateInput.strict()).mutation(async ({ ctx, input }) => {
-    const { id: originalEventTypeId, title: newEventTitle, slug: newSlug } = input;
-    const eventType = await ctx.prisma.eventType.findUnique({
-      where: {
-        id: originalEventTypeId,
-      },
-      include: {
-        customInputs: true,
-        schedule: true,
-        users: true,
-        team: true,
-        workflows: true,
-        webhooks: true,
-      },
-    });
+    try {
+      const { id: originalEventTypeId, title: newEventTitle, slug: newSlug } = input;
+      const eventType = await ctx.prisma.eventType.findUnique({
+        where: {
+          id: originalEventTypeId,
+        },
+        include: {
+          customInputs: true,
+          schedule: true,
+          users: true,
+          team: true,
+          workflows: true,
+          webhooks: true,
+        },
+      });
 
-    if (!eventType) {
-      throw new TRPCError({ code: "NOT_FOUND" });
-    }
+      if (!eventType) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
 
-    // Validate user is owner of event type or in the team
-    if (eventType.userId !== ctx.user.id) {
-      if (eventType.teamId) {
-        const isMember = await ctx.prisma.membership.findFirst({
-          where: {
-            userId: ctx.user.id,
-            teamId: eventType.teamId,
-          },
-        });
-        if (!isMember) {
-          throw new TRPCError({ code: "FORBIDDEN" });
+      // Validate user is owner of event type or in the team
+      if (eventType.userId !== ctx.user.id) {
+        if (eventType.teamId) {
+          const isMember = await ctx.prisma.membership.findFirst({
+            where: {
+              userId: ctx.user.id,
+              teamId: eventType.teamId,
+            },
+          });
+          if (!isMember) {
+            throw new TRPCError({ code: "FORBIDDEN" });
+          }
         }
       }
-      throw new TRPCError({ code: "FORBIDDEN" });
-    }
 
-    const {
-      customInputs,
-      users,
-      locations,
-      team,
-      recurringEvent,
-      bookingLimits,
-      metadata,
-      workflows,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      id: _id,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      webhooks: _webhooks,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      schedule: _schedule,
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore - not typed correctly as its set on SSR
-      descriptionAsSafeHTML: _descriptionAsSafeHTML,
-      ...rest
-    } = eventType;
+      const {
+        customInputs,
+        users,
+        locations,
+        team,
+        recurringEvent,
+        bookingLimits,
+        metadata,
+        workflows,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        id: _id,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        webhooks: _webhooks,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        schedule: _schedule,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore - not typed correctly as its set on SSR
+        descriptionAsSafeHTML: _descriptionAsSafeHTML,
+        ...rest
+      } = eventType;
 
-    const data: Prisma.EventTypeCreateInput = {
-      ...rest,
-      title: newEventTitle,
-      slug: newSlug,
-      locations: locations ?? undefined,
-      team: team ? { connect: { id: team.id } } : undefined,
-      users: users ? { connect: users.map((user) => ({ id: user.id })) } : undefined,
-      recurringEvent: recurringEvent || undefined,
-      bookingLimits: bookingLimits ?? undefined,
-      metadata: metadata === null ? Prisma.DbNull : metadata,
-    };
-
-    const newEventType = await ctx.prisma.eventType.create({ data });
-
-    // Create custom inputs
-    if (customInputs) {
-      const customInputsData = customInputs.map((customInput) => {
-        const { id: _, options, ...rest } = customInput;
-        return {
-          options: options ?? undefined,
-          ...rest,
-          eventTypeId: newEventType.id,
-        };
-      });
-      await ctx.prisma.eventTypeCustomInput.createMany({
-        data: customInputsData,
-      });
-    }
-
-    if (workflows.length > 0) {
-      const workflowIds = workflows.map((workflow) => {
-        return { id: workflow.workflowId };
-      });
-
-      const eventUpdateData: Prisma.EventTypeUpdateInput = {
-        workflows: {
-          connect: workflowIds,
-        },
+      const data: Prisma.EventTypeUncheckedCreateInput = {
+        ...rest,
+        title: newEventTitle,
+        slug: newSlug,
+        locations: locations ?? undefined,
+        teamId: team ? team.id : undefined,
+        users: users ? { connect: users.map((user) => ({ id: user.id })) } : undefined,
+        recurringEvent: recurringEvent || undefined,
+        bookingLimits: bookingLimits ?? undefined,
+        metadata: metadata === null ? Prisma.DbNull : metadata,
       };
-      await ctx.prisma.eventType.update({
-        where: {
-          id: newEventType.id,
-        },
-        data: eventUpdateData,
-      });
-    }
 
-    return {
-      eventType: newEventType,
-    };
+      const newEventType = await ctx.prisma.eventType.create({ data });
+
+      // Create custom inputs
+      if (customInputs) {
+        const customInputsData = customInputs.map((customInput) => {
+          const { id: _, options, ...rest } = customInput;
+          return {
+            options: options ?? undefined,
+            ...rest,
+            eventTypeId: newEventType.id,
+          };
+        });
+        await ctx.prisma.eventTypeCustomInput.createMany({
+          data: customInputsData,
+        });
+      }
+
+      if (workflows.length > 0) {
+        const workflowIds = workflows.map((workflow) => {
+          return { id: workflow.workflowId };
+        });
+
+        const eventUpdateData: Prisma.EventTypeUpdateInput = {
+          workflows: {
+            connect: workflowIds,
+          },
+        };
+        await ctx.prisma.eventType.update({
+          where: {
+            id: newEventType.id,
+          },
+          data: eventUpdateData,
+        });
+      }
+
+      return {
+        eventType: newEventType,
+      };
+    } catch (error) {
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    }
   }),
 });

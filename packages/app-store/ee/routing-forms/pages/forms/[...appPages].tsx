@@ -36,7 +36,12 @@ export default function RoutingForms({
 
   function NewFormButton() {
     return (
-      <FormAction routingForm={null} data-testid="new-routing-form" StartIcon={Icon.FiPlus} action="create">
+      <FormAction
+        size="fab"
+        routingForm={null}
+        data-testid="new-routing-form"
+        StartIcon={Icon.FiPlus}
+        action="create">
         {t("new")}
       </FormAction>
     );
@@ -131,6 +136,7 @@ export default function RoutingForms({
                                 </FormAction>
                                 {typeformApp?.isInstalled ? (
                                   <FormAction
+                                    data-testid="copy-redirect-url"
                                     routingForm={form}
                                     action="copyRedirectUrl"
                                     color="minimal"
@@ -209,7 +215,10 @@ export const getServerSideProps = async function getServerSideProps(
     },
   });
 
-  const serializableForms = forms.map((form) => getSerializableForm(form));
+  const serializableForms = [];
+  for (const [, form] of Object.entries(forms)) {
+    serializableForms.push(await getSerializableForm(form));
+  }
 
   return {
     props: {
