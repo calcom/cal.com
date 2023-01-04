@@ -1,5 +1,5 @@
-import { ShellSubHeading } from "../../Shell";
 import Meta from "../../v2/core/Meta";
+import { ShellSubHeading } from "../../v2/core/Shell";
 import { SkeletonText } from "../skeleton";
 
 export function SkeletonLoader({
