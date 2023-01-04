@@ -2,7 +2,7 @@ import { Page, expect } from "@playwright/test";
 
 import {
   addForm as addRoutingForm,
-  fillForm as fillRoutingForm,
+  addOneFieldAndDescriptionAndSaveForm,
 } from "@calcom/app-store/ee/routing-forms/playwright/tests/basic.e2e";
 import { CAL_URL } from "@calcom/lib/constants";
 import { Fixtures, test } from "@calcom/web/playwright/lib/fixtures";
@@ -35,7 +35,7 @@ test.describe("Typeform App", () => {
 
       await page.goto(`/apps/routing-forms/forms`);
       const formId = await addRoutingForm(page);
-      await fillRoutingForm(page, {
+      await addOneFieldAndDescriptionAndSaveForm(formId, page, {
         description: "",
         field: { label: "test", typeIndex: 1 },
       });
@@ -54,7 +54,7 @@ test.describe("Typeform App", () => {
 
       await page.goto("/apps/routing-forms/forms");
       const formId = await addRoutingForm(page);
-      await fillRoutingForm(page, {
+      await addOneFieldAndDescriptionAndSaveForm(formId, page, {
         description: "",
         field: { label: "test", typeIndex: 1 },
       });

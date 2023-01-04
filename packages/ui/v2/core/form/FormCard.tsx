@@ -1,6 +1,9 @@
+import Link from "next/link";
+
 import { classNames } from "@calcom/lib";
 
 import { Icon } from "../../..";
+import { Badge, BadgeProps } from "../../../components";
 import Divider from "../Divider";
 
 type Action = { check: () => boolean; fn: () => void };
@@ -11,14 +14,16 @@ export default function FormCard({
   moveUp,
   moveDown,
   className,
+  badge,
   ...restProps
 }: {
   children: React.ReactNode;
-  label?: string;
+  label?: React.ReactNode;
   deleteField?: Action | null;
   moveUp?: Action | null;
   moveDown?: Action | null;
   className?: string;
+  badge?: { text: string; href?: string; variant: BadgeProps["variant"] } | null;
 } & JSX.IntrinsicElements["div"]) {
   className = classNames(
     className,
@@ -47,7 +52,20 @@ export default function FormCard({
       </div>
       <div className="w-full">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold leading-none">{label}</span>
+          <div>
+            <span className="text-sm font-semibold leading-none">{label}</span>
+            {badge && (
+              <Badge className="ml-2" variant={badge.variant}>
+                {badge.href ? (
+                  <Link href={badge.href}>
+                    <a>{badge.text}</a>
+                  </Link>
+                ) : (
+                  badge.text
+                )}
+              </Badge>
+            )}
+          </div>
           {deleteField?.check() ? (
             <button
               type="button"
