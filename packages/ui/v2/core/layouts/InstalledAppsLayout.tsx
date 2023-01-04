@@ -4,7 +4,7 @@ import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavi
 import { InstalledAppVariants } from "@calcom/app-store/utils";
 import { trpc } from "@calcom/trpc/react";
 
-import { Icon } from "../../../Icon";
+import { Icon } from "../../../components/icon";
 import Shell from "../Shell";
 import type { HorizontalTabItemProps } from "../navigation/tabs/HorizontalTabItem";
 import type { VerticalTabItemProps } from "../navigation/tabs/VerticalTabItem";
