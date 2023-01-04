@@ -17,7 +17,7 @@ import {
   Label,
   Meta,
   showToast,
-  SkeletonLoader,
+  AppSkeletonLoader as SkeletonLoader,
 } from "@calcom/ui";
 
 export default function SAMLConfiguration({ teamId }: { teamId: number | null }) {
