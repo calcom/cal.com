@@ -215,7 +215,10 @@ export const getServerSideProps = async function getServerSideProps(
     },
   });
 
-  const serializableForms = forms.map((form) => getSerializableForm(form));
+  const serializableForms = [];
+  for (const [, form] of Object.entries(forms)) {
+    serializableForms.push(await getSerializableForm(form));
+  }
 
   return {
     props: {

@@ -13,12 +13,14 @@ const yesNo = (boolean?: boolean) => (boolean === true ? "yes" : boolean === fal
 export const BooleanToggleGroup = function BooleanToggleGroup({
   defaultValue = true,
   value,
+  disabled = false,
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   onValueChange = () => {},
 }: {
   defaultValue?: boolean;
   value?: boolean;
   onValueChange?: (value?: boolean) => void;
+  disabled?: boolean;
 }) {
   // Maintain a state because it is not necessary that onValueChange the parent component would re-render. Think react-hook-form
   // Also maintain a string as boolean isn't accepted as ToggleGroupPrimitive value
@@ -37,6 +39,7 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
     <ToggleGroupPrimitive
       value={yesNoValue}
       type="single"
+      disabled={disabled}
       className="space-x-2 rounded-sm rtl:space-x-reverse"
       onValueChange={(yesNoValue: "yes" | "no") => {
         setYesNoValue(yesNoValue);
@@ -44,10 +47,12 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
       }}>
       <ToggleGroupItemPrimitive
         className={classNames(boolean(yesNoValue) ? selectedClass : unselectedClass)}
+        disabled={disabled}
         value="yes">
         Yes
       </ToggleGroupItemPrimitive>
       <ToggleGroupItemPrimitive
+        disabled={disabled}
         className={classNames(!boolean(yesNoValue) ? selectedClass : unselectedClass)}
         value="no">
         No
