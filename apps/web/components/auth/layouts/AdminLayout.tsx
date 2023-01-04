@@ -2,10 +2,10 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import React, { ComponentProps, useEffect } from "react";
 
+import SettingsLayout from "@calcom/features/settings/layouts/SettingsLayout";
 import ErrorBoundary from "@calcom/ui/ErrorBoundary";
 import Shell from "@calcom/ui/v2/core/Shell";
 
-import SettingsLayout from "./SettingsLayout";
 import { UserPermissionRole } from ".prisma/client";
 
 export default function AdminLayout({

@@ -5,19 +5,11 @@ import { TApiKeys } from "@calcom/ee/api-keys/components/ApiKeyListItem";
 import LicenseRequired from "@calcom/ee/common/components/v2/LicenseRequired";
 import ApiKeyDialogForm from "@calcom/features/ee/api-keys/components/ApiKeyDialogForm";
 import ApiKeyListItem from "@calcom/features/ee/api-keys/components/ApiKeyListItem";
+import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  EmptyScreen,
-  getSettingsLayout as getLayout,
-  Icon,
-  Meta,
-  SkeletonLoader,
-} from "@calcom/ui";
+import { Button, Dialog, DialogContent, EmptyScreen, Icon, Meta, SkeletonLoader } from "@calcom/ui";
 
 import { ssrInit } from "@server/lib/ssr";
 

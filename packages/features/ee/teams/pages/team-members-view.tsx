@@ -5,8 +5,9 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, getSettingsLayout as getLayout, Icon, Meta, showToast } from "@calcom/ui";
+import { Button, Icon, Meta, showToast } from "@calcom/ui";
 
+import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import MemberInvitationModal from "../components/MemberInvitationModal";
 import MemberListItem from "../components/MemberListItem";

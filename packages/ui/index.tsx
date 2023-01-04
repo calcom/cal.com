@@ -99,11 +99,6 @@ export { default as MultiSelectCheckboxes } from "./v2/core/form/MultiSelectChec
 export type { Option as MultiSelectCheckboxesOptionType } from "./v2/core/form/MultiSelectCheckboxes";
 export { ToggleGroup } from "./v2/core/form/ToggleGroup";
 export { default as ImageUploader } from "./v2/core/ImageUploader";
-export { default as AdminLayout, getLayout as getAdminLayout } from "./v2/core/layouts/AdminLayout";
-export { default as AppsLayout } from "./v2/core/layouts/AppsLayout";
-export { default as InstalledAppsLayout } from "./v2/core/layouts/InstalledAppsLayout";
-export { default as SettingsLayout, getLayout as getSettingsLayout } from "./v2/core/layouts/SettingsLayout";
-export { default as WizardLayout, getLayout as getWizardLayout } from "./v2/core/layouts/WizardLayout";
 export { default as LinkIconButton } from "./v2/core/LinkIconButton";
 export { List, ListItem, ListItemText, ListItemTitle, ListLinkItem } from "./v2/core/List";
 export { default as MeetingTimeInTimezones } from "./v2/core/MeetingTimeInTimezones";
