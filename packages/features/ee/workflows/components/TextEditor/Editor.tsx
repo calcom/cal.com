@@ -20,8 +20,8 @@ import ToolbarPlugin from "./plugins/ToolbarPlugin";
 import "./stylesEditor.css";
 
 export type TextEditorProps = {
-  form: UseFormReturn<FormValues>;
-  stepNumber: number;
+  text: string;
+  setText: (text: string) => void;
 };
 
 const editorConfig = {
@@ -53,7 +53,7 @@ export default function Editor(props: TextEditorProps) {
     <div className="editor">
       <LexicalComposer initialConfig={editorConfig}>
         <div className="editor-container">
-          <ToolbarPlugin form={props.form} stepNumber={props.stepNumber} />
+          <ToolbarPlugin text={props.text} setText={props.setText} />
           <div className="editor-inner">
             <RichTextPlugin contentEditable={<ContentEditable className="editor-input" />} placeholder="" />
             <AutoFocusPlugin />

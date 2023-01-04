@@ -571,7 +571,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                         </Label>
                       </div>
-                      <Editor form={form} stepNumber={step.stepNumber} />
+                      <Editor
+                        text={props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || ""}
+                        setText={(text: string) => {
+                          props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
+                          props.form.clearErrors();
+                        }}
+                      />
                     </>
                   ) : (
                     <>

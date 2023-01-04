@@ -408,10 +408,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
   useEffect(() => {
     editor.update(() => {
       const parser = new DOMParser();
-      const dom = parser.parseFromString(
-        props.form.getValues(`steps.${props.stepNumber - 1}.reminderBody`) || "",
-        "text/html"
-      );
+      const dom = parser.parseFromString(props.text, "text/html");
 
       const nodes = $generateNodesFromDOM(editor, dom);
 
@@ -421,8 +418,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
       editor.registerUpdateListener(({ editorState }) => {
         editorState.read(() => {
           const textInHtml = $generateHtmlFromNodes(editor);
-          props.form.setValue(`steps.${props.stepNumber - 1}.reminderBody`, textInHtml);
-          props.form.clearErrors();
+          props.setText(textInHtml);
         });
       });
     });
