@@ -1,12 +1,11 @@
 import Link from "next/link";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Icon } from "@calcom/ui";
+import { Icon, SkeletonText } from "@calcom/ui";
 
-import { SkeletonText } from "../../../components/skeleton";
-import Slider from "./Slider";
+import { Slider } from "./Slider";
 
-export default function AppStoreCategories({
+export function AppStoreCategories({
   categories,
 }: {
   categories: {

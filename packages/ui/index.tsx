@@ -35,6 +35,13 @@ export {
   SkeletonButton,
   SkeletonContainer,
   DropdownActions,
+  TrendingAppsSlider,
+  AppCard,
+  AllApps,
+  AppSkeletonLoader,
+  AppStoreCategories,
+  Slider,
+  useShouldShowArrows,
 } from "./components";
 export type { ActionType } from "./components";
 export type { AvatarProps, BadgeProps, ButtonBaseProps, ButtonProps, TopBannerProps } from "./components";
@@ -62,11 +69,6 @@ export {
 } from "./v2";
 export type { AlertProps } from "./v2";
 export { Segment, SegmentOption } from "./v2/core";
-export { default as AllApps } from "./v2/core/apps/AllApps";
-export { default as AppCard } from "./v2/core/apps/AppCard";
-export { default as AppStoreCategories } from "./v2/core/apps/Categories";
-export { default as SkeletonLoader } from "./v2/core/apps/SkeletonLoader";
-export { default as TrendingAppsSlider } from "./v2/core/apps/TrendingAppsSlider";
 export { default as Banner } from "./v2/core/banner";
 export { default as ColorPicker } from "./v2/core/colorpicker";
 export { default as ConfirmationDialogContent } from "./v2/core/ConfirmationDialogContent";

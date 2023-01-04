@@ -7,8 +7,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
-import { Button, Icon } from "../../..";
-import { showToast } from "../notifications";
+import { Button, Icon } from "../..";
+import { showToast } from "../../v2/core/notifications";
 
 interface AppCardProps {
   app: App;
@@ -16,7 +16,7 @@ interface AppCardProps {
   searchText?: string;
 }
 
-export default function AppCard({ app, credentials, searchText }: AppCardProps) {
+export function AppCard({ app, credentials, searchText }: AppCardProps) {
   const { t } = useLocale();
   const router = useRouter();
   const mutation = useAddAppMutation(null, {
