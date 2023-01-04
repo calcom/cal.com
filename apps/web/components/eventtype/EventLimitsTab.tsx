@@ -197,7 +197,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                       label={t("minimum_booking_notice")}
                       type="number"
                       placeholder="120"
-                      className="mb-0 h-[38px] rounded-[4px] ltr:mr-2 rtl:ml-2"
+                      className="mr-2 mb-0 h-[38px] rounded-[4px]"
                       {...formMethods.register("minimumBookingNoticeInDurationType", {
                         onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
                           onMinimumNoticeChange(event.target.value),
@@ -327,7 +327,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                       </div>
                     )}
                     {period.type === "RANGE" && (
-                      <div className="inline-flex space-x-2 ltr:ml-2 ltr:mr-2 rtl:ml-2 rtl:space-x-reverse">
+                      <div className="inline-flex space-x-2 ltr:ml-2 rtl:mr-2 rtl:space-x-reverse">
                         <Controller
                           name="periodDates"
                           control={formMethods.control}
@@ -347,9 +347,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
                         />
                       </div>
                     )}
-                    {period.suffix ? (
-                      <span className="ltr:ml-2 ltr:mr-2 rtl:ml-2">&nbsp;{period.suffix}</span>
-                    ) : null}
+                    {period.suffix ? <span className="ltr:ml-2 rtl:mr-2">&nbsp;{period.suffix}</span> : null}
                   </div>
                 );
               })}
@@ -412,9 +410,7 @@ const BookingLimits = () => {
                 .map(([key, bookingAmount]) => {
                   const bookingLimitKey = key as BookingLimitsKey;
                   return (
-                    <div
-                      className="mb-2 flex items-center space-x-2 text-sm rtl:space-x-reverse"
-                      key={bookingLimitKey}>
+                    <div className="mb-2 flex items-center space-x-2 text-sm" key={bookingLimitKey}>
                       <Input
                         id={`${bookingLimitKey}-limit`}
                         type="number"

@@ -59,7 +59,7 @@ const DateOverrideList = ({
               ))
             )}
           </div>
-          <div className="space-x-2 rtl:space-x-reverse">
+          <div className="space-x-2">
             <DateOverrideInputDialog
               excludedDates={excludedDates}
               workingHours={workingHours}

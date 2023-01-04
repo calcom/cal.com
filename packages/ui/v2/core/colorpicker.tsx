@@ -73,6 +73,7 @@ const ColorPicker = (props: ColorPickerProps) => {
   return (
     <div className="relative mt-1 flex items-center justify-center">
       <Swatch size="sm" backgroundColor={color} onClick={() => toggle(!isOpen)} />
+
       {isOpen && (
         <div className="popover" ref={popover}>
           <HexColorPicker
@@ -86,7 +87,7 @@ const ColorPicker = (props: ColorPickerProps) => {
         </div>
       )}
       <HexColorInput
-        className="block w-full border border-gray-300 px-3 py-2 ltr:ml-1 ltr:rounded-r-md rtl:mr-1 rtl:rounded-l-md sm:text-sm"
+        className="ml-1 block w-full rounded-r-md border border-gray-300 px-3 py-2 sm:text-sm"
         color={color}
         onChange={(val) => {
           setColor(val);
