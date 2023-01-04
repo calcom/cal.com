@@ -1,12 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { stringify } from "querystring";
+import stringify from "qs-stringify";
+import Stripe from "stripe";
+import { z } from "zod";
 
-import { BASE_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
-const client_id = process.env.STRIPE_CLIENT_ID;
+import { getStripeAppKeys } from "../lib/getStripeAppKeys";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { client_id } = await getStripeAppKeys();
+
   if (req.method === "GET") {
     // Get user
     const user = await prisma.user.findUnique({
@@ -19,18 +23,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    const redirect_uri = encodeURI(BASE_URL + "/api/integrations/stripepayment/callback");
-    const stripeConnectParams = {
+    const redirect_uri = encodeURI(WEBAPP_URL + "/api/integrations/stripepayment/callback");
+    const stripeConnectParams: Stripe.OAuthAuthorizeUrlParams = {
       client_id,
       scope: "read_write",
       response_type: "code",
-      "stripe_user[email]": user?.email,
-      "stripe_user[first_name]": user?.name,
-      /** We need this so E2E don't fail for international users */
-      "stripe_user[country]": process.env.NEXT_PUBLIC_IS_E2E ? "US" : undefined,
+      stripe_user: {
+        email: user?.email,
+        first_name: user?.name || undefined,
+        /** We need this so E2E don't fail for international users */
+        country: process.env.NEXT_PUBLIC_IS_E2E ? "US" : undefined,
+      },
       redirect_uri,
+      state: typeof req.query.state === "string" ? req.query.state : undefined,
     };
-    const query = stringify(stripeConnectParams);
+    /** stringify is being dumb here */
+    const params = z.record(z.any()).parse(stripeConnectParams);
+    const query = stringify(params);
     /**
      * Choose Express or Standard Stripe accounts
      * @url https://stripe.com/docs/connect/accounts

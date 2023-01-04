@@ -16,12 +16,12 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
         return (
           <div key={location.type} className="flex flex-row items-center text-sm font-medium">
             {eventLocationType.iconUrl === "/link.svg" ? (
-              <Icon.FiLink className="dark:text-darkgray-600 mr-[10px] ml-[2px] h-4 w-4 opacity-70 dark:opacity-100 " />
+              <Icon.FiLink className="dark:text-darkgray-600 ml-[2px] h-4 w-4 opacity-70 ltr:mr-[10px] rtl:ml-[10px] dark:opacity-100 " />
             ) : (
               <img
                 src={eventLocationType.iconUrl}
                 className={classNames(
-                  "mr-[10px] ml-[2px] h-4 w-4 opacity-70 dark:opacity-100 ",
+                  "ml-[2px] h-4 w-4 opacity-70 ltr:mr-[10px] rtl:ml-[10px] dark:opacity-100 ",
                   !eventLocationType.iconUrl?.includes("api") ? "dark:invert" : ""
                 )}
                 alt={`${eventLocationType.label} icon`}

@@ -15,7 +15,7 @@ export const metadata = {
   verified: true,
   rating: 4.3, // TODO: placeholder for now, pull this from TrustPilot or G2
   reviews: 69, // TODO: placeholder for now, pull this from TrustPilot or G2
-  category: "other",
+  categories: ["other"],
   label: "HubSpot CRM",
   slug: "hubspot",
   title: "HubSpot CRM",

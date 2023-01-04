@@ -1,10 +1,10 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useRouter } from "next/router";
 import React, { ReactNode, useState } from "react";
-import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { SVGComponent } from "@calcom/types/SVGComponent";
 
 import { Button, ButtonProps } from "../../components/button";
 
@@ -58,7 +58,8 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
   description?: string | JSX.Element | undefined;
   closeText?: string;
   actionDisabled?: boolean;
-  Icon?: Icon;
+  Icon?: SVGComponent;
+  allowScroll?: boolean;
 };
 
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
@@ -78,7 +79,8 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               : props.size == "md"
               ? "p-8 sm:max-w-[48rem]"
               : "p-8 sm:max-w-[35rem]",
-            "max-h-[560px] overflow-visible overscroll-auto md:h-auto md:max-h-[inherit]",
+            "max-h-[560px] overscroll-auto md:h-auto md:max-h-[inherit]",
+            props.allowScroll ? "overflow-y-auto" : "overflow-visible",
             `${props.className || ""}`
           )}
           ref={forwardedRef}>

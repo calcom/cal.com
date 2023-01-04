@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { handleErrorsJson } from "@calcom/lib/errors";
+import { GetRecordingsResponseSchema, getRecordingsResponseSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
@@ -62,7 +63,7 @@ export const FAKE_DAILY_CREDENTIAL: CredentialPayload & { invalid: boolean } = {
   invalid: false,
 };
 
-const fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
+export const fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
   const { api_key } = await getDailyAppKeys();
   return fetch(`https://api.daily.co/v1${endpoint}`, {
     method: "GET",
@@ -87,9 +88,8 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     if (!event.uid) {
       throw new Error("We need need the booking uid to create the Daily reference in DB");
     }
-    const dailyEvent = await postToDailyAPI(endpoint, translateEvent(event)).then(
-      dailyReturnTypeSchema.parse
-    );
+    const body = await translateEvent(event);
+    const dailyEvent = await postToDailyAPI(endpoint, body).then(dailyReturnTypeSchema.parse);
     const meetingToken = await postToDailyAPI("/meeting-tokens", {
       properties: { room_name: dailyEvent.name, is_owner: true },
     }).then(meetingTokenSchema.parse);
@@ -102,11 +102,11 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     });
   }
 
-  const translateEvent = (event: CalendarEvent) => {
+  const translateEvent = async (event: CalendarEvent) => {
     // Documentation at: https://docs.daily.co/reference#list-rooms
     // added a 1 hour buffer for room expiration
     const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 60;
-    const scalePlan = process.env.DAILY_SCALE_PLAN;
+    const { scale_plan: scalePlan } = await getDailyAppKeys();
 
     if (scalePlan === "true") {
       return {
@@ -118,7 +118,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
           enable_screenshare: true,
           enable_chat: true,
           exp: exp,
-          enable_recording: "local",
+          enable_recording: "cloud",
         },
       };
     }
@@ -148,6 +148,16 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     },
     updateMeeting: (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> =>
       createOrUpdateMeeting(`/rooms/${bookingRef.uid}`, event),
+    getRecordings: async (roomName: string): Promise<GetRecordingsResponseSchema> => {
+      try {
+        const res = await fetcher(`/recordings?room_name=${roomName}`).then(
+          getRecordingsResponseSchema.parse
+        );
+        return Promise.resolve(res);
+      } catch (err) {
+        throw new Error("Something went wrong! Unable to get recording");
+      }
+    },
   };
 };
 

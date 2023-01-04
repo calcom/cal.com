@@ -17,6 +17,7 @@
     "@calcom/trpc": "*",
     "@formkit/auto-animate": "^1.0.0-beta.5",
     "@radix-ui/react-dialog": "^1.0.0",
+    "@radix-ui/react-popover": "^1.0.2",
     "@radix-ui/react-portal": "^1.0.0",
     "@radix-ui/react-select": "^0.1.1",
     "@tanstack/react-query": "^4.3.9",

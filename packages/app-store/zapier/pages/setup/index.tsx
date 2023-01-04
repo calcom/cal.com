@@ -51,7 +51,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
             <div className="invisible md:visible">
               <img className="h-11" src="/api/app-store/zapier/icon.svg" alt="Zapier Logo" />
             </div>
-            <div className="ml-2 mr-2 md:ml-5">
+            <div className="ml-2 ltr:mr-2 rtl:ml-2 md:ml-5">
               <div className="text-gray-600">{t("setting_up_zapier")}</div>
               {!newApiKey ? (
                 <>
@@ -75,7 +75,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                         }}
                         type="button"
                         className="mt-4 text-base sm:mt-0 sm:rounded-l-none">
-                        <ClipboardCopyIcon className="mr-2 h-5 w-5 text-neutral-100" />
+                        <ClipboardCopyIcon className="h-5 w-5 text-neutral-100 ltr:mr-2 rtl:ml-2" />
                         {t("copy")}
                       </Button>
                     </Tooltip>
@@ -86,7 +86,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                 </>
               )}
 
-              <ol className="mt-5 mb-5 ml-5 mr-5 list-decimal">
+              <ol className="mt-5 mb-5 ml-5 list-decimal ltr:mr-5 rtl:ml-5">
                 {isCalDev && (
                   <li>
                     {t("go_to")}

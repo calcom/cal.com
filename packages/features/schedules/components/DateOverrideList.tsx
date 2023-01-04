@@ -38,7 +38,7 @@ const DateOverrideList = ({
   };
 
   return (
-    <ul className="rounded border border-gray-200">
+    <ul className="rounded border border-gray-200" data-testid="date-overrides-list">
       {items.map((item, index) => (
         <li key={item.id} className="flex justify-between border-b px-5 py-4 last:border-b-0">
           <div>
@@ -59,7 +59,7 @@ const DateOverrideList = ({
               ))
             )}
           </div>
-          <div className="space-x-2">
+          <div className="space-x-2 rtl:space-x-reverse">
             <DateOverrideInputDialog
               excludedDates={excludedDates}
               workingHours={workingHours}

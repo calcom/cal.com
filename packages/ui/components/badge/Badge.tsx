@@ -1,7 +1,7 @@
-import { Icon } from "react-feather";
 import { GoPrimitiveDot } from "react-icons/go";
 
 import classNames from "@calcom/lib/classNames";
+import { SVGComponent } from "@calcom/types/SVGComponent";
 
 const badgeClassNameByVariant = {
   default: "bg-orange-100 text-orange-800",
@@ -9,7 +9,7 @@ const badgeClassNameByVariant = {
   orange: "bg-orange-100 text-orange-800",
   success: "bg-green-100 text-green-800",
   green: "bg-green-100 text-green-800",
-  gray: "bg-gray-100 text-gray-800 dark:bg-transparent dark:text-darkgray-800",
+  gray: "bg-gray-100 text-gray-800 dark:bg-transparent dark:text-darkgray-800 group-hover:bg-gray-200 dark:group-hover:bg-darkgray-200",
   blue: "bg-blue-100 text-blue-800",
   red: "bg-red-100 text-red-800",
   error: "bg-red-100 text-red-800",
@@ -23,7 +23,7 @@ const classNameBySize = {
 export type BadgeProps = {
   variant: keyof typeof badgeClassNameByVariant;
   size?: keyof typeof classNameBySize;
-  StartIcon?: Icon;
+  StartIcon?: SVGComponent;
   bold?: boolean;
   withDot?: boolean;
   rounded?: boolean;
@@ -53,8 +53,8 @@ export const Badge = function Badge(props: BadgeProps) {
         className
       )}>
       <>
-        {StartIcon && <StartIcon className="mr-1 h-3 w-3 stroke-[3px]" />}
-        {withDot && <GoPrimitiveDot className="mr-1 h-3 w-3 stroke-[3px]" />}
+        {StartIcon && <StartIcon className="h-3 w-3 stroke-[3px] ltr:mr-1 rtl:ml-1" />}
+        {withDot && <GoPrimitiveDot className="h-3 w-3 stroke-[3px] ltr:mr-1 rtl:ml-1" />}
         {props.children}
       </>
     </div>
