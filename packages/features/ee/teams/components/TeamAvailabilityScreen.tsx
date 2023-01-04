@@ -47,7 +47,7 @@ export default function TeamAvailabilityScreen(props: Props) {
                 alt={member?.name || ""}
                 className="min-w-10 min-h-10 mt-1 h-10 w-10 rounded-full"
               />
-              <div className="ml-3 inline-block overflow-hidden pt-1">
+              <div className="inline-block overflow-hidden pt-1 ltr:ml-3 rtl:mr-3">
                 <span className="truncate text-lg font-bold text-neutral-700">{member?.name}</span>
                 <span className="-mt-1 block truncate text-sm text-gray-400">{member?.email}</span>
               </div>

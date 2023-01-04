@@ -1,10 +1,10 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppFrontendPayload as App } from "@calcom/types/App";
 
-import AppCard from "./AppCard";
-import Slider from "./Slider";
+import { AppCard } from "./AppCard";
+import { Slider } from "./Slider";
 
-const TrendingAppsSlider = <T extends App>({ items }: { items: T[] }) => {
+export const TrendingAppsSlider = <T extends App>({ items }: { items: T[] }) => {
   const { t } = useLocale();
 
   return (
@@ -25,5 +25,3 @@ const TrendingAppsSlider = <T extends App>({ items }: { items: T[] }) => {
     />
   );
 };
-
-export default TrendingAppsSlider;

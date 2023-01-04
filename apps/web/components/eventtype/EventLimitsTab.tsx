@@ -1,6 +1,6 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
-import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
+import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useMemo, useRef, useState } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 
@@ -12,7 +12,7 @@ import { PeriodType } from "@calcom/prisma/client";
 import type { BookingLimit } from "@calcom/types/Calendar";
 import { Button, DateRangePicker, Icon, Input, InputField, Label, Select, SettingsToggle } from "@calcom/ui";
 
-export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupInfered, "eventType">) => {
+export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
   const minimumBookingNoticeType = useRef<DurationType>(findDurationType(eventType.minimumBookingNotice));
@@ -197,7 +197,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupInfered, "event
                       label={t("minimum_booking_notice")}
                       type="number"
                       placeholder="120"
-                      className="mr-2 mb-0 h-[38px] rounded-[4px]"
+                      className="mb-0 h-[38px] rounded-[4px] ltr:mr-2 rtl:ml-2"
                       {...formMethods.register("minimumBookingNoticeInDurationType", {
                         onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
                           onMinimumNoticeChange(event.target.value),
@@ -327,7 +327,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupInfered, "event
                       </div>
                     )}
                     {period.type === "RANGE" && (
-                      <div className="inline-flex space-x-2 ltr:ml-2 rtl:mr-2 rtl:space-x-reverse">
+                      <div className="inline-flex space-x-2 ltr:ml-2 ltr:mr-2 rtl:ml-2 rtl:space-x-reverse">
                         <Controller
                           name="periodDates"
                           control={formMethods.control}
@@ -347,7 +347,9 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupInfered, "event
                         />
                       </div>
                     )}
-                    {period.suffix ? <span className="ltr:ml-2 rtl:mr-2">&nbsp;{period.suffix}</span> : null}
+                    {period.suffix ? (
+                      <span className="ltr:ml-2 ltr:mr-2 rtl:ml-2">&nbsp;{period.suffix}</span>
+                    ) : null}
                   </div>
                 );
               })}
@@ -410,7 +412,9 @@ const BookingLimits = () => {
                 .map(([key, bookingAmount]) => {
                   const bookingLimitKey = key as BookingLimitsKey;
                   return (
-                    <div className="mb-2 flex items-center space-x-2 text-sm" key={bookingLimitKey}>
+                    <div
+                      className="mb-2 flex items-center space-x-2 text-sm rtl:space-x-reverse"
+                      key={bookingLimitKey}>
                       <Input
                         id={`${bookingLimitKey}-limit`}
                         type="number"

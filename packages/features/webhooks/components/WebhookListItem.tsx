@@ -45,7 +45,12 @@ export default function WebhookListItem(props: {
         <Tooltip content={t("triggers_when")}>
           <div className="mt-2.5 w-4/5">
             {webhook.eventTriggers.map((trigger) => (
-              <Badge key={trigger} className="mr-2" variant="gray" bold StartIcon={Icon.FiAlertCircle}>
+              <Badge
+                key={trigger}
+                className="ltr:mr-2 rtl:ml-2"
+                variant="gray"
+                bold
+                StartIcon={Icon.FiAlertCircle}>
                 {t(`${trigger.toLowerCase()}`)}
               </Badge>
             ))}
