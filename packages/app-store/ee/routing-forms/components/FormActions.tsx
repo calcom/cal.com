@@ -2,6 +2,7 @@ import type { NextRouter } from "next/router";
 import { useRouter } from "next/router";
 import { createContext, forwardRef, useContext, useState } from "react";
 import { useForm } from "react-hook-form";
+import { Controller } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
@@ -26,6 +27,7 @@ import {
   Switch,
   TextAreaField,
   TextField,
+  SettingsToggle,
 } from "@calcom/ui";
 
 import { EmbedButton, EmbedDialog } from "@components/Embed";
@@ -77,6 +79,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
   const hookForm = useForm<{
     name: string;
     description: string;
+    shouldConnect: boolean;
   }>();
 
   const { action, target } = router.query as z.infer<typeof newFormModalQuerySchema>;
@@ -97,6 +100,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
           form={hookForm}
           handleSubmit={(values) => {
             const formId = uuidv4();
+
             mutation.mutate({
               id: formId,
               ...values,
@@ -115,6 +119,23 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
                 placeholder="Form Description"
               />
             </div>
+            {action === "duplicate" && (
+              <Controller
+                name="shouldConnect"
+                render={({ field: { value, onChange } }) => {
+                  return (
+                    <SettingsToggle
+                      title="Keep me connected with the form"
+                      description="Any changes in Router and Fields of the form being duplicated, would reflect in the duplicate."
+                      checked={value}
+                      onCheckedChange={(checked) => {
+                        onChange(checked);
+                      }}
+                    />
+                  );
+                }}
+              />
+            )}
           </div>
           <div className="mt-8 flex flex-row-reverse gap-x-2">
             <Button loading={mutation.isLoading} data-testid="add-form" type="submit">
@@ -186,7 +207,7 @@ function Dialogs({
       if (context?.previousValue) {
         utils.viewer.appRoutingForms.forms.setData(undefined, context.previousValue);
       }
-      showToast("Something went wrong", "error");
+      showToast(err.message || "Something went wrong", "error");
     },
   });
   return (

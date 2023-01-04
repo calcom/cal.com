@@ -2,88 +2,13 @@ import { expect, Page } from "@playwright/test";
 
 import { Fixtures, test } from "@calcom/web/playwright/lib/fixtures";
 
-async function gotoRoutingLink(page: Page, formId: string) {
-  await page.goto(`/forms/${formId}`);
-  // HACK: There seems to be some issue with the inputs to the form getting reset if we don't wait.
-  await new Promise((resolve) => setTimeout(resolve, 500));
-}
-
-export async function addForm(page: Page) {
-  await page.click('[data-testid="new-routing-form"]');
-  await page.fill("input[name]", "Test Form Name");
-  await page.click('[data-testid="add-form"]');
-  await page.waitForSelector('[data-testid="add-field"]');
-  const url = page.url();
-  const formId = new URL(url).pathname.split("/").at(-1);
-  if (!formId) {
-    throw new Error("Form ID couldn't be determined from url");
-  }
-  return formId;
-}
-
-async function verifySelectOptions(
-  selector: { selector: string; nth: number },
-  expectedOptions: string[],
-  page: Page
-) {
-  await page.locator(selector.selector).nth(selector.nth).click();
-  const selectOptions = await page
-    .locator(selector.selector)
-    .nth(selector.nth)
-    .locator('[id*="react-select-"][aria-disabled]')
-    .allInnerTexts();
-
-  const sortedSelectOptions = [...selectOptions].sort();
-  const sortedExpectedOptions = [...expectedOptions].sort();
-  expect(sortedSelectOptions).toEqual(sortedExpectedOptions);
-  return {
-    optionsInUi: selectOptions,
-  };
-}
-
-export async function fillForm(
-  page: Page,
-  form: { description: string; field?: { typeIndex: number; label: string } }
-) {
-  await page.click('[data-testid="add-field"]');
-  await page.fill('[data-testid="description"]', form.description);
-
-  // Verify all Options of SelectBox
-  const { optionsInUi: types } = await verifySelectOptions(
-    { selector: ".data-testid-field-type", nth: 0 },
-    ["Email", "Long Text", "MultiSelect", "Number", "Phone", "Select", "Short Text"],
-    page
-  );
-
-  if (form.field) {
-    await page.fill('[name="fields.0.label"]', form.field.label);
-    await page.click(".data-testid-field-type");
-    await page.locator('[id*="react-select-"][aria-disabled]').nth(form.field.typeIndex).click();
-  }
-  await page.click('[data-testid="update-form"]');
-  await page.waitForSelector(".data-testid-toast-success");
-  return {
-    types,
-  };
+function todo(title: string) {
+  // eslint-disable-next-line playwright/no-skipped-test, @typescript-eslint/no-empty-function
+  test.skip(title, () => {});
 }
 
 test.describe("Routing Forms", () => {
-  test.afterEach(async ({ users }) => {
-    // This also delete forms on cascade
-    await users.deleteAll();
-  });
   test.describe("Zero State Routing Forms", () => {
-    test.beforeEach(async ({ page, users }) => {
-      const user = await users.create({ username: "routing-forms" });
-      await user.login();
-      // Install app
-      await page.goto(`/apps/routing-forms`);
-      await page.click('[data-testid="install-app-button"]');
-      await page.waitForNavigation({
-        url: (url) => url.pathname === `/apps/routing-forms/forms`,
-      });
-    });
-
     test("should be able to add a new form and view it", async ({ page }) => {
       await page.waitForSelector('[data-testid="empty-screen"]');
 
@@ -107,7 +32,7 @@ test.describe("Routing Forms", () => {
     });
 
     test("should be able to edit the form", async ({ page }) => {
-      await addForm(page);
+      const formId = await addForm(page);
       const description = "Test Description";
 
       const field = {
@@ -115,7 +40,7 @@ test.describe("Routing Forms", () => {
         typeIndex: 1,
       };
 
-      const { types } = await fillForm(page, {
+      const { types } = await addOneFieldAndDescriptionAndSaveForm(formId, page, {
         description,
         field: field,
       });
@@ -124,26 +49,91 @@ test.describe("Routing Forms", () => {
 
       expect(await page.inputValue(`[data-testid="description"]`), description);
       expect(await page.locator('[data-testid="field"]').count()).toBe(1);
-      expect(await page.inputValue('[name="fields.0.label"]')).toBe(field.label);
-      expect(await page.locator(".data-testid-field-type").first().locator("div").nth(1).innerText()).toBe(
-        types[field.typeIndex]
-      );
+
+      await expectCurrentFormToHaveFields(page, { 0: field }, types);
 
       await page.click('[href*="/apps/routing-forms/route-builder/"]');
-      await page.click('[data-testid="add-route"]');
+      await selectNewRoute(page);
+
       await page.click('[data-testid="add-rule"]');
-      await verifySelectOptions(
-        {
-          selector: ".rule-container .data-testid-field-select",
-          nth: 0,
-        },
-        [field.label],
-        page
-      );
+
+      await verifyFieldOptionsInRule([field.label], page);
+    });
+
+    test.describe("F1<-F2 Relationship", () => {
+      test("Create relationship by adding F1 as route.Editing F1 should update F2", async ({ page }) => {
+        const form1Id = await addForm(page, { name: "F1" });
+        const form2Id = await addForm(page, { name: "F2" });
+
+        await addOneFieldAndDescriptionAndSaveForm(form1Id, page, {
+          description: "Form 1 Description",
+          field: {
+            label: "F1 Field1",
+            typeIndex: 1,
+          },
+        });
+
+        const { types } = await addOneFieldAndDescriptionAndSaveForm(form2Id, page, {
+          description: "Form 2 Description",
+          field: {
+            label: "F2 Field1",
+            //TODO: Maybe choose some other type and choose type by it's name and not index
+            typeIndex: 1,
+          },
+        });
+
+        // Add F1 as Router to F2
+        await page.goto(`/apps/routing-forms/route-builder/${form2Id}`);
+        await selectNewRoute(page, {
+          // It should be F1. TODO: Verify that it's F1
+          routeSelectNumber: 2,
+        });
+        await saveCurrentForm(page);
+
+        // Expect F1 fields to be available in F2
+        await page.goto(`/apps/routing-forms/form-edit/${form2Id}`);
+        expect(await page.locator('[data-testid="field"]').count()).toBe(2);
+        await expectCurrentFormToHaveFields(page, { 1: { label: "F1 Field1", typeIndex: 1 } }, types);
+        // Add 1 more field in F1
+        await addOneFieldAndDescriptionAndSaveForm(form1Id, page, {
+          field: {
+            label: "F1 Field2",
+            typeIndex: 1,
+          },
+        });
+
+        await page.goto(`/apps/routing-forms/form-edit/${form2Id}`);
+        expect(await page.locator('[data-testid="field"]').count()).toBe(3);
+        await expectCurrentFormToHaveFields(page, { 2: { label: "F1 Field2", typeIndex: 1 } }, types);
+      });
+      todo("Create relationship by using duplicate with live connect");
+    });
+
+    // TODO: How to install the app just once?
+    test.beforeEach(async ({ page, users }) => {
+      const user = await users.create({ username: "routing-forms" });
+      await user.login();
+      // Install app
+      await page.goto(`/apps/routing-forms`);
+      await page.click('[data-testid="install-app-button"]');
+      await page.waitForNavigation({
+        url: (url) => url.pathname === `/apps/routing-forms/forms`,
+      });
+    });
+
+    test.afterEach(async ({ users }) => {
+      // This also delete forms on cascade
+      await users.deleteAll();
     });
   });
 
+  todo("should be able to duplicate form");
+
   test.describe("Seeded Routing Form ", () => {
+    test.afterEach(async ({ users }) => {
+      // This also delete forms on cascade
+      await users.deleteAll();
+    });
     const createUserAndLoginAndInstallApp = async function ({
       users,
       page,
@@ -324,6 +314,27 @@ test.describe("Routing Forms", () => {
     });
   });
 });
+
+async function expectCurrentFormToHaveFields(
+  page: Page,
+  fields: {
+    [key: number]: { label: string; typeIndex: number };
+  },
+  types: string[]
+) {
+  for (const [index, field] of Object.entries(fields)) {
+    expect(await page.inputValue(`[name="fields.${index}.label"]`)).toBe(field.label);
+    expect(
+      await page
+        .locator(".data-testid-field-type")
+        .nth(+index)
+        .locator("div")
+        .nth(1)
+        .innerText()
+    ).toBe(types[field.typeIndex]);
+  }
+}
+
 async function fillSeededForm(page: Page, routingFormId: string) {
   await gotoRoutingLink(page, routingFormId);
   await page.fill('[data-testid="form-field"]', "event-routing");
@@ -347,4 +358,128 @@ async function fillSeededForm(page: Page, routingFormId: string) {
   await page.fill('[data-testid="form-field"]', "custom-page");
   await page.click('button[type="submit"]');
   await page.isVisible("text=Custom Page Result");
+}
+
+export async function addForm(page: Page, { name = "Test Form Name" } = {}) {
+  await page.goto("/apps/routing-forms/forms");
+  await page.click('[data-testid="new-routing-form"]');
+  await page.fill("input[name]", name);
+  await page.click('[data-testid="add-form"]');
+  await page.waitForSelector('[data-testid="add-field"]');
+  const url = page.url();
+  const formId = new URL(url).pathname.split("/").at(-1);
+  if (!formId) {
+    throw new Error("Form ID couldn't be determined from url");
+  }
+  return formId;
+}
+
+export async function addOneFieldAndDescriptionAndSaveForm(
+  formId: string,
+  page: Page,
+  form: { description?: string; field?: { typeIndex: number; label: string } }
+) {
+  await page.goto(`apps/routing-forms/form-edit/${formId}`);
+  await page.click('[data-testid="add-field"]');
+  if (form.description) {
+    await page.fill('[data-testid="description"]', form.description);
+  }
+
+  // Verify all Options of SelectBox
+  const { optionsInUi: types } = await verifySelectOptions(
+    { selector: ".data-testid-field-type", nth: 0 },
+    ["Email", "Long Text", "MultiSelect", "Number", "Phone", "Select", "Short Text"],
+    page
+  );
+
+  const nextFieldIndex = (await page.locator('[data-testid="field"]').count()) - 1;
+
+  if (form.field) {
+    await page.fill(`[name="fields.${nextFieldIndex}.label"]`, form.field.label);
+    await page
+      .locator('[data-testid="field"]')
+      .nth(nextFieldIndex)
+      .locator(".data-testid-field-type")
+      .click();
+    await page
+      .locator('[data-testid="field"]')
+      .nth(nextFieldIndex)
+      .locator('[id*="react-select-"][aria-disabled]')
+      .nth(form.field.typeIndex)
+      .click();
+  }
+  await saveCurrentForm(page);
+  return {
+    types,
+  };
+}
+
+async function selectOption({
+  page,
+  selector,
+  option,
+}: {
+  page: Page;
+  selector: { selector: string; nth: number };
+  option: number;
+}) {
+  const locatorForSelect = page.locator(selector.selector).nth(selector.nth);
+  await locatorForSelect.click();
+  await locatorForSelect
+    .locator('[id*="react-select-"][aria-disabled]')
+    .nth(option - 1)
+    .click();
+}
+
+async function verifyFieldOptionsInRule(options: string[], page: Page) {
+  await verifySelectOptions(
+    {
+      selector: ".rule-container .data-testid-field-select",
+      nth: 0,
+    },
+    options,
+    page
+  );
+}
+
+async function verifySelectOptions(
+  selector: { selector: string; nth: number },
+  expectedOptions: string[],
+  page: Page
+) {
+  await page.locator(selector.selector).nth(selector.nth).click();
+  const selectOptions = await page
+    .locator(selector.selector)
+    .nth(selector.nth)
+    .locator('[id*="react-select-"][aria-disabled]')
+    .allInnerTexts();
+
+  const sortedSelectOptions = [...selectOptions].sort();
+  const sortedExpectedOptions = [...expectedOptions].sort();
+  expect(sortedSelectOptions).toEqual(sortedExpectedOptions);
+  return {
+    optionsInUi: selectOptions,
+  };
+}
+
+async function selectNewRoute(page: Page, { routeSelectNumber = 1 } = {}) {
+  await selectOption({
+    selector: {
+      selector: ".data-testid-select-router",
+      nth: 0,
+    },
+    option: routeSelectNumber,
+    page,
+  });
+}
+
+async function gotoRoutingLink(page: Page, formId: string) {
+  await page.goto(`/forms/${formId}`);
+  // HACK: There seems to be some issue with the inputs to the form getting reset if we don't wait.
+  await new Promise((resolve) => setTimeout(resolve, 500));
+}
+
+async function saveCurrentForm(page: Page) {
+  await page.click('[data-testid="update-form"]');
+  await page.waitForSelector(".data-testid-toast-success");
 }
