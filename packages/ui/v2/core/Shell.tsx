@@ -31,15 +31,14 @@ import {
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  Icon,
   showToast,
   TimezoneChangeDialog,
 } from "../..";
-import ErrorBoundary from "../../ErrorBoundary";
-import { KBarContent, KBarRoot, KBarTrigger } from "../../Kbar";
-import Logo from "../../Logo";
+import { Logo, ErrorBoundary } from "../../components";
+import { Icon } from "../../components/icon";
 import { SkeletonText } from "../../components/skeleton";
 import Credits from "./Credits";
+import { KBarContent, KBarRoot, KBarTrigger } from "./Kbar";
 import HeadSeo from "./head-seo";
 
 /* TODO: Migate this */

@@ -9,7 +9,6 @@ import {
   Alert,
   Badge,
   Button,
-  ClipboardCopyIcon,
   ConfirmationDialogContent,
   Dialog,
   DialogContent,
@@ -123,7 +122,7 @@ export default function SAMLConfiguration({ teamId }: { teamId: number | null })
                   }}
                   type="button"
                   className="px-4 text-base">
-                  <ClipboardCopyIcon className="h-5 w-5 text-neutral-100" />
+                  <Icon.ClipboardCopyIcon className="h-5 w-5 text-neutral-100" />
                   {t("copy")}
                 </Button>
               </div>
@@ -143,7 +142,7 @@ export default function SAMLConfiguration({ teamId }: { teamId: number | null })
                   }}
                   type="button"
                   className="px-4 text-base">
-                  <ClipboardCopyIcon className="h-5 w-5 text-neutral-100" />
+                  <Icon.ClipboardCopyIcon className="h-5 w-5 text-neutral-100" />
                   {t("copy")}
                 </Button>
               </div>

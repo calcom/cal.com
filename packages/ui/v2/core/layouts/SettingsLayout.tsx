@@ -12,7 +12,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Skeleton } from "@calcom/ui";
 
-import { Badge, Button, ErrorBoundary, Icon } from "../../..";
+import { Badge, Button, ErrorBoundary } from "../../..";
+import { Icon } from "../../../components/icon";
 import { useMeta } from "../Meta";
 import Shell from "../Shell";
 import { VerticalTabItemProps } from "../navigation/tabs/VerticalTabItem";
