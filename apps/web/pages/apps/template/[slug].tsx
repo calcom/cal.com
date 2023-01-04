@@ -58,17 +58,7 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
   );
 }
 
-export const getStaticPaths: GetStaticPaths<{ slug: string }> = async () => {
-  const appStore = await prisma.app.findMany({ select: { slug: true } });
-  const paths = appStore.map(({ slug }) => ({ params: { slug } }));
-
-  return {
-    paths,
-    fallback: false,
-  };
-};
-
-export const getStaticProps = async (ctx: GetStaticPropsContext) => {
+export const getServerSideProps = async (ctx: GetStaticPropsContext) => {
   if (typeof ctx.params?.slug !== "string") return { notFound: true };
 
   const app = await prisma.app.findUnique({
@@ -78,8 +68,8 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   if (!app) return { notFound: true };
 
   const singleApp = await getAppWithMetadata(app);
-
-  if (!singleApp || singleApp.isTemplate) return { notFound: true };
+  console.log("TEMPLATE: ", singleApp);
+  if (!singleApp || !singleApp.isTemplate) return { notFound: true };
 
   const appDirname = app.dirName;
   const README_PATH = path.join(process.cwd(), "..", "..", `packages/app-store/${appDirname}/README.mdx`);

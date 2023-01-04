@@ -3,6 +3,7 @@
     Don't modify this file manually.
 **/
 export const apiHandlers = {
+  event_type_app_card: import("./_templates/event_type_app_card/api"),
   applecalendar: import("./applecalendar/api"),
   around: import("./around/api"),
   caldavcalendar: import("./caldavcalendar/api"),

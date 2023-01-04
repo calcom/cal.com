@@ -34,6 +34,7 @@ const getAppId = function (app: { name: string }) {
 };
 
 const APP_STORE_PATH = path.join(__dirname, "..", "..", "app-store");
+const TEMPLATES_PATH = path.join(APP_STORE_PATH, "_templates");
 type App = Partial<AppMeta> & {
   name: string;
   path: string;
@@ -66,13 +67,13 @@ function generateFiles() {
   const appDirs: { name: string; path: string }[] = [];
 
   fs.readdirSync(`${APP_STORE_PATH}`).forEach(function (dir) {
-    if (dir === "ee") {
-      fs.readdirSync(path.join(APP_STORE_PATH, dir)).forEach(function (eeDir) {
-        if (fs.statSync(path.join(APP_STORE_PATH, dir, eeDir)).isDirectory()) {
-          if (!getAppName(path.resolve(eeDir))) {
+    if (dir === "ee" || dir === "_templates") {
+      fs.readdirSync(path.join(APP_STORE_PATH, dir)).forEach(function (subDir) {
+        if (fs.statSync(path.join(APP_STORE_PATH, dir, subDir)).isDirectory()) {
+          if (!getAppName(path.resolve(subDir))) {
             appDirs.push({
-              name: eeDir,
-              path: path.join(dir, eeDir),
+              name: subDir,
+              path: path.join(dir, subDir),
             });
           }
         }

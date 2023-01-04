@@ -101,5 +101,11 @@
     "categories": ["video"],
     "slug": "sirius_video",
     "type": "sirius_video_video"
+  },
+  {
+    "dirName": "event_type_app_card",
+    "categories": ["other"],
+    "slug": "event_type_app_card",
+    "type": "event_type_app_card_other"
   }
 ]

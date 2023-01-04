@@ -32,6 +32,7 @@ export const AppSettingsComponentsMap = {
   zapier: dynamic(() => import("./zapier/components/AppSettings")),
 };
 export const EventTypeAddonMap = {
+  event_type_app_card: dynamic(() => import("./_templates/event_type_app_card/extensions/EventTypeAppCard")),
   fathom: dynamic(() => import("./fathom/extensions/EventTypeAppCard")),
   ga4: dynamic(() => import("./ga4/extensions/EventTypeAppCard")),
   giphy: dynamic(() => import("./giphy/extensions/EventTypeAppCard")),
