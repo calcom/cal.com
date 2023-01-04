@@ -89,11 +89,6 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: !!process.env.CI,
   },
-  modularizeImports: {
-    "@calcom/ui": {
-      transform: "@calcom/ui/{{member}}",
-    },
-  },
   images: {
     unoptimized: true,
   },
