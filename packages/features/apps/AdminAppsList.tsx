@@ -187,7 +187,7 @@ const AdminAppsList = ({ baseURL, className }: { baseURL: string; className?: st
       <AppCategoryNavigation
         baseURL={baseURL}
         fromAdmin
-        containerClassname="w-full xl:ml-5 max-h-97 overflow-scroll"
+        containerClassname="w-full xl:mx-5 xl:w-2/3 xl:pr-5"
         className={className}>
         <AdminAppsListContainer />
       </AppCategoryNavigation>

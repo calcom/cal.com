@@ -13,8 +13,8 @@ import {
   AppUser,
 } from "@calcom/types/AppGetServerSideProps";
 import {
+  Alert,
   Button,
-  Banner,
   Badge,
   ButtonGroup,
   Dialog,
@@ -362,14 +362,14 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     </Button>
                   </div>
                   {!form._count?.responses && (
-                    <Banner
-                      className="mt-6"
-                      variant="neutral"
-                      title="No Responses yet"
-                      description="Wait for some time for responses to be collected. You can go and submit the form yourself as well."
-                      Icon={Icon.FiInfo}
-                      onDismiss={() => console.log("dismissed")}
-                    />
+                    <>
+                      <Alert
+                        className="mt-6"
+                        severity="neutral"
+                        title="No responses yet"
+                        message="Wait for some time for responses to be collected. You can go and submit the form yourself as well."
+                      />
+                    </>
                   )}
                 </div>
                 <div className="w-full rounded-md border border-gray-200 p-8">

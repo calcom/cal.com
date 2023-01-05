@@ -3,11 +3,7 @@ import { useRouter } from "next/router";
 import React, { ComponentProps } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmptyScreen, Icon } from "@calcom/ui";
-
-import Shell from "../Shell";
-import type { HorizontalTabItemProps } from "../navigation/tabs/HorizontalTabItem";
-import HorizontalTabs from "../navigation/tabs/HorizontalTabs";
+import { EmptyScreen, Icon, Shell, HorizontalTabs, HorizontalTabItemProps } from "@calcom/ui";
 
 const tabs: HorizontalTabItemProps[] = [
   {

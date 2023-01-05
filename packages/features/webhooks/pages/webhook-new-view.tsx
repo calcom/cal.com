@@ -3,8 +3,9 @@ import { useRouter } from "next/router";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { getSettingsLayout as getLayout, Meta, showToast, SkeletonContainer } from "@calcom/ui";
+import { Meta, showToast, SkeletonContainer } from "@calcom/ui";
 
+import { getLayout } from "../../settings/layouts/SettingsLayout";
 import WebhookForm, { WebhookFormSubmitData } from "../components/WebhookForm";
 
 const NewWebhookView = () => {

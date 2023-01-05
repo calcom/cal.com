@@ -173,7 +173,6 @@ export const availabilityRouter = router({
       .input(
         z.object({
           name: z.string(),
-          copyScheduleId: z.number().optional(),
           schedule: z
             .array(
               z.array(
@@ -189,6 +188,22 @@ export const availabilityRouter = router({
       )
       .mutation(async ({ input, ctx }) => {
         const { user, prisma } = ctx;
+        if (input.eventTypeId) {
+          const eventType = await prisma.eventType.findUnique({
+            where: {
+              id: input.eventTypeId,
+            },
+            select: {
+              userId: true,
+            },
+          });
+          if (!eventType || eventType.userId !== user.id) {
+            throw new TRPCError({
+              code: "UNAUTHORIZED",
+              message: "You are not authorized to create a schedule for this event type",
+            });
+          }
+        }
         const data: Prisma.ScheduleCreateInput = {
           name: input.name,
           user: {
