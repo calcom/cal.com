@@ -192,19 +192,20 @@ model User {
 }
 
 model Team {
-  id           Int          @id @default(autoincrement())
+  id                  Int          @id @default(autoincrement())
   /// @zod.min(1)
-  name         String
+  name                String
   /// @zod.min(1)
-  slug         String?      @unique
-  logo         String?
-  bio          String?
-  hideBranding Boolean      @default(false)
-  members      Membership[]
-  eventTypes   EventType[]
-  createdAt    DateTime     @default(now())
+  slug                String?      @unique
+  logo                String?
+  bio                 String?
+  hideBranding        Boolean      @default(false)
+  hideBookATeamMember Boolean      @default(false)
+  members             Membership[]
+  eventTypes          EventType[]
+  createdAt           DateTime     @default(now())
   /// @zod.custom(imports.teamMetadataSchema)
-  metadata     Json?
+  metadata            Json?
 }
 
 enum MembershipRole {
