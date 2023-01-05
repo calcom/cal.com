@@ -8,6 +8,7 @@ import Link from "next/link";
 import path from "path";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
+import ExisitingGoogleCal from "@calcom/app-store/googlevideo/components/ExistingGoogleCal";
 import prisma from "@calcom/prisma";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -53,7 +54,12 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
       images={source?.scope?.items as string[] | undefined}
       //   tos="https://zoom.us/terms"
       //   privacy="https://zoom.us/privacy"
-      body={<MDXRemote {...source} components={components} />}
+      body={
+        <>
+          {data.slug === "google-meet" && <ExisitingGoogleCal />}
+          <MDXRemote {...source} components={components} />
+        </>
+      }
     />
   );
 }
