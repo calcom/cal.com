@@ -21,7 +21,7 @@ function AdminView() {
           const enteredUsername = usernameRef.current?.value.toLowerCase();
           signIn("impersonation-auth", { username: enteredUsername });
         }}>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 rtl:space-x-reverse">
           <TextField
             containerClassName="w-full"
             name={t("user_impersonation_heading")}

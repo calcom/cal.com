@@ -17,7 +17,7 @@ import {
   InstalledAppsLayout,
   List,
   ShellSubHeading,
-  SkeletonLoader,
+  AppSkeletonLoader as SkeletonLoader,
 } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";

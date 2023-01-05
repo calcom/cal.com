@@ -354,7 +354,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
               />
               {selectedLocation && LocationOptions}
               <DialogFooter>
-                <div className="mt-4 flex justify-end space-x-2">
+                <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
                   <Button
                     onClick={() => {
                       setShowLocationModal(false);
