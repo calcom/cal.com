@@ -1,77 +1,51 @@
-import React, { ReactNode, useState } from "react";
+import React from "react";
 
 import classNames from "@calcom/lib/classNames";
 
-type RadioAreaProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange"> & {
-  onChange?: (value: string) => void;
-  defaultChecked?: boolean;
-};
+type RadioAreaProps = React.InputHTMLAttributes<HTMLInputElement>;
 
-const RadioArea = (props: RadioAreaProps) => {
-  return (
-    <label
-      className={classNames(
-        "border-1 block border p-4 focus:outline-none focus:ring focus:ring-neutral-500",
-        props.checked && "border-brand",
-        props.className
-      )}>
-      <input
-        onChange={(e) => {
-          if (typeof props.onChange === "function") {
-            props.onChange(e.target.value);
-          }
-        }}
-        checked={props.checked}
-        className="float-right ml-3 text-neutral-900 focus:ring-neutral-500"
-        name={props.name}
-        value={props.value}
-        type="radio"
-      />
-      {props.children}
-    </label>
-  );
-};
+const RadioArea = React.forwardRef<HTMLInputElement, RadioAreaProps>(
+  ({ children, className, ...props }, ref) => {
+    return (
+      <label className={classNames("relative flex", className)}>
+        <input
+          ref={ref}
+          className="peer absolute top-[0.9rem] left-3 align-baseline text-neutral-900 focus:ring-neutral-500"
+          type="radio"
+          {...props}
+        />
+        <div className="peer-checked:border-brand border-1 rounded-md border p-4 pt-3 pl-10 focus:outline-none focus:ring focus:ring-neutral-500">
+          {children}
+        </div>
+      </label>
+    );
+  }
+);
 
-type ChildrenProps = {
-  props: RadioAreaProps;
-  children?: ReactNode;
-};
-interface RadioAreaGroupProps extends Omit<React.ComponentPropsWithoutRef<"div">, "onChange" | "children"> {
-  children: ChildrenProps | ChildrenProps[];
-  name?: string;
+interface RadioAreaGroupProps extends Omit<React.ComponentPropsWithoutRef<"div">, "onChange"> {
   onChange?: (value: string) => void;
 }
 
-const RadioAreaGroup = ({ children, name, onChange, ...passThroughProps }: RadioAreaGroupProps) => {
-  const [checkedIdx, setCheckedIdx] = useState<number | null>(null);
-
-  const changeHandler = (value: string, idx: number) => {
-    if (onChange) {
-      onChange(value);
+const RadioAreaGroup = ({ children, className, onChange, ...passThroughProps }: RadioAreaGroupProps) => {
+  const childrenWithProps = React.Children.map(children, (child) => {
+    if (onChange && React.isValidElement(child)) {
+      return React.cloneElement(child, {
+        onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+          onChange(e.target.value);
+        },
+      });
     }
-    setCheckedIdx(idx);
-  };
-
+    return child;
+  });
   return (
-    <div {...passThroughProps}>
-      {(Array.isArray(children) ? children : [children]).map((child, idx: number) => {
-        if (checkedIdx === null && child.props.defaultChecked) {
-          setCheckedIdx(idx);
-        }
-        return (
-          <Item
-            {...child.props}
-            key={idx}
-            name={name}
-            checked={idx === checkedIdx}
-            onChange={(value: string) => changeHandler(value, idx)}>
-            {child.props.children}
-          </Item>
-        );
-      })}
+    <div className={className} {...passThroughProps}>
+      {childrenWithProps}
     </div>
   );
 };
+
+RadioAreaGroup.displayName = "RadioAreaGroup";
+RadioArea.displayName = "RadioArea";
 
 const Item = RadioArea;
 const Group = RadioAreaGroup;
