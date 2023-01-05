@@ -17,10 +17,17 @@ import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
 import ToolbarPlugin from "./plugins/ToolbarPlugin";
 import "./stylesEditor.css";
 
+/*
+ Detault toolbar items:
+  - blockType
+  - bold
+  - italic
+  - link
+*/
 export type TextEditorProps = {
-  text: string;
+  getText: () => string;
   setText: (text: string) => void;
-  excludedToolbarItems?: string[]; //if editor is used outside of workflows "addVariable" needs to be excluded
+  excludedToolbarItems?: string[];
 };
 
 const editorConfig = {
@@ -44,13 +51,13 @@ const editorConfig = {
   ],
 };
 
-export default function Editor(props: TextEditorProps) {
+export const Editor = (props: TextEditorProps) => {
   return (
     <div className="editor">
       <LexicalComposer initialConfig={editorConfig}>
         <div className="editor-container">
           <ToolbarPlugin
-            text={props.text}
+            getText={props.getText}
             setText={props.setText}
             excludedToolbarItems={props.excludedToolbarItems}
           />
@@ -66,4 +73,4 @@ export default function Editor(props: TextEditorProps) {
       </LexicalComposer>
     </div>
   );
-}
+};

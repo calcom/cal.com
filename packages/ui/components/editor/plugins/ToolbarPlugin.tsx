@@ -38,8 +38,8 @@ import {
   Button,
 } from "@calcom/ui";
 
-import { AddVariablesDropdown } from "../../AddVariablesDropdown";
 import { TextEditorProps } from "../Editor";
+import { AddVariablesDropdown } from "./AddVariablesDropdown";
 
 const LowPriority = 1;
 
@@ -352,7 +352,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
   useEffect(() => {
     editor.update(() => {
       const parser = new DOMParser();
-      const dom = parser.parseFromString(props.text, "text/html");
+      const dom = parser.parseFromString(props.getText(), "text/html");
 
       const nodes = $generateNodesFromDOM(editor, dom);
 

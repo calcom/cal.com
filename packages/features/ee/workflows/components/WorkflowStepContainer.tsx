@@ -34,13 +34,13 @@ import {
   showToast,
   TextArea,
   TextField,
+  Editor,
+  AddVariablesDropdown,
 } from "@calcom/ui";
 
-import { AddVariablesDropdown } from "../components/AddVariablesDropdown";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
 import { translateVariablesToEnglish } from "../lib/variableTranslations";
 import type { FormValues } from "../pages/workflow";
-import Editor from "./TextEditor/Editor";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
 type WorkflowStepProps = {
@@ -572,7 +572,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         </Label>
                       </div>
                       <Editor
-                        text={props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || ""}
+                        getText={() => {
+                          return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
+                        }}
                         setText={(text: string) => {
                           props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
                           props.form.clearErrors();

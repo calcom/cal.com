@@ -44,6 +44,8 @@ export {
   AppStoreCategories,
   Slider,
   useShouldShowArrows,
+  Editor,
+  AddVariablesDropdown,
 } from "./components";
 export type { ActionType } from "./components";
 export type { AvatarProps, BadgeProps, ButtonBaseProps, ButtonProps, TopBannerProps } from "./components";

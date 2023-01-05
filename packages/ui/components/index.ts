@@ -45,3 +45,4 @@ export { Icon } from "./icon";
 export { ErrorBoundary } from "./errorBoundary";
 export { Logo } from "./logo";
 export { Skeleton, SkeletonAvatar, SkeletonButton, SkeletonContainer, SkeletonText } from "./skeleton";
+export { Editor, AddVariablesDropdown } from "./editor";
