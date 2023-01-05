@@ -3,11 +3,9 @@ import React, { ComponentProps } from "react";
 import AppCategoryNavigation from "@calcom/app-store/_components/AppCategoryNavigation";
 import { InstalledAppVariants } from "@calcom/app-store/utils";
 import { trpc } from "@calcom/trpc/react";
-
-import { Icon } from "../../../components/icon";
-import Shell from "../Shell";
-import type { HorizontalTabItemProps } from "../navigation/tabs/HorizontalTabItem";
-import type { VerticalTabItemProps } from "../navigation/tabs/VerticalTabItem";
+import { Icon, Shell } from "@calcom/ui";
+import type { HorizontalTabItemProps } from "@calcom/ui/v2/core/navigation/tabs/HorizontalTabItem";
+import type { VerticalTabItemProps } from "@calcom/ui/v2/core/navigation/tabs/VerticalTabItem";
 
 const tabs: (VerticalTabItemProps | HorizontalTabItemProps)[] = [
   {
