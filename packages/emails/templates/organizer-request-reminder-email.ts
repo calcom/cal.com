@@ -1,3 +1,5 @@
+import { APP_NAME } from "@calcom/lib/constants";
+
 import { renderEmail } from "../";
 import OrganizerRequestEmail from "./organizer-request-email";
 
@@ -14,7 +16,7 @@ export default class OrganizerRequestReminderEmail extends OrganizerRequestEmail
     }
 
     return {
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.t("event_awaiting_approval_subject", {
         eventType: this.calEvent.type,
