@@ -1386,7 +1386,7 @@
   "team_url_taken": "Cette URL est déjà prise",
   "team_publish": "Publier l'équipe",
   "number_sms_notifications": "Numéro de téléphone (notifications SMS)",
-  "attendee_email_workflow": "E-mail du participant",
+  "attendee_email_variable": "E-mail du participant",
   "attendee_email_info": "E-mail de la personne ayant réservé",
   "kbar_search_placeholder": "Saisissez une commande ou une recherche...",
   "invalid_credential": "Oh non ! L'autorisation semble avoir expiré ou avoir été révoquée. Veuillez la réinstaller.",

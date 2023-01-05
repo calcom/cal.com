@@ -1400,7 +1400,7 @@
   "team_url_taken": "Denne URL'en er allerede tatt",
   "team_publish": "Publiser team",
   "number_sms_notifications": "Telefonnummer (SMS varsler)",
-  "attendee_email_workflow": "Deltakerens e-post",
+  "attendee_email_variable": "Deltakerens e-post",
   "attendee_email_info": "Den som booker sin e-post",
   "kbar_search_placeholder": "Skriv inn en kommando eller søk...",
   "invalid_credential": "Å nei! Det ser ut til at tillatelsen er utløpt eller tilbakekalt. Vennligst installer på nytt.",

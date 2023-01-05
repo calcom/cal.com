@@ -1386,7 +1386,7 @@
   "team_url_taken": "この URL は既に使用されています",
   "team_publish": "チームを公開",
   "number_sms_notifications": "電話番号（SMS 通知）",
-  "attendee_email_workflow": "出席者のメールアドレス",
+  "attendee_email_variable": "出席者のメールアドレス",
   "attendee_email_info": "予約者のメールアドレス",
   "kbar_search_placeholder": "コマンドを入力するか、検索...",
   "invalid_credential": "アクセス許可の有効期限が切れたか、取り消されたようです。もう一度インストールしてください。",

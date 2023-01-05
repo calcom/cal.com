@@ -1387,7 +1387,7 @@
   "team_url_taken": "URL già occupato",
   "team_publish": "Pubblica team",
   "number_sms_notifications": "Numero di telefono (notifiche SMS)",
-  "attendee_email_workflow": "E-mail partecipante",
+  "attendee_email_variable": "E-mail partecipante",
   "attendee_email_info": "E-mail della persona che prenota",
   "kbar_search_placeholder": "Digitare un comando o eseguire una ricerca...",
   "invalid_credential": "Errore! Sembra che l'autorizzazione sia scaduta o che sia stata revocata. Prova a reinstallare.",

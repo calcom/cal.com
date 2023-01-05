@@ -1387,7 +1387,7 @@
   "team_url_taken": "Bu URL zaten kullanılıyor",
   "team_publish": "Ekibi yayınla",
   "number_sms_notifications": "Telefon numarası (SMS bildirimleri)",
-  "attendee_email_workflow": "Katılımcı e-postası",
+  "attendee_email_variable": "Katılımcı e-postası",
   "attendee_email_info": "Rezervasyon yaptıran kişinin e-postası",
   "kbar_search_placeholder": "Bir komut girin veya arayın...",
   "invalid_credential": "Hata! İznin süresi dolmuş veya iptal edilmiş gibi görünüyor. Lütfen yeniden yükleyin.",

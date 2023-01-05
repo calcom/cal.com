@@ -1386,7 +1386,7 @@
   "team_url_taken": "Цю URL-адресу вже зайнято",
   "team_publish": "Опублікувати команду",
   "number_sms_notifications": "Номер телефону (SMS-сповіщення)",
-  "attendee_email_workflow": "Адреса ел. пошти учасника",
+  "attendee_email_variable": "Адреса ел. пошти учасника",
   "attendee_email_info": "Адреса ел. пошти особи, яка бронює",
   "kbar_search_placeholder": "Введіть команду або пошуковий запис…",
   "invalid_credential": "Отакої! Схоже, дозвіл більше не дійсний або його відкликано. Перевстановіть додаток знову.",

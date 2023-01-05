@@ -1387,7 +1387,7 @@
   "team_url_taken": "Denna URL används redan",
   "team_publish": "Publicera team",
   "number_sms_notifications": "Telefonnummer (SMS-notiser)",
-  "attendee_email_workflow": "Deltagarens e-postadress",
+  "attendee_email_variable": "Deltagarens e-postadress",
   "attendee_email_info": "Personens e-postadress för bokning",
   "kbar_search_placeholder": "Skriv ett kommando eller sök...",
   "invalid_credential": "Åh nej! Det verkar som om behörigheten löpt ut eller återkallats. Installera om igen.",

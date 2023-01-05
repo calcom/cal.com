@@ -1386,7 +1386,7 @@
   "team_url_taken": "Tato adresa URL je už obsazená",
   "team_publish": "Zveřejnit tým",
   "number_sms_notifications": "Číslo telefonu (SMS oznámení)",
-  "attendee_email_workflow": "E-mail účastníka",
+  "attendee_email_variable": "E-mail účastníka",
   "attendee_email_info": "E-mail osoby provádějící rezervaci",
   "kbar_search_placeholder": "Zadejte příkaz nebo vyhledejte...",
   "invalid_credential": "Ale ne! Zdá se, že platnost oprávnění vypršela nebo byla zrušena. Proveďte  novou instalaci.",
