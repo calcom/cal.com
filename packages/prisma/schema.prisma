@@ -313,6 +313,8 @@ model Schedule {
   name         String
   timeZone     String?
   availability Availability[]
+
+  @@index([userId])
 }
 
 model Availability {
@@ -327,6 +329,9 @@ model Availability {
   date        DateTime?  @db.Date
   Schedule    Schedule?  @relation(fields: [scheduleId], references: [id])
   scheduleId  Int?
+
+  @@index([eventTypeId])
+  @@index([scheduleId])
 }
 
 model SelectedCalendar {
