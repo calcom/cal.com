@@ -8,7 +8,7 @@ import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import { Icon } from "@calcom/ui";
 
-import EmptyScreen from "../../v2/core/EmptyScreen";
+import { EmptyScreen } from "../empty-screen";
 import { AppCard } from "./AppCard";
 
 export function useShouldShowArrows() {
