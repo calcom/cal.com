@@ -4,11 +4,9 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import { COMPANY_NAME, DEVELOPER_DOCS, DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
-import { Icon } from "@calcom/ui";
+import { Icon, HeadSeo } from "@calcom/ui";
 
 import { useLocale } from "@lib/hooks/useLocale";
-
-import { HeadSeo } from "@components/seo/head-seo";
 
 import { ssgInit } from "@server/lib/ssg";
 
