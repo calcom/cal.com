@@ -24,7 +24,7 @@
     "@wojtekmaj/react-daterange-picker": "^3.3.1",
     "class-variance-authority": "^0.3.0",
     "downshift": "^6.1.9",
-    "next": "^12.3.1",
+    "next": "^13.1.1",
     "react": "^18.2.0",
     "react-colorful": "^5.6.0",
     "react-feather": "^2.0.10",
