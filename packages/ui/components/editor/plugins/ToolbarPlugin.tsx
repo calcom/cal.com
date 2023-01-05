@@ -50,11 +50,11 @@ interface BlockType {
 }
 
 const blockTypeToBlockName: BlockType = {
+  paragraph: "Normal",
+  ol: "Numbered List",
+  ul: "Bulleted List",
   h1: "Large Heading",
   h2: "Small Heading",
-  ol: "Numbered List",
-  paragraph: "Normal",
-  ul: "Bulleted List",
 };
 
 function positionEditorElement(editor: HTMLInputElement, rect: DOMRect | null) {
