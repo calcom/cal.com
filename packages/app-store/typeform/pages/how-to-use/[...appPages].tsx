@@ -14,7 +14,7 @@ export default function HowToUse() {
           </div>
           <div className="ml-5">
             <div className="text-md text-gray-800">How to route a Typeform with Cal.com Routing</div>
-            <ol className="mt-5 mb-5 ml-5 mr-5 list-decimal">
+            <ol className="mt-5 mb-5 ml-5 list-decimal ltr:mr-5 rtl:ml-5">
               <li>
                 Make sure that you have{" "}
                 <Link href="/apps/routing-forms" className="text-base text-gray-500">

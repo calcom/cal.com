@@ -1,8 +1,12 @@
 import jsonLogic from "json-logic-js";
 import { Utils as QbUtils } from "react-awesome-query-builder";
+import { z } from "zod";
 
 import { getQueryBuilderConfig } from "../pages/route-builder/[...appPages]";
 import { Response, Route, SerializableForm } from "../types/types";
+import { zodNonRouterRoute } from "../zod";
+import { isFallbackRoute } from "./isFallbackRoute";
+import isRouter from "./isRouter";
 import { App_RoutingForms_Form } from ".prisma/client";
 
 export function processRoute({
@@ -18,15 +22,24 @@ export function processRoute({
 
   let decidedAction: Route["action"] | null = null;
 
-  const fallbackRoute = routes.find((route) => route.isFallback);
+  const fallbackRoute = routes.find(isFallbackRoute);
 
   if (!fallbackRoute) {
     throw new Error("Fallback route is missing");
   }
 
-  const reorderedRoutes = routes.filter((route) => !route.isFallback).concat([fallbackRoute]);
+  const routesWithFallbackInEnd = routes
+    .flatMap((r) => {
+      // For a router, use it's routes instead.
+      if (isRouter(r)) return r.routes;
+      return r;
+    })
+    // Use only non fallback routes
+    .filter((route) => route && !isFallbackRoute(route))
+    // After above flat map, all routes are non router routes.
+    .concat([fallbackRoute]) as z.infer<typeof zodNonRouterRoute>[];
 
-  reorderedRoutes.some((route) => {
+  routesWithFallbackInEnd.some((route) => {
     if (!route) {
       return false;
     }

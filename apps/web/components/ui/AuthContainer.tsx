@@ -1,11 +1,9 @@
 import classNames from "classnames";
 
 import { APP_NAME, LOGO } from "@calcom/lib/constants";
+import { Credits, HeadSeo } from "@calcom/ui";
 
 import Loader from "@components/Loader";
-import { HeadSeo } from "@components/seo/head-seo";
-
-import Credits from "../../../../packages/ui/v2/core/Credits";
 
 interface Props {
   title: string;

@@ -66,7 +66,7 @@ export default function TeamInviteListItem(props: Props) {
         alt="Team Logo"
         className=""
       />
-      <div className="ml-3 inline-block">
+      <div className="inline-block ltr:ml-3 rtl:mr-3">
         <span className="text-sm font-semibold text-black">{team.name}</span>
         <span className="block text-sm leading-5 text-gray-700">
           {t("invited_by_team", { teamName: team.name, role: t(team.role.toLocaleLowerCase()) })}
