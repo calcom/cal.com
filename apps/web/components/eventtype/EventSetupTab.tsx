@@ -1,6 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
+import { Trans } from "next-i18next";
 import { useRouter } from "next/router";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
@@ -197,6 +198,19 @@ export const EventSetupTab = (
                 </li>
               );
             })}
+            {validLocations.some((location) => location.type === "integrations:google:meet") && (
+              <div className="flex text-sm text-gray-600">
+                <Icon.FiCheck className="mt-0.5 mr-1.5 h-2 w-2.5" />
+                <Trans i18nKey="event_type_requres_google_cal">
+                  The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
+                  Change it{" "}
+                  <a href={`${CAL_URL}`} className="underline">
+                    here
+                  </a>
+                  . We will fall back to Cal video if you do not change it.
+                </Trans>
+              </div>
+            )}
             {validLocations.length > 0 && validLocations.length !== locationOptions.length && (
               <li>
                 <Button StartIcon={Icon.FiPlus} color="minimal" onClick={() => setShowLocationModal(true)}>
@@ -205,28 +219,6 @@ export const EventSetupTab = (
               </li>
             )}
           </ul>
-        )}
-        {validLocations.some((location) => location.type === "integrations:google:meet") && (
-          <div className="flex">
-            <Icon.FiAlertTriangle className="mr-4" />
-            <p className="text-sm">
-              In order to use Google Meet you must set your{" "}
-              <a
-                href="javascript:;"
-                onClick={() => router.push(`/apps/installed/calendar`)}
-                className="underline">
-                default destination calendar{" "}
-              </a>
-              or the{" "}
-              <a
-                href="javascript:;"
-                onClick={() => router.push(`/event-types/${eventType.id}/?tabName=advanced`)}
-                className="underline">
-                event type&#39;s destination calendar
-              </a>{" "}
-              to Google Calendar. If not, the event type will fallback to Cal Video.
-            </p>
-          </div>
         )}
       </div>
     );
