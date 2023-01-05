@@ -31,7 +31,7 @@ And from another terminal you can run the following command to execute tests:
 yarn embed-tests-quick
 ```
 
-Note: `getEmbedIframe` and `addEmbedListeners` work as a team but they only support opening up embed in a fresh load. Opening an embed closing it and then opening another embed isn't supported yet. 
+Note: `getEmbedIframe` and `addEmbedListeners` work as a team but they only support opening up embed in a fresh load. Opening an embed closing it and then opening another embed isn't supported yet.
 
 ## Shipping to Production
 
