@@ -1009,6 +1009,8 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           ...eventTypeInfo,
           bookingId,
           rescheduleUid,
+          rescheduleStartTime: originalRescheduledBooking?.startTime,
+          rescheduleEndTime: originalRescheduledBooking?.endTime,
           metadata: { ...metadata, ...reqBody.metadata },
           eventTypeId,
           status: "ACCEPTED",

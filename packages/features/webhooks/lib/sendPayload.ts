@@ -82,10 +82,12 @@ const sendPayload = async (
   data: CalendarEvent &
     EventTypeInfo & {
       metadata?: { [key: string]: string };
-      rescheduleUid?: string;
       bookingId?: number;
       status?: string;
       smsReminderNumber?: string;
+      rescheduleUid?: string;
+      rescheduleStartTime?: string;
+      rescheduleEndTime?: string;
     }
 ) => {
   const { appId, payloadTemplate: template } = webhook;
