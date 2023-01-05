@@ -1,11 +1,28 @@
 import merge from "lodash/merge";
 import { NextSeo, NextSeoProps } from "next-seo";
 
-import { constructAppImage, constructGenericImage, constructMeetingImage } from "@calcom/lib/OgImages";
+import {
+  AppImageProps,
+  constructAppImage,
+  constructGenericImage,
+  constructMeetingImage,
+  MeetingImageProps,
+} from "@calcom/lib/OgImages";
 import { getBrowserInfo } from "@calcom/lib/browser/browser.utils";
 import { APP_NAME } from "@calcom/lib/constants";
-import { seoConfig, getSeoImage, HeadSeoProps } from "@calcom/lib/next-seo.config";
+import { seoConfig, getSeoImage } from "@calcom/lib/next-seo.config";
 import { truncateOnWord } from "@calcom/lib/text";
+
+export type HeadSeoProps = {
+  title: string;
+  description: string;
+  siteName?: string;
+  url?: string;
+  canonical?: string;
+  nextSeoProps?: NextSeoProps;
+  app?: AppImageProps;
+  meeting?: MeetingImageProps;
+};
 
 /**
  * Build full seo tags from title, desc, canonical and url

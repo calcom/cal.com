@@ -1,10 +1,13 @@
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { Icon } from "@calcom/ui";
 
 function getHref(baseURL: string, category: string, useQueryParam: boolean) {
-  return useQueryParam ? `${baseURL}&category=${category}` : `${baseURL}/${category}`;
+  const baseUrlParsed = new URL(baseURL, WEBAPP_URL);
+  baseUrlParsed.searchParams.set("category", category);
+  return useQueryParam ? `${baseUrlParsed.toString()}` : `${baseURL}/${category}`;
 }
 
-const getAppCategories = (baseURL: string, useQueryParam = false) => {
+const getAppCategories = (baseURL: string, useQueryParam = true) => {
   return [
     {
       name: "calendar",

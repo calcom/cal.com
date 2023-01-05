@@ -13,7 +13,7 @@ function AdminAppsView() {
   return (
     <>
       <Meta title={t("apps")} description={t("admin_apps_description")} />
-      <AdminAppsList baseURL="/settings/admin/apps" className="w-0" />
+      <AdminAppsList baseURL="/settings/admin/apps" />
     </>
   );
 }
