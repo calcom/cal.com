@@ -8,6 +8,8 @@ const originalVariables = [
   "event_time_variable",
   "location_variable",
   "additional_notes_variable",
+  "attendee_email_variable",
+  "meeting_url_variable",
 ];
 
 export function getTranslatedText(text: string, language: { locale: string; t: TFunction }) {

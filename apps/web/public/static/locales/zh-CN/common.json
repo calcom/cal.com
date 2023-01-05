@@ -457,6 +457,7 @@
   "email_address": "邮箱地址",
   "enter_valid_email": "请输入有效的电子邮件",
   "location": "位置",
+  "in_person_attendee_address": "本人(参与者地址)",
   "yes": "是",
   "no": "否",
   "additional_notes": "附加备注",

@@ -1,7 +1,5 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon } from "@calcom/ui";
-
-import { HeadSeo } from "@components/seo/head-seo";
+import { Button, Icon, HeadSeo } from "@calcom/ui";
 
 export default function NoMeetingFound() {
   const { t } = useLocale();

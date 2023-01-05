@@ -5,7 +5,7 @@ import { SVGComponent } from "@calcom/types/SVGComponent";
 
 import { Button } from "../../components/button";
 
-export default function EmptyScreen({
+export function EmptyScreen({
   Icon,
   headline,
   description,

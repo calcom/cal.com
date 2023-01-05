@@ -12,12 +12,11 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { Avatar, Button, Icon } from "@calcom/ui";
+import { Avatar, Button, Icon, HeadSeo } from "@calcom/ui";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
-import { HeadSeo } from "@components/seo/head-seo";
 import Team from "@components/team/screens/Team";
 import AvatarGroup from "@components/ui/AvatarGroup";
 

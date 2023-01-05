@@ -10,9 +10,8 @@ import {
 } from "@calcom/lib/OgImages";
 import { getBrowserInfo } from "@calcom/lib/browser/browser.utils";
 import { APP_NAME } from "@calcom/lib/constants";
+import { seoConfig, getSeoImage } from "@calcom/lib/next-seo.config";
 import { truncateOnWord } from "@calcom/lib/text";
-
-import { getSeoImage, seoConfig } from "@lib/config/next-seo.config";
 
 export type HeadSeoProps = {
   title: string;
