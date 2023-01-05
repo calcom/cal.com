@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { MultiValue } from "react-select";
@@ -23,7 +23,7 @@ type OptionTypeBase = {
 };
 
 export const EventSetupTab = (
-  props: Pick<EventTypeSetupInfered, "eventType" | "locationOptions" | "team" | "teamMembers">
+  props: Pick<EventTypeSetupProps, "eventType" | "locationOptions" | "team" | "teamMembers">
 ) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
@@ -169,7 +169,7 @@ export const EventSetupTab = (
                         alt={`${eventLocationType.label} logo`}
                       />
                       <span className="truncate text-sm ltr:ml-1 rtl:mr-1">
-                        {location[eventLocationType.defaultValueVariable] || eventLocationType.label}
+                        {t(location[eventLocationType.defaultValueVariable] || eventLocationType.label)}
                       </span>
                     </div>
                     <div className="flex">
@@ -342,7 +342,7 @@ export const EventSetupTab = (
         saveLocation={saveLocation}
         defaultValues={formMethods.getValues("locations")}
         selection={
-          selectedLocation ? { value: selectedLocation.value, label: selectedLocation.label } : undefined
+          selectedLocation ? { value: selectedLocation.value, label: t(selectedLocation.label) } : undefined
         }
         setSelectedLocation={setSelectedLocation}
         setEditingLocationType={setEditingLocationType}

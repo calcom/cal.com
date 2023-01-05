@@ -1,4 +1,5 @@
 import { App_RoutingForms_Form } from "@prisma/client";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Controller, useForm, UseFormReturn } from "react-hook-form";
 
@@ -12,8 +13,9 @@ import {
   AppUser,
 } from "@calcom/types/AppGetServerSideProps";
 import {
-  Banner,
   Button,
+  Banner,
+  Badge,
   ButtonGroup,
   Dialog,
   DialogClose,
@@ -42,7 +44,8 @@ import FormInputFields from "./FormInputFields";
 import RoutingNavBar from "./RoutingNavBar";
 
 type RoutingForm = SerializableForm<App_RoutingForms_Form>;
-type RoutingFormWithResponseCount = RoutingForm & {
+
+export type RoutingFormWithResponseCount = RoutingForm & {
   _count: {
     responses: number;
   };
@@ -236,13 +239,19 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
     onSuccess() {
       showToast("Form updated successfully.", "success");
     },
-    onError() {
+    onError(e) {
+      if (e.message) {
+        showToast(e.message, "error");
+        return;
+      }
       showToast(`Something went wrong`, "error");
     },
     onSettled() {
       utils.viewer.appRoutingForms.formQuery.invalidate({ id: form.id });
     },
   });
+  const connectedForms = form.connectedForms;
+
   return (
     <>
       <Form
@@ -295,6 +304,55 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                       }}
                     />
                   </div>
+
+                  {form.routers.length ? (
+                    <div className="mt-6">
+                      <div className="mb-2 block text-sm  font-semibold leading-none text-black ">
+                        Routers
+                      </div>
+                      <p className="-mt-1 text-xs leading-normal text-gray-600">
+                        Modifications in fields and routes of following forms will be reflected in this form.
+                      </p>
+                      <div className="flex">
+                        {form.routers.map((router) => {
+                          return (
+                            <div key={router.id} className="mr-2">
+                              <Link href={`/${appUrl}/route-builder/${router.id}`}>
+                                <a>
+                                  <Badge variant="gray">{router.name}</Badge>
+                                </a>
+                              </Link>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {connectedForms?.length ? (
+                    <div className="mt-6">
+                      <div className="mb-2 block text-sm  font-semibold leading-none text-black ">
+                        Connected Forms
+                      </div>
+                      <p className="-mt-1 text-xs leading-normal text-gray-600">
+                        Following forms would be affected when you modify fields or routes here
+                      </p>
+                      <div className="flex">
+                        {connectedForms.map((router) => {
+                          return (
+                            <div key={router.id} className="mr-2">
+                              <Link href={`/${appUrl}/route-builder/${router.id}`}>
+                                <a>
+                                  <Badge variant="default">{router.name}</Badge>
+                                </a>
+                              </Link>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+
                   <div className="mt-6">
                     <Button
                       color="secondary"
@@ -452,8 +510,8 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
     };
   }
 
-  const isAllowed = (await import("../lib/isAllowed")).isAllowed;
-  if (!(await isAllowed({ userId: user.id, formId }))) {
+  const isFormEditAllowed = (await import("../lib/isFormEditAllowed")).isFormEditAllowed;
+  if (!(await isFormEditAllowed({ userId: user.id, formId }))) {
     return {
       notFound: true,
     };
@@ -480,7 +538,7 @@ export const getServerSidePropsForSingleFormView = async function getServerSideP
   return {
     props: {
       trpcState: ssr.dehydrate(),
-      form: getSerializableForm(form),
+      form: await getSerializableForm(form),
     },
   };
 };
