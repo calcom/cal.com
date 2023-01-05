@@ -23,7 +23,7 @@ export function getTranslatedText(text: string, language: { locale: string; t: T
     variables?.forEach((variable) => {
       const regex = new RegExp(`{${variable}}`, "g"); // .replaceAll is not available here for some reason
       const translatedVariable = originalVariables.includes(variable.toLowerCase().concat("_variable"))
-        ? language.t(variable.toLocaleLowerCase().concat("_variable")).replace(/ /g, "_").toLocaleUpperCase()
+        ? language.t(variable.toLowerCase().concat("_variable")).replace(/ /g, "_").toLocaleUpperCase()
         : originalVariables.includes(variable.toLowerCase().concat("_name_variable")) //for the old variables names (ORGANIZER_NAME, ATTENDEE_NAME)
         ? language.t(variable.toLowerCase().concat("_name_variable")).replace(/ /g, "_").toLocaleUpperCase()
         : variable;
