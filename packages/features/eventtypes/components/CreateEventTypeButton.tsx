@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SchedulingType } from "@prisma/client";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useForm } from "react-hook-form";
@@ -8,6 +9,7 @@ import { z } from "zod";
 import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import slugify from "@calcom/lib/slugify";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
@@ -86,7 +88,9 @@ const CreateEventTypeDialog = () => {
   const { t } = useLocale();
   const router = useRouter();
 
-  const { teamId, eventPage: pageSlug, ...defaultValues } = querySchema.parse(router.query);
+  const {
+    data: { teamId, eventPage: pageSlug, ...defaultValues },
+  } = useTypedQuery(querySchema);
 
   const form = useForm<z.infer<typeof createEventTypeInput>>({
     resolver: zodResolver(createEventTypeInput),
