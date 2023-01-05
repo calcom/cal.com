@@ -220,8 +220,6 @@ export const createEvent = async (
       })
     : undefined;
 
-  console.log("🚀 ~ file: CalendarManager.ts:203 ~ creationResult", creationResult);
-
   return {
     appName: credential.appName,
     type: credential.type,

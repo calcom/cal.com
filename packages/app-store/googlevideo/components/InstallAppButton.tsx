@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import type { InstallAppButtonProps } from "@calcom/app-store/types";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { DialogProps } from "@calcom/ui";
 import { Button } from "@calcom/ui";
@@ -26,6 +27,7 @@ export default function InstallAppButton(props: InstallAppButtonProps) {
 }
 
 function WarningDialog(props: DialogProps) {
+  const { t } = useLocale();
   const [googleCalendarPresent, setGoogleCalendarPresent] = useState<undefined | boolean>(undefined);
 
   const mutation = useAddAppMutation(googleCalendarPresent ? "google_video" : "google_calendar", {
@@ -58,7 +60,7 @@ function WarningDialog(props: DialogProps) {
               onClick={() => {
                 props.onOpenChange?.(false);
               }}>
-              Cancel
+              {t("cancel")}
             </DialogClose>
 
             <Button type="button" onClick={() => mutation.mutate("")}>
