@@ -818,6 +818,22 @@ export const bookingsRouter = router({
     };
 
     const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);
+    if (recurringEventId) {
+      if (
+        !(await prisma.booking.findFirst({
+          where: {
+            recurringEventId,
+            id: booking.id,
+          },
+        }))
+      ) {
+        // FIXME: It might be best to retrieve recurringEventId from the booking itself.
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Recurring event id doesn't belong to the booking",
+        });
+      }
+    }
     if (recurringEventId && recurringEvent) {
       const groupedRecurringBookings = await prisma.booking.groupBy({
         where: {
