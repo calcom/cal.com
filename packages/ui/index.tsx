@@ -53,6 +53,7 @@ export {
   AppCard,
   AllApps,
   AppSkeletonLoader,
+  SkeletonLoader,
   AppStoreCategories,
   Slider,
   useShouldShowArrows,

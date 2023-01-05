@@ -33,6 +33,8 @@ export {
   AllApps,
   AppCard,
   AppSkeletonLoader,
+  // @deprecated: Please use AppSkeletonLoader instead
+  SkeletonLoader,
   Slider,
   TrendingAppsSlider,
   useShouldShowArrows,
