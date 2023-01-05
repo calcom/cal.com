@@ -1,10 +1,13 @@
 import { getEventLocationType, locationKeyToString } from "@calcom/app-store/locations";
 import { classNames } from "@calcom/lib";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon, Tooltip } from "@calcom/ui";
 
 import { Props } from "./pages/AvailabilityPage";
 
 export function AvailableEventLocations({ locations }: { locations: Props["eventType"]["locations"] }) {
+  const { t } = useLocale();
+
   return locations.length ? (
     <div className="dark:text-darkgray-600 mr-6 flex w-full flex-col space-y-2 break-words text-sm text-gray-600">
       {locations.map((location) => {
@@ -27,8 +30,8 @@ export function AvailableEventLocations({ locations }: { locations: Props["event
                 alt={`${eventLocationType.label} icon`}
               />
             )}
-            <Tooltip content={locationKeyToString(location)}>
-              <p className="truncate">{locationKeyToString(location)}</p>
+            <Tooltip content={t(locationKeyToString(location) ?? "")}>
+              <p className="truncate">{t(locationKeyToString(location) ?? "")}</p>
             </Tooltip>
           </div>
         );

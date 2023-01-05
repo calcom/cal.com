@@ -49,6 +49,13 @@ export {
   Icon,
   ErrorBoundary,
   Alert,
+  TrendingAppsSlider,
+  AppCard,
+  AllApps,
+  AppSkeletonLoader,
+  AppStoreCategories,
+  Slider,
+  useShouldShowArrows,
 } from "./components";
 export type {
   ActionType,
@@ -70,21 +77,10 @@ export { default as PhoneInput } from "./form/PhoneInputLazy";
 export { UnstyledSelect } from "./form/Select";
 export { default as Loader } from "./v2/core/Loader";
 export { default as TimezoneChangeDialog } from "./TimezoneChangeDialog";
+
 export { HorizontalTabs, SettingsToggle, showToast, Swatch, Switch, Card, VerticalTabs } from "./v2";
-export {
-  default as Shell,
-  ONBOARDING_INTRODUCED_AT,
-  ONBOARDING_NEXT_REDIRECT,
-  ShellMain,
-  shouldShowOnboarding,
-  MobileNavigationMoreItems,
-  ShellSubHeading,
-} from "./v2/core/Shell";
-export { default as AllApps } from "./v2/core/apps/AllApps";
-export { default as AppCard } from "./v2/core/apps/AppCard";
-export { default as AppStoreCategories } from "./v2/core/apps/Categories";
-export { default as SkeletonLoader } from "./v2/core/apps/SkeletonLoader";
-export { default as TrendingAppsSlider } from "./v2/core/apps/TrendingAppsSlider";
+export { default as Shell, ShellMain, MobileNavigationMoreItems, ShellSubHeading } from "./v2/core/Shell";
+
 export { default as ColorPicker } from "./v2/core/colorpicker";
 export { default as ConfirmationDialogContent } from "./v2/core/ConfirmationDialogContent";
 export {
