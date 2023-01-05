@@ -19,7 +19,6 @@ import {
   Dialog,
   DialogTrigger,
   Form,
-  getSettingsLayout as getLayout,
   Icon,
   ImageUploader,
   Label,
@@ -29,6 +28,8 @@ import {
   TextArea,
   TextField,
 } from "@calcom/ui";
+
+import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 

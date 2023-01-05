@@ -5,9 +5,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Button, Icon } from "@calcom/ui";
-
-import { HeadSeo } from "@components/seo/head-seo";
+import { Button, Icon, HeadSeo } from "@calcom/ui";
 
 export default function MeetingNotStarted(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();

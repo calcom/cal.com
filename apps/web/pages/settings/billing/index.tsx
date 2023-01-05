@@ -3,10 +3,13 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { HelpScout, useChat } from "react-live-chat-loader";
 
+import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, getSettingsLayout as getLayout, Icon, Meta } from "@calcom/ui";
+
+import { trpc } from "@calcom/trpc/react";
 
 import { ssrInit } from "@server/lib/ssr";
 
