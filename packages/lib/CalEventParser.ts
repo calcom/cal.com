@@ -135,9 +135,8 @@ ${WEBAPP_URL + "/booking/" + getUid(calEvent) + "?changes=true"}
 };
 
 export const getCancelLink = (calEvent: CalendarEvent): string => {
-  return (
-    WEBAPP_URL + `/booking/${getUid(calEvent)}?cancel=true&allRemainingBookings=${!!calEvent.recurringEvent}`
-  );
+  // CUSTOM_CODE removed cancel all bookings logic
+  return WEBAPP_URL + `/booking/${getUid(calEvent)}?cancel=true`;
 };
 
 export const getRescheduleLink = (calEvent: CalendarEvent): string => {
