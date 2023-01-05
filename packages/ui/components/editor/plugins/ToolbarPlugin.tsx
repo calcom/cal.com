@@ -480,7 +480,6 @@ export default function ToolbarPlugin(props: TextEditorProps) {
           <div className="ml-auto">
             <AddVariablesDropdown
               addVariable={addVariable}
-              isEmailSubject={false}
               isTextEditor={true}
               variables={props.variables || []}
             />
