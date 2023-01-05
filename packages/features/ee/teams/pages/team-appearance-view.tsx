@@ -5,7 +5,9 @@ import { Controller, useForm } from "react-hook-form";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Form, getSettingsLayout as getLayout, Meta, showToast, Switch } from "@calcom/ui";
+import { Button, Form, Meta, showToast, Switch } from "@calcom/ui";
+
+import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
 interface TeamAppearanceValues {
   hideBranding: boolean;

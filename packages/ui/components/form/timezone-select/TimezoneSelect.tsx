@@ -6,9 +6,9 @@ import BaseSelect, {
   Props as SelectProps,
 } from "react-timezone-select";
 
-import { getReactSelectProps } from "../../components/form";
+import { getReactSelectProps } from "../select";
 
-function TimezoneSelect({ className, components, ...props }: SelectProps) {
+export function TimezoneSelect({ className, components, ...props }: SelectProps) {
   const reactSelectProps = useMemo(() => {
     return getReactSelectProps({ className, components: components || {} });
   }, [className, components]);
@@ -25,5 +25,4 @@ function TimezoneSelect({ className, components, ...props }: SelectProps) {
   );
 }
 
-export default TimezoneSelect;
 export type { ITimezone, ITimezoneOption };
