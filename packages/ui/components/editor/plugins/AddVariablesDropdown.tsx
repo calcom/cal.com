@@ -2,8 +2,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Dropdown, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Icon } from "@calcom/ui";
 
 interface IAddVariablesDropdown {
-  addVariable: (variable: string, isEmailSubject?: boolean) => void;
-  isEmailSubject?: boolean;
+  addVariable: (variable: string) => void;
   isTextEditor?: boolean;
   variables: string[];
 }
@@ -42,7 +41,7 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
                 key={variable}
                 type="button"
                 className="w-full px-4 py-2"
-                onClick={() => props.addVariable(t(`${variable}_variable`), props.isEmailSubject)}>
+                onClick={() => props.addVariable(t(`${variable}_variable`))}>
                 <div className="sm:grid sm:grid-cols-2">
                   <div className="mr-3 text-left md:col-span-1">
                     {`{${t(`${variable}_variable`).toUpperCase().replace(/ /g, "_")}}`}

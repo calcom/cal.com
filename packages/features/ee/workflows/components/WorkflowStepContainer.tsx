@@ -129,23 +129,25 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       : false
   );
 
-  const addVariable = (variable: string, isEmailSubject?: boolean) => {
+  const addVariableBody = (variable: string) => {
     if (step) {
-      if (isEmailSubject) {
-        const currentEmailSubject = refEmailSubject?.current?.value || "";
-        const cursorPosition = refEmailSubject?.current?.selectionStart || currentEmailSubject.length;
-        const subjectWithAddedVariable = `${currentEmailSubject.substring(0, cursorPosition)}{${variable
-          .toUpperCase()
-          .replace(/ /g, "_")}}${currentEmailSubject.substring(cursorPosition)}`;
-        form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectWithAddedVariable);
-      } else {
-        const currentMessageBody = refReminderBody?.current?.value || "";
-        const cursorPosition = refReminderBody?.current?.selectionStart || currentMessageBody.length;
-        const messageWithAddedVariable = `${currentMessageBody.substring(0, cursorPosition)}{${variable
-          .toUpperCase()
-          .replace(/ /g, "_")}}${currentMessageBody.substring(cursorPosition)}`;
-        form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, messageWithAddedVariable);
-      }
+      const currentMessageBody = refReminderBody?.current?.value || "";
+      const cursorPosition = refReminderBody?.current?.selectionStart || currentMessageBody.length;
+      const messageWithAddedVariable = `${currentMessageBody.substring(0, cursorPosition)}{${variable
+        .toUpperCase()
+        .replace(/ /g, "_")}}${currentMessageBody.substring(cursorPosition)}`;
+      form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, messageWithAddedVariable);
+    }
+  };
+
+  const addVariableEmailSubject = (variable: string) => {
+    if (step) {
+      const currentEmailSubject = refEmailSubject?.current?.value || "";
+      const cursorPosition = refEmailSubject?.current?.selectionStart || currentEmailSubject.length;
+      const subjectWithAddedVariable = `${currentEmailSubject.substring(0, cursorPosition)}{${variable
+        .toUpperCase()
+        .replace(/ /g, "_")}}${currentEmailSubject.substring(cursorPosition)}`;
+      form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectWithAddedVariable);
     }
   };
 
@@ -554,8 +556,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <Label className="mb-0 flex-none">{t("subject")}</Label>
                         <div className="flex-grow text-right">
                           <AddVariablesDropdown
-                            addVariable={addVariable}
-                            isEmailSubject={true}
+                            addVariable={addVariableEmailSubject}
                             variables={dynamicTextVariables}
                           />
                         </div>
@@ -606,8 +607,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         </Label>
                         <div className="flex-grow text-right">
                           <AddVariablesDropdown
-                            addVariable={addVariable}
-                            isEmailSubject={false}
+                            addVariable={addVariableBody}
                             variables={dynamicTextVariables}
                           />
                         </div>
