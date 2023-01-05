@@ -157,6 +157,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
           onClick={() => openModal(props.options[0])}
           data-testid="new-event-type"
           StartIcon={Icon.FiPlus}
+          size="fab"
           disabled={!props.canAddEvents}>
           {t("new")}
         </Button>
@@ -165,11 +166,12 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
           <DropdownMenuTrigger asChild>
             <Button
               EndIcon={Icon.FiChevronDown}
+              size="fab"
               className="radix-state-open:!bg-brand-500 radix-state-open:ring-2 radix-state-open:ring-brand-500 ring-offset-2 focus:border-none">
               {t("new")}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent sideOffset={14} align="end">
             <DropdownMenuLabel>
               <div className="max-w-48">{t("new_event_subtitle")}</div>
             </DropdownMenuLabel>

@@ -6,7 +6,7 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SVGComponent } from "@calcom/types/SVGComponent";
 
-import { SkeletonText } from "../../skeleton";
+import { SkeletonText } from "../../../../components/skeleton";
 
 export type HorizontalTabItemProps = {
   name: string;
@@ -27,7 +27,7 @@ const HorizontalTabItem = function ({ name, href, linkProps, ...props }: Horizon
       <a
         className={classNames(
           isCurrent ? "bg-gray-200 text-gray-900" : "  text-gray-600 hover:bg-gray-100 hover:text-gray-900 ",
-          "mb-2 inline-flex items-center justify-center whitespace-nowrap rounded-md py-[10px] px-4 text-sm font-medium leading-4 md:mb-0",
+          "inline-flex items-center justify-center whitespace-nowrap rounded-[4px] py-[10px] px-4 text-sm font-medium leading-4 md:mb-0",
           props.disabled && "pointer-events-none !opacity-30",
           props.className
         )}

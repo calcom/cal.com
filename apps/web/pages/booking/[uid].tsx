@@ -35,14 +35,13 @@ import { localStorage } from "@calcom/lib/webstorage";
 import prisma, { baseUserSelect } from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Button, EmailInput, Icon } from "@calcom/ui";
+import { Button, EmailInput, Icon, HeadSeo } from "@calcom/ui";
 
 import { timeZone } from "@lib/clock";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import CancelBooking from "@components/booking/CancelBooking";
 import EventReservationSchema from "@components/schemas/EventReservationSchema";
-import { HeadSeo } from "@components/seo/head-seo";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -174,7 +173,6 @@ const querySchema = z.object({
 export default function Success(props: SuccessProps) {
   const { t } = useLocale();
   const router = useRouter();
-
   const {
     allRemainingBookings,
     isSuccessBookingPage,
@@ -636,7 +634,7 @@ export default function Success(props: SuccessProps) {
                                   encodeURIComponent(new RRule(props.eventType.recurringEvent).toString())
                                 : "")
                             }>
-                            <a className="mr-2 h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 dark:border-neutral-700 dark:text-white">
+                            <a className="h-10 w-10 rounded-sm border border-neutral-200 px-3 py-2 ltr:mr-2 rtl:ml-2 dark:border-neutral-700 dark:text-white">
                               <svg
                                 className="-mt-1.5 inline-block h-4 w-4"
                                 fill="currentColor"
@@ -1050,6 +1048,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     recurringEvent: parseRecurringEvent(eventTypeRaw.recurringEvent),
     customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
   };
+
+  if (eventType.metadata?.disableSuccessPage && eventType.successRedirectUrl) {
+    return {
+      redirect: {
+        destination: eventType.successRedirectUrl,
+        permanent: false,
+      },
+    };
+  }
 
   const profile = {
     name: eventType.team?.name || eventType.users[0]?.name || null,

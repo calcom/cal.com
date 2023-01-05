@@ -36,7 +36,7 @@
    <a href="https://hub.docker.com/r/calendso/calendso"><img src="https://img.shields.io/docker/pulls/calendso/calendso"></a>
    <a href="https://twitter.com/calcom"><img src="https://img.shields.io/twitter/follow/calcom?style=flat"></a>
    <a href="https://twitch.tv/calcomtv"><img src="https://img.shields.io/twitch/status/calcomtv?style=flat"></a>
-   <a href="https://github.com/orgs/calcom/projects/9"><img src="https://img.shields.io/badge/Help%20Wanted-Contribute-blue"></a>
+   <a href="https://github.com/calcom/cal.com/issues?q=is:issue+is:open+label:%22%F0%9F%99%8B%F0%9F%8F%BB%E2%80%8D%E2%99%82%EF%B8%8Fhelp+wanted%22"><img src="https://img.shields.io/badge/Help%20Wanted-Contribute-blue"></a>
    <a href="https://cal.com/figma"><img src="https://img.shields.io/badge/Figma-Design%20System-blueviolet"></a>
    <a href="https://calendso.slack.com/archives/C02BY67GMMW"><img src="https://img.shields.io/badge/translations-contribute-brightgreen" /></a>
    <a href="https://www.contributor-covenant.org/version/1/4/code-of-conduct/ "><img src="https://img.shields.io/badge/Contributor%20Covenant-1.4-purple" /></a>
@@ -293,6 +293,10 @@ Currently Vercel Pro Plan is required to be able to Deploy this application with
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com&env=DATABASE_URL,NEXT_PUBLIC_WEBAPP_URL,NEXTAUTH_URL,NEXTAUTH_SECRET,CRON_API_KEY,CALENDSO_ENCRYPTION_KEY&envDescription=See%20all%20available%20env%20vars&envLink=https%3A%2F%2Fgithub.com%2Fcalcom%2Fcal.com%2Fblob%2Fmain%2F.env.example&project-name=cal&repo-name=cal.com&build-command=cd%20../..%20%26%26%20yarn%20build&root-directory=apps%2Fweb%2F)
 
+### Render
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/calcom/docker)
+
 <!-- ROADMAP -->
 
 ## Roadmap
@@ -309,7 +313,7 @@ Please see our [contributing guide](/CONTRIBUTING.md).
 
 ### Good First Issues
 
-We have a list of [help wanted](https://github.com/orgs/calcom/projects/1/views/25) that contain small features and bugs which have a relatively limited scope. This is a great place to get started, gain experience, and get familiar with our contribution process.
+We have a list of [help wanted](https://github.com/calcom/cal.com/issues?q=is:issue+is:open+label:%22%F0%9F%99%8B%F0%9F%8F%BB%E2%80%8D%E2%99%82%EF%B8%8Fhelp+wanted%22) that contain small features and bugs which have a relatively limited scope. This is a great place to get started, gain experience, and get familiar with our contribution process.
 
 ## Integrations
 
@@ -352,7 +356,6 @@ following
 4. Set the **Web** redirect URI to `<Cal.com URL>/api/integrations/office365calendar/callback` replacing Cal.com URL with the URI at which your application runs.
 5. Use **Application (client) ID** as the **MS_GRAPH_CLIENT_ID** attribute value in .env
 6. Click **Certificates & secrets** create a new client secret and use the value as the **MS_GRAPH_CLIENT_SECRET** attribute
-
 
 ### Obtaining Zoom Client ID and Secret
 

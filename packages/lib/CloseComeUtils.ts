@@ -7,6 +7,7 @@ import CloseCom, {
   CloseComFieldOptions,
   CloseComLead,
 } from "./CloseCom";
+import { APP_NAME } from "./constants";
 
 export async function getCloseComContactIds(
   persons: { email: string; name: string | null }[],
@@ -150,7 +151,7 @@ export async function getCloseComCustomActivityTypeFieldsIds(
 ) {
   // Check if Custom Activity Type exists
   const customActivities = await closeCom.customActivity.type.get();
-  const calComCustomActivity = customActivities.data.filter((act) => act.name === "Cal.com Activity");
+  const calComCustomActivity = customActivities.data.filter((act) => act.name === `${APP_NAME} Activity`);
   if (calComCustomActivity.length > 0) {
     // Cal.com Custom Activity type exist
     // Get Custom Activity Type fields ids
@@ -163,8 +164,8 @@ export async function getCloseComCustomActivityTypeFieldsIds(
     // Cal.com Custom Activity type doesn't exist
     // Create Custom Activity Type
     const { id: activityType } = await closeCom.customActivity.type.create({
-      name: "Cal.com Activity",
-      description: "Bookings in your Cal.com account",
+      name: APP_NAME + " Activity",
+      description: "Bookings in your " + APP_NAME + " account",
     });
     // Create Custom Activity Fields
     const fields = await Promise.all(
@@ -190,8 +191,8 @@ export async function getCloseComCustomActivityTypeFieldsIds(
 export async function getCloseComLeadId(
   closeCom: CloseCom,
   leadInfo: CloseComLead = {
-    companyName: "From Cal.com",
-    description: "Generic Lead for Contacts created by Cal.com",
+    companyName: "From " + APP_NAME,
+    description: "Generic Lead for Contacts created by " + APP_NAME,
   }
 ): Promise<string> {
   const closeComLeadNames = await closeCom.lead.list({ query: { _fields: ["name", "id"] } });

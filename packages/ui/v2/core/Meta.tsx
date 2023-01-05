@@ -1,6 +1,8 @@
 import Head from "next/head";
 import React, { createContext, useContext, useState, useEffect } from "react";
 
+import { APP_NAME } from "@calcom/lib/constants";
+
 type MetaType = {
   title: string;
   description: string;
@@ -52,7 +54,7 @@ export default function Meta({ title, description, backButton, CTA }: MetaType) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [title, description, backButton, CTA]);
 
-  const title_ = `${title} | Cal.com`;
+  const title_ = `${title} | ${APP_NAME}`;
   return (
     <Head>
       <title>{title_}</title>

@@ -5,6 +5,8 @@ import classNames from "@calcom/lib/classNames";
 
 export type ListProps = {
   roundContainer?: boolean;
+  // @TODO: Do we still need this? Coming from old v2 component. Prefer to delete it :)
+  noBorderTreatment?: boolean;
 } & JSX.IntrinsicElements["ul"];
 
 export function List(props: ListProps) {
@@ -15,6 +17,7 @@ export function List(props: ListProps) {
         "-mx-4 rounded-sm sm:mx-0 sm:overflow-hidden ",
         // Add rounded top and bottome if roundContainer is true
         props.roundContainer && "[&>*:first-child]:rounded-t-md [&>*:last-child]:rounded-b-md ",
+        !props.noBorderTreatment && "divide-y divide-neutral-200 rounded-md border border-l border-r ",
         props.className
       )}>
       {props.children}
@@ -53,6 +56,45 @@ export function ListItem(props: ListItemProps) {
     </Link>
   ) : (
     element
+  );
+}
+
+export type ListLinkItemProps = {
+  href: string;
+  heading: string;
+  subHeading: string;
+  disabled?: boolean;
+  actions?: JSX.Element;
+} & JSX.IntrinsicElements["li"];
+
+export function ListLinkItem(props: ListLinkItemProps) {
+  const { href, heading = "", children, disabled = false, actions = <div /> } = props;
+  let subHeading = props.subHeading;
+  if (!subHeading) {
+    subHeading = "";
+  }
+  return (
+    <li
+      className={classNames(
+        "group flex w-full items-center justify-between p-5 hover:bg-neutral-50",
+        disabled ? "hover:bg-white" : ""
+      )}>
+      <Link passHref href={href}>
+        <a
+          className={classNames(
+            "flex-grow truncate text-sm",
+            disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
+          )}>
+          <h1 className="text-sm font-semibold leading-none">{heading}</h1>
+          <h2 className="min-h-4 mt-2 text-sm font-normal leading-none">
+            {subHeading.substring(0, 100)}
+            {subHeading.length > 100 && "..."}
+          </h2>
+          <div className="mt-2">{children}</div>
+        </a>
+      </Link>
+      {actions}
+    </li>
   );
 }
 
