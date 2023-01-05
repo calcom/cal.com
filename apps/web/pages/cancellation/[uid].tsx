@@ -3,7 +3,6 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { UrlObject } from "url";
 
-import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 
 import { asStringOrUndefined } from "@lib/asStringOrNull";
