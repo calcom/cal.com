@@ -7,7 +7,17 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
-import { Button, Dialog, DialogClose, DialogContent, DialogHeader, Icon, Input, Label } from "@calcom/ui";
+import {
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  Icon,
+  Input,
+  Label,
+  TextField,
+} from "@calcom/ui";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
@@ -77,10 +87,9 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
 
   const ActionButtons = () => {
     return usernameIsAvailable && currentUsername !== inputUsernameValue ? (
-      <div className="flex flex-row">
+      <div className="rlt:space-x-reverse mt-px flex flex-row space-x-2 ltr:ml-2 ltr:mr-2 rtl:ml-2 rtl:space-x-reverse">
         <Button
           type="button"
-          className="mx-2"
           onClick={() => setOpenDialogSaveUsername(true)}
           data-testid="update-username-btn">
           {t("update")}
@@ -88,7 +97,6 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
         <Button
           type="button"
           color="minimal"
-          className="mx-2"
           onClick={() => {
             if (currentUsername) {
               setInputUsernameValue(currentUsername);
@@ -110,26 +118,20 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
 
   return (
     <div>
-      <div>
-        <Label htmlFor="username">{t("username")}</Label>
-      </div>
       <div className="mt-2 flex rounded-md">
-        <span
-          className={classNames(
-            "inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-sm text-gray-500"
-          )}>
-          {process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/
-        </span>
         <div className="relative w-full">
-          <Input
+          <TextField
             ref={usernameRef}
             name="username"
             value={inputUsernameValue}
+            addOnLeading={
+              <>{process.env.NEXT_PUBLIC_WEBSITE_URL.replace("https://", "").replace("http://", "")}/</>
+            }
             autoComplete="none"
             autoCapitalize="none"
             autoCorrect="none"
             className={classNames(
-              "mb-0 mt-0 h-6 rounded-md rounded-l-none",
+              "mb-0 mt-0 h-6 rounded-md ltr:rounded-l-none rtl:rounded-r-none",
               markAsError
                 ? "focus:shadow-0 focus:ring-shadow-0 border-red-500 focus:border-red-500 focus:outline-none focus:ring-0"
                 : ""
@@ -141,18 +143,18 @@ const UsernameTextfield = (props: ICustomUsernameProps) => {
             data-testid="username-input"
           />
           {currentUsername !== inputUsernameValue && (
-            <div className="absolute right-[2px] top-0 flex flex-row">
+            <div className="absolute right-[2px] top-6 flex flex-row">
               <span className={classNames("mx-2 py-2")}>
-                {usernameIsAvailable ? <Icon.FiCheck className="mt-[2px] w-6" /> : <></>}
+                {usernameIsAvailable ? <Icon.FiCheck className="w-6" /> : <></>}
               </span>
             </div>
           )}
         </div>
-        <div className="hidden  md:inline">
+        <div className="mt-5 hidden md:inline">
           <ActionButtons />
         </div>
       </div>
-      {markAsError && <p className="mt-1 text-xs text-red-500">Username is already taken</p>}
+      {markAsError && <p className="mt-1 text-xs text-red-500">{t("username_already_taken")}</p>}
 
       {usernameIsAvailable && currentUsername !== inputUsernameValue && (
         <div className="mt-2 flex justify-end md:hidden">

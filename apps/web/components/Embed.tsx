@@ -639,7 +639,7 @@ const ChooseEmbedTypesDialogContent = () => {
       <div className="flex items-start">
         {embeds.map((embed, index) => (
           <button
-            className="mr-2 w-1/3 border border-transparent p-3 text-left hover:rounded-md hover:border-gray-200 hover:bg-neutral-100"
+            className="w-1/3 border border-transparent p-3 text-left hover:rounded-md hover:border-gray-200 hover:bg-neutral-100 ltr:mr-2 rtl:ml-2"
             key={index}
             data-testid={embed.type}
             onClick={() => {
@@ -914,7 +914,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   <div
                     className={classNames(
                       "mt-4 flex items-center justify-start",
-                      embedType === "floating-popup" ? "space-x-2" : "hidden"
+                      embedType === "floating-popup" ? "space-x-2 rtl:space-x-reverse" : "hidden"
                     )}>
                     <Switch
                       defaultChecked={true}
@@ -1010,7 +1010,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <div className="mt-6 text-sm">
-                    <div className="mb-4 flex items-center justify-start space-x-2">
+                    <div className="mb-4 flex items-center justify-start space-x-2 rtl:space-x-reverse">
                       <Switch
                         checked={previewState.hideEventTypeDetails}
                         onCheckedChange={(checked) => {

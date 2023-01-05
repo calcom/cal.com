@@ -1,0 +1,1 @@
+🚀 Welcome to Cal.com! Try typing 'yarn dx' to get a quick dev envionment.

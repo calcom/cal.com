@@ -28,8 +28,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchChecked={enabled}>
       <div className="mt-2 text-sm">
         <div className="flex">
-          <span className="mr-2">{isSunrise ? <Icon.FiSunrise /> : <Icon.FiSunset />}</span>I am an AppCard
-          for Event with Title: {eventType.title}
+          <span className="ltr:mr-2 rtl:ml-2">{isSunrise ? <Icon.FiSunrise /> : <Icon.FiSunset />}</span>I am
+          an AppCard for Event with Title: {eventType.title}
         </div>{" "}
         <div className="mt-2">
           Edit <span className="italic">packages/app-store/{app.slug}/extensions/EventTypeAppCard.tsx</span>{" "}

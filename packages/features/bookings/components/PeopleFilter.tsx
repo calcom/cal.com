@@ -18,7 +18,7 @@ export const PeopleFilter = () => {
     <AnimatedPopover
       text={userNames && userNames.length > 0 ? `${userNames.join(", ")}` : t("all_users_filter_label")}>
       <div className="item-center flex px-4 py-[6px] focus-within:bg-gray-100">
-        <div className="mr-2 flex h-6 w-6 items-center justify-center">
+        <div className="flex h-6 w-6 items-center justify-center ltr:mr-2 rtl:ml-2">
           <Icon.FiUser className="h-full w-full" />
         </div>
         <label htmlFor="allUsers" className="mr-auto self-center truncate text-sm font-medium text-gray-700">

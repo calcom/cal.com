@@ -13,7 +13,7 @@ import {
 
 import { classNames } from "@calcom/lib";
 
-import { Icon } from "../../../Icon";
+import { Icon } from "../../../components/icon";
 
 export const InputComponent = <
   Option,

@@ -12,7 +12,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Skeleton } from "@calcom/ui";
 
-import { Badge, Button, ErrorBoundary, Icon } from "../../..";
+import { Badge, Button, ErrorBoundary } from "../../..";
+import { Icon } from "../../../components/icon";
 import { useMeta } from "../Meta";
 import Shell from "../Shell";
 import { VerticalTabItemProps } from "../navigation/tabs/VerticalTabItem";
@@ -118,7 +119,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
         target="_self"
         className="group my-6 flex h-6 max-h-6 w-64 flex-row items-center rounded-md py-2 px-3 text-sm font-medium leading-4 text-black hover:bg-gray-100 group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
         data-testid={`vertical-tab-${name}`}>
-        <Icon.FiArrowLeft className="mr-[10px] h-4 w-4 stroke-[2px] md:mt-0" />
+        <Icon.FiArrowLeft className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] md:mt-0" />
         <Skeleton title={name} as="p" className="max-w-36 min-h-4 truncate">
           {name}
         </Skeleton>
@@ -163,7 +164,7 @@ const SettingsSidebarContainer = ({
   return (
     <nav
       className={classNames(
-        "no-scrollbar fixed left-0 top-0 z-10 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll bg-gray-50 px-2 pb-3 transition-transform lg:sticky lg:flex",
+        "no-scrollbar fixed left-0 bottom-0 top-0 z-10 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll bg-gray-50 px-2 pb-3 transition-transform lg:sticky lg:flex",
         className,
         navigationIsOpenedOnMobile
           ? "translate-x-0 opacity-100"
@@ -178,10 +179,14 @@ const SettingsSidebarContainer = ({
               <div className={`${!tab.children?.length ? "!mb-3" : ""}`}>
                 <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 text-sm font-medium leading-none text-gray-600 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
                   {tab && tab.icon && (
-                    <tab.icon className="mr-[12px] h-[16px] w-[16px] stroke-[2px] md:mt-0" />
+                    <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
                   )}
                   {!tab.icon && tab?.avatar && (
-                    <img className="mr-3 h-4 w-4 rounded-full" src={tab?.avatar} alt="User Avatar" />
+                    <img
+                      className="h-4 w-4 rounded-full ltr:mr-3 rtl:ml-3"
+                      src={tab?.avatar}
+                      alt="User Avatar"
+                    />
                   )}
                   <p className="text-sm font-medium leading-5">{t(tab.name)}</p>
                 </div>
@@ -207,7 +212,7 @@ const SettingsSidebarContainer = ({
                   <a>
                     <div className="group flex h-9 w-64 flex-row items-center rounded-md px-3 py-[10px] text-sm font-medium leading-none text-gray-600 hover:bg-gray-100  group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900">
                       {tab && tab.icon && (
-                        <tab.icon className="mr-[12px] h-[16px] w-[16px] stroke-[2px] md:mt-0" />
+                        <tab.icon className="h-[16px] w-[16px] stroke-[2px] ltr:mr-3 rtl:ml-3 md:mt-0" />
                       )}
                       <p className="text-sm font-medium leading-5">{t(tab.name)}</p>
                     </div>
@@ -242,7 +247,7 @@ const SettingsSidebarContainer = ({
                                   }),
                                 ])
                               }>
-                              <div className="mr-[13px]">
+                              <div className="ltr:mr-3 rtl:ml-3">
                                 {teamMenuState[index].teamMenuOpen ? (
                                   <Icon.FiChevronDown />
                                 ) : (
@@ -251,12 +256,12 @@ const SettingsSidebarContainer = ({
                               </div>
                               <img
                                 src={getPlaceholderAvatar(team.logo, team?.name as string)}
-                                className="mr-[8px] h-[16px] w-[16px] self-start rounded-full stroke-[2px] md:mt-0"
+                                className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
                                 alt={team.name || "Team logo"}
                               />
                               <p>{team.name}</p>
                               {!team.accepted && (
-                                <Badge className="ml-3" variant="orange">
+                                <Badge className="ltr:ml-3 rtl:mr-3" variant="orange">
                                   Inv.
                                 </Badge>
                               )}
@@ -339,7 +344,9 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
             <span className="sr-only">{t("show_navigation")}</span>
           </Button>
 
-          <a href="/" className="flex items-center space-x-2 rounded-md px-3 py-1 hover:bg-gray-200">
+          <a
+            href="/"
+            className="flex items-center space-x-2 rounded-md px-3 py-1 hover:bg-gray-200 rtl:space-x-reverse">
             <Icon.FiArrowLeft className="text-gray-700" />
             <p className="font-semibold text-black">{t("settings")}</p>
           </a>
