@@ -40,9 +40,10 @@ import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
 
 import { ssrInit } from "@server/lib/ssr";
 
-const SkeletonLoader = () => {
+const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
+      <Meta title={title} description={description} />
       <div className="mt-6 mb-8 space-y-6 divide-y">
         <div className="flex items-center">
           <SkeletonAvatar className=" h-12 w-12 px-4" />
@@ -179,135 +180,130 @@ const ProfileView = () => {
     [ErrorCode.ThirdPartyIdentityProviderEnabled]: t("account_created_with_identity_provider"),
   };
 
-  const isPageLoading = isLoading || !user || isLoadingAvatar || !avatar;
+  if (isLoading || !user || isLoadingAvatar || !avatar)
+    return (
+      <SkeletonLoader title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
+    );
 
   const defaultValues = {
-    username: user?.username || "",
-    avatar: avatar?.avatar || "",
-    name: user?.name || "",
-    email: user?.email || "",
-    bio: user?.bio || "",
+    username: user.username || "",
+    avatar: avatar.avatar || "",
+    name: user.name || "",
+    email: user.email || "",
+    bio: user.bio || "",
   };
 
   return (
     <>
       <Meta title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
-      {isPageLoading ? (
-        <SkeletonLoader />
-      ) : (
-        <>
-          <ProfileForm
-            key={JSON.stringify(defaultValues)}
-            defaultValues={defaultValues}
-            onSubmit={(values) => {
-              if (values.email !== user.email && isCALIdentityProviver) {
-                setTempFormValues(values);
-                setConfirmPasswordOpen(true);
-              } else {
-                mutation.mutate(values);
-              }
-            }}
-            extraField={
-              <div className="mt-8">
-                <UsernameAvailabilityField
-                  user={user}
-                  onSuccessMutation={async () => {
-                    showToast(t("settings_updated_successfully"), "success");
-                    await utils.viewer.me.invalidate();
-                  }}
-                  onErrorMutation={() => {
-                    showToast(t("error_updating_settings"), "error");
-                  }}
-                />
-              </div>
-            }
-          />
+      <ProfileForm
+        key={JSON.stringify(defaultValues)}
+        defaultValues={defaultValues}
+        onSubmit={(values) => {
+          if (values.email !== user.email && isCALIdentityProviver) {
+            setTempFormValues(values);
+            setConfirmPasswordOpen(true);
+          } else {
+            mutation.mutate(values);
+          }
+        }}
+        extraField={
+          <div className="mt-8">
+            <UsernameAvailabilityField
+              user={user}
+              onSuccessMutation={async () => {
+                showToast(t("settings_updated_successfully"), "success");
+                await utils.viewer.me.invalidate();
+              }}
+              onErrorMutation={() => {
+                showToast(t("error_updating_settings"), "error");
+              }}
+            />
+          </div>
+        }
+      />
 
-          <hr className="my-6  border-neutral-200" />
+      <hr className="my-6  border-neutral-200" />
 
-          <Label>{t("danger_zone")}</Label>
-          {/* Delete account Dialog */}
-          <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
-            <DialogTrigger asChild>
+      <Label>{t("danger_zone")}</Label>
+      {/* Delete account Dialog */}
+      <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
+        <DialogTrigger asChild>
+          <Button
+            data-testid="delete-account"
+            color="destructive"
+            className="mt-1 border-2"
+            StartIcon={Icon.FiTrash2}>
+            {t("delete_account")}
+          </Button>
+        </DialogTrigger>
+        <DialogContent
+          title={t("delete_account_modal_title")}
+          description={t("confirm_delete_account_modal", { appName: APP_NAME })}
+          type="creation"
+          Icon={Icon.FiAlertTriangle}>
+          <>
+            <p className="mb-7">{t("delete_account_confirmation_message", { appName: APP_NAME })}</p>
+            {isCALIdentityProviver && (
+              <PasswordField
+                data-testid="password"
+                name="password"
+                id="password"
+                autoComplete="current-password"
+                required
+                label="Password"
+                ref={passwordRef}
+              />
+            )}
+
+            {user?.twoFactorEnabled && isCALIdentityProviver && (
+              <Form handleSubmit={onConfirm} className="pb-4" form={form}>
+                <TwoFactor center={false} />
+              </Form>
+            )}
+
+            {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
+            <DialogFooter>
               <Button
-                data-testid="delete-account"
-                color="destructive"
-                className="mt-1 border-2"
-                StartIcon={Icon.FiTrash2}>
-                {t("delete_account")}
+                color="primary"
+                data-testid="delete-account-confirm"
+                onClick={(e) => onConfirmButton(e)}>
+                {t("delete_my_account")}
               </Button>
-            </DialogTrigger>
-            <DialogContent
-              title={t("delete_account_modal_title")}
-              description={t("confirm_delete_account_modal", { appName: APP_NAME })}
-              type="creation"
-              Icon={Icon.FiAlertTriangle}>
-              <>
-                <p className="mb-7">{t("delete_account_confirmation_message", { appName: APP_NAME })}</p>
-                {isCALIdentityProviver && (
-                  <PasswordField
-                    data-testid="password"
-                    name="password"
-                    id="password"
-                    autoComplete="current-password"
-                    required
-                    label="Password"
-                    ref={passwordRef}
-                  />
-                )}
+              <DialogClose />
+            </DialogFooter>
+          </>
+        </DialogContent>
+      </Dialog>
 
-                {user?.twoFactorEnabled && isCALIdentityProviver && (
-                  <Form handleSubmit={onConfirm} className="pb-4" form={form}>
-                    <TwoFactor center={false} />
-                  </Form>
-                )}
+      {/* If changing email, confirm password */}
+      <Dialog open={confirmPasswordOpen} onOpenChange={setConfirmPasswordOpen}>
+        <DialogContent
+          title={t("confirm_password")}
+          description={t("confirm_password_change_email")}
+          type="creation"
+          Icon={Icon.FiAlertTriangle}>
+          <>
+            <PasswordField
+              data-testid="password"
+              name="password"
+              id="password"
+              autoComplete="current-password"
+              required
+              label="Password"
+              ref={passwordRef}
+            />
 
-                {hasDeleteErrors && <Alert severity="error" title={deleteErrorMessage} />}
-                <DialogFooter>
-                  <Button
-                    color="primary"
-                    data-testid="delete-account-confirm"
-                    onClick={(e) => onConfirmButton(e)}>
-                    {t("delete_my_account")}
-                  </Button>
-                  <DialogClose />
-                </DialogFooter>
-              </>
-            </DialogContent>
-          </Dialog>
-
-          {/* If changing email, confirm password */}
-          <Dialog open={confirmPasswordOpen} onOpenChange={setConfirmPasswordOpen}>
-            <DialogContent
-              title={t("confirm_password")}
-              description={t("confirm_password_change_email")}
-              type="creation"
-              Icon={Icon.FiAlertTriangle}>
-              <>
-                <PasswordField
-                  data-testid="password"
-                  name="password"
-                  id="password"
-                  autoComplete="current-password"
-                  required
-                  label="Password"
-                  ref={passwordRef}
-                />
-
-                {confirmPasswordErrorMessage && (
-                  <Alert severity="error" title={confirmPasswordErrorMessage} />
-                )}
-                <DialogFooter>
-                  <Button color="primary" onClick={(e) => onConfirmPassword(e)}>
-                    {t("confirm")}
-                  </Button>
-                  <DialogClose />
-                </DialogFooter>
-              </>
-            </DialogContent>
-          </Dialog>
-        </>
-      )}
+            {confirmPasswordErrorMessage && <Alert severity="error" title={confirmPasswordErrorMessage} />}
+            <DialogFooter>
+              <Button color="primary" onClick={(e) => onConfirmPassword(e)}>
+                {t("confirm")}
+              </Button>
+              <DialogClose />
+            </DialogFooter>
+          </>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
