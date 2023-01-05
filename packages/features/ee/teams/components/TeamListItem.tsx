@@ -71,7 +71,7 @@ export default function TeamListItem(props: Props) {
         alt="Team Logo"
         className="min-h-9 min-w-9 h-9 w-9 rounded-full"
       />
-      <div className="ml-3 inline-block">
+      <div className="inline-block ltr:ml-3 rtl:mr-3">
         <span className="text-sm font-bold text-neutral-700">{team.name}</span>
         <span className="block text-xs text-gray-400">
           {team.slug ? `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}` : "Unpublished team"}
@@ -103,7 +103,11 @@ export default function TeamListItem(props: Props) {
                 <Button type="button" color="secondary" onClick={declineInvite}>
                   {t("reject")}
                 </Button>
-                <Button type="button" color="primary" className="ltr:ml-2 rtl:mr-2" onClick={acceptInvite}>
+                <Button
+                  type="button"
+                  color="primary"
+                  className="ltr:ml-2 ltr:mr-2 rtl:ml-2"
+                  onClick={acceptInvite}>
                   {t("accept")}
                 </Button>
               </div>

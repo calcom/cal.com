@@ -78,7 +78,7 @@ const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGrou
             className="hidden font-normal leading-4 text-gray-600 sm:inline"
             data-testid={"event-type-slug-" + type.id}>{`/${group.profile.slug}/${type.slug}`}</small>
           {readOnly && (
-            <span className="rtl:mr-2inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2">
+            <span className="rtl:ml-2inline items-center rounded-sm bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-800 ltr:ml-2 ltr:mr-2">
               {t("readonly") as string}
             </span>
           )}
@@ -394,7 +394,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                     </div>
                   </div>
                 </div>
-                <div className="min-w-9 mr-5 flex sm:hidden">
+                <div className="min-w-9 mx-5 flex sm:hidden">
                   <Dropdown>
                     <DropdownMenuTrigger asChild data-testid={"event-type-options-" + type.id}>
                       <Button type="button" size="icon" color="secondary" StartIcon={Icon.FiMoreHorizontal} />
@@ -531,7 +531,7 @@ const EventTypeListHeading = ({
           <a className="font-bold">{profile?.name || ""}</a>
         </Link>
         {membershipCount && teamId && (
-          <span className="relative -top-px text-xs text-neutral-500 ltr:ml-2 rtl:mr-2">
+          <span className="relative -top-px text-xs text-neutral-500 ltr:ml-2 ltr:mr-2 rtl:ml-2">
             <Link href={`/settings/teams/${teamId}/members`}>
               <a>
                 <Badge variant="gray">

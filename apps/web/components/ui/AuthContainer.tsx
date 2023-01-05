@@ -1,10 +1,11 @@
 import classNames from "classnames";
-import React from "react";
 
-import { APP_NAME, LOGO, COMPANY_NAME, CalComVersion } from "@calcom/lib/constants";
+import { APP_NAME, LOGO } from "@calcom/lib/constants";
 
 import Loader from "@components/Loader";
 import { HeadSeo } from "@components/seo/head-seo";
+
+import Credits from "../../../../packages/ui/v2/core/Credits";
 
 interface Props {
   title: string;
@@ -38,9 +39,7 @@ export default function AuthContainer(props: React.PropsWithChildren<Props>) {
         </div>
         <div className="mt-8 text-center text-sm text-neutral-600">
           {props.footerText}
-          <small className="mx-3 mt-1 mb-2 hidden text-[0.5rem] opacity-50 lg:block">
-            &copy; {new Date().getFullYear()} {COMPANY_NAME} {CalComVersion}
-          </small>
+          <Credits />
         </div>
       </div>
     </div>

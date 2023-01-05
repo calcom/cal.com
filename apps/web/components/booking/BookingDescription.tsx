@@ -95,7 +95,7 @@ const BookingDescription: FC<Props> = (props) => {
             <div>
               <Icon.FiInfo
                 className={classNames(
-                  "mr-[10px] ml-[2px] inline-block h-4 w-4",
+                  "ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px]",
                   isBookingPage && "dark:text-darkgray-600 -mt-1 text-gray-500"
                 )}
               />
@@ -112,7 +112,7 @@ const BookingDescription: FC<Props> = (props) => {
               isBookingPage && "dark:text-darkgray-600 text-sm font-medium text-gray-600"
             )}>
             <div>
-              <Icon.FiCheckSquare className="mr-[10px] ml-[2px] inline-block h-4 w-4 " />
+              <Icon.FiCheckSquare className="ml-[2px] inline-block h-4 w-4 ltr:mr-[10px] rtl:ml-[10px] " />
             </div>
             {requiresConfirmationText}
           </div>
@@ -127,7 +127,7 @@ const BookingDescription: FC<Props> = (props) => {
           )}>
           <Icon.FiClock
             className={classNames(
-              "min-h-4 min-w-4 mr-[10px] ml-[2px] inline-block",
+              "min-h-4 min-w-4 ml-[2px] inline-block ltr:mr-[10px] rtl:ml-[10px]",
               isBookingPage && "mt-[2px]"
             )}
           />
