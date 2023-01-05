@@ -66,6 +66,7 @@ export {
   VerticalTabs,
   VerticalTabItem,
 } from "./v2";
+export type { HorizontalTabItemProps } from "./v2";
 export type { VerticalTabItemProps } from "./v2";
 export type { AlertProps } from "./v2";
 export { Segment, SegmentOption } from "./v2/core";
