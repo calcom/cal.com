@@ -8,6 +8,8 @@ const originalVariables = [
   "event_time_workflow",
   "location_workflow",
   "additional_notes_workflow",
+  "attendee_email_workflow",
+  "meeting_url_workflow",
 ];
 
 export function getTranslatedText(text: string, language: { locale: string; t: TFunction }) {

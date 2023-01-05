@@ -35,11 +35,11 @@ import {
   TimezoneChangeDialog,
 } from "../..";
 import { Logo, ErrorBoundary } from "../../components";
+import { Credits } from "../../components/credits";
+import { HeadSeo } from "../../components/head-seo";
 import { Icon } from "../../components/icon";
 import { SkeletonText } from "../../components/skeleton";
-import Credits from "./Credits";
 import { KBarContent, KBarRoot, KBarTrigger } from "./Kbar";
-import HeadSeo from "./head-seo";
 
 /* TODO: Migate this */
 

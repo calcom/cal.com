@@ -71,7 +71,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!form) {
     throw new Error("Form not found");
   }
-  const serializableForm = getSerializableForm(form, true);
+  const serializableForm = await getSerializableForm(form, true);
   res.setHeader("Content-Type", "text/csv; charset=UTF-8");
   res.setHeader(
     "Content-Disposition",
