@@ -50,6 +50,18 @@ type WorkflowStepProps = {
   setReload?: Dispatch<SetStateAction<boolean>>;
 };
 
+const dynamicTextVariables = [
+  "event_name",
+  "event_date",
+  "event_time",
+  "location",
+  "organizer_name",
+  "attendee_name",
+  "attendee_email",
+  "additional_notes",
+  "meeting_url",
+];
+
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
@@ -541,7 +553,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <div className="flex items-center">
                         <Label className="mb-0 flex-none">{t("subject")}</Label>
                         <div className="flex-grow text-right">
-                          <AddVariablesDropdown addVariable={addVariable} isEmailSubject={true} />
+                          <AddVariablesDropdown
+                            addVariable={addVariable}
+                            isEmailSubject={true}
+                            variables={dynamicTextVariables}
+                          />
                         </div>
                       </div>
                       <TextArea
@@ -579,6 +595,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
                           props.form.clearErrors();
                         }}
+                        variables={dynamicTextVariables}
                       />
                     </>
                   ) : (
@@ -588,7 +605,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                         </Label>
                         <div className="flex-grow text-right">
-                          <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} />
+                          <AddVariablesDropdown
+                            addVariable={addVariable}
+                            isEmailSubject={false}
+                            variables={dynamicTextVariables}
+                          />
                         </div>
                       </div>
                       <TextArea

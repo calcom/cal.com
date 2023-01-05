@@ -28,6 +28,7 @@ export type TextEditorProps = {
   getText: () => string;
   setText: (text: string) => void;
   excludedToolbarItems?: string[];
+  variables?: string[];
 };
 
 const editorConfig = {
@@ -60,6 +61,7 @@ export const Editor = (props: TextEditorProps) => {
             getText={props.getText}
             setText={props.setText}
             excludedToolbarItems={props.excludedToolbarItems}
+            variables={props.variables}
           />
           <div className="editor-inner">
             <RichTextPlugin contentEditable={<ContentEditable className="editor-input" />} placeholder="" />

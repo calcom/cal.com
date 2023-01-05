@@ -72,13 +72,13 @@ const WorkflowListItem = (props: ItemProps) => {
   workflow.steps.forEach((step) => {
     switch (step.action) {
       case WorkflowActions.EMAIL_HOST:
-        sendTo.add(t("organizer_name_workflow"));
+        sendTo.add(t("organizer_name_variable"));
         break;
       case WorkflowActions.EMAIL_ATTENDEE:
-        sendTo.add(t("attendee_name_workflow"));
+        sendTo.add(t("attendee_name_variable"));
         break;
       case WorkflowActions.SMS_ATTENDEE:
-        sendTo.add(t("attendee_name_workflow"));
+        sendTo.add(t("attendee_name_variable"));
         break;
       case WorkflowActions.SMS_NUMBER:
         sendTo.add(step.sendTo || "");

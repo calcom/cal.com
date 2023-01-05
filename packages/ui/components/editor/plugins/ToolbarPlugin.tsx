@@ -476,9 +476,14 @@ export default function ToolbarPlugin(props: TextEditorProps) {
             </>
           )}
         </>
-        {!props.excludedToolbarItems?.includes("addVariable") && (
+        {props.variables && (
           <div className="ml-auto">
-            <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} isTextEditor={true} />
+            <AddVariablesDropdown
+              addVariable={addVariable}
+              isEmailSubject={false}
+              isTextEditor={true}
+              variables={props.variables || []}
+            />
           </div>
         )}
       </>
