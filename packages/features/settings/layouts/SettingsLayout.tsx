@@ -10,14 +10,17 @@ import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Skeleton } from "@calcom/ui";
-
-import { Badge, Button, ErrorBoundary } from "../../..";
-import { Icon } from "../../../components/icon";
-import { useMeta } from "../Meta";
-import Shell from "../Shell";
-import { VerticalTabItemProps } from "../navigation/tabs/VerticalTabItem";
-import { VerticalTabItem } from "../navigation/tabs/VerticalTabs";
+import {
+  Badge,
+  Button,
+  ErrorBoundary,
+  Icon,
+  VerticalTabItemProps,
+  VerticalTabItem,
+  Shell,
+  Skeleton,
+  useMeta,
+} from "@calcom/ui";
 
 const tabs: VerticalTabItemProps[] = [
   {
@@ -164,10 +167,10 @@ const SettingsSidebarContainer = ({
   return (
     <nav
       className={classNames(
-        "no-scrollbar fixed left-0 bottom-0 top-0 z-10 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll bg-gray-50 px-2 pb-3 transition-transform lg:sticky lg:flex",
+        "no-scrollbar fixed left-0 top-0 z-10 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll bg-gray-50 px-2 pb-3 transition-transform lg:sticky lg:flex",
         className,
         navigationIsOpenedOnMobile
-          ? "translate-x-0 opacity-100"
+          ? "opacity-0 ltr:-translate-x-full rtl:translate-x-full lg:translate-x-0 lg:opacity-100"
           : "-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100"
       )}
       aria-label="Tabs">

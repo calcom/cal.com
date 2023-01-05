@@ -1,8 +1,8 @@
 import { useRouter } from "next/router";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
-import { getSettingsLayout as getLayout } from "@calcom/ui";
 
+import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import SAMLConfiguration from "../components/SAMLConfiguration";
 
 const SAMLSSO = () => {

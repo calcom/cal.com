@@ -79,7 +79,18 @@ export { UnstyledSelect } from "./form/Select";
 export { default as Loader } from "./v2/core/Loader";
 export { default as TimezoneChangeDialog } from "./TimezoneChangeDialog";
 
-export { HorizontalTabs, SettingsToggle, showToast, Swatch, Switch, Card, VerticalTabs } from "./v2";
+export {
+  HorizontalTabs,
+  SettingsToggle,
+  showToast,
+  Swatch,
+  Switch,
+  Card,
+  VerticalTabs,
+  HorizontalTabItem,
+  VerticalTabItem,
+} from "./v2";
+export type { HorizontalTabItemProps, VerticalTabItemProps } from "./v2";
 export { default as Shell, ShellMain, MobileNavigationMoreItems, ShellSubHeading } from "./v2/core/Shell";
 
 export { default as ColorPicker } from "./v2/core/colorpicker";
@@ -112,14 +123,9 @@ export { default as MultiSelectCheckboxes } from "./v2/core/form/MultiSelectChec
 export type { Option as MultiSelectCheckboxesOptionType } from "./v2/core/form/MultiSelectCheckboxes";
 export { ToggleGroup } from "./v2/core/form/ToggleGroup";
 export { default as ImageUploader } from "./v2/core/ImageUploader";
-export { default as AdminLayout, getLayout as getAdminLayout } from "./v2/core/layouts/AdminLayout";
-export { default as AppsLayout } from "./v2/core/layouts/AppsLayout";
-export { default as InstalledAppsLayout } from "./v2/core/layouts/InstalledAppsLayout";
-export { default as SettingsLayout, getLayout as getSettingsLayout } from "./v2/core/layouts/SettingsLayout";
-export { default as WizardLayout, getLayout as getWizardLayout } from "./v2/core/layouts/WizardLayout";
 export { default as LinkIconButton } from "./v2/core/LinkIconButton";
 export { default as MeetingTimeInTimezones } from "./v2/core/MeetingTimeInTimezones";
-export { default as Meta, MetaProvider } from "./v2/core/Meta";
+export { default as Meta, MetaProvider, useMeta } from "./v2/core/Meta";
 export { StepCard } from "./v2/core/StepCard";
 export { default as Stepper } from "./v2/core/Stepper";
 export { Steps } from "./v2/core/Steps";
