@@ -20,7 +20,7 @@ const components = {
       <a {...otherProps} />
     </Link>
   ),
-  img: ({ src = "", alt = "", ...rest }: JSX.IntrinsicElements["img"]) => (
+  img: ({ src = "", alt = "", placeholder, ...rest }: JSX.IntrinsicElements["img"]) => (
     <Image src={src} alt={alt} {...rest} />
   ),
   // @TODO: In v2 the slider isn't shown anymore. However, to ensure the v1 pages keep
