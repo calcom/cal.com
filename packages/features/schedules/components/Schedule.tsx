@@ -55,7 +55,7 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
       {/* Label & switch container */}
       <div className="flex h-11 items-center justify-between sm:w-32">
         <div>
-          <label className="flex flex-row items-center space-x-2">
+          <label className="flex flex-row items-center space-x-2 rtl:space-x-reverse">
             <div>
               <Switch
                 disabled={!watchDayRange}
@@ -400,7 +400,7 @@ const CopyTimes = ({
         </ol>
       </div>
       <hr />
-      <div className="space-x-2 px-2">
+      <div className="space-x-2 px-2 rtl:space-x-reverse">
         <Button color="minimal" onClick={() => onCancel()}>
           {t("cancel")}
         </Button>

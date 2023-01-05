@@ -199,7 +199,7 @@ export const getServerSideProps = async function getServerSideProps(
         brandColor: form.user.brandColor,
         darkBrandColor: form.user.darkBrandColor,
       },
-      form: getSerializableForm(form),
+      form: await getSerializableForm(form),
     },
   };
 };

@@ -32,9 +32,7 @@ const Switch = (
           // Since we dont support global dark mode - we have to style dark mode components specifically on the instance for now
           // TODO: Remove once we support global dark mode
           className={classNames(
-            "block h-[14px] w-[14px] rounded-full bg-white",
-            "translate-x-[4px] transition will-change-transform",
-            "[&[data-state='checked']]:translate-x-[17px]",
+            "block h-[14px] w-[14px] rounded-full bg-white transition will-change-transform ltr:translate-x-[4px] rtl:-translate-x-[4px] ltr:[&[data-state='checked']]:translate-x-[17px] rtl:[&[data-state='checked']]:-translate-x-[17px]",
             props.checked && "shadow-inner",
             props.thumbProps?.className
           )}
@@ -44,7 +42,7 @@ const Switch = (
         <Label.Root
           htmlFor={id}
           className={classNames(
-            "ml-2 align-text-top text-sm font-medium text-gray-900 ltr:ml-3 rtl:mr-3 dark:text-white",
+            "align-text-top text-sm font-medium text-gray-900 ltr:ml-3 rtl:mr-3 dark:text-white",
             primitiveProps.disabled ? "cursor-not-allowed opacity-25" : "cursor-pointer "
           )}>
           {label}
