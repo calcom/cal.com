@@ -1009,6 +1009,12 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           ...eventTypeInfo,
           bookingId,
           rescheduleUid,
+          rescheduleStartTime: originalRescheduledBooking?.startTime
+            ? dayjs(originalRescheduledBooking?.startTime).utc().format()
+            : undefined,
+          rescheduleEndTime: originalRescheduledBooking?.endTime
+            ? dayjs(originalRescheduledBooking?.endTime).utc().format()
+            : undefined,
           metadata: { ...metadata, ...reqBody.metadata },
           eventTypeId,
           status: "ACCEPTED",
