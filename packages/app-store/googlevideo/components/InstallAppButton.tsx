@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import type { InstallAppButtonProps } from "@calcom/app-store/types";
+import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { DialogProps } from "@calcom/ui";
@@ -11,6 +12,8 @@ import useAddAppMutation from "../../_utils/useAddAppMutation";
 
 export default function InstallAppButton(props: InstallAppButtonProps) {
   const [showWarningDialog, setShowWarningDialog] = useState(false);
+
+  console.log(useApp("google-calendar").data);
 
   return (
     <>
@@ -29,21 +32,15 @@ export default function InstallAppButton(props: InstallAppButtonProps) {
 function WarningDialog(props: DialogProps) {
   const { t } = useLocale();
   const [googleCalendarPresent, setGoogleCalendarPresent] = useState<undefined | boolean>(undefined);
+  const googleCalendarData = useApp("google-calendar");
+
+  useEffect(() => {
+    if (googleCalendarData.data) setGoogleCalendarPresent(googleCalendarData.data.isInstalled > 0);
+  }, [googleCalendarData]);
 
   const mutation = useAddAppMutation(googleCalendarPresent ? "google_video" : "google_calendar", {
     installGoogleVideo: !googleCalendarPresent,
   });
-  const { data, isLoading } = trpc.viewer.integrations.useQuery(
-    {
-      variant: "calendar",
-      onlyInstalled: true,
-    },
-    {
-      onSuccess: (data) => {
-        setGoogleCalendarPresent(data.items?.some((calendar) => calendar.type === "google_calendar"));
-      },
-    }
-  );
 
   return (
     <Dialog name="Account check" open={props.open} onOpenChange={props.onOpenChange}>
