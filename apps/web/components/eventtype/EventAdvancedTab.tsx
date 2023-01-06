@@ -93,7 +93,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         <div className="flex flex-col">
           <div className="flex justify-between">
             <Label>{t("add_to_calendar")}</Label>
-            <Link href="/apps/categories/calendar">
+            <Link href="/apps/categories/calendar" legacyBehavior>
               <a target="_blank" className="text-sm text-gray-600 hover:text-gray-900">
                 {t("add_another_calendar")}
               </a>

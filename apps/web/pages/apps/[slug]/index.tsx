@@ -16,7 +16,7 @@ import App from "@components/apps/App";
 
 const components = {
   a: ({ href = "", ...otherProps }: JSX.IntrinsicElements["a"]) => (
-    <Link href={href}>
+    <Link href={href} legacyBehavior>
       <a {...otherProps} />
     </Link>
   ),

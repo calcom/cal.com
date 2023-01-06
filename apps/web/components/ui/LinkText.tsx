@@ -13,10 +13,8 @@ interface ILinkTextProps {
 export const LinkText = (props: ILinkTextProps) => {
   const { target, href, children, classNameChildren, ...moreProps } = props;
   return (
-    <Link href={href || ""} {...moreProps}>
-      <a target={target || ""} className={classNameChildren}>
-        {children}
-      </a>
+    <Link href={href || ""} {...moreProps} target={target || ""} className={classNameChildren}>
+      {children}
     </Link>
   );
 };
