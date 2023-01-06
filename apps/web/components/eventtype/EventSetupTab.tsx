@@ -206,9 +206,9 @@ export const EventSetupTab = (
                   The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
                   Change it{" "}
                   <a href={`${CAL_URL}`} className="underline">
-                    here
-                  </a>
-                  . We will fall back to Cal video if you do not change it.
+                    here.
+                  </a>{" "}
+                  We will fall back to Cal video if you do not change it.
                 </Trans>
               </div>
             )}

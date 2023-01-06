@@ -103,14 +103,15 @@ export default class EventManager {
     const evt = processLocation(event);
     // Fallback to cal video if no location is set
     if (!evt.location) evt["location"] = "integrations:daily";
-    const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
-
-    const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
 
     // Fallback to Cal Video if Google Meet is selected w/o a Google Cal
     if (evt.location === MeetLocationType && evt.destinationCalendar?.integration !== "google_calendar") {
       evt["location"] = "integrations:daily";
     }
+    const isDedicated = evt.location ? isDedicatedIntegration(evt.location) : null;
+
+    const results: Array<EventResult<Exclude<Event, AdditionalInformation>>> = [];
+
     // If and only if event type is a dedicated meeting, create a dedicated video meeting.
     if (isDedicated) {
       const result = await this.createVideoEvent(evt);
