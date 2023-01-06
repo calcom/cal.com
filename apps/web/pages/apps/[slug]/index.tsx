@@ -3,7 +3,7 @@ import matter from "gray-matter";
 import { GetStaticPaths, GetStaticPropsContext } from "next";
 import { MDXRemote } from "next-mdx-remote";
 import { serialize } from "next-mdx-remote/serialize";
-import Image, { ImageProps } from "next/image";
+import Image, { ImageProps } from "next/legacy/image";
 import Link from "next/link";
 import path from "path";
 
