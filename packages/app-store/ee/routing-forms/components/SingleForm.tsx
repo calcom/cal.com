@@ -14,8 +14,8 @@ import {
 } from "@calcom/types/AppGetServerSideProps";
 import {
   Alert,
-  Button,
   Badge,
+  Button,
   ButtonGroup,
   Dialog,
   DialogClose,
@@ -395,9 +395,12 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     <div className="font-bold ">{t("route_to")}:</div>
                     <div className="mt-2">
                       {RoutingPages.map((page) => {
-                        if (page.value === decidedAction.type) {
-                          return <div data-testid="test-routing-result-type">{page.label}</div>;
-                        }
+                        if (page.value !== decidedAction.type) return null;
+                        return (
+                          <div key={page.value} data-testid="test-routing-result-type">
+                            {page.label}
+                          </div>
+                        );
                       })}
                       :{" "}
                       {decidedAction.type === "customPageMessage" ? (
