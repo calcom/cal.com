@@ -521,6 +521,8 @@
   "change_member_role": "Change team member role",
   "disable_cal_branding": "Disable {{appName}} branding",
   "disable_cal_branding_description": "Hide all {{appName}} branding from your public pages.",
+  "hide_book_a_team_member": "Hide Book a Team Member Button",
+  "hide_book_a_team_member_description": "Hide Book a Team Member Button from your public pages.",
   "danger_zone": "Danger zone",
   "back": "Back",
   "cancel": "Cancel",
