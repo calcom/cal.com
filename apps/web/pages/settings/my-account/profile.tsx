@@ -181,7 +181,9 @@ const ProfileView = () => {
   };
 
   if (isLoading || !user || isLoadingAvatar || !avatar)
-    return <SkeletonLoader title={t("profile")} description={t("profile_description")} />;
+    return (
+      <SkeletonLoader title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
+    );
 
   const defaultValues = {
     username: user.username || "",
