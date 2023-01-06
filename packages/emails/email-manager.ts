@@ -25,6 +25,7 @@ import OrganizerScheduledEmail from "./templates/organizer-scheduled-email";
 import TeamInviteEmail, { TeamInvite } from "./templates/team-invite-email";
 
 export const sendScheduledEmails = async (calEvent: CalendarEvent) => {
+  console.log("🚀 ~ file: email-manager.ts:28 ~ sendScheduledEmails ~ calEvent", calEvent);
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(
