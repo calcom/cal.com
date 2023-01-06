@@ -58,6 +58,7 @@ export {
   AppStoreCategories,
   Slider,
   useShouldShowArrows,
+  StepCard,
 } from "./components";
 export type {
   ActionType,
@@ -65,6 +66,7 @@ export type {
   AvatarProps,
   BadgeProps,
   ButtonBaseProps,
+  BaseCardProps,
   ButtonProps,
   ITimezone,
   ITimezoneOption,
@@ -126,7 +128,6 @@ export { default as ImageUploader } from "./v2/core/ImageUploader";
 export { default as LinkIconButton } from "./v2/core/LinkIconButton";
 export { default as MeetingTimeInTimezones } from "./v2/core/MeetingTimeInTimezones";
 export { default as Meta, MetaProvider, useMeta } from "./v2/core/Meta";
-export { StepCard } from "./v2/core/StepCard";
 export { default as Stepper } from "./v2/core/Stepper";
 export { Steps } from "./v2/core/Steps";
 export { Tooltip } from "./v2/core/Tooltip";
