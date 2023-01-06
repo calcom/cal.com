@@ -196,7 +196,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
         <div className="flex justify-center">
           <div className="min-w-80 w-full rounded-md border border-gray-200 bg-white p-7">
             <div className="flex">
-              <div className="mt-[3px] mr-5 flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 p-1 text-xs font-medium">
+              <div className="mt-[3px] flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 p-1 text-xs font-medium ltr:mr-5 rtl:ml-5">
                 1
               </div>
               <div>
@@ -277,7 +277,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               <div className="flex">
                 <div className="w-full">
                   <div className="flex">
-                    <div className="mt-[3px] mr-5 flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 p-1 text-xs">
+                    <div className="mt-[3px] flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 p-1 text-xs ltr:mr-5 rtl:ml-5">
                       {step.stepNumber + 1}
                     </div>
                     <div>
@@ -603,7 +603,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   <div className="mt-3 ">
                     <button type="button" onClick={() => setIsAdditionalInputsDialogOpen(true)}>
                       <div className="mt-2 flex text-sm text-gray-600">
-                        <Icon.FiHelpCircle className="mt-[3px] mr-2 h-3 w-3" />
+                        <Icon.FiHelpCircle className="mt-[3px] h-3 w-3 ltr:mr-2 rtl:ml-2" />
                         <p className="text-left">{t("using_additional_inputs_as_variables")}</p>
                       </div>
                     </button>
@@ -723,7 +723,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <div className="mt-6">
                   <p className="test-sm w-full font-medium">{t("example_1")}</p>
                   <div className="mt-2 grid grid-cols-12">
-                    <div className="test-sm col-span-5 mr-2 text-gray-600">{t("additional_input_label")}</div>
+                    <div className="test-sm col-span-5 text-gray-600 ltr:mr-2 rtl:ml-2">
+                      {t("additional_input_label")}
+                    </div>
                     <div className="test-sm col-span-7 text-gray-900">{t("company_size")}</div>
                     <div className="test-sm col-span-5 w-full text-gray-600">{t("variable")}</div>
 
@@ -740,7 +742,9 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 <div className="mt-6">
                   <p className="test-sm w-full font-medium">{t("example_2")}</p>
                   <div className="mt-2 grid grid-cols-12">
-                    <div className="test-sm col-span-5 mr-2 text-gray-600">{t("additional_input_label")}</div>
+                    <div className="test-sm col-span-5 text-gray-600 ltr:mr-2 rtl:ml-2">
+                      {t("additional_input_label")}
+                    </div>
                     <div className="test-sm col-span-7 text-gray-900">{t("what_help_needed")}</div>
                     <div className="test-sm col-span-5 text-gray-600">{t("variable")}</div>
                     <div className="test-sm col-span-7 break-words text-gray-900">

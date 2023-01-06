@@ -120,7 +120,7 @@ export default function ExchangeSetup() {
                     />
                   </fieldset>
                   {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
-                  <div className="mt-4 flex justify-end space-x-2">
+                  <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
                     <Button type="button" color="secondary" onClick={() => router.back()}>
                       {t("cancel")}
                     </Button>

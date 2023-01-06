@@ -1,5 +1,4 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { App_RoutingForms_Form } from "@prisma/client";
 import { useEffect, useState } from "react";
 import { Controller, useFieldArray, UseFormReturn } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
@@ -21,17 +20,12 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
+  RoutingFormWithResponseCount,
 } from "../../components/SingleForm";
-import { SerializableForm } from "../../types/types";
 
 export { getServerSideProps };
-type RoutingForm = SerializableForm<App_RoutingForms_Form>;
-type RoutingFormWithResponseCount = RoutingForm & {
-  _count: {
-    responses: number;
-  };
-};
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
+
 export const FieldTypes = [
   {
     label: "Short Text",
@@ -70,6 +64,7 @@ function Field({
   fieldIndex,
   moveUp,
   moveDown,
+  appUrl,
 }: {
   fieldIndex: number;
   hookForm: HookForm;
@@ -86,6 +81,7 @@ function Field({
     check: () => boolean;
     fn: () => void;
   };
+  appUrl: string;
 }) {
   const [identifier, _setIdentifier] = useState(hookForm.getValues(`${hookFieldNamespace}.identifier`));
 
@@ -102,7 +98,8 @@ function Field({
       _setIdentifier(label);
     }
   }, [label, hookFieldNamespace, hookForm]);
-
+  const router = hookForm.getValues(`${hookFieldNamespace}.router`);
+  const routerField = hookForm.getValues(`${hookFieldNamespace}.routerField`);
   return (
     <div
       data-testid="field"
@@ -111,13 +108,22 @@ function Field({
         label={label || `Field ${fieldIndex + 1}`}
         moveUp={moveUp}
         moveDown={moveDown}
-        deleteField={deleteField}>
+        badge={
+          router ? { text: router.name, variant: "gray", href: `${appUrl}/form-edit/${router.id}` } : null
+        }
+        deleteField={router ? null : deleteField}>
         <div className="w-full">
           <div className="mb-6 w-full">
             <TextField
+              disabled={!!router}
               label="Label"
               type="text"
               placeholder="This is what your users would see"
+              /**
+               * This is a bit of a hack to make sure that for routerField, label is shown from there.
+               * For other fields, value property is used because it exists and would take precedence
+               */
+              defaultValue={routerField?.label}
               required
               {...hookForm.register(`${hookFieldNamespace}.label`)}
               className="block w-full rounded-sm border-gray-300 text-sm"
@@ -125,11 +131,13 @@ function Field({
           </div>
           <div className="mb-6 w-full">
             <TextField
+              disabled={!!router}
               label="Identifier"
               name="identifier"
               required
               placeholder="Identifies field by this name."
               value={identifier}
+              defaultValue={routerField?.identifier || routerField?.label}
               onChange={(e) => setUserChangedIdentifier(e.target.value)}
               className="block w-full rounded-sm border-gray-300 text-sm"
             />
@@ -138,11 +146,13 @@ function Field({
             <Controller
               name={`${hookFieldNamespace}.type`}
               control={hookForm.control}
+              defaultValue={routerField?.type}
               render={({ field: { value, onChange } }) => {
                 const defaultValue = FieldTypes.find((fieldType) => fieldType.value === value);
                 return (
                   <SelectField
                     label="Type"
+                    isDisabled={!!router}
                     containerClassName="data-testid-field-type"
                     options={FieldTypes}
                     onChange={(option) => {
@@ -161,8 +171,10 @@ function Field({
             <div className="mt-2 block items-center sm:flex">
               <div className="w-full">
                 <TextAreaField
+                  disabled={!!router}
                   rows={3}
                   label="Options"
+                  defaultValue={routerField?.selectText}
                   placeholder="Add 1 option per line"
                   {...hookForm.register(`${hookFieldNamespace}.selectText`)}
                 />
@@ -174,8 +186,16 @@ function Field({
             <Controller
               name={`${hookFieldNamespace}.required`}
               control={hookForm.control}
+              defaultValue={routerField?.required}
               render={({ field: { value, onChange } }) => {
-                return <BooleanToggleGroupField label="Required" value={value} onValueChange={onChange} />;
+                return (
+                  <BooleanToggleGroupField
+                    disabled={!!router}
+                    label="Required"
+                    value={value}
+                    onValueChange={onChange}
+                  />
+                );
               }}
             />
           </div>
@@ -184,12 +204,15 @@ function Field({
     </div>
   );
 }
+
 const FormEdit = ({
   hookForm,
   form,
+  appUrl,
 }: {
   hookForm: HookForm;
   form: inferSSRProps<typeof getServerSideProps>["form"];
+  appUrl: string;
 }) => {
   const fieldsNamespace = "fields";
   const {
@@ -228,6 +251,7 @@ const FormEdit = ({
           {hookFormFields.map((field, key) => {
             return (
               <Field
+                appUrl={appUrl}
                 fieldIndex={key}
                 hookForm={hookForm}
                 hookFieldNamespace={`${fieldsNamespace}.${key}`}
@@ -272,14 +296,18 @@ const FormEdit = ({
       </div>
     </div>
   ) : (
-    <button data-testid="add-field" onClick={addField} className="w-full">
+    <div className="w-full">
       <EmptyScreen
         Icon={Icon.FiFileText}
         headline="Create your first field"
         description="Fields are the form fields that the booker would see."
-        buttonRaw={<Button>Create Field</Button>}
+        buttonRaw={
+          <Button data-testid="add-field" onClick={addField}>
+            Create Field
+          </Button>
+        }
       />
-    </button>
+    </div>
   );
 };
 
@@ -291,7 +319,7 @@ export default function FormEditPage({
     <SingleForm
       form={form}
       appUrl={appUrl}
-      Page={({ hookForm, form }) => <FormEdit hookForm={hookForm} form={form} />}
+      Page={({ hookForm, form }) => <FormEdit appUrl={appUrl} hookForm={hookForm} form={form} />}
     />
   );
 }
