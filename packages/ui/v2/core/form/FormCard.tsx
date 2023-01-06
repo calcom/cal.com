@@ -56,13 +56,7 @@ export default function FormCard({
             <span className="text-sm font-semibold leading-none">{label}</span>
             {badge && (
               <Badge className="ml-2" variant={badge.variant}>
-                {badge.href ? (
-                  <Link href={badge.href}>
-                    <a>{badge.text}</a>
-                  </Link>
-                ) : (
-                  badge.text
-                )}
+                {badge.href ? <Link href={badge.href}>{badge.text}</Link> : badge.text}
               </Badge>
             )}
           </div>

@@ -38,16 +38,14 @@ type BreadcrumbItemProps = {
 export const BreadcrumbItem = ({ children, href, listProps }: BreadcrumbItemProps) => {
   return (
     <li {...listProps}>
-      <Link href={href}>
-        <a>{children}</a>
-      </Link>
+      <Link href={href}>{children}</Link>
     </li>
   );
 };
 
 export const BreadcrumbContainer = () => {
   const router = useRouter();
-  const [breadcrumbs, setBreadcrumbs] = useState<{ href: string; label: string }[]>();
+  const [, setBreadcrumbs] = useState<{ href: string; label: string }[]>();
 
   useEffect(() => {
     const rawPath = router.asPath.split("?")[0]; // this will ignore any query params for now?

@@ -263,10 +263,8 @@ const ProfileView = () => {
                 )}
               </div>
               <div className="">
-                <Link href={permalink} passHref={true}>
-                  <a target="_blank">
-                    <LinkIconButton Icon={Icon.FiExternalLink}>{t("preview")}</LinkIconButton>
-                  </a>
+                <Link href={permalink} passHref={true} target="_blank">
+                  <LinkIconButton Icon={Icon.FiExternalLink}>{t("preview")}</LinkIconButton>
                 </Link>
                 <LinkIconButton
                   Icon={Icon.FiLink}
