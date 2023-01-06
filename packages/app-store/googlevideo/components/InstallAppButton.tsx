@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import type { InstallAppButtonProps } from "@calcom/app-store/types";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import type { DialogProps } from "@calcom/ui";
 import { Button } from "@calcom/ui";
 import { Dialog, DialogClose, DialogContent, DialogFooter } from "@calcom/ui";
@@ -29,12 +28,8 @@ export default function InstallAppButton(props: InstallAppButtonProps) {
 
 function WarningDialog(props: DialogProps) {
   const { t } = useLocale();
-  const [googleCalendarPresent, setGoogleCalendarPresent] = useState<undefined | boolean>(undefined);
   const googleCalendarData = useApp("google-calendar");
-
-  useEffect(() => {
-    if (googleCalendarData.data) setGoogleCalendarPresent(googleCalendarData.data.isInstalled > 0);
-  }, [googleCalendarData]);
+  const googleCalendarPresent = googleCalendarData.data?.isInstalled > 0;
 
   const mutation = useAddAppMutation(googleCalendarPresent ? "google_video" : "google_calendar", {
     installGoogleVideo: !googleCalendarPresent,
