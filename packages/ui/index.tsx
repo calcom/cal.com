@@ -64,6 +64,7 @@ export {
   DialogHeader,
   DialogTrigger,
   ConfirmationDialogContent,
+  showToast,
 } from "./components";
 export type {
   ActionType,
@@ -90,7 +91,6 @@ export { default as Loader } from "./v2/core/Loader";
 export {
   HorizontalTabs,
   SettingsToggle,
-  showToast,
   Swatch,
   Switch,
   Card,
