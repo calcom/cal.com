@@ -51,7 +51,7 @@ export function ListItem(props: ListItemProps) {
   );
 
   return href ? (
-    <Link passHref href={href}>
+    <Link passHref href={href} legacyBehavior>
       {element}
     </Link>
   ) : (
@@ -79,19 +79,19 @@ export function ListLinkItem(props: ListLinkItemProps) {
         "group flex w-full items-center justify-between p-5 hover:bg-neutral-50",
         disabled ? "hover:bg-white" : ""
       )}>
-      <Link passHref href={href}>
-        <a
-          className={classNames(
-            "flex-grow truncate text-sm",
-            disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
-          )}>
-          <h1 className="text-sm font-semibold leading-none">{heading}</h1>
-          <h2 className="min-h-4 mt-2 text-sm font-normal leading-none">
-            {subHeading.substring(0, 100)}
-            {subHeading.length > 100 && "..."}
-          </h2>
-          <div className="mt-2">{children}</div>
-        </a>
+      <Link
+        passHref
+        href={href}
+        className={classNames(
+          "flex-grow truncate text-sm",
+          disabled ? "pointer-events-none cursor-not-allowed opacity-30" : ""
+        )}>
+        <h1 className="text-sm font-semibold leading-none">{heading}</h1>
+        <h2 className="min-h-4 mt-2 text-sm font-normal leading-none">
+          {subHeading.substring(0, 100)}
+          {subHeading.length > 100 && "..."}
+        </h2>
+        <div className="mt-2">{children}</div>
       </Link>
       {actions}
     </li>
