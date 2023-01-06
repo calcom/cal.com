@@ -40,7 +40,7 @@ export default function Error() {
         </div>
       </div>
       <div className="mt-5 sm:mt-6">
-        <Link href="/auth/login" passHref>
+        <Link href="/auth/login" passHref legacyBehavior>
           <Button className="flex w-full justify-center">{t("go_back_login")}</Button>
         </Link>
       </div>
