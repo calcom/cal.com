@@ -590,32 +590,31 @@ const NavigationItem: React.FC<{
 
   return (
     <Fragment>
-      <Link href={item.href}>
-        <a
-          aria-label={t(item.name)}
-          className={classNames(
-            "group flex items-center rounded-md py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100 lg:px-[14px]  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
-            isChild
-              ? "[&[aria-current='page']]:text-brand-900 hidden pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent"
-              : "[&[aria-current='page']]:text-brand-900 "
-          )}
-          aria-current={current ? "page" : undefined}>
-          {item.icon && (
-            <item.icon
-              className="h-4 w-4 flex-shrink-0 text-gray-500 ltr:mr-3 rtl:ml-3 [&[aria-current='page']]:text-inherit"
-              aria-hidden="true"
-              aria-current={current ? "page" : undefined}
-            />
-          )}
-          {isLocaleReady ? (
-            <span className="hidden w-full justify-between lg:flex">
-              <div className="flex">{t(item.name)}</div>
-              {item.badge && item.badge}
-            </span>
-          ) : (
-            <SkeletonText className="h-3 w-32" />
-          )}
-        </a>
+      <Link
+        href={item.href}
+        aria-label={t(item.name)}
+        className={classNames(
+          "group flex items-center rounded-md py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100 lg:px-[14px]  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
+          isChild
+            ? "[&[aria-current='page']]:text-brand-900 hidden pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent"
+            : "[&[aria-current='page']]:text-brand-900 "
+        )}
+        aria-current={current ? "page" : undefined}>
+        {item.icon && (
+          <item.icon
+            className="h-4 w-4 flex-shrink-0 text-gray-500 ltr:mr-3 rtl:ml-3 [&[aria-current='page']]:text-inherit"
+            aria-hidden="true"
+            aria-current={current ? "page" : undefined}
+          />
+        )}
+        {isLocaleReady ? (
+          <span className="hidden w-full justify-between lg:flex">
+            <div className="flex">{t(item.name)}</div>
+            {item.badge && item.badge}
+          </span>
+        ) : (
+          <SkeletonText className="h-3 w-32" />
+        )}
       </Link>
       {item.child &&
         isCurrent({ router, isChild, item }) &&
@@ -663,20 +662,20 @@ const MobileNavigationItem: React.FC<{
 
   if (!shouldDisplayNavigationItem) return null;
   return (
-    <Link key={item.name} href={item.href}>
-      <a
-        className="relative my-2 min-w-0 flex-1 overflow-hidden rounded-md py-2 px-1 text-center text-xs font-medium text-neutral-400 hover:bg-gray-200 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
-        aria-current={current ? "page" : undefined}>
-        {item.badge && <div className="absolute right-1 top-1">{item.badge}</div>}
-        {item.icon && (
-          <item.icon
-            className="mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center text-inherit [&[aria-current='page']]:text-gray-900"
-            aria-hidden="true"
-            aria-current={current ? "page" : undefined}
-          />
-        )}
-        {isLocaleReady ? <span className="block truncate">{t(item.name)}</span> : <SkeletonText />}
-      </a>
+    <Link
+      key={item.name}
+      href={item.href}
+      className="relative my-2 min-w-0 flex-1 overflow-hidden rounded-md py-2 px-1 text-center text-xs font-medium text-neutral-400 hover:bg-gray-200 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
+      aria-current={current ? "page" : undefined}>
+      {item.badge && <div className="absolute right-1 top-1">{item.badge}</div>}
+      {item.icon && (
+        <item.icon
+          className="mx-auto mb-1 block h-5 w-5 flex-shrink-0 text-center text-inherit [&[aria-current='page']]:text-gray-900"
+          aria-hidden="true"
+          aria-current={current ? "page" : undefined}
+        />
+      )}
+      {isLocaleReady ? <span className="block truncate">{t(item.name)}</span> : <SkeletonText />}
     </Link>
   );
 };
@@ -693,16 +692,12 @@ const MobileNavigationMoreItem: React.FC<{
 
   return (
     <li className="border-b last:border-b-0" key={item.name}>
-      <Link href={item.href}>
-        <a className="flex items-center justify-between p-5 hover:bg-gray-100">
-          <span className="flex items-center font-semibold text-gray-700 ">
-            {item.icon && (
-              <item.icon className="h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />
-            )}
-            {isLocaleReady ? t(item.name) : <SkeletonText />}
-          </span>
-          <Icon.FiArrowRight className="h-5 w-5 text-gray-500" />
-        </a>
+      <Link href={item.href} className="flex items-center justify-between p-5 hover:bg-gray-100">
+        <span className="flex items-center font-semibold text-gray-700 ">
+          {item.icon && <item.icon className="h-5 w-5 flex-shrink-0 ltr:mr-3 rtl:ml-3" aria-hidden="true" />}
+          {isLocaleReady ? t(item.name) : <SkeletonText />}
+        </span>
+        <Icon.FiArrowRight className="h-5 w-5 text-gray-500" />
       </Link>
     </li>
   );
@@ -726,10 +721,8 @@ function SideBar() {
       <aside className="desktop-transparent top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto border-r border-gray-100 bg-gray-50 md:sticky md:flex lg:w-56 lg:px-4">
         <div className="flex h-full flex-col justify-between py-3 lg:pt-5 ">
           <header className="items-center justify-between md:hidden lg:flex">
-            <Link href="/event-types">
-              <a className="px-4">
-                <Logo small />
-              </a>
+            <Link href="/event-types" className="px-4">
+              <Logo small />
             </Link>
             <div className="flex space-x-2 rtl:space-x-reverse">
               <button
@@ -751,10 +744,8 @@ function SideBar() {
           <hr className="desktop-only absolute -left-3 -right-3 mt-4 block w-full border-gray-200" />
 
           {/* logo icon for tablet */}
-          <Link href="/event-types">
-            <a className="text-center md:inline lg:hidden">
-              <Logo small icon />
-            </a>
+          <Link href="/event-types" className="text-center md:inline lg:hidden">
+            <Logo small icon />
           </Link>
 
           <Navigation />
@@ -871,9 +862,7 @@ function TopNav() {
         style={isEmbed ? { display: "none" } : {}}
         className="sticky top-0 z-40 flex w-full items-center justify-between border-b border-gray-200 bg-gray-50 bg-opacity-50 py-1.5 px-4 backdrop-blur-lg sm:p-4 md:hidden">
         <Link href="/event-types">
-          <a>
-            <Logo />
-          </a>
+          <Logo />
         </Link>
         <div className="flex items-center gap-2 self-center">
           <span className="group flex items-center rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
@@ -882,9 +871,7 @@ function TopNav() {
           <button className="rounded-full p-1 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">
             <span className="sr-only">{t("settings")}</span>
             <Link href="/settings/profile">
-              <a>
-                <Icon.FiSettings className="h-4 w-4 text-gray-700" aria-hidden="true" />
-              </a>
+              <Icon.FiSettings className="h-4 w-4 text-gray-700" aria-hidden="true" />
             </Link>
           </button>
           <UserDropdown small />

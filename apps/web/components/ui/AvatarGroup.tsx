@@ -35,13 +35,7 @@ export const AvatarGroup = function AvatarGroup(props: AvatarGroupProps) {
 
           return (
             <li key={idx} className="-ltr:mr-2 inline-block rtl:ml-2">
-              {item.href ? (
-                <Link href={item.href}>
-                  <a>{avatar}</a>
-                </Link>
-              ) : (
-                avatar
-              )}
+              {item.href ? <Link href={item.href}>{avatar}</Link> : avatar}
             </li>
           );
         }
