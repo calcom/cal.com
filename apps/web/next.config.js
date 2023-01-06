@@ -88,12 +88,13 @@ const nextConfig = {
   /* We already do linting on GH actions */
   eslint: {
     ignoreDuringBuilds: !!process.env.CI,
-  } /* 
-  modularizeImports: {
-    "@calcom/ui": {
-      transform: "@calcom/ui/{{member}}",
-    },
-  }, */,
+  },
+  // TODO: We need to have all components in `@calcom/ui/components` in order to use this
+  // modularizeImports: {
+  //   "@calcom/ui": {
+  //     transform: "@calcom/ui/components/{{member}}",
+  //   },
+  // },
   images: {
     unoptimized: true,
   },
