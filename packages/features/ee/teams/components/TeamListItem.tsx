@@ -88,10 +88,11 @@ export default function TeamListItem(props: Props) {
           !isInvitee && "group hover:bg-neutral-50"
         )}>
         {!isInvitee ? (
-          <Link href={"/settings/teams/" + team.id + "/profile"}>
-            <a className="flex-grow cursor-pointer truncate text-sm" title={`${team.name}`}>
-              {teamInfo}
-            </a>
+          <Link
+            href={"/settings/teams/" + team.id + "/profile"}
+            className="flex-grow cursor-pointer truncate text-sm"
+            title={`${team.name}`}>
+            {teamInfo}
           </Link>
         ) : (
           teamInfo

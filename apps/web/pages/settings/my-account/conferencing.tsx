@@ -1,6 +1,7 @@
 import { GetServerSidePropsContext } from "next";
 import { useState } from "react";
 
+import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -13,7 +14,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-  getSettingsLayout as getLayout,
   Icon,
   List,
   ListItem,
