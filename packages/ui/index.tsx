@@ -59,6 +59,7 @@ export {
   Slider,
   useShouldShowArrows,
   StepCard,
+  LinkIconButton,
 } from "./components";
 export type {
   ActionType,
@@ -125,7 +126,6 @@ export { default as MultiSelectCheckboxes } from "./v2/core/form/MultiSelectChec
 export type { Option as MultiSelectCheckboxesOptionType } from "./v2/core/form/MultiSelectCheckboxes";
 export { ToggleGroup } from "./v2/core/form/ToggleGroup";
 export { default as ImageUploader } from "./v2/core/ImageUploader";
-export { default as LinkIconButton } from "./v2/core/LinkIconButton";
 export { default as MeetingTimeInTimezones } from "./v2/core/MeetingTimeInTimezones";
 export { default as Meta, MetaProvider, useMeta } from "./v2/core/Meta";
 export { default as Stepper } from "./v2/core/Stepper";

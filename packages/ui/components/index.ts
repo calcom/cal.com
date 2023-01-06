@@ -3,7 +3,7 @@ export type { AvatarProps } from "./avatar";
 export { Badge } from "./badge";
 export type { BadgeProps } from "./badge";
 export { Breadcrumb, BreadcrumbContainer, BreadcrumbItem } from "./breadcrumb";
-export { Button } from "./button";
+export { Button, LinkIconButton } from "./button";
 export type { ButtonBaseProps, ButtonProps } from "./button";
 export { ButtonGroup } from "./buttonGroup";
 export {
