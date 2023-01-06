@@ -12,6 +12,7 @@ import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseReq
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
+import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
 import { Tips } from "@calcom/features/tips";
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
 import CustomBranding from "@calcom/lib/CustomBranding";
@@ -32,7 +33,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   showToast,
-  TimezoneChangeDialog,
 } from "../..";
 import { Logo, ErrorBoundary } from "../../components";
 import { Credits } from "../../components/credits";
