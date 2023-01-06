@@ -45,28 +45,29 @@ function TeamPage({ team }: TeamPageProps) {
             "dark:bg-darkgray-100 group relative border-b border-neutral-200 bg-white first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50 dark:border-neutral-700 dark:hover:border-neutral-600",
             !isEmbed && "bg-white"
           )}>
-          <Link href={`/team/${team.slug}/${type.slug}`}>
-            <a className="flex justify-between px-6 py-4" data-testid="event-type-link">
-              <div className="flex-shrink">
-                <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
-                  <h2 className="dark:text-darkgray-700 text-sm font-semibold text-gray-700">{type.title}</h2>
-                </div>
-                <EventTypeDescription className="text-sm" eventType={type} />
+          <Link
+            href={`/team/${team.slug}/${type.slug}`}
+            className="flex justify-between px-6 py-4"
+            data-testid="event-type-link">
+            <div className="flex-shrink">
+              <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
+                <h2 className="dark:text-darkgray-700 text-sm font-semibold text-gray-700">{type.title}</h2>
               </div>
-              <div className="mt-1 self-center">
-                <AvatarGroup
-                  border="border-2 border-white dark:border-darkgray-100"
-                  truncateAfter={4}
-                  className="flex flex-shrink-0"
-                  size={10}
-                  items={type.users.map((user) => ({
-                    alt: user.name || "",
-                    title: user.name || "",
-                    image: CAL_URL + "/" + user.username + "/avatar.png" || "",
-                  }))}
-                />
-              </div>
-            </a>
+              <EventTypeDescription className="text-sm" eventType={type} />
+            </div>
+            <div className="mt-1 self-center">
+              <AvatarGroup
+                border="border-2 border-white dark:border-darkgray-100"
+                truncateAfter={4}
+                className="flex flex-shrink-0"
+                size={10}
+                items={type.users.map((user) => ({
+                  alt: user.name || "",
+                  title: user.name || "",
+                  image: CAL_URL + "/" + user.username + "/avatar.png" || "",
+                }))}
+              />
+            </div>
           </Link>
         </li>
       ))}

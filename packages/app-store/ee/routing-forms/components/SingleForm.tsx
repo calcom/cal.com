@@ -318,9 +318,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                           return (
                             <div key={router.id} className="mr-2">
                               <Link href={`/${appUrl}/route-builder/${router.id}`}>
-                                <a>
-                                  <Badge variant="gray">{router.name}</Badge>
-                                </a>
+                                <Badge variant="gray">{router.name}</Badge>
                               </Link>
                             </div>
                           );
@@ -342,9 +340,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                           return (
                             <div key={router.id} className="mr-2">
                               <Link href={`/${appUrl}/route-builder/${router.id}`}>
-                                <a>
-                                  <Badge variant="default">{router.name}</Badge>
-                                </a>
+                                <Badge variant="default">{router.name}</Badge>
                               </Link>
                             </div>
                           );

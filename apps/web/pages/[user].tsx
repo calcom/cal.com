@@ -175,22 +175,20 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                     href={{
                       pathname: `/${user.username}/${type.slug}`,
                       query,
-                    }}>
-                    <a
-                      onClick={async () => {
-                        sdkActionManager?.fire("eventTypeSelected", {
-                          eventType: type,
-                        });
-                      }}
-                      className="block w-full p-5"
-                      data-testid="event-type-link">
-                      <div className="flex flex-wrap items-center">
-                        <h2 className="dark:text-darkgray-700 pr-2 text-sm font-semibold text-gray-700">
-                          {type.title}
-                        </h2>
-                      </div>
-                      <EventTypeDescription eventType={type} />
-                    </a>
+                    }}
+                    onClick={async () => {
+                      sdkActionManager?.fire("eventTypeSelected", {
+                        eventType: type,
+                      });
+                    }}
+                    className="block w-full p-5"
+                    data-testid="event-type-link">
+                    <div className="flex flex-wrap items-center">
+                      <h2 className="dark:text-darkgray-700 pr-2 text-sm font-semibold text-gray-700">
+                        {type.title}
+                      </h2>
+                    </div>
+                    <EventTypeDescription eventType={type} />
                   </Link>
                 </div>
               ))
