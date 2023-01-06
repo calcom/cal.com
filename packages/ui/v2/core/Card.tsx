@@ -129,14 +129,13 @@ export function Card({
       {variant === "SidebarCard" && (
         <div className="mt-2 flex items-center justify-between">
           {learnMore && (
-            <Link href={learnMore.href}>
-              <a
-                onClick={actionButton?.onClick}
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs font-medium">
-                {learnMore.text}
-              </a>
+            <Link
+              href={learnMore.href}
+              onClick={actionButton?.onClick}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs font-medium">
+              {learnMore.text}
             </Link>
           )}
           <button
