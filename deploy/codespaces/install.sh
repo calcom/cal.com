@@ -6,4 +6,4 @@ if [ -z "${CODESPACES}" ]; then
   exit 0
 fi
 
-echo "echo \"🚀 Welcome to Cal.com! Try typing 'yarn dx' to get a quick dev envionment.\"" >> ~/.bashrc
+echo "printf \"\n🚀 Welcome to Cal.com! Try typing 'yarn dx' to get a quick dev environment.\n\"" >> ~/.bashrc
