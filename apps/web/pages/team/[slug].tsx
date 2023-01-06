@@ -97,27 +97,32 @@ function TeamPage({ team }: TeamPageProps) {
         {!showMembers.isOn && team.eventTypes.length > 0 && (
           <div className="mx-auto max-w-3xl ">
             <EventTypes />
-            <div className="relative mt-12">
-              <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                <div className="dark:border-darkgray-300 w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center">
-                <span className="dark:bg-darkgray-50 bg-gray-100 px-2 text-sm text-gray-500 dark:text-white">
-                  {t("or")}
-                </span>
-              </div>
-            </div>
 
-            <aside className="mt-8 flex justify-center text-center dark:text-white">
-              <Button
-                color="minimal"
-                EndIcon={Icon.FiArrowRight}
-                className="dark:hover:bg-darkgray-200"
-                href={`/team/${team.slug}?members=1`}
-                shallow={true}>
-                {t("book_a_team_member")}
-              </Button>
-            </aside>
+            {!team.hideBookATeamMember && (
+              <div>
+                <div className="relative mt-12">
+                  <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                    <div className="dark:border-darkgray-300 w-full border-t border-gray-200" />
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="dark:bg-darkgray-50 bg-gray-100 px-2 text-sm text-gray-500 dark:text-white">
+                      {t("or")}
+                    </span>
+                  </div>
+                </div>
+
+                <aside className="mt-8 flex justify-center text-center dark:text-white">
+                  <Button
+                    color="minimal"
+                    EndIcon={Icon.FiArrowRight}
+                    className="dark:hover:bg-darkgray-200"
+                    href={`/team/${team.slug}?members=1`}
+                    shallow={true}>
+                    {t("book_a_team_member")}
+                  </Button>
+                </aside>
+              </div>
+            )}
           </div>
         )}
       </main>
