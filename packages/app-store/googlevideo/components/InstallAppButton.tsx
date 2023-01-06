@@ -13,8 +13,6 @@ import useAddAppMutation from "../../_utils/useAddAppMutation";
 export default function InstallAppButton(props: InstallAppButtonProps) {
   const [showWarningDialog, setShowWarningDialog] = useState(false);
 
-  console.log(useApp("google-calendar").data);
-
   return (
     <>
       {props.render({
