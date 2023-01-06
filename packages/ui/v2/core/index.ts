@@ -1,5 +1,3 @@
-export { Card } from "./Card";
-export type { BaseCardProps } from "./Card";
 export { default as ColorPicker } from "./colorpicker";
 export { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTrigger } from "./Dialog";
 export type { DialogProps } from "./Dialog";
