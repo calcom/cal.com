@@ -14,7 +14,9 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
+import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
+import { MeetLocationType } from "@calcom/app-store/locations";
 import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
 import { handlePayment } from "@calcom/app-store/stripepayment/lib/server";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
@@ -913,9 +915,9 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       if (results.length) {
         // Handle Google Meet results
         // We use the original booking location since the evt location changes to daily
-        if (bookingLocation === "integrations:google:meet") {
+        if (bookingLocation === MeetLocationType) {
           const googleMeetResult = {
-            appName: "Google Meet",
+            appName: GoogleMeetMetadata.name,
             type: "conferencing",
             uid: results[0].uid,
             originalEvent: results[0].originalEvent,

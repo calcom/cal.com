@@ -16,7 +16,6 @@ let client_secret = "";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "GET") {
-    console.log("This add endpoint is called");
     // Get token from Google Calendar API
     const appKeys = await getAppKeysFromSlug("google-calendar");
     if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
@@ -36,7 +35,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       prompt: "consent",
       state: encodeOAuthState(req),
     });
-    console.log("🚀 ~ file: add.ts:41 ~ handler ~ authUrl", authUrl);
 
     res.status(200).json({ url: authUrl });
   }

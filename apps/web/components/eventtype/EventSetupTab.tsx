@@ -10,6 +10,7 @@ import { MultiValue } from "react-select";
 import { z } from "zod";
 
 import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
+import { MeetLocationType } from "@calcom/app-store/locations";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Icon, Label, Select, Skeleton, TextField, SettingsToggle } from "@calcom/ui";
@@ -198,7 +199,7 @@ export const EventSetupTab = (
                 </li>
               );
             })}
-            {validLocations.some((location) => location.type === "integrations:google:meet") && (
+            {validLocations.some((location) => location.type === MeetLocationType) && (
               <div className="flex text-sm text-gray-600">
                 <Icon.FiCheck className="mt-0.5 mr-1.5 h-2 w-2.5" />
                 <Trans i18nKey="event_type_requres_google_cal">

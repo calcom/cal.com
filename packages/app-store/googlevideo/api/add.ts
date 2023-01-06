@@ -32,7 +32,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         appId: "google-meet",
       },
     });
-    console.log("🚀 ~ file: add.ts:35 ~ handler ~ installation", installation);
     if (!installation) {
       throw new Error("Unable to create user credential for google_video");
     }
