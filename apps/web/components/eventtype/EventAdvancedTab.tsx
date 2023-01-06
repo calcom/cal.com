@@ -93,10 +93,11 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         <div className="flex flex-col">
           <div className="flex justify-between">
             <Label>{t("add_to_calendar")}</Label>
-            <Link href="/apps/categories/calendar">
-              <a target="_blank" className="text-sm text-gray-600 hover:text-gray-900">
-                {t("add_another_calendar")}
-              </a>
+            <Link
+              href="/apps/categories/calendar"
+              target="_blank"
+              className="text-sm text-gray-600 hover:text-gray-900">
+              {t("add_another_calendar")}
             </Link>
           </div>
           <div className="-mt-1 w-full">
@@ -266,12 +267,10 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   />
                   {/*TODO: Extract it out into a component when used more than once*/}
                   {!IS_SELF_HOSTED && (
-                    <Link href="https://cal.com/pricing">
-                      <a target="_blank">
-                        <Badge variant="orange" className="ml-2">
-                          Platform Only
-                        </Badge>
-                      </a>
+                    <Link href="https://cal.com/pricing" target="_blank">
+                      <Badge variant="orange" className="ml-2">
+                        Platform Only
+                      </Badge>
                     </Link>
                   )}
                 </div>

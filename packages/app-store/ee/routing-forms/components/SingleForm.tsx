@@ -14,8 +14,8 @@ import {
 } from "@calcom/types/AppGetServerSideProps";
 import {
   Alert,
-  Button,
   Badge,
+  Button,
   ButtonGroup,
   Dialog,
   DialogClose,
@@ -318,9 +318,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                           return (
                             <div key={router.id} className="mr-2">
                               <Link href={`/${appUrl}/route-builder/${router.id}`}>
-                                <a>
-                                  <Badge variant="gray">{router.name}</Badge>
-                                </a>
+                                <Badge variant="gray">{router.name}</Badge>
                               </Link>
                             </div>
                           );
@@ -342,9 +340,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                           return (
                             <div key={router.id} className="mr-2">
                               <Link href={`/${appUrl}/route-builder/${router.id}`}>
-                                <a>
-                                  <Badge variant="default">{router.name}</Badge>
-                                </a>
+                                <Badge variant="default">{router.name}</Badge>
                               </Link>
                             </div>
                           );
@@ -399,9 +395,12 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     <div className="font-bold ">{t("route_to")}:</div>
                     <div className="mt-2">
                       {RoutingPages.map((page) => {
-                        if (page.value === decidedAction.type) {
-                          return <div data-testid="test-routing-result-type">{page.label}</div>;
-                        }
+                        if (page.value !== decidedAction.type) return null;
+                        return (
+                          <div key={page.value} data-testid="test-routing-result-type">
+                            {page.label}
+                          </div>
+                        );
                       })}
                       :{" "}
                       {decidedAction.type === "customPageMessage" ? (
