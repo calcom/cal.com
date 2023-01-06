@@ -4,12 +4,12 @@ import React, { useEffect, useState } from "react";
 export function Message({
   message,
 }: {
-  message: { text: string; type: "info" | "error" | "success"; isProgress: boolean };
+  message: { text: string; type: "info" | "error" | "success"; showInProgressIndicator?: boolean };
 }) {
   const color = message.type === "success" ? "green" : message.type === "error" ? "red" : "white";
   const [progressText, setProgressText] = useState("...");
   useEffect(() => {
-    if (message.isProgress) {
+    if (message.showInProgressIndicator) {
       const interval = setInterval(() => {
         setProgressText((progressText) => {
           return progressText.length > 3 ? "" : progressText + ".";
@@ -19,11 +19,11 @@ export function Message({
         clearInterval(interval);
       };
     }
-  }, [message.isProgress]);
+  }, [message.showInProgressIndicator]);
   return (
     <Text color={color}>
       {message.text}
-      {message.isProgress && progressText}
+      {message.showInProgressIndicator && progressText}
     </Text>
   );
 }

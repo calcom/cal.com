@@ -263,5 +263,13 @@
     ],
     "slug": "defga",
     "type": "defga_other"
+  },
+  {
+    "dirName": "my-hyphenated-app",
+    "categories": [
+      "other"
+    ],
+    "slug": "my-hyphenated-app",
+    "type": "my-hyphenated-app_other"
   }
 ]

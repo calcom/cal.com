@@ -1,7 +1,9 @@
 import { GetServerSidePropsContext } from "next";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { getAdminLayout as getLayout, Meta } from "@calcom/ui";
+import { Meta } from "@calcom/ui";
+
+import { getLayout } from "@components/auth/layouts/AdminLayout";
 
 import { ssrInit } from "@server/lib/ssr";
 

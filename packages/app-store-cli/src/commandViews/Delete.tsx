@@ -6,84 +6,77 @@ import { Message } from "../components/Message";
 import { BaseAppFork, Seed, generateAppFiles } from "../core";
 import { getApp } from "../utils/getApp";
 
-export default function Delete({ noDbUpdate, slug }: { noDbUpdate: boolean; slug: string }) {
+export default function Delete({ slug }: { slug: string }) {
   const [confirmedAppSlug, setConfirmedAppSlug] = useState("");
-  const [allowDeletion, setAllowDeletion] = useState(false);
-  const [state, setState] = useState<{
-    done?: boolean;
-    text: string | null;
-    type?: "info" | "error" | "success";
-  }>({
-    text: null,
-  });
+  const [state, setState] = useState<
+    | "INITIALIZED"
+    | "DELETION_CONFIRMATION_FAILED"
+    | "DELETION_CONFIRMATION_SUCCESSFUL"
+    | "DELETION_COMPLETED"
+    | "APP_NOT_EXISTS"
+  >("INITIALIZED");
   const app = getApp(slug);
-
-  const progressMsg = (newState: typeof state) => {
-    setState({
-      ...newState,
-      type: "info",
-    });
-  };
-
-  const errorMsg = (newState: typeof state) => {
-    setState({
-      ...newState,
-      type: "error",
-    });
-  };
-
-  const successMsg = (newState: typeof state) => {
-    setState({
-      ...newState,
-      type: "success",
-    });
-  };
 
   useEffect(() => {
     if (!app) {
-      errorMsg({
-        text: `App with slug "${slug}" doesn't exist`,
-        done: true,
-      });
+      setState("APP_NOT_EXISTS");
     }
   }, []);
 
   useEffect(() => {
-    if (allowDeletion) {
+    if (state === "DELETION_CONFIRMATION_SUCCESSFUL") {
       (async () => {
         await BaseAppFork.delete({ slug });
         Seed.revert({ slug });
         await generateAppFiles();
-        successMsg({ text: `App with slug ${slug} has been deleted`, done: true });
+        // successMsg({ text: `App with slug ${slug} has been deleted`, done: true });
+        setState("DELETION_COMPLETED");
       })();
     }
-  }, [allowDeletion, slug]);
+  }, [slug, state]);
 
-  return (
-    <>
-      {!state.done && (
-        <>
-          <ImportantText>
-            Confirm the slug of the app that you want to delete. Note, that it would cleanup the app
-            directory, App table and Credential table
-          </ImportantText>
-          <TextInput
-            value={confirmedAppSlug}
-            onSubmit={(value) => {
-              if (value === slug) {
-                progressMsg({ text: `Deletion started`, done: true });
-                setAllowDeletion(true);
-              } else {
-                errorMsg({ text: `Slug doesn't match - Should have been ${slug}`, done: true });
-              }
-            }}
-            onChange={(val) => {
-              setConfirmedAppSlug(val);
-            }}
-          />
-        </>
-      )}
-      <Message message={state} />
-    </>
-  );
+  if (state === "INITIALIZED") {
+    return (
+      <>
+        <ImportantText>
+          Confirm the slug of the app that you want to delete. Note, that it would cleanup the app directory,
+          App table and Credential table
+        </ImportantText>
+        <TextInput
+          value={confirmedAppSlug}
+          onSubmit={(value) => {
+            if (value === slug) {
+              setState("DELETION_CONFIRMATION_SUCCESSFUL");
+            } else {
+              setState("DELETION_CONFIRMATION_FAILED");
+            }
+          }}
+          onChange={(val) => {
+            setConfirmedAppSlug(val);
+          }}
+        />
+      </>
+    );
+  }
+  if (state === "APP_NOT_EXISTS") {
+    return <Message message={{ text: `App with slug ${slug} doesn't exists`, type: "error" }} />;
+  }
+  if (state === "DELETION_CONFIRMATION_SUCCESSFUL") {
+    return <Message message={{ text: "Deleting App", type: "info", showInProgressIndicator: true }} />;
+  }
+
+  if (state === "DELETION_COMPLETED") {
+    return <Message message={{ text: `App with slug "${slug}" has been deleted`, type: "success" }} />;
+  }
+  if (state === "DELETION_CONFIRMATION_FAILED") {
+    return (
+      <Message
+        message={{
+          text: `Slug doesn't match - Should have been ${slug}`,
+          type: "error",
+        }}
+      />
+    );
+  }
+  return null;
 }

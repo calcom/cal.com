@@ -5,7 +5,7 @@ import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, ClipboardCopyIcon, showToast, Tooltip } from "@calcom/ui";
+import { Button, Icon, showToast, Tooltip } from "@calcom/ui";
 
 export interface IZapierSetupProps {
   inviteLink: string;
@@ -75,7 +75,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                         }}
                         type="button"
                         className="mt-4 text-base sm:mt-0 sm:rounded-l-none">
-                        <ClipboardCopyIcon className="h-5 w-5 text-neutral-100 ltr:mr-2 rtl:ml-2" />
+                        <Icon.ClipboardCopyIcon className="h-5 w-5 text-neutral-100 ltr:mr-2 rtl:ml-2" />
                         {t("copy")}
                       </Button>
                     </Tooltip>
@@ -103,7 +103,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                   <li>You&apos;re set!</li>
                 </Trans>
               </ol>
-              <Link href="/apps/installed/automation?hl=zapier" passHref={true}>
+              <Link href="/apps/installed/automation?hl=zapier" passHref={true} legacyBehavior>
                 <Button color="secondary">{t("done")}</Button>
               </Link>
             </div>
@@ -113,7 +113,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
         <div className="mt-5 ml-5">
           <div>{t("install_zapier_app")}</div>
           <div className="mt-3">
-            <Link href="/apps/zapier" passHref={true}>
+            <Link href="/apps/zapier" passHref={true} legacyBehavior>
               <Button>{t("go_to_app_store")}</Button>
             </Link>
           </div>

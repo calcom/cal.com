@@ -37,6 +37,22 @@ const DEFAULT_CALENDAR_TYPE = "caldav";
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
+function hasFileExtension(url: string): boolean {
+  // Get the last portion of the URL (after the last '/')
+  const fileName = url.substring(url.lastIndexOf("/") + 1);
+  // Check if the file name has a '.' in it and no '/' after the '.'
+  return fileName.includes(".") && !fileName.substring(fileName.lastIndexOf(".")).includes("/");
+}
+
+function getFileExtension(url: string): string | null {
+  // Return null if the URL does not have a file extension
+  if (!hasFileExtension(url)) return null;
+  // Get the last portion of the URL (after the last '/')
+  const fileName = url.substring(url.lastIndexOf("/") + 1);
+  // Extract the file extension
+  return fileName.substring(fileName.lastIndexOf(".") + 1);
+}
+
 const convertDate = (date: string): DateArray =>
   dayjs(date)
     .utc()
@@ -259,14 +275,14 @@ export default abstract class BaseCalendarService implements Calendar {
   }
 
   isValidFormat = (url: string): boolean => {
-    const acceptedFormats = ["eml", "ics"];
-    const urlFormat = url.split(".").pop();
-    if (urlFormat === undefined) {
+    const allowedExtensions = ["eml", "ics"];
+    const urlExtension = getFileExtension(url);
+    if (!urlExtension) {
       console.error("Invalid request, calendar object extension missing");
       return false;
     }
-    if (!acceptedFormats.includes(urlFormat)) {
-      console.error(`Unsupported calendar object format: ${urlFormat}`);
+    if (!allowedExtensions.includes(urlExtension)) {
+      console.error(`Unsupported calendar object format: ${urlExtension}`);
       return false;
     }
     return true;

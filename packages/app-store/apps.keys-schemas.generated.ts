@@ -18,8 +18,8 @@ import { appKeysSchema as rainbow_keys_schema } from "./rainbow/zod";
 import { appKeysSchema as salesforce_keys_schema } from "./salesforce/zod";
 import { appKeysSchema as stripepayment_keys_schema } from "./stripepayment/zod";
 import { appKeysSchema as tandemvideo_keys_schema } from "./tandemvideo/zod";
-import { appKeysSchema as event_type_analytics_keys_schema } from "./templates/event_type_analytics/zod";
-import { appKeysSchema as event_type_app_card_keys_schema } from "./templates/event_type_app_card/zod";
+import { appKeysSchema as event_type_analytics_keys_schema } from "./templates/event-type-analytics/zod";
+import { appKeysSchema as event_type_app_card_keys_schema } from "./templates/event-type-app-card/zod";
 import { appKeysSchema as vital_keys_schema } from "./vital/zod";
 import { appKeysSchema as wordpress_keys_schema } from "./wordpress/zod";
 import { appKeysSchema as zapier_keys_schema } from "./zapier/zod";
@@ -42,8 +42,8 @@ export const appKeysSchemas = {
   salesforce: salesforce_keys_schema,
   stripe: stripepayment_keys_schema,
   tandemvideo: tandemvideo_keys_schema,
-  event_type_analytics: event_type_analytics_keys_schema,
-  event_type_app_card: event_type_app_card_keys_schema,
+  "event-type-analytics": event_type_analytics_keys_schema,
+  "event-type-app-card": event_type_app_card_keys_schema,
   vital: vital_keys_schema,
   wordpress: wordpress_keys_schema,
   zapier: zapier_keys_schema,

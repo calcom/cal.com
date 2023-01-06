@@ -18,8 +18,8 @@ import { appDataSchema as rainbow_schema } from "./rainbow/zod";
 import { appDataSchema as salesforce_schema } from "./salesforce/zod";
 import { appDataSchema as stripepayment_schema } from "./stripepayment/zod";
 import { appDataSchema as tandemvideo_schema } from "./tandemvideo/zod";
-import { appDataSchema as event_type_analytics_schema } from "./templates/event_type_analytics/zod";
-import { appDataSchema as event_type_app_card_schema } from "./templates/event_type_app_card/zod";
+import { appDataSchema as event_type_analytics_schema } from "./templates/event-type-analytics/zod";
+import { appDataSchema as event_type_app_card_schema } from "./templates/event-type-app-card/zod";
 import { appDataSchema as vital_schema } from "./vital/zod";
 import { appDataSchema as wordpress_schema } from "./wordpress/zod";
 import { appDataSchema as zapier_schema } from "./zapier/zod";
@@ -42,8 +42,8 @@ export const appDataSchemas = {
   salesforce: salesforce_schema,
   stripe: stripepayment_schema,
   tandemvideo: tandemvideo_schema,
-  event_type_analytics: event_type_analytics_schema,
-  event_type_app_card: event_type_app_card_schema,
+  "event-type-analytics": event_type_analytics_schema,
+  "event-type-app-card": event_type_app_card_schema,
   vital: vital_schema,
   wordpress: wordpress_schema,
   zapier: zapier_schema,

@@ -7,7 +7,9 @@ import { getSession } from "@calcom/lib/auth";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/client";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { AllApps, AppsLayout, AppStoreCategories, Icon, TextField, TrendingAppsSlider } from "@calcom/ui";
+import { AllApps, AppStoreCategories, Icon, TextField, TrendingAppsSlider } from "@calcom/ui";
+
+import AppsLayout from "@components/apps/layouts/AppsLayout";
 
 import { ssgInit } from "@server/lib/ssg";
 

@@ -17,7 +17,7 @@ export const App: FC<{
     if (!slug) {
       throw new Error('Slug is required for "delete" command');
     }
-    return <Delete slug={slug} noDbUpdate={!!noDbUpdate} />;
+    return <Delete slug={slug} />;
   }
   if (command === "edit") {
     return <Edit slug={slug} editMode={true} noDbUpdate={noDbUpdate} />;

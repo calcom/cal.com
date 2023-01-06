@@ -16,7 +16,7 @@ const Templates = fs
     try {
       const config = JSON.parse(fs.readFileSync(path.join(TEMPLATES_PATH, dir, "config.json")).toString());
       return {
-        label: `${config.slug} - ${config.description}`,
+        label: `${config.description}`,
         value: dir,
         category: config.categories[0],
       };

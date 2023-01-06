@@ -1,0 +1,15 @@
+{
+  "name": "EventType AppCard Template",
+  "slug": "event-type-app-card",
+  "type": "event-type-app-card_other",
+  "imageSrc": "/api/app-store/ga4/icon.svg",
+  "logo": "/api/app-store/ga4/icon.svg",
+  "url": "https://marketingplatform.google.com",
+  "variant": "other",
+  "categories": ["other"],
+  "publisher": "Cal.com, Inc.",
+  "email": "support@cal.com",
+  "description": "It is a demo app to showcase EventType AppCard",
+  "extendsFeature": "EventType",
+  "__createdUsingCli": true
+}

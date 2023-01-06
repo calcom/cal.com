@@ -102,7 +102,6 @@ export const AppForm = ({
 
   const [status, setStatus] = useState<"inProgress" | "done">("inProgress");
   const formCompleted = inputIndex === fields.length;
-  const [progressUpdate, setProgressUpdate] = useState("");
 
   if (field?.name === "appCategory") {
     // Use template category as the default category
@@ -126,9 +125,6 @@ export const AppForm = ({
           publisherEmail,
           template,
         });
-        // for await (const item of it) {
-        //   setProgressUpdate(item);
-        // }
 
         await Seed.update({ slug, category: appCategory, noDbUpdate });
 
@@ -155,7 +151,7 @@ export const AppForm = ({
               ? `Editing app with slug ${slug}`
               : `Creating app with name '${appName}' categorized in '${appCategory}'`,
             type: "info",
-            isProgress: true,
+            showInProgressIndicator: true,
           }}
         />
         <Message message={{ text: progressUpdate, type: "info" }} />
@@ -252,6 +248,16 @@ export const AppForm = ({
           ) : (
             <SelectInput<string>
               items={field?.options}
+              itemComponent={(item) => {
+                return (
+                  <Box justifyContent="space-between">
+                    <Box flexShrink={0} flexGrow={1}>
+                      <Text color="blue">{item.value}: </Text>
+                    </Box>
+                    <Text>{item.label}</Text>
+                  </Box>
+                );
+              }}
               key={fieldName}
               initialIndex={selectedOptionIndex === -1 ? 0 : selectedOptionIndex}
               onSelect={(item) => {

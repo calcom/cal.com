@@ -62,7 +62,7 @@ const NavTabs: FC<NavTabProps> = ({ tabs, linkProps, ...props }) => {
           const className = tab.className || "";
           return (
             <Component key={tab.name}>
-              <Link key={tab.name} href={href} {...linkProps}>
+              <Link key={tab.name} href={href} {...linkProps} legacyBehavior>
                 <a
                   onClick={onClick}
                   className={classNames(

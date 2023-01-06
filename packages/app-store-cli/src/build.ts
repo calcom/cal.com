@@ -22,7 +22,7 @@ const formatOutput = (source: string) =>
   });
 
 const getVariableName = function (appName: string) {
-  return appName.replace("-", "_");
+  return appName.replace(/-/g, "_");
 };
 
 const getAppId = function (app: { name: string }) {
@@ -181,16 +181,17 @@ function generateFiles() {
   // TODO: dailyvideo has a slug of daily-video, so that mapping needs to be taken care of. But it is an old app, so it doesn't need AppSettings
   browserOutput.push(
     ...getObjectExporter("AppSettingsComponentsMap", {
-      fileToBeImported: "components/AppSettings.tsx",
-      entryBuilder: (app) => `  ${app.name}: dynamic(() =>import("./${app.path}/components/AppSettings")),`,
+      fileToBeImported: "components/AppSettingsInterface.tsx",
+      entryBuilder: (app) =>
+        `  "${app.name}": dynamic(() =>import("./${app.path}/components/AppSettingsInterface")),`,
     })
   );
 
   browserOutput.push(
     ...getObjectExporter("EventTypeAddonMap", {
-      fileToBeImported: path.join("extensions", "EventTypeAppCard.tsx"),
+      fileToBeImported: path.join("components", "EventTypeAppCardInterface.tsx"),
       entryBuilder: (app) =>
-        `  ${app.name}: dynamic(() =>import("./${app.path}/extensions/EventTypeAppCard")),`,
+        `  "${app.name}": dynamic(() =>import("./${app.path}/components/EventTypeAppCardInterface")),`,
     })
   );
 

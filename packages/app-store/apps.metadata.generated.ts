@@ -22,6 +22,7 @@ import { metadata as hubspot_meta } from "./hubspot/_metadata";
 import { metadata as huddle01video_meta } from "./huddle01video/_metadata";
 import { metadata as jitsivideo_meta } from "./jitsivideo/_metadata";
 import { metadata as larkcalendar_meta } from "./larkcalendar/_metadata";
+import { metadata as my_hyphenated_app_meta } from "./my-hyphenated-app/_metadata";
 import { metadata as n8n_meta } from "./n8n/_metadata";
 import { metadata as office365calendar_meta } from "./office365calendar/_metadata";
 import { metadata as office365video_meta } from "./office365video/_metadata";
@@ -39,11 +40,11 @@ import { metadata as sirius_video_meta } from "./sirius_video/_metadata";
 import { metadata as stripepayment_meta } from "./stripepayment/_metadata";
 import { metadata as tandemvideo_meta } from "./tandemvideo/_metadata";
 import { metadata as telegram_meta } from "./telegram/_metadata";
-import { metadata as event_type_analytics_meta } from "./templates/event_type_analytics/_metadata";
-import { metadata as event_type_app_card_meta } from "./templates/event_type_app_card/_metadata";
-import { metadata as event_type_location_video_static_meta } from "./templates/event_type_location_video_static/_metadata";
-import { metadata as general_app_settings_meta } from "./templates/general_app_settings/_metadata";
-import { metadata as link_as_an_app_meta } from "./templates/link_as_an_app/_metadata";
+import { metadata as event_type_analytics_meta } from "./templates/event-type-analytics/_metadata";
+import { metadata as event_type_app_card_meta } from "./templates/event-type-app-card/_metadata";
+import { metadata as event_type_location_video_static_meta } from "./templates/event-type-location-video-static/_metadata";
+import { metadata as general_app_settings_meta } from "./templates/general-app-settings/_metadata";
+import { metadata as link_as_an_app_meta } from "./templates/link-as-an-app/_metadata";
 import { metadata as typeform_meta } from "./typeform/_metadata";
 import { metadata as vimcal_meta } from "./vimcal/_metadata";
 import { metadata as vital_meta } from "./vital/_metadata";
@@ -76,6 +77,7 @@ export const appStoreMetadata = {
   huddle01video: huddle01video_meta,
   jitsivideo: jitsivideo_meta,
   larkcalendar: larkcalendar_meta,
+  "my-hyphenated-app": my_hyphenated_app_meta,
   n8n: n8n_meta,
   office365calendar: office365calendar_meta,
   office365video: office365video_meta,
@@ -93,11 +95,11 @@ export const appStoreMetadata = {
   stripepayment: stripepayment_meta,
   tandemvideo: tandemvideo_meta,
   telegram: telegram_meta,
-  event_type_analytics: event_type_analytics_meta,
-  event_type_app_card: event_type_app_card_meta,
-  event_type_location_video_static: event_type_location_video_static_meta,
-  general_app_settings: general_app_settings_meta,
-  link_as_an_app: link_as_an_app_meta,
+  "event-type-analytics": event_type_analytics_meta,
+  "event-type-app-card": event_type_app_card_meta,
+  "event-type-location-video-static": event_type_location_video_static_meta,
+  "general-app-settings": general_app_settings_meta,
+  "link-as-an-app": link_as_an_app_meta,
   typeform: typeform_meta,
   vimcal: vimcal_meta,
   vital: vital_meta,

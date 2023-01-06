@@ -7,8 +7,10 @@ import { TEMPLATES_PATH } from "./constants";
 import execSync from "./utils/execSync";
 
 const slugify = (str: string) => {
-  // It is to be a valid dir name, a valid JS variable name and a valid URL path
-  return str.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
+  // A valid dir name
+  // A valid URL path
+  // It is okay to not be a valid variable name. This is so that we can use hyphens which look better then underscores in URL and as directory name
+  return str.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase();
 };
 
 export function getSlugFromAppName(appName: string | null): string | null {
@@ -99,19 +101,14 @@ export const BaseAppFork = {
       ...config,
     };
     fs.writeFileSync(`${appDirPath}/config.json`, JSON.stringify(config, null, 2));
-    /**
-     * README.mdx will come from Template
-     */
-    // fs.writeFileSync(
-    //   `${appDirPath}/README.mdx`,
-    //   fs
-    //     .readFileSync(`${appDirPath}/README.mdx`)
-    //     .toString()
-    //     .replace(/_DESCRIPTION_/g, appDescription)
-    //     .replace(/_APP_DIR_/g, slug)
-    // );
-    // message = !editMode ? "Forked base app" : "Updated app";
-    // yield message;
+    fs.writeFileSync(
+      `${appDirPath}/README.mdx`,
+      fs
+        .readFileSync(`${appDirPath}/README.mdx`)
+        .toString()
+        .replace(/_DESCRIPTION_/g, appDescription)
+        .replace(/_APP_DIR_/g, slug)
+    );
   },
   delete: async function ({ slug }: { slug: string }) {
     const appDirPath = getAppDirPath(slug);
