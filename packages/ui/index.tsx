@@ -57,6 +57,7 @@ export {
   SkeletonLoader,
   AppStoreCategories,
   Slider,
+  Tooltip,
   useShouldShowArrows,
   StepCard,
   LinkIconButton,
@@ -130,5 +131,4 @@ export { default as MeetingTimeInTimezones } from "./v2/core/MeetingTimeInTimezo
 export { default as Meta, MetaProvider, useMeta } from "./v2/core/Meta";
 export { default as Stepper } from "./v2/core/Stepper";
 export { Steps } from "./v2/core/Steps";
-export { Tooltip } from "./v2/core/Tooltip";
 export { default as WizardForm } from "./v2/core/WizardForm";

@@ -58,3 +58,4 @@ export { HeadSeo } from "./head-seo";
 export { Skeleton, SkeletonAvatar, SkeletonButton, SkeletonContainer, SkeletonText } from "./skeleton";
 export { Card, StepCard } from "./card";
 export type { BaseCardProps } from "./card";
+export { Tooltip } from "./tooltip";

@@ -30,5 +30,4 @@ export { default as Shell } from "./Shell";
 export { default as Stepper } from "./Stepper";
 export { default as Swatch } from "./Swatch";
 export { default as Switch } from "./Switch";
-export { default as Tooltip } from "./Tooltip";
 export { default as WizardForm } from "./WizardForm";
