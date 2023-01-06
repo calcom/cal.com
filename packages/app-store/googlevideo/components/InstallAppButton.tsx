@@ -49,8 +49,8 @@ function WarningDialog(props: DialogProps) {
     <Dialog name="Account check" open={props.open} onOpenChange={props.onOpenChange}>
       <DialogContent
         type="creation"
-        title="Using Google Meet requires a connected Google Calendar"
-        description={googleCalendarPresent ? "" : "Continue to install Google Calendar"}>
+        title={t("using_meet_requires_calendar")}
+        description={googleCalendarPresent ? "" : t("continue_to_install_google_calendar")}>
         <DialogFooter>
           <>
             <DialogClose
@@ -64,7 +64,7 @@ function WarningDialog(props: DialogProps) {
             </DialogClose>
 
             <Button type="button" onClick={() => mutation.mutate("")}>
-              {googleCalendarPresent ? "Install Google Meet" : "Install Google Calendar"}
+              {googleCalendarPresent ? t("install_google_meet") : t("install_google_calendar")}
             </Button>
           </>
         </DialogFooter>
