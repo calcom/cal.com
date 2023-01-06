@@ -213,11 +213,9 @@ const Route = ({
           className="mb-6">
           <div className="-mt-3">
             <Link href={`/${appUrl}/route-builder/${route.id}`}>
-              <a>
-                <Badge variant="gray">
-                  <span className="font-semibold">{route.name}</span>
-                </Badge>
-              </a>
+              <Badge variant="gray">
+                <span className="font-semibold">{route.name}</span>
+              </Badge>
             </Link>
             <p className="mt-2 text-sm text-gray-500">
               Fields available in <span className="font-bold">{route.name}</span> will be added to this form.
