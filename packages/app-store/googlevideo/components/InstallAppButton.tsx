@@ -29,7 +29,7 @@ export default function InstallAppButton(props: InstallAppButtonProps) {
 function WarningDialog(props: DialogProps) {
   const { t } = useLocale();
   const googleCalendarData = useApp("google-calendar");
-  const googleCalendarPresent = googleCalendarData.data?.isInstalled > 0;
+  const googleCalendarPresent = googleCalendarData.data?.isInstalled;
 
   const mutation = useAddAppMutation(googleCalendarPresent ? "google_video" : "google_calendar", {
     installGoogleVideo: !googleCalendarPresent,

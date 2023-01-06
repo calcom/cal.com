@@ -10,14 +10,15 @@ const ExistingGoogleCal = () => {
   const { t } = useLocale();
   const [firstGoogleCal, setFirstGoogleCal] = useState<string | undefined>();
 
-  const query = trpc.viewer.connectedCalendars.useQuery(undefined, {
-    onSuccess: (data) => {
-      const googleCalQuery = data?.connectedCalendars.find(
-        (calendar) => calendar.primary?.integration === "google_calendar"
-      );
-      if (googleCalQuery?.primary) setFirstGoogleCal(googleCalQuery.primary?.externalId);
-    },
+  const query = trpc.viewer.appsRouter.checkForGCal.useQuery(undefined, {
+    // onSuccess: (data) => {
+    //   const googleCalQuery = data?.connectedCalendars.find(
+    //     (calendar) => calendar.primary?.integration === "google_calendar"
+    //   );
+    //   if (googleCalQuery?.primary) setFirstGoogleCal(googleCalQuery.primary?.externalId);
+    // },
   });
+  console.log("🚀 ~ file: ExistingGoogleCal.tsx:21 ~ ExistingGoogleCal ~ query", query);
 
   return (
     <div className="rounded-md bg-blue-100 py-3 px-4 text-blue-900">
