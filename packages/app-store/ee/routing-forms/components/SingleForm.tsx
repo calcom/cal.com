@@ -13,9 +13,9 @@ import {
   AppUser,
 } from "@calcom/types/AppGetServerSideProps";
 import {
-  Button,
-  Banner,
+  Alert,
   Badge,
+  Button,
   ButtonGroup,
   Dialog,
   DialogClose,
@@ -318,9 +318,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                           return (
                             <div key={router.id} className="mr-2">
                               <Link href={`/${appUrl}/route-builder/${router.id}`}>
-                                <a>
-                                  <Badge variant="gray">{router.name}</Badge>
-                                </a>
+                                <Badge variant="gray">{router.name}</Badge>
                               </Link>
                             </div>
                           );
@@ -342,9 +340,7 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                           return (
                             <div key={router.id} className="mr-2">
                               <Link href={`/${appUrl}/route-builder/${router.id}`}>
-                                <a>
-                                  <Badge variant="default">{router.name}</Badge>
-                                </a>
+                                <Badge variant="default">{router.name}</Badge>
                               </Link>
                             </div>
                           );
@@ -362,14 +358,14 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     </Button>
                   </div>
                   {!form._count?.responses && (
-                    <Banner
-                      className="mt-6"
-                      variant="neutral"
-                      title="No Responses yet"
-                      description="Wait for some time for responses to be collected. You can go and submit the form yourself as well."
-                      Icon={Icon.FiInfo}
-                      onDismiss={() => console.log("dismissed")}
-                    />
+                    <>
+                      <Alert
+                        className="mt-6"
+                        severity="neutral"
+                        title="No responses yet"
+                        message="Wait for some time for responses to be collected. You can go and submit the form yourself as well."
+                      />
+                    </>
                   )}
                 </div>
                 <div className="w-full rounded-md border border-gray-200 p-8">
@@ -399,9 +395,12 @@ function SingleForm({ form, appUrl, Page }: SingleFormComponentProps) {
                     <div className="font-bold ">{t("route_to")}:</div>
                     <div className="mt-2">
                       {RoutingPages.map((page) => {
-                        if (page.value === decidedAction.type) {
-                          return <div data-testid="test-routing-result-type">{page.label}</div>;
-                        }
+                        if (page.value !== decidedAction.type) return null;
+                        return (
+                          <div key={page.value} data-testid="test-routing-result-type">
+                            {page.label}
+                          </div>
+                        );
                       })}
                       :{" "}
                       {decidedAction.type === "customPageMessage" ? (

@@ -32,10 +32,8 @@ export default function AppCard({
       <div className="p-4 text-sm sm:p-8">
         <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-0">
           {/* Don't know why but w-[42px] isn't working, started happening when I started using next/dynamic */}
-          <Link href={"/apps/" + app.slug}>
-            <a className="mr-3 h-auto w-10 rounded-sm">
-              <img className="w-full" src={app?.logo} alt={app?.name} />
-            </a>
+          <Link href={"/apps/" + app.slug} className="mr-3 h-auto w-10 rounded-sm">
+            <img className="w-full" src={app?.logo} alt={app?.name} />
           </Link>
           <div className="flex flex-col">
             <span className="text-base font-semibold leading-4 text-black">{app?.name}</span>

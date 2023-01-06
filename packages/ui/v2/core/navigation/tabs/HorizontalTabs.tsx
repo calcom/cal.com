@@ -11,7 +11,7 @@ export interface NavTabProps {
 const HorizontalTabs = function ({ tabs, linkProps, actions, ...props }: NavTabProps) {
   return (
     <div className="-mx-6 mb-2">
-      <nav className="no-scrollbar flex space-x-1 overflow-scroll px-6" aria-label="Tabs" {...props}>
+      <nav className="no-scrollbar flex overflow-scroll rounded-md border p-1" aria-label="Tabs" {...props}>
         {tabs.map((tab, idx) => (
           <HorizontalTabItem {...tab} key={idx} {...linkProps} />
         ))}

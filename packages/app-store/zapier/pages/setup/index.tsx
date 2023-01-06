@@ -103,7 +103,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
                   <li>You&apos;re set!</li>
                 </Trans>
               </ol>
-              <Link href="/apps/installed/automation?hl=zapier" passHref={true}>
+              <Link href="/apps/installed/automation?hl=zapier" passHref={true} legacyBehavior>
                 <Button color="secondary">{t("done")}</Button>
               </Link>
             </div>
@@ -113,7 +113,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
         <div className="mt-5 ml-5">
           <div>{t("install_zapier_app")}</div>
           <div className="mt-3">
-            <Link href="/apps/zapier" passHref={true}>
+            <Link href="/apps/zapier" passHref={true} legacyBehavior>
               <Button>{t("go_to_app_store")}</Button>
             </Link>
           </div>

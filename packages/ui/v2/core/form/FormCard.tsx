@@ -4,7 +4,7 @@ import { classNames } from "@calcom/lib";
 
 import { Icon } from "../../..";
 import { Badge, BadgeProps } from "../../../components";
-import Divider from "../Divider";
+import { Divider } from "../../../components/divider";
 
 type Action = { check: () => boolean; fn: () => void };
 export default function FormCard({
@@ -56,13 +56,7 @@ export default function FormCard({
             <span className="text-sm font-semibold leading-none">{label}</span>
             {badge && (
               <Badge className="ml-2" variant={badge.variant}>
-                {badge.href ? (
-                  <Link href={badge.href}>
-                    <a>{badge.text}</a>
-                  </Link>
-                ) : (
-                  badge.text
-                )}
+                {badge.href ? <Link href={badge.href}>{badge.text}</Link> : badge.text}
               </Badge>
             )}
           </div>
