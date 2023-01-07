@@ -1,6 +1,7 @@
 import { ChevronDownIcon } from "@heroicons/react/solid";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import React from "react";
+import { FieldValues, Path, UseFormReturn } from "react-hook-form";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -12,15 +13,22 @@ interface OptionProps
   description?: string;
 }
 
-interface RadioAreaSelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "onChange"> {
+export type FieldPath<TFieldValues extends FieldValues> = Path<TFieldValues>;
+interface RadioAreaSelectProps<TFieldValues extends FieldValues>
+  extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "onChange" | "form"> {
   options: OptionProps[]; // allow options to be passed programmatically, like options={}
   onChange?: (value: string) => void;
+  form: UseFormReturn<TFieldValues>;
+  name: FieldPath<TFieldValues>;
 }
 
-export const Select = function RadioAreaSelect(props: RadioAreaSelectProps) {
+export const Select = function RadioAreaSelect<TFieldValues extends FieldValues>(
+  props: RadioAreaSelectProps<TFieldValues>
+) {
   const { t } = useLocale();
   const {
     options,
+    form,
     disabled = !options.length, // if not explicitly disabled and the options length is empty, disable anyway
     placeholder = t("select"),
   } = props;
@@ -41,12 +49,12 @@ export const Select = function RadioAreaSelect(props: RadioAreaSelectProps) {
         <ChevronDownIcon className="float-right h-5 w-5 text-neutral-500" />
       </CollapsibleTrigger>
       <CollapsibleContent>
-        <RadioAreaGroup className="space-y-2 text-sm" name={props.name} onChange={props.onChange}>
+        <RadioAreaGroup className="space-y-2 text-sm" onChange={props.onChange}>
           {options.map((option) => (
             <RadioArea
+              {...form.register(props.name)}
               {...option}
-              key={Array.isArray(option.value) ? option.value.join(",") : `${option.value}`}
-              defaultChecked={props.value === option.value}>
+              key={Array.isArray(option.value) ? option.value.join(",") : `${option.value}`}>
               <strong className="mb-1 block">{option.label}</strong>
               <p>{option.description}</p>
             </RadioArea>

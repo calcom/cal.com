@@ -11,6 +11,7 @@ import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
 interface TeamAppearanceValues {
   hideBranding: boolean;
+  hideBookATeamMember: boolean;
 }
 
 const ProfileView = () => {
@@ -52,32 +53,61 @@ const ProfileView = () => {
               form={form}
               handleSubmit={(values) => {
                 if (team) {
-                  mutation.mutate({ id: team.id, hideBranding: values.hideBranding });
+                  mutation.mutate({
+                    id: team.id,
+                    hideBranding: values.hideBranding,
+                    hideBookATeamMember: values.hideBookATeamMember,
+                  });
                 }
               }}>
-              <div className="relative flex items-start">
-                <div className="flex-grow text-sm">
-                  <label htmlFor="hide-branding" className="font-medium text-gray-700">
-                    {t("disable_cal_branding", { appName: APP_NAME })}
-                  </label>
-                  <p className="text-gray-500">
-                    {t("team_disable_cal_branding_description", { appName: APP_NAME })}
-                  </p>
+              <div className="flex flex-col gap-8">
+                <div className="relative flex items-start">
+                  <div className="flex-grow text-sm">
+                    <label htmlFor="hide-branding" className="font-medium text-gray-700">
+                      {t("disable_cal_branding", { appName: APP_NAME })}
+                    </label>
+                    <p className="text-gray-500">
+                      {t("team_disable_cal_branding_description", { appName: APP_NAME })}
+                    </p>
+                  </div>
+                  <div className="flex-none">
+                    <Controller
+                      control={form.control}
+                      defaultValue={team?.hideBranding ?? false}
+                      name="hideBranding"
+                      render={({ field }) => (
+                        <Switch
+                          defaultChecked={field.value}
+                          onCheckedChange={(isChecked) => {
+                            form.setValue("hideBranding", isChecked);
+                          }}
+                        />
+                      )}
+                    />
+                  </div>
                 </div>
-                <div className="flex-none">
-                  <Controller
-                    control={form.control}
-                    defaultValue={team?.hideBranding ?? false}
-                    name="hideBranding"
-                    render={({ field }) => (
-                      <Switch
-                        defaultChecked={field.value}
-                        onCheckedChange={(isChecked) => {
-                          form.setValue("hideBranding", isChecked);
-                        }}
-                      />
-                    )}
-                  />
+                <div className="relative flex items-start">
+                  <div className="flex-grow text-sm">
+                    <label htmlFor="hide-branding" className="font-medium text-gray-700">
+                      {t("hide_book_a_team_member")}
+                    </label>
+                    <p className="text-gray-500">{t("hide_book_a_team_member_description")}</p>
+                  </div>
+                  <div className="flex-none">
+                    <Controller
+                      control={form.control}
+                      defaultValue={team?.hideBookATeamMember ?? false}
+                      name="hideBookATeamMember"
+                      render={({ field }) => (
+                        <Switch
+                          defaultChecked={field.value}
+                          onCheckedChange={(isChecked) => {
+                            form.setValue("hideBookATeamMember", isChecked);
+                          }}
+                        />
+                      )}
+                    />
+                  </div>
                 </div>
               </div>
               <Button color="primary" className="mt-8" type="submit" loading={mutation.isLoading}>

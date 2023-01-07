@@ -98,26 +98,26 @@ export default function Custom404() {
 
                 <ul role="list" className="divide-y divide-gray-200 border-gray-200">
                   <li className="px-4 py-2">
-                    <Link href={`${DEVELOPER_DOCS}/self-hosting/installation`}>
-                      <a className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
-                        <div className="flex-shrink-0">
-                          <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-50">
-                            <Icon.FiFileText className="h-6 w-6 text-gray-700" aria-hidden="true" />
+                    <Link
+                      href={`${DEVELOPER_DOCS}/self-hosting/installation`}
+                      className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
+                      <div className="flex-shrink-0">
+                        <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-50">
+                          <Icon.FiFileText className="h-6 w-6 text-gray-700" aria-hidden="true" />
+                        </span>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-base font-medium text-gray-900">
+                          <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
+                            <span className="absolute inset-0" aria-hidden="true" />
+                            {t("prisma_studio_tip")}
                           </span>
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h3 className="text-base font-medium text-gray-900">
-                            <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
-                              <span className="absolute inset-0" aria-hidden="true" />
-                              {t("prisma_studio_tip")}
-                            </span>
-                          </h3>
-                          <p className="text-base text-gray-500">{t("prisma_studio_tip_description")}</p>
-                        </div>
-                        <div className="flex-shrink-0 self-center">
-                          <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                        </div>
-                      </a>
+                        </h3>
+                        <p className="text-base text-gray-500">{t("prisma_studio_tip_description")}</p>
+                      </div>
+                      <div className="flex-shrink-0 self-center">
+                        <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                      </div>
                     </Link>
                   </li>
                   <li className="px-4 py-2">
@@ -167,11 +167,11 @@ export default function Custom404() {
                   </li>
                 </ul>
                 <div className="mt-8">
-                  <Link href={`${WEBSITE_URL}/enterprise`}>
-                    <a className="text-base font-medium text-black hover:text-gray-500">
-                      {t("contact_sales")}
-                      <span aria-hidden="true"> &rarr;</span>
-                    </a>
+                  <Link
+                    href={`${WEBSITE_URL}/enterprise`}
+                    className="text-base font-medium text-black hover:text-gray-500">
+                    {t("contact_sales")}
+                    <span aria-hidden="true"> &rarr;</span>
                   </Link>
                 </div>
               </div>
@@ -243,26 +243,26 @@ export default function Custom404() {
                 <ul role="list" className="mt-4 divide-y divide-gray-200 border-gray-200">
                   {links.map((link, linkIdx) => (
                     <li key={linkIdx} className="px-4 py-2">
-                      <Link href={link.href}>
-                        <a className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
-                          <div className="flex-shrink-0">
-                            <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-50">
-                              <link.icon className="h-6 w-6 text-gray-700" aria-hidden="true" />
+                      <Link
+                        href={link.href}
+                        className="relative flex items-start space-x-4 py-6 rtl:space-x-reverse">
+                        <div className="flex-shrink-0">
+                          <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-50">
+                            <link.icon className="h-6 w-6 text-gray-700" aria-hidden="true" />
+                          </span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-base font-medium text-gray-900">
+                            <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
+                              <span className="absolute inset-0" aria-hidden="true" />
+                              {link.title}
                             </span>
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <h3 className="text-base font-medium text-gray-900">
-                              <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
-                                <span className="absolute inset-0" aria-hidden="true" />
-                                {link.title}
-                              </span>
-                            </h3>
-                            <p className="text-base text-gray-500">{link.description}</p>
-                          </div>
-                          <div className="flex-shrink-0 self-center">
-                            <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
-                          </div>
-                        </a>
+                          </h3>
+                          <p className="text-base text-gray-500">{link.description}</p>
+                        </div>
+                        <div className="flex-shrink-0 self-center">
+                          <Icon.FiChevronRight className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        </div>
                       </Link>
                     </li>
                   ))}
@@ -313,11 +313,9 @@ export default function Custom404() {
                   </li>
                 </ul>
                 <div className="mt-8">
-                  <Link href="/">
-                    <a className="text-base font-medium text-black hover:text-gray-500">
-                      {t("or_go_back_home")}
-                      <span aria-hidden="true"> &rarr;</span>
-                    </a>
+                  <Link href="/" className="text-base font-medium text-black hover:text-gray-500">
+                    {t("or_go_back_home")}
+                    <span aria-hidden="true"> &rarr;</span>
                   </Link>
                 </div>
               </div>
