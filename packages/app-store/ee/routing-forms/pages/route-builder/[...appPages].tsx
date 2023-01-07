@@ -1,5 +1,4 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { App_RoutingForms_Form } from "@prisma/client";
 import Link from "next/link";
 import React, { useCallback, useState } from "react";
 import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
@@ -26,13 +25,7 @@ import { RoutingPages } from "../../lib/RoutingPages";
 import { createFallbackRoute } from "../../lib/createFallbackRoute";
 import { getQueryBuilderConfig } from "../../lib/getQueryBuilderConfig";
 import isRouter from "../../lib/isRouter";
-import {
-  GlobalRoute,
-  LocalRoute,
-  QueryBuilderUpdatedConfig,
-  SerializableForm,
-  SerializableRoute,
-} from "../../types/types";
+import { GlobalRoute, LocalRoute, QueryBuilderUpdatedConfig, SerializableRoute } from "../../types/types";
 
 export { getServerSideProps };
 

@@ -3,6 +3,7 @@ import z from "zod";
 
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
+import QueryBuilderInitialConfig from "../components/react-awesome-query-builder/config/config";
 import { zodRouterRouteView, zodNonRouterRoute, zodFieldsView, zodRoutesView } from "../zod";
 
 export type RoutingForm = SerializableForm<App_RoutingForms_Form>;
