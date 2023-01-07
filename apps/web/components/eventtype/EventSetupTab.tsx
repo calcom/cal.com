@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { MultiValue } from "react-select";
@@ -23,7 +23,7 @@ type OptionTypeBase = {
 };
 
 export const EventSetupTab = (
-  props: Pick<EventTypeSetupInfered, "eventType" | "locationOptions" | "team" | "teamMembers">
+  props: Pick<EventTypeSetupProps, "eventType" | "locationOptions" | "team" | "teamMembers">
 ) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
@@ -169,7 +169,7 @@ export const EventSetupTab = (
                         alt={`${eventLocationType.label} logo`}
                       />
                       <span className="truncate text-sm ltr:ml-1 rtl:mr-1">
-                        {location[eventLocationType.defaultValueVariable] || eventLocationType.label}
+                        {t(location[eventLocationType.defaultValueVariable] || eventLocationType.label)}
                       </span>
                     </div>
                     <div className="flex">
@@ -250,23 +250,26 @@ export const EventSetupTab = (
                 isSearchable={false}
                 className="h-auto !min-h-[36px] text-sm"
                 options={multipleDurationOptions}
+                value={selectedMultipleDuration}
                 onChange={(options) => {
-                  const values = options
-                    .map((opt) => opt.value)
-                    .sort(function (a, b) {
-                      return a - b;
-                    });
+                  let newOptions = [...options];
+                  newOptions = newOptions.sort((a, b) => {
+                    return a?.value - b?.value;
+                  });
+                  const values = newOptions.map((opt) => opt.value);
                   setMultipleDuration(values);
-                  setSelectedMultipleDuration(options);
-                  if (!options.find((opt) => opt.value === defaultDuration?.value)) {
-                    if (options.length > 0) {
-                      setDefaultDuration(options[0]);
+                  setSelectedMultipleDuration(newOptions);
+                  if (!newOptions.find((opt) => opt.value === defaultDuration?.value)) {
+                    if (newOptions.length > 0) {
+                      setDefaultDuration(newOptions[0]);
+                      formMethods.setValue("length", newOptions[0].value);
                     } else {
                       setDefaultDuration(null);
                     }
                   }
-                  if (options.length === 1 && defaultDuration === null) {
-                    setDefaultDuration(options[0]);
+                  if (newOptions.length === 1 && defaultDuration === null) {
+                    setDefaultDuration(newOptions[0]);
+                    formMethods.setValue("length", newOptions[0].value);
                   }
                   formMethods.setValue("metadata.multipleDuration", values);
                 }}
@@ -287,7 +290,7 @@ export const EventSetupTab = (
                   setDefaultDuration(
                     selectedMultipleDuration.find((opt) => opt.value === option?.value) ?? null
                   );
-                  formMethods.setValue("length", Number(option?.value));
+                  if (option) formMethods.setValue("length", option.value);
                 }}
               />
             </div>
@@ -295,14 +298,11 @@ export const EventSetupTab = (
         ) : (
           <TextField
             required
-            name="length"
             type="number"
             label={t("duration")}
-            addOnSuffix={<>{t("minutes")}</>}
             defaultValue={eventType.length ?? 15}
-            onChange={(e) => {
-              formMethods.setValue("length", Number(e.target.value));
-            }}
+            {...formMethods.register("length")}
+            addOnSuffix={<>{t("minutes")}</>}
           />
         )}
         <div className="!mt-4 [&_label]:my-1 [&_label]:font-normal">
@@ -342,7 +342,7 @@ export const EventSetupTab = (
         saveLocation={saveLocation}
         defaultValues={formMethods.getValues("locations")}
         selection={
-          selectedLocation ? { value: selectedLocation.value, label: selectedLocation.label } : undefined
+          selectedLocation ? { value: selectedLocation.value, label: t(selectedLocation.label) } : undefined
         }
         setSelectedLocation={setSelectedLocation}
         setEditingLocationType={setEditingLocationType}

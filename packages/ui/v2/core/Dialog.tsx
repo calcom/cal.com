@@ -1,10 +1,10 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useRouter } from "next/router";
-import React, { forwardRef, HTMLProps, ReactNode, useState } from "react";
-import { Icon } from "react-feather";
+import React, { ReactNode, useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { SVGComponent } from "@calcom/types/SVGComponent";
 
 import { Button, ButtonProps } from "../../components/button";
 
@@ -28,22 +28,19 @@ export function Dialog(props: DialogProps) {
       if (open) {
         router.query["dialog"] = name;
       } else {
+        const query = router.query;
         clearQueryParamsOnClose.forEach((queryParam) => {
-          delete router.query[queryParam];
+          delete query[queryParam];
         });
-      }
-      router.push(
-        {
-          // This is temporary till we are doing rewrites to /v2.
-          // If not done, opening/closing a modalbox can take the user to /v2 paths.
-          pathname: router.pathname.replace("/v2", ""),
-          query: {
-            ...router.query,
+        router.push(
+          {
+            pathname: router.pathname,
+            query,
           },
-        },
-        undefined,
-        { shallow: true }
-      );
+          undefined,
+          { shallow: true }
+        );
+      }
       setOpen(open);
     };
     // handles initial state
@@ -70,7 +67,8 @@ type DialogContentProps = React.ComponentProps<typeof DialogPrimitive["Content"]
   description?: string | JSX.Element | undefined;
   closeText?: string;
   actionDisabled?: boolean;
-  Icon?: Icon;
+  Icon?: SVGComponent;
+  allowScroll?: boolean;
 };
 
 export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps>(
@@ -88,9 +86,10 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               : props.size == "lg"
               ? "p-8 sm:max-w-[70rem]"
               : props.size == "md"
-              ? "p-8 sm:max-w-[40rem]"
+              ? "p-8 sm:max-w-[48rem]"
               : "p-8 sm:max-w-[35rem]",
-            "max-h-[560px] overflow-visible overscroll-auto md:h-auto md:max-h-[inherit]",
+            "max-h-[560px] overscroll-auto md:h-auto md:max-h-[inherit]",
+            props.allowScroll ? "overflow-y-auto" : "overflow-visible",
             `${props.className || ""}`
           )}
           ref={forwardedRef}>

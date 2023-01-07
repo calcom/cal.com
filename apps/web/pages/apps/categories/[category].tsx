@@ -20,10 +20,10 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
         backPath="/apps"
         heading={
           <>
-            <Link href="/apps">
-              <a className="inline-flex items-center justify-start gap-1 rounded-sm py-2 text-gray-900">
-                {isLocaleReady ? t("app_store") : <SkeletonText className="h-4 w-24" />}{" "}
-              </a>
+            <Link
+              href="/apps"
+              className="inline-flex items-center justify-start gap-1 rounded-sm py-2 text-gray-900">
+              {isLocaleReady ? t("app_store") : <SkeletonText className="h-4 w-24" />}{" "}
             </Link>
             {category && (
               <span className="gap-1 text-gray-600">
@@ -47,13 +47,7 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
 }
 
 export const getStaticPaths = async () => {
-  const appStore = await getAppRegistry();
-  const paths = appStore.reduce((categories, app) => {
-    if (!categories.includes(app.category)) {
-      categories.push(app.category);
-    }
-    return categories;
-  }, [] as string[]);
+  const paths = Object.keys(AppCategories);
 
   return {
     paths: paths.map((category) => ({ params: { category } })),

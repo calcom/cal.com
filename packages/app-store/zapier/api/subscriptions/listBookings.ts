@@ -24,6 +24,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       where: {
         userId: validKey.userId,
       },
+      orderBy: {
+        id: "desc",
+      },
       select: {
         title: true,
         description: true,

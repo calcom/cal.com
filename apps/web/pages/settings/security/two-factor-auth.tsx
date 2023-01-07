@@ -1,27 +1,19 @@
 import { GetServerSidePropsContext } from "next";
 import { useState } from "react";
 
+import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Badge,
-  getSettingsLayout as getLayout,
-  Meta,
-  Switch,
-  SkeletonButton,
-  SkeletonContainer,
-  SkeletonText,
-} from "@calcom/ui";
+import { Badge, Meta, Switch, SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui";
 
 import DisableTwoFactorModal from "@components/settings/DisableTwoFactorModal";
 import EnableTwoFactorModal from "@components/settings/EnableTwoFactorModal";
 
 import { ssrInit } from "@server/lib/ssr";
 
-const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
+const SkeletonLoader = () => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} />
       <div className="mt-6 mb-8 space-y-6 divide-y">
         <div className="flex items-center">
           <SkeletonButton className="mr-6 h-8 w-20 rounded-md p-5" />
@@ -41,7 +33,7 @@ const TwoFactorAuthView = () => {
   const [enableModalOpen, setEnableModalOpen] = useState(false);
   const [disableModalOpen, setDisableModalOpen] = useState(false);
 
-  if (isLoading) return <SkeletonLoader title={t("2fa")} description={t("2fa_description")} />;
+  if (isLoading) return <SkeletonLoader />;
 
   return (
     <>

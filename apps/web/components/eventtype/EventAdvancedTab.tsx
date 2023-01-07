@@ -1,18 +1,19 @@
 import Link from "next/link";
-import type { CustomInputParsed, EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
+import type { CustomInputParsed, EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
-import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
+import CustomInputItem from "@calcom/features/eventtypes/components/CustomInputItem";
+import { APP_NAME, CAL_URL, IS_SELF_HOSTED } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
+  Badge,
   Button,
   Checkbox,
-  CustomInputItem,
   Dialog,
   DialogClose,
   DialogContent,
@@ -36,7 +37,19 @@ const generateHashedLink = (id: number) => {
   return uid;
 };
 
-export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered, "eventType" | "team">) => {
+const getRandomId = (length = 8) => {
+  return (
+    -1 *
+    parseInt(
+      Math.ceil(Math.random() * Date.now())
+        .toPrecision(length)
+        .toString()
+        .replace(".", "")
+    )
+  );
+};
+
+export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, "eventType" | "team">) => {
   const connectedCalendarsQuery = trpc.viewer.connectedCalendars.useQuery();
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
@@ -51,7 +64,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
   const [selectedCustomInputModalOpen, setSelectedCustomInputModalOpen] = useState(false);
   const [requiresConfirmation, setRequiresConfirmation] = useState(eventType.requiresConfirmation);
   const placeholderHashedLink = `${CAL_URL}/d/${hashedUrl}/${eventType.slug}`;
-
   const seatsEnabled = formMethods.getValues("seatsPerTimeSlotEnabled");
 
   const removeCustom = (index: number) => {
@@ -64,6 +76,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
     !hashedUrl && setHashedUrl(generateHashedLink(eventType.users[0]?.id ?? team?.id));
   }, [eventType.users, hashedUrl, team?.id]);
 
+  useEffect(() => {
+    if (eventType.customInputs) {
+      setCustomInputs(eventType.customInputs.sort((a, b) => a.id - b.id));
+    }
+  }, [eventType.customInputs]);
+
   return (
     <div className="flex flex-col space-y-8">
       {/**
@@ -75,10 +93,11 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
         <div className="flex flex-col">
           <div className="flex justify-between">
             <Label>{t("add_to_calendar")}</Label>
-            <Link href="/apps/categories/calendar">
-              <a target="_blank" className="text-sm text-gray-600 hover:text-gray-900">
-                {t("add_another_calendar")}
-              </a>
+            <Link
+              href="/apps/categories/calendar"
+              target="_blank"
+              className="text-sm text-gray-600 hover:text-gray-900">
+              {t("add_another_calendar")}
             </Link>
           </div>
           <div className="-mt-1 w-full">
@@ -239,13 +258,28 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                   defaultValue={eventType.successRedirectUrl || ""}
                   {...formMethods.register("successRedirectUrl")}
                 />
+                <div className="mt-2 flex">
+                  <Checkbox
+                    description={t("disable_success_page")}
+                    // Disable if it's not Self Hosted or if the redirect url is not set
+                    disabled={!IS_SELF_HOSTED || !formMethods.watch("successRedirectUrl")}
+                    {...formMethods.register("metadata.disableSuccessPage")}
+                  />
+                  {/*TODO: Extract it out into a component when used more than once*/}
+                  {!IS_SELF_HOSTED && (
+                    <Link href="https://cal.com/pricing" target="_blank">
+                      <Badge variant="orange" className="ml-2">
+                        Platform Only
+                      </Badge>
+                    </Link>
+                  )}
+                </div>
               </div>
             </SettingsToggle>
           </>
         )}
       />
       <hr />
-
       <SettingsToggle
         data-testid="hashedLinkCheck"
         title={t("private_link")}
@@ -374,7 +408,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
       <Controller
         name="customInputs"
         control={formMethods.control}
-        defaultValue={eventType.customInputs.sort((a, b) => a.id - b.id) || []}
+        defaultValue={customInputs}
         render={() => (
           <Dialog open={selectedCustomInputModalOpen} onOpenChange={setSelectedCustomInputModalOpen}>
             <DialogContent
@@ -386,13 +420,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                 selectedCustomInput={selectedCustomInput}
                 onSubmit={(values) => {
                   const customInput: CustomInputParsed = {
-                    id: -1,
+                    id: getRandomId(),
                     eventTypeId: -1,
                     label: values.label,
                     placeholder: values.placeholder,
                     required: values.required,
                     type: values.type,
                     options: values.options,
+                    hasToBeCreated: true,
                   };
                   if (selectedCustomInput) {
                     selectedCustomInput.label = customInput.label;
@@ -400,6 +435,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupInfered
                     selectedCustomInput.required = customInput.required;
                     selectedCustomInput.type = customInput.type;
                     selectedCustomInput.options = customInput.options || undefined;
+                    selectedCustomInput.hasToBeCreated = false;
                     // Update by id
                     const inputIndex = customInputs.findIndex((input) => input.id === values.id);
                     customInputs[inputIndex] = selectedCustomInput;

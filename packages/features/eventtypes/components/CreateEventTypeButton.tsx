@@ -1,14 +1,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SchedulingType } from "@prisma/client";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import type { z } from "zod";
+import { z } from "zod";
 
 import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import slugify from "@calcom/lib/slugify";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
@@ -34,6 +35,8 @@ import {
   TextField,
 } from "@calcom/ui";
 
+import { DuplicateDialog } from "./DuplicateDialog";
+
 // this describes the uniform data needed to create a new event type on Profile or Team
 export interface EventTypeParent {
   teamId: number | null | undefined; // if undefined, then it's a profile
@@ -51,58 +54,50 @@ interface CreateEventTypeBtnProps {
   options: EventTypeParent[];
 }
 
-const isValidJSONString = (str: string) => {
-  try {
-    JSON.parse(str);
-  } catch (e) {
-    return false;
-  }
-  return true;
-};
+const locationFormSchema = z.array(
+  z.object({
+    locationType: z.string(),
+    locationAddress: z.string().optional(),
+    displayLocationPublicly: z.boolean().optional(),
+    locationPhoneNumber: z
+      .string()
+      .refine((val) => isValidPhoneNumber(val))
+      .optional(),
+    locationLink: z.string().url().optional(), // URL validates as new URL() - which requires HTTPS:// In the input field
+  })
+);
 
-export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
+const querySchema = z.object({
+  eventPage: z.string(),
+  teamId: z.union([z.string().transform((val) => +val), z.number()]).optional(),
+  title: z.string().optional(),
+  slug: z.string().optional(),
+  length: z
+    .union([z.string().transform((val) => +val), z.number()])
+    .optional()
+    .default(15),
+  description: z.string().optional(),
+  schedulingType: z.nativeEnum(SchedulingType).optional(),
+  locations: z
+    .string()
+    .transform((jsonString) => locationFormSchema.parse(JSON.parse(jsonString)))
+    .optional(),
+});
+
+const CreateEventTypeDialog = () => {
   const { t } = useLocale();
   const router = useRouter();
 
-  // URL encoded params
-  const teamId: number | undefined =
-    typeof router.query.teamId === "string" && router.query.teamId
-      ? parseInt(router.query.teamId)
-      : undefined;
-  const pageSlug = router.query.eventPage || props.options[0].slug;
-  const hasTeams = !!props.options.find((option) => option.teamId);
-  const type: string = typeof router.query.type == "string" && router.query.type ? router.query.type : "";
+  const {
+    data: { teamId, eventPage: pageSlug, ...defaultValues },
+  } = useTypedQuery(querySchema);
 
   const form = useForm<z.infer<typeof createEventTypeInput>>({
     resolver: zodResolver(createEventTypeInput),
+    defaultValues,
   });
-  const { setValue, register } = form;
 
-  useEffect(() => {
-    if (!router.isReady) return;
-
-    const title: string =
-      typeof router.query.title === "string" && router.query.title ? router.query.title : "";
-    const length: number =
-      typeof router.query.length === "string" && router.query.length ? parseInt(router.query.length) : 15;
-    const description: string =
-      typeof router.query.description === "string" && router.query.description
-        ? router.query.description
-        : "";
-    const slug: string = typeof router.query.slug === "string" && router.query.slug ? router.query.slug : "";
-    const locations =
-      typeof router.query.locations === "string" &&
-      isValidJSONString(decodeURIComponent(router.query.locations))
-        ? JSON.parse(decodeURIComponent(router.query.locations))
-        : [];
-
-    setValue("locations", locations);
-    setValue("title", title);
-    setValue("length", length);
-    setValue("description", description);
-    setValue("slug", slug);
-    // If query params change, update the form
-  }, [router.isReady, router.query, setValue]);
+  const { register } = form;
 
   const createMutation = trpc.viewer.eventTypes.create.useMutation({
     onSuccess: async ({ eventType }) => {
@@ -127,27 +122,6 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
     },
   });
 
-  // inject selection data into url for correct router history
-  const openModal = (option: EventTypeParent) => {
-    const query = {
-      ...router.query,
-      dialog: "new-eventtype",
-      eventPage: option.slug,
-      teamId: option.teamId,
-    };
-    if (!option.teamId) {
-      delete query.teamId;
-    }
-    router.push(
-      {
-        pathname: router.pathname,
-        query,
-      },
-      undefined,
-      { shallow: true }
-    );
-  };
-
   return (
     <Dialog
       name="new-eventtype"
@@ -161,46 +135,6 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
         "slug",
         "locations",
       ]}>
-      {!hasTeams || props.isIndividualTeam ? (
-        <Button
-          onClick={() => openModal(props.options[0])}
-          data-testid="new-event-type"
-          StartIcon={Icon.FiPlus}
-          disabled={!props.canAddEvents}>
-          {t("new")}
-        </Button>
-      ) : (
-        <Dropdown>
-          <DropdownMenuTrigger asChild>
-            <Button
-              EndIcon={Icon.FiChevronDown}
-              className="radix-state-open:bg-brand-500 radix-state-open:ring-2 radix-state-open:ring-brand-500 ring-offset-2">
-              {t("new")}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>
-              <div className="max-w-48">{t("new_event_subtitle")}</div>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator className="h-px bg-gray-200" />
-            {props.options.map((option) => (
-              <DropdownMenuItem
-                key={option.slug}
-                className="flex cursor-pointer items-center px-3 py-2 hover:bg-neutral-100 focus:outline-none"
-                onSelect={() => openModal(option)}>
-                <Avatar
-                  alt={option.name || ""}
-                  imageSrc={option.image || `${WEBAPP_URL}/${option.slug}/avatar.png`} // if no image, use default avatar
-                  size="sm"
-                  className="inline ltr:mr-4 rtl:ml-4"
-                />
-                <span className="px-4">{option.name ? option.name : option.slug}</span>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </Dropdown>
-      )}
-
       <DialogContent
         type="creation"
         className="overflow-y-auto"
@@ -287,20 +221,17 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
                     message={form.formState.errors.schedulingType.message}
                   />
                 )}
-                <RadioArea.Group
-                  {...register("schedulingType")}
-                  onChange={(val) => form.setValue("schedulingType", val as SchedulingType)}
-                  className="relative mt-1 flex space-x-6 rounded-sm rtl:space-x-reverse">
+                <RadioArea.Group className="mt-1 flex space-x-4">
                   <RadioArea.Item
+                    {...register("schedulingType")}
                     value={SchedulingType.COLLECTIVE}
-                    defaultChecked={type === SchedulingType.COLLECTIVE}
                     className="w-1/2 text-sm">
                     <strong className="mb-1 block">{t("collective")}</strong>
                     <p>{t("collective_description")}</p>
                   </RadioArea.Item>
                   <RadioArea.Item
+                    {...register("schedulingType")}
                     value={SchedulingType.ROUND_ROBIN}
-                    defaultChecked={type === SchedulingType.ROUND_ROBIN}
                     className="w-1/2 text-sm">
                     <strong className="mb-1 block">{t("round_robin")}</strong>
                     <p>{t("round_robin_description")}</p>
@@ -318,6 +249,83 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
         </Form>
       </DialogContent>
     </Dialog>
+  );
+};
+
+export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
+  const { t } = useLocale();
+  const router = useRouter();
+
+  const hasTeams = !!props.options.find((option) => option.teamId);
+
+  // inject selection data into url for correct router history
+  const openModal = (option: EventTypeParent) => {
+    const query = {
+      ...router.query,
+      dialog: "new-eventtype",
+      eventPage: option.slug,
+      teamId: option.teamId,
+    };
+    if (!option.teamId) {
+      delete query.teamId;
+    }
+    router.push(
+      {
+        pathname: router.pathname,
+        query,
+      },
+      undefined,
+      { shallow: true }
+    );
+  };
+
+  return (
+    <>
+      {!hasTeams || props.isIndividualTeam ? (
+        <Button
+          onClick={() => openModal(props.options[0])}
+          data-testid="new-event-type"
+          StartIcon={Icon.FiPlus}
+          size="fab"
+          disabled={!props.canAddEvents}>
+          {t("new")}
+        </Button>
+      ) : (
+        <Dropdown>
+          <DropdownMenuTrigger asChild>
+            <Button
+              EndIcon={Icon.FiChevronDown}
+              size="fab"
+              className="radix-state-open:!bg-brand-500 radix-state-open:ring-2 radix-state-open:ring-brand-500 ring-offset-2 focus:border-none">
+              {t("new")}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent sideOffset={14} align="end">
+            <DropdownMenuLabel>
+              <div className="max-w-48">{t("new_event_subtitle")}</div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator className="h-px bg-gray-200" />
+            {props.options.map((option) => (
+              <DropdownMenuItem
+                key={option.slug}
+                className="flex cursor-pointer items-center px-3 py-2 hover:bg-neutral-100 focus:outline-none"
+                onSelect={() => openModal(option)}>
+                <Avatar
+                  alt={option.name || ""}
+                  imageSrc={option.image || `${WEBAPP_URL}/${option.slug}/avatar.png`} // if no image, use default avatar
+                  size="sm"
+                  className="inline ltr:mr-4 rtl:ml-4"
+                />
+                <span className="px-4">{option.name ? option.name : option.slug}</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </Dropdown>
+      )}
+      {/* Dialog for duplicate event type */}
+      {router.query.dialog === "duplicate-event-type" && <DuplicateDialog />}
+      {router.query.dialog === "new-eventtype" && <CreateEventTypeDialog />}
+    </>
   );
 }
 

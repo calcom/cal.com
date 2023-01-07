@@ -2,7 +2,9 @@ import { GetServerSidePropsContext } from "next";
 
 import AdminAppsList from "@calcom/features/apps/AdminAppsList";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { getAdminLayout as getLayout, Meta } from "@calcom/ui";
+import { Meta } from "@calcom/ui";
+
+import { getLayout } from "@components/auth/layouts/AdminLayout";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -10,8 +12,8 @@ function AdminAppsView() {
   const { t } = useLocale();
   return (
     <>
-      <Meta title={t("apps")} description={t("apps_description")} />
-      <AdminAppsList baseURL="/settings/admin/apps" className="w-0" />
+      <Meta title={t("apps")} description={t("admin_apps_description")} />
+      <AdminAppsList baseURL="/settings/admin/apps" />
     </>
   );
 }

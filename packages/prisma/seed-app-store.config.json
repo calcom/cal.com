@@ -145,9 +145,21 @@
     "type": "signal_video"
   },
   {
+    "dirName": "vimcal",
+    "categories": ["calendar"],
+    "slug": "vimcal",
+    "type": "vimcal_other"
+  },
+  {
+    "dirName": "amie",
+    "categories": ["calendar"],
+    "slug": "amie",
+    "type": "amie_other"
+  },
+  {
     "dirName": "bitcoin",
     "categories": ["payment"],
     "slug": "bitcoin",
     "type": "bitcoin_payment"
-  }
+   }
 ]

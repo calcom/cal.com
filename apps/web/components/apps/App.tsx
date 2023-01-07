@@ -11,9 +11,7 @@ import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/consta
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
-import { Button, Icon, Shell, showToast, SkeletonButton, SkeletonText } from "@calcom/ui";
-
-import HeadSeo from "@components/seo/head-seo";
+import { Button, Icon, Shell, showToast, SkeletonButton, SkeletonText, HeadSeo } from "@calcom/ui";
 
 const Component = ({
   name,
@@ -66,7 +64,9 @@ const Component = ({
     }
   );
 
-  const allowedMultipleInstalls = categories.indexOf("calendar") > -1;
+  // variant not other allows, an app to be shown in calendar category without requiring an actual calendar connection e.g. vimcal
+  // Such apps, can only be installed once.
+  const allowedMultipleInstalls = categories.indexOf("calendar") > -1 && variant !== "other";
 
   return (
     <div className="relative flex-1 flex-col items-start justify-start px-4 md:flex md:px-8 lg:flex-row lg:px-0">
@@ -98,8 +98,10 @@ const Component = ({
               <h1 className="font-cal ml-4 text-3xl text-gray-900">{name}</h1>
             </div>
             <h2 className="text-sm font-medium text-gray-600">
-              <Link href={`categories/${categories[0]}`}>
-                <a className="rounded-md bg-gray-100 p-1 text-xs capitalize text-gray-800">{categories[0]}</a>
+              <Link
+                href={`categories/${categories[0]}`}
+                className="rounded-md bg-gray-100 p-1 text-xs capitalize text-gray-800">
+                {categories[0]}
               </Link>{" "}
               • {t("published_by", { author })}
             </h2>

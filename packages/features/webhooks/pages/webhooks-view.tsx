@@ -4,8 +4,9 @@ import { Suspense } from "react";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, EmptyScreen, getSettingsLayout as getLayout, Icon, Meta, SkeletonText } from "@calcom/ui";
+import { Button, EmptyScreen, Icon, Meta, SkeletonText } from "@calcom/ui";
 
+import { getLayout } from "../../settings/layouts/SettingsLayout";
 import { WebhookListItem, WebhookListSkeleton } from "../components";
 
 const WebhooksView = () => {

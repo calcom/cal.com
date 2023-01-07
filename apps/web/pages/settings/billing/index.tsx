@@ -3,11 +3,12 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import { HelpScout, useChat } from "react-live-chat-loader";
 
+import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, getSettingsLayout as getLayout, Icon, Meta } from "@calcom/ui";
+import { Button, Icon, Meta } from "@calcom/ui";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -36,7 +37,6 @@ const CtaRow = ({ title, description, className, children }: CtaRowProps) => {
 const BillingView = () => {
   const { t } = useLocale();
   const { data: user } = trpc.viewer.me.useQuery();
-  const isPro = user?.plan === "PRO";
   const [, loadChat] = useChat();
   const [showChat, setShowChat] = useState(false);
   const router = useRouter();
@@ -53,14 +53,9 @@ const BillingView = () => {
       <Meta title={t("billing")} description={t("manage_billing_description")} />
       <div className="space-y-6 text-sm sm:space-y-8">
         <CtaRow
-          className={classNames(!isPro && "pointer-events-none opacity-30")}
           title={t("billing_manage_details_title")}
           description={t("billing_manage_details_description")}>
-          <Button
-            color={isPro ? "primary" : "secondary"}
-            href={billingHref}
-            target="_blank"
-            EndIcon={Icon.FiExternalLink}>
+          <Button color="primary" href={billingHref} target="_blank" EndIcon={Icon.FiExternalLink}>
             {t("billing_portal")}
           </Button>
         </CtaRow>
