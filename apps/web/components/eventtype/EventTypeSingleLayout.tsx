@@ -1,7 +1,7 @@
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
 import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
-import { useMemo, useState } from "react";
+import { useMemo, useState, Suspense } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { TbWebhook } from "react-icons/tb";
 
@@ -32,7 +32,6 @@ import {
   VerticalTabs,
 } from "@calcom/ui";
 
-import { ClientSuspense } from "@components/ClientSuspense";
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 
 type Props = {
@@ -301,7 +300,7 @@ function EventTypeSingleLayout({
           </Button>
         </div>
       }>
-      <ClientSuspense fallback={<Icon.FiLoader />}>
+      <Suspense fallback={<Icon.FiLoader />}>
         <div className="-mt-2 flex flex-col xl:flex-row xl:space-x-8">
           <div className="hidden xl:block">
             <VerticalTabs
@@ -324,7 +323,7 @@ function EventTypeSingleLayout({
             </div>
           </div>
         </div>
-      </ClientSuspense>
+      </Suspense>
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <ConfirmationDialogContent
           isLoading={deleteMutation.isLoading}
