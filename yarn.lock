@@ -21927,7 +21927,7 @@ prism-react-renderer@^1.3.5:
   resolved "https://registry.yarnpkg.com/prism-react-renderer/-/prism-react-renderer-1.3.5.tgz#786bb69aa6f73c32ba1ee813fbe17a0115435085"
   integrity sha512-IJ+MSwBWKG+SM3b2SUfdrhC+gu01QkV2KmRQgREThBfSQRoufqRfxfHUxpG1WcaFjP+kojcFyO9Qqtpgt3qLCg==
 
-prisma-field-encryption@^1.4.0-beta.2:
+prisma-field-encryption@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/prisma-field-encryption/-/prisma-field-encryption-1.4.0.tgz#fb644cf98b782c81e443f022e27b0108fe31c7ed"
   integrity sha512-ZJLIZL4IzdkZSmeVnpvW7E4/P74txf2OLZWzzfHQlkLcDJOddfIcXPytCxwHiPZX12aXfsVt0bA2T11mdA/lMw==
