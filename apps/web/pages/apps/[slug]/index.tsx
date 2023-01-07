@@ -1,11 +1,11 @@
 import fs from "fs";
 import matter from "gray-matter";
 import { GetStaticPaths, GetStaticPropsContext } from "next";
-import { MDXRemote } from "next-mdx-remote";
-import { serialize } from "next-mdx-remote/serialize";
 import Image, { ImageProps } from "next/legacy/image";
 import Link from "next/link";
 import path from "path";
+import ReactMarkdown from "react-markdown";
+import rehypeRaw from "rehype-raw";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
 import prisma from "@calcom/prisma";
@@ -55,10 +55,14 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
       email={data.email}
       licenseRequired={data.licenseRequired}
       isProOnly={data.isProOnly}
-      images={source?.scope?.items as string[] | undefined}
+      images={source.data?.items as string[] | undefined}
       //   tos="https://zoom.us/terms"
       //   privacy="https://zoom.us/privacy"
-      body={<MDXRemote {...source} components={components} />}
+      body={
+        <ReactMarkdown rehypePlugins={[rehypeRaw]} components={components}>
+          {source.content}
+        </ReactMarkdown>
+      }
     />
   );
 }
@@ -100,11 +104,10 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   }
 
   const { content, data } = matter(source);
-  const mdxSource = await serialize(content, { scope: data });
 
   return {
     props: {
-      source: mdxSource,
+      source: { content, data },
       data: singleApp,
     },
   };
