@@ -65,7 +65,7 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   if (!singleApp) return { notFound: true };
 
   const appDirname = app.dirName;
-  const README_PATH = path.join(process.cwd(), "..", "..", `packages/app-store/${appDirname}/README.mdx`);
+  const README_PATH = path.join(process.cwd(), "..", "..", `packages/app-store/${appDirname}/DESCRIPTION.md`);
   const postFilePath = path.join(README_PATH);
   let source = "";
 
@@ -73,7 +73,7 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
     /* If the app doesn't have a README we fallback to the package description */
     source = fs.readFileSync(postFilePath).toString();
   } catch (error) {
-    console.log(`No README.mdx provided for: ${appDirname}`);
+    console.log(`No DESCRIPTION.md provided for: ${appDirname}`);
     source = singleApp.description;
   }
 
