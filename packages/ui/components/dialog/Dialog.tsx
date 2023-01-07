@@ -28,9 +28,18 @@ export function Dialog(props: DialogProps) {
       if (open) {
         router.query["dialog"] = name;
       } else {
+        const query = router.query;
         clearQueryParamsOnClose.forEach((queryParam) => {
-          delete router.query[queryParam];
+          delete query[queryParam];
         });
+        router.push(
+          {
+            pathname: router.pathname,
+            query,
+          },
+          undefined,
+          { shallow: true }
+        );
       }
       setOpen(open);
     };
