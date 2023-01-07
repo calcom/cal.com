@@ -273,7 +273,7 @@ export const KBarContent = () => {
 
 export const KBarTrigger = () => {
   const { query } = useKBar();
-  return (
+  return query ? (
     <>
       <Tooltip side="right" content={isMac ? "⌘ + K" : "CTRL + K"}>
         <button
@@ -284,7 +284,7 @@ export const KBarTrigger = () => {
         </button>
       </Tooltip>
     </>
-  );
+  ) : null;
 };
 
 const DisplayShortcuts = (item: shortcutArrayType) => {
