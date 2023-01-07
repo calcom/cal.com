@@ -14,11 +14,24 @@ import { useMemo } from "react";
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
+import { RouterOutputs, trpc } from "@calcom/trpc/react";
 
 import { Icon, Tooltip } from "../../";
 
 type shortcutArrayType = {
   shortcuts?: string[];
+};
+
+type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
+type EventTypeGroup = EventTypeGroups[number];
+type EventType = EventTypeGroup["eventTypes"][number];
+
+type KBarAction = {
+  perform: () => Promise<boolean>;
+  id: string;
+  name: string;
+  section: string;
+  keywords: string;
 };
 
 const getApps = Object.values(appStoreMetadata).map(({ name, slug }) => ({
@@ -30,15 +43,34 @@ const getApps = Object.values(appStoreMetadata).map(({ name, slug }) => ({
 
 export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
+  const { data } = trpc.viewer.eventTypes.getByViewer.useQuery();
 
   // grab link to events
   // quick nested actions would be extremely useful
-
   const appStoreActions = useMemo(
     () => getApps.map((item) => ({ ...item, perform: () => router.push(`/apps/${item.id}`) })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
+
+  if (!data) return null;
+
+  const eventTypes =
+    data?.eventTypeGroups.reduce((acc: EventType[], group: EventTypeGroup): EventType[] => {
+      acc.push(...group.eventTypes);
+      return acc;
+    }, [] as EventType[]) || [];
+
+  const eventTypeActions =
+    eventTypes.map(
+      (item: EventType): KBarAction => ({
+        id: `event-type-${item.id}`,
+        name: item.title,
+        section: "event_types_page_title",
+        keywords: "event types",
+        perform: () => router.push(`/event-types/${item.id}`),
+      })
+    ) || [];
 
   const actions = [
     // {
@@ -202,6 +234,7 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       perform: () => router.push("/settings/billing"),
     },
     ...appStoreActions,
+    ...eventTypeActions,
   ];
 
   return <KBarProvider actions={actions}>{children}</KBarProvider>;
