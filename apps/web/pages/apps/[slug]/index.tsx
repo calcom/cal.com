@@ -1,11 +1,8 @@
 import fs from "fs";
 import matter from "gray-matter";
+import MarkdownIt from "markdown-it";
 import { GetStaticPaths, GetStaticPropsContext } from "next";
-import Image, { ImageProps } from "next/legacy/image";
-import Link from "next/link";
 import path from "path";
-import ReactMarkdown from "react-markdown";
-import rehypeRaw from "rehype-raw";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
 import prisma from "@calcom/prisma";
@@ -14,26 +11,7 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import App from "@components/apps/App";
 
-const components = {
-  a: ({ href = "", ...otherProps }: JSX.IntrinsicElements["a"]) => (
-    <Link href={href} legacyBehavior>
-      <a {...otherProps} />
-    </Link>
-  ),
-  img: ({
-    src = "",
-    alt = "",
-    placeholder,
-    ...rest
-  }: Partial<
-    Omit<ImageProps, "src" | "srcSet" | "ref" | "alt" | "width" | "height" | "loading" | "placeholder">
-  > & { src?: string; alt?: string; placeholder?: string }) => <Image src={src} alt={alt} {...rest} />,
-  // @TODO: In v2 the slider isn't shown anymore. However, to ensure the v1 pages keep
-  // working, this component is still rendered in the MDX content. To skip them in the v2
-  // content we have to render null here. In v2 the gallery is shown by directly
-  // using the `items` property from the MDX's meta data.
-  Slider: () => <></>,
-};
+const md = new MarkdownIt("default", { html: true, breaks: true });
 
 function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
   return (
@@ -58,11 +36,7 @@ function SingleAppPage({ data, source }: inferSSRProps<typeof getStaticProps>) {
       images={source.data?.items as string[] | undefined}
       //   tos="https://zoom.us/terms"
       //   privacy="https://zoom.us/privacy"
-      body={
-        <ReactMarkdown rehypePlugins={[rehypeRaw]} components={components}>
-          {source.content}
-        </ReactMarkdown>
-      }
+      body={<div dangerouslySetInnerHTML={{ __html: md.render(source.content) }} />}
     />
   );
 }

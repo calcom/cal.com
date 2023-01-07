@@ -7,5 +7,4 @@ items:
   - /api/app-store/vimcal/4.gif
 ---
 
-{description}
-
+The world's fastest calendar, beautifully designed for a remote world

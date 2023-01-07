@@ -6,5 +6,4 @@ items:
   - /api/app-store/sirius_video/3.jpg
 ---
 
-{description}
-
+Video meetings made for music. Create your own virtual music classroom, easily.
