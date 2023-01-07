@@ -20,7 +20,7 @@ const AppCategoryNavigation = ({
   fromAdmin?: boolean;
 }) => {
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
-  const appCategories = useMemo(() => getAppCategories(baseURL), [baseURL]);
+  const appCategories = useMemo(() => getAppCategories(baseURL, false), [baseURL]);
 
   return (
     <div className={classNames("flex flex-col p-2 md:p-0 xl:flex-row", className)}>
