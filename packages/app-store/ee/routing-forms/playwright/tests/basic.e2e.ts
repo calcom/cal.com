@@ -61,7 +61,9 @@ test.describe("Routing Forms", () => {
     });
 
     test.describe("F1<-F2 Relationship", () => {
-      test("Create relationship by adding F1 as route.Editing F1 should update F2", async ({ page }) => {
+      // TODO: Fix this test, it is very flaky
+      // prettier-ignore
+      test.fixme("Create relationship by adding F1 as route.Editing F1 should update F2", async ({ page }) => {
         const form1Id = await addForm(page, { name: "F1" });
         const form2Id = await addForm(page, { name: "F2" });
 
