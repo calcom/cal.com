@@ -5,6 +5,10 @@ import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
 import { zodRouterRouteView, zodNonRouterRoute, zodFieldsView, zodRoutesView } from "../zod";
 
+export type RoutingForm = SerializableForm<App_RoutingForms_Form>;
+
+export type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Config["fields"] };
+
 export type Response = Record<
   // Field ID
   string,

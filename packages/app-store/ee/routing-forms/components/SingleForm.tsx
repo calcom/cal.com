@@ -35,9 +35,9 @@ import {
   VerticalDivider,
 } from "@calcom/ui";
 
+import { RoutingPages } from "../lib/RoutingPages";
 import { getSerializableForm } from "../lib/getSerializableForm";
 import { processRoute } from "../lib/processRoute";
-import { RoutingPages } from "../pages/route-builder/[...appPages]";
 import { Response, Route, SerializableForm } from "../types/types";
 import { FormAction, FormActionsDropdown, FormActionsProvider } from "./FormActions";
 import FormInputFields from "./FormInputFields";
