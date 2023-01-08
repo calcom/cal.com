@@ -6,5 +6,4 @@ items:
   - /api/app-store/_APP_DIR_/3.jpg
 ---
 
-{description}
-
+_DESCRIPTION_
