@@ -209,67 +209,48 @@
     "type": "amie_other"
   },
   {
-    "dirName": "event_type_app_card",
+    "dirName": "booking-pages-tag",
     "categories": [
-      "other"
+      "analytics"
     ],
-    "slug": "event_type_app_card",
-    "type": "event_type_app_card_other"
+    "slug": "booking-pages-tag",
+    "type": "booking-pages-tag_other",
+    "isTemplate": true
   },
   {
-    "dirName": "der",
+    "dirName": "event-type-app-card",
     "categories": [
       "other"
     ],
-    "slug": "der",
-    "type": "der_other"
+    "slug": "event-type-app-card",
+    "type": "event-type-app-card_other",
+    "isTemplate": true
   },
   {
-    "dirName": "ede",
+    "dirName": "event-type-location-video-static",
     "categories": [
-      "other"
+      "video"
     ],
-    "slug": "ede",
-    "type": "ede_other"
+    "slug": "event-type-location-video-static",
+    "type": "event-type-location-video-static_other",
+    "isTemplate": true
   },
   {
-    "dirName": "def",
+    "dirName": "general-app-settings",
     "categories": [
       "other"
     ],
-    "slug": "def",
-    "type": "def_other"
+    "slug": "general-app-settings",
+    "type": "general-app-settings_other",
+    "isTemplate": true
   },
   {
-    "dirName": "defg",
+    "dirName": "link-as-an-app",
     "categories": [
       "other"
     ],
-    "slug": "defg",
-    "type": "defg_other"
-  },
-  {
-    "dirName": "defge",
-    "categories": [
-      "other"
-    ],
-    "slug": "defge",
-    "type": "defge_other"
-  },
-  {
-    "dirName": "defga",
-    "categories": [
-      "other"
-    ],
-    "slug": "defga",
-    "type": "defga_other"
-  },
-  {
-    "dirName": "my-hyphenated-app",
-    "categories": [
-      "other"
-    ],
-    "slug": "my-hyphenated-app",
-    "type": "my-hyphenated-app_other"
+    "slug": "link-as-an-app",
+    "type": "link-as-an-app_other",
+    "isTemplate": true
   }
 ]

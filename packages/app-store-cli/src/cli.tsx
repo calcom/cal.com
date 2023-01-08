@@ -23,7 +23,7 @@ const cli = meow(
 
     $ app-store delete --slug - Deletes the app identified by slug
     Options
-		[--slug]  Slug. This is the name of app dir for apps created with cli.
+		[--slug -s]  Slug. This is the name of app dir for apps created with cli.
 `,
   {
     flags: {

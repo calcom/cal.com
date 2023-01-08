@@ -1,5 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
+import { Tag } from "@calcom/app-store/types";
+
 import { Optional } from "./utils";
 
 type CommonProperties = {
@@ -30,8 +32,9 @@ type DynamicLinkBasedEventLocation = {
 
 export type EventLocationTypeFromAppMeta = StaticLinkBasedEventLocation | DynamicLinkBasedEventLocation;
 
-type EventLocationAppData = {
-  location: EventLocationTypeFromAppMeta;
+type AppData = {
+  location?: EventLocationTypeFromAppMeta;
+  tag?: Tag;
 };
 
 /**
@@ -41,7 +44,7 @@ type EventLocationAppData = {
 export interface App {
   /**
    * @deprecated
-   * Wheter if the app is installed or not. Usually we check for api keys in env
+   * Whether if the app is installed or not. Usually we check for api keys in env
    * variables to determine if this is true or not.
    * */
   installed?: boolean;
@@ -131,7 +134,7 @@ export interface App {
   commission?: number;
   licenseRequired?: boolean;
   isProOnly?: boolean;
-  appData?: EventLocationAppData;
+  appData?: AppData;
   dirName?: string;
   isTemplate?: boolean;
 }

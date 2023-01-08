@@ -11,7 +11,7 @@ import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/consta
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { App as AppType } from "@calcom/types/App";
-import { Button, Icon, Shell, showToast, SkeletonButton, SkeletonText, HeadSeo } from "@calcom/ui";
+import { Button, Icon, Shell, showToast, SkeletonButton, SkeletonText, HeadSeo, Badge } from "@calcom/ui";
 
 const Component = ({
   name,
@@ -33,6 +33,7 @@ const Component = ({
   privacy,
   isProOnly,
   images,
+  isTemplate,
 }: Parameters<typeof App>[0]) => {
   const { t } = useLocale();
   const hasImages = images && images.length > 0;
@@ -103,8 +104,13 @@ const Component = ({
                 className="rounded-md bg-gray-100 p-1 text-xs capitalize text-gray-800">
                 {categories[0]}
               </Link>{" "}
-              • {t("published_by", { author })}
+              • {t("published_by", { author })}{" "}
             </h2>
+            {isTemplate && (
+              <Badge variant="red" className="mt-4">
+                Template - Available in Dev Environment only for testing
+              </Badge>
+            )}
           </header>
         </div>
         {!appCredentials.isLoading ? (
@@ -309,6 +315,7 @@ export default function App(props: {
   licenseRequired: AppType["licenseRequired"];
   isProOnly: AppType["isProOnly"];
   images?: string[];
+  isTemplate: boolean;
 }) {
   const { t } = useLocale();
 

@@ -2,31 +2,18 @@ import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
 import { AppFrontendPayload as App } from "@calcom/types/App";
 import { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
+import { appStoreMetadata } from "./apps.metadata.generated";
+
 //FIXME: Import metadata.generated.ts instead of this hit and try of looking for an app's metadata
 export async function getAppWithMetadata(app: { dirName: string }) {
-  let appMetadata: App | null = null;
-  try {
-    appMetadata = (await import(`./${app.dirName}/_metadata`)).default as App;
-  } catch (error) {
-    try {
-      appMetadata = (await import(`./ee/${app.dirName}/_metadata`)).default as App;
-    } catch (e) {
-      try {
-        appMetadata = (await import(`./templates/${app.dirName}/_metadata`)).default as App;
-        appMetadata.isTemplate = true;
-      } catch (e) {
-        if (error instanceof Error) {
-          console.error(`No metadata found for: "${app.dirName}". Message:`, error.message);
-        }
-      }
-    }
-  }
+  const appMetadata: App | null = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
   if (!appMetadata) return null;
   // Let's not leak api keys to the front end
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { key, ...metadata } = appMetadata;
   if (metadata.logo && !metadata.logo.includes("/")) {
-    metadata.logo = `/api/app-store/${app.dirName}/${metadata.logo}`;
+    const appDirName = `${metadata.isTemplate ? "templates" : ""}/${app.dirName}`;
+    metadata.logo = `/api/app-store/${appDirName}/${metadata.logo}`;
   }
   return metadata;
 }
@@ -40,7 +27,7 @@ export async function getAppRegistry() {
   const apps = [] as App[];
   for await (const dbapp of dbApps) {
     const app = await getAppWithMetadata(dbapp);
-    if (!app || app.isTemplate) continue;
+    if (!app) continue;
     // Skip if app isn't installed
     /* This is now handled from the DB */
     // if (!app.installed) return apps;

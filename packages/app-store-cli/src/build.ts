@@ -22,7 +22,7 @@ const formatOutput = (source: string) =>
   });
 
 const getVariableName = function (appName: string) {
-  return appName.replace(/-/g, "_");
+  return appName.replace(/[-.]/g, "_");
 };
 
 const getAppId = function (app: { name: string }) {
@@ -86,33 +86,111 @@ function generateFiles() {
     }
   }
 
+  function getModuleName(name: string) {
+    return name.replace(/\/index\.ts|\/index\.tsx/, "").replace(/\.tsx$|\.ts$/, "");
+  }
+
+  type ImportConfig =
+    | {
+        fileToBeImported: string;
+        importName?: string;
+      }
+    | [
+        {
+          fileToBeImported: string;
+          importName?: string;
+        },
+        {
+          fileToBeImported: string;
+          importName: string;
+        }
+      ];
+
+  /**
+   * If importConfig is an array, only 2 items are allowed. First one is the main one and second one is the fallback
+   */
   function getObjectExporter(
-    objectName,
+    objectName: string,
     {
-      fileToBeImported,
-      importBuilder,
-      entryBuilder,
+      lazyImport = false,
+      importConfig,
+      entryObjectKeyGetter = (app) => app.name,
     }: {
-      fileToBeImported: string;
-      importBuilder?: (arg: App) => string;
-      entryBuilder: (arg: App) => string;
+      lazyImport?: boolean;
+      importConfig: ImportConfig;
+      entryObjectKeyGetter?: (arg: App, importName?: string) => string;
     }
   ) {
     const output = [];
+    function getChosenConfig(importConfig: ImportConfig, app: { path: string }) {
+      let chosenConfig;
+
+      if (!(importConfig instanceof Array)) {
+        chosenConfig = importConfig;
+      } else {
+        if (fs.existsSync(path.join(APP_STORE_PATH, app.path, importConfig[0].fileToBeImported))) {
+          chosenConfig = importConfig[0];
+        } else {
+          chosenConfig = importConfig[1];
+        }
+      }
+      return chosenConfig;
+    }
+
+    const getLocalImportName = (app: { name: string }, chosenConfig) =>
+      `${getVariableName(app.name)}_${getVariableName(chosenConfig.fileToBeImported)}`;
+
     forEachAppDir((app) => {
+      const chosenConfig = getChosenConfig(importConfig, app);
       if (
-        fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported)) &&
-        typeof importBuilder === "function"
+        fs.existsSync(path.join(APP_STORE_PATH, app.path, chosenConfig.fileToBeImported)) &&
+        chosenConfig.importName
       ) {
-        output.push(importBuilder(app));
+        const importName = chosenConfig.importName;
+        if (!lazyImport) {
+          if (importName !== "default")
+            output.push(
+              `import { ${importName} as ${getLocalImportName(app, chosenConfig)}} from "./${app.path.replace(
+                /\\/g,
+                "/"
+              )}/${getModuleName(chosenConfig.fileToBeImported)}"`
+            );
+          else
+            output.push(
+              `import ${getLocalImportName(app, chosenConfig)} from "./${app.path.replace(
+                /\\/g,
+                "/"
+              )}/${getModuleName(chosenConfig.fileToBeImported)}"`
+            );
+        }
       }
     });
 
     output.push(`export const ${objectName} = {`);
 
     forEachAppDir((app) => {
-      if (fs.existsSync(path.join(APP_STORE_PATH, app.path, fileToBeImported))) {
-        output.push(entryBuilder(app));
+      const chosenConfig = getChosenConfig(importConfig, app);
+
+      if (fs.existsSync(path.join(APP_STORE_PATH, app.path, chosenConfig.fileToBeImported))) {
+        if (!lazyImport) {
+          const key = entryObjectKeyGetter(app);
+          output.push(`"${key}": ${getLocalImportName(app, chosenConfig)},`);
+        } else {
+          const key = entryObjectKeyGetter(app);
+          if (chosenConfig.fileToBeImported.endsWith(".tsx")) {
+            output.push(
+              `"${key}": dynamic(() => import("./${app.path.replace(/\\/g, "/")}/${getModuleName(
+                chosenConfig.fileToBeImported
+              )}")),`
+            );
+          } else {
+            output.push(
+              `"${key}": import("./${app.path.replace(/\\/g, "/")}/${getModuleName(
+                chosenConfig.fileToBeImported
+              )}"),`
+            );
+          }
+        }
       }
     });
 
@@ -122,58 +200,59 @@ function generateFiles() {
 
   serverOutput.push(
     ...getObjectExporter("apiHandlers", {
-      fileToBeImported: "api/index.ts",
-      // Import path must have / even for windows and not \
-      entryBuilder: (app) => `  "${app.name}": import("./${app.path.replace(/\\/g, "/")}/api"),`,
+      importConfig: {
+        fileToBeImported: "api/index.ts",
+      },
+      lazyImport: true,
     })
   );
 
   metadataOutput.push(
     ...getObjectExporter("appStoreMetadata", {
-      fileToBeImported: "_metadata.ts",
-      // Import path must have / even for windows and not \
-      importBuilder: (app) =>
-        `import { metadata as ${getVariableName(app.name)}_meta } from "./${app.path.replace(
-          /\\/g,
-          "/"
-        )}/_metadata";`,
-      entryBuilder: (app) => `  "${app.name}":${getVariableName(app.name)}_meta,`,
+      importConfig: [
+        {
+          fileToBeImported: "config.json",
+          importName: "default",
+        },
+        {
+          fileToBeImported: "_metadata.ts",
+          importName: "metadata",
+        },
+      ],
     })
   );
 
   schemasOutput.push(
     ...getObjectExporter("appDataSchemas", {
-      fileToBeImported: "zod.ts",
       // Import path must have / even for windows and not \
-      importBuilder: (app) =>
-        `import { appDataSchema as ${getVariableName(app.name)}_schema } from "./${app.path.replace(
-          /\\/g,
-          "/"
-        )}/zod";`,
-      // Key must be appId as this is used by eventType metadata and lookup is by appId
-      entryBuilder: (app) => `  "${getAppId(app)}":${getVariableName(app.name)}_schema ,`,
+      importConfig: {
+        fileToBeImported: "zod.ts",
+        importName: "appDataSchema",
+      },
+      // HACK: Key must be appId as this is used by eventType metadata and lookup is by appId
+      // This can be removed once we rename the ids of apps like stripe to that of their app folder name
+      entryObjectKeyGetter: (app) => getAppId(app),
     })
   );
 
   appKeysSchemasOutput.push(
     ...getObjectExporter("appKeysSchemas", {
-      fileToBeImported: "zod.ts",
-      // Import path must have / even for windows and not \
-      importBuilder: (app) =>
-        `import { appKeysSchema as ${getVariableName(app.name)}_keys_schema } from "./${app.path.replace(
-          /\\/g,
-          "/"
-        )}/zod";`,
-      // Key must be appId as this is used by eventType metadata and lookup is by appId
-      entryBuilder: (app) => `  "${getAppId(app)}":${getVariableName(app.name)}_keys_schema ,`,
+      importConfig: {
+        fileToBeImported: "zod.ts",
+        importName: "appKeysSchema",
+      },
+      // HACK: Key must be appId as this is used by eventType metadata and lookup is by appId
+      // This can be removed once we rename the ids of apps like stripe to that of their app folder name
+      entryObjectKeyGetter: (app) => getAppId(app),
     })
   );
 
   browserOutput.push(
     ...getObjectExporter("InstallAppButtonMap", {
-      fileToBeImported: "components/InstallAppButton.tsx",
-      entryBuilder: (app) =>
-        `  ${app.name}: dynamic(() =>import("./${app.path}/components/InstallAppButton")),`,
+      importConfig: {
+        fileToBeImported: "components/InstallAppButton.tsx",
+      },
+      lazyImport: true,
     })
   );
 
@@ -181,17 +260,19 @@ function generateFiles() {
   // TODO: dailyvideo has a slug of daily-video, so that mapping needs to be taken care of. But it is an old app, so it doesn't need AppSettings
   browserOutput.push(
     ...getObjectExporter("AppSettingsComponentsMap", {
-      fileToBeImported: "components/AppSettingsInterface.tsx",
-      entryBuilder: (app) =>
-        `  "${app.name}": dynamic(() =>import("./${app.path}/components/AppSettingsInterface")),`,
+      importConfig: {
+        fileToBeImported: "components/AppSettingsInterface.tsx",
+      },
+      lazyImport: true,
     })
   );
 
   browserOutput.push(
     ...getObjectExporter("EventTypeAddonMap", {
-      fileToBeImported: path.join("components", "EventTypeAppCardInterface.tsx"),
-      entryBuilder: (app) =>
-        `  "${app.name}": dynamic(() =>import("./${app.path}/components/EventTypeAppCardInterface")),`,
+      importConfig: {
+        fileToBeImported: path.join("components", "EventTypeAppCardInterface.tsx"),
+      },
+      lazyImport: true,
     })
   );
 

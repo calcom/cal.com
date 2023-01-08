@@ -72,6 +72,7 @@ export const appsRouter = router({
             keys: dbData.keys,
             dirName: app.dirName || app.slug,
             enabled: dbData?.enabled || false,
+            isTemplate: app.isTemplate,
           });
         } else {
           const keysSchema = appKeysSchemas[app.dirName as keyof typeof appKeysSchemas];

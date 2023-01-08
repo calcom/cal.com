@@ -195,8 +195,13 @@ export default function Shell(props: LayoutProps) {
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
   useTheme("light");
-
-  return (
+  // don't load KBar when unauthed
+  return props.isPublic ? (
+    <>
+      <CustomBrandingContainer />
+      <Layout {...props} />
+    </>
+  ) : (
     <KBarRoot>
       <CustomBrandingContainer />
       <Layout {...props} />

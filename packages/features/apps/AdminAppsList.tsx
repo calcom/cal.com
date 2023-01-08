@@ -11,6 +11,7 @@ import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import {
+  Badge,
   Button,
   ConfirmationDialogContent,
   Dialog,
@@ -76,8 +77,13 @@ const IntegrationContainer = ({
           <div className="flex w-full flex-1 items-center justify-between space-x-3 p-4 rtl:space-x-reverse md:max-w-3xl">
             {app.logo && <img className="h-10 w-10" src={app.logo} alt={app.title} />}
             <div className="flex-grow truncate pl-2">
-              <h3 className="truncate text-sm font-medium text-neutral-900">
+              <h3 className="flex truncate text-sm font-medium text-neutral-900">
                 <p>{app.name || app.title}</p>
+                {app.isTemplate && (
+                  <Badge variant="red" className="ml-4">
+                    Template
+                  </Badge>
+                )}
               </h3>
               <p className="truncate text-sm text-gray-500">{app.description}</p>
             </div>
@@ -174,7 +180,15 @@ const querySchema = z.object({
     .default(AppCategories.calendar),
 });
 
-const AdminAppsList = ({ baseURL, className }: { baseURL: string; className?: string }) => {
+const AdminAppsList = ({
+  baseURL,
+  className,
+  useQueryParam = false,
+}: {
+  baseURL: string;
+  className?: string;
+  useQueryParam?: boolean;
+}) => {
   const router = useRouter();
   return (
     <form
@@ -187,6 +201,7 @@ const AdminAppsList = ({ baseURL, className }: { baseURL: string; className?: st
       <AppCategoryNavigation
         baseURL={baseURL}
         fromAdmin
+        useQueryParam={useQueryParam}
         containerClassname="w-full xl:mx-5 xl:w-2/3 xl:pr-5"
         className={className}>
         <AdminAppsListContainer />

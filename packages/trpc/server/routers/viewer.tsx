@@ -474,7 +474,6 @@ const loggedInViewerRouter = router({
       if (onlyInstalled) {
         apps = apps.flatMap((item) => (item.credentialIds.length > 0 || item.isGlobal ? [item] : []));
       }
-
       return {
         items: apps,
       };

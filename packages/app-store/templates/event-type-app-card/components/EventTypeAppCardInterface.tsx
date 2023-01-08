@@ -32,8 +32,8 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
           an AppCard for Event with Title: {eventType.title}
         </div>{" "}
         <div className="mt-2">
-          Edit <span className="italic">packages/app-store/{app.slug}/extensions/EventTypeAppCard.tsx</span>{" "}
-          to play with me
+          Edit <span className="italic">packages/app-store/{app.slug}/EventTypeAppCardInterface.tsx</span> to
+          play with me
         </div>
       </div>
     </AppCard>

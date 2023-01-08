@@ -79,7 +79,6 @@ export const BaseAppFork = {
     };
 
     let config = {
-      "/*": "Don't modify slug - If required, do it using cli edit command",
       name: appName,
       // Plan to remove it. DB already has it and name of dir is also the same.
       slug: slug,
@@ -94,6 +93,9 @@ export const BaseAppFork = {
       description: appDescription,
       // TODO: Use this to avoid edit and delete on the apps created outside of cli
       __createdUsingCli: true,
+
+      // Store the template used to create an app
+      __template: template,
     };
     const currentConfig = JSON.parse(fs.readFileSync(`${appDirPath}/config.json`).toString());
     config = {
@@ -102,9 +104,9 @@ export const BaseAppFork = {
     };
     fs.writeFileSync(`${appDirPath}/config.json`, JSON.stringify(config, null, 2));
     fs.writeFileSync(
-      `${appDirPath}/README.mdx`,
+      `${appDirPath}/DESCRIPTION.md`,
       fs
-        .readFileSync(`${appDirPath}/README.mdx`)
+        .readFileSync(`${appDirPath}/DESCRIPTION.md`)
         .toString()
         .replace(/_DESCRIPTION_/g, appDescription)
         .replace(/_APP_DIR_/g, slug)

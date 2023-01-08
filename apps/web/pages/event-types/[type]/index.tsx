@@ -3,7 +3,6 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { PeriodType, SchedulingType } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
-import { useRouter } from "next/router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -15,6 +14,7 @@ import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
 import findDurationType from "@calcom/lib/findDurationType";
 import getEventTypeById from "@calcom/lib/getEventTypeById";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -111,8 +111,9 @@ export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 const EventTypePage = (props: EventTypeSetupProps) => {
   const { t } = useLocale();
   const utils = trpc.useContext();
-  const router = useRouter();
-  const { tabName } = querySchema.parse(router.query);
+  const {
+    data: { tabName },
+  } = useTypedQuery(querySchema);
 
   const { data: eventTypeApps } = trpc.viewer.apps.useQuery({
     extendsFeature: "EventType",

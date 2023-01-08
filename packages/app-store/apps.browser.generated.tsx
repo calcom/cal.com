@@ -29,7 +29,8 @@ export const InstallAppButtonMap = {
   zoomvideo: dynamic(() => import("./zoomvideo/components/InstallAppButton")),
 };
 export const AppSettingsComponentsMap = {
-  "my-hyphenated-app": dynamic(() => import("./my-hyphenated-app/components/AppSettingsInterface")),
+  "general-t1": dynamic(() => import("./general-t1/components/AppSettingsInterface")),
+  "my-app": dynamic(() => import("./my-app/components/AppSettingsInterface")),
   "general-app-settings": dynamic(() =>
     import("./templates/general-app-settings/components/AppSettingsInterface")
   ),
@@ -39,6 +40,7 @@ export const AppSettingsComponentsMap = {
   zapier: dynamic(() => import("./zapier/components/AppSettingsInterface")),
 };
 export const EventTypeAddonMap = {
+  "bookingtag-t1": dynamic(() => import("./bookingtag-t1/components/EventTypeAppCardInterface")),
   fathom: dynamic(() => import("./fathom/components/EventTypeAppCardInterface")),
   ga4: dynamic(() => import("./ga4/components/EventTypeAppCardInterface")),
   giphy: dynamic(() => import("./giphy/components/EventTypeAppCardInterface")),
@@ -46,8 +48,8 @@ export const EventTypeAddonMap = {
   qr_code: dynamic(() => import("./qr_code/components/EventTypeAppCardInterface")),
   rainbow: dynamic(() => import("./rainbow/components/EventTypeAppCardInterface")),
   stripepayment: dynamic(() => import("./stripepayment/components/EventTypeAppCardInterface")),
-  "event-type-analytics": dynamic(() =>
-    import("./templates/event-type-analytics/components/EventTypeAppCardInterface")
+  "booking-pages-tag": dynamic(() =>
+    import("./templates/booking-pages-tag/components/EventTypeAppCardInterface")
   ),
   "event-type-app-card": dynamic(() =>
     import("./templates/event-type-app-card/components/EventTypeAppCardInterface")

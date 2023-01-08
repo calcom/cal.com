@@ -1,3 +1,4 @@
+import { Text } from "ink";
 import TextInput from "ink-text-input";
 import React, { useEffect, useState } from "react";
 
@@ -38,10 +39,10 @@ export default function Delete({ slug }: { slug: string }) {
   if (state === "INITIALIZED") {
     return (
       <>
-        <ImportantText>
-          Confirm the slug of the app that you want to delete. Note, that it would cleanup the app directory,
-          App table and Credential table
-        </ImportantText>
+        <ImportantText>Type below the slug of the app that you want to delete.</ImportantText>
+        <Text color="gray" italic>
+          It would cleanup the app directory and App table and Credential table.
+        </Text>
         <TextInput
           value={confirmedAppSlug}
           onSubmit={(value) => {

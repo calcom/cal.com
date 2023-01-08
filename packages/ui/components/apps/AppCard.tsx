@@ -7,7 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
-import { Button, Icon } from "../..";
+import { Button, Icon, Badge } from "../..";
 import { showToast } from "../../v2/core/notifications";
 
 interface AppCardProps {
@@ -73,6 +73,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
         }}>
         {app.description}
       </p>
+
       <div className="mt-5 flex max-w-full flex-row justify-between gap-2">
         <Button
           color="secondary"
@@ -143,6 +144,12 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
             {t("installed", { count: appAdded })}
           </span>
         )}
+        {app.isTemplate && (
+          <span className="rounded-md bg-red-100 px-2 py-1 text-sm font-normal text-red-800">
+            Template - Dev Env
+          </span>
+        )}
+
         {app.isGlobal && (
           <span className="flex items-center rounded-md bg-gray-100 px-2 py-1 text-sm font-normal text-gray-800">
             {t("default")}

@@ -114,7 +114,14 @@ export {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./v2/core/Dropdown";
-export { RadioGroup, Radio, Group, RadioField } from "./v2/core/form";
+export {
+  RadioGroup,
+  /* TODO: solve this conflict -> Select, */
+  Radio,
+  Group,
+  RadioField,
+} from "./form/radio-area";
+
 export { BooleanToggleGroupField } from "./v2/core/form/BooleanToggleGroup";
 export { DateRangePickerLazy as DateRangePicker } from "./v2/core/form/date-range-picker";
 export { default as DatePickerField } from "./v2/core/form/DatePicker";

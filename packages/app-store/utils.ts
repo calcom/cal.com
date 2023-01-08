@@ -15,7 +15,13 @@ export type EventTypeApps = NonNullable<NonNullable<z.infer<typeof EventTypeMeta
 export type EventTypeAppsList = keyof EventTypeApps;
 
 const ALL_APPS_MAP = Object.keys(appStoreMetadata).reduce((store, key) => {
-  store[key] = appStoreMetadata[key as keyof typeof appStoreMetadata];
+  const metadata = appStoreMetadata[key as keyof typeof appStoreMetadata];
+  if (metadata.logo && !metadata.logo.includes("/")) {
+    const appDirName = `${metadata.isTemplate ? "templates" : ""}/${metadata.slug}`;
+    metadata.logo = `/api/app-store/${appDirName}/${metadata.logo}`;
+  }
+  store[key] = metadata;
+
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   delete store[key]["/*"];
@@ -136,7 +142,7 @@ export function getLocationGroupedOptions(integrations: ReturnType<typeof getApp
  * credentials, this should also get globally available apps.
  */
 function getApps(userCredentials: CredentialData[]) {
-  const apps = ALL_APPS.filter((app) => !app.isTemplate).map((appMeta) => {
+  const apps = ALL_APPS.map((appMeta) => {
     const credentials = userCredentials.filter((credential) => credential.type === appMeta.type);
     let locationOption: OptionTypeBase | null = null;
 

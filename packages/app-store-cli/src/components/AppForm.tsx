@@ -1,5 +1,5 @@
 import fs from "fs";
-import { Box, Text } from "ink";
+import { Box, Newline, Text, useApp } from "ink";
 import SelectInput from "ink-select-input";
 import TextInput from "ink-text-input";
 import React, { useEffect, useState } from "react";
@@ -21,6 +21,7 @@ export const AppForm = ({
   editMode?: boolean;
 }) => {
   cliTemplate = Templates.find((t) => t.value === cliTemplate)?.value || "";
+  const { exit } = useApp();
   const [appInputData, setAppInputData] = useState({
     template: cliTemplate,
     appName: "",
@@ -140,29 +141,39 @@ export const AppForm = ({
   if (!slug && editMode) {
     return <Text>--slug is required</Text>;
   }
+  if (status === "done") {
+    // HACK: This is a hack to exit the process manually because due to some reason cli isn't automatically exiting
+    setTimeout(() => {
+      exit();
+    }, 500);
+  }
 
   if (formCompleted) {
     return (
       <Box flexDirection="column">
-        <Message
-          key="progressHeading"
-          message={{
-            text: editMode
-              ? `Editing app with slug ${slug}`
-              : `Creating app with name '${appName}' categorized in '${appCategory}'`,
-            type: "info",
-            showInProgressIndicator: true,
-          }}
-        />
-        <Message message={{ text: progressUpdate, type: "info" }} />
+        {status !== "done" && (
+          <Message
+            key="progressHeading"
+            message={{
+              text: editMode
+                ? `Editing app with slug ${slug}`
+                : `Creating app with name '${appName}' categorized in '${appCategory}'`,
+              type: "info",
+              showInProgressIndicator: true,
+            }}
+          />
+        )}
         {status === "done" && (
           <Box flexDirection="column" paddingTop={2} paddingBottom={2}>
-            <Text bold italic>
+            <Text bold>
               Just wait for a few seconds for process to exit and then you are good to go. Your App code
-              exists at ${getAppDirPath(slug)} <br />
+              exists at {getAppDirPath(slug)}
+            </Text>
+            <Text>
               Tip : Go and change the logo of your app by replacing {getAppDirPath(slug) + "/static/icon.svg"}
             </Text>
-            <Text bold italic>
+            <Newline />
+            <Text bold underline color="blue">
               App Summary:
             </Text>
             <Box flexDirection="column">

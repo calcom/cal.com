@@ -17,6 +17,7 @@ import {
   List,
   ShellSubHeading,
   AppSkeletonLoader as SkeletonLoader,
+  Badge,
 } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -115,6 +116,7 @@ const IntegrationsList = ({ data }: IntegrationsListProps) => {
             logo={item.logo}
             description={item.description}
             separate={true}
+            isTemplate={item.isTemplate}
             invalidCredential={item.invalidCredentialIds.length > 0}
             actions={
               <div className="flex w-16 justify-end">
@@ -183,6 +185,7 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
                 buttonRaw={
                   <Button
                     color="secondary"
+                    data-testid={`connect-${variant || "other"}-apps`}
                     href={variant ? `/apps/categories/${variant}` : "/apps/categories/other"}>
                     {t(`connect_${variant || "other"}_apps`)}
                   </Button>

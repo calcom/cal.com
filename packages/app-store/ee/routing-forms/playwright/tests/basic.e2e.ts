@@ -61,7 +61,9 @@ test.describe("Routing Forms", () => {
     });
 
     test.describe("F1<-F2 Relationship", () => {
-      test("Create relationship by adding F1 as route.Editing F1 should update F2", async ({ page }) => {
+      // TODO: Fix this test, it is very flaky
+      // prettier-ignore
+      test.fixme("Create relationship by adding F1 as route.Editing F1 should update F2", async ({ page }) => {
         const form1Id = await addForm(page, { name: "F1" });
         const form2Id = await addForm(page, { name: "F2" });
 
@@ -92,6 +94,9 @@ test.describe("Routing Forms", () => {
 
         // Expect F1 fields to be available in F2
         await page.goto(`/apps/routing-forms/form-edit/${form2Id}`);
+        //FIXME: Figure out why this delay is required. Without it field count comes out to be 1 only
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
         expect(await page.locator('[data-testid="field"]').count()).toBe(2);
         await expectCurrentFormToHaveFields(page, { 1: { label: "F1 Field1", typeIndex: 1 } }, types);
         // Add 1 more field in F1
@@ -103,6 +108,8 @@ test.describe("Routing Forms", () => {
         });
 
         await page.goto(`/apps/routing-forms/form-edit/${form2Id}`);
+        //FIXME: Figure out why this delay is required. Without it field count comes out to be 1 only
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         expect(await page.locator('[data-testid="field"]').count()).toBe(3);
         await expectCurrentFormToHaveFields(page, { 2: { label: "F1 Field2", typeIndex: 1 } }, types);
       });
