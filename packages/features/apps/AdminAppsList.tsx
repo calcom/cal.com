@@ -174,7 +174,15 @@ const querySchema = z.object({
     .default(AppCategories.calendar),
 });
 
-const AdminAppsList = ({ baseURL, className }: { baseURL: string; className?: string }) => {
+const AdminAppsList = ({
+  baseURL,
+  className,
+  useQueryParam = false,
+}: {
+  baseURL: string;
+  className?: string;
+  useQueryParam?: boolean;
+}) => {
   const router = useRouter();
   return (
     <form
@@ -187,6 +195,7 @@ const AdminAppsList = ({ baseURL, className }: { baseURL: string; className?: st
       <AppCategoryNavigation
         baseURL={baseURL}
         fromAdmin
+        useQueryParam={useQueryParam}
         containerClassname="w-full xl:mx-5 xl:w-2/3 xl:pr-5"
         className={className}>
         <AdminAppsListContainer />

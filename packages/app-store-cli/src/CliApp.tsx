@@ -114,9 +114,9 @@ const BaseAppFork = {
     };
     fs.writeFileSync(`${appDirPath}/config.json`, JSON.stringify(config, null, 2));
     fs.writeFileSync(
-      `${appDirPath}/README.mdx`,
+      `${appDirPath}/DESCRIPTION.md`,
       fs
-        .readFileSync(`${appDirPath}/README.mdx`)
+        .readFileSync(`${appDirPath}/DESCRIPTION.md`)
         .toString()
         .replace(/_DESCRIPTION_/g, appDescription)
         .replace(/_APP_DIR_/g, slug)
@@ -189,7 +189,7 @@ const CreateApp = ({ noDbUpdate, slug = null, editMode = false }) => {
       name: "appDescription",
       type: "text",
       explainer:
-        "A detailed description of your app. You can later modify README.mdx to add slider and other components",
+        "A detailed description of your app. You can later modify DESCRIPTION.md to add slider and other components",
     },
     {
       label: "Category of App",

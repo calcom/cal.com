@@ -5,5 +5,4 @@ items:
   - /api/app-store/signal/2.jpg
 ---
 
-{description}
-
+Schedule a chat with your guests or have a Signal Video call.
