@@ -64,11 +64,11 @@
   "someone_requested_an_event": "Someone has requested to schedule an event on your calendar.",
   "someone_requested_password_reset": "Someone has requested a link to change your password.",
   "password_reset_instructions": "If you didn't request this, you can safely ignore this email and your password will not be changed.",
-  "event_awaiting_approval_subject": "Awaiting Approval: {{eventType}} with {{name}} at {{date}}",
+  "event_awaiting_approval_subject": "Awaiting Approval: {{eventType}} at {{date}}",
   "event_still_awaiting_approval": "An event is still waiting for your approval",
-  "booking_submitted_subject": "Booking Submitted: {{eventType}} with {{name}} at {{date}}",
+  "booking_submitted_subject": "Booking Submitted: {{title}} at {{date}}",
   "your_meeting_has_been_booked": "Your meeting has been booked",
-  "event_type_has_been_rescheduled_on_time_date": "Your {{eventType}} with {{name}} has been rescheduled to {{date}}.",
+  "event_type_has_been_rescheduled_on_time_date": "Your {{title}} has been rescheduled to {{date}}.",
   "event_has_been_rescheduled": "Updated - Your event has been rescheduled",
   "request_reschedule_title_attendee": "Request to reschedule your booking",
   "request_reschedule_subtitle": "{{organizer}} has cancelled the booking and requested you to pick another time.",
@@ -1491,5 +1491,6 @@
   "invalid_admin_password": "You are set as an admin but you do not have a password length of at least 15 characters",
   "change_password_admin": "Change Password to gain admin access",
   "username_already_taken": "Username is already taken",
-  "new_attendee": "New Attendee"
+  "new_attendee": "New Attendee",
+  "awaiting_approval": "Awaiting Approval"
 }

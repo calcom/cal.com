@@ -47,10 +47,7 @@ export default class AttendeeScheduledEmail extends BaseEmail {
         .map((v, i) => (i === 1 ? v + 1 : v)) as DateArray,
       startInputType: "utc",
       productId: "calendso/ics",
-      title: this.t("ics_event_title", {
-        eventType: this.calEvent.type,
-        name: this.calEvent.attendees[0].name,
-      }),
+      title: this.calEvent.title,
       description: this.getTextBody(),
       duration: { minutes: dayjs(this.calEvent.endTime).diff(dayjs(this.calEvent.startTime), "minute") },
       organizer: { name: this.calEvent.organizer.name, email: this.calEvent.organizer.email },
