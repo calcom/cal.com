@@ -61,6 +61,14 @@ export {
   useShouldShowArrows,
   StepCard,
   LinkIconButton,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+  ConfirmationDialogContent,
+  showToast,
 } from "./components";
 export type {
   ActionType,
@@ -70,6 +78,8 @@ export type {
   ButtonBaseProps,
   BaseCardProps,
   ButtonProps,
+  DialogProps,
+  ConfirmationDialogContentProps,
   ITimezone,
   ITimezoneOption,
   ListItemProps,
@@ -82,12 +92,10 @@ export { default as AddressInput } from "./form/AddressInputLazy";
 export { default as PhoneInput } from "./form/PhoneInputLazy";
 export { UnstyledSelect } from "./form/Select";
 export { default as Loader } from "./v2/core/Loader";
-export { default as TimezoneChangeDialog } from "./TimezoneChangeDialog";
 
 export {
   HorizontalTabs,
   SettingsToggle,
-  showToast,
   Swatch,
   Switch,
   VerticalTabs,
@@ -98,16 +106,6 @@ export type { HorizontalTabItemProps, VerticalTabItemProps } from "./v2";
 export { default as Shell, ShellMain, MobileNavigationMoreItems, ShellSubHeading } from "./v2/core/Shell";
 
 export { default as ColorPicker } from "./v2/core/colorpicker";
-export { default as ConfirmationDialogContent } from "./v2/core/ConfirmationDialogContent";
-export {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTrigger,
-} from "./v2/core/Dialog";
-export type { DialogProps } from "./v2/core/Dialog";
 export {
   Dropdown,
   DropdownItem,
