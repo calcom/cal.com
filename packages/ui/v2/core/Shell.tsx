@@ -1,7 +1,9 @@
 import type { User } from "@prisma/client";
+import { Session } from "next-auth";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { NextRouter, useRouter } from "next/router";
+import Script from "next/script";
 import React, { Dispatch, Fragment, ReactNode, SetStateAction, useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 
@@ -124,7 +126,48 @@ export function ShellSubHeading(props: {
 }
 
 const Layout = (props: LayoutProps) => {
+  const { data: session } = useSession();
   const pageTitle = typeof props.heading === "string" && !props.title ? props.heading : props.title;
+  const [feedbackConfigLoaded, setFeedbackConfigLoaded] = useState(false);
+
+  useEffect(() => {
+    // setup formbricks feedback widget
+    if (process.env.NEXT_PUBLIC_FORMBRICKS_URL && session) {
+      window.formbricks = {
+        ...window.formbricks,
+        config: {
+          hqUrl: process.env.NEXT_PUBLIC_FORMBRICKS_URL,
+          formId: process.env.NEXT_PUBLIC_FORMBRICKS_FORM_ID,
+          contact: {
+            name: process.env.NEXT_PUBLIC_FORMBRICKS_CONTACT_NAME || "Cal.com",
+            position: process.env.NEXT_PUBLIC_FORMBRICKS_CONTACT_POSITION || "Customer Success",
+            imgUrl:
+              process.env.NEXT_PUBLIC_FORMBRICKS_CONTACT_IMGURL || "https://app.cal.com/admin/avatar.png",
+          },
+          customer: getCustomerFromSession(session),
+          style: {
+            brandColor: "#0E1420",
+            headerBGColor: "#E5E7EB",
+            headerTitleColor: "#4B5563",
+            boxBGColor: "#F9FAFB",
+            textColor: "#374151",
+            buttonHoverColor: "#F3F4F6",
+          },
+        },
+      };
+      setFeedbackConfigLoaded(true);
+    }
+
+    function getCustomerFromSession(session: Session) {
+      const customer: Record<string, string> = {};
+      for (const [key, value] of Object.entries(session)) {
+        if (typeof value === "string") {
+          customer[key] = value;
+        }
+      }
+      return customer;
+    }
+  }, [session]);
 
   return (
     <>
@@ -141,7 +184,11 @@ const Layout = (props: LayoutProps) => {
       <div>
         <Toaster position="bottom-right" />
       </div>
-
+      <>
+        {feedbackConfigLoaded && (
+          <Script src="https://cdn.jsdelivr.net/npm/@formbricks/feedback@0.1.5/dist/index.umd.js" defer />
+        )}
+      </>
       {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
       <div className="flex min-h-screen flex-col">
@@ -371,6 +418,28 @@ function UserDropdown({ small }: { small?: boolean }) {
                   <Icon.FiMap className="h-4 w-4 text-gray-500 ltr:mr-2 rtl:ml-3" /> {t("visit_roadmap")}
                 </a>
               </DropdownMenuItem>
+              {process.env.NEXT_PUBLIC_FORMBRICKS_URL && (
+                <DropdownMenuItem>
+                  <button
+                    onClick={(event) => {
+                      if (window.formbricks) window.formbricks.open(event);
+                      setTimeout(() => {
+                        setMenuOpen(false);
+                      }, 100);
+                    }}
+                    className="flex w-full items-center px-4 py-2 text-sm text-gray-700">
+                    <Icon.FiHeart
+                      className={classNames(
+                        "text-gray-500 group-hover:text-neutral-500",
+                        "h-4 w-4 flex-shrink-0 ltr:mr-2"
+                      )}
+                      aria-hidden="true"
+                    />
+
+                    {t("feedback")}
+                  </button>
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem>
                 <button
                   onClick={() => setHelpOpen(true)}
@@ -902,3 +971,30 @@ export const MobileNavigationMoreItems = () => (
     ))}
   </ul>
 );
+
+declare global {
+  interface Window {
+    formbricks: {
+      config: {
+        contact: {
+          name: string;
+          position: string;
+          imgUrl: string;
+        };
+        style?: {
+          brandColor?: string;
+          headerBGColor?: string;
+          headerTitleColor?: string;
+          boxBGColor?: string;
+          textColor?: string;
+          buttonHoverColor?: string;
+        };
+        formId?: string;
+        hqUrl?: string;
+        customer?: Record<string, string>;
+        disableErrorAlert?: boolean;
+      };
+      open: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
+    };
+  }
+}
