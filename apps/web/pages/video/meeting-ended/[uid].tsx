@@ -4,11 +4,9 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { detectBrowserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import { Button, Icon } from "@calcom/ui";
+import { Button, Icon, HeadSeo } from "@calcom/ui";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
-
-import { HeadSeo } from "@components/seo/head-seo";
 
 export default function MeetingUnavailable(props: inferSSRProps<typeof getServerSideProps>) {
   const { t } = useLocale();

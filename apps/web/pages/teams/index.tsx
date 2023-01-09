@@ -18,7 +18,7 @@ function Teams() {
           size="fab"
           StartIcon={Icon.FiPlus}
           type="button"
-          href={`${WEBAPP_URL}/settings/teams/new?returnTo=/teams`}>
+          href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
           {t("new")}
         </Button>
       }>

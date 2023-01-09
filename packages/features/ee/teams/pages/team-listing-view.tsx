@@ -1,6 +1,7 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { getSettingsLayout as getLayout, Meta } from "@calcom/ui";
+import { Meta } from "@calcom/ui";
 
+import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import { TeamsListing } from "../components";
 
 const BillingView = () => {

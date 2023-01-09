@@ -7,8 +7,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
-import { Button, Icon } from "../..";
-import { showToast } from "../../v2/core/notifications";
+import { Button, Icon, showToast } from "../..";
 
 interface AppCardProps {
   app: App;
