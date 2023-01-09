@@ -5,7 +5,7 @@ import { Props } from "react-select";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Select } from "../../../components/form/select";
+import { Select } from "../select";
 
 export type Option = {
   value: string;
