@@ -418,8 +418,8 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                         type="button"
                         onClick={() => format(key)}
                         className={classNames(
-                          "toolbar-item w-full focus:ring-0",
-                          blockType === key ? "w-full bg-gray-100" : ""
+                          "w-full focus:ring-0",
+                          blockType === key ? "w-full rounded-none bg-gray-100" : ""
                         )}>
                         <>
                           <span className={"icon block-type " + key} />
