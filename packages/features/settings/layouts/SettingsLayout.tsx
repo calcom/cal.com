@@ -118,8 +118,7 @@ const useTabs = () => {
 const BackButtonInSidebar = ({ name }: { name: string }) => {
   return (
     <Link
-      href="/."
-      target="_self"
+      href="/event-types"
       className="group my-6 flex h-6 max-h-6 w-64 flex-row items-center rounded-md py-2 px-3 text-sm font-medium leading-4 text-black hover:bg-gray-100 group-hover:text-gray-700 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:text-gray-900"
       data-testid={`vertical-tab-${name}`}>
       <Icon.FiArrowLeft className="h-4 w-4 stroke-[2px] ltr:mr-[10px] rtl:ml-[10px] md:mt-0" />
@@ -166,10 +165,10 @@ const SettingsSidebarContainer = ({
   return (
     <nav
       className={classNames(
-        "no-scrollbar fixed left-0 top-0 z-10 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll bg-gray-50 px-2 pb-3 transition-transform lg:sticky lg:flex",
+        "no-scrollbar fixed bottom-0 left-0 top-0 z-10 flex max-h-screen w-56 flex-col space-y-1 overflow-x-hidden overflow-y-scroll bg-gray-50 px-2 pb-3 transition-transform lg:sticky lg:flex",
         className,
         navigationIsOpenedOnMobile
-          ? "opacity-0 ltr:-translate-x-full rtl:translate-x-full lg:translate-x-0 lg:opacity-100"
+          ? "translate-x-0 opacity-100"
           : "-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100"
       )}
       aria-label="Tabs">

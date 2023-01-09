@@ -7,7 +7,7 @@ function getHref(baseURL: string, category: string, useQueryParam: boolean) {
   return useQueryParam ? `${baseUrlParsed.toString()}` : `${baseURL}/${category}`;
 }
 
-const getAppCategories = (baseURL: string, useQueryParam = true) => {
+const getAppCategories = (baseURL: string, useQueryParam: boolean) => {
   return [
     {
       name: "calendar",
