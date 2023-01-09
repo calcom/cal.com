@@ -255,7 +255,7 @@ const nextConfig = {
 
 const sentryWebpackPluginOptions = {
   silent: true, // Suppresses all logs
-  dryRun: process.env.SENTRY_ENVIRONMENT !== "production",
+  dryRun: process.env.SENTRY_ENVIRONMENT !== "production" && process.env.SENTRY_ENVIRONMENT !== "staging",
   authToken: process.env.SENTRY_AUTH_TOKEN,
 };
 
