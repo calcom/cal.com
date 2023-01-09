@@ -61,6 +61,8 @@ export {
   HorizontalTabItem,
   VerticalTabs,
   VerticalTabItem,
+  Editor,
+  AddVariablesDropdown,
   Dialog,
   DialogClose,
   DialogContent,

@@ -66,6 +66,7 @@ export { HeadSeo } from "./head-seo";
 export { Skeleton, SkeletonAvatar, SkeletonButton, SkeletonContainer, SkeletonText } from "./skeleton";
 export { HorizontalTabs, HorizontalTabItem, VerticalTabs, VerticalTabItem } from "./navigation";
 export type { HorizontalTabItemProps, NavTabProps, VerticalTabItemProps } from "./navigation";
+export { Editor, AddVariablesDropdown } from "./editor";
 export {
   Dialog,
   DialogClose,
