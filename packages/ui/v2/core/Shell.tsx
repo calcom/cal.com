@@ -139,12 +139,11 @@ const Layout = (props: LayoutProps) => {
           hqUrl: process.env.NEXT_PUBLIC_FORMBRICKS_URL,
           formId: process.env.NEXT_PUBLIC_FORMBRICKS_FORM_ID,
           contact: {
-            name: process.env.NEXT_PUBLIC_FORMBRICKS_CONTACT_NAME || "Cal.com",
-            position: process.env.NEXT_PUBLIC_FORMBRICKS_CONTACT_POSITION || "Customer Success",
-            imgUrl:
-              process.env.NEXT_PUBLIC_FORMBRICKS_CONTACT_IMGURL || "https://app.cal.com/admin/avatar.png",
+            name: "Peer Richelsen",
+            position: "Co-Founder",
+            imgUrl: "https://avatars.githubusercontent.com/u/8019099?s=128&v=4",
           },
-          customer: getCustomerFromSession(session),
+          customer: getCustomerFromSessionUser(session),
           style: {
             brandColor: "#0E1420",
             headerBGColor: "#E5E7EB",
@@ -158,13 +157,14 @@ const Layout = (props: LayoutProps) => {
       setFeedbackConfigLoaded(true);
     }
 
-    function getCustomerFromSession(session: Session) {
+    function getCustomerFromSessionUser(session: Session) {
       const customer: Record<string, string> = {};
-      for (const [key, value] of Object.entries(session)) {
+      for (const [key, value] of Object.entries(session.user)) {
         if (typeof value === "string") {
           customer[key] = value;
         }
       }
+      customer.id = customer.email;
       return customer;
     }
   }, [session]);
