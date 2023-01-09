@@ -13,7 +13,8 @@ export type ConfirmationDialogContentProps = {
   isLoading?: boolean;
   loadingText?: string;
   onConfirm?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
-  title: string;
+  title: string | JSX.Element;
+  className?: string;
   variety?: "danger" | "warning" | "success";
 };
 
@@ -27,13 +28,14 @@ export default function ConfirmationDialogContent(props: PropsWithChildren<Confi
     cancelBtnText = t("cancel"),
     loadingText = t("loading"),
     isLoading = false,
+    className = "flex",
     onConfirm,
     children,
   } = props;
 
   return (
     <DialogContent type="creation">
-      <div className="flex">
+      <div className={className}>
         {variety && (
           <div className="mt-0.5 ltr:mr-3">
             {variety === "danger" && (

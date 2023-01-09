@@ -1,4 +1,4 @@
-import { BookingStatus } from "@prisma/client";
+import { BookingStatus, SchedulingType } from "@prisma/client";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
@@ -30,6 +30,7 @@ import {
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
+import { ReassignDialog } from "@components/dialog/ReassignDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
 type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
@@ -126,6 +127,59 @@ function BookingListItem(booking: BookingItemProps) {
     },
   ];
 
+  const editBookingActions: ActionType[] = [
+    {
+      id: "reschedule",
+      icon: Icon.FiClock,
+      label: t("reschedule_booking"),
+      href: `/reschedule/${booking.uid}`,
+    },
+    {
+      id: "reschedule_request",
+      icon: Icon.FiSend,
+      iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
+      label: t("send_reschedule_request"),
+      onClick: () => {
+        setIsOpenRescheduleDialog(true);
+      },
+    },
+    {
+      id: "change_location",
+      label: t("edit_location"),
+      onClick: () => {
+        setIsOpenLocationDialog(true);
+      },
+      icon: Icon.FiMapPin,
+    },
+  ];
+
+  if (booking.eventType.team && booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+    const teamId = booking.eventType.team.id;
+    editBookingActions.push({
+      id: "reassign",
+      label: "Reassign",
+      onClick: () => {
+        const query: { [x: string]: string | number } = {
+          ...router.query,
+          dialog: "reassign",
+          teamId,
+        };
+        if (booking.user?.id) {
+          query.assignee = booking.user.id;
+        }
+        router.push(
+          {
+            pathname: router.pathname,
+            query,
+          },
+          undefined,
+          { shallow: true }
+        );
+      },
+      icon: Icon.FiUsers,
+    });
+  }
+
   let bookedActions: ActionType[] = [
     {
       id: "cancel",
@@ -140,31 +194,7 @@ function BookingListItem(booking: BookingItemProps) {
     {
       id: "edit_booking",
       label: t("edit"),
-      actions: [
-        {
-          id: "reschedule",
-          icon: Icon.FiClock,
-          label: t("reschedule_booking"),
-          href: `/reschedule/${booking.uid}`,
-        },
-        {
-          id: "reschedule_request",
-          icon: Icon.FiSend,
-          iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
-          label: t("send_reschedule_request"),
-          onClick: () => {
-            setIsOpenRescheduleDialog(true);
-          },
-        },
-        {
-          id: "change_location",
-          label: t("edit_location"),
-          onClick: () => {
-            setIsOpenLocationDialog(true);
-          },
-          icon: Icon.FiMapPin,
-        },
-      ],
+      actions: editBookingActions,
     },
   ];
 
@@ -234,6 +264,7 @@ function BookingListItem(booking: BookingItemProps) {
         isOpenDialog={isOpenSetLocationDialog}
         setShowLocationModal={setIsOpenLocationDialog}
       />
+      <ReassignDialog bookingId={booking.id} />
       {showRecordingsButtons && (
         <ViewRecordingsDialog
           booking={booking}

@@ -18,6 +18,7 @@ export default function TeamPill(props: Props) {
         " bg-blue-100 text-blue-800": props.color === "blue",
         " bg-red-100 text-red-800 ": props.color === "red",
         " bg-orange-100 text-orange-800": props.color === "orange",
+        " bg-green-100 text-green-800": props.color === "green",
       })}>
       {props.text}
     </div>

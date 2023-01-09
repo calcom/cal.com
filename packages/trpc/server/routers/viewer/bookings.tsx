@@ -262,8 +262,10 @@ export const bookingsRouter = router({
               eventName: true,
               price: true,
               recurringEvent: true,
+              schedulingType: true,
               team: {
                 select: {
+                  id: true,
                   name: true,
                 },
               },
@@ -587,13 +589,22 @@ export const bookingsRouter = router({
         await Promise.all(promises);
       }
     }),
+  reassign: authedProcedure
+    .input(
+      z.object({
+        bookingId: z.number(),
+        assignTo: z.number().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      console.log(input);
+    }),
   editLocation: bookingsProcedure
     .input(
       commonBookingSchema.extend({
         newLocation: z.string().transform((val) => val || DailyLocationType),
       })
     )
-
     .mutation(async ({ ctx, input }) => {
       const { bookingId, newLocation: location } = input;
       const { booking } = ctx;

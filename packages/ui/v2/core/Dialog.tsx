@@ -1,6 +1,6 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useRouter } from "next/router";
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode, useCallback, useEffect, useState } from "react";
 
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -12,44 +12,84 @@ export type DialogProps = React.ComponentProps<typeof DialogPrimitive["Root"]> &
   name?: string;
   clearQueryParamsOnClose?: string[];
 };
-export function Dialog(props: DialogProps) {
+
+const useDialogState = ({
+  name,
+  defaultOpen = false,
+  clearQueryParamsOnClose,
+}: {
+  name?: string;
+  defaultOpen?: boolean;
+  clearQueryParamsOnClose?: string[];
+}) => {
   const router = useRouter();
+  const [open, setOpen] = useState(defaultOpen);
+
+  const closeDialog = useCallback(
+    (props: { clearQueryParamsOnClose?: string[] }) => {
+      const query = router.query;
+      const clearQueryParamsOnClose = ["dialog", ...(props.clearQueryParamsOnClose || [])];
+      clearQueryParamsOnClose.forEach((queryParam) => {
+        delete query[queryParam];
+      });
+      router.push(
+        {
+          pathname: router.pathname,
+          query,
+        },
+        undefined,
+        { shallow: true }
+      );
+      setOpen(false);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
+  const openDialog = useCallback(
+    () => {
+      router.query["dialog"] = name;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
+  useEffect(() => {
+    // dismiss dialog if a name is given that is no longer valid
+    if (name) {
+      if (router.query.dialog !== name) closeDialog({ clearQueryParamsOnClose });
+      if (router.query.dialog === name) setOpen(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router.query.dialog, name, closeDialog, openDialog]);
+
+  return { isOpen: open, closeDialog, openDialog };
+};
+
+export function Dialog(props: DialogProps) {
   const { children, name, ...dialogProps } = props;
-  // only used if name is set
-  const [open, setOpen] = useState(!!dialogProps.open);
+
+  const { isOpen, closeDialog, openDialog } = useDialogState({
+    name,
+    defaultOpen: !!dialogProps.open,
+    clearQueryParamsOnClose: props.clearQueryParamsOnClose,
+  });
 
   if (name) {
-    const clearQueryParamsOnClose = ["dialog", ...(props.clearQueryParamsOnClose || [])];
     dialogProps.onOpenChange = (open) => {
       if (props.onOpenChange) {
         props.onOpenChange(open);
       }
       // toggles "dialog" query param
       if (open) {
-        router.query["dialog"] = name;
+        openDialog();
       } else {
-        const query = router.query;
-        clearQueryParamsOnClose.forEach((queryParam) => {
-          delete query[queryParam];
-        });
-        router.push(
-          {
-            pathname: router.pathname,
-            query,
-          },
-          undefined,
-          { shallow: true }
-        );
+        closeDialog({ clearQueryParamsOnClose: props.clearQueryParamsOnClose });
       }
-      setOpen(open);
     };
-    // handles initial state
-    if (!open && router.query["dialog"] === name) {
-      setOpen(true);
-    }
     // allow overriding
     if (!("open" in dialogProps)) {
-      dialogProps.open = open;
+      dialogProps.open = isOpen;
     }
   }
 
