@@ -51,18 +51,6 @@ type WorkflowStepProps = {
   setReload?: Dispatch<SetStateAction<boolean>>;
 };
 
-const dynamicTextVariables = [
-  "event_name",
-  "event_date",
-  "event_time",
-  "location",
-  "organizer_name",
-  "attendee_name",
-  "attendee_email",
-  "additional_notes",
-  "meeting_url",
-];
-
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
