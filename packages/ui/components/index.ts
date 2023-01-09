@@ -59,6 +59,7 @@ export { Skeleton, SkeletonAvatar, SkeletonButton, SkeletonContainer, SkeletonTe
 export { Card, StepCard } from "./card";
 export type { BaseCardProps } from "./card";
 export { Tooltip } from "./tooltip";
+export { Editor, AddVariablesDropdown } from "./editor";
 export {
   Dialog,
   DialogClose,

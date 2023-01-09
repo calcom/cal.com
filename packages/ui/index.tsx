@@ -61,6 +61,8 @@ export {
   useShouldShowArrows,
   StepCard,
   LinkIconButton,
+  Editor,
+  AddVariablesDropdown,
   Dialog,
   DialogClose,
   DialogContent,

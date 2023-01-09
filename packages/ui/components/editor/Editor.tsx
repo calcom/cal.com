@@ -11,28 +11,32 @@ import { MarkdownShortcutPlugin } from "@lexical/react/LexicalMarkdownShortcutPl
 import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
-import { UseFormReturn } from "react-hook-form";
 
-import { FormValues } from "../../pages/workflow";
 import ExampleTheme from "./ExampleTheme";
 import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
 import ToolbarPlugin from "./plugins/ToolbarPlugin";
 import "./stylesEditor.css";
 
+/*
+ Detault toolbar items:
+  - blockType
+  - bold
+  - italic
+  - link
+*/
 export type TextEditorProps = {
-  form: UseFormReturn<FormValues>;
-  stepNumber: number;
+  getText: () => string;
+  setText: (text: string) => void;
+  excludedToolbarItems?: string[];
+  variables?: string[];
 };
 
 const editorConfig = {
-  // The editor theme
   theme: ExampleTheme,
-  // Handling of errors during update
   onError(error: any) {
     throw error;
   },
   namespace: "",
-  // Any custom nodes go here
   nodes: [
     HeadingNode,
     ListNode,
@@ -48,12 +52,17 @@ const editorConfig = {
   ],
 };
 
-export default function Editor(props: TextEditorProps) {
+export const Editor = (props: TextEditorProps) => {
   return (
     <div className="editor">
       <LexicalComposer initialConfig={editorConfig}>
         <div className="editor-container">
-          <ToolbarPlugin form={props.form} stepNumber={props.stepNumber} />
+          <ToolbarPlugin
+            getText={props.getText}
+            setText={props.setText}
+            excludedToolbarItems={props.excludedToolbarItems}
+            variables={props.variables}
+          />
           <div className="editor-inner">
             <RichTextPlugin contentEditable={<ContentEditable className="editor-input" />} placeholder="" />
             <AutoFocusPlugin />
@@ -66,4 +75,4 @@ export default function Editor(props: TextEditorProps) {
       </LexicalComposer>
     </div>
   );
-}
+};
