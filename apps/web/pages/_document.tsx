@@ -81,7 +81,7 @@ class MyDocument extends Document<Props> {
         </Head>
 
         <body
-          className="dark:bg-darkgray-50 desktop-transparent bg-gray-100"
+          className="dark:bg-darkgray-50 desktop-transparent bg-gray-100 font-sans"
           style={
             this.props.isEmbed
               ? {
