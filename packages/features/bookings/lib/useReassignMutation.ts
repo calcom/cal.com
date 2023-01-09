@@ -22,7 +22,7 @@ const useReassignMutation = () => {
       );
     },
     onError: () => {
-      showToast(t("couldnt_update_timezone"), "error");
+      showToast("Something went wrong during reassignment.", "error");
     },
   });
 
