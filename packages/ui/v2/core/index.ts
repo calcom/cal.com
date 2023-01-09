@@ -1,8 +1,6 @@
 export { Card } from "./Card";
 export type { BaseCardProps } from "./Card";
 export { default as ColorPicker } from "./colorpicker";
-export { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTrigger } from "./Dialog";
-export type { DialogProps } from "./Dialog";
 export {
   ButtonOrLink,
   Dropdown,
@@ -23,7 +21,6 @@ export { Checkbox, DatePicker, FormStep } from "./form";
 export { default as LinkIconButton } from "./LinkIconButton";
 export { default as Loader } from "./Loader";
 export { default as MeetingTimeInTimezones } from "./MeetingTimeInTimezones";
-export { default as showToast } from "./notifications";
 export { default as SettingsToggle } from "./SettingsToggle";
 export { default as Shell } from "./Shell";
 export { default as Stepper } from "./Stepper";
