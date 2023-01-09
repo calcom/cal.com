@@ -57,6 +57,8 @@ export {
   AppStoreCategories,
   Slider,
   useShouldShowArrows,
+  Editor,
+  AddVariablesDropdown,
   Dialog,
   DialogClose,
   DialogContent,

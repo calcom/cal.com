@@ -56,6 +56,7 @@ export { List, ListItem, ListItemText, ListItemTitle, ListLinkItem } from "./lis
 export type { ListItemProps, ListProps } from "./list";
 export { HeadSeo } from "./head-seo";
 export { Skeleton, SkeletonAvatar, SkeletonButton, SkeletonContainer, SkeletonText } from "./skeleton";
+export { Editor, AddVariablesDropdown } from "./editor";
 export {
   Dialog,
   DialogClose,
