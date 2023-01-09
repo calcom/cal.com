@@ -248,6 +248,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     throw new TRPCError({ code: "NOT_FOUND" });
   }
 
+  const eventLength: number = input.duration || eventType.length;
   const timeZone = input.timeZone || "Etc/GMT";
 
   let startTime =
@@ -324,10 +325,10 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     // get slots retrieves the available times for a given day
     const timeSlots = getTimeSlots({
       inviteeDate: currentCheckedTime,
-      eventLength: input.duration || eventType.length,
+      eventLength,
       workingHours,
       minimumBookingNotice: eventType.minimumBookingNotice,
-      frequency: eventType.slotInterval || input.duration || eventType.length,
+      frequency: eventType.slotInterval || eventLength,
     });
 
     const endGetSlots = performance.now();
@@ -341,7 +342,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       const available = checkIfIsAvailable({
         time,
         busy: schedule.busy,
-        eventLength: eventType.length,
+        eventLength,
       });
       checkForAvailabilityTime += performance.now() - start;
       checkForAvailabilityCount++;
