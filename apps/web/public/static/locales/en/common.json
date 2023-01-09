@@ -1491,6 +1491,8 @@
   "invalid_admin_password": "You are set as an admin but you do not have a password length of at least 15 characters",
   "change_password_admin": "Change Password to gain admin access",
   "username_already_taken": "Username is already taken",
+  "distribution_method_title": "Round-Robin Distribution",
+  "distribution_method_description": "Choose what happens if multiple team members are available.",
   "optimise_for_fairness": "Optimize for Fairness",
   "optimise_for_fairness_description": "The member with the least number of bookings for this event type will be booked.",
   "optimise_for_availability": "Optimize for Availability",
