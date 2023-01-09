@@ -1,0 +1,33 @@
+import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
+import { Examples, Example, Note, Title, VariantsTable, VariantColumn, RowTitles, CustomArgsTable} from '@calcom/storybook/components'
+import { Icon } from "@calcom/ui";
+
+import { SuccessToast,ErrorToast,WarningToast,DefaultToast } from './';
+
+<Meta title="UI/Toasts" component={DefaultToast} />
+
+<Title title="Toasts" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022"/>
+
+
+## Definition
+Toasts are used to show an action has had a impact. If a user submits a form a toast should be shown to notify the user there has been a success
+
+## Structure
+
+<CustomArgsTable of={DefaultToast} />
+
+
+<Examples title="Toasts" >
+  <Example title="Default">
+    <DefaultToast  message="Default Toast" toastVisible={true}/>
+  </Example>
+  <Example title="Success">
+    <SuccessToast message="Success Toast" toastVisible={true}/>
+  </Example>
+  <Example title="Warning">
+    <WarningToast message="Warning Toast" toastVisible={true}/>
+  </Example>
+  <Example title="Error">
+    <ErrorToast message="Error Toast" toastVisible={true}/>
+  </Example>
+</Examples>
