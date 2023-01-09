@@ -1,8 +1,6 @@
 export { Card } from "./Card";
 export type { BaseCardProps } from "./Card";
 export { default as ColorPicker } from "./colorpicker";
-export { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTrigger } from "./Dialog";
-export type { DialogProps } from "./Dialog";
 export {
   ButtonOrLink,
   Dropdown,
@@ -27,7 +25,6 @@ export type { HorizontalTabItemProps } from "./navigation/tabs/HorizontalTabItem
 export { default as HorizontalTabs, HorizontalTabItem } from "./navigation/tabs/HorizontalTabs";
 export type { VerticalTabItemProps } from "./navigation/tabs/VerticalTabItem";
 export { default as VerticalTabs, VerticalTabItem } from "./navigation/tabs/VerticalTabs";
-export { default as showToast } from "./notifications";
 export { default as SettingsToggle } from "./SettingsToggle";
 export { default as Shell } from "./Shell";
 export { default as Stepper } from "./Stepper";

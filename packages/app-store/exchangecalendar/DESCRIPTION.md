@@ -2,6 +2,4 @@
 description: Fetch Microsoft Exchange calendars and availabilities using Exchange Web Services (EWS).
 ---
 
-<div>
-{description}
-</div>
+<div>Fetch Microsoft Exchange calendars and availabilities using Exchange Web Services (EWS).</div>

@@ -12,15 +12,17 @@ const AppCategoryNavigation = ({
   containerClassname,
   className,
   fromAdmin,
+  useQueryParam = false,
 }: {
   baseURL: string;
   children: React.ReactNode;
   containerClassname: string;
   className?: string;
   fromAdmin?: boolean;
+  useQueryParam?: boolean;
 }) => {
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
-  const appCategories = useMemo(() => getAppCategories(baseURL), [baseURL]);
+  const appCategories = useMemo(() => getAppCategories(baseURL, useQueryParam), [baseURL, useQueryParam]);
 
   return (
     <div className={classNames("flex flex-col p-2 md:p-0 xl:flex-row", className)}>
