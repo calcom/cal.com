@@ -12,10 +12,6 @@ module.exports = {
   ],
   darkMode: "class",
   theme: {
-    fontFamily: {
-      cal: ['"Cal Sans"', "sans-serif"],
-      sans: ['"Inter var"', "sans-serif"],
-    },
     extend: {
       colors: {
         /* your primary brand color */
