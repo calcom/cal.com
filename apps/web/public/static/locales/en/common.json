@@ -1490,5 +1490,11 @@
   "disable_success_page":"Disable Success Page (only works if you have a redirect URL)",
   "invalid_admin_password": "You are set as an admin but you do not have a password length of at least 15 characters",
   "change_password_admin": "Change Password to gain admin access",
-  "username_already_taken": "Username is already taken"
+  "username_already_taken": "Username is already taken",
+  "assignment": "Assignment",
+  "fixed_hosts": "Fixed Hosts",
+  "add_fixed_hosts": "Add fixed hosts",
+  "round_robin_hosts": "Round-Robin Hosts",
+  "minimum_round_robin_hosts_count": "Number of hosts required to attend",
+  "hosts": "Hosts"
 }

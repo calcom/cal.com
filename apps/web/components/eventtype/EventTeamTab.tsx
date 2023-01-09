@@ -1,12 +1,12 @@
 import { SchedulingType } from "@prisma/client/";
 import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useMemo } from "react";
-import { Controller, useFormContext } from "react-hook-form";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
 
 import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTeamSelect";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Label, Select } from "@calcom/ui";
+import { Label, Select, TextField } from "@calcom/ui";
 
 interface IMemberToValue {
   id: number | null;
@@ -29,6 +29,11 @@ export const EventTeamTab = ({
 }: Pick<EventTypeSetupProps, "eventType" | "teamMembers" | "team">) => {
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
+
+  const schedulingType = useWatch({
+    control: formMethods.control,
+    name: "schedulingType",
+  });
 
   const schedulingTypeOptions: {
     value: SchedulingType;
@@ -53,8 +58,8 @@ export const EventTeamTab = ({
   return (
     <div>
       {team && (
-        <div className="space-y-3">
-          <div className="flex flex-col pb-8">
+        <div className="space-y-5">
+          <div className="flex flex-col">
             <Label>{t("scheduling_type")}</Label>
             <Controller
               name="schedulingType"
@@ -72,30 +77,101 @@ export const EventTeamTab = ({
             />
           </div>
 
-          <div className="flex flex-col">
-            <Label>{t("team")}</Label>
-            <Controller
-              name="users"
-              control={formMethods.control}
-              defaultValue={eventType.users.map((user) => user.id.toString())}
-              render={({ field: { onChange, value } }) => (
-                <CheckedTeamSelect
-                  isDisabled={false}
-                  onChange={(options) => onChange(options.map((user) => user.value))}
-                  value={value
-                    .map(
-                      (userId) =>
-                        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                        teamMembers.map(mapUserToValue).find((member) => member.value === userId)!
-                    )
-                    .filter(Boolean)}
-                  controlShouldRenderValue={false}
-                  options={teamMembersToValues}
-                  placeholder={t("add_attendees")}
+          {schedulingType === SchedulingType.COLLECTIVE && (
+            <div className="flex flex-col space-y-5 bg-gray-50 p-4">
+              <div>
+                <Label>{t("team")}</Label>
+                <Controller
+                  name="users"
+                  control={formMethods.control}
+                  defaultValue={eventType.users.map((user) => user.id.toString())}
+                  render={({ field: { onChange, value } }) => (
+                    <CheckedTeamSelect
+                      isDisabled={false}
+                      onChange={(options) => onChange(options.map((user) => user.value))}
+                      value={value
+                        .map(
+                          (userId) =>
+                            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                            teamMembers.map(mapUserToValue).find((member) => member.value === userId)!
+                        )
+                        .filter(Boolean)}
+                      controlShouldRenderValue={false}
+                      options={teamMembersToValues}
+                      placeholder={t("add_attendees")}
+                    />
+                  )}
                 />
-              )}
-            />
-          </div>
+              </div>
+            </div>
+          )}
+
+          {schedulingType === SchedulingType.ROUND_ROBIN && (
+            <>
+              <div className="flex flex-col bg-gray-50 p-4">
+                <Label>{t("fixed_hosts")}</Label>
+                <Controller
+                  name="users"
+                  control={formMethods.control}
+                  defaultValue={eventType.users.map((user) => user.id.toString())}
+                  render={({ field: { onChange, value } }) => (
+                    <CheckedTeamSelect
+                      isDisabled={false}
+                      onChange={(options) => onChange(options.map((user) => user.value))}
+                      value={value
+                        .map(
+                          (userId) =>
+                            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                            teamMembers.map(mapUserToValue).find((member) => member.value === userId)!
+                        )
+                        .filter(Boolean)}
+                      controlShouldRenderValue={false}
+                      options={teamMembersToValues}
+                      placeholder={t("add_fixed_hosts")}
+                    />
+                  )}
+                />
+              </div>
+              <div className="flex flex-col space-y-5 bg-gray-50 p-4">
+                <div>
+                  <Label>{t("round_robin_hosts")}</Label>
+                  <Controller
+                    name="users"
+                    control={formMethods.control}
+                    defaultValue={eventType.users.map((user) => user.id.toString())}
+                    render={({ field: { onChange, value } }) => (
+                      <CheckedTeamSelect
+                        isDisabled={false}
+                        onChange={(options) => onChange(options.map((user) => user.value))}
+                        value={value
+                          .map(
+                            (userId) =>
+                              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                              teamMembers.map(mapUserToValue).find((member) => member.value === userId)!
+                          )
+                          .filter(Boolean)}
+                        controlShouldRenderValue={false}
+                        options={teamMembersToValues}
+                        placeholder={t("add_attendees")}
+                      />
+                    )}
+                  />
+                  <p className="mt-2 text-sm">
+                    Members will be prioritized in the order above if multiple are available / have equal
+                    number of bookings
+                  </p>
+                </div>
+                <TextField
+                  required
+                  type="number"
+                  label={t("minimum_round_robin_hosts_count")}
+                  defaultValue={1}
+                  {...formMethods.register("minimumHostCount")}
+                  addOnSuffix={<>{t("hosts")}</>}
+                />
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
