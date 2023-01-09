@@ -1,3 +1,5 @@
+import { APP_NAME } from "@calcom/lib/constants";
+
 import { renderEmail } from "../";
 import AttendeeScheduledEmail from "./attendee-scheduled-email";
 
@@ -14,7 +16,7 @@ export default class AttendeeRequestEmail extends AttendeeScheduledEmail {
     }
 
     return {
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.calEvent.attendees[0].language.translate("booking_submitted_subject", {
         eventType: this.calEvent.type,

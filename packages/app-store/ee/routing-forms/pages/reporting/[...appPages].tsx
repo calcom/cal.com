@@ -24,7 +24,7 @@ import SingleForm, {
 import QueryBuilderInitialConfig from "../../components/react-awesome-query-builder/config/config";
 import "../../components/react-awesome-query-builder/styles.css";
 import { JsonLogicQuery } from "../../jsonLogicToPrisma";
-import { getQueryBuilderConfig } from "../route-builder/[...appPages]";
+import { getQueryBuilderConfig } from "../../lib/getQueryBuilderConfig";
 
 export { getServerSideProps };
 

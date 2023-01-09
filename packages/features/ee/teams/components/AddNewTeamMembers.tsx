@@ -137,7 +137,7 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
       key={member.email}
       className={classNames("flex items-center justify-between p-6 text-sm", index !== 0 && "border-t")}
       data-testid="pending-member-item">
-      <div className="flex space-x-2">
+      <div className="flex space-x-2 rtl:space-x-reverse">
         <Avatar
           gravatarFallbackMd5="teamMember"
           size="mdLg"
