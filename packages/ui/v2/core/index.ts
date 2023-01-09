@@ -17,8 +17,7 @@ export {
   DropdownMenuTrigger,
   DropdownMenuTriggerItem,
 } from "./Dropdown";
-export { Checkbox, DatePicker, FormStep, Radio, RadioGroup } from "./form";
-export { default as LinkIconButton } from "./LinkIconButton";
+export { Checkbox, DatePicker, FormStep } from "./form";
 export { default as Loader } from "./Loader";
 export { default as MeetingTimeInTimezones } from "./MeetingTimeInTimezones";
 export type { HorizontalTabItemProps } from "./navigation/tabs/HorizontalTabItem";
