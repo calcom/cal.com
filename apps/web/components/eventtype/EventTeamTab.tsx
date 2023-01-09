@@ -1,12 +1,12 @@
-import { SchedulingType } from "@prisma/client/";
+import { SchedulingType, DistributionMethod } from "@prisma/client/";
 import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useMemo } from "react";
-import { Controller, useFormContext } from "react-hook-form";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
 
 import CheckedTeamSelect from "@calcom/features/eventtypes/components/CheckedTeamSelect";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Label, Select } from "@calcom/ui";
+import { Label, Select, RadioGroup as RadioArea } from "@calcom/ui";
 
 interface IMemberToValue {
   id: number | null;
@@ -29,6 +29,11 @@ export const EventTeamTab = ({
 }: Pick<EventTypeSetupProps, "eventType" | "teamMembers" | "team">) => {
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
+
+  const schedulingType = useWatch({
+    control: formMethods.control,
+    name: "schedulingType",
+  });
 
   const schedulingTypeOptions: {
     value: SchedulingType;
@@ -53,8 +58,8 @@ export const EventTeamTab = ({
   return (
     <div>
       {team && (
-        <div className="space-y-3">
-          <div className="flex flex-col pb-8">
+        <div className="space-y-5">
+          <div className="flex flex-col">
             <Label>{t("scheduling_type")}</Label>
             <Controller
               name="schedulingType"
@@ -72,7 +77,7 @@ export const EventTeamTab = ({
             />
           </div>
 
-          <div className="flex flex-col">
+          <div className="flex flex-col bg-gray-50 p-4">
             <Label>{t("team")}</Label>
             <Controller
               name="users"
@@ -96,6 +101,24 @@ export const EventTeamTab = ({
               )}
             />
           </div>
+          {schedulingType === SchedulingType.ROUND_ROBIN && (
+            <RadioArea.Group className="mt-1 flex w-full space-x-4">
+              <RadioArea.Item
+                {...formMethods.register("distributionMethod")}
+                value={DistributionMethod.OPTIMIZE_AVAILABILITY}
+                className="w-1/2 text-sm">
+                <strong className="mb-1 block">{t("optimise_for_availability")}</strong>
+                <p>{t("optimise_for_availability_description")}</p>
+              </RadioArea.Item>
+              <RadioArea.Item
+                {...formMethods.register("distributionMethod")}
+                value={DistributionMethod.OPTIMIZE_FAIRNESS}
+                className="w-1/2 text-sm">
+                <strong className="mb-1 block">{t("optimise_for_fairness")}</strong>
+                <p>{t("optimise_for_fairness_description")}</p>
+              </RadioArea.Item>
+            </RadioArea.Group>
+          )}
         </div>
       )}
     </div>

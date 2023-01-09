@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PeriodType, SchedulingType } from "@prisma/client";
+import { PeriodType, SchedulingType, DistributionMethod } from "@prisma/client";
 import { GetServerSidePropsContext } from "next";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -85,6 +85,7 @@ export type FormValues = {
   };
   successRedirectUrl: string;
   bookingLimits?: BookingLimit;
+  distributionMethod?: DistributionMethod;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -200,6 +201,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         findDurationType(eventType.minimumBookingNotice),
         eventType.minimumBookingNotice
       ),
+      distributionMethod: eventType.distributionMethod,
       metadata,
     },
     resolver: zodResolver(

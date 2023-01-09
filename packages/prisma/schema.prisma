@@ -8,7 +8,7 @@ datasource db {
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["interactiveTransactions"]
+  previewFeatures = []
 }
 
 generator zod {
@@ -27,6 +27,11 @@ enum PeriodType {
   UNLIMITED @map("unlimited")
   ROLLING   @map("rolling")
   RANGE     @map("range")
+}
+
+enum DistributionMethod {
+  OPTIMIZE_AVAILABILITY @map("optimizeAvailability")
+  OPTIMIZE_FAIRNESS     @map("optimizeFairness")
 }
 
 model EventType {
@@ -84,6 +89,7 @@ model EventType {
   workflows               WorkflowsOnEventTypes[]
   /// @zod.custom(imports.bookingLimitsType)
   bookingLimits           Json?
+  distributionMethod      DistributionMethod      @default(OPTIMIZE_AVAILABILITY)
 
   @@unique([userId, slug])
   @@unique([teamId, slug])

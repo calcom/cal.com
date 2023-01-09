@@ -160,6 +160,7 @@ const getEventTypesFromDB = async (eventTypeId: number) => {
       length: true,
       eventName: true,
       schedulingType: true,
+      distributionMethod: true,
       description: true,
       periodType: true,
       periodStartDate: true,
@@ -411,7 +412,9 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     // Add an if conditional if there are no seats on the event type
     // Assign to only one user when ROUND_ROBIN
     if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-      users = [await getLuckyUser("MAXIMIZE_AVAILABILITY", { availableUsers, eventTypeId: eventType.id })];
+      users = [
+        await getLuckyUser(eventType.distributionMethod, { availableUsers, eventTypeId: eventType.id }),
+      ];
     } else {
       // excluding ROUND_ROBIN, all users have availability required.
       if (availableUsers.length !== users.length) {
