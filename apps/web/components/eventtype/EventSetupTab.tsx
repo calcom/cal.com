@@ -2,6 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { Trans } from "next-i18next";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
@@ -203,12 +204,16 @@ export const EventSetupTab = (
               <div className="flex text-sm text-gray-600">
                 <Icon.FiCheck className="mt-0.5 mr-1.5 h-2 w-2.5" />
                 <Trans i18nKey="event_type_requres_google_cal">
-                  The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
-                  Change it{" "}
-                  <a href={`${CAL_URL}`} className="underline">
-                    here.
-                  </a>{" "}
-                  We will fall back to Cal video if you do not change it.
+                  <p>
+                    The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
+                    Change it{" "}
+                    <Link
+                      href={`${CAL_URL}/event-types/${eventType.id}?tabName=advanced`}
+                      className="underline">
+                      here.
+                    </Link>{" "}
+                    We will fall back to Cal video if you do not change it.
+                  </p>
                 </Trans>
               </div>
             )}
