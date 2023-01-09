@@ -21,6 +21,9 @@ jobs:
       NEXTAUTH_SECRET: secret
       CALENDSO_ENCRYPTION_KEY: secret
       GOOGLE_API_CREDENTIALS: ${{ secrets.GOOGLE_API_CREDENTIALS }}
+      NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      SENTRY_ENVIRONMENT: ${{ github.ref == 'refs/heads/staging' && 'staging' || 'production' }}
     runs-on: ubuntu-latest
     services:
        db:
