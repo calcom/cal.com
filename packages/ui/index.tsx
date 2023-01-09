@@ -57,6 +57,10 @@ export {
   AppStoreCategories,
   Slider,
   useShouldShowArrows,
+  HorizontalTabs,
+  HorizontalTabItem,
+  VerticalTabs,
+  VerticalTabItem,
 } from "./components";
 export type {
   ActionType,
@@ -70,6 +74,9 @@ export type {
   ListItemProps,
   ListProps,
   TopBannerProps,
+  NavTabProps,
+  HorizontalTabItemProps,
+  VerticalTabItemProps,
 } from "./components";
 export { default as CheckboxField } from "./components/form/checkbox/Checkbox";
 /** ⬇️ TODO - Move these to components */
@@ -79,18 +86,7 @@ export { UnstyledSelect } from "./form/Select";
 export { default as Loader } from "./v2/core/Loader";
 export { default as TimezoneChangeDialog } from "./TimezoneChangeDialog";
 
-export {
-  HorizontalTabs,
-  SettingsToggle,
-  showToast,
-  Swatch,
-  Switch,
-  Card,
-  VerticalTabs,
-  HorizontalTabItem,
-  VerticalTabItem,
-} from "./v2";
-export type { HorizontalTabItemProps, VerticalTabItemProps } from "./v2";
+export { SettingsToggle, showToast, Swatch, Switch, Card } from "./v2";
 export { default as Shell, ShellMain, MobileNavigationMoreItems, ShellSubHeading } from "./v2/core/Shell";
 
 export { default as ColorPicker } from "./v2/core/colorpicker";
