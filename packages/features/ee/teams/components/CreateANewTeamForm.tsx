@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
@@ -19,7 +20,9 @@ export const CreateANewTeamForm = () => {
 
   const returnToParsed = querySchema.safeParse(router.query);
 
-  const returnToParam = returnToParsed.success ? returnToParsed.data.returnTo : "/settings/teams";
+  const returnToParam =
+    (returnToParsed.success ? getSafeRedirectUrl(returnToParsed.data.returnTo) : "/settings/teams") ||
+    "/settings/teams";
 
   const newTeamFormMethods = useForm<NewTeamFormValues>();
 
@@ -109,7 +112,7 @@ export const CreateANewTeamForm = () => {
             render={({ field: { value } }) => (
               <div className="flex items-center">
                 <Avatar alt="" imageSrc={value || null} gravatarFallbackMd5="newTeam" size="lg" />
-                <div className="ml-4">
+                <div className="ltr:ml-4 rtl:mr-4">
                   <ImageUploader
                     target="avatar"
                     id="avatar-upload"
@@ -125,7 +128,7 @@ export const CreateANewTeamForm = () => {
           />
         </div>
 
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 rtl:space-x-reverse">
           <Button
             disabled={createTeamMutation.isLoading}
             color="secondary"

@@ -31,7 +31,7 @@ All apps can be found under `packages/app-store`. In this folder is `_example` w
 |   ├──index.ts
 |   ├──package.json
 |   ├──.env.example
-|	├──README.mdx
+|	├──DESCRIPTION.md
 ```
 
 ## Getting Started
@@ -48,9 +48,9 @@ Under the `/components` folder, this is where the install button for your app sh
 
 The `/lib` folder is where the functions of your app live. For example, when creating a booking with a MS Teams link the function to make the call to grab the link lives in the `/lib` folder. Export your endpoints in an `index.ts` file under `/lib` folder and import them in your main `index.ts` file.
 
-On the app store page you can customize your apps description by adding a markdown file called `README.mdx`. If you do not add one then the description from you `package.json` will be used instead.
+On the app store page you can customize your apps description by adding a markdown file called `DESCRIPTION.md`. If you do not add one then the description from you `package.json` will be used instead.
 
-The `/static` folder is where you can store your app icon and any images that your `README.mdx` may use.
+The `/static` folder is where you can store your app icon and any images that your `DESCRIPTION.md` may use.
 
 ## Adding Your App to the App Store
 To render your app on the app store page, go to `packages/app-store/index.ts`. Import your app into the file and add it to the `appStore` object.

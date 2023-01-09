@@ -24,7 +24,7 @@ export const Breadcrumb = ({ children }: BreadcrumbProps) => {
 
   return (
     <nav className="text-sm font-normal leading-5 text-gray-600">
-      <ol className="flex items-center space-x-2">{childrenSeperated}</ol>
+      <ol className="flex items-center space-x-2 rtl:space-x-reverse">{childrenSeperated}</ol>
     </nav>
   );
 };
@@ -38,16 +38,14 @@ type BreadcrumbItemProps = {
 export const BreadcrumbItem = ({ children, href, listProps }: BreadcrumbItemProps) => {
   return (
     <li {...listProps}>
-      <Link href={href}>
-        <a>{children}</a>
-      </Link>
+      <Link href={href}>{children}</Link>
     </li>
   );
 };
 
 export const BreadcrumbContainer = () => {
   const router = useRouter();
-  const [breadcrumbs, setBreadcrumbs] = useState<{ href: string; label: string }[]>();
+  const [, setBreadcrumbs] = useState<{ href: string; label: string }[]>();
 
   useEffect(() => {
     const rawPath = router.asPath.split("?")[0]; // this will ignore any query params for now?

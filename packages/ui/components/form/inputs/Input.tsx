@@ -30,7 +30,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 
 export function InputLeading(props: JSX.IntrinsicElements["div"]) {
   return (
-    <span className="inline-flex flex-shrink-0 items-center rounded-l-sm border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 sm:text-sm">
+    <span className="inline-flex flex-shrink-0 items-center rounded-l-sm border border-gray-300 bg-gray-50 px-3 text-gray-500 ltr:border-r-0 rtl:border-l-0 sm:text-sm">
       {props.children}
     </span>
   );
@@ -118,7 +118,12 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
       {addOnLeading || addOnSuffix ? (
         <div className="relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2 focus-within:ring-neutral-800 focus-within:ring-offset-1">
           {addOnLeading && (
-            <Addon isFilled={addOnFilled} className={classNames("rounded-l-md border-r-0", addOnClassname)}>
+            <Addon
+              isFilled={addOnFilled}
+              className={classNames(
+                "ltr:rounded-l-md ltr:border-r-0 rtl:rounded-r-md rtl:border-l-0",
+                addOnClassname
+              )}>
               {addOnLeading}
             </Addon>
           )}
@@ -129,8 +134,8 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             isFullWidth={inputIsFullWidth}
             className={classNames(
               className,
-              addOnLeading && "rounded-l-none",
-              addOnSuffix && "rounded-r-none",
+              addOnLeading && "ltr:rounded-l-none rtl:rounded-r-none",
+              addOnSuffix && "ltr:rounded-r-none rtl:rounded-l-none",
               type === "search" && "pr-8",
               "!my-0 !ring-0"
             )}
@@ -147,13 +152,18 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             ref={ref}
           />
           {addOnSuffix && (
-            <Addon isFilled={addOnFilled} className={classNames("rounded-r-md border-l-0", addOnClassname)}>
+            <Addon
+              isFilled={addOnFilled}
+              className={classNames(
+                "ltr:rounded-r-md ltr:border-l-0 rtl:rounded-l-md rtl:border-r-0",
+                addOnClassname
+              )}>
               {addOnSuffix}
             </Addon>
           )}
           {type === "search" && inputValue?.toString().length > 0 && (
             <Icon.FiX
-              className="absolute right-2 top-2.5 h-4 w-4 cursor-pointer text-gray-500"
+              className="absolute top-2.5 h-4 w-4 cursor-pointer text-gray-500 ltr:right-2 rtl:left-2"
               onClick={(e) => {
                 setInputValue("");
                 props.onChange && props.onChange(e as unknown as React.ChangeEvent<HTMLInputElement>);
@@ -201,12 +211,12 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
         placeholder={props.placeholder || "•••••••••••••"}
         ref={ref}
         {...props}
-        className={classNames("mb-0 border-r-0 pr-10", props.className)}
+        className={classNames("mb-0 ltr:border-r-0 ltr:pr-10 rtl:border-l-0 rtl:pl-10", props.className)}
         addOnFilled={false}
         addOnSuffix={
           <Tooltip content={textLabel}>
             <button
-              className="absolute bottom-0 right-3 h-9 text-gray-900"
+              className="absolute bottom-0 h-9 text-gray-900 ltr:right-3 rtl:left-3"
               type="button"
               onClick={() => toggleIsPasswordVisible()}>
               {isPasswordVisible ? (
