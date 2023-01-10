@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useReducer, useState } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch, useFieldArray } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { ReactMultiEmail } from "react-multi-email";
 import { v4 as uuidv4 } from "uuid";
@@ -263,6 +263,8 @@ const BookingPage = ({
     defaultValues: defaultValues(),
     resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
+  const guestField = useFieldArray({ name: "guests", control: bookingForm.control });
+  console.log("🚀 ~ file: BookingPage.tsx:267 ~ guestField", guestField.fields);
 
   const selectedLocationType = useWatch({
     control: bookingForm.control,
@@ -850,36 +852,91 @@ const BookingPage = ({
                         className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
                         {t("guests")}
                       </label>
-                      {!disableInput && (
+                      {guestField.fields.map((field, index) => (
+                        <EmailInput
+                          key={field.id}
+                          {...bookingForm.register(`guests.${index}` as const)}
+                          className={classNames(
+                            inputClassName,
+                            bookingForm.formState.errors.email && "!focus:ring-red-700 !border-red-700"
+                          )}
+                          placeholder="guest@example.com"
+                          type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
+                          disabled={disableInput}
+                        />
+                      ))}
+                      <Button
+                        size="sm"
+                        type="button"
+                        color="minimal"
+                        className="mb-1 block text-sm font-medium text-gray-700 dark:text-white"
+                        onClick={() => guestField.append("")}>
+                        {t("add_another")}
+                      </Button>
+
+                      {/* {!disableInput && (
                         <Controller
                           control={bookingForm.control}
                           name="guests"
                           render={({ field: { onChange, value } }) => (
-                            <ReactMultiEmail
-                              className="relative"
-                              placeholder={<span className="dark:text-darkgray-600">guest@example.com</span>}
-                              emails={value}
-                              onChange={onChange}
-                              getLabel={(
-                                email: string,
-                                index: number,
-                                removeEmail: (index: number) => void
-                              ) => {
-                                return (
-                                  <div data-tag key={index} className="cursor-pointer">
-                                    {email}
-                                    {!disableInput && (
-                                      <span data-tag-handle onClick={() => removeEmail(index)}>
-                                        ×
-                                      </span>
-                                    )}
-                                  </div>
-                                );
-                              }}
-                            />
+                            <>
+                              <EmailInput
+                                className={classNames(
+                                  inputClassName,
+                                  bookingForm.formState.errors.email && "!focus:ring-red-700 !border-red-700"
+                                )}
+                                placeholder="guest@example.com"
+                                type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
+                                disabled={disableInput}
+                                value={value ? value[0] : ""}
+                              />
+                              {value &&
+                                value.map((guest, index) => {
+                                  if (index !== 0)
+                                    return (
+                                      <EmailInput
+                                        key={guest}
+                                        className={classNames(
+                                          inputClassName,
+                                          bookingForm.formState.errors.email &&
+                                            "!focus:ring-red-700 !border-red-700"
+                                        )}
+                                        placeholder="guest@example.com"
+                                        type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
+                                        disabled={disableInput}
+                                        value={value[0]}
+                                      />
+                                    );
+                                })}
+                            </>
+
+                            //
+                            // <ReactMultiEmail
+                            //   className="relative"
+                            //   placeholder={<span className="dark:text-darkgray-600">guest@example.com</span>}
+                            //   emails={value}
+                            //   onChange={onChange}
+                            //   getLabel={(
+                            //     email: string,
+                            //     index: number,
+                            //     removeEmail: (index: number) => void
+                            //   ) => {
+                            //     return (
+                            //       <div data-tag key={index} className="cursor-pointer">
+                            //         {email}
+                            //         {!disableInput && (
+                            //           <span data-tag-handle onClick={() => removeEmail(index)}>
+                            //             ×
+                            //           </span>
+                            //         )}
+                            //       </div>
+                            //     );
+                            //   }}
+                            // />
                           )}
                         />
-                      )}
+                      )} */}
+
                       {/* Custom code when guest emails should not be editable */}
                       {disableInput && guestListEmails && guestListEmails.length > 0 && (
                         <div data-tag className="react-multi-email">
@@ -957,7 +1014,10 @@ const BookingPage = ({
                       size="icon"
                       tooltip={t("additional_guests")}
                       StartIcon={Icon.FiUserPlus}
-                      onClick={() => setGuestToggle(!guestToggle)}
+                      onClick={() => {
+                        setGuestToggle(!guestToggle);
+                        guestField.append("");
+                      }}
                       className="mr-auto"
                     />
                   )}
