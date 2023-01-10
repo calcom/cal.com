@@ -10,7 +10,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 
 import { TRPCError } from "@trpc/server";
 
-import { authedAdminProcedure, router } from "../../trpc";
+import { authedAdminProcedure, authedProcedure, router } from "../../trpc";
 
 interface FilteredApp {
   name: string;
@@ -268,4 +268,13 @@ export const appsRouter = router({
         },
       });
     }),
+  checkForGCal: authedProcedure.query(async ({ ctx }) => {
+    const gCalPresent = await ctx.prisma.credential.findFirst({
+      where: {
+        type: "google_calendar",
+        userId: ctx.user.id,
+      },
+    });
+    return !!gCalPresent;
+  }),
 });

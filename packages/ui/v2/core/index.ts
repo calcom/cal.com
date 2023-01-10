@@ -1,5 +1,3 @@
-export { Card } from "./Card";
-export type { BaseCardProps } from "./Card";
 export { default as ColorPicker } from "./colorpicker";
 export {
   ButtonOrLink,
@@ -18,7 +16,6 @@ export {
   DropdownMenuTriggerItem,
 } from "./Dropdown";
 export { Checkbox, DatePicker, FormStep } from "./form";
-export { default as LinkIconButton } from "./LinkIconButton";
 export { default as Loader } from "./Loader";
 export { default as MeetingTimeInTimezones } from "./MeetingTimeInTimezones";
 export type { HorizontalTabItemProps } from "./navigation/tabs/HorizontalTabItem";
@@ -30,5 +27,4 @@ export { default as Shell } from "./Shell";
 export { default as Stepper } from "./Stepper";
 export { default as Swatch } from "./Swatch";
 export { default as Switch } from "./Switch";
-export { default as Tooltip } from "./Tooltip";
 export { default as WizardForm } from "./WizardForm";
