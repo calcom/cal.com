@@ -104,6 +104,7 @@ export {
   Switch,
   SettingsToggle,
   MeetingTimeInTimezones,
+  Loader,
 } from "./components";
 export type {
   ActionType,
@@ -129,7 +130,6 @@ export { default as CheckboxField } from "./components/form/checkbox/Checkbox";
 export { default as AddressInput } from "./form/AddressInputLazy";
 export { default as PhoneInput } from "./form/PhoneInputLazy";
 export { UnstyledSelect } from "./form/Select";
-export { default as Loader } from "./v2/core/Loader";
 
 export { Swatch } from "./v2";
 export { default as Shell, ShellMain, MobileNavigationMoreItems, ShellSubHeading } from "./v2/core/Shell";
@@ -144,5 +144,5 @@ export {
 
 export { default as MultiSelectCheckboxes } from "./components/form/checkbox/MultiSelectCheckboxes";
 export type { Option as MultiSelectCheckboxesOptionType } from "./components/form/checkbox/MultiSelectCheckboxes";
-export { default as ImageUploader } from "./v2/core/ImageUploader";
+export { default as ImageUploader } from "./components/image-uploader/ImageUploader";
 export { default as Meta, MetaProvider, useMeta } from "./v2/core/Meta";

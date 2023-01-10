@@ -1,4 +1,4 @@
-export { default as Loader } from "./Loader";
+export { default as Loader } from "../../components/skeleton/Loader";
 export { default as MeetingTimeInTimezones } from "../../components/popover/MeetingTimeInTimezones";
 export { default as SettingsToggle } from "../../components/form/switch/SettingsToggle";
 export { default as Shell } from "./Shell";

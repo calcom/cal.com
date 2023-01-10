@@ -84,7 +84,14 @@ export { EmptyScreen } from "./empty-screen";
 export { List, ListItem, ListItemText, ListItemTitle, ListLinkItem } from "./list";
 export type { ListItemProps, ListProps } from "./list";
 export { HeadSeo } from "./head-seo";
-export { Skeleton, SkeletonAvatar, SkeletonButton, SkeletonContainer, SkeletonText } from "./skeleton";
+export {
+  Skeleton,
+  SkeletonAvatar,
+  SkeletonButton,
+  SkeletonContainer,
+  SkeletonText,
+  Loader,
+} from "./skeleton";
 export { HorizontalTabs, HorizontalTabItem, VerticalTabs, VerticalTabItem } from "./navigation";
 export type { HorizontalTabItemProps, NavTabProps, VerticalTabItemProps } from "./navigation";
 export { Card, StepCard, FormCard } from "./card";
