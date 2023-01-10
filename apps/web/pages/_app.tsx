@@ -28,6 +28,7 @@ const calFont = localFont({
   src: "../fonts/CalSans-SemiBold.woff2",
   variable: "--font-cal",
   preload: true,
+  display: "swap",
 });
 
 if (typeof document !== "undefined") {
