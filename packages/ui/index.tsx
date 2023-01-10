@@ -105,6 +105,9 @@ export {
   SettingsToggle,
   MeetingTimeInTimezones,
   Loader,
+  Meta,
+  MetaProvider,
+  useMeta,
 } from "./components";
 export type {
   ActionType,
@@ -145,4 +148,3 @@ export {
 export { default as MultiSelectCheckboxes } from "./components/form/checkbox/MultiSelectCheckboxes";
 export type { Option as MultiSelectCheckboxesOptionType } from "./components/form/checkbox/MultiSelectCheckboxes";
 export { default as ImageUploader } from "./components/image-uploader/ImageUploader";
-export { default as Meta, MetaProvider, useMeta } from "./v2/core/Meta";
