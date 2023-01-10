@@ -5,19 +5,12 @@ import { AppSettings } from "@calcom/app-store/_components/AppSettings";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { InstalledAppVariants } from "@calcom/app-store/utils";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
+import { ShellSubHeading } from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { App } from "@calcom/types/App";
 import { AppGetServerSidePropsContext } from "@calcom/types/AppGetServerSideProps";
-import {
-  Alert,
-  Button,
-  EmptyScreen,
-  Icon,
-  List,
-  ShellSubHeading,
-  AppSkeletonLoader as SkeletonLoader,
-} from "@calcom/ui";
+import { Alert, Button, EmptyScreen, Icon, List, AppSkeletonLoader as SkeletonLoader } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
 

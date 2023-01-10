@@ -9,7 +9,7 @@
     "../types/next-auth.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "../../apps/web/components/layouts/Shell.tsx"
+    "../features/shell/Shell.tsx"
   ],
   "exclude": ["dist", "build", "node_modules"]
 }

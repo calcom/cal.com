@@ -1,4 +1,4 @@
-import { ShellSubHeading } from "@calcom/web/components/layouts/Shell";
+import { ShellSubHeading } from "@calcom/features/shell/Shell";
 
 import Meta from "../meta/Meta";
 import { SkeletonText } from "../skeleton";

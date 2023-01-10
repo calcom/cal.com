@@ -8,6 +8,7 @@ import {
   CreateEventTypeButton,
   EventTypeDescriptionLazy as EventTypeDescription,
 } from "@calcom/features/eventtypes/components";
+import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc, TRPCClientError } from "@calcom/trpc/react";
@@ -26,7 +27,6 @@ import {
   DropdownMenuTrigger,
   EmptyScreen,
   Icon,
-  Shell,
   showToast,
   Switch,
   Tooltip,

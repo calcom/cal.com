@@ -5,6 +5,7 @@ import { Fragment } from "react";
 import { InstallAppButton } from "@calcom/app-store/components";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
+import { ShellSubHeading } from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -13,7 +14,6 @@ import {
   EmptyScreen,
   Icon,
   List,
-  ShellSubHeading,
   showToast,
   AppSkeletonLoader as SkeletonLoader,
   Switch,
