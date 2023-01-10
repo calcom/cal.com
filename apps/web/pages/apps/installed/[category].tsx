@@ -143,8 +143,10 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
     automation: Icon.FiShare2,
     analytics: Icon.FiBarChart,
     payment: Icon.FiCreditCard,
+    web3: Icon.FiBarChart,
     other: Icon.FiGrid,
   };
+
   return (
     <QueryCell
       query={query}
