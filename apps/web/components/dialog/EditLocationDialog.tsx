@@ -360,7 +360,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                       setShowLocationModal(false);
                       setSelectedLocation?.(undefined);
                       setEditingLocationType?.("");
-                      locationFormMethods.unregister("locationType");
+                      locationFormMethods.unregister(["locationType", "locationLink"]);
                     }}
                     type="button"
                     color="secondary">
