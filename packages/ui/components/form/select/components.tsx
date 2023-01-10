@@ -12,8 +12,10 @@ import {
 } from "react-select";
 
 import { classNames } from "@calcom/lib";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Icon } from "../../../components/icon";
+import { Badge } from "../../badge";
 
 export const InputComponent = <
   Option,
@@ -36,13 +38,18 @@ export const InputComponent = <
 };
 
 export const OptionComponent = <
-  Option,
   IsMulti extends boolean = false,
-  Group extends GroupBase<Option> = GroupBase<Option>
+  Group extends GroupBase<{ label: string; value: string; needsUpgrade?: boolean }> = GroupBase<{
+    label: string;
+    value: string;
+    needsUpgrade?: boolean;
+  }>
 >({
   className,
   ...props
-}: OptionProps<Option, IsMulti, Group>) => {
+}: OptionProps<{ label: string; value: string; needsUpgrade?: boolean }, IsMulti, Group>) => {
+  const { t } = useLocale();
+
   return (
     <reactSelectComponents.Option
       {...props}
@@ -52,7 +59,11 @@ export const OptionComponent = <
         props.isFocused && "dark:!bg-darkgray-200 !bg-gray-100",
         props.isSelected && "dark:!bg-darkgray-300 !bg-neutral-900"
       )}>
-      <span>{props.label}</span> {props.isSelected && <Icon.FiCheck className="h-4 w-4" />}
+      <span className={classNames("mr-auto", props.data.needsUpgrade ? "text-gray-500" : "")}>
+        {props.label}
+      </span>
+      {props.data.needsUpgrade && <Badge variant="gray">{t("upgrade")}</Badge>}
+      {props.isSelected && <Icon.FiCheck className="h-4 w-4" />}
     </reactSelectComponents.Option>
   );
 };

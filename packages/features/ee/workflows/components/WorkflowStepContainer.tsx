@@ -5,6 +5,7 @@ import {
   WorkflowTemplates,
   WorkflowTriggerEvents,
 } from "@prisma/client";
+import { useRouter } from "next/router";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 import "react-phone-number-input/style.css";
@@ -65,6 +66,8 @@ const dynamicTextVariables = [
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
+  const router = useRouter();
+
   const { step, form, reload, setReload } = props;
   const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery();
   const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber);
@@ -275,7 +278,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     const selectedAction = {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: step.action,
-      disabled: false,
+      needsUpgrade: false,
     };
 
     const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
@@ -348,6 +351,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         className="text-sm"
                         onChange={(val) => {
                           if (val) {
+                            if (val.needsUpgrade) {
+                              router.replace("/teams");
+                              return;
+                            }
                             const oldValue = form.getValues(`steps.${step.stepNumber - 1}.action`);
                             const wasSMSAction =
                               oldValue === WorkflowActions.SMS_ATTENDEE ||
@@ -390,11 +397,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         }}
                         defaultValue={selectedAction}
                         options={actionOptions}
-                        isOptionDisabled={(option: {
-                          label: string;
-                          value: WorkflowActions;
-                          disabled: boolean;
-                        }) => option.disabled}
                       />
                     );
                   }}
