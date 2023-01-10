@@ -599,7 +599,7 @@ const NavigationItem: React.FC<{
         href={item.href}
         aria-label={t(item.name)}
         className={classNames(
-          "group flex items-center rounded-md py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100 lg:px-[14px]  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
+          "group flex items-center rounded-md py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
           isChild
             ? "[&[aria-current='page']]:text-brand-900 hidden pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent"
             : "[&[aria-current='page']]:text-brand-900 "
@@ -726,7 +726,7 @@ function SideBar() {
       <aside className="desktop-transparent top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto border-r border-gray-100 bg-gray-50 md:sticky md:flex lg:w-56 lg:px-4">
         <div className="flex h-full flex-col justify-between py-3 lg:pt-6 ">
           <header className="items-center justify-between md:hidden lg:flex">
-            <Link href="/event-types" className="px-4">
+            <Link href="/event-types" className="px-2">
               <Logo small />
             </Link>
             <div className="flex space-x-2 rtl:space-x-reverse">
