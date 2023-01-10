@@ -794,20 +794,16 @@ export function ShellMain(props: LayoutProps) {
           />
         )}
         {props.heading && (
-          <header
-            className={classNames(
-              props.large && "py-8",
-              "mb-4 flex w-full max-w-full items-center pt-4 md:p-0 lg:mb-10"
-            )}>
+          <header className={classNames(props.large && "py-8", " flex w-full max-w-full items-center")}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className="w-full ltr:mr-4 rtl:ml-4 sm:block">
               {props.heading && (
-                <h1 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 mb-1 hidden truncate text-xl font-bold tracking-wide text-black sm:block xl:max-w-full">
+                <h1 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 mb-1 hidden truncate text-2xl font-semibold tracking-wide text-black sm:block xl:max-w-full">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
               )}
               {props.subtitle && (
-                <p className="hidden text-sm text-neutral-500 sm:block">
+                <p className="hidden text-sm font-normal text-neutral-500 sm:block">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
                 </p>
               )}
@@ -825,7 +821,7 @@ export function ShellMain(props: LayoutProps) {
           </header>
         )}
       </div>
-      <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
+      <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col ", "pt-10")}>
         {props.children}
       </div>
     </>
