@@ -59,6 +59,10 @@ export {
   Slider,
   Tooltip,
   useShouldShowArrows,
+  HorizontalTabs,
+  HorizontalTabItem,
+  VerticalTabs,
+  VerticalTabItem,
   StepCard,
   LinkIconButton,
   Editor,
@@ -70,7 +74,14 @@ export {
   DialogHeader,
   DialogTrigger,
   ConfirmationDialogContent,
+  DateRangePicker,
+  MultiSelectCheckbox,
+  BooleanToggleGroup,
+  BooleanToggleGroupField,
+  ToggleGroup,
+  ToggleGroupItem,
   showToast,
+  DatePicker as DatePickerField,
 } from "./components";
 export type {
   ActionType,
@@ -87,6 +98,9 @@ export type {
   ListItemProps,
   ListProps,
   TopBannerProps,
+  NavTabProps,
+  HorizontalTabItemProps,
+  VerticalTabItemProps,
 } from "./components";
 export { default as CheckboxField } from "./components/form/checkbox/Checkbox";
 /** ⬇️ TODO - Move these to components */
@@ -95,16 +109,7 @@ export { default as PhoneInput } from "./form/PhoneInputLazy";
 export { UnstyledSelect } from "./form/Select";
 export { default as Loader } from "./v2/core/Loader";
 
-export {
-  HorizontalTabs,
-  SettingsToggle,
-  Swatch,
-  Switch,
-  VerticalTabs,
-  HorizontalTabItem,
-  VerticalTabItem,
-} from "./v2";
-export type { HorizontalTabItemProps, VerticalTabItemProps } from "./v2";
+export { SettingsToggle, Swatch, Switch } from "./v2";
 export { default as Shell, ShellMain, MobileNavigationMoreItems, ShellSubHeading } from "./v2/core/Shell";
 
 export { default as ColorPicker } from "./v2/core/colorpicker";
@@ -126,13 +131,10 @@ export {
   RadioField,
 } from "./form/radio-area";
 
-export { BooleanToggleGroupField } from "./v2/core/form/BooleanToggleGroup";
-export { DateRangePickerLazy as DateRangePicker } from "./v2/core/form/date-range-picker";
-export { default as DatePickerField } from "./v2/core/form/DatePicker";
+export {} from "./components/form/date-range-picker";
 export { default as FormCard } from "./v2/core/form/FormCard";
-export { default as MultiSelectCheckboxes } from "./v2/core/form/MultiSelectCheckboxes";
-export type { Option as MultiSelectCheckboxesOptionType } from "./v2/core/form/MultiSelectCheckboxes";
-export { ToggleGroup } from "./v2/core/form/ToggleGroup";
+export { default as MultiSelectCheckboxes } from "./components/form/checkbox/MultiSelectCheckboxes";
+export type { Option as MultiSelectCheckboxesOptionType } from "./components/form/checkbox/MultiSelectCheckboxes";
 export { default as ImageUploader } from "./v2/core/ImageUploader";
 export { default as MeetingTimeInTimezones } from "./v2/core/MeetingTimeInTimezones";
 export { default as Meta, MetaProvider, useMeta } from "./v2/core/Meta";
