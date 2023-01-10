@@ -108,6 +108,7 @@ export {
   Meta,
   MetaProvider,
   useMeta,
+  Swatch,
 } from "./components";
 export type {
   ActionType,
@@ -134,7 +135,6 @@ export { default as AddressInput } from "./form/AddressInputLazy";
 export { default as PhoneInput } from "./form/PhoneInputLazy";
 export { UnstyledSelect } from "./form/Select";
 
-export { Swatch } from "./v2";
 export { default as Shell, ShellMain, MobileNavigationMoreItems, ShellSubHeading } from "./v2/core/Shell";
 
 export {
