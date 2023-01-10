@@ -38,6 +38,7 @@ import {
   AddVariablesDropdown,
 } from "@calcom/ui";
 
+import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
 import { translateVariablesToEnglish } from "../lib/variableTranslations";
 import type { FormValues } from "../pages/workflow";
@@ -49,18 +50,6 @@ type WorkflowStepProps = {
   reload?: boolean;
   setReload?: Dispatch<SetStateAction<boolean>>;
 };
-
-const dynamicTextVariables = [
-  "event_name",
-  "event_date",
-  "event_time",
-  "location",
-  "organizer_name",
-  "attendee_name",
-  "attendee_email",
-  "additional_notes",
-  "meeting_url",
-];
 
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
@@ -557,7 +546,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <div className="flex-grow text-right">
                           <AddVariablesDropdown
                             addVariable={addVariableEmailSubject}
-                            variables={dynamicTextVariables}
+                            variables={DYNAMIC_TEXT_VARIABLES}
                           />
                         </div>
                       </div>
@@ -596,7 +585,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
                           props.form.clearErrors();
                         }}
-                        variables={dynamicTextVariables}
+                        variables={DYNAMIC_TEXT_VARIABLES}
                       />
                     </>
                   ) : (
@@ -608,7 +597,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <div className="flex-grow text-right">
                           <AddVariablesDropdown
                             addVariable={addVariableBody}
-                            variables={dynamicTextVariables}
+                            variables={DYNAMIC_TEXT_VARIABLES}
                           />
                         </div>
                       </div>

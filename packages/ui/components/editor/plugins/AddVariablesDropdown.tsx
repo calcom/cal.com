@@ -18,14 +18,14 @@ export const AddVariablesDropdown = (props: IAddVariablesDropdown) => {
             <>
               <div className="hidden sm:flex">
                 {t("add_variable")}
-                <Icon.FiChevronDown className="ml-1 h-4 w-4" />
+                <Icon.FiChevronDown className="mt-[2px] ml-1 h-4 w-4" />
               </div>
               <div className="block sm:hidden">+</div>
             </>
           ) : (
             <div className="flex">
               {t("add_variable")}
-              <Icon.FiChevronDown className="ml-1 h-4 w-4" />
+              <Icon.FiChevronDown className="mt-[2px] ml-1 h-4 w-4" />
             </div>
           )}
         </div>
