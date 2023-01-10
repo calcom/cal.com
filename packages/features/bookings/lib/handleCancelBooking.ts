@@ -304,16 +304,13 @@ async function handler(req: NextApiRequest & { userId?: number }) {
           bookingToDelete.recurringEventId &&
           allRemainingBookings
         ) {
-          console.log("INSIDE");
           bookingToDelete.user.credentials
             .filter((credential) => credential.type.endsWith("_calendar"))
             .forEach((credential) => {
               const calendar = getCalendar(credential);
               updatedBookings.forEach((updBooking) => {
-                console.log("PROCESS", updBooking);
                 const bookingRef = updBooking.references.find((ref) => ref.type.includes("_calendar"));
                 if (bookingRef) {
-                  console.log("BOOKING REF", bookingRef);
                   const { uid, externalCalendarId } = bookingRef;
                   apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId) as Promise<unknown>);
                 }
