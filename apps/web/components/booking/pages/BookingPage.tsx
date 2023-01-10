@@ -863,6 +863,11 @@ const BookingPage = ({
                           placeholder="guest@example.com"
                           type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
                           disabled={disableInput}
+                          addOnSuffix={
+                            <>
+                              <Icon.FiEye />
+                            </>
+                          }
                         />
                       ))}
                       <Button
