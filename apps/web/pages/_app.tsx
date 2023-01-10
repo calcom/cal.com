@@ -23,8 +23,12 @@ import I18nLanguageHandler from "@components/I18nLanguageHandler";
 
 import "../styles/globals.css";
 
-const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true });
-const calFont = localFont({ src: "../fonts/CalSans-SemiBold.woff2", variable: "--font-cal", preload: true });
+const interFont = Inter({ subsets: ["latin"], variable: "--font-inter", preload: true, display: "swap" });
+const calFont = localFont({
+  src: "../fonts/CalSans-SemiBold.woff2",
+  variable: "--font-cal",
+  preload: true,
+});
 
 if (typeof document !== "undefined") {
   document.body.classList.add(interFont.variable, calFont.variable);
