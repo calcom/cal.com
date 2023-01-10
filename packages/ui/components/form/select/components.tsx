@@ -63,7 +63,7 @@ export const OptionComponent = <
         {props.label}
       </span>
       {props.data.needsUpgrade && <Badge variant="gray">{t("upgrade")}</Badge>}
-      {props.isSelected && <Icon.FiCheck className="h-4 w-4" />}
+      {props.isSelected && <Icon.FiCheck className="ml-2 h-4 w-4" />}
     </reactSelectComponents.Option>
   );
 };
