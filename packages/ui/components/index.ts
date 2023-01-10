@@ -70,7 +70,7 @@ export {
 } from "./apps";
 export { TopBanner } from "./top-banner";
 export type { TopBannerProps } from "./top-banner";
-export { AnimatedPopover } from "./popover/index";
+export { AnimatedPopover, MeetingTimeInTimezones } from "./popover";
 export { TableActions, DropdownActions } from "./table/TableActions";
 export type { ActionType } from "./table/TableActions";
 export { Icon } from "./icon";

@@ -8,7 +8,8 @@
     "../types/*.d.ts",
     "../types/next-auth.d.ts",
     "**/*.ts",
-    "**/*.tsx"
+    "**/*.tsx",
+    "../features/kbar/Kbar.tsx"
   ],
   "exclude": ["dist", "build", "node_modules"]
 }

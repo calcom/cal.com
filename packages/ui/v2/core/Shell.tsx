@@ -12,6 +12,7 @@ import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseReq
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
+import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
 import { Tips } from "@calcom/features/tips";
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
@@ -39,7 +40,6 @@ import { Credits } from "../../components/credits";
 import { HeadSeo } from "../../components/head-seo";
 import { Icon } from "../../components/icon";
 import { SkeletonText } from "../../components/skeleton";
-import { KBarContent, KBarRoot, KBarTrigger } from "./Kbar";
 
 /* TODO: Migate this */
 

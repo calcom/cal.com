@@ -103,6 +103,7 @@ export {
   Steps,
   Switch,
   SettingsToggle,
+  MeetingTimeInTimezones,
 } from "./components";
 export type {
   ActionType,
@@ -144,5 +145,4 @@ export {
 export { default as MultiSelectCheckboxes } from "./components/form/checkbox/MultiSelectCheckboxes";
 export type { Option as MultiSelectCheckboxesOptionType } from "./components/form/checkbox/MultiSelectCheckboxes";
 export { default as ImageUploader } from "./v2/core/ImageUploader";
-export { default as MeetingTimeInTimezones } from "./v2/core/MeetingTimeInTimezones";
 export { default as Meta, MetaProvider, useMeta } from "./v2/core/Meta";
