@@ -1,8 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { App_RoutingForms_Form } from "@prisma/client";
 import Link from "next/link";
 import React, { useCallback, useState } from "react";
-import { Query, Config, Builder, Utils as QbUtils } from "react-awesome-query-builder";
+import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
 import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
 
@@ -21,83 +20,19 @@ import {
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
-import QueryBuilderInitialConfig from "../../components/react-awesome-query-builder/config/config";
 import "../../components/react-awesome-query-builder/styles.css";
+import { RoutingPages } from "../../lib/RoutingPages";
 import { createFallbackRoute } from "../../lib/createFallbackRoute";
+import { getQueryBuilderConfig } from "../../lib/getQueryBuilderConfig";
 import isRouter from "../../lib/isRouter";
-import { GlobalRoute, LocalRoute, SerializableForm, SerializableRoute } from "../../types/types";
-import { FieldTypes } from "../form-edit/[...appPages]";
+import { GlobalRoute, LocalRoute, QueryBuilderUpdatedConfig, SerializableRoute } from "../../types/types";
 
 export { getServerSideProps };
 
-type RoutingForm = SerializableForm<App_RoutingForms_Form>;
-
-const InitialConfig = QueryBuilderInitialConfig;
 const hasRules = (route: Route) => {
   if (isRouter(route)) return false;
   route.queryValue.children1 && Object.keys(route.queryValue.children1).length;
 };
-type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Config["fields"] };
-export function getQueryBuilderConfig(form: RoutingForm, forReporting = false) {
-  const fields: Record<
-    string,
-    {
-      label: string;
-      type: string;
-      valueSources: ["value"];
-      fieldSettings: {
-        listValues?: {
-          value: string;
-          title: string;
-        }[];
-      };
-    }
-  > = {};
-  form.fields?.forEach((field) => {
-    if ("routerField" in field) {
-      field = field.routerField;
-    }
-    if (FieldTypes.map((f) => f.value).includes(field.type)) {
-      const optionValues = field.selectText?.trim().split("\n");
-      const options = optionValues?.map((value) => {
-        const title = value;
-        return {
-          value,
-          title,
-        };
-      });
-
-      const widget = InitialConfig.widgets[field.type];
-      const widgetType = widget.type;
-
-      fields[field.id] = {
-        label: field.label,
-        type: widgetType,
-        valueSources: ["value"],
-        fieldSettings: {
-          listValues: options,
-        },
-        // preferWidgets: field.type === "textarea" ? ["textarea"] : [],
-      };
-    } else {
-      throw new Error("Unsupported field type:" + field.type);
-    }
-  });
-
-  const initialConfigCopy = { ...InitialConfig, operators: { ...InitialConfig.operators } };
-  if (forReporting) {
-    delete initialConfigCopy.operators.is_empty;
-    delete initialConfigCopy.operators.is_not_empty;
-    initialConfigCopy.operators.__calReporting = true;
-  }
-  // You need to provide your own config. See below 'Config format'
-  const config: QueryBuilderUpdatedConfig = {
-    ...initialConfigCopy,
-    fields: fields,
-  };
-  return config;
-}
-
 const getEmptyRoute = (): Exclude<SerializableRoute, GlobalRoute> => {
   const uuid = QbUtils.uuid();
   return {
@@ -121,21 +56,6 @@ type Route =
       };
     })
   | GlobalRoute;
-
-export const RoutingPages: { label: string; value: NonNullable<LocalRoute["action"]>["type"] }[] = [
-  {
-    label: "Custom Page",
-    value: "customPageMessage",
-  },
-  {
-    label: "External Redirect",
-    value: "externalRedirectUrl",
-  },
-  {
-    label: "Event Redirect",
-    value: "eventTypeRedirectUrl",
-  },
-];
 
 const Route = ({
   route,

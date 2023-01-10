@@ -11,6 +11,7 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { $createHeadingNode, $isHeadingNode } from "@lexical/rich-text";
 import { $wrapNodes, $isAtNodeEnd } from "@lexical/selection";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
+import classNames from "classnames";
 import {
   SELECTION_CHANGE_COMMAND,
   FORMAT_TEXT_COMMAND,
@@ -25,14 +26,20 @@ import {
   LexicalEditor,
   EditorState,
 } from "lexical";
-import { RefObject, Dispatch, SetStateAction } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-import { Icon } from "@calcom/ui";
+import {
+  Icon,
+  Dropdown,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+  DropdownMenuContent,
+  Button,
+} from "@calcom/ui";
 
-import { AddVariablesDropdown } from "../../AddVariablesDropdown";
 import { TextEditorProps } from "../Editor";
+import { AddVariablesDropdown } from "./AddVariablesDropdown";
 
 const LowPriority = 1;
 
@@ -43,11 +50,11 @@ interface BlockType {
 }
 
 const blockTypeToBlockName: BlockType = {
+  paragraph: "Normal",
+  ol: "Numbered List",
+  ul: "Bulleted List",
   h1: "Large Heading",
   h2: "Small Heading",
-  ol: "Numbered List",
-  paragraph: "Normal",
-  ul: "Bulleted List",
 };
 
 function positionEditorElement(editor: HTMLInputElement, rect: DOMRect | null) {
@@ -220,51 +227,13 @@ function getSelectedNode(selection: RangeSelection) {
   }
 }
 
-type BlockOptionsDropdownProps = {
-  editor: LexicalEditor;
-  blockType: string;
-  toolbarRef: RefObject<HTMLDivElement>;
-  setShowBlockOptionsDropDown: Dispatch<SetStateAction<boolean>>;
-};
-
-function BlockOptionsDropdownList({
-  editor,
-  blockType,
-  toolbarRef,
-  setShowBlockOptionsDropDown,
-}: BlockOptionsDropdownProps) {
-  const dropDownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const toolbar = toolbarRef.current;
-    const dropDown = dropDownRef.current;
-
-    if (toolbar !== null && dropDown) {
-      const { top, left } = toolbar.getBoundingClientRect();
-      dropDown.style.top = `${top + 40}px`;
-      dropDown.style.left = `${left}px`;
-    }
-  }, [dropDownRef, toolbarRef]);
-
-  useEffect(() => {
-    const dropDown = dropDownRef.current;
-    const toolbar = toolbarRef.current;
-
-    if (dropDown && toolbar !== null) {
-      const handle = (event: any) => {
-        const target = event.target;
-
-        if (!dropDown.contains(target) && !toolbar.contains(target)) {
-          setShowBlockOptionsDropDown(false);
-        }
-      };
-      document.addEventListener("click", handle);
-
-      return () => {
-        document.removeEventListener("click", handle);
-      };
-    }
-  }, [dropDownRef, setShowBlockOptionsDropDown, toolbarRef]);
+export default function ToolbarPlugin(props: TextEditorProps) {
+  const [editor] = useLexicalComposerContext();
+  const toolbarRef = useRef(null);
+  const [blockType, setBlockType] = useState("paragraph");
+  const [isLink, setIsLink] = useState(false);
+  const [isBold, setIsBold] = useState(false);
+  const [isItalic, setIsItalic] = useState(false);
 
   const formatParagraph = () => {
     if (blockType !== "paragraph") {
@@ -276,7 +245,6 @@ function BlockOptionsDropdownList({
         }
       });
     }
-    setShowBlockOptionsDropDown(false);
   };
 
   const formatLargeHeading = () => {
@@ -289,7 +257,6 @@ function BlockOptionsDropdownList({
         }
       });
     }
-    setShowBlockOptionsDropDown(false);
   };
 
   const formatSmallHeading = () => {
@@ -302,7 +269,6 @@ function BlockOptionsDropdownList({
         }
       });
     }
-    setShowBlockOptionsDropDown(false);
   };
 
   const formatBulletList = () => {
@@ -311,7 +277,6 @@ function BlockOptionsDropdownList({
     } else {
       editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
     }
-    setShowBlockOptionsDropDown(false);
   };
 
   const formatNumberedList = () => {
@@ -320,48 +285,27 @@ function BlockOptionsDropdownList({
     } else {
       editor.dispatchCommand(REMOVE_LIST_COMMAND, undefined);
     }
-    setShowBlockOptionsDropDown(false);
   };
 
-  return (
-    <div className="dropdown" ref={dropDownRef}>
-      <button type="button" className="item" onClick={formatParagraph}>
-        <span className="icon paragraph" />
-        <span className="text">Normal</span>
-        {blockType === "paragraph" && <span className="active" />}
-      </button>
-      <button type="button" className="item" onClick={formatBulletList}>
-        <span className="icon bullet-list" />
-        <span className="text">Bullet List</span>
-        {blockType === "ul" && <span className="active" />}
-      </button>
-      <button type="button" className="item" onClick={formatNumberedList}>
-        <span className="icon numbered-list" />
-        <span className="text">Numbered List</span>
-        {blockType === "ol" && <span className="active" />}
-      </button>
-      <button type="button" className="item" onClick={formatLargeHeading}>
-        <span className="icon large-heading" />
-        <span className="text">Large Heading</span>
-        {blockType === "h1" && <span className="active" />}
-      </button>
-      <button type="button" className="item" onClick={formatSmallHeading}>
-        <span className="icon small-heading" />
-        <span className="text">Small Heading</span>
-        {blockType === "h2" && <span className="active" />}
-      </button>
-    </div>
-  );
-}
-
-export default function ToolbarPlugin(props: TextEditorProps) {
-  const [editor] = useLexicalComposerContext();
-  const toolbarRef = useRef(null);
-  const [blockType, setBlockType] = useState("paragraph");
-  const [showBlockOptionsDropDown, setShowBlockOptionsDropDown] = useState(false);
-  const [isLink, setIsLink] = useState(false);
-  const [isBold, setIsBold] = useState(false);
-  const [isItalic, setIsItalic] = useState(false);
+  const format = (newBlockType: string) => {
+    switch (newBlockType) {
+      case "paragraph":
+        formatParagraph();
+        break;
+      case "ul":
+        formatBulletList();
+        break;
+      case "ol":
+        formatNumberedList();
+        break;
+      case "h1":
+        formatLargeHeading();
+        break;
+      case "h2":
+        formatSmallHeading();
+        break;
+    }
+  };
 
   const updateToolbar = useCallback(() => {
     const selection = $getSelection();
@@ -408,10 +352,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
   useEffect(() => {
     editor.update(() => {
       const parser = new DOMParser();
-      const dom = parser.parseFromString(
-        props.form.getValues(`steps.${props.stepNumber - 1}.reminderBody`) || "",
-        "text/html"
-      );
+      const dom = parser.parseFromString(props.getText(), "text/html");
 
       const nodes = $generateNodesFromDOM(editor, dom);
 
@@ -421,8 +362,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
       editor.registerUpdateListener(({ editorState }) => {
         editorState.read(() => {
           const textInHtml = $generateHtmlFromNodes(editor);
-          props.form.setValue(`steps.${props.stepNumber - 1}.reminderBody`, textInHtml);
-          props.form.clearErrors();
+          props.setText(textInHtml);
         });
       });
     });
@@ -457,69 +397,94 @@ export default function ToolbarPlugin(props: TextEditorProps) {
   return (
     <div className="toolbar flex" ref={toolbarRef}>
       <>
-        {supportedBlockTypes.has(blockType) && (
+        {!props.excludedToolbarItems?.includes("blockType") && supportedBlockTypes.has(blockType) && (
           <>
-            <button
-              type="button"
-              className="toolbar-item block-controls"
-              onClick={() => setShowBlockOptionsDropDown(!showBlockOptionsDropDown)}
-              aria-label="Formatting Options">
-              <span className={"icon block-type " + blockType} />
-              <span className="text hidden sm:flex">
-                {blockTypeToBlockName[blockType as keyof BlockType]}
-              </span>
-              <Icon.FiChevronDown className="h-4 w-4" />
-            </button>
-            {showBlockOptionsDropDown &&
-              createPortal(
-                <BlockOptionsDropdownList
-                  editor={editor}
-                  blockType={blockType}
-                  toolbarRef={toolbarRef}
-                  setShowBlockOptionsDropDown={setShowBlockOptionsDropDown}
-                />,
-                document.body
-              )}
+            <Dropdown>
+              <DropdownMenuTrigger className="toolbar-item w-36 text-gray-500">
+                <>
+                  <span className={"icon block-type " + blockType} />
+                  <span className="text hidden text-gray-700 sm:flex">
+                    {blockTypeToBlockName[blockType as keyof BlockType]}
+                  </span>
+                  <Icon.FiChevronDown className="ml-2 h-4 w-4 text-gray-700" />
+                </>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {Object.keys(blockTypeToBlockName).map((key) => {
+                  return (
+                    <DropdownMenuItem key={key} className="outline-none hover:ring-0 focus:ring-0">
+                      <Button
+                        color="minimal"
+                        type="button"
+                        onClick={() => format(key)}
+                        className={classNames(
+                          "toolbar-item w-full focus:ring-0",
+                          blockType === key ? "w-full bg-gray-100" : ""
+                        )}>
+                        <>
+                          <span className={"icon block-type " + key} />
+                          <span>{blockTypeToBlockName[key]}</span>
+                        </>
+                      </Button>
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </Dropdown>
           </>
         )}
 
         <>
-          <button
-            type="button"
-            onClick={() => {
-              editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
-              if (isItalic) {
-                editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
-              }
-            }}
-            className={"toolbar-item spaced " + (isBold ? "active" : "")}
-            aria-label="Format Bold">
-            <i className="format bold" />
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
-              if (isBold) {
+          {!props.excludedToolbarItems?.includes("bold") && (
+            <button
+              type="button"
+              onClick={() => {
                 editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
-              }
-            }}
-            className={"toolbar-item spaced " + (isItalic ? "active" : "")}
-            aria-label="Format Italics">
-            <i className="format italic" />
-          </button>
-          <button
-            type="button"
-            onClick={insertLink}
-            className={"toolbar-item spaced " + (isLink ? "active" : "")}
-            aria-label="Insert Link">
-            <i className="format link" />
-          </button>
-          {isLink && createPortal(<FloatingLinkEditor editor={editor} />, document.body)}{" "}
+                if (isItalic) {
+                  editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
+                }
+              }}
+              className={"toolbar-item spaced " + (isBold ? "active" : "")}
+              aria-label="Format Bold">
+              <i className="format bold" />
+            </button>
+          )}
+          {!props.excludedToolbarItems?.includes("italic") && (
+            <button
+              type="button"
+              onClick={() => {
+                editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
+                if (isBold) {
+                  editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
+                }
+              }}
+              className={"toolbar-item spaced " + (isItalic ? "active" : "")}
+              aria-label="Format Italics">
+              <i className="format italic" />
+            </button>
+          )}
+          {!props.excludedToolbarItems?.includes("link") && (
+            <>
+              <button
+                type="button"
+                onClick={insertLink}
+                className={"toolbar-item spaced " + (isLink ? "active" : "")}
+                aria-label="Insert Link">
+                <i className="format link" />
+              </button>
+              {isLink && createPortal(<FloatingLinkEditor editor={editor} />, document.body)}{" "}
+            </>
+          )}
         </>
-        <div className="ml-auto">
-          <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} isTextEditor={true} />
-        </div>
+        {props.variables && (
+          <div className="ml-auto">
+            <AddVariablesDropdown
+              addVariable={addVariable}
+              isTextEditor={true}
+              variables={props.variables || []}
+            />
+          </div>
+        )}
       </>
     </div>
   );

@@ -187,7 +187,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       <div className="flex justify-items-center">
         <Label htmlFor="username">{t("username")}</Label>
       </div>
-      <div className="mt-2 flex rounded-md">
+      <div className="flex rounded-md">
         <span
           className={classNames(
             isInputUsernamePremium ? "border-1 border-orange-400 " : "",

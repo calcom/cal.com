@@ -14,6 +14,17 @@ test.describe("App Store - Authed", () => {
     await expect(page.locator(`text=Connect to Apple Server`)).toBeVisible();
     await pro.delete();
   });
+
+  test("Installed Apps - Navigation", async ({ page, users }) => {
+    const user = await users.create();
+    await user.login();
+    await page.goto("/apps/installed");
+    await page.waitForSelector('[data-testid="connect-calendar-apps"]');
+    await page.click('[data-testid="vertical-tab-payment"]');
+    await page.waitForSelector('[data-testid="connect-payment-apps"]');
+    await page.click('[data-testid="vertical-tab-automation"]');
+    await page.waitForSelector('[data-testid="connect-automation-apps"]');
+  });
 });
 
 test.describe("App Store - Unauthed", () => {
