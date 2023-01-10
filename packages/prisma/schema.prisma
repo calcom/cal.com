@@ -359,7 +359,7 @@ model EventTypeCustomInput {
   eventType   EventType                @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   label       String
   type        EventTypeCustomInputType
-  // @zod.custom(imports.customInputOptionSchema)
+  /// @zod.custom(imports.customInputOptionSchema)
   options     Json?
   required    Boolean
   placeholder String                   @default("")

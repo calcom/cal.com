@@ -15,8 +15,8 @@ import {
   EmptyScreen,
   Icon,
   List,
-  ShellSubHeading,
   AppSkeletonLoader as SkeletonLoader,
+  ShellSubHeading,
 } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -183,6 +183,7 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
                 buttonRaw={
                   <Button
                     color="secondary"
+                    data-testid={`connect-${variant || "other"}-apps`}
                     href={variant ? `/apps/categories/${variant}` : "/apps/categories/other"}>
                     {t(`connect_${variant || "other"}_apps`)}
                   </Button>
