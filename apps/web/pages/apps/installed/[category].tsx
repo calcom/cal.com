@@ -208,7 +208,15 @@ type querySchemaType = z.infer<typeof querySchema>;
 export default function InstalledApps() {
   const { t } = useLocale();
   const router = useRouter();
-  const category = router.query.category;
+  const category = router.query.category as querySchemaType["category"];
+  const categoryList: querySchemaType["category"][] = [
+    "payment",
+    "conferencing",
+    "automation",
+    "analytics",
+    "web3",
+  ];
+
   return (
     <InstalledAppsLayout heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
       {(category === InstalledAppVariants.payment || category === InstalledAppVariants.conferencing) && (
