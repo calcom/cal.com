@@ -3,7 +3,7 @@ import React, { PropsWithChildren, ReactNode } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Icon } from "../../components/icon";
+import { Icon } from "../icon";
 import { DialogClose, DialogContent } from "./Dialog";
 
 export type ConfirmationDialogContentProps = {
@@ -17,7 +17,7 @@ export type ConfirmationDialogContentProps = {
   variety?: "danger" | "warning" | "success";
 };
 
-export default function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
+export function ConfirmationDialogContent(props: PropsWithChildren<ConfirmationDialogContentProps>) {
   const { t } = useLocale();
   const {
     title,

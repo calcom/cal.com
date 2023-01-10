@@ -4,9 +4,7 @@ import { useEffect, useState } from "react";
 import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-
-import { showToast } from ".";
-import { Dialog, DialogClose, DialogContent, DialogFooter } from "../ui/v2";
+import { Dialog, DialogClose, DialogContent, DialogFooter, showToast } from "@calcom/ui";
 
 export default function TimezoneChangeDialog() {
   const { t } = useLocale();
