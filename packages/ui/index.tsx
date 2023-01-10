@@ -51,12 +51,26 @@ export {
   Alert,
   TrendingAppsSlider,
   AppCard,
+  Card,
   AllApps,
   AppSkeletonLoader,
   SkeletonLoader,
   AppStoreCategories,
   Slider,
+  Tooltip,
   useShouldShowArrows,
+  StepCard,
+  LinkIconButton,
+  Editor,
+  AddVariablesDropdown,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+  ConfirmationDialogContent,
+  showToast,
 } from "./components";
 export type {
   ActionType,
@@ -64,7 +78,10 @@ export type {
   AvatarProps,
   BadgeProps,
   ButtonBaseProps,
+  BaseCardProps,
   ButtonProps,
+  DialogProps,
+  ConfirmationDialogContentProps,
   ITimezone,
   ITimezoneOption,
   ListItemProps,
@@ -77,15 +94,12 @@ export { default as AddressInput } from "./form/AddressInputLazy";
 export { default as PhoneInput } from "./form/PhoneInputLazy";
 export { UnstyledSelect } from "./form/Select";
 export { default as Loader } from "./v2/core/Loader";
-export { default as TimezoneChangeDialog } from "./TimezoneChangeDialog";
 
 export {
   HorizontalTabs,
   SettingsToggle,
-  showToast,
   Swatch,
   Switch,
-  Card,
   VerticalTabs,
   HorizontalTabItem,
   VerticalTabItem,
@@ -94,16 +108,6 @@ export type { HorizontalTabItemProps, VerticalTabItemProps } from "./v2";
 export { default as Shell, ShellMain, MobileNavigationMoreItems, ShellSubHeading } from "./v2/core/Shell";
 
 export { default as ColorPicker } from "./v2/core/colorpicker";
-export { default as ConfirmationDialogContent } from "./v2/core/ConfirmationDialogContent";
-export {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTrigger,
-} from "./v2/core/Dialog";
-export type { DialogProps } from "./v2/core/Dialog";
 export {
   Dropdown,
   DropdownItem,
@@ -130,11 +134,8 @@ export { default as MultiSelectCheckboxes } from "./v2/core/form/MultiSelectChec
 export type { Option as MultiSelectCheckboxesOptionType } from "./v2/core/form/MultiSelectCheckboxes";
 export { ToggleGroup } from "./v2/core/form/ToggleGroup";
 export { default as ImageUploader } from "./v2/core/ImageUploader";
-export { default as LinkIconButton } from "./v2/core/LinkIconButton";
 export { default as MeetingTimeInTimezones } from "./v2/core/MeetingTimeInTimezones";
 export { default as Meta, MetaProvider, useMeta } from "./v2/core/Meta";
-export { StepCard } from "./v2/core/StepCard";
 export { default as Stepper } from "./v2/core/Stepper";
 export { Steps } from "./v2/core/Steps";
-export { Tooltip } from "./v2/core/Tooltip";
 export { default as WizardForm } from "./v2/core/WizardForm";

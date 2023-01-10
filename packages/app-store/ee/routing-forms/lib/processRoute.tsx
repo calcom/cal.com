@@ -2,9 +2,9 @@ import jsonLogic from "json-logic-js";
 import { Utils as QbUtils } from "react-awesome-query-builder";
 import { z } from "zod";
 
-import { getQueryBuilderConfig } from "../pages/route-builder/[...appPages]";
 import { Response, Route, SerializableForm } from "../types/types";
 import { zodNonRouterRoute } from "../zod";
+import { getQueryBuilderConfig } from "./getQueryBuilderConfig";
 import { isFallbackRoute } from "./isFallbackRoute";
 import isRouter from "./isRouter";
 import { App_RoutingForms_Form } from ".prisma/client";

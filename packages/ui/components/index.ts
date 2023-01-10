@@ -3,7 +3,7 @@ export type { AvatarProps } from "./avatar";
 export { Badge } from "./badge";
 export type { BadgeProps } from "./badge";
 export { Breadcrumb, BreadcrumbContainer, BreadcrumbItem } from "./breadcrumb";
-export { Button } from "./button";
+export { Button, LinkIconButton } from "./button";
 export type { ButtonBaseProps, ButtonProps } from "./button";
 export { ButtonGroup } from "./buttonGroup";
 export {
@@ -56,3 +56,18 @@ export { List, ListItem, ListItemText, ListItemTitle, ListLinkItem } from "./lis
 export type { ListItemProps, ListProps } from "./list";
 export { HeadSeo } from "./head-seo";
 export { Skeleton, SkeletonAvatar, SkeletonButton, SkeletonContainer, SkeletonText } from "./skeleton";
+export { Card, StepCard } from "./card";
+export type { BaseCardProps } from "./card";
+export { Tooltip } from "./tooltip";
+export { Editor, AddVariablesDropdown } from "./editor";
+export {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+  ConfirmationDialogContent,
+} from "./dialog";
+export type { DialogProps, ConfirmationDialogContentProps } from "./dialog";
+export { showToast } from "./toast"; // We don't export the toast components as they are only used in local storybook file
