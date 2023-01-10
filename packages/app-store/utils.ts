@@ -116,9 +116,12 @@ export function getLocationGroupedOptions(integrations: ReturnType<typeof getApp
   for (const category in apps) {
     const tmp = { label: category, options: apps[category] };
     if (tmp.label === "in person") {
-      tmp.options.map((l) => ({ ...l, label: t(l.value) }));
+      tmp.options = tmp.options.map((l) => ({
+        ...l,
+        label: t(l.label),
+      }));
     } else {
-      tmp.options.map((l) => ({
+      tmp.options = tmp.options.map((l) => ({
         ...l,
         label: t(l.label.toLowerCase().split(" ").join("_")),
       }));
