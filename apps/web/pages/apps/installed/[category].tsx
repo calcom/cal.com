@@ -219,22 +219,10 @@ export default function InstalledApps() {
 
   return (
     <InstalledAppsLayout heading={t("installed_apps")} subtitle={t("manage_your_connected_apps")}>
-      {(category === InstalledAppVariants.payment || category === InstalledAppVariants.conferencing) && (
-        <IntegrationsContainer variant={category} />
-      )}
-      {(category === InstalledAppVariants.automation || category === InstalledAppVariants.analytics) && (
-        <IntegrationsContainer variant={category} />
-      )}
-      {category === InstalledAppVariants.calendar && <CalendarListContainer />}
-      {category === InstalledAppVariants.other && (
-        <IntegrationsContainer
-          exclude={[
-            InstalledAppVariants.conferencing,
-            InstalledAppVariants.calendar,
-            InstalledAppVariants.analytics,
-            InstalledAppVariants.automation,
-          ]}
-        />
+      {categoryList.includes(category) && <IntegrationsContainer variant={category} />}
+      {category === "calendar" && <CalendarListContainer />}
+      {category === "other" && (
+        <IntegrationsContainer variant={category} exclude={[...categoryList, "calendar"]} />
       )}
     </InstalledAppsLayout>
   );
