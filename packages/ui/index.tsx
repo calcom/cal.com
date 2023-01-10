@@ -81,6 +81,7 @@ export {
   ToggleGroup,
   ToggleGroupItem,
   showToast,
+  ShellSubHeading,
   DatePicker as DatePickerField,
   FormCard,
   FormStep,

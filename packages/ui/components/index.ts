@@ -111,3 +111,4 @@ export type { DialogProps, ConfirmationDialogContentProps } from "./dialog";
 export { showToast } from "./toast"; // We don't export the toast components as they are only used in local storybook file
 export { Meta, MetaProvider, useMeta } from "./meta";
 export { Swatch } from "./swatch";
+export { ShellSubHeading } from "./layout";
