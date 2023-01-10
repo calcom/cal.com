@@ -94,3 +94,4 @@ const SkeletonContainer: React.FC<SkeletonContainer> = ({ children, as, classNam
 };
 
 export { Skeleton, SkeletonAvatar, SkeletonText, SkeletonButton, SkeletonContainer };
+export { default as Loader } from "./Loader";

@@ -1,7 +1,8 @@
 import dayjs from "@calcom/dayjs";
+import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-import { Shell, SkeletonText } from "@calcom/ui";
+import { SkeletonText } from "@calcom/ui";
 
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 

@@ -13,13 +13,14 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
-import { Alert, Button, Form, Shell, showToast } from "@calcom/ui";
+import { Alert, Button, Form, showToast } from "@calcom/ui";
 
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
