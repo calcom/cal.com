@@ -51,16 +51,20 @@ export {
   Alert,
   TrendingAppsSlider,
   AppCard,
+  Card,
   AllApps,
   AppSkeletonLoader,
   SkeletonLoader,
   AppStoreCategories,
   Slider,
+  Tooltip,
   useShouldShowArrows,
   HorizontalTabs,
   HorizontalTabItem,
   VerticalTabs,
   VerticalTabItem,
+  StepCard,
+  LinkIconButton,
   Editor,
   AddVariablesDropdown,
   Dialog,
@@ -85,6 +89,7 @@ export type {
   AvatarProps,
   BadgeProps,
   ButtonBaseProps,
+  BaseCardProps,
   ButtonProps,
   DialogProps,
   ConfirmationDialogContentProps,
@@ -104,7 +109,7 @@ export { default as PhoneInput } from "./form/PhoneInputLazy";
 export { UnstyledSelect } from "./form/Select";
 export { default as Loader } from "./v2/core/Loader";
 
-export { SettingsToggle, Swatch, Switch, Card } from "./v2";
+export { SettingsToggle, Swatch, Switch } from "./v2";
 export { default as Shell, ShellMain, MobileNavigationMoreItems, ShellSubHeading } from "./v2/core/Shell";
 
 export { default as ColorPicker } from "./v2/core/colorpicker";
@@ -131,11 +136,8 @@ export { default as FormCard } from "./v2/core/form/FormCard";
 export { default as MultiSelectCheckboxes } from "./components/form/checkbox/MultiSelectCheckboxes";
 export type { Option as MultiSelectCheckboxesOptionType } from "./components/form/checkbox/MultiSelectCheckboxes";
 export { default as ImageUploader } from "./v2/core/ImageUploader";
-export { default as LinkIconButton } from "./v2/core/LinkIconButton";
 export { default as MeetingTimeInTimezones } from "./v2/core/MeetingTimeInTimezones";
 export { default as Meta, MetaProvider, useMeta } from "./v2/core/Meta";
-export { StepCard } from "./v2/core/StepCard";
 export { default as Stepper } from "./v2/core/Stepper";
 export { Steps } from "./v2/core/Steps";
-export { Tooltip } from "./v2/core/Tooltip";
 export { default as WizardForm } from "./v2/core/WizardForm";

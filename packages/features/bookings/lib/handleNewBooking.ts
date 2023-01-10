@@ -14,7 +14,9 @@ import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
+import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
+import { MeetLocationType } from "@calcom/app-store/locations";
 import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
 import { handlePayment } from "@calcom/app-store/stripepayment/lib/server";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
@@ -911,6 +913,38 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       const metadata: AdditionalInformation = {};
 
       if (results.length) {
+        // Handle Google Meet results
+        // We use the original booking location since the evt location changes to daily
+        if (bookingLocation === MeetLocationType) {
+          const googleMeetResult = {
+            appName: GoogleMeetMetadata.name,
+            type: "conferencing",
+            uid: results[0].uid,
+            originalEvent: results[0].originalEvent,
+          };
+
+          const googleCalResult = results.find((result) => result.type === "google_calendar");
+
+          if (!googleCalResult) {
+            results.push({
+              ...googleMeetResult,
+              success: false,
+              calWarnings: [tOrganizer("google_meet_warning")],
+            });
+          }
+
+          if (googleCalResult?.createdEvent?.hangoutLink) {
+            results.push({
+              ...googleMeetResult,
+              success: true,
+            });
+          } else if (googleCalResult && !googleCalResult.createdEvent?.hangoutLink) {
+            results.push({
+              ...googleMeetResult,
+              success: false,
+            });
+          }
+        }
         // TODO: Handle created event metadata more elegantly
         metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
         metadata.conferenceData = results[0].createdEvent?.conferenceData;

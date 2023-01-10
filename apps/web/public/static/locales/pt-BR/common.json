@@ -511,7 +511,7 @@
   "add_team_members_description": "Convidar outros para se juntar à sua equipe",
   "add_team_member": "Adicionar membro da equipe",
   "invite_new_member": "Convidar um novo membro",
-  "invite_new_member_description": "Observação: isso <1>custará um assento extra ($15/m)</1> na sua assinatura.",
+  "invite_new_member_description": "Observação: isso <1>custará um lugar extra ($15/m)</1> na sua assinatura.",
   "invite_new_team_member": "Convidar alguém para seu time.",
   "change_member_role": "Alterar função de membro da equipe",
   "disable_cal_branding": "Remover a marca {{appName}}",

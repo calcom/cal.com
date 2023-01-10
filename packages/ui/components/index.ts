@@ -3,7 +3,7 @@ export type { AvatarProps } from "./avatar";
 export { Badge } from "./badge";
 export type { BadgeProps } from "./badge";
 export { Breadcrumb, BreadcrumbContainer, BreadcrumbItem } from "./breadcrumb";
-export { Button } from "./button";
+export { Button, LinkIconButton } from "./button";
 export type { ButtonBaseProps, ButtonProps } from "./button";
 export { ButtonGroup } from "./buttonGroup";
 export {
@@ -66,6 +66,9 @@ export { HeadSeo } from "./head-seo";
 export { Skeleton, SkeletonAvatar, SkeletonButton, SkeletonContainer, SkeletonText } from "./skeleton";
 export { HorizontalTabs, HorizontalTabItem, VerticalTabs, VerticalTabItem } from "./navigation";
 export type { HorizontalTabItemProps, NavTabProps, VerticalTabItemProps } from "./navigation";
+export { Card, StepCard } from "./card";
+export type { BaseCardProps } from "./card";
+export { Tooltip } from "./tooltip";
 export { Editor, AddVariablesDropdown } from "./editor";
 export {
   Dialog,

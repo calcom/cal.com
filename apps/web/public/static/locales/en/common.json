@@ -1456,6 +1456,7 @@
   "enter_option": "Enter Option {{index}}",
   "add_an_option": "Add an option",
   "radio": "Radio",
+  "google_meet_warning": "In order to use Google Meet you must set your destination calendar to a Google Calendar",
   "individual":"Individual",
   "all_bookings_filter_label":"All Bookings",
   "all_users_filter_label":"All Users",
@@ -1490,5 +1491,11 @@
   "disable_success_page":"Disable Success Page (only works if you have a redirect URL)",
   "invalid_admin_password": "You are set as an admin but you do not have a password length of at least 15 characters",
   "change_password_admin": "Change Password to gain admin access",
-  "username_already_taken": "Username is already taken"
+  "username_already_taken": "Username is already taken",
+  "requires_google_calendar": "This app requires a Google Calendar connection",
+  "connected_google_calendar": "You have connected a Google Calendar account.",
+  "using_meet_requires_calendar": "Using Google Meet requires a connected Google Calendar",
+  "continue_to_install_google_calendar": "Continue to install Google Calendar",
+  "install_google_meet": "Install Google Meet",
+  "install_google_calendar": "Install Google Calendar"
 }

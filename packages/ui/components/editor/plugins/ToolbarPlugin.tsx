@@ -418,8 +418,8 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                         type="button"
                         onClick={() => format(key)}
                         className={classNames(
-                          "toolbar-item w-full focus:ring-0",
-                          blockType === key ? "w-full bg-gray-100" : ""
+                          "toolbar-item  w-full rounded-none focus:ring-0",
+                          blockType === key ? "w-full  bg-gray-100" : ""
                         )}>
                         <>
                           <span className={"icon block-type " + key} />
@@ -444,7 +444,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                   editor.dispatchCommand(FORMAT_TEXT_COMMAND, "italic");
                 }
               }}
-              className={"toolbar-item spaced " + (isBold ? "active" : "")}
+              className={"toolbar-item spaced rounded-md " + (isBold ? "active" : "")}
               aria-label="Format Bold">
               <i className="format bold" />
             </button>
@@ -458,7 +458,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
                   editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold");
                 }
               }}
-              className={"toolbar-item spaced " + (isItalic ? "active" : "")}
+              className={"toolbar-item spaced rounded-md " + (isItalic ? "active" : "")}
               aria-label="Format Italics">
               <i className="format italic" />
             </button>
@@ -468,7 +468,7 @@ export default function ToolbarPlugin(props: TextEditorProps) {
               <button
                 type="button"
                 onClick={insertLink}
-                className={"toolbar-item spaced " + (isLink ? "active" : "")}
+                className={"toolbar-item spaced rounded-md " + (isLink ? "active" : "")}
                 aria-label="Insert Link">
                 <i className="format link" />
               </button>
