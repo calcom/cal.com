@@ -46,17 +46,19 @@ export default function Apps({ categories, appStore }: inferSSRProps<typeof getS
         <AppsSearch className={className} onChange={(e) => setSearchText(e.target.value)} />
       )}
       emptyStore={!appStore.length}>
-      {!searchText && (
-        <>
-          <AppStoreCategories categories={categories} />
-          <TrendingAppsSlider items={appStore} />
-        </>
-      )}
-      <AllApps
-        apps={appStore}
-        searchText={searchText}
-        categories={categories.map((category) => category.name)}
-      />
+      <div className="flex flex-col gap-y-8">
+        {!searchText && (
+          <>
+            <AppStoreCategories categories={categories} />
+            <TrendingAppsSlider items={appStore} />
+          </>
+        )}
+        <AllApps
+          apps={appStore}
+          searchText={searchText}
+          categories={categories.map((category) => category.name)}
+        />
+      </div>
     </AppsLayout>
   );
 }
