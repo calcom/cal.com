@@ -6,7 +6,7 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SVGComponent } from "@calcom/types/SVGComponent";
 
-import { SkeletonText } from "../../../../components/skeleton";
+import { SkeletonText } from "../../skeleton";
 
 export type HorizontalTabItemProps = {
   name: string;

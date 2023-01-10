@@ -1,7 +1,7 @@
 import React, { ComponentProps } from "react";
 
 import { HorizontalTabs, Shell } from "@calcom/ui";
-import { VerticalTabItemProps, HorizontalTabItemProps } from "@calcom/ui/v2";
+import { VerticalTabItemProps, HorizontalTabItemProps } from "@calcom/ui";
 
 import { FiltersContainer } from "../components/FiltersContainer";
 
