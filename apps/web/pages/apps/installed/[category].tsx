@@ -92,8 +92,8 @@ function ConnectOrDisconnectIntegrationButton(props: {
 }
 
 interface IntegrationsContainerProps {
-  variant?: keyof typeof InstalledAppVariants;
-  exclude?: (keyof typeof InstalledAppVariants)[];
+  variant?: typeof InstalledAppVariants[number];
+  exclude?: typeof InstalledAppVariants[number][];
 }
 
 interface IntegrationsListProps {
@@ -200,8 +200,10 @@ const IntegrationsContainer = ({ variant, exclude }: IntegrationsContainerProps)
 };
 
 const querySchema = z.object({
-  category: z.nativeEnum(InstalledAppVariants),
+  category: z.enum(InstalledAppVariants),
 });
+
+type querySchemaType = z.infer<typeof querySchema>;
 
 export default function InstalledApps() {
   const { t } = useLocale();
