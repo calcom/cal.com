@@ -1,5 +1,5 @@
 import { Trans } from "next-i18next";
-import { useState } from "react";
+import Link from "next/link";
 
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -8,17 +8,7 @@ import { Icon, SkeletonText } from "@calcom/ui";
 
 const ExistingGoogleCal = () => {
   const { t } = useLocale();
-  const [firstGoogleCal, setFirstGoogleCal] = useState<string | undefined>();
-
-  const query = trpc.viewer.appsRouter.checkForGCal.useQuery(undefined, {
-    // onSuccess: (data) => {
-    //   const googleCalQuery = data?.connectedCalendars.find(
-    //     (calendar) => calendar.primary?.integration === "google_calendar"
-    //   );
-    //   if (googleCalQuery?.primary) setFirstGoogleCal(googleCalQuery.primary?.externalId);
-    // },
-  });
-  console.log("🚀 ~ file: ExistingGoogleCal.tsx:21 ~ ExistingGoogleCal ~ query", query);
+  const { isLoading, data: hasGoogleCal } = trpc.viewer.appsRouter.checkForGCal.useQuery();
 
   return (
     <div className="rounded-md bg-blue-100 py-3 px-4 text-blue-900">
@@ -30,16 +20,16 @@ const ExistingGoogleCal = () => {
           <span className="font-semibold">{t("requires_google_calendar")}</span>
           <div>
             <>
-              {query.isLoading ? (
+              {isLoading ? (
                 <SkeletonText className="h-4 w-full" />
-              ) : firstGoogleCal ? (
-                t("connected_google_calendar", { account: firstGoogleCal })
+              ) : hasGoogleCal ? (
+                t("connected_google_calendar")
               ) : (
                 <Trans i18nKey="no_google_calendar">
                   Please connect your Google Calendar account{" "}
-                  <a href={`${CAL_URL}/apps/google-calendar`} className="font-semibold text-blue-900">
+                  <Link href={`${CAL_URL}/apps/google-calendar`} className="font-semibold text-blue-900">
                     here
-                  </a>
+                  </Link>
                 </Trans>
               )}
             </>

@@ -269,7 +269,7 @@ export const appsRouter = router({
       });
     }),
   checkForGCal: authedProcedure.query(async ({ ctx }) => {
-    const gCalPresent = ctx.prisma.credential.findFirst({
+    const gCalPresent = await ctx.prisma.credential.findFirst({
       where: {
         type: "google_calendar",
         userId: ctx.user.id,

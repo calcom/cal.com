@@ -1493,7 +1493,7 @@
   "change_password_admin": "Change Password to gain admin access",
   "username_already_taken": "Username is already taken",
   "requires_google_calendar": "This app requires a Google Calendar connection",
-  "connected_google_calendar": "You have connected your {{account}} account.",
+  "connected_google_calendar": "You have connected a Google Calendar account.",
   "using_meet_requires_calendar": "Using Google Meet requires a connected Google Calendar",
   "continue_to_install_google_calendar": "Continue to install Google Calendar",
   "install_google_meet": "Install Google Meet",

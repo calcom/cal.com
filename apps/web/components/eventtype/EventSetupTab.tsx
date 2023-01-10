@@ -3,18 +3,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { MultiValue } from "react-select";
 import { z } from "zod";
 
-import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
-import { MeetLocationType } from "@calcom/app-store/locations";
+import { EventLocationType, getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon, Label, Select, Skeleton, TextField, SettingsToggle } from "@calcom/ui";
+import { Button, Icon, Label, Select, SettingsToggle, Skeleton, TextField } from "@calcom/ui";
 
 import { slugify } from "@lib/slugify";
 
@@ -117,7 +115,6 @@ export const EventSetupTab = (
 
   const Locations = () => {
     const { t } = useLocale();
-    const router = useRouter();
 
     const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
