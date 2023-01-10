@@ -1493,8 +1493,8 @@
   "username_already_taken": "Username is already taken",
   "distribution_method_title": "Round-Robin Distribution",
   "distribution_method_description": "Choose what happens if multiple team members are available.",
-  "optimise_for_fairness": "Optimize for Fairness",
+  "optimise_for_fairness": "Optimize for fairness",
   "optimise_for_fairness_description": "The member with the least number of bookings for this event type will be booked.",
-  "optimise_for_availability": "Optimize for Availability",
+  "optimise_for_availability": "Optimize for availability",
   "optimise_for_availability_description": "The booking will be assigned to the member least recently booked."
 }
