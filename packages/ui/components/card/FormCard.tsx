@@ -2,9 +2,9 @@ import Link from "next/link";
 
 import { classNames } from "@calcom/lib";
 
-import { Icon } from "../../..";
-import { Badge, BadgeProps } from "../../../components";
-import { Divider } from "../../../components/divider";
+import { Badge, BadgeProps } from "..";
+import { Icon } from "../..";
+import { Divider } from "../divider";
 
 type Action = { check: () => boolean; fn: () => void };
 export default function FormCard({

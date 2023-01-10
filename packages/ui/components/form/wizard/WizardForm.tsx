@@ -3,7 +3,7 @@ import { ComponentProps } from "react";
 
 import classNames from "@calcom/lib/classNames";
 
-import { Button, Stepper } from "../..";
+import { Button, Stepper } from "../../..";
 
 type DefaultStep = {
   title: string;

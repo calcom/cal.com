@@ -13,10 +13,10 @@ import {
   EmptyScreen,
   Icon,
   List,
-  ShellSubHeading,
   showToast,
   AppSkeletonLoader as SkeletonLoader,
   Switch,
+  ShellSubHeading,
 } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";

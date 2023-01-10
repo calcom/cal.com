@@ -1,9 +1,10 @@
 import { GetServerSidePropsContext } from "next";
 
 import { TeamsListing } from "@calcom/features/ee/teams/components";
+import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon, Shell } from "@calcom/ui";
+import { Button, Icon } from "@calcom/ui";
 
 import { ssrInit } from "@server/lib/ssr";
 

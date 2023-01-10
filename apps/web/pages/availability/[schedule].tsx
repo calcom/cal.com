@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import Schedule from "@calcom/features/schedules/components/Schedule";
+import Shell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -16,7 +17,6 @@ import {
   Form,
   Icon,
   Label,
-  Shell,
   showToast,
   Skeleton,
   SkeletonText,
