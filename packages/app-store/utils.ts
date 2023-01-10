@@ -121,7 +121,7 @@ export function getLocationGroupedOptions(integrations: ReturnType<typeof getApp
         label: t(l.label),
       }));
     } else {
-      tmp.options = tmp.options.map((l) => ({
+      tmp.options.map((l) => ({
         ...l,
         label: t(l.label.toLowerCase().split(" ").join("_")),
       }));
