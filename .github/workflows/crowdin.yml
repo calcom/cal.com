@@ -22,6 +22,7 @@ jobs:
           upload_translations: true
           download_translations: true
         env:
+          # So required checks run on Crowdin PRs
           GITHUB_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
