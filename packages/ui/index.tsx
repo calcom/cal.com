@@ -109,6 +109,7 @@ export {
   MetaProvider,
   useMeta,
   Swatch,
+  Logo,
 } from "./components";
 export type {
   ActionType,
@@ -134,8 +135,6 @@ export { default as CheckboxField } from "./components/form/checkbox/Checkbox";
 export { default as AddressInput } from "./form/AddressInputLazy";
 export { default as PhoneInput } from "./form/PhoneInputLazy";
 export { UnstyledSelect } from "./form/Select";
-
-export { default as Shell, ShellMain, MobileNavigationMoreItems, ShellSubHeading } from "./v2/core/Shell";
 
 export {
   RadioGroup,

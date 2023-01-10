@@ -24,7 +24,6 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
-
 import {
   Button,
   Dropdown,
@@ -34,12 +33,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   showToast,
-} from "../..";
-import { Logo, ErrorBoundary } from "../../components";
-import { Credits } from "../../components/credits";
-import { HeadSeo } from "../../components/head-seo";
-import { Icon } from "../../components/icon";
-import { SkeletonText } from "../../components/skeleton";
+  Logo,
+  ErrorBoundary,
+  Credits,
+  HeadSeo,
+  Icon,
+  SkeletonText,
+} from "@calcom/ui";
 
 /* TODO: Migate this */
 
