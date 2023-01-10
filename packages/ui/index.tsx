@@ -81,7 +81,36 @@ export {
   ToggleGroup,
   ToggleGroupItem,
   showToast,
+  ShellSubHeading,
   DatePicker as DatePickerField,
+  FormCard,
+  FormStep,
+  ColorPicker,
+  Dropdown,
+  DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuPortal,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+  DropdownMenuGroup,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTriggerItem,
+  WizardForm,
+  Stepper,
+  Steps,
+  Switch,
+  SettingsToggle,
+  MeetingTimeInTimezones,
+  Loader,
+  Meta,
+  MetaProvider,
+  useMeta,
+  Swatch,
+  Logo,
 } from "./components";
 export type {
   ActionType,
@@ -107,22 +136,7 @@ export { default as CheckboxField } from "./components/form/checkbox/Checkbox";
 export { default as AddressInput } from "./form/AddressInputLazy";
 export { default as PhoneInput } from "./form/PhoneInputLazy";
 export { UnstyledSelect } from "./form/Select";
-export { default as Loader } from "./v2/core/Loader";
 
-export { SettingsToggle, Swatch, Switch } from "./v2";
-export { default as Shell, ShellMain, MobileNavigationMoreItems, ShellSubHeading } from "./v2/core/Shell";
-
-export { default as ColorPicker } from "./v2/core/colorpicker";
-export {
-  Dropdown,
-  DropdownItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "./v2/core/Dropdown";
 export {
   RadioGroup,
   /* TODO: solve this conflict -> Select, */
@@ -131,13 +145,6 @@ export {
   RadioField,
 } from "./form/radio-area";
 
-export {} from "./components/form/date-range-picker";
-export { default as FormCard } from "./v2/core/form/FormCard";
 export { default as MultiSelectCheckboxes } from "./components/form/checkbox/MultiSelectCheckboxes";
 export type { Option as MultiSelectCheckboxesOptionType } from "./components/form/checkbox/MultiSelectCheckboxes";
-export { default as ImageUploader } from "./v2/core/ImageUploader";
-export { default as MeetingTimeInTimezones } from "./v2/core/MeetingTimeInTimezones";
-export { default as Meta, MetaProvider, useMeta } from "./v2/core/Meta";
-export { default as Stepper } from "./v2/core/Stepper";
-export { Steps } from "./v2/core/Steps";
-export { default as WizardForm } from "./v2/core/WizardForm";
+export { default as ImageUploader } from "./components/image-uploader/ImageUploader";

@@ -4,7 +4,7 @@ import Cropper from "react-easy-crop";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Button, Dialog, DialogClose, DialogContent, DialogTrigger } from "../../";
+import { Button, Dialog, DialogClose, DialogContent, DialogTrigger } from "../..";
 
 type ReadAsMethod = "readAsText" | "readAsDataURL" | "readAsArrayBuffer" | "readAsBinaryString";
 
