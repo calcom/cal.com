@@ -15,8 +15,7 @@ import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
-
-import { Icon, Tooltip } from "../../";
+import { Icon, Tooltip } from "@calcom/ui";
 
 type shortcutArrayType = {
   shortcuts?: string[];

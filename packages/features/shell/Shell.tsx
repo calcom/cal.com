@@ -12,6 +12,7 @@ import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseReq
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
+import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
 import { Tips } from "@calcom/features/tips";
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
@@ -23,7 +24,6 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
-
 import {
   Button,
   Dropdown,
@@ -33,13 +33,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   showToast,
-} from "../..";
-import { Logo, ErrorBoundary } from "../../components";
-import { Credits } from "../../components/credits";
-import { HeadSeo } from "../../components/head-seo";
-import { Icon } from "../../components/icon";
-import { SkeletonText } from "../../components/skeleton";
-import { KBarContent, KBarRoot, KBarTrigger } from "./Kbar";
+  Logo,
+  ErrorBoundary,
+  Credits,
+  HeadSeo,
+  Icon,
+  SkeletonText,
+} from "@calcom/ui";
 
 /* TODO: Migate this */
 
@@ -101,25 +101,6 @@ function useRedirectToOnboardingIfNeeded() {
   return {
     isRedirectingToOnboarding,
   };
-}
-
-export function ShellSubHeading(props: {
-  title: ReactNode;
-  subtitle?: ReactNode;
-  actions?: ReactNode;
-  className?: string;
-}) {
-  return (
-    <header className={classNames("mb-3 block justify-between sm:flex", props.className)}>
-      <div>
-        <h2 className="flex content-center items-center space-x-2 text-base font-bold leading-6 text-gray-900 rtl:space-x-reverse">
-          {props.title}
-        </h2>
-        {props.subtitle && <p className="text-sm text-neutral-500 ltr:mr-4">{props.subtitle}</p>}
-      </div>
-      {props.actions && <div className="mt-2 flex-shrink-0 sm:mt-0">{props.actions}</div>}
-    </header>
-  );
 }
 
 const Layout = (props: LayoutProps) => {

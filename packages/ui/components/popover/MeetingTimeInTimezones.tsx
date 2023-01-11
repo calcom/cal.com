@@ -7,7 +7,7 @@ import {
   sortByTimezone,
 } from "@calcom/lib/date-fns";
 
-import { Icon } from "../../components/icon";
+import { Icon } from "../icon";
 import { Attendee } from ".prisma/client";
 
 interface MeetingTimeInTimezonesProps {
