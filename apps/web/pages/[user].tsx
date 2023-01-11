@@ -26,12 +26,11 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { Icon, HeadSeo } from "@calcom/ui";
+import { Icon, HeadSeo, AvatarGroup } from "@calcom/ui";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EmbedProps } from "@lib/withEmbedSsr";
 
-import AvatarGroup from "@components/ui/AvatarGroup";
 import { AvatarSSR } from "@components/ui/AvatarSSR";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -69,10 +68,9 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
             </div>
             <div className="mt-1 self-center">
               <AvatarGroup
-                border="border-2 border-white dark:border-darkgray-100"
                 truncateAfter={4}
                 className="flex flex-shrink-0"
-                size={10}
+                size="sm"
                 items={props.users.map((user) => ({
                   alt: user.name || "",
                   image: user.avatar || "",
