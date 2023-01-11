@@ -130,6 +130,7 @@ export type {
   NavTabProps,
   HorizontalTabItemProps,
   VerticalTabItemProps,
+  AvatarGroupProps,
 } from "./components";
 export { default as CheckboxField } from "./components/form/checkbox/Checkbox";
 /** ⬇️ TODO - Move these to components */
