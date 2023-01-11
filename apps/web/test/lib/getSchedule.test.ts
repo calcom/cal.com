@@ -899,6 +899,7 @@ describe("getSchedule", () => {
           {
             id: 1,
             slotInterval: 45,
+            length: 45,
             users: [
               {
                 id: 101,
@@ -912,6 +913,7 @@ describe("getSchedule", () => {
           {
             id: 2,
             slotInterval: 45,
+            length: 45,
             users: [
               {
                 id: 102,
@@ -986,7 +988,6 @@ describe("getSchedule", () => {
           `10:00:00.000Z`,
           `10:45:00.000Z`,
           `11:30:00.000Z`,
-          `12:15:00.000Z`,
         ],
         { dateString: plus2DateString }
       );
@@ -1015,7 +1016,6 @@ describe("getSchedule", () => {
           `10:00:00.000Z`,
           `10:45:00.000Z`,
           `11:30:00.000Z`,
-          `12:15:00.000Z`,
         ],
         { dateString: plus3DateString }
       );
