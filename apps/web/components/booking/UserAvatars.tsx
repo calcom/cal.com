@@ -1,6 +1,5 @@
 import { CAL_URL } from "@calcom/lib/constants";
-import { AvatarGroup } from "@calcom/ui";
-import { AvatarGroupProps } from "@calcom/ui/components/avatar/AvatarGroup";
+import { AvatarGroup, AvatarGroupProps } from "@calcom/ui";
 
 export const UserAvatars = ({
   profile,
