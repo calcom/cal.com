@@ -310,6 +310,7 @@ describe("getSchedule", () => {
           "10:00:00.000Z",
           "10:45:00.000Z",
           "11:30:00.000Z",
+          "12:15:00.000Z",
         ],
         {
           dateString: plus2DateString,
@@ -341,6 +342,7 @@ describe("getSchedule", () => {
           "10:00:00.000Z",
           "10:45:00.000Z",
           "11:30:00.000Z",
+          "12:15:00.000Z",
         ],
         {
           dateString: plus3DateString,
@@ -856,6 +858,7 @@ describe("getSchedule", () => {
           `10:00:00.000Z`,
           `10:45:00.000Z`,
           `11:30:00.000Z`,
+          `12:15:00.000Z`,
         ],
         {
           dateString: plus1DateString,
@@ -887,6 +890,7 @@ describe("getSchedule", () => {
           `10:00:00.000Z`,
           `10:45:00.000Z`,
           `11:30:00.000Z`,
+          `12:15:00.000Z`,
         ],
         { dateString: plus2DateString }
       );
@@ -990,6 +994,7 @@ describe("getSchedule", () => {
           `10:00:00.000Z`,
           `10:45:00.000Z`,
           `11:30:00.000Z`,
+          `12:15:00.000Z`,
         ],
         { dateString: plus2DateString }
       );
@@ -1018,6 +1023,7 @@ describe("getSchedule", () => {
           `10:00:00.000Z`,
           `10:45:00.000Z`,
           `11:30:00.000Z`,
+          `12:15:00.000Z`,
         ],
         { dateString: plus3DateString }
       );
@@ -1080,7 +1086,6 @@ function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   prismaMock.eventType.findUnique.mockImplementation(({ where }) => {
-    console.log("eventTypesWithUsers", eventTypesWithUsers);
     return new Promise((resolve) => {
       const eventType = eventTypesWithUsers.find((e) => e.id === where.id) as unknown as PrismaEventType & {
         users: PrismaUser[];
@@ -1208,7 +1213,6 @@ const getDate = (param: { dateIncrement?: number; monthIncrement?: number; yearI
   const date = _date < 10 ? "0" + _date : _date;
   const month = _month < 10 ? "0" + _month : _month;
 
-  console.log(`Date, month, year for ${JSON.stringify(param)}`, date, month, year);
   return {
     date,
     month,
