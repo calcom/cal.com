@@ -1,0 +1,35 @@
+import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
+import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable,VariantRow } from '@calcom/storybook/components'
+import { TooltipProvider } from "@radix-ui/react-tooltip";
+import Tooltip from './Tooltip';
+
+<Meta title="UI/Tooltip" component={Tooltip} />
+
+<Title title="Tooltip" suffix="Brief" subtitle="Version 2.0 — Last Update: 06 Jan 2023"/>
+
+## Definition
+Tooltip components can be used to provide additional information about an element when the user hovers over or focuses on the element.
+
+<CustomArgsTable of={Tooltip} />
+
+
+
+<Canvas>
+  <Story name="Tooltip">
+    <TooltipProvider>
+      <VariantsTable titles={['']} columnMinWidth={150}>
+        <VariantRow variant="Default">
+          <Tooltip content="Copy to clipboard">
+            <span
+              className="dark:text-darkgray-50 p-2 bg-brand-500 rounded-md text-gray-100 dark:bg-darkgray-900 hover:cursor-pointer"
+              onClick={() => {
+                alert('Copied!');
+              }}>
+              Hover Me
+            </span>
+          </Tooltip>
+        </VariantRow>
+      </VariantsTable>
+    </TooltipProvider>
+  </Story>
+</Canvas>

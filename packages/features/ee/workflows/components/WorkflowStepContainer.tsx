@@ -34,13 +34,14 @@ import {
   showToast,
   TextArea,
   TextField,
+  Editor,
+  AddVariablesDropdown,
 } from "@calcom/ui";
 
-import { AddVariablesDropdown } from "../components/AddVariablesDropdown";
+import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
 import { translateVariablesToEnglish } from "../lib/variableTranslations";
 import type { FormValues } from "../pages/workflow";
-import Editor from "./TextEditor/Editor";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
 type WorkflowStepProps = {
@@ -117,23 +118,25 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       : false
   );
 
-  const addVariable = (variable: string, isEmailSubject?: boolean) => {
+  const addVariableBody = (variable: string) => {
     if (step) {
-      if (isEmailSubject) {
-        const currentEmailSubject = refEmailSubject?.current?.value || "";
-        const cursorPosition = refEmailSubject?.current?.selectionStart || currentEmailSubject.length;
-        const subjectWithAddedVariable = `${currentEmailSubject.substring(0, cursorPosition)}{${variable
-          .toUpperCase()
-          .replace(/ /g, "_")}}${currentEmailSubject.substring(cursorPosition)}`;
-        form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectWithAddedVariable);
-      } else {
-        const currentMessageBody = refReminderBody?.current?.value || "";
-        const cursorPosition = refReminderBody?.current?.selectionStart || currentMessageBody.length;
-        const messageWithAddedVariable = `${currentMessageBody.substring(0, cursorPosition)}{${variable
-          .toUpperCase()
-          .replace(/ /g, "_")}}${currentMessageBody.substring(cursorPosition)}`;
-        form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, messageWithAddedVariable);
-      }
+      const currentMessageBody = refReminderBody?.current?.value || "";
+      const cursorPosition = refReminderBody?.current?.selectionStart || currentMessageBody.length;
+      const messageWithAddedVariable = `${currentMessageBody.substring(0, cursorPosition)}{${variable
+        .toUpperCase()
+        .replace(/ /g, "_")}}${currentMessageBody.substring(cursorPosition)}`;
+      form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, messageWithAddedVariable);
+    }
+  };
+
+  const addVariableEmailSubject = (variable: string) => {
+    if (step) {
+      const currentEmailSubject = refEmailSubject?.current?.value || "";
+      const cursorPosition = refEmailSubject?.current?.selectionStart || currentEmailSubject.length;
+      const subjectWithAddedVariable = `${currentEmailSubject.substring(0, cursorPosition)}{${variable
+        .toUpperCase()
+        .replace(/ /g, "_")}}${currentEmailSubject.substring(cursorPosition)}`;
+      form.setValue(`steps.${step.stepNumber - 1}.emailSubject`, subjectWithAddedVariable);
     }
   };
 
@@ -541,7 +544,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       <div className="flex items-center">
                         <Label className="mb-0 flex-none">{t("subject")}</Label>
                         <div className="flex-grow text-right">
-                          <AddVariablesDropdown addVariable={addVariable} isEmailSubject={true} />
+                          <AddVariablesDropdown
+                            addVariable={addVariableEmailSubject}
+                            variables={DYNAMIC_TEXT_VARIABLES}
+                          />
                         </div>
                       </div>
                       <TextArea
@@ -571,7 +577,16 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                         </Label>
                       </div>
-                      <Editor form={form} stepNumber={step.stepNumber} />
+                      <Editor
+                        getText={() => {
+                          return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
+                        }}
+                        setText={(text: string) => {
+                          props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
+                          props.form.clearErrors();
+                        }}
+                        variables={DYNAMIC_TEXT_VARIABLES}
+                      />
                     </>
                   ) : (
                     <>
@@ -580,7 +595,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
                         </Label>
                         <div className="flex-grow text-right">
-                          <AddVariablesDropdown addVariable={addVariable} isEmailSubject={false} />
+                          <AddVariablesDropdown
+                            addVariable={addVariableBody}
+                            variables={DYNAMIC_TEXT_VARIABLES}
+                          />
                         </div>
                       </div>
                       <TextArea
