@@ -39,8 +39,14 @@ export const InputComponent = <
   );
 };
 
+type ExtendedOption = {
+  value: string | number;
+  label: string;
+  needsUpgrade?: boolean;
+};
+
 export const OptionComponent = <
-  Option extends { label: string; value: string | number; needsUpgrade?: boolean },
+  Option,
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 >({
@@ -61,7 +67,7 @@ export const OptionComponent = <
       )}>
       <>
         <span className="mr-auto">{props.label}</span>
-        {props.data.needsUpgrade && (
+        {(props.data as unknown as ExtendedOption).needsUpgrade && (
           <Tooltip content={t("upgrade_to_enable_feature")}>
             <button type="button" onClick={() => router.replace("/teams")}>
               <Badge variant="gray">{t("upgrade")}</Badge>

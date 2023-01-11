@@ -59,7 +59,7 @@ export const getReactSelectProps = <
 });
 
 export const Select = <
-  Option extends { label: string; value: string | number; needsUpgrade?: boolean },
+  Option,
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 >({
@@ -108,7 +108,7 @@ export const IconLeading = ({ icon, children, ...props }: IconLeadingProps) => {
 };
 
 export const SelectField = function SelectField<
-  Option extends { label: string; value: string | number; needsUpgrade?: boolean },
+  Option,
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 >(
