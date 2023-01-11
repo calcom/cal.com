@@ -16,8 +16,8 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Icon } from "../../../components/icon";
-import Tooltip from "../../../v2/core/Tooltip";
 import { Badge } from "../../badge";
+import { Tooltip } from "../../tooltip";
 
 export const InputComponent = <
   Option,
