@@ -1,6 +1,6 @@
 import { CAL_URL } from "@calcom/lib/constants";
-
-import AvatarGroup, { AvatarGroupProps } from "@components/ui/AvatarGroup";
+import { AvatarGroup } from "@calcom/ui";
+import { AvatarGroupProps } from "@calcom/ui/components/avatar/AvatarGroup";
 
 export const UserAvatars = ({
   profile,
@@ -14,7 +14,6 @@ export const UserAvatars = ({
   const showMembers = !users.find((user) => user.name === profile.name) && props.showMembers;
   return (
     <AvatarGroup
-      border="border-2 dark:border-darkgray-100 border-white"
       items={
         [
           {
@@ -38,7 +37,7 @@ export const UserAvatars = ({
           href?: string;
         }[]
       }
-      size={props.size}
+      size="sm"
       truncateAfter={props.truncateAfter}
     />
   );
