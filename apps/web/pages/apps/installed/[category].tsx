@@ -15,9 +15,8 @@ import {
   EmptyScreen,
   Icon,
   List,
-  ShellSubHeading,
   AppSkeletonLoader as SkeletonLoader,
-  Badge,
+  ShellSubHeading,
 } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";

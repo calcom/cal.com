@@ -5,13 +5,13 @@ import { Query, Builder, Utils as QbUtils } from "react-awesome-query-builder";
 // types
 import { JsonTree, ImmutableTree, BuilderProps } from "react-awesome-query-builder";
 
+import Shell from "@calcom/features/shell/Shell";
 import { trpc } from "@calcom/trpc/react";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import {
   SelectField,
   FormCard,
   SelectWithValidation as Select,
-  Shell,
   TextArea,
   TextField,
   Badge,

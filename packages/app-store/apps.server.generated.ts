@@ -19,6 +19,7 @@ export const apiHandlers = {
   "general-t1": import("./general-t1/api"),
   giphy: import("./giphy/api"),
   googlecalendar: import("./googlecalendar/api"),
+  googlevideo: import("./googlevideo/api"),
   hubspot: import("./hubspot/api"),
   huddle01video: import("./huddle01video/api"),
   jitsivideo: import("./jitsivideo/api"),

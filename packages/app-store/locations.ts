@@ -40,6 +40,8 @@ export type EventLocationType = DefaultEventLocationType | EventLocationTypeFrom
 
 export const DailyLocationType = "integrations:daily";
 
+export const MeetLocationType = "integrations:google:meet";
+
 export enum DefaultEventLocationTypeEnum {
   /**
    * Booker Address

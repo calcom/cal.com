@@ -37,7 +37,7 @@ const buttonClasses = cva(
     variants: {
       color: {
         primary: "text-white dark:text-black",
-        secondary: "text-gray-900 dark:text-darkgray-900",
+        secondary: "text-gray-900 dark:text-darkgray-900 bg-white",
         minimal: "text-gray-900 dark:text-darkgray-900",
         destructive: "",
       },
