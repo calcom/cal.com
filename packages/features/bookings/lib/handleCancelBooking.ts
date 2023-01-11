@@ -198,6 +198,14 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     uid: string;
     workflowReminders: WorkflowReminder[];
     scheduledJobs: string[];
+    references: {
+      type: string;
+      credentialId: number | null;
+      uid: string;
+      externalCalendarId: string | null;
+    }[];
+    startTime: Date;
+    endTime: Date;
   }[] = [];
 
   // by cancelling first, and blocking whilst doing so; we can ensure a cancel
@@ -225,6 +233,16 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         },
       },
       select: {
+        startTime: true,
+        endTime: true,
+        references: {
+          select: {
+            uid: true,
+            type: true,
+            externalCalendarId: true,
+            credentialId: true,
+          },
+        },
         workflowReminders: true,
         uid: true,
         scheduledJobs: true,
@@ -242,6 +260,16 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         cancellationReason: cancellationReason,
       },
       select: {
+        startTime: true,
+        endTime: true,
+        references: {
+          select: {
+            uid: true,
+            type: true,
+            externalCalendarId: true,
+            credentialId: true,
+          },
+        },
         workflowReminders: true,
         uid: true,
         scheduledJobs: true,
@@ -271,15 +299,34 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       );
       if (calendarCredential) {
         const calendar = getCalendar(calendarCredential);
-        apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId));
+        if (
+          bookingToDelete.eventType?.recurringEvent &&
+          bookingToDelete.recurringEventId &&
+          allRemainingBookings
+        ) {
+          bookingToDelete.user.credentials
+            .filter((credential) => credential.type.endsWith("_calendar"))
+            .forEach((credential) => {
+              const calendar = getCalendar(credential);
+              updatedBookings.forEach((updBooking) => {
+                const bookingRef = updBooking.references.find((ref) => ref.type.includes("_calendar"));
+                if (bookingRef) {
+                  const { uid, externalCalendarId } = bookingRef;
+                  apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId) as Promise<unknown>);
+                }
+              });
+            });
+        } else {
+          apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId) as Promise<unknown>);
+        }
       }
-      // For bookings made before the refactor we go through the old behaviour of running through each calendar credential
     } else {
+      // For bookings made before the refactor we go through the old behaviour of running through each calendar credential
       bookingToDelete.user.credentials
         .filter((credential) => credential.type.endsWith("_calendar"))
         .forEach((credential) => {
           const calendar = getCalendar(credential);
-          apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId));
+          apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId) as Promise<unknown>);
         });
     }
   }
@@ -382,7 +429,11 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     });
   });
 
-  await Promise.all([apiDeletes, attendeeDeletes, bookingReferenceDeletes].concat(remindersToDelete));
+  const prismaPromises: Promise<unknown>[] = [attendeeDeletes, bookingReferenceDeletes].concat(
+    remindersToDelete
+  );
+
+  await Promise.all(prismaPromises.concat(apiDeletes));
 
   await sendCancelledEmails(evt);
 

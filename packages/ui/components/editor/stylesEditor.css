@@ -129,7 +129,6 @@ pre::-webkit-scrollbar-thumb {
 .toolbar button.toolbar-item {
   border: 0;
   display: flex;
-  border-radius: 10px;
   padding: 8px;
   cursor: pointer;
   vertical-align: middle;
@@ -145,7 +144,8 @@ pre::-webkit-scrollbar-thumb {
   display: inline-block;
   height: 18px;
   width: 18px;
-  margin-top: 2px;
+  margin-top: 1px;
+  margin-left: 1px;
   vertical-align: -0.25em;
   display: flex;
   opacity: 0.6;
