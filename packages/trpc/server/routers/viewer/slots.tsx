@@ -144,6 +144,14 @@ async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeo
           days: true,
         },
       },
+      hosts: {
+        select: {
+          isFixed: true,
+          user: {
+            select: availabilityUserSelect,
+          },
+        },
+      },
       users: {
         select: {
           ...availabilityUserSelect,
@@ -227,9 +235,14 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   }
   let currentSeats: CurrentSeats | undefined = undefined;
 
+  const users =
+    eventType.users.length > 0
+      ? eventType.users
+      : eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+
   /* We get all users working hours and busy slots */
   const userAvailability = await Promise.all(
-    eventType.users.map(async (currentUser) => {
+    users.map(async (currentUser) => {
       const {
         busy,
         workingHours,

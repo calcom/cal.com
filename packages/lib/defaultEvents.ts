@@ -84,6 +84,7 @@ const commons = {
   userId: 0,
   workflows: [],
   users: [user],
+  hosts: [],
   metadata: EventTypeMetaDataSchema.parse({}),
 };
 

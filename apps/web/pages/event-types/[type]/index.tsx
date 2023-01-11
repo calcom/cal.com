@@ -64,7 +64,6 @@ export type FormValues = {
     phone?: string;
   }[];
   customInputs: CustomInputParsed[];
-  users: string[];
   schedule: number;
   periodType: PeriodType;
   periodDays: number;
@@ -85,6 +84,8 @@ export type FormValues = {
   };
   successRedirectUrl: string;
   bookingLimits?: BookingLimit;
+  hosts: { userId: number }[];
+  hostsFixed: { userId: number }[];
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -120,7 +121,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   });
 
   const { eventType, locationOptions, team, teamMembers, currentUserMembership } = props;
-
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
 
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
@@ -201,6 +201,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         eventType.minimumBookingNotice
       ),
       metadata,
+      hosts: eventType.users
+        .map((user) => ({ userId: user.id }))
+        .concat(eventType.hosts.filter((host) => !host.isFixed)),
+      hostsFixed: eventType.hosts.filter((host) => host.isFixed),
     },
     resolver: zodResolver(
       z
@@ -279,6 +283,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             locations,
             metadata,
             customInputs,
+            hosts: hostsInput,
+            hostsFixed,
             // We don't need to send send these values to the backend
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             seatsPerTimeSlotEnabled,
@@ -286,6 +292,11 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             minimumBookingNoticeInDurationType,
             ...input
           } = values;
+
+          const hosts: (typeof hostsInput[number] & { isFixed?: boolean })[] = [];
+          if (hostsInput || hostsFixed) {
+            hosts.push(...hostsInput.concat(hostsFixed.map((host) => ({ isFixed: true, ...host }))));
+          }
 
           if (bookingLimits) {
             const isValid = validateBookingLimitOrder(bookingLimits);
@@ -304,6 +315,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
           updateMutation.mutate({
             ...input,
+            hosts,
             locations,
             recurringEvent,
             periodStartDate: periodDates.startDate,

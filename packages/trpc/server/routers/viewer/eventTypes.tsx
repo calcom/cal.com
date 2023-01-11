@@ -84,6 +84,14 @@ const EventTypeUpdateInput = _EventTypeModel
       externalId: true,
     }),
     users: z.array(stringOrNumber).optional(),
+    hosts: z
+      .array(
+        z.object({
+          userId: z.number(),
+          isFixed: z.boolean().optional(),
+        })
+      )
+      .optional(),
     schedule: z.number().optional(),
     hashedLink: z.string(),
   })
@@ -483,6 +491,7 @@ export const eventTypesRouter = router({
       customInputs,
       recurringEvent,
       users,
+      hosts,
       id,
       hashedLink,
       // Extract this from the input so it doesn't get saved in the db
@@ -555,6 +564,16 @@ export const eventTypesRouter = router({
       data.users = {
         set: [],
         connect: users.map((userId: number) => ({ id: userId })),
+      };
+    }
+    if (hosts) {
+      data.hosts = {
+        deleteMany: {
+          eventTypeId: id,
+        },
+        createMany: {
+          data: hosts,
+        },
       };
     }
 

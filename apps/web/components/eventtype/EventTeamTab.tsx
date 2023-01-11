@@ -52,9 +52,6 @@ export const EventTeamTab = ({
     },
   ];
 
-  const teamMembersToValues = useMemo(() => {
-    return teamMembers.map(mapUserToValue);
-  }, [teamMembers]);
   return (
     <div>
       {team && (
@@ -82,7 +79,7 @@ export const EventTeamTab = ({
               <div>
                 <Label>{t("team")}</Label>
                 <Controller
-                  name="users"
+                  name="hostsFixed"
                   control={formMethods.control}
                   defaultValue={eventType.users.map((user) => user.id.toString())}
                   render={({ field: { onChange, value } }) => (
@@ -97,7 +94,9 @@ export const EventTeamTab = ({
                         )
                         .filter(Boolean)}
                       controlShouldRenderValue={false}
-                      options={teamMembersToValues}
+                      options={teamMembers.map(mapUserToValue).filter((member) => {
+                        return member;
+                      })}
                       placeholder={t("add_attendees")}
                     />
                   )}
@@ -111,64 +110,86 @@ export const EventTeamTab = ({
               <div className="flex flex-col bg-gray-50 p-4">
                 <Label>{t("fixed_hosts")}</Label>
                 <Controller
-                  name="users"
+                  name="hostsFixed"
                   control={formMethods.control}
-                  defaultValue={eventType.users.map((user) => user.id.toString())}
-                  render={({ field: { onChange, value } }) => (
-                    <CheckedTeamSelect
-                      isDisabled={false}
-                      onChange={(options) => onChange(options.map((user) => user.value))}
-                      value={value
-                        .map(
-                          (userId) =>
-                            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                            teamMembers.map(mapUserToValue).find((member) => member.value === userId)!
-                        )
-                        .filter(Boolean)}
-                      controlShouldRenderValue={false}
-                      options={teamMembersToValues}
-                      placeholder={t("add_fixed_hosts")}
-                    />
-                  )}
+                  render={({ field: { onChange, value } }) => {
+                    return (
+                      <CheckedTeamSelect
+                        isDisabled={false}
+                        onChange={(options) => {
+                          onChange(
+                            options.map((option) => ({
+                              isFixed: true,
+                              userId: parseInt(option.value, 10),
+                            }))
+                          );
+                        }}
+                        value={value
+                          .map(
+                            (host) =>
+                              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                              teamMembers
+                                .map(mapUserToValue)
+                                .find((member) => member.value === host.userId.toString())!
+                          )
+                          .filter(Boolean)}
+                        controlShouldRenderValue={false}
+                        options={teamMembers.map(mapUserToValue).filter((member) => {
+                          return !formMethods
+                            .getValues("hosts")
+                            .find((host) => host.userId.toString() === member.value);
+                        })}
+                        placeholder={t("add_fixed_hosts")}
+                      />
+                    );
+                  }}
                 />
               </div>
               <div className="flex flex-col space-y-5 bg-gray-50 p-4">
                 <div>
                   <Label>{t("round_robin_hosts")}</Label>
                   <Controller
-                    name="users"
+                    name="hosts"
                     control={formMethods.control}
-                    defaultValue={eventType.users.map((user) => user.id.toString())}
                     render={({ field: { onChange, value } }) => (
                       <CheckedTeamSelect
                         isDisabled={false}
-                        onChange={(options) => onChange(options.map((user) => user.value))}
+                        onChange={(options) =>
+                          onChange(
+                            options.map((option) => ({
+                              isFixed: false,
+                              userId: parseInt(option.value, 10),
+                            }))
+                          )
+                        }
                         value={value
                           .map(
-                            (userId) =>
+                            (host) =>
                               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                              teamMembers.map(mapUserToValue).find((member) => member.value === userId)!
+                              teamMembers
+                                .map(mapUserToValue)
+                                .find((member) => member.value === host.userId.toString())!
                           )
                           .filter(Boolean)}
                         controlShouldRenderValue={false}
-                        options={teamMembersToValues}
+                        options={teamMembers.map(mapUserToValue).filter((member) => {
+                          return !formMethods
+                            .getValues("hostsFixed")
+                            .find((host) => host.userId.toString() === member.value);
+                        })}
                         placeholder={t("add_attendees")}
                       />
                     )}
                   />
-                  <p className="mt-2 text-sm">
-                    Members will be prioritized in the order above if multiple are available / have equal
-                    number of bookings
-                  </p>
                 </div>
-                <TextField
+                {/*<TextField
                   required
                   type="number"
                   label={t("minimum_round_robin_hosts_count")}
                   defaultValue={1}
                   {...formMethods.register("minimumHostCount")}
                   addOnSuffix={<>{t("hosts")}</>}
-                />
+                          />*/}
               </div>
             </>
           )}
