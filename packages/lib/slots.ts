@@ -36,9 +36,10 @@ function buildSlots({
   frequency = minimumOfOne(frequency);
   eventLength = minimumOfOne(eventLength);
   // A day starts at 00:00 unless the startDate is the same as the current day
-  let slotStart = startOfInviteeDay.isSame(startDate, "day")
+  const dayStart = startOfInviteeDay.isSame(startDate, "day")
     ? Math.ceil((startDate.hour() * 60 + startDate.minute()) / frequency) * frequency
     : 0;
+
   // Record type so we can use slotStart as key
   const slotsTimeFrameAvailable: Record<
     string,
@@ -48,20 +49,48 @@ function buildSlots({
       endTime: number;
     }
   > = {};
-  // loop through the day, based on frequency.
-  for (; slotStart < 1440; slotStart += frequency) {
-    computedLocalAvailability.forEach((item) => {
-      const rangeStart = Math.ceil(item.startTime / frequency) * frequency;
-      const rangeEnd = Math.floor(item.endTime / frequency) * frequency;
-      if (slotStart < rangeStart || slotStart >= rangeEnd) {
-        return;
-      }
-      slotsTimeFrameAvailable[slotStart.toString()] = {
-        userIds: (slotsTimeFrameAvailable[slotStart]?.userIds || []).concat(item.userIds || []),
-        startTime: slotStart,
-        endTime: slotStart + eventLength,
-      };
-    });
+  // get boundaries sorted by start time.
+  const boundaries = computedLocalAvailability
+    .map((item) => [item.startTime < dayStart ? dayStart : item.startTime, item.endTime])
+    .sort((a, b) => a[0] - b[0]);
+
+  const ranges: number[][] = [];
+  let currentRange: number[] = [];
+  for (const [start, end] of boundaries) {
+    // bypass invalid value
+    if (start >= end) continue;
+    // fill first elem
+    if (!currentRange.length) {
+      currentRange = [start, end];
+      continue;
+    }
+    if (currentRange[1] < start) {
+      ranges.push(currentRange);
+      currentRange = [start, end];
+    } else if (currentRange[1] < end) {
+      currentRange[1] = end;
+    }
+  }
+  if (currentRange) {
+    ranges.push(currentRange);
+  }
+
+  for (const [boundaryStart, boundaryEnd] of ranges) {
+    // loop through the day, based on frequency.
+    for (let slotStart = boundaryStart; slotStart < boundaryEnd; slotStart += frequency) {
+      computedLocalAvailability.forEach((item) => {
+        const rangeStart = item.startTime;
+        const rangeEnd = Math.floor(item.endTime / frequency) * frequency;
+        if (slotStart < rangeStart || slotStart >= rangeEnd) {
+          return;
+        }
+        slotsTimeFrameAvailable[slotStart.toString()] = {
+          userIds: (slotsTimeFrameAvailable[slotStart]?.userIds || []).concat(item.userIds || []),
+          startTime: slotStart,
+          endTime: slotStart + eventLength,
+        };
+      });
+    }
   }
   // XXX: Hack alert, as dayjs is supposedly not aware of timezone the current slot may have invalid UTC offset.
   const timeZone =
