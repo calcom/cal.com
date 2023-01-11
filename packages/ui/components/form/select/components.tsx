@@ -40,7 +40,7 @@ export const InputComponent = <
 };
 
 export const OptionComponent = <
-  Option extends { label: string; value: string; needsUpgrade?: boolean },
+  Option extends { label: string; value: string | number; needsUpgrade?: boolean },
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
 >({
