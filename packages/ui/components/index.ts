@@ -1,5 +1,5 @@
 export { Avatar, AvatarGroup } from "./avatar";
-export type { AvatarProps } from "./avatar";
+export type { AvatarProps, AvatarGroupProps } from "./avatar";
 export { Badge } from "./badge";
 export type { BadgeProps } from "./badge";
 export { Breadcrumb, BreadcrumbContainer, BreadcrumbItem } from "./breadcrumb";

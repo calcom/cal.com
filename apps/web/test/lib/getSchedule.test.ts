@@ -218,6 +218,64 @@ afterEach(async () => {
 });
 
 describe("getSchedule", () => {
+  describe("Calendar event", () => {
+    test("correctly identifies unavailable slots from calendar", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+
+      const scenarioData = {
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 45,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getGoogleCalendarCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          },
+        ],
+        apps: [TestData.apps.googleCalendar],
+      };
+      // An event with one accepted booking
+      createBookingScenario(scenarioData);
+
+      addBusyTimesInGoogleCalendar(
+        [
+          {
+            start: `${plus2DateString}T04:30:00.000Z`,
+            end: `${plus2DateString}T23:00:00.000Z`,
+          },
+        ],
+        scenarioData
+      );
+      const scheduleForDayWithAGoogleCalendarBooking = await getSchedule(
+        {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+        },
+        ctx
+      );
+
+      // As per Google Calendar Availability, only 4PM GMT slot would be available
+      expect(scheduleForDayWithAGoogleCalendarBooking).toHaveTimeSlots([`04:00:00.000Z`], {
+        dateString: plus2DateString,
+      });
+    });
+  });
+
   describe("User Event", () => {
     test("correctly identifies unavailable slots from Cal Bookings in different status", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
@@ -711,62 +769,6 @@ describe("getSchedule", () => {
           dateString: plus2DateString,
         }
       );
-    });
-
-    test("correctly identifies unavailable slots from calendar", async () => {
-      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
-
-      const scenarioData = {
-        eventTypes: [
-          {
-            id: 1,
-            slotInterval: 45,
-            users: [
-              {
-                id: 101,
-              },
-            ],
-          },
-        ],
-        users: [
-          {
-            ...TestData.users.example,
-            id: 101,
-            schedules: [TestData.schedules.IstWorkHours],
-            credentials: [getGoogleCalendarCredential()],
-            selectedCalendars: [TestData.selectedCalendars.google],
-          },
-        ],
-        apps: [TestData.apps.googleCalendar],
-      };
-      // An event with one accepted booking
-      createBookingScenario(scenarioData);
-
-      addBusyTimesInGoogleCalendar(
-        [
-          {
-            start: `${plus2DateString}T04:30:00.000Z`,
-            end: `${plus2DateString}T23:00:00.000Z`,
-          },
-        ],
-        scenarioData
-      );
-      const scheduleForDayWithAGoogleCalendarBooking = await getSchedule(
-        {
-          eventTypeId: 1,
-          eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-        },
-        ctx
-      );
-
-      // As per Google Calendar Availability, only 4PM GMT slot would be available
-      expect(scheduleForDayWithAGoogleCalendarBooking).toHaveTimeSlots([`04:00:00.000Z`], {
-        dateString: plus2DateString,
-      });
     });
   });
 
