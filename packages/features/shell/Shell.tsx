@@ -148,6 +148,7 @@ type LayoutProps = {
   title?: string;
   heading?: ReactNode;
   subtitle?: ReactNode;
+  headerClassName?: string;
   children: ReactNode;
   CTA?: ReactNode;
   large?: boolean;
@@ -777,7 +778,7 @@ export function ShellMain(props: LayoutProps) {
         {props.heading && (
           <header className={classNames(props.large && "py-8", " flex w-full max-w-full items-center")}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
-            <div className="w-full ltr:mr-4 rtl:ml-4 sm:block">
+            <div className={classNames("w-full ltr:mr-4 rtl:ml-4 sm:block", props.headerClassName)}>
               {props.heading && (
                 <h1 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 mb-1 hidden truncate text-2xl font-semibold tracking-wide text-black sm:block xl:max-w-full">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
@@ -818,7 +819,7 @@ function MainContainer({
     <main className="relative z-0 flex-1 bg-white focus:outline-none">
       {/* show top navigation for md and smaller (tablet and phones) */}
       {TopNavContainerProp}
-      <div className="max-w-full px-4 py-2 lg:py-8 lg:px-12">
+      <div className="max-w-full px-4 py-8 lg:px-12">
         <ErrorBoundary>
           {!props.withoutMain ? <ShellMain {...props}>{props.children}</ShellMain> : props.children}
         </ErrorBoundary>
