@@ -346,26 +346,32 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
 
   availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
 
-  const computedAvailableSlots = availableTimeSlots.reduce((r, { time: time, ...passThroughProps }) => {
-    r[time.format("YYYY-MM-DD")] = r[time.format("YYYY-MM-DD")] || [];
-    r[time.format("YYYY-MM-DD")].push({
-      ...passThroughProps,
-      time: time.toISOString(),
-      users: eventType.users.map((user) => user.username || ""),
-      // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
-      ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
-        attendees:
-          currentSeats[
-            currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-          ]._count.attendees,
-        bookingUid:
-          currentSeats[
-            currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
-          ].uid,
-      }),
-    });
-    return r;
-  }, Object.create(null));
+  const computedAvailableSlots = availableTimeSlots.reduce(
+    (
+      r: Record<string, { time: string; users: string[]; attendees?: number; bookingUid?: string }[]>,
+      { time: time, ...passThroughProps }
+    ) => {
+      r[time.format("YYYY-MM-DD")] = r[time.format("YYYY-MM-DD")] || [];
+      r[time.format("YYYY-MM-DD")].push({
+        ...passThroughProps,
+        time: time.toISOString(),
+        users: eventType.users.map((user) => user.username || ""),
+        // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
+        ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
+          attendees:
+            currentSeats[
+              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
+            ]._count.attendees,
+          bookingUid:
+            currentSeats[
+              currentSeats.findIndex((booking) => booking.startTime.toISOString() === time.toISOString())
+            ].uid,
+        }),
+      });
+      return r;
+    },
+    Object.create(null)
+  );
 
   logger.debug(`getSlots took ${getSlotsTime}ms and executed ${getSlotsCount} times`);
 
