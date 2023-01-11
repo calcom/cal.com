@@ -5,7 +5,6 @@ import {
   WorkflowTemplates,
   WorkflowTriggerEvents,
 } from "@prisma/client";
-import { useRouter } from "next/router";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 import "react-phone-number-input/style.css";
@@ -56,7 +55,6 @@ type WorkflowStepProps = {
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
-  const router = useRouter();
 
   const { step, form, reload, setReload } = props;
   const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery();
@@ -341,10 +339,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         className="text-sm"
                         onChange={(val) => {
                           if (val) {
-                            if (val.needsUpgrade) {
-                              router.replace("/teams");
-                              return;
-                            }
                             const oldValue = form.getValues(`steps.${step.stepNumber - 1}.action`);
                             const wasSMSAction =
                               oldValue === WorkflowActions.SMS_ATTENDEE ||
