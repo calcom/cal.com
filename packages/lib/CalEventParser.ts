@@ -77,7 +77,7 @@ export const getAppsStatus = (calEvent: CalendarEvent) => {
   if (!calEvent.appsStatus) {
     return "";
   }
-  return `\n${calEvent.attendees[0].language.translate("apps_status")}
+  return `\n${calEvent.organizer.language.translate("apps_status")}
       ${calEvent.appsStatus.map((app) => {
         return `\n- ${app.appName} ${
           app.success >= 1 ? `✅ ${app.success > 1 ? `(x${app.success})` : ""}` : ""
@@ -94,7 +94,7 @@ export const getDescription = (calEvent: CalendarEvent) => {
   if (!calEvent.description) {
     return "";
   }
-  return `\n${calEvent.attendees[0].language.translate("description")}
+  return `\n${calEvent.organizer.language.translate("description")}
     ${calEvent.description}
     `;
 };

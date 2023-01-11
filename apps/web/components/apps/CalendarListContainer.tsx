@@ -13,10 +13,10 @@ import {
   EmptyScreen,
   Icon,
   List,
-  ShellSubHeading,
   showToast,
-  SkeletonLoader,
+  AppSkeletonLoader as SkeletonLoader,
   Switch,
+  ShellSubHeading,
 } from "@calcom/ui";
 
 import { QueryCell } from "@lib/QueryCell";
@@ -159,6 +159,7 @@ function ConnectedCalendarsList(props: Props) {
         if (!data.connectedCalendars.length) {
           return null;
         }
+
         return (
           <List className="flex flex-col gap-6" noBorderTreatment>
             {data.connectedCalendars.map((item) => (
@@ -168,7 +169,7 @@ function ConnectedCalendarsList(props: Props) {
                     slug={item.integration.slug}
                     title={item.integration.title}
                     logo={item.integration.logo}
-                    description={item.primary?.externalId || "No external Id"}
+                    description={item.primary?.email ?? item.integration.description}
                     separate={true}
                     actions={
                       <div className="flex w-32 justify-end">
@@ -329,7 +330,10 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                 })}
                 description={t(`no_category_apps_description_calendar`)}
                 buttonRaw={
-                  <Button color="secondary" href="/apps/categories/calendar">
+                  <Button
+                    color="secondary"
+                    data-testid="connect-calendar-apps"
+                    href="/apps/categories/calendar">
                     {t(`connect_calendar_apps`)}
                   </Button>
                 }

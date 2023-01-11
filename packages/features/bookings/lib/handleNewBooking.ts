@@ -7,13 +7,16 @@ import {
   WebhookTriggerEvents,
 } from "@prisma/client";
 import async from "async";
+import { isValidPhoneNumber } from "libphonenumber-js";
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
 import short from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
+import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { getLocationValueForDB, LocationObject } from "@calcom/app-store/locations";
+import { MeetLocationType } from "@calcom/app-store/locations";
 import { handleEthSignature } from "@calcom/app-store/rainbow/utils/ethereum";
 import { handlePayment } from "@calcom/app-store/stripepayment/lib/server";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
@@ -509,6 +512,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     startTime: dayjs(reqBody.start).utc().format(),
     endTime: dayjs(reqBody.end).utc().format(),
     organizer: {
+      id: organizerUser.id,
       name: organizerUser.name || "Nameless",
       email: organizerUser.email || "Email-less",
       timeZone: organizerUser.timeZone,
@@ -925,6 +929,38 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       const metadata: AdditionalInformation = {};
 
       if (results.length) {
+        // Handle Google Meet results
+        // We use the original booking location since the evt location changes to daily
+        if (bookingLocation === MeetLocationType) {
+          const googleMeetResult = {
+            appName: GoogleMeetMetadata.name,
+            type: "conferencing",
+            uid: results[0].uid,
+            originalEvent: results[0].originalEvent,
+          };
+
+          const googleCalResult = results.find((result) => result.type === "google_calendar");
+
+          if (!googleCalResult) {
+            results.push({
+              ...googleMeetResult,
+              success: false,
+              calWarnings: [tOrganizer("google_meet_warning")],
+            });
+          }
+
+          if (googleCalResult?.createdEvent?.hangoutLink) {
+            results.push({
+              ...googleMeetResult,
+              success: true,
+            });
+          } else if (googleCalResult && !googleCalResult.createdEvent?.hangoutLink) {
+            results.push({
+              ...googleMeetResult,
+              success: false,
+            });
+          }
+        }
         // TODO: Handle created event metadata more elegantly
         metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
         metadata.conferenceData = results[0].createdEvent?.conferenceData;
@@ -1028,6 +1064,12 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           ...eventTypeInfo,
           bookingId,
           rescheduleUid,
+          rescheduleStartTime: originalRescheduledBooking?.startTime
+            ? dayjs(originalRescheduledBooking?.startTime).utc().format()
+            : undefined,
+          rescheduleEndTime: originalRescheduledBooking?.endTime
+            ? dayjs(originalRescheduledBooking?.endTime).utc().format()
+            : undefined,
           metadata: { ...metadata, ...reqBody.metadata },
           eventTypeId,
           status: "ACCEPTED",
@@ -1086,7 +1128,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     await scheduleWorkflowReminders(
       eventType.workflows,
       reqBody.smsReminderNumber as string | null,
-      evt,
+      { ...evt, ...{ metadata } },
       evt.requiresConfirmation || false,
       rescheduleUid ? true : false,
       true
@@ -1116,6 +1158,16 @@ function handleCustomInputs(
         z.literal(true, {
           errorMap: () => ({ message: `Missing ${etcInput.type} customInput: '${etcInput.label}'` }),
         }).parse(input?.value);
+      } else if (etcInput.type === "PHONE") {
+        z.string({
+          errorMap: () => ({
+            message: `Missing ${etcInput.type} customInput: '${etcInput.label}'`,
+          }),
+        })
+          .refine((val) => isValidPhoneNumber(val), {
+            message: "Phone number is invalid",
+          })
+          .parse(input?.value);
       } else {
         // type: NUMBER are also passed as string
         z.string({

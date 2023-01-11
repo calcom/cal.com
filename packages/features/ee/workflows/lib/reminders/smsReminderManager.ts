@@ -9,6 +9,7 @@ import {
 import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
+import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { getSenderId } from "../alphanumericSenderIdSupport";
 import * as twilio from "./smsProviders/twilioProvider";
@@ -36,6 +37,7 @@ export type BookingInfo = {
   location?: string | null;
   additionalNotes?: string | null;
   customInputs?: Prisma.JsonValue;
+  metadata?: Prisma.JsonValue;
 };
 
 export const scheduleSMSReminder = async (
@@ -101,6 +103,7 @@ export const scheduleSMSReminder = async (
         location: evt.location,
         additionalNotes: evt.additionalNotes,
         customInputs: evt.customInputs,
+        meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
       };
       const customMessage = await customTemplate(message, variables, evt.organizer.language.locale);
       message = customMessage.text;

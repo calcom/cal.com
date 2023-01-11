@@ -1,0 +1,55 @@
+import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
+import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable,VariantRow } from '@calcom/storybook/components'
+import { Icon } from "@calcom/ui";
+import {Alert} from './Alert';
+
+<Meta title="UI/Alert" component={Alert} />
+
+<Title title="Alert" suffix="Brief" subtitle="Version 2.0 — Last Update: 04 jan 2023"/>
+
+## Definition
+Alerts provide time-based feedback to the user after taking an action.
+
+## Structure
+Each alert has a state to represent neutral, positive or negative responses.
+
+<CustomArgsTable of={Alert} />
+
+<Examples title="Alert style">
+  <Example title="Error">
+    <Alert severity="error" title="Summarise what happened" message="Describe what can be done about it here." />
+  </Example>
+  <Example title="Warning">
+    <Alert severity="warning" title="Summarise what happened" message="Describe what can be done about it here." />
+  </Example>
+  <Example title="With actions">
+    <Alert
+      severity="warning"
+      title="Summarise what happened"
+      message="Describe what can be done about it here."
+      actions={<><button>Cancel me</button></>}
+      />
+  </Example>
+</Examples>
+
+<Title offset title="Alert" suffix="Variants" />
+
+<Canvas>
+  <Story
+    name="Alert">
+    <VariantsTable titles={['Default']} columnMinWidth={150}>
+      <VariantRow variant="Success">
+        <Alert severity="success" title="Summarise what happened" message="Describe what can be done about it here." />
+      </VariantRow>
+      <VariantRow variant="Warning">
+        <Alert severity="warning" title="Summarise what happened" message="Describe what can be done about it here." />
+      </VariantRow>
+      <VariantRow variant="Error">
+        <Alert severity="error" title="Summarise what happened" message="Describe what can be done about it here." />
+      </VariantRow>
+      <VariantRow variant="Neutral">
+        <Alert severity="neutral" title="Summarise what happened" message="Describe what can be done about it here." />
+      </VariantRow>
+    </VariantsTable>
+  </Story>
+</Canvas>

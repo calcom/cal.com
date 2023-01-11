@@ -1,13 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { Check, X } from "react-feather";
 import { Controller, useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Form, showToast, TextField } from "@calcom/ui";
+import { Button, Form, showToast, TextField, Icon } from "@calcom/ui";
 
 const formSchema = z.object({
   api_key: z.string(),
@@ -99,7 +98,7 @@ export default function CloseComSetup() {
                     )}
                   />
                 </fieldset>
-                <div className="mt-5 justify-end space-x-2 sm:mt-4 sm:flex">
+                <div className="mt-5 justify-end space-x-2 rtl:space-x-reverse sm:mt-4 sm:flex">
                   <Button type="button" color="secondary" onClick={() => router.back()}>
                     {t("cancel")}
                   </Button>
@@ -107,7 +106,7 @@ export default function CloseComSetup() {
                     type="submit"
                     loading={testLoading}
                     disabled={testPassed === true}
-                    StartIcon={testPassed !== undefined ? (testPassed ? Check : X) : undefined}
+                    StartIcon={testPassed !== undefined ? (testPassed ? Icon.FiCheck : Icon.FiX) : undefined}
                     className={
                       testPassed !== undefined
                         ? testPassed

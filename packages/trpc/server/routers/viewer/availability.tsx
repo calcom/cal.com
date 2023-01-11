@@ -84,7 +84,13 @@ export const availabilityRouter = router({
     return {
       name: schedule.name,
       rawSchedule: schedule,
-      schedule: availability,
+      schedule: availability.map((a) =>
+        a.map((startAndEnd) => ({
+          ...startAndEnd,
+          // Turn our limited granularity into proper end of day.
+          end: new Date(startAndEnd.end.toISOString().replace("23:59:00.000Z", "23:59:59.999Z")),
+        }))
+      ),
       dateOverrides: schedule.availability.reduce((acc, override) => {
         // only iff future date override
         if (!override.date || override.date < new Date()) {
@@ -167,7 +173,6 @@ export const availabilityRouter = router({
       .input(
         z.object({
           name: z.string(),
-          copyScheduleId: z.number().optional(),
           schedule: z
             .array(
               z.array(
@@ -183,6 +188,22 @@ export const availabilityRouter = router({
       )
       .mutation(async ({ input, ctx }) => {
         const { user, prisma } = ctx;
+        if (input.eventTypeId) {
+          const eventType = await prisma.eventType.findUnique({
+            where: {
+              id: input.eventTypeId,
+            },
+            select: {
+              userId: true,
+            },
+          });
+          if (!eventType || eventType.userId !== user.id) {
+            throw new TRPCError({
+              code: "UNAUTHORIZED",
+              message: "You are not authorized to create a schedule for this event type",
+            });
+          }
+        }
         const data: Prisma.ScheduleCreateInput = {
           name: input.name,
           user: {

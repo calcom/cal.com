@@ -139,7 +139,7 @@ const providers: Provider[] = [
           username: user.username,
           email: user.email,
           name: user.name,
-          role: "USER",
+          role: "INACTIVE_ADMIN",
           belongsToActiveTeam: hasActiveTeams,
         };
       }

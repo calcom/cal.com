@@ -16,6 +16,6 @@ declare module "next-auth" {
     impersonatedByUID?: number;
     belongsToActiveTeam?: boolean;
     username?: PrismaUser["username"];
-    role?: PrismaUser["role"];
+    role?: PrismaUser["role"] | "INACTIVE_ADMIN";
   }
 }

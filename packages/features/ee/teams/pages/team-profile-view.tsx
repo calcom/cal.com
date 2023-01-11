@@ -19,7 +19,6 @@ import {
   Dialog,
   DialogTrigger,
   Form,
-  getSettingsLayout as getLayout,
   Icon,
   ImageUploader,
   Label,
@@ -29,6 +28,8 @@ import {
   TextArea,
   TextField,
 } from "@calcom/ui";
+
+import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
 const regex = new RegExp("^[a-zA-Z0-9-]*$");
 
@@ -160,7 +161,7 @@ const ProfileView = () => {
                   render={({ field: { value } }) => (
                     <>
                       <Avatar alt="" imageSrc={getPlaceholderAvatar(value, team?.name as string)} size="lg" />
-                      <div className="ml-4">
+                      <div className="ltr:ml-4 rtl:mr-4">
                         <ImageUploader
                           target="avatar"
                           id="avatar-upload"
@@ -262,10 +263,8 @@ const ProfileView = () => {
                 )}
               </div>
               <div className="">
-                <Link href={permalink} passHref={true}>
-                  <a target="_blank">
-                    <LinkIconButton Icon={Icon.FiExternalLink}>{t("preview")}</LinkIconButton>
-                  </a>
+                <Link href={permalink} passHref={true} target="_blank">
+                  <LinkIconButton Icon={Icon.FiExternalLink}>{t("preview")}</LinkIconButton>
                 </Link>
                 <LinkIconButton
                   Icon={Icon.FiLink}

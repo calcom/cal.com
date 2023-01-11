@@ -1,16 +1,18 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
-import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
+import { Trans } from "next-i18next";
+import Link from "next/link";
+import type { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { MultiValue } from "react-select";
 import { z } from "zod";
 
-import { EventLocationType, getEventLocationType } from "@calcom/app-store/locations";
+import { EventLocationType, getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Icon, Label, Select, Skeleton, TextField, SettingsToggle } from "@calcom/ui";
+import { Button, Icon, Label, Select, SettingsToggle, Skeleton, TextField } from "@calcom/ui";
 
 import { slugify } from "@lib/slugify";
 
@@ -23,7 +25,7 @@ type OptionTypeBase = {
 };
 
 export const EventSetupTab = (
-  props: Pick<EventTypeSetupInfered, "eventType" | "locationOptions" | "team" | "teamMembers">
+  props: Pick<EventTypeSetupProps, "eventType" | "locationOptions" | "team" | "teamMembers">
 ) => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
@@ -169,7 +171,7 @@ export const EventSetupTab = (
                         alt={`${eventLocationType.label} logo`}
                       />
                       <span className="truncate text-sm ltr:ml-1 rtl:mr-1">
-                        {location[eventLocationType.defaultValueVariable] || eventLocationType.label}
+                        {t(location[eventLocationType.defaultValueVariable] || eventLocationType.label)}
                       </span>
                     </div>
                     <div className="flex">
@@ -195,6 +197,23 @@ export const EventSetupTab = (
                 </li>
               );
             })}
+            {validLocations.some((location) => location.type === MeetLocationType) && (
+              <div className="flex text-sm text-gray-600">
+                <Icon.FiCheck className="mt-0.5 mr-1.5 h-2 w-2.5" />
+                <Trans i18nKey="event_type_requres_google_cal">
+                  <p>
+                    The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
+                    Change it{" "}
+                    <Link
+                      href={`${CAL_URL}/event-types/${eventType.id}?tabName=advanced`}
+                      className="underline">
+                      here.
+                    </Link>{" "}
+                    We will fall back to Cal video if you do not change it.
+                  </p>
+                </Trans>
+              </div>
+            )}
             {validLocations.length > 0 && validLocations.length !== locationOptions.length && (
               <li>
                 <Button StartIcon={Icon.FiPlus} color="minimal" onClick={() => setShowLocationModal(true)}>
@@ -262,12 +281,14 @@ export const EventSetupTab = (
                   if (!newOptions.find((opt) => opt.value === defaultDuration?.value)) {
                     if (newOptions.length > 0) {
                       setDefaultDuration(newOptions[0]);
+                      formMethods.setValue("length", newOptions[0].value);
                     } else {
                       setDefaultDuration(null);
                     }
                   }
                   if (newOptions.length === 1 && defaultDuration === null) {
                     setDefaultDuration(newOptions[0]);
+                    formMethods.setValue("length", newOptions[0].value);
                   }
                   formMethods.setValue("metadata.multipleDuration", values);
                 }}
@@ -288,7 +309,7 @@ export const EventSetupTab = (
                   setDefaultDuration(
                     selectedMultipleDuration.find((opt) => opt.value === option?.value) ?? null
                   );
-                  formMethods.setValue("length", Number(option?.value));
+                  if (option) formMethods.setValue("length", option.value);
                 }}
               />
             </div>
@@ -296,14 +317,11 @@ export const EventSetupTab = (
         ) : (
           <TextField
             required
-            name="length"
             type="number"
             label={t("duration")}
-            addOnSuffix={<>{t("minutes")}</>}
             defaultValue={eventType.length ?? 15}
-            onChange={(e) => {
-              formMethods.setValue("length", Number(e.target.value));
-            }}
+            {...formMethods.register("length")}
+            addOnSuffix={<>{t("minutes")}</>}
           />
         )}
         <div className="!mt-4 [&_label]:my-1 [&_label]:font-normal">
@@ -327,6 +345,7 @@ export const EventSetupTab = (
           <Skeleton as={Label} loadingClassName="w-16">
             {t("location")}
           </Skeleton>
+
           <Controller
             name="locations"
             control={formMethods.control}
@@ -343,7 +362,7 @@ export const EventSetupTab = (
         saveLocation={saveLocation}
         defaultValues={formMethods.getValues("locations")}
         selection={
-          selectedLocation ? { value: selectedLocation.value, label: selectedLocation.label } : undefined
+          selectedLocation ? { value: selectedLocation.value, label: t(selectedLocation.label) } : undefined
         }
         setSelectedLocation={setSelectedLocation}
         setEditingLocationType={setEditingLocationType}

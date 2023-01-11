@@ -1,10 +1,11 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
+import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Icon, Shell, showToast } from "@calcom/ui";
+import { Button, Icon, showToast } from "@calcom/ui";
 
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderList";
@@ -43,6 +44,7 @@ function WorkflowsPage() {
       CTA={
         session.data?.hasValidLicense && data?.workflows && data?.workflows.length > 0 ? (
           <Button
+            size="fab"
             StartIcon={Icon.FiPlus}
             onClick={() => createMutation.mutate()}
             loading={createMutation.isLoading}>

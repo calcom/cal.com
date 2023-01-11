@@ -3,8 +3,9 @@ import { useRouter } from "next/router";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { getSettingsLayout as getLayout, Meta, showToast, SkeletonContainer } from "@calcom/ui";
+import { Meta, showToast, SkeletonContainer } from "@calcom/ui";
 
+import { getLayout } from "../../settings/layouts/SettingsLayout";
 import WebhookForm, { WebhookFormSubmitData } from "../components/WebhookForm";
 
 const NewWebhookView = () => {
@@ -34,12 +35,14 @@ const NewWebhookView = () => {
     },
   });
 
-  const subscriberUrlReserved = (subscriberUrl: string, id: string): boolean => {
-    return !!webhooks?.find((webhook) => webhook.subscriberUrl === subscriberUrl && webhook.id !== id);
+  const subscriberUrlReserved = (subscriberUrl: string, id?: string): boolean => {
+    return !!webhooks?.find(
+      (webhook) => webhook.subscriberUrl === subscriberUrl && (!id || webhook.id !== id)
+    );
   };
 
   const onCreateWebhook = async (values: WebhookFormSubmitData) => {
-    if (values.id && subscriberUrlReserved(values.subscriberUrl, values.id)) {
+    if (subscriberUrlReserved(values.subscriberUrl, values.id)) {
       showToast(t("webhook_subscriber_url_reserved"), "error");
       return;
     }
