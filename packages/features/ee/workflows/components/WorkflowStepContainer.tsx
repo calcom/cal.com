@@ -36,6 +36,7 @@ import {
   TextField,
   Editor,
   AddVariablesDropdown,
+  Tooltip,
 } from "@calcom/ui";
 
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
@@ -54,6 +55,7 @@ type WorkflowStepProps = {
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
+
   const { step, form, reload, setReload } = props;
   const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery();
   const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber);
@@ -264,7 +266,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     const selectedAction = {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: step.action,
-      disabled: false,
+      needsUpgrade: false,
     };
 
     const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
@@ -382,8 +384,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         isOptionDisabled={(option: {
                           label: string;
                           value: WorkflowActions;
-                          disabled: boolean;
-                        }) => option.disabled}
+                          needsUpgrade: boolean;
+                        }) => option.needsUpgrade}
                       />
                     );
                   }}
