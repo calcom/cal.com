@@ -15,41 +15,6 @@ export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number
 
 const minimumOfOne = (input: number) => (input < 1 ? 1 : input);
 
-/**
- * TODO: What does this function do?
- * Why is it needed?
- */
-const splitAvailableTime = (
-  startTimeMinutes: number,
-  endTimeMinutes: number,
-  frequency: number,
-  eventLength: number
-): TimeFrame[] => {
-  let initialTime = startTimeMinutes;
-  const finalizationTime = endTimeMinutes;
-  const result = [] as TimeFrame[];
-
-  // Ensure that both the frequency and event length are at least 1 minute, if they
-  // would be zero, we would have an infinite loop in this while!
-  const frequencyMinimumOne = minimumOfOne(frequency);
-  const eventLengthMinimumOne = minimumOfOne(eventLength);
-
-  while (initialTime < finalizationTime) {
-    const periodTime = initialTime + frequencyMinimumOne;
-    const slotEndTime = initialTime + eventLengthMinimumOne;
-    /*
-    check if the slot end time surpasses availability end time of the user
-    1 minute is added to round up the hour mark so that end of the slot is considered in the check instead of x9
-    eg: if finalization time is 11:59, slotEndTime is 12:00, we ideally want the slot to be available
-    */
-    if (slotEndTime <= finalizationTime + 1) result.push({ startTime: initialTime, endTime: periodTime });
-    // Ensure that both the frequency and event length are at least 1 minute, if they
-    // would be zero, we would have an infinite loop in this while!
-    initialTime += frequencyMinimumOne;
-  }
-  return result;
-};
-
 function buildSlots({
   startOfInviteeDay,
   computedLocalAvailability,
@@ -63,24 +28,47 @@ function buildSlots({
   frequency: number;
   eventLength: number;
 }) {
-  const slotsTimeFrameAvailable: TimeFrame[] = [];
+  // no slots today
+  if (startOfInviteeDay.isBefore(startDate, "day")) {
+    return [];
+  }
+  // keep the old safeguards in; may be needed.
+  frequency = minimumOfOne(frequency);
+  eventLength = minimumOfOne(eventLength);
+  // A day starts at 00:00 unless the startDate is the same as the current day
+  let slotStart = startOfInviteeDay.isSame(startDate, "day")
+    ? Math.ceil((startDate.hour() * 60 + startDate.minute()) / frequency) * frequency
+    : 0;
+  // Record type so we can use slotStart as key
+  const slotsTimeFrameAvailable: Record<
+    string,
+    {
+      userIds: number[];
+      startTime: number;
+      endTime: number;
+    }
+  > = {};
+  // loop through the day, based on frequency.
+  for (; slotStart < 1440; slotStart += frequency) {
+    computedLocalAvailability.forEach((item) => {
+      const rangeStart = Math.ceil(item.startTime / frequency) * frequency;
+      const rangeEnd = Math.floor(item.endTime / frequency) * frequency;
+      if (slotStart < rangeStart || slotStart >= rangeEnd) {
+        return;
+      }
+      slotsTimeFrameAvailable[slotStart.toString()] = {
+        userIds: (slotsTimeFrameAvailable[slotStart]?.userIds || []).concat(item.userIds || []),
+        startTime: slotStart,
+        endTime: slotStart + eventLength,
+      };
+    });
+  }
+  // XXX: Hack alert, as dayjs is supposedly not aware of timezone the current slot may have invalid UTC offset.
+  const timeZone =
+    (startOfInviteeDay as unknown as { $x: { $timezone: string } })["$x"]["$timezone"] || "UTC";
 
-  computedLocalAvailability.forEach((item) => {
-    const userSlotsTimeFrameAvailable = splitAvailableTime(
-      item.startTime,
-      item.endTime,
-      frequency,
-      eventLength
-    ).map((slot) => ({ ...slot, userIds: item.userIds }));
-
-    slotsTimeFrameAvailable.push(...userSlotsTimeFrameAvailable);
-  });
-
-  const slots: { [x: string]: { time: Dayjs; userIds?: number[] } } = {};
-  slotsTimeFrameAvailable.forEach((item) => {
-    // XXX: Hack alert, as dayjs is supposedly not aware of timezone the current slot may have invalid UTC offset.
-    const timeZone =
-      (startOfInviteeDay as unknown as { $x: { $timezone: string } })["$x"]["$timezone"] || "UTC";
+  const slots: { time: Dayjs; userIds?: number[] }[] = [];
+  for (const item of Object.values(slotsTimeFrameAvailable)) {
     /*
      * @calcom/web:dev: 2022-11-06T00:00:00-04:00
      * @calcom/web:dev: 2022-11-06T01:00:00-04:00
@@ -97,22 +85,9 @@ function buildSlots({
     // As the time has now fallen backwards, or forwards; this difference -
     // needs to be manually added as this is not done for us. Usually 0.
     slot.time = slot.time.add(startOfInviteeDay.utcOffset() - slot.time.utcOffset(), "minutes");
-
-    if (slots[slot.time.format()]) {
-      slots[slot.time.format()] = {
-        ...slot,
-        userIds: [...(slots[slot.time.format()].userIds || []), ...(item.userIds || [])],
-      };
-      return;
-    }
-    // Validating slot its not on the past
-    if (slot.time.isBefore(startDate)) {
-      return;
-    }
-    slots[slot.time.format()] = slot;
-  });
-
-  return Object.values(slots);
+    slots.push(slot);
+  }
+  return slots;
 }
 
 const getSlots = ({
