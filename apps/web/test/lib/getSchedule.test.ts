@@ -6,7 +6,6 @@ import {
   SchedulingType,
 } from "@prisma/client";
 import { diff } from "jest-diff";
-import nock from "nock";
 import { v4 as uuidv4 } from "uuid";
 
 import logger from "@calcom/lib/logger";
@@ -14,7 +13,7 @@ import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
 import { getSchedule, Slot } from "@calcom/trpc/server/routers/viewer/slots";
 
-import { prismaMock } from "../../../../tests/config/singleton";
+import { prismaMock, CalendarManagerMock } from "../../../../tests/config/singleton";
 
 // TODO: Mock properly
 prismaMock.eventType.findUnique.mockResolvedValue(null);
@@ -557,15 +556,12 @@ describe("getSchedule", () => {
 
       createBookingScenario(scenarioData);
 
-      addBusyTimesInGoogleCalendar(
-        [
-          {
-            start: `${plus3DateString}T04:00:00.000Z`,
-            end: `${plus3DateString}T05:59:59.000Z`,
-          },
-        ],
-        scenarioData
-      );
+      addBusyTimesInGoogleCalendar([
+        {
+          start: `${plus3DateString}T04:00:00.000Z`,
+          end: `${plus3DateString}T05:59:59.000Z`,
+        },
+      ]);
 
       const scheduleForEventOnADayWithNonCalBooking = await getSchedule(
         {
@@ -634,15 +630,12 @@ describe("getSchedule", () => {
 
       createBookingScenario(scenarioData);
 
-      addBusyTimesInGoogleCalendar(
-        [
-          {
-            start: `${plus3DateString}T04:00:00.000Z`,
-            end: `${plus3DateString}T05:59:59.000Z`,
-          },
-        ],
-        scenarioData
-      );
+      addBusyTimesInGoogleCalendar([
+        {
+          start: `${plus3DateString}T04:00:00.000Z`,
+          end: `${plus3DateString}T05:59:59.000Z`,
+        },
+      ]);
 
       const scheduleForEventOnADayWithCalBooking = await getSchedule(
         {
@@ -718,7 +711,6 @@ describe("getSchedule", () => {
     test("correctly identifies unavailable slots from calendar", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
-
       const scenarioData = {
         eventTypes: [
           {
@@ -745,15 +737,13 @@ describe("getSchedule", () => {
       // An event with one accepted booking
       createBookingScenario(scenarioData);
 
-      addBusyTimesInGoogleCalendar(
-        [
-          {
-            start: `${plus2DateString}T04:30:00.000Z`,
-            end: `${plus2DateString}T23:00:00.000Z`,
-          },
-        ],
-        scenarioData
-      );
+      addBusyTimesInGoogleCalendar([
+        {
+          start: `${plus2DateString}T04:30:00.000Z`,
+          end: `${plus2DateString}T23:00:00.000Z`,
+        },
+      ]);
+
       const scheduleForDayWithAGoogleCalendarBooking = await getSchedule(
         {
           eventTypeId: 1,
@@ -1222,38 +1212,13 @@ const getDate = (param: { dateIncrement?: number; monthIncrement?: number; yearI
 };
 
 /**
- * Remember that this fn must be called only if you expect your test to lookup for busy times in Google Calendar.
- * Calling it unnecessarily will result in a test failure. This is how nock works because it would expect a call to the requests and that too only once.
+ * TODO: Improve this to validate the arguments passed to getBusyCalendarTimes if they are valid or not.
  */
 function addBusyTimesInGoogleCalendar(
   busy: {
     start: string;
     end: string;
-  }[],
-  data: ScenarioData
+  }[]
 ) {
-  if (!data.users.find((u) => u.credentials && u.selectedCalendars)) {
-    throw new Error(
-      "Google Calendar mocking requires atleast one user with both `credentials` and `selectedCalendars`"
-    );
-  }
-  if (!data.apps?.find((app) => app.slug === "google-calendar")) {
-    throw new Error('Google Calendar mocking requires an app with slug "google-calendar"');
-  }
-  logger.silly("Adding busy times in Google Calendar", busy);
-  nock("https://oauth2.googleapis.com").post("/token").reply(200, {
-    access_token: "access_token",
-    expiry_date: Infinity,
-  });
-
-  // Google Calendar with 11th July having many events
-  nock("https://www.googleapis.com")
-    .post("/calendar/v3/freeBusy")
-    .reply(200, {
-      calendars: [
-        {
-          busy,
-        },
-      ],
-    });
+  CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue(busy);
 }
