@@ -217,7 +217,7 @@ afterEach(async () => {
 });
 
 describe("getSchedule", () => {
-  describe.skip("Calendar event", () => {
+  describe("Calendar event", () => {
     test("correctly identifies unavailable slots from calendar", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
