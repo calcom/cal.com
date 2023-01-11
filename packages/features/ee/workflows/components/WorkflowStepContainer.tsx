@@ -37,6 +37,7 @@ import {
   TextField,
   Editor,
   AddVariablesDropdown,
+  Tooltip,
 } from "@calcom/ui";
 
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
@@ -397,6 +398,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         }}
                         defaultValue={selectedAction}
                         options={actionOptions}
+                        isOptionDisabled={(option: {
+                          label: string;
+                          value: WorkflowActions;
+                          needsUpgrade: boolean;
+                        }) => option.needsUpgrade}
                       />
                     );
                   }}
