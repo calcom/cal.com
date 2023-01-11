@@ -164,25 +164,25 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     },
   });
 
-  // const testActionMutation = trpc.viewer.workflows.testAction.useMutation({
-  //   onSuccess: async () => {
-  //     showToast(t("notification_sent"), "success");
-  //   },
-  //   onError: (err) => {
-  //     let message = t("unexpected_error_try_again");
-  //     if (err instanceof TRPCClientError) {
-  //       if (err.message === "rate-limit-exceeded") {
-  //         message = t("rate_limit_exceeded");
-  //       } else {
-  //         message = err.message;
-  //       }
-  //     }
-  //     if (err instanceof HttpError) {
-  //       message = `${err.statusCode}: ${err.message}`;
-  //     }
-  //     showToast(message, "error");
-  //   },
-  // });
+  /* const testActionMutation = trpc.viewer.workflows.testAction.useMutation({
+    onSuccess: async () => {
+      showToast(t("notification_sent"), "success");
+    },
+    onError: (err) => {
+      let message = t("unexpected_error_try_again");
+      if (err instanceof TRPCClientError) {
+        if (err.message === "rate-limit-exceeded") {
+          message = t("rate_limit_exceeded");
+        } else {
+          message = err.message;
+        }
+      }
+      if (err instanceof HttpError) {
+        message = `${err.statusCode}: ${err.message}`;
+      }
+      showToast(message, "error");
+    },
+  }); */
 
   //trigger
   if (!step) {
