@@ -40,16 +40,13 @@ export const InputComponent = <
 };
 
 export const OptionComponent = <
+  Option extends { label: string; value: string; needsUpgrade?: boolean },
   IsMulti extends boolean = false,
-  Group extends GroupBase<{ label: string; value: string; needsUpgrade?: boolean }> = GroupBase<{
-    label: string;
-    value: string;
-    needsUpgrade?: boolean;
-  }>
+  Group extends GroupBase<Option> = GroupBase<Option>
 >({
   className,
   ...props
-}: OptionProps<{ label: string; value: string; needsUpgrade?: boolean }, IsMulti, Group>) => {
+}: OptionProps<Option, IsMulti, Group>) => {
   const { t } = useLocale();
   const router = useRouter();
 
