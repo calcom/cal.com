@@ -79,9 +79,8 @@ function buildSlots({
     // loop through the day, based on frequency.
     for (let slotStart = boundaryStart; slotStart < boundaryEnd; slotStart += frequency) {
       computedLocalAvailability.forEach((item) => {
-        const rangeStart = item.startTime;
-        const rangeEnd = Math.floor(item.endTime / frequency) * frequency;
-        if (slotStart < rangeStart || slotStart >= rangeEnd) {
+        // TODO: This logic does not allow for past-midnight bookings.
+        if (slotStart < item.startTime || slotStart > item.endTime + 15 - frequency) {
           return;
         }
         slotsTimeFrameAvailable[slotStart.toString()] = {
