@@ -19833,9 +19833,9 @@ next@^13.1.1:
     "@next/swc-win32-ia32-msvc" "13.1.1"
     "@next/swc-win32-x64-msvc" "13.1.1"
 
-"next@file:./apps/web/next-13.1.2-canary.4.tgz":
+"next@file:./apps/web/next-debug.tgz":
   version "13.1.2-canary.4"
-  resolved "file:./apps/web/next-13.1.2-canary.4.tgz#7c027f0cfe7bb067798eeb46d7232c024540f6da"
+  resolved "file:./apps/web/next-debug.tgz#1e6a947892424fe7fe85d2927dadcbcd974ccac1"
   dependencies:
     "@next/env" "13.1.2-canary.4"
     "@swc/helpers" "0.4.14"

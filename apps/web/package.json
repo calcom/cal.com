@@ -81,7 +81,7 @@
     "memory-cache": "^0.2.0",
     "micro": "^9.4.1",
     "mime-types": "^2.1.35",
-    "next": "file:./next-13.1.2-canary.4.tgz",
+    "next": "file:./next-debug.tgz",
     "next-auth": "^4.10.3",
     "next-axiom": "^0.16.0",
     "next-collect": "^0.2.1",
