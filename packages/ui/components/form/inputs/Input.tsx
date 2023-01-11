@@ -142,7 +142,6 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
             {...passThrough}
             {...(type == "search" && {
               onChange: (e) => {
-                console.log(e.target.value);
                 setInputValue(e.target.value);
                 props.onChange && props.onChange(e);
               },
@@ -234,7 +233,6 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
 });
 
 export const EmailInput = forwardRef<HTMLInputElement, InputFieldProps>(function EmailInput(props, ref) {
-  console.log("🚀 ~ file: Input.tsx:237 ~ EmailInput ~ props", typeof props.addOnSuffix);
   return (
     <Input
       ref={ref}

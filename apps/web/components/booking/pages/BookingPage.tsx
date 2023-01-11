@@ -39,7 +39,7 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { AddressInput, Button, EmailInput, Form, Icon, PhoneInput, Tooltip } from "@calcom/ui";
+import { AddressInput, Button, EmailInput, Form, Icon, PhoneInput, Tooltip, EmailField } from "@calcom/ui";
 import { Group, RadioField } from "@calcom/ui";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
@@ -65,7 +65,7 @@ type BookingFormValues = {
   email: string;
   notes?: string;
   locationType?: EventLocationType["type"];
-  guests?: string[];
+  guests?: { email: string }[];
   address?: string;
   attendeeAddress?: string;
   phone?: string;
@@ -184,7 +184,9 @@ const BookingPage = ({
 
   const loggedInIsOwner = eventType?.users[0]?.id === session?.user?.id;
   const guestListEmails = !isDynamicGroupBooking
-    ? booking?.attendees.slice(1).map((attendee) => attendee.email)
+    ? booking?.attendees.slice(1).map((attendee) => {
+        return { email: attendee.email };
+      })
     : [];
 
   // There should only exists one default userData variable for primaryAttendee.
@@ -203,7 +205,9 @@ const BookingPage = ({
         name: defaultUserValues.name || (!loggedInIsOwner && session?.user?.name) || "",
         email: defaultUserValues.email || (!loggedInIsOwner && session?.user?.email) || "",
         notes: (router.query.notes as string) || "",
-        guests: ensureArray(router.query.guest) as string[],
+        guests: ensureArray(router.query.guest).map((guest) => {
+          return { email: guest as string };
+        }),
         customInputs: eventType.customInputs.reduce(
           (customInputs, input) => ({
             ...customInputs,
@@ -245,6 +249,7 @@ const BookingPage = ({
     .object({
       name: z.string().min(1),
       email: z.string().trim().email(),
+      guests: z.array(z.object({ email: z.string().email() })).optional(),
       phone: z
         .string()
         .refine((val) => isValidPhoneNumber(val))
@@ -264,7 +269,6 @@ const BookingPage = ({
     resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
   const guestField = useFieldArray({ name: "guests", control: bookingForm.control });
-  console.log("🚀 ~ file: BookingPage.tsx:267 ~ guestField", guestField.fields);
 
   const selectedLocationType = useWatch({
     control: bookingForm.control,
@@ -400,6 +404,7 @@ const BookingPage = ({
             ? booking.phone
             : booking.smsReminderNumber || undefined,
         ethSignature: gateState.rainbowToken,
+        guests: booking.guests?.map((guest) => guest.email),
       }));
       recurringMutation.mutate(recurringBookings);
     } else {
@@ -428,6 +433,7 @@ const BookingPage = ({
             ? booking.phone
             : booking.smsReminderNumber || undefined,
         ethSignature: gateState.rainbowToken,
+        guests: booking.guests?.map((guest) => guest.email),
       });
     }
   };
@@ -844,7 +850,7 @@ const BookingPage = ({
                       )}
                     </div>
                   ))}
-                {!eventType.disableGuests && guestToggle && (
+                {!eventType.disableGuests && guestField.fields.length && (
                   <div className="mb-4">
                     <div>
                       <label
@@ -852,101 +858,49 @@ const BookingPage = ({
                         className="mb-1 block text-sm font-medium text-gray-700 dark:text-white">
                         {t("guests")}
                       </label>
-                      {guestField.fields.map((field, index) => (
-                        <EmailInput
-                          key={field.id}
-                          {...bookingForm.register(`guests.${index}` as const)}
-                          className={classNames(
-                            inputClassName,
-                            bookingForm.formState.errors.email && "!focus:ring-red-700 !border-red-700"
-                          )}
-                          placeholder="guest@example.com"
-                          type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
-                          disabled={disableInput}
-                          addOnSuffix={
-                            <>
-                              <Icon.FiEye />
-                            </>
-                          }
-                        />
-                      ))}
+                      <ul>
+                        {guestField.fields.map((field, index) => (
+                          <li key={field.id}>
+                            <EmailField
+                              {...bookingForm.register(`guests.${index}.email` as const)}
+                              className={classNames(
+                                inputClassName,
+                                bookingForm.formState.errors.email && "!focus:ring-red-700 !border-red-700",
+                                "border-r-0"
+                              )}
+                              addOnClassname="border-gray-300 border block border-l-0 disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent disabled:dark:text-gray-500 dark:border-darkgray-300 "
+                              placeholder="guest@example.com"
+                              type="search"
+                              disabled={disableInput}
+                              label={<></>}
+                              addOnSuffix={
+                                <Tooltip content="Remove guest">
+                                  <button
+                                    // className="absolute bottom-0 h-9 text-gray-900 ltr:right-3 rtl:left-3"
+                                    type="button"
+                                    onClick={() => guestField.remove(index)}>
+                                    <Icon.FiX className="text-gray-600" />
+                                  </button>
+                                </Tooltip>
+                              }
+                            />
+                          </li>
+                        ))}
+                      </ul>
                       <Button
                         size="sm"
                         type="button"
                         color="minimal"
                         className="mb-1 block text-sm font-medium text-gray-700 dark:text-white"
-                        onClick={() => guestField.append("")}>
+                        onClick={() => guestField.append({ email: "" })}>
                         {t("add_another")}
                       </Button>
 
-                      {/* {!disableInput && (
-                        <Controller
-                          control={bookingForm.control}
-                          name="guests"
-                          render={({ field: { onChange, value } }) => (
-                            <>
-                              <EmailInput
-                                className={classNames(
-                                  inputClassName,
-                                  bookingForm.formState.errors.email && "!focus:ring-red-700 !border-red-700"
-                                )}
-                                placeholder="guest@example.com"
-                                type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
-                                disabled={disableInput}
-                                value={value ? value[0] : ""}
-                              />
-                              {value &&
-                                value.map((guest, index) => {
-                                  if (index !== 0)
-                                    return (
-                                      <EmailInput
-                                        key={guest}
-                                        className={classNames(
-                                          inputClassName,
-                                          bookingForm.formState.errors.email &&
-                                            "!focus:ring-red-700 !border-red-700"
-                                        )}
-                                        placeholder="guest@example.com"
-                                        type="search" // Disables annoying 1password intrusive popup (non-optimal, I know I know...)
-                                        disabled={disableInput}
-                                        value={value[0]}
-                                      />
-                                    );
-                                })}
-                            </>
-
-                            //
-                            // <ReactMultiEmail
-                            //   className="relative"
-                            //   placeholder={<span className="dark:text-darkgray-600">guest@example.com</span>}
-                            //   emails={value}
-                            //   onChange={onChange}
-                            //   getLabel={(
-                            //     email: string,
-                            //     index: number,
-                            //     removeEmail: (index: number) => void
-                            //   ) => {
-                            //     return (
-                            //       <div data-tag key={index} className="cursor-pointer">
-                            //         {email}
-                            //         {!disableInput && (
-                            //           <span data-tag-handle onClick={() => removeEmail(index)}>
-                            //             ×
-                            //           </span>
-                            //         )}
-                            //       </div>
-                            //     );
-                            //   }}
-                            // />
-                          )}
-                        />
-                      )} */}
-
                       {/* Custom code when guest emails should not be editable */}
-                      {disableInput && guestListEmails && guestListEmails.length > 0 && (
-                        <div data-tag className="react-multi-email">
-                          {/* // @TODO: user owners are appearing as guest here when should be only user input */}
-                          {guestListEmails.map((email, index) => {
+                      {/* {disableInput && guestListEmails && guestListEmails.length > 0 && (
+                        <div data-tag className="react-multi-email"> */}
+                      {/* // @TODO: user owners are appearing as guest here when should be only user input */}
+                      {/* {guestListEmails.map((email, index) => {
                             return (
                               <div key={index} className="cursor-pointer">
                                 <span data-tag>{email}</span>
@@ -954,7 +908,7 @@ const BookingPage = ({
                             );
                           })}
                         </div>
-                      )}
+                        )} */}
                     </div>
                   </div>
                 )}
@@ -1012,7 +966,8 @@ const BookingPage = ({
                 </div>
 
                 <div className="flex justify-end space-x-2 rtl:space-x-reverse">
-                  {!eventType.disableGuests && !guestToggle && (
+                  {/* {!eventType.disableGuests && !guestToggle && ( */}
+                  {!eventType.disableGuests && !guestField.fields.length && (
                     <Button
                       type="button"
                       color="minimal"
@@ -1021,7 +976,7 @@ const BookingPage = ({
                       StartIcon={Icon.FiUserPlus}
                       onClick={() => {
                         setGuestToggle(!guestToggle);
-                        guestField.append("");
+                        guestField.append({ email: "" });
                       }}
                       className="mr-auto"
                     />
