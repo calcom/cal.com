@@ -217,7 +217,7 @@ afterEach(async () => {
 });
 
 describe("getSchedule", () => {
-  describe.skip("Calendar event", () => {
+  describe("Calendar event", () => {
     test("correctly identifies unavailable slots from calendar", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
@@ -251,7 +251,7 @@ describe("getSchedule", () => {
 
       addBusyTimesInGoogleCalendar([
         {
-          start: `${plus2DateString}T04:30:00.000Z`,
+          start: `${plus2DateString}T04:45:00.000Z`,
           end: `${plus2DateString}T23:00:00.000Z`,
         },
       ]);
@@ -266,7 +266,7 @@ describe("getSchedule", () => {
         ctx
       );
 
-      // As per Google Calendar Availability, only 4PM GMT slot would be available
+      // As per Google Calendar Availability, only 4PM(4-4:45PM) GMT slot would be available
       expect(scheduleForDayWithAGoogleCalendarBooking).toHaveTimeSlots([`04:00:00.000Z`], {
         dateString: plus2DateString,
       });
