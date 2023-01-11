@@ -1,4 +1,4 @@
-import { User, DistributionMethod } from "@prisma/client";
+import { User, SchedulingMethod } from "@prisma/client";
 
 import prisma from "@calcom/prisma";
 
@@ -52,16 +52,16 @@ async function leastRecentlyBookedUser<T extends Pick<User, "id">>({
 }
 
 export async function getLuckyUser<T extends Pick<User, "id">>(
-  distributionAlgorithm: DistributionMethod = DistributionMethod.OPTIMIZE_AVAILABILITY,
+  schedulingMethod: SchedulingMethod = SchedulingMethod.OPTIMIZE_AVAILABILITY,
   { availableUsers, eventTypeId }: { availableUsers: T[]; eventTypeId: number }
 ) {
   if (availableUsers.length === 1) {
     return availableUsers[0];
   }
-  switch (distributionAlgorithm) {
-    case DistributionMethod.OPTIMIZE_AVAILABILITY:
-      return leastRecentlyBookedUser<T>({ availableUsers, eventTypeId });
-    case DistributionMethod.OPTIMIZE_FAIRNESS:
+  switch (schedulingMethod) {
+    case SchedulingMethod.OPTIMIZE_FAIRNESS:
       throw new Error("TODO: Implement OPTIMIZE_FAIRNESS");
+    default:
+      return leastRecentlyBookedUser<T>({ availableUsers, eventTypeId });
   }
 }

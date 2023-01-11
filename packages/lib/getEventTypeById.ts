@@ -94,7 +94,7 @@ export default async function getEventTypeById({
       minimumBookingNotice: true,
       beforeEventBuffer: true,
       afterEventBuffer: true,
-      distributionMethod: true,
+      schedulingMethod: true,
       slotInterval: true,
       hashedLink: true,
       bookingLimits: true,

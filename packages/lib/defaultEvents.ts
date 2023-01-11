@@ -1,4 +1,4 @@
-import { PeriodType, Prisma, SchedulingType, DistributionMethod } from "@prisma/client";
+import { PeriodType, Prisma, SchedulingType, SchedulingMethod } from "@prisma/client";
 
 import { DailyLocationType } from "@calcom/app-store/locations";
 import { userSelect } from "@calcom/prisma/selects";
@@ -71,7 +71,7 @@ const commons = {
   price: 0,
   currency: "usd",
   schedulingType: SchedulingType.COLLECTIVE,
-  distributionMethod: DistributionMethod.OPTIMIZE_AVAILABILITY,
+  schedulingMethod: SchedulingMethod.OPTIMIZE_AVAILABILITY,
   seatsPerTimeSlot: null,
   seatsShowAttendees: null,
   id: 0,

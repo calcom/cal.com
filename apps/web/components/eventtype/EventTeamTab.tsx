@@ -1,4 +1,4 @@
-import { SchedulingType, DistributionMethod } from "@prisma/client/";
+import { SchedulingType, SchedulingMethod } from "@prisma/client";
 import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useMemo } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
@@ -104,20 +104,20 @@ export const EventTeamTab = ({
           {schedulingType === SchedulingType.ROUND_ROBIN && (
             <div>
               <p className="text-sm">
-                <strong className="text-gray-700">{t("distribution_method_title")}</strong>
-                <span className="block text-gray-600">{t("distribution_method_description")}</span>
+                <strong className="text-gray-700">{t("scheduling_method_title")}</strong>
+                <span className="block text-gray-600">{t("scheduling_method_description")}</span>
               </p>
               <RadioArea.Group className="mt-2 flex w-full space-x-4">
                 <RadioArea.Item
-                  {...formMethods.register("distributionMethod")}
-                  value={DistributionMethod.OPTIMIZE_AVAILABILITY}
+                  {...formMethods.register("schedulingMethod")}
+                  value={SchedulingMethod.OPTIMIZE_AVAILABILITY}
                   className="w-1/2 text-sm">
                   <strong className="mb-1 block text-gray-700">{t("optimise_for_availability")}</strong>
                   <p className="text-gray-600">{t("optimise_for_availability_description")}</p>
                 </RadioArea.Item>
                 <RadioArea.Item
-                  {...formMethods.register("distributionMethod")}
-                  value={DistributionMethod.OPTIMIZE_FAIRNESS}
+                  {...formMethods.register("schedulingMethod")}
+                  value={SchedulingMethod.OPTIMIZE_FAIRNESS}
                   className="w-1/2 text-sm">
                   <strong className="mb-1 block text-gray-700">{t("optimise_for_fairness")}</strong>
                   <p className="text-gray-600">{t("optimise_for_fairness_description")}</p>
