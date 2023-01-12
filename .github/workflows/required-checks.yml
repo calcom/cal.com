@@ -1,10 +1,11 @@
 name: "Meta Workflow: Require Conditional Status Checks"
 on:
-  push:
-    branches: [fixes/e2e-consolidation] # TODO: Remove this after merged in main
   pull_request:
     branches:
       - main
+  workflow_run:
+    workflows: [Crowdin Action]
+    types: [completed]
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
