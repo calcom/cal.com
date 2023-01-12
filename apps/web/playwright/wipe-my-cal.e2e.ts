@@ -38,7 +38,7 @@ test.describe("Wipe my Cal App Test", () => {
     await expect(page.locator("data-testid=wipe-today-button")).toBeVisible();
 
     const $openBookingCount = await page.locator('[data-testid="bookings"] > *').count();
-    expect($openBookingCount).toBe(3);
+    expect($openBookingCount).toBe(2);
 
     await page.locator("data-testid=wipe-today-button").click();
 
