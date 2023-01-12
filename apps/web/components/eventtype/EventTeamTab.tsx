@@ -1,5 +1,6 @@
 import { SchedulingType } from "@prisma/client";
 import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import { ComponentProps } from "react";
 import { Controller, useFormContext, useWatch, Control } from "react-hook-form";
 import { Options } from "react-select";
 
@@ -29,14 +30,13 @@ const FixedHosts = ({
   labelText,
   placeholder,
   options = [],
-  teamMembers,
+  ...rest
 }: {
   control: Control<FormValues>;
   labelText: string;
   placeholder: string;
   options?: Options<CheckedSelectOption>;
-  teamMembers?: Options<CheckedSelectOption>;
-}) => {
+} & Partial<ComponentProps<typeof CheckedTeamSelect>>) => {
   return (
     <div className="flex flex-col space-y-5 bg-gray-50 p-4">
       <div>
@@ -68,6 +68,7 @@ const FixedHosts = ({
                 controlShouldRenderValue={false}
                 options={options}
                 placeholder={placeholder}
+                {...rest}
               />
             );
           }}
@@ -125,6 +126,8 @@ export const EventTeamTab = ({
     },
   ];
 
+  const teamMembersOptions = teamMembers.map(mapUserToValue);
+
   return (
     <div>
       {team && (
@@ -149,8 +152,7 @@ export const EventTeamTab = ({
 
           {schedulingType === SchedulingType.COLLECTIVE && (
             <FixedHosts
-              teamMembers={teamMembers}
-              options={teamMemberOptions}
+              options={teamMembersOptions}
               placeholder={t("add_attendees")}
               labelText={t("team")}
               control={formMethods.control}
@@ -160,8 +162,10 @@ export const EventTeamTab = ({
           {schedulingType === SchedulingType.ROUND_ROBIN && (
             <>
               <FixedHosts
-                teamMembers={teamMembers}
-                options={teamMemberOptions}
+                options={teamMembersOptions}
+                isOptionDisabled={(option) =>
+                  !!formMethods.getValues("hosts").find((host) => host.userId.toString() === option.value)
+                }
                 placeholder={t("add_fixed_hosts")}
                 labelText={t("fixed_hosts")}
                 control={formMethods.control}
@@ -193,7 +197,12 @@ export const EventTeamTab = ({
                           )
                           .filter(Boolean)}
                         controlShouldRenderValue={false}
-                        options={teamMemberOptions}
+                        options={teamMembers.map(mapUserToValue)}
+                        isOptionDisabled={(option) =>
+                          !!formMethods
+                            .getValues("hostsFixed")
+                            .find((host) => host.userId.toString() === option.value)
+                        }
                         placeholder={t("add_attendees")}
                       />
                     )}
