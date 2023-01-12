@@ -44,6 +44,7 @@ it("Sydney and Shiraz can live in harmony 🙏", async () => {
         ],
         "endTime": 180,
         "startTime": 0,
+        "userId": 2,
       },
       Object {
         "days": Array [
