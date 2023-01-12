@@ -1,9 +1,3 @@
-"♻️ autoupdate":
-  - apps/web/public/static/locales/**/*.json
-
-automerge:
-  - apps/web/public/static/locales/**/*.json
-
 "❗️ migrations":
   - packages/prisma/migrations/**/migration.sql
 
