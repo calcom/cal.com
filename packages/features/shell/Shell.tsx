@@ -26,18 +26,18 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
 import {
   Button,
+  Credits,
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  showToast,
-  Logo,
   ErrorBoundary,
-  Credits,
   HeadSeo,
   Icon,
+  Logo,
+  showToast,
   SkeletonText,
 } from "@calcom/ui";
 
@@ -182,27 +182,15 @@ const KBarWrapper = ({ children, withKBar = false }: { withKBar: boolean; childr
     <>{children}</>
   );
 
-const PublicShell = (props: LayoutProps) => {
-  const { status } = useSession();
-  return (
-    <KBarWrapper withKBar={status === "authenticated"}>
-      <CustomBrandingContainer />
-      <Layout {...props} />
-    </KBarWrapper>
-  );
-};
-
 export default function Shell(props: LayoutProps) {
+  const { status } = useSession();
   // if a page is unauthed and isPublic is true, the redirect does not happen.
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
   useTheme("light");
-  // if not a public page, we can assume a session.
-  if (props.isPublic) {
-    return <PublicShell {...props} />;
-  }
+
   return (
-    <KBarWrapper withKBar>
+    <KBarWrapper withKBar={status === "authenticated"}>
       <CustomBrandingContainer />
       <Layout {...props} />
     </KBarWrapper>
