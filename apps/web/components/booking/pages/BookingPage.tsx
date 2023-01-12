@@ -6,9 +6,8 @@ import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useReducer, useState } from "react";
-import { Controller, useForm, useWatch, useFieldArray } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
-import { ReactMultiEmail } from "react-multi-email";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
@@ -39,8 +38,18 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { HttpError } from "@calcom/lib/http-error";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import { AddressInput, Button, EmailInput, Form, Icon, PhoneInput, Tooltip, EmailField } from "@calcom/ui";
-import { Group, RadioField } from "@calcom/ui";
+import {
+  AddressInput,
+  Button,
+  EmailField,
+  EmailInput,
+  Form,
+  Group,
+  Icon,
+  PhoneInput,
+  RadioField,
+  Tooltip,
+} from "@calcom/ui";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { timeZone } from "@lib/clock";
@@ -268,7 +277,10 @@ const BookingPage = ({
     defaultValues: defaultValues(),
     resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
-  const guestField = useFieldArray({ name: "guests", control: bookingForm.control });
+  const guestsField = useFieldArray({
+    name: "guests",
+    control: bookingForm.control,
+  });
 
   const selectedLocationType = useWatch({
     control: bookingForm.control,
@@ -850,7 +862,7 @@ const BookingPage = ({
                       )}
                     </div>
                   ))}
-                {!eventType.disableGuests && guestField.fields.length && (
+                {!eventType.disableGuests && guestsField.fields.length && (
                   <div className="mb-4">
                     <div>
                       <label
@@ -859,16 +871,25 @@ const BookingPage = ({
                         {t("guests")}
                       </label>
                       <ul>
-                        {guestField.fields.map((field, index) => (
+                        {guestsField.fields.map((field, index) => (
                           <li key={field.id}>
                             <EmailField
-                              {...bookingForm.register(`guests.${index}.email` as const)}
+                              {...bookingForm.register(`guests.${index}.email` as const, {
+                                validate: {
+                                  notAttendee: (val) => val !== bookingForm.getValues("email"),
+                                },
+                              })}
                               className={classNames(
                                 inputClassName,
-                                bookingForm.formState.errors.email && "!focus:ring-red-700 !border-red-700",
+                                bookingForm.formState.errors.guests?.[index] &&
+                                  "!focus:ring-red-700 !border-red-700",
                                 "border-r-0"
                               )}
-                              addOnClassname="border-gray-300 border block border-l-0 disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent disabled:dark:text-gray-500 dark:border-darkgray-300 "
+                              addOnClassname={classNames(
+                                "border-gray-300 border block border-l-0 disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent disabled:dark:text-gray-500 dark:border-darkgray-300 ",
+                                bookingForm.formState.errors.guests?.[index] &&
+                                  "!focus:ring-red-700 !border-red-700"
+                              )}
                               placeholder="guest@example.com"
                               type="search"
                               disabled={disableInput}
@@ -878,12 +899,18 @@ const BookingPage = ({
                                   <button
                                     // className="absolute bottom-0 h-9 text-gray-900 ltr:right-3 rtl:left-3"
                                     type="button"
-                                    onClick={() => guestField.remove(index)}>
+                                    onClick={() => guestsField.remove(index)}>
                                     <Icon.FiX className="text-gray-600" />
                                   </button>
                                 </Tooltip>
                               }
                             />
+                            {bookingForm.formState.errors.guests?.[index] && (
+                              <div className="mt-2 flex items-center text-sm text-red-700 ">
+                                <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                                <p>{t("email_validation_error")}</p>
+                              </div>
+                            )}
                           </li>
                         ))}
                       </ul>
@@ -892,9 +919,13 @@ const BookingPage = ({
                         type="button"
                         color="minimal"
                         className="mb-1 block text-sm font-medium text-gray-700 dark:text-white"
-                        onClick={() => guestField.append({ email: "" })}>
+                        onClick={() => guestsField.append({ email: "" })}>
                         {t("add_another")}
                       </Button>
+
+                      {guestsField.fields.map((guest) => (
+                        <p key={guest.email}>{guest.email}</p>
+                      ))}
 
                       {/* Custom code when guest emails should not be editable */}
                       {/* {disableInput && guestListEmails && guestListEmails.length > 0 && (
@@ -967,7 +998,7 @@ const BookingPage = ({
 
                 <div className="flex justify-end space-x-2 rtl:space-x-reverse">
                   {/* {!eventType.disableGuests && !guestToggle && ( */}
-                  {!eventType.disableGuests && !guestField.fields.length && (
+                  {!eventType.disableGuests && !guestsField.fields.length && (
                     <Button
                       type="button"
                       color="minimal"
@@ -976,7 +1007,7 @@ const BookingPage = ({
                       StartIcon={Icon.FiUserPlus}
                       onClick={() => {
                         setGuestToggle(!guestToggle);
-                        guestField.append({ email: "" });
+                        guestsField.append({ email: "" });
                       }}
                       className="mr-auto"
                     />
