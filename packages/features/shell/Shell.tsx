@@ -172,19 +172,23 @@ const CustomBrandingContainer = () => {
   return <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />;
 };
 
-const PublicShell = (props: LayoutProps) => {
-  const { status } = useSession();
-  return status === "authenticated" ? (
+const KBarWrapper = ({ children, withKBar = false }: { withKBar: boolean; children: React.ReactNode }) =>
+  withKBar ? (
     <KBarRoot>
-      <CustomBrandingContainer />
-      <Layout {...props} />
+      {children}
       <KBarContent />
     </KBarRoot>
   ) : (
-    <>
+    <>{children}</>
+  );
+
+const PublicShell = (props: LayoutProps) => {
+  const { status } = useSession();
+  return (
+    <KBarWrapper withKBar={status === "authenticated"}>
       <CustomBrandingContainer />
       <Layout {...props} />
-    </>
+    </KBarWrapper>
   );
 };
 
@@ -194,16 +198,15 @@ export default function Shell(props: LayoutProps) {
   useRedirectToOnboardingIfNeeded();
   useTheme("light");
   // if not a public page, we can assume a session.
-  if (!props.isPublic) {
-    return (
-      <KBarRoot>
-        <CustomBrandingContainer />
-        <Layout {...props} />
-        <KBarContent />
-      </KBarRoot>
-    );
+  if (props.isPublic) {
+    return <PublicShell {...props} />;
   }
-  return <PublicShell {...props} />;
+  return (
+    <KBarWrapper withKBar>
+      <CustomBrandingContainer />
+      <Layout {...props} />
+    </KBarWrapper>
+  );
 }
 
 function UserDropdown({ small }: { small?: boolean }) {
