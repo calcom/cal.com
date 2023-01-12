@@ -1492,6 +1492,7 @@
   "invalid_admin_password": "You are set as an admin but you do not have a password length of at least 15 characters",
   "change_password_admin": "Change Password to gain admin access",
   "username_already_taken": "Username is already taken",
+  "upgrade_to_enable_feature": "You need to upgrade to enable this feature. Click to upgrade.",
   "new_attendee": "New Attendee",
   "awaiting_approval": "Awaiting Approval",
   "requires_google_calendar": "This app requires a Google Calendar connection",
