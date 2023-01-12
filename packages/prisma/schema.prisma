@@ -29,6 +29,15 @@ enum PeriodType {
   RANGE     @map("range")
 }
 
+model Host {
+  id          Int       @id @default(autoincrement())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId Int
+  isFixed     Boolean   @default(false)
+}
+
 model EventType {
   id                      Int                     @id @default(autoincrement())
   /// @zod.min(1)
@@ -41,6 +50,7 @@ model EventType {
   locations               Json?
   length                  Int
   hidden                  Boolean                 @default(false)
+  hosts                   Host[]
   users                   User[]                  @relation("user_eventtype")
   owner                   User?                   @relation("owner", fields: [userId], references: [id], onDelete: Cascade)
   userId                  Int?
@@ -187,6 +197,7 @@ model User {
   workflows            Workflow[]
   routingForms         App_RoutingForms_Form[] @relation("routing-form")
   verifiedNumbers      VerifiedNumber[]
+  hosts                Host[]
 
   @@map(name: "users")
 }
