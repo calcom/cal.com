@@ -173,8 +173,7 @@ const ProfileView = () => {
             </div>
           </div>
 
-          <hr className="border-1 my-8 border-neutral-200" />
-          <div className="relative flex items-start">
+          <div className="relative mt-8 flex items-start">
             <div className="flex-grow text-sm">
               <label htmlFor="hide-branding" className="font-medium text-gray-700">
                 {t("hide_book_a_team_member")}
