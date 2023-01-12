@@ -1,4 +1,4 @@
-import { MembershipRole, PeriodType, Prisma } from "@prisma/client";
+import { MembershipRole, PeriodType, Prisma, SchedulingType } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 // REVIEW: From lint error
 import _ from "lodash";
@@ -580,7 +580,8 @@ export const eventTypesRouter = router({
           eventTypeId: id,
         },
         createMany: {
-          data: hosts,
+          // when schedulingType is COLLECTIVE, remove unFixed hosts.
+          data: hosts.filter((host) => !(data.schedulingType === SchedulingType.COLLECTIVE && !host.isFixed)),
         },
       };
     }

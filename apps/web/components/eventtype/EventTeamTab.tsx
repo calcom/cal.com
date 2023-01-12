@@ -1,6 +1,5 @@
-import { SchedulingType } from "@prisma/client/";
+import { SchedulingType } from "@prisma/client";
 import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
-import { useMemo } from "react";
 import { Controller, useFormContext, useWatch, Control } from "react-hook-form";
 import { Options } from "react-select";
 
@@ -30,11 +29,13 @@ const FixedHosts = ({
   labelText,
   placeholder,
   options = [],
+  teamMembers,
 }: {
   control: Control<FormValues>;
   labelText: string;
   placeholder: string;
   options?: Options<CheckedSelectOption>;
+  teamMembers?: Options<CheckedSelectOption>;
 }) => {
   return (
     <div className="flex flex-col space-y-5 bg-gray-50 p-4">
@@ -59,7 +60,9 @@ const FixedHosts = ({
                   .map(
                     (host) =>
                       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                      options.find((member) => member.value === host.userId.toString())!
+                      teamMembers
+                        .map(mapUserToValue)
+                        .find((member) => member.value === host.userId.toString())!
                   )
                   .filter(Boolean)}
                 controlShouldRenderValue={false}
@@ -85,6 +88,24 @@ export const EventTeamTab = ({
   const schedulingType = useWatch({
     control: formMethods.control,
     name: "schedulingType",
+  });
+
+  const hosts = useWatch({
+    control: formMethods.control,
+    name: "hosts",
+  });
+
+  const hostsFixed = useWatch({
+    control: formMethods.control,
+    name: "hostsFixed",
+  });
+
+  const teamMemberOptions = teamMembers.map(mapUserToValue).filter((member) => {
+    return (
+      !hostsFixed.find((host) => host.userId.toString() === member.value) &&
+      (schedulingType === SchedulingType.COLLECTIVE ||
+        !hosts.find((host) => host.userId.toString() === member.value))
+    );
   });
 
   const schedulingTypeOptions: {
@@ -128,7 +149,8 @@ export const EventTeamTab = ({
 
           {schedulingType === SchedulingType.COLLECTIVE && (
             <FixedHosts
-              options={teamMembers.map(mapUserToValue)}
+              teamMembers={teamMembers}
+              options={teamMemberOptions}
               placeholder={t("add_attendees")}
               labelText={t("team")}
               control={formMethods.control}
@@ -138,11 +160,8 @@ export const EventTeamTab = ({
           {schedulingType === SchedulingType.ROUND_ROBIN && (
             <>
               <FixedHosts
-                options={teamMembers.map(mapUserToValue).filter((member) => {
-                  return !formMethods
-                    .getValues("hosts")
-                    .find((host) => host.userId.toString() === member.value);
-                })}
+                teamMembers={teamMembers}
+                options={teamMemberOptions}
                 placeholder={t("add_fixed_hosts")}
                 labelText={t("fixed_hosts")}
                 control={formMethods.control}
@@ -174,11 +193,7 @@ export const EventTeamTab = ({
                           )
                           .filter(Boolean)}
                         controlShouldRenderValue={false}
-                        options={teamMembers.map(mapUserToValue).filter((member) => {
-                          return !formMethods
-                            .getValues("hostsFixed")
-                            .find((host) => host.userId.toString() === member.value);
-                        })}
+                        options={teamMemberOptions}
                         placeholder={t("add_attendees")}
                       />
                     )}
