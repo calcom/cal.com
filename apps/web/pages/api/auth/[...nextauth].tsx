@@ -1,6 +1,8 @@
 import { IdentityProvider, UserPermissionRole } from "@prisma/client";
+import { BinaryLike, hkdfSync, KeyObject } from "crypto";
 import { readFileSync } from "fs";
 import Handlebars from "handlebars";
+import * as jose from "jose";
 import NextAuth, { Session } from "next-auth";
 import { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -9,6 +11,7 @@ import GoogleProvider from "next-auth/providers/google";
 import nodemailer, { TransportOptions } from "nodemailer";
 import { authenticator } from "otplib";
 import path from "path";
+import { v4 as uuidv4 } from "uuid";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
@@ -20,7 +23,7 @@ import { defaultCookies } from "@calcom/lib/default-cookies";
 import rateLimit from "@calcom/lib/rateLimit";
 import { serverConfig } from "@calcom/lib/serverConfig";
 import prisma from "@calcom/prisma";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import CalComAdapter from "@lib/auth/next-auth-custom-adapter";
 import { randomString } from "@lib/random";
@@ -60,6 +63,7 @@ const providers: Provider[] = [
           username: true,
           name: true,
           email: true,
+          metadata: true,
           identityProvider: true,
           password: true,
           twoFactorEnabled: true,
@@ -71,6 +75,8 @@ const providers: Provider[] = [
           },
         },
       });
+
+      const metadata = userMetadata.parse(user?.metadata);
 
       if (!user) {
         throw new Error(ErrorCode.UserNotFound);
@@ -138,6 +144,7 @@ const providers: Provider[] = [
           username: user.username,
           email: user.email,
           name: user.name,
+          sessionTimeout: metadata?.sessionTimeout,
           role: "INACTIVE_ADMIN",
           belongsToActiveTeam: hasActiveTeams,
         };
@@ -148,6 +155,7 @@ const providers: Provider[] = [
         username: user.username,
         email: user.email,
         name: user.name,
+        sessionTimeout: metadata?.sessionTimeout,
         role: user.role,
         belongsToActiveTeam: hasActiveTeams,
       };
@@ -190,6 +198,7 @@ if (isSAMLLoginEnabled) {
         id: profile.id || "",
         firstName: profile.firstName || "",
         lastName: profile.lastName || "",
+        sessionTimeout: profile.sessionTimeout,
         email: profile.email || "",
         name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
         email_verified: true,
@@ -234,12 +243,40 @@ if (true) {
   );
 }
 const calcomAdapter = CalComAdapter(prisma);
+const getDerivedEncryptionKey = async (secret: BinaryLike | KeyObject) => {
+  return await hkdfSync("sha256", secret, "", "NextAuth.js Generated Encryption Key", 32);
+};
 export default NextAuth({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   adapter: calcomAdapter,
   session: {
     strategy: "jwt",
+  },
+  jwt: {
+    encode: async ({ secret, token }) => {
+      const encryptionSecret = await getDerivedEncryptionKey(secret);
+      return await new jose.EncryptJWT({
+        sub: token?.sub,
+        name: token?.name,
+        email: token?.email,
+      })
+        .setProtectedHeader({
+          alg: "dir",
+          enc: "A256GCM",
+        })
+        .setIssuedAt()
+        .setExpirationTime(token && token.sessionTimeout ? `${token.sessionTimeout}m` : "30d")
+        .setJti(uuidv4())
+        .encrypt(new Uint8Array(encryptionSecret));
+    },
+    decode: async ({ secret, token }) => {
+      const encryptionSecret = await getDerivedEncryptionKey(secret);
+      const { payload } = await jose.jwtDecrypt(token || "", new Uint8Array(encryptionSecret), {
+        clockTolerance: 15,
+      });
+      return payload;
+    },
   },
   cookies: defaultCookies(WEBAPP_URL?.startsWith("https://")),
   pages: {
@@ -253,7 +290,7 @@ export default NextAuth({
   callbacks: {
     async jwt({ token, user, account }) {
       const autoMergeIdentities = async () => {
-        const existingUser = await prisma.user.findFirst({
+        const existingUserRaw = await prisma.user.findFirst({
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           where: { email: token.email! },
           select: {
@@ -262,15 +299,20 @@ export default NextAuth({
             name: true,
             email: true,
             role: true,
+            metadata: true,
           },
         });
 
-        if (!existingUser) {
+        if (!existingUserRaw) {
           return token;
         }
 
+        const { metadata, ...existingUser } = existingUserRaw;
+        const parsedMetadata = userMetadata.parse(metadata);
+
         return {
           ...existingUser,
+          sessionTimeout: parsedMetadata?.sessionTimeout,
           ...token,
         };
       };
@@ -287,6 +329,7 @@ export default NextAuth({
           username: user.username,
           email: user.email,
           role: user.role,
+          sessionTimeout: user?.sessionTimeout,
           impersonatedByUID: user?.impersonatedByUID,
           belongsToActiveTeam: user?.belongsToActiveTeam,
         };
@@ -316,6 +359,8 @@ export default NextAuth({
           return await autoMergeIdentities();
         }
 
+        const metadata = userMetadata.parse(existingUser.metadata);
+
         return {
           ...token,
           id: existingUser.id,
@@ -323,6 +368,7 @@ export default NextAuth({
           username: existingUser.username,
           email: existingUser.email,
           role: existingUser.role,
+          sessionTimeout: metadata?.sessionTimeout,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
         };
@@ -341,6 +387,7 @@ export default NextAuth({
           name: token.name,
           username: token.username as string,
           role: token.role as UserPermissionRole,
+          sessionTimeout: session.user?.sessionTimeout as number,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
         },
