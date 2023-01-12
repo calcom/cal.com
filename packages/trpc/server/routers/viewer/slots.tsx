@@ -237,7 +237,10 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
 
   const users =
     eventType.users.length > 0
-      ? eventType.users
+      ? eventType.users.map((user) => ({
+          isFixed: eventType.schedulingType === SchedulingType.COLLECTIVE,
+          ...user,
+        }))
       : eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
 
   /* We get all users working hours and busy slots */
@@ -268,16 +271,15 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         workingHours,
         dateOverrides,
         busy,
-        userId: currentUser.id,
+        user: currentUser,
       };
     })
   );
   // flattens availability of multiple users
   const dateOverrides = userAvailability.flatMap((availability) =>
-    availability.dateOverrides.map((override) => ({ userId: availability.userId, ...override }))
+    availability.dateOverrides.map((override) => ({ userId: availability.user.id, ...override }))
   );
   const workingHours = getAggregateWorkingHours(userAvailability, eventType.schedulingType);
-
   const availabilityCheckProps = {
     eventLength: eventType.length,
     currentSeats,
@@ -317,12 +319,12 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     );
   }
 
-  const isCollective = !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE;
-
   let availableTimeSlots: typeof timeSlots = [];
-  if (isCollective) {
-    availableTimeSlots = timeSlots.filter((slot) =>
-      userAvailability.every((schedule) => {
+
+  availableTimeSlots = timeSlots.filter((slot) =>
+    userAvailability
+      .filter((availability) => availability.user.isFixed)
+      .every((schedule) => {
         const startCheckForAvailability = performance.now();
         const isAvailable = checkIfIsAvailable({
           time: slot.time,
@@ -334,12 +336,13 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         checkForAvailabilityTime += endCheckForAvailability - startCheckForAvailability;
         return isAvailable;
       })
-    );
-  } else {
-    availableTimeSlots = timeSlots
+  );
+
+  availableTimeSlots.push(
+    ...timeSlots
       .map((slot) => {
         slot.userIds = slot.userIds?.filter((slotUserId) => {
-          const userSchedule = userAvailability.find(({ userId }) => userId === slotUserId);
+          const userSchedule = userAvailability.find(({ user: { id: userId } }) => userId === slotUserId);
           if (!userSchedule) {
             throw new TRPCError({
               message: "Shouldn't happen that we don't have a matching user schedule here",
@@ -354,8 +357,8 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         });
         return slot;
       })
-      .filter((slot) => slot.userIds && slot.userIds.length > 0);
-  }
+      .filter((slot) => slot.userIds && slot.userIds.length > 0)
+  );
 
   availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
 
@@ -368,7 +371,9 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       r[time.format("YYYY-MM-DD")].push({
         ...passThroughProps,
         time: time.toISOString(),
-        users: eventType.users.map((user) => user.username || ""),
+        users: [...eventType.users, ...eventType.hosts.map((host) => host.user)].map(
+          (user) => user.username || ""
+        ),
         // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
         ...(currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString()) && {
           attendees:

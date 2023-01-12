@@ -7,16 +7,19 @@ import type { WorkingHours } from "@calcom/types/schedule";
  * offsets them to UTC and intersects them for collective events.
  **/
 export const getAggregateWorkingHours = (
-  usersWorkingHoursAndBusySlots: Omit<
+  usersWorkingHoursAndBusySlots: (Omit<
     Awaited<ReturnType<Awaited<typeof import("./getUserAvailability")>["getUserAvailability"]>>,
     "currentSeats"
-  >[],
+  > & { user: { isFixed?: boolean } })[],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   schedulingType: SchedulingType | null
 ): WorkingHours[] => {
-  if (schedulingType !== SchedulingType.COLLECTIVE) {
-    return usersWorkingHoursAndBusySlots.flatMap((s) => s.workingHours);
-  }
   return usersWorkingHoursAndBusySlots.reduce((currentWorkingHours: WorkingHours[], s) => {
+    // flatMap isFixed
+    if (!s.user.isFixed) {
+      currentWorkingHours.push(...s.workingHours);
+      return currentWorkingHours;
+    }
     const updatedWorkingHours: typeof currentWorkingHours = [];
 
     s.workingHours.forEach((workingHour) => {
