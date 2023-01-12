@@ -5,6 +5,7 @@ import { useMemo, useState, Suspense } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { TbWebhook } from "react-icons/tb";
 
+import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -23,7 +24,6 @@ import {
   HorizontalTabs,
   Icon,
   Label,
-  Shell,
   showToast,
   Skeleton,
   Switch,
