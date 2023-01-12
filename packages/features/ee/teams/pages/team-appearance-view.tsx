@@ -17,6 +17,9 @@ import {
 
 interface TeamAppearanceValues {
   hideBranding: boolean;
+  theme: string | null;
+  brandColor: string;
+  darkBrandColor: string;
 }
 
 const ProfileView = () => {
@@ -204,7 +207,6 @@ interface ThemeLabelProps {
   register: any;
 }
 
-// duplicate of ThemeLabel @ apps/web/pages/settings/my-account/appearance.tsx:232, didn't know where to put the shared component
 const ThemeLabel = ({ variant, label, value, defaultChecked, register }: ThemeLabelProps) => {
   return (
     <label
