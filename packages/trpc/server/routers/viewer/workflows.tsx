@@ -832,7 +832,7 @@ export const workflowsRouter = router({
         workflow,
       };
     }),
-  testAction: authedRateLimitedProcedure({ intervalInMs: 10000, limit: 3 })
+  /* testAction: authedRateLimitedProcedure({ intervalInMs: 10000, limit: 3 })
     .input(
       z.object({
         step: z.object({
@@ -851,151 +851,150 @@ export const workflowsRouter = router({
         reminderBody: z.string(),
       })
     )
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    .mutation(async ({ ctx, input }) => {
-      throw new TRPCError({ code: "FORBIDDEN", message: "Test action temporarily disabled" });
-      // const { user } = ctx;
-      // const { step, emailSubject, reminderBody } = input;
-      // const { action, template, sendTo, sender } = step;
+  .mutation(async ({ ctx, input }) => {
+  const { user } = ctx;
+  const { step, emailSubject, reminderBody } = input;
+  const { action, template, sendTo, sender } = step;
 
-      // const senderID = sender || SENDER_ID;
+  const senderID = sender || SENDER_ID;
 
-      // if (action === WorkflowActions.SMS_NUMBER) {
-      //   if (!sendTo) throw new TRPCError({ code: "BAD_REQUEST", message: "Missing sendTo" });
-      //   const verifiedNumbers = await ctx.prisma.verifiedNumber.findFirst({
-      //     where: {
-      //       userId: ctx.user.id,
-      //       phoneNumber: sendTo,
-      //     },
-      //   });
-      //   if (!verifiedNumbers)
-      //     throw new TRPCError({ code: "UNAUTHORIZED", message: "Phone number is not verified" });
-      // }
+  if (action === WorkflowActions.SMS_NUMBER) {
+    if (!sendTo) throw new TRPCError({ code: "BAD_REQUEST", message: "Missing sendTo" });
+    const verifiedNumbers = await ctx.prisma.verifiedNumber.findFirst({
+      where: {
+        userId: ctx.user.id,
+        phoneNumber: sendTo,
+      },
+    });
+    if (!verifiedNumbers)
+      throw new TRPCError({ code: "UNAUTHORIZED", message: "Phone number is not verified" });
+  }
 
-      // try {
-      //   const userWorkflow = await ctx.prisma.workflow.findUnique({
-      //     where: {
-      //       id: step.workflowId,
-      //     },
-      //     select: {
-      //       userId: true,
-      //       steps: true,
-      //     },
-      //   });
+  try {
+    const userWorkflow = await ctx.prisma.workflow.findUnique({
+      where: {
+        id: step.workflowId,
+      },
+      select: {
+        userId: true,
+        steps: true,
+      },
+    });
 
-      //   if (!userWorkflow || userWorkflow.userId !== user.id) {
-      //     throw new TRPCError({ code: "UNAUTHORIZED" });
-      //   }
+    if (!userWorkflow || userWorkflow.userId !== user.id) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
 
-      //   if (isSMSAction(step.action) /*|| step.action === WorkflowActions.EMAIL_ADDRESS*/) {
-      //     const hasTeamPlan = (await ctx.prisma.membership.count({ where: { userId: user.id } })) > 0;
-      //     if (!hasTeamPlan) {
-      //       throw new TRPCError({ code: "UNAUTHORIZED", message: "Team plan needed" });
-      //     }
-      //   }
+    if (isSMSAction(step.action) /*|| step.action === WorkflowActions.EMAIL_ADDRESS*/ /*) {
+      const hasTeamPlan = (await ctx.prisma.membership.count({ where: { userId: user.id } })) > 0;
+      if (!hasTeamPlan) {
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "Team plan needed" });
+      }
+    }
 
-      //   const booking = await ctx.prisma.booking.findFirst({
-      //     orderBy: {
-      //       createdAt: "desc",
-      //     },
-      //     where: {
-      //       userId: ctx.user.id,
-      //     },
-      //     include: {
-      //       attendees: true,
-      //       user: true,
-      //     },
-      //   });
+    const booking = await ctx.prisma.booking.findFirst({
+      orderBy: {
+        createdAt: "desc",
+      },
+      where: {
+        userId: ctx.user.id,
+      },
+      include: {
+        attendees: true,
+        user: true,
+      },
+    });
 
-      //   let evt: BookingInfo;
-      //   if (booking) {
-      //     evt = {
-      //       uid: booking?.uid,
-      //       attendees:
-      //         booking?.attendees.map((attendee) => {
-      //           return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
-      //         }) || [],
-      //       organizer: {
-      //         language: {
-      //           locale: booking?.user?.locale || "",
-      //         },
-      //         name: booking?.user?.name || "",
-      //         email: booking?.user?.email || "",
-      //         timeZone: booking?.user?.timeZone || "",
-      //       },
-      //       startTime: booking?.startTime.toISOString() || "",
-      //       endTime: booking?.endTime.toISOString() || "",
-      //       title: booking?.title || "",
-      //       location: booking?.location || null,
-      //       additionalNotes: booking?.description || null,
-      //       customInputs: booking?.customInputs,
-      //     };
-      //   } else {
-      //     //if no booking exists create an example booking
-      //     evt = {
-      //       attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Europe/London" }],
-      //       organizer: {
-      //         language: {
-      //           locale: ctx.user.locale,
-      //         },
-      //         name: ctx.user.name || "",
-      //         email: ctx.user.email,
-      //         timeZone: ctx.user.timeZone,
-      //       },
-      //       startTime: dayjs().add(10, "hour").toISOString(),
-      //       endTime: dayjs().add(11, "hour").toISOString(),
-      //       title: "Example Booking",
-      //       location: "Office",
-      //       additionalNotes: "These are additional notes",
-      //     };
-      //   }
+    let evt: BookingInfo;
+    if (booking) {
+      evt = {
+        uid: booking?.uid,
+        attendees:
+          booking?.attendees.map((attendee) => {
+            return { name: attendee.name, email: attendee.email, timeZone: attendee.timeZone };
+          }) || [],
+        organizer: {
+          language: {
+            locale: booking?.user?.locale || "",
+          },
+          name: booking?.user?.name || "",
+          email: booking?.user?.email || "",
+          timeZone: booking?.user?.timeZone || "",
+        },
+        startTime: booking?.startTime.toISOString() || "",
+        endTime: booking?.endTime.toISOString() || "",
+        title: booking?.title || "",
+        location: booking?.location || null,
+        additionalNotes: booking?.description || null,
+        customInputs: booking?.customInputs,
+      };
+    } else {
+      //if no booking exists create an example booking
+      evt = {
+        attendees: [{ name: "John Doe", email: "john.doe@example.com", timeZone: "Europe/London" }],
+        organizer: {
+          language: {
+            locale: ctx.user.locale,
+          },
+          name: ctx.user.name || "",
+          email: ctx.user.email,
+          timeZone: ctx.user.timeZone,
+        },
+        startTime: dayjs().add(10, "hour").toISOString(),
+        endTime: dayjs().add(11, "hour").toISOString(),
+        title: "Example Booking",
+        location: "Office",
+        additionalNotes: "These are additional notes",
+      };
+    }
 
-      //   if (
-      //     action === WorkflowActions.EMAIL_ATTENDEE ||
-      //     action === WorkflowActions.EMAIL_HOST /*||
-      //     action === WorkflowActions.EMAIL_ADDRESS*/
-      //   ) {
-      //     scheduleEmailReminder(
-      //       evt,
-      //       WorkflowTriggerEvents.NEW_EVENT,
-      //       action,
-      //       { time: null, timeUnit: null },
-      //       ctx.user.email,
-      //       emailSubject,
-      //       reminderBody,
-      //       0,
-      //       template
-      //     );
-      //     return { message: "Notification sent" };
-      //   } else if (action === WorkflowActions.SMS_NUMBER && sendTo) {
-      //     scheduleSMSReminder(
-      //       evt,
-      //       sendTo,
-      //       WorkflowTriggerEvents.NEW_EVENT,
-      //       action,
-      //       { time: null, timeUnit: null },
-      //       reminderBody,
-      //       0,
-      //       template,
-      //       senderID,
-      //       ctx.user.id
-      //     );
-      //     return { message: "Notification sent" };
-      //   }
-      //   return {
-      //     ok: false,
-      //     status: 500,
-      //     message: "Notification could not be sent",
-      //   };
-      // } catch (_err) {
-      //   const error = getErrorFromUnknown(_err);
-      //   return {
-      //     ok: false,
-      //     status: 500,
-      //     message: error.message,
-      //   };
-      // }
-    }),
+    if (
+      action === WorkflowActions.EMAIL_ATTENDEE ||
+      action === WorkflowActions.EMAIL_HOST /*||
+      action === WorkflowActions.EMAIL_ADDRESS*/
+  /*) {
+      scheduleEmailReminder(
+        evt,
+        WorkflowTriggerEvents.NEW_EVENT,
+        action,
+        { time: null, timeUnit: null },
+        ctx.user.email,
+        emailSubject,
+        reminderBody,
+        0,
+        template
+      );
+      return { message: "Notification sent" };
+    } else if (action === WorkflowActions.SMS_NUMBER && sendTo) {
+      scheduleSMSReminder(
+        evt,
+        sendTo,
+        WorkflowTriggerEvents.NEW_EVENT,
+        action,
+        { time: null, timeUnit: null },
+        reminderBody,
+        0,
+        template,
+        senderID,
+        ctx.user.id
+      );
+      return { message: "Notification sent" };
+    }
+    return {
+      ok: false,
+      status: 500,
+      message: "Notification could not be sent",
+    };
+  } catch (_err) {
+    const error = getErrorFromUnknown(_err);
+    return {
+      ok: false,
+      status: 500,
+      message: error.message,
+    };
+  }
+  }),
+  */
   activateEventType: authedProcedure
     .input(
       z.object({

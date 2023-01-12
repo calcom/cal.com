@@ -87,7 +87,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                 slug: eventTypeSlug,
                 /** Treat as recurring only when a count exist and it's not a rescheduling workflow */
                 count: recurringCount && !rescheduleUid ? recurringCount : undefined,
-                ethSignature,
+                ...(ethSignature ? { ethSignature } : {}),
               },
             };
 
