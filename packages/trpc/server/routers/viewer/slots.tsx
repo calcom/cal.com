@@ -240,7 +240,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     ...user,
   }));
   // overwrite if it is a team event & hosts is set, otherwise keep using users.
-  if (eventType.schedulingType && !!eventType.hosts.length) {
+  if (eventType.schedulingType && !!eventType.hosts?.length) {
     users = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
   }
   /* We get all users working hours and busy slots */
