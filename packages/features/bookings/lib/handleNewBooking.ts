@@ -402,7 +402,10 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   users = users.map((user) => ({
     ...user,
-    isFixed: user.isFixed === false ? false : eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
+    isFixed:
+      user.isFixed === false
+        ? false
+        : user.isFixed || eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
   }));
 
   if (eventType && eventType.hasOwnProperty("bookingLimits") && eventType?.bookingLimits) {
