@@ -101,7 +101,7 @@ const WorkflowListItem = (props: ItemProps) => {
         <div
           className={classNames(
             "mb-1 w-full truncate text-base font-medium leading-4 text-gray-900 md:max-w-max",
-            workflow.name && isActive ? "text-gray-900" : "text-neutral-500"
+            workflow.name && isActive ? "text-gray-900" : "text-gray-500"
           )}>
           {workflow.name
             ? workflow.name

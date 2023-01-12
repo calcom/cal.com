@@ -50,10 +50,10 @@ const DateOverrideList = ({
               }).format(item.ranges[0].start)}
             </h3>
             {item.ranges[0].end.getUTCHours() === 0 && item.ranges[0].end.getUTCMinutes() === 0 ? (
-              <p className="text-xs text-neutral-500">{t("unavailable")}</p>
+              <p className="text-xs text-gray-500">{t("unavailable")}</p>
             ) : (
               item.ranges.map((range, i) => (
-                <p key={i} className="text-xs text-neutral-500">
+                <p key={i} className="text-xs text-gray-500">
                   {timeSpan(range)}
                 </p>
               ))
