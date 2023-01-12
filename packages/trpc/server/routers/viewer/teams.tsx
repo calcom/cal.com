@@ -123,6 +123,9 @@ export const viewerTeamsRouter = router({
         logo: z.string().optional(),
         slug: z.string().optional(),
         hideBranding: z.boolean().optional(),
+        brandColor: z.string().optional(),
+        darkBrandColor: z.string().optional(),
+        theme: z.string().optional().nullable(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -150,6 +153,9 @@ export const viewerTeamsRouter = router({
         logo: input.logo,
         bio: input.bio,
         hideBranding: input.hideBranding,
+        brandColor: input.brandColor,
+        darkBrandColor: input.darkBrandColor,
+        theme: input.theme,
       };
 
       if (

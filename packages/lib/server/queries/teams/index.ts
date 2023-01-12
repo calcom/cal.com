@@ -21,6 +21,9 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
     logo: true,
     bio: true,
     hideBranding: true,
+    theme: true,
+    brandColor: true,
+    darkBrandColor: true,
     metadata: true,
     members: {
       select: {
