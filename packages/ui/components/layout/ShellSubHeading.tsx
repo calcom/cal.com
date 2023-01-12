@@ -14,7 +14,7 @@ export function ShellSubHeading(props: {
         <h2 className="flex content-center items-center space-x-2 text-base font-bold leading-6 text-gray-900 rtl:space-x-reverse">
           {props.title}
         </h2>
-        {props.subtitle && <p className="text-sm text-neutral-500 ltr:mr-4">{props.subtitle}</p>}
+        {props.subtitle && <p className="text-sm text-gray-500 ltr:mr-4">{props.subtitle}</p>}
       </div>
       {props.actions && <div className="mt-2 flex-shrink-0 sm:mt-0">{props.actions}</div>}
     </header>
