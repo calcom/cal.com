@@ -37,6 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         location: true,
         user: {
           select: {
+            id: true,
             email: true,
             name: true,
             username: true,
