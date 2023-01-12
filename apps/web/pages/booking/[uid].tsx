@@ -499,7 +499,7 @@ export default function Success(props: SuccessProps) {
                       <>
                         <div className="mt-9 font-medium">{t("additional_notes")}</div>
                         <div className="col-span-2 mb-2 mt-9">
-                          <p>{bookingInfo.description}</p>
+                          <p className="break-words">{bookingInfo.description}</p>
                         </div>
                       </>
                     )}
