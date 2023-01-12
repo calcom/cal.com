@@ -235,14 +235,14 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   }
   let currentSeats: CurrentSeats | undefined = undefined;
 
-  const users =
-    eventType.users.length > 0
-      ? eventType.users.map((user) => ({
-          isFixed: eventType.schedulingType === SchedulingType.COLLECTIVE,
-          ...user,
-        }))
-      : eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
-
+  let users = eventType.users.map((user) => ({
+    isFixed: true,
+    ...user,
+  }));
+  // overwrite if it is a team event & hosts is set, otherwise keep using users.
+  if (eventType.schedulingType && eventType.hosts) {
+    users = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+  }
   /* We get all users working hours and busy slots */
   const userAvailability = await Promise.all(
     users.map(async (currentUser) => {
@@ -320,7 +320,6 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   }
 
   let availableTimeSlots: typeof timeSlots = [];
-
   availableTimeSlots = timeSlots.filter((slot) =>
     userAvailability
       .filter((availability) => availability.user.isFixed)
@@ -337,28 +336,33 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         return isAvailable;
       })
   );
-
-  availableTimeSlots.push(
-    ...timeSlots
-      .map((slot) => {
-        slot.userIds = slot.userIds?.filter((slotUserId) => {
-          const userSchedule = userAvailability.find(({ user: { id: userId } }) => userId === slotUserId);
-          if (!userSchedule) {
-            throw new TRPCError({
-              message: "Shouldn't happen that we don't have a matching user schedule here",
-              code: "INTERNAL_SERVER_ERROR",
+  // what else are you going to call it?
+  const looseHostAvailability = userAvailability.filter(({ user: { isFixed } }) => !isFixed);
+  if (looseHostAvailability.length > 0) {
+    availableTimeSlots.push(
+      ...timeSlots
+        .map((slot) => {
+          slot.userIds = slot.userIds?.filter((slotUserId) => {
+            const userSchedule = looseHostAvailability.find(
+              ({ user: { id: userId } }) => userId === slotUserId
+            );
+            if (!userSchedule) {
+              throw new TRPCError({
+                message: "Shouldn't happen that we don't have a matching user schedule here",
+                code: "INTERNAL_SERVER_ERROR",
+              });
+            }
+            return checkIfIsAvailable({
+              time: slot.time,
+              ...userSchedule,
+              ...availabilityCheckProps,
             });
-          }
-          return checkIfIsAvailable({
-            time: slot.time,
-            ...userSchedule,
-            ...availabilityCheckProps,
           });
-        });
-        return slot;
-      })
-      .filter((slot) => slot.userIds && slot.userIds.length > 0)
-  );
+          return slot;
+        })
+        .filter((slot) => slot.userIds && slot.userIds.length > 0)
+    );
+  }
 
   availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
 
