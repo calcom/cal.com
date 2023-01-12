@@ -368,13 +368,12 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           },
           ...userSelect,
         })
-      : [
-          ...eventType.users,
-          ...eventType.hosts.map(({ user, isFixed }) => ({
-            ...user,
-            isFixed,
-          })),
-        ];
+      : eventType.hosts
+      ? eventType.hosts.map(({ user, isFixed }) => ({
+          ...user,
+          isFixed,
+        }))
+      : eventType.users;
   // loadUsers allows type inferring
   let users: (Awaited<ReturnType<typeof loadUsers>>[number] & { isFixed?: boolean })[] = await loadUsers();
 
