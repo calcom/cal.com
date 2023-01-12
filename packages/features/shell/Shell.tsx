@@ -26,18 +26,18 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
 import {
   Button,
+  Credits,
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  showToast,
-  Logo,
   ErrorBoundary,
-  Credits,
   HeadSeo,
   Icon,
+  Logo,
+  showToast,
   SkeletonText,
 } from "@calcom/ui";
 
@@ -172,22 +172,28 @@ const CustomBrandingContainer = () => {
   return <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />;
 };
 
+const KBarWrapper = ({ children, withKBar = false }: { withKBar: boolean; children: React.ReactNode }) =>
+  withKBar ? (
+    <KBarRoot>
+      {children}
+      <KBarContent />
+    </KBarRoot>
+  ) : (
+    <>{children}</>
+  );
+
 export default function Shell(props: LayoutProps) {
+  const { status } = useSession();
+  // if a page is unauthed and isPublic is true, the redirect does not happen.
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
   useTheme("light");
-  // don't load KBar when unauthed
-  return props.isPublic ? (
-    <>
+
+  return (
+    <KBarWrapper withKBar={status === "authenticated"}>
       <CustomBrandingContainer />
       <Layout {...props} />
-    </>
-  ) : (
-    <KBarRoot>
-      <CustomBrandingContainer />
-      <Layout {...props} />
-      <KBarContent />
-    </KBarRoot>
+    </KBarWrapper>
   );
 }
 
