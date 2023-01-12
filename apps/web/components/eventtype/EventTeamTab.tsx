@@ -60,9 +60,7 @@ const FixedHosts = ({
                   .map(
                     (host) =>
                       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                      teamMembers
-                        .map(mapUserToValue)
-                        .find((member) => member.value === host.userId.toString())!
+                      options.find((member) => member.value === host.userId.toString())!
                   )
                   .filter(Boolean)}
                 controlShouldRenderValue={false}
