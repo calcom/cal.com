@@ -12,6 +12,7 @@ import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseReq
 import ImpersonatingBanner from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
 import HelpMenuItem from "@calcom/features/ee/support/components/HelpMenuItem";
 import { TeamsUpgradeBanner } from "@calcom/features/ee/teams/components";
+import { KBarContent, KBarRoot, KBarTrigger } from "@calcom/features/kbar/Kbar";
 import TimezoneChangeDialog from "@calcom/features/settings/TimezoneChangeDialog";
 import { Tips } from "@calcom/features/tips";
 import AdminPasswordBanner from "@calcom/features/users/components/AdminPasswordBanner";
@@ -23,7 +24,6 @@ import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
-
 import {
   Button,
   Dropdown,
@@ -33,13 +33,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   showToast,
-} from "../..";
-import { Logo, ErrorBoundary } from "../../components";
-import { Credits } from "../../components/credits";
-import { HeadSeo } from "../../components/head-seo";
-import { Icon } from "../../components/icon";
-import { SkeletonText } from "../../components/skeleton";
-import { KBarContent, KBarRoot, KBarTrigger } from "./Kbar";
+  Logo,
+  ErrorBoundary,
+  Credits,
+  HeadSeo,
+  Icon,
+  SkeletonText,
+} from "@calcom/ui";
 
 /* TODO: Migate this */
 
@@ -101,25 +101,6 @@ function useRedirectToOnboardingIfNeeded() {
   return {
     isRedirectingToOnboarding,
   };
-}
-
-export function ShellSubHeading(props: {
-  title: ReactNode;
-  subtitle?: ReactNode;
-  actions?: ReactNode;
-  className?: string;
-}) {
-  return (
-    <header className={classNames("mb-3 block justify-between sm:flex", props.className)}>
-      <div>
-        <h2 className="flex content-center items-center space-x-2 text-base font-bold leading-6 text-gray-900 rtl:space-x-reverse">
-          {props.title}
-        </h2>
-        {props.subtitle && <p className="text-sm text-neutral-500 ltr:mr-4">{props.subtitle}</p>}
-      </div>
-      {props.actions && <div className="mt-2 flex-shrink-0 sm:mt-0">{props.actions}</div>}
-    </header>
-  );
 }
 
 const Layout = (props: LayoutProps) => {
@@ -553,7 +534,7 @@ const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMor
 
 const Navigation = () => {
   return (
-    <nav className="mt-2 flex-1 space-y-1 md:px-2 lg:mt-5 lg:px-0">
+    <nav className="mt-2 flex-1 space-y-0.5 md:px-2 lg:mt-6 lg:px-0">
       {desktopNavigationItems.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}
@@ -599,7 +580,7 @@ const NavigationItem: React.FC<{
         href={item.href}
         aria-label={t(item.name)}
         className={classNames(
-          "group flex items-center rounded-md py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100 lg:px-[14px]  [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
+          "group flex items-center rounded-md py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
           isChild
             ? "[&[aria-current='page']]:text-brand-900 hidden pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent"
             : "[&[aria-current='page']]:text-brand-900 "
@@ -607,7 +588,7 @@ const NavigationItem: React.FC<{
         aria-current={current ? "page" : undefined}>
         {item.icon && (
           <item.icon
-            className="h-4 w-4 flex-shrink-0 text-gray-500 ltr:mr-3 rtl:ml-3 [&[aria-current='page']]:text-inherit"
+            className="h-4 w-4 flex-shrink-0 text-gray-500 ltr:mr-2 rtl:ml-2 [&[aria-current='page']]:text-inherit"
             aria-hidden="true"
             aria-current={current ? "page" : undefined}
           />
@@ -724,9 +705,9 @@ function SideBar() {
   return (
     <div className="relative">
       <aside className="desktop-transparent top-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto border-r border-gray-100 bg-gray-50 md:sticky md:flex lg:w-56 lg:px-4">
-        <div className="flex h-full flex-col justify-between py-3 lg:pt-5 ">
+        <div className="flex h-full flex-col justify-between py-3 lg:pt-6 ">
           <header className="items-center justify-between md:hidden lg:flex">
-            <Link href="/event-types" className="px-4">
+            <Link href="/event-types" className="px-2">
               <Logo small />
             </Link>
             <div className="flex space-x-2 rtl:space-x-reverse">
