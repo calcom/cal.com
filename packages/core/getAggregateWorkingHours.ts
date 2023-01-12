@@ -45,8 +45,13 @@ export const getAggregateWorkingHours = (
       });
       return updatedWorkingHours;
     }, []);
+  if (schedulingType === SchedulingType.COLLECTIVE) {
+    return aggregate;
+  }
   // take the aggregate (collective or fixed round robin hosts) and append unfixed hosts
   return aggregate.concat(
-    usersWorkingHoursAndBusySlots.filter(({ user }) => user?.isFixed === false).flatMap((s) => s.workingHours)
+    ...usersWorkingHoursAndBusySlots
+      .filter(({ user }) => user?.isFixed !== true)
+      .flatMap((s) => s.workingHours)
   );
 };
