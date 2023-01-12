@@ -172,23 +172,38 @@ const CustomBrandingContainer = () => {
   return <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />;
 };
 
-export default function Shell(props: LayoutProps) {
-  useRedirectToLoginIfUnauthenticated(props.isPublic);
-  useRedirectToOnboardingIfNeeded();
-  useTheme("light");
-  // don't load KBar when unauthed
-  return props.isPublic ? (
-    <>
-      <CustomBrandingContainer />
-      <Layout {...props} />
-    </>
-  ) : (
+const PublicShell = (props: LayoutProps) => {
+  const { status } = useSession();
+  return status === "authenticated" ? (
     <KBarRoot>
       <CustomBrandingContainer />
       <Layout {...props} />
       <KBarContent />
     </KBarRoot>
+  ) : (
+    <>
+      <CustomBrandingContainer />
+      <Layout {...props} />
+    </>
   );
+};
+
+export default function Shell(props: LayoutProps) {
+  // if a page is unauthed and isPublic is true, the redirect does not happen.
+  useRedirectToLoginIfUnauthenticated(props.isPublic);
+  useRedirectToOnboardingIfNeeded();
+  useTheme("light");
+  // if not a public page, we can assume a session.
+  if (!props.isPublic) {
+    return (
+      <KBarRoot>
+        <CustomBrandingContainer />
+        <Layout {...props} />
+        <KBarContent />
+      </KBarRoot>
+    );
+  }
+  return <PublicShell {...props} />;
 }
 
 function UserDropdown({ small }: { small?: boolean }) {
