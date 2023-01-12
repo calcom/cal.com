@@ -68,30 +68,20 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   if (!app) return { notFound: true };
 
   const singleApp = await getAppWithMetadata(app);
+
   if (!singleApp) return { notFound: true };
+
   const isTemplate = singleApp.isTemplate;
-  const appDirname = `${isTemplate ? "templates" : ""}/${app.dirName}`;
+  const appDirname = path.join(isTemplate ? "templates" : "", app.dirName);
   const README_PATH = path.join(process.cwd(), "..", "..", `packages/app-store/${appDirname}/DESCRIPTION.md`);
   const postFilePath = path.join(README_PATH);
-  const CONFIG_PATH = path.join(process.cwd(), "..", "..", `packages/app-store/${appDirname}/config.json`);
   let source = "";
 
   try {
-    /* If the app doesn't have a README we fallback to the package description */
-    let description: string | null = null;
-
-    try {
-      description = JSON.parse(fs.readFileSync(CONFIG_PATH).toString()).description;
-    } catch (error) {
-      console.log(`No config.json provided for: ${appDirname}`, error);
-    }
-
     source = fs.readFileSync(postFilePath).toString();
-
-    if (description) {
-      source = source.replace(/{DESCRIPTION}/g, description);
-    }
+    source = source.replace(/{DESCRIPTION}/g, singleApp.description);
   } catch (error) {
+    /* If the app doesn't have a README we fallback to the package description */
     console.log(`No DESCRIPTION.md provided for: ${appDirname}`);
     source = singleApp.description;
   }
@@ -99,7 +89,8 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   const { content, data } = matter(source);
   if (data.items) {
     data.items = data.items.map((item: string) => {
-      if (!item.includes("/")) {
+      if (!item.includes("/api/app-store")) {
+        // Make relative paths absolute
         return `/api/app-store/${appDirname}/${item}`;
       }
       return item;

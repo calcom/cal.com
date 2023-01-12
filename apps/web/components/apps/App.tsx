@@ -105,7 +105,7 @@ const Component = ({
                 className="rounded-md bg-gray-100 p-1 text-xs capitalize text-gray-800">
                 {categories[0]}
               </Link>{" "}
-              • {t("published_by", { author })}{" "}
+              • {t("published_by", { author })}
             </h2>
             {isTemplate && (
               <Badge variant="red" className="mt-4">

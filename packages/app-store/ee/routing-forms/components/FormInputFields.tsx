@@ -42,7 +42,7 @@ export default function FormInputFields(props: Props) {
               <label
                 id="slug-label"
                 htmlFor="slug"
-                className="flex text-sm font-medium text-neutral-700 dark:text-white">
+                className="flex text-sm font-medium text-gray-700 dark:text-white">
                 {field.label}
               </label>
             </div>
