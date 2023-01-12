@@ -166,7 +166,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     },
   });
 
-  const testActionMutation = trpc.viewer.workflows.testAction.useMutation({
+  /* const testActionMutation = trpc.viewer.workflows.testAction.useMutation({
     onSuccess: async () => {
       showToast(t("notification_sent"), "success");
     },
@@ -184,7 +184,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       }
       showToast(message, "error");
     },
-  });
+  }); */
 
   //trigger
   if (!step) {
@@ -630,10 +630,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </div>
                 </div>
               )}
-              {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
+              {/* {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
                 <Button
                   type="button"
-                  className="mt-7 w-full"
+                  className="w-full mt-7"
                   onClick={() => {
                     let isEmpty = false;
 
@@ -703,11 +703,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   color="secondary">
                   <div className="w-full">{t("test_action")}</div>
                 </Button>
-              )}
+              )*/}
             </div>
           </div>
         </div>
-        <Dialog open={confirmationDialogOpen} onOpenChange={setConfirmationDialogOpen}>
+        {/* <Dialog open={confirmationDialogOpen} onOpenChange={setConfirmationDialogOpen}>
           <ConfirmationDialogContent
             variety="warning"
             title={t("test_workflow_action")}
@@ -728,7 +728,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             }}>
             {t("send_sms_to_number", { number: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) })}
           </ConfirmationDialogContent>
-        </Dialog>
+        </Dialog> */}
         <Dialog open={isAdditionalInputsDialogOpen} onOpenChange={setIsAdditionalInputsDialogOpen}>
           <DialogContent type="creation" className="sm:max-w-[610px] md:h-[570px]">
             <div className="-m-3 h-[430px] overflow-x-hidden overflow-y-scroll sm:m-0">
