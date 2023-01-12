@@ -29,12 +29,11 @@ enum PeriodType {
   RANGE     @map("range")
 }
 
-// this model is only used 
 model Host {
   id          Int       @id @default(autoincrement())
-  user        User      @relation(fields: [userId], references: [id])
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      Int
-  eventType   EventType @relation(fields: [eventTypeId], references: [id])
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId Int
   isFixed     Boolean   @default(false)
 }
