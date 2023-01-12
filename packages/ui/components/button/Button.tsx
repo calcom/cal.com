@@ -37,7 +37,7 @@ const buttonClasses = cva(
     variants: {
       color: {
         primary: "text-white dark:text-black",
-        secondary: "text-gray-900 dark:text-darkgray-900 bg-white",
+        secondary: "text-gray-900 dark:text-darkgray-900",
         minimal: "text-gray-900 dark:text-darkgray-900",
         destructive: "",
       },
@@ -80,7 +80,7 @@ const buttonClasses = cva(
         disabled: true,
         color: "secondary",
         className:
-          "border border-gray-200 bg-opacity-30 text-gray-900/30 bg-white dark:bg-darkgray-100 dark:text-darkgray-900/30 dark:border-darkgray-200",
+          "border border-gray-200 bg-opacity-30 text-gray-900/30 dark:text-darkgray-900/30 dark:border-darkgray-200",
       },
       {
         loading: true,
@@ -92,7 +92,7 @@ const buttonClasses = cva(
         disabled: [undefined, false],
         color: "secondary",
         className:
-          "border border-gray-300 dark:border-darkgray-300 hover:bg-gray-50 hover:border-gray-400 focus:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus:bg-darkgray-200 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-gray-900 dark:focus:ring-white",
+          "border border-gray-300 dark:border-darkgray-300 bg-white dark:bg-darkgray-100 hover:bg-gray-50 hover:border-gray-400 focus:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus:bg-darkgray-200 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-gray-900 dark:focus:ring-white",
       }),
       // Minimal variants
       {
