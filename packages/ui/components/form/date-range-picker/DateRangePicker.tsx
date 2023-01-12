@@ -2,7 +2,7 @@
 import "@wojtekmaj/react-daterange-picker/dist/DateRangePicker.css";
 import PrimitiveDateRangePicker from "@wojtekmaj/react-daterange-picker/dist/entry.nostyle";
 
-import { Icon } from "../../../..";
+import { Icon } from "../../..";
 import "./styles.css";
 
 type Props = {

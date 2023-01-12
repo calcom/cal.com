@@ -6,8 +6,8 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SVGComponent } from "@calcom/types/SVGComponent";
 
-import { Icon } from "../../../..";
-import { Skeleton } from "../../../../components/skeleton";
+import { Icon } from "../../..";
+import { Skeleton } from "../../skeleton";
 
 export type VerticalTabItemProps = {
   name: string;

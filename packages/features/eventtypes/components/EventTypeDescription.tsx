@@ -39,7 +39,7 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
             {eventType.description.length > 300 && "..."}
           </p>
         )}
-        <ul className="mt-2 flex flex-wrap space-x-2 rtl:space-x-reverse sm:flex-nowrap">
+        <ul className="mt-2 flex flex-wrap space-x-2 rtl:space-x-reverse">
           {eventType.metadata?.multipleDuration ? (
             eventType.metadata.multipleDuration.map((dur, idx) => (
               <li key={idx}>
