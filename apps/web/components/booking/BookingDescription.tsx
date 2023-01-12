@@ -76,7 +76,7 @@ const BookingDescription: FC<Props> = (props) => {
         profile={profile}
         users={eventType.users}
         showMembers={eventType.schedulingType !== SchedulingType.ROUND_ROBIN}
-        size={10}
+        size="sm"
         truncateAfter={3}
       />
       <h2 className="mt-2 break-words text-sm font-medium text-gray-600 dark:text-gray-300">

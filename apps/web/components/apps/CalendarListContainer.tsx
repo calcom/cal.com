@@ -184,9 +184,7 @@ function ConnectedCalendarsList(props: Props) {
                     <div className="border-t border-gray-200">
                       {!fromOnboarding && (
                         <>
-                          <p className="px-4 pt-4 text-sm text-neutral-500">
-                            {t("toggle_calendars_conflict")}
-                          </p>
+                          <p className="px-4 pt-4 text-sm text-gray-500">{t("toggle_calendars_conflict")}</p>
                           <ul className="space-y-2 p-4">
                             {item.calendars.map((cal) => (
                               <CalendarSwitch

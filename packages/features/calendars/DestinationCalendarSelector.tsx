@@ -27,7 +27,7 @@ const SingleValueComponent = ({ ...props }: SingleValueProps<Option>) => {
   const { label, subtitle } = props.data;
   return (
     <components.SingleValue {...props} className="flex space-x-1">
-      <p>{label}</p> <p className=" text-neutral-500">{subtitle}</p>
+      <p>{label}</p> <p className=" text-gray-500">{subtitle}</p>
     </components.SingleValue>
   );
 };

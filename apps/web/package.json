@@ -89,7 +89,6 @@
     "next-seo": "^4.26.0",
     "next-themes": "^0.2.0",
     "next-transpile-modules": "^10.0.0",
-    "nock": "^13.2.8",
     "nodemailer": "^6.7.8",
     "otplib": "^12.0.1",
     "qrcode": "^1.5.1",

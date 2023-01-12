@@ -39,7 +39,7 @@ const HorizontalTabItem = function ({ name, href, linkProps, ...props }: Horizon
         //@ts-ignore
         <props.icon
           className={classNames(
-            isCurrent ? "text-neutral-900" : "text-gray-400 group-hover:text-gray-500",
+            isCurrent ? "text-gray-900" : "text-gray-400 group-hover:text-gray-500",
             "-ml-0.5 hidden h-4 w-4 ltr:mr-2 rtl:ml-2 sm:inline-block"
           )}
           aria-hidden="true"
