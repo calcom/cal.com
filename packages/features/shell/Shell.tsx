@@ -362,7 +362,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   className="flex w-full items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
                   <Icon.FiHelpCircle
                     className={classNames(
-                      "text-gray-500 group-hover:text-neutral-500",
+                      "text-gray-500 group-hover:text-gray-500",
                       "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2"
                     )}
                     aria-hidden="true"
@@ -581,7 +581,7 @@ const NavigationItem: React.FC<{
         href={item.href}
         aria-label={t(item.name)}
         className={classNames(
-          "group flex items-center rounded-md py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
+          "group flex items-center rounded-md py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-gray-900",
           isChild
             ? `[&[aria-current='page']]:text-brand-900 hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
                 props.index === 0 ? "mt-0" : "mt-px"
@@ -654,7 +654,7 @@ const MobileNavigationItem: React.FC<{
     <Link
       key={item.name}
       href={item.href}
-      className="relative my-2 min-w-0 flex-1 overflow-hidden rounded-md py-2 px-1 text-center text-xs font-medium text-neutral-400 hover:bg-gray-200 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
+      className="relative my-2 min-w-0 flex-1 overflow-hidden rounded-md py-2 px-1 text-center text-xs font-medium text-gray-400 hover:bg-gray-200 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
       aria-current={current ? "page" : undefined}>
       {item.badge && <div className="absolute right-1 top-1">{item.badge}</div>}
       {item.icon && (
@@ -717,14 +717,14 @@ function SideBar() {
               <button
                 color="minimal"
                 onClick={() => window.history.back()}
-                className="desktop-only group flex text-sm font-medium text-neutral-500 hover:text-neutral-900">
-                <Icon.FiArrowLeft className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
+                className="desktop-only group flex text-sm font-medium text-gray-500 hover:text-gray-900">
+                <Icon.FiArrowLeft className="h-4 w-4 flex-shrink-0 text-gray-500 group-hover:text-gray-900" />
               </button>
               <button
                 color="minimal"
                 onClick={() => window.history.forward()}
-                className="desktop-only group flex text-sm font-medium text-neutral-500 hover:text-neutral-900">
-                <Icon.FiArrowRight className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
+                className="desktop-only group flex text-sm font-medium text-gray-500 hover:text-gray-900">
+                <Icon.FiArrowRight className="h-4 w-4 flex-shrink-0 text-gray-500 group-hover:text-gray-900" />
               </button>
               <KBarTrigger />
             </div>
@@ -791,7 +791,7 @@ export function ShellMain(props: LayoutProps) {
                 </h1>
               )}
               {props.subtitle && (
-                <p className="hidden text-sm text-neutral-500 sm:block">
+                <p className="hidden text-sm text-gray-500 sm:block">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
                 </p>
               )}
@@ -854,7 +854,7 @@ function TopNav() {
           <Logo />
         </Link>
         <div className="flex items-center gap-2 self-center">
-          <span className="group flex items-center rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+          <span className="group flex items-center rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 lg:hidden">
             <KBarTrigger />
           </span>
           <button className="rounded-full p-1 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">

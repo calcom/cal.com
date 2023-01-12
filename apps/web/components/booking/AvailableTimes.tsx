@@ -119,7 +119,7 @@ const AvailableTimes: FC<AvailableTimesProps> = ({
                     prefetch={false}
                     className={classNames(
                       "text-primary-500 hover:border-gray-900 hover:bg-gray-50",
-                      "dark:bg-darkgray-200 dark:hover:bg-darkgray-300 dark:hover:border-darkmodebrand mb-2 block rounded-md border bg-white py-2 text-sm font-medium dark:border-transparent dark:text-neutral-200",
+                      "dark:bg-darkgray-200 dark:hover:bg-darkgray-300 dark:hover:border-darkmodebrand dark:text-darkgray-800 mb-2 block rounded-md border bg-white py-2 text-sm font-medium dark:border-transparent",
                       brand === "#fff" || brand === "#ffffff" ? "" : ""
                     )}
                     data-testid="time">

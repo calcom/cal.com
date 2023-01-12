@@ -83,7 +83,7 @@ const ConferencingLayout = () => {
                   }
                   <div className="flex-grow truncate pl-2">
                     <ListItemTitle component="h3" className="mb-1 space-x-2 rtl:space-x-reverse">
-                      <h3 className="truncate text-sm font-medium text-neutral-900">{app.title}</h3>
+                      <h3 className="truncate text-sm font-medium text-gray-900">{app.title}</h3>
                     </ListItemTitle>
                     <ListItemText component="p">{app.description}</ListItemText>
                   </div>
