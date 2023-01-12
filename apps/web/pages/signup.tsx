@@ -145,7 +145,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     prepopulateFormValues: undefined,
   };
 
-  if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP) {
+  if (process.env.NEXT_PUBLIC_DISABLE_SIGNUP === 'true') {
     return {
       notFound: true,
     };

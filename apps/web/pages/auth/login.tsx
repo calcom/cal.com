@@ -116,7 +116,7 @@ export default function Login({
         showLogo
         heading={twoFactorRequired ? t("2fa_code") : t("welcome_back")}
         footerText={
-          twoFactorRequired ? TwoFactorFooter : !process.env.NEXT_PUBLIC_DISABLE_SIGNUP ? LoginFooter : null
+          twoFactorRequired ? TwoFactorFooter : process.env.NEXT_PUBLIC_DISABLE_SIGNUP !== 'true' ? LoginFooter : null
         }>
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)} data-testid="login-form">
