@@ -18,40 +18,44 @@ export const getAggregateWorkingHours = (
   if (!schedulingType) {
     return usersWorkingHoursAndBusySlots.flatMap((s) => s.workingHours);
   }
-  const aggregate = usersWorkingHoursAndBusySlots
-    .filter(({ user }) => schedulingType === SchedulingType.COLLECTIVE || user?.isFixed)
-    .reduce((currentWorkingHours: WorkingHours[], s) => {
-      const updatedWorkingHours: typeof currentWorkingHours = [];
+  const looseHostWorkingHours = usersWorkingHoursAndBusySlots
+    .filter(({ user }) => schedulingType !== SchedulingType.COLLECTIVE && user?.isFixed !== true)
+    .flatMap((s) => s.workingHours);
 
-      s.workingHours.forEach((workingHour) => {
-        const sameDayWorkingHours = currentWorkingHours.filter((compare) =>
-          compare.days.find((day) => workingHour.days.includes(day))
-        );
-        if (!sameDayWorkingHours.length) {
-          updatedWorkingHours.push(workingHour); // the first day is always added.
-          return;
-        }
-        // days are overlapping when different users are involved, instead of adding we now need to subtract
-        updatedWorkingHours.push(
-          ...sameDayWorkingHours.map((compare) => {
-            const intersect = workingHour.days.filter((day) => compare.days.includes(day));
-            return {
-              days: intersect,
-              startTime: Math.max(workingHour.startTime, compare.startTime),
-              endTime: Math.min(workingHour.endTime, compare.endTime),
-            };
-          })
-        );
-      });
-      return updatedWorkingHours;
-    }, []);
-  if (schedulingType === SchedulingType.COLLECTIVE) {
-    return aggregate;
-  }
-  // take the aggregate (collective or fixed round robin hosts) and append unfixed hosts
-  return aggregate.concat(
-    ...usersWorkingHoursAndBusySlots
-      .filter(({ user }) => user?.isFixed !== true)
-      .flatMap((s) => s.workingHours)
+  const fixedHostSchedules = usersWorkingHoursAndBusySlots.filter(
+    ({ user }) => schedulingType === SchedulingType.COLLECTIVE || user?.isFixed
   );
+  // return early when there are no fixed hosts.
+  if (!fixedHostSchedules.length) {
+    return looseHostWorkingHours;
+  }
+  return fixedHostSchedules.reduce((currentWorkingHours: WorkingHours[], s) => {
+    const updatedWorkingHours: typeof currentWorkingHours = [];
+
+    s.workingHours.forEach((workingHour) => {
+      const sameDayWorkingHours = currentWorkingHours.filter((compare) =>
+        compare.days.find((day) => workingHour.days.includes(day))
+      );
+      if (!sameDayWorkingHours.length) {
+        updatedWorkingHours.push(workingHour); // the first day is always added.
+        return;
+      }
+      // days are overlapping when different users are involved, instead of adding we now need to subtract
+      updatedWorkingHours.push(
+        ...sameDayWorkingHours.map((compare) => {
+          const intersect = workingHour.days.filter((day) => compare.days.includes(day));
+          const retVal: WorkingHours & { userId?: number | null } = {
+            days: intersect,
+            startTime: Math.max(workingHour.startTime, compare.startTime),
+            endTime: Math.min(workingHour.endTime, compare.endTime),
+          };
+          if (schedulingType !== SchedulingType.COLLECTIVE) {
+            retVal.userId = compare.userId;
+          }
+          return retVal;
+        })
+      );
+    });
+    return updatedWorkingHours;
+  }, looseHostWorkingHours);
 };
