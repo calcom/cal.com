@@ -277,17 +277,9 @@ const BookingPage = ({
     defaultValues: defaultValues(),
     resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
-  console.log("🚀 ~ file: BookingPage.tsx:280 ~ bookingForm", bookingForm.getValues());
   const guestsField = useFieldArray({
     name: "guests",
     control: bookingForm.control,
-  });
-  const watchedGuestsArray = bookingForm.watch("guests");
-  const controlledGuestsArray = guestsField.fields.map((field, index) => {
-    return {
-      ...field,
-      ...watchedGuestsArray[index],
-    };
   });
 
   const selectedLocationType = useWatch({
@@ -894,7 +886,7 @@ const BookingPage = ({
                         {t("guests")}
                       </label>
                       <ul>
-                        {controlledGuestsArray.map((field, index) => (
+                        {guestsField.fields.map((field, index) => (
                           <li key={field.id}>
                             <EmailField
                               {...bookingForm.register(`guests.${index}.email` as const)}
@@ -905,7 +897,7 @@ const BookingPage = ({
                                 "border-r-0"
                               )}
                               addOnClassname={classNames(
-                                "border-gray-300 border block border-l-0 disabled:bg-gray-200 disabled:hover:cursor-not-allowed dark:bg-transparent disabled:dark:text-gray-500 dark:border-darkgray-300 ",
+                                "border-gray-300 border block border-l-0 disabled:bg-gray-200 disabled:hover:cursor-not-allowed bg-transparent disabled:text-gray-500 dark:border-darkgray-300 ",
                                 bookingForm.formState.errors.guests?.[index] &&
                                   "!focus:ring-red-700 !border-red-700"
                               )}
@@ -914,7 +906,11 @@ const BookingPage = ({
                               label={<></>}
                               addOnSuffix={
                                 <Tooltip content="Remove guest">
-                                  <button type="button" onClick={() => guestsField.remove(index)}>
+                                  <button
+                                    disabled={disableInput}
+                                    className="disabled:hover:cursor-not-allowed"
+                                    type="button"
+                                    onClick={() => guestsField.remove(index)}>
                                     <Icon.FiX className="text-gray-600" />
                                   </button>
                                 </Tooltip>
