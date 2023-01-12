@@ -76,7 +76,7 @@ const IntegrationContainer = ({
           <div className="flex w-full flex-1 items-center justify-between space-x-3 p-4 rtl:space-x-reverse md:max-w-3xl">
             {app.logo && <img className="h-10 w-10" src={app.logo} alt={app.title} />}
             <div className="flex-grow truncate pl-2">
-              <h3 className="truncate text-sm font-medium text-neutral-900">
+              <h3 className="truncate text-sm font-medium text-gray-900">
                 <p>{app.name || app.title}</p>
               </h3>
               <p className="truncate text-sm text-gray-500">{app.description}</p>
