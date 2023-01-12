@@ -243,7 +243,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       />
     ),
     availability: <AvailabilityTab isTeamEvent={!!team} />,
-    team: <EventTeamTab eventType={eventType} teamMembers={teamMembers} team={team} />,
+    team: <EventTeamTab teamMembers={teamMembers} team={team} />,
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
