@@ -125,7 +125,10 @@ export const scheduleEmailReminder = async (
     try {
       await sgMail.send({
         to: sendTo,
-        from: senderEmail,
+        from: {
+          email: senderEmail,
+          name: "Custom Sender Name",
+        },
         subject: emailContent.emailSubject,
         text: emailContent.emailBody.text,
         html: emailContent.emailBody.html,

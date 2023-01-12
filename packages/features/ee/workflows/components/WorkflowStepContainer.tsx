@@ -11,6 +11,7 @@ import "react-phone-number-input/style.css";
 
 import { classNames } from "@calcom/lib";
 import { SENDER_ID } from "@calcom/lib/constants";
+import { SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
@@ -468,25 +469,43 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       )}
                     </>
                   )}
-                  {isSenderIdNeeded && (
-                    <>
-                      <div className="pt-4">
-                        <TextField
-                          label={t("sender_id")}
-                          type="text"
-                          placeholder={SENDER_ID}
-                          maxLength={11}
-                          {...form.register(`steps.${step.stepNumber - 1}.sender`)}
-                        />
-                      </div>
-                      {form.formState.errors.steps &&
-                        form.formState?.errors?.steps[step.stepNumber - 1]?.sender && (
-                          <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
-                        )}
-                    </>
-                  )}
                 </div>
               )}
+              <div className="mt-2 rounded-md bg-gray-50 p-4 pt-0">
+                {isSenderIdNeeded ? (
+                  <>
+                    <div className="pt-4">
+                      <TextField
+                        label={t("sender_id")}
+                        type="text"
+                        placeholder={SENDER_ID}
+                        maxLength={11}
+                        {...form.register(`steps.${step.stepNumber - 1}.sender`)}
+                      />
+                    </div>
+                    {form.formState.errors.steps &&
+                      form.formState?.errors?.steps[step.stepNumber - 1]?.sender && (
+                        <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
+                      )}
+                  </>
+                ) : (
+                  <>
+                    <div className="pt-4">
+                      <TextField
+                        label={t("sender_name")}
+                        type="text"
+                        placeholder={SENDER_NAME}
+                        maxLength={11} //todo
+                        {...form.register(`steps.${step.stepNumber - 1}.senderName`)}
+                      />
+                    </div>
+                    {form.formState.errors.steps &&
+                      form.formState?.errors?.steps[step.stepNumber - 1]?.senderName && (
+                        <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
+                      )}
+                  </>
+                )}
+              </div>
               {form.getValues(`steps.${step.stepNumber - 1}.action`) === WorkflowActions.SMS_ATTENDEE && (
                 <div className="mt-2">
                   <Controller

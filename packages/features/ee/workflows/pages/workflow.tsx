@@ -30,7 +30,7 @@ import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableT
 export type FormValues = {
   name: string;
   activeOn: Option[];
-  steps: WorkflowStep[];
+  steps: (WorkflowStep & { senderName: string | null })[];
   trigger: WorkflowTriggerEvents;
   time?: number;
   timeUnit?: TimeUnit;
@@ -124,7 +124,7 @@ function WorkflowPage() {
 
       //translate dynamic variables into local language
       const steps = workflow.steps.map((step) => {
-        const updatedStep = step;
+        const updatedStep = { ...step, senderName: step.sender };
         if (step.reminderBody) {
           updatedStep.reminderBody = getTranslatedText(step.reminderBody || "", {
             locale: i18n.language,

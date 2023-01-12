@@ -6,6 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { SENDER_ID } from "@calcom/lib/constants";
+import { SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -29,7 +30,13 @@ import { onlyLettersNumbersSpaces } from "../pages/workflow";
 interface IAddActionDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
-  addAction: (action: WorkflowActions, sendTo?: string, numberRequired?: boolean, sender?: string) => void;
+  addAction: (
+    action: WorkflowActions,
+    sendTo?: string,
+    numberRequired?: boolean,
+    senderId?: string,
+    senderName?: string
+  ) => void;
 }
 
 interface ISelectActionOption {
@@ -41,7 +48,8 @@ type AddActionFormValues = {
   action: WorkflowActions;
   sendTo?: string;
   numberRequired?: boolean;
-  sender?: string;
+  senderId?: string;
+  senderName?: string;
 };
 
 export const AddActionDialog = (props: IAddActionDialog) => {
@@ -59,9 +67,13 @@ export const AddActionDialog = (props: IAddActionDialog) => {
       .refine((val) => isValidPhoneNumber(val) || val.includes("@"))
       .optional(),
     numberRequired: z.boolean().optional(),
-    sender: z
+    senderId: z
       .string()
       .refine((val) => onlyLettersNumbersSpaces(val))
+      .nullable(),
+    senderName: z
+      .string()
+      // .refine((val) => onlyLettersNumbersSpaces(val))
       .nullable(),
   });
 
@@ -69,7 +81,8 @@ export const AddActionDialog = (props: IAddActionDialog) => {
     mode: "onSubmit",
     defaultValues: {
       action: WorkflowActions.EMAIL_HOST,
-      sender: SENDER_ID,
+      senderId: SENDER_ID,
+      senderName: SENDER_NAME,
     },
     resolver: zodResolver(formSchema),
   });
@@ -111,7 +124,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
             <Form
               form={form}
               handleSubmit={(values) => {
-                addAction(values.action, values.sendTo, values.numberRequired, values.sender);
+                addAction(values.action, values.sendTo, values.numberRequired, values.senderId);
                 form.unregister("sendTo");
                 form.unregister("action");
                 form.unregister("numberRequired");
@@ -176,7 +189,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                     type="text"
                     placeholder={SENDER_ID}
                     maxLength={11}
-                    {...form.register(`sender`)}
+                    {...form.register(`senderId`)}
                   />
                 </div>
               )}
