@@ -127,7 +127,7 @@ const getSlots = ({
   eventLength,
 }: GetSlots) => {
   // current date in invitee tz
-  const startDate = dayjs().add(minimumBookingNotice, "minute");
+  const startDate = dayjs().utcOffset(inviteeDate.utcOffset()).add(minimumBookingNotice, "minute");
   // This code is ran client side, startOf() does some conversions based on the
   // local tz of the client. Sometimes this shifts the day incorrectly.
   const startOfDayUTC = dayjs.utc().set("hour", 0).set("minute", 0).set("second", 0);
