@@ -202,9 +202,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         eventType.minimumBookingNotice
       ),
       metadata,
-      hosts: eventType.users
-        .map((user) => ({ userId: user.id }))
-        .concat(eventType.hosts.filter((host) => !host.isFixed)),
+      hosts: eventType.hosts
+        ? eventType.hosts.filter((host) => !host.isFixed)
+        : eventType.users.map((user) => ({ userId: user.id })),
       hostsFixed: eventType.hosts.filter((host) => host.isFixed),
     },
     resolver: zodResolver(
