@@ -32,7 +32,7 @@ import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
-import prisma, { baseUserSelect } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Button, EmailInput, Icon, HeadSeo } from "@calcom/ui";
@@ -845,6 +845,17 @@ export function RecurringBookings({
 }
 
 const getEventTypesFromDB = async (id: number) => {
+  const userSelect = {
+    id: true,
+    name: true,
+    username: true,
+    hideBranding: true,
+    theme: true,
+    brandColor: true,
+    darkBrandColor: true,
+    email: true,
+    timeZone: true,
+  };
   const eventType = await prisma.eventType.findUnique({
     where: {
       id,
@@ -863,17 +874,17 @@ const getEventTypesFromDB = async (id: number) => {
       locations: true,
       price: true,
       currency: true,
+      owner: {
+        select: userSelect,
+      },
       users: {
+        select: userSelect,
+      },
+      hosts: {
         select: {
-          id: true,
-          name: true,
-          username: true,
-          hideBranding: true,
-          theme: true,
-          brandColor: true,
-          darkBrandColor: true,
-          email: true,
-          timeZone: true,
+          user: {
+            select: userSelect,
+          },
         },
       },
       team: {
@@ -1013,27 +1024,18 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  if (!eventTypeRaw.users.length && eventTypeRaw.userId) {
-    // TODO we should add `user User` relation on `EventType` so this extra query isn't needed
-    const user = await prisma.user.findUnique({
-      where: {
-        id: eventTypeRaw.userId,
-      },
-      select: baseUserSelect,
-    });
-    if (user) {
-      eventTypeRaw.users.push({
-        ...user,
-        avatar: "",
-        allowDynamicBooking: true,
-      });
-    }
-  }
+  eventTypeRaw.users = !!eventTypeRaw.hosts?.length
+    ? eventTypeRaw.hosts.map((host) => host.user)
+    : eventTypeRaw.users;
 
   if (!eventTypeRaw.users.length) {
-    return {
-      notFound: true,
-    };
+    if (!eventTypeRaw.owner)
+      return {
+        notFound: true,
+      };
+    eventTypeRaw.users.push({
+      ...eventTypeRaw.owner,
+    });
   }
 
   const eventType = {
