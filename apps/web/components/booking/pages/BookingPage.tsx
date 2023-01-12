@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useMemo, useReducer, useState } from "react";
-import { useFieldArray, useForm, useWatch } from "react-hook-form";
+import { useFieldArray, useForm, useWatch, Controller } from "react-hook-form";
 import { FormattedNumber, IntlProvider } from "react-intl";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
@@ -281,6 +281,13 @@ const BookingPage = ({
     name: "guests",
     control: bookingForm.control,
   });
+  const watchedGuestsArray = bookingForm.watch("guests");
+  const controlledGuestsArray = guestsField.fields.map((field, index) => {
+    return {
+      ...field,
+      ...watchedGuestsArray[index],
+    };
+  });
 
   const selectedLocationType = useWatch({
     control: bookingForm.control,
@@ -385,6 +392,21 @@ const BookingPage = ({
         return;
       }
     }
+
+    // Validate that guests are unique
+    let alreadyInvited = false;
+    booking.guests?.forEach((guest, index) => {
+      if (guest.email === booking.email) {
+        bookingForm.setError(`guests.${index}`, { type: "validate", message: t("already_invited") });
+        alreadyInvited = true;
+      }
+      if (booking.guests?.find((guestArray) => guestArray.email === guest.email)) {
+        bookingForm.setError(`guests.${index}`, { type: "validate", message: t("already_invited") });
+        alreadyInvited = true;
+      }
+    });
+
+    if (alreadyInvited) return;
 
     if (recurringDates.length) {
       // Identify set of bookings to one intance of recurring event to support batch changes
@@ -862,7 +884,7 @@ const BookingPage = ({
                       )}
                     </div>
                   ))}
-                {!eventType.disableGuests && guestsField.fields.length && (
+                {!eventType.disableGuests && guestsField.fields.length ? (
                   <div className="mb-4">
                     <div>
                       <label
@@ -871,14 +893,10 @@ const BookingPage = ({
                         {t("guests")}
                       </label>
                       <ul>
-                        {guestsField.fields.map((field, index) => (
+                        {controlledGuestsArray.map((field, index) => (
                           <li key={field.id}>
                             <EmailField
-                              {...bookingForm.register(`guests.${index}.email` as const, {
-                                validate: {
-                                  notAttendee: (val) => val !== bookingForm.getValues("email"),
-                                },
-                              })}
+                              {...bookingForm.register(`guests.${index}.email` as const)}
                               className={classNames(
                                 inputClassName,
                                 bookingForm.formState.errors.guests?.[index] &&
@@ -908,7 +926,7 @@ const BookingPage = ({
                             {bookingForm.formState.errors.guests?.[index] && (
                               <div className="mt-2 flex items-center text-sm text-red-700 ">
                                 <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                                <p>{t("email_validation_error")}</p>
+                                <p>{bookingForm.formState.errors.guests?.[index]?.message}</p>
                               </div>
                             )}
                           </li>
@@ -922,10 +940,6 @@ const BookingPage = ({
                         onClick={() => guestsField.append({ email: "" })}>
                         {t("add_another")}
                       </Button>
-
-                      {guestsField.fields.map((guest) => (
-                        <p key={guest.email}>{guest.email}</p>
-                      ))}
 
                       {/* Custom code when guest emails should not be editable */}
                       {/* {disableInput && guestListEmails && guestListEmails.length > 0 && (
@@ -942,6 +956,8 @@ const BookingPage = ({
                         )} */}
                     </div>
                   </div>
+                ) : (
+                  <></>
                 )}
                 {isSmsReminderNumberNeeded && selectedLocationType !== LocationType.Phone && (
                   <div className="mb-4">
