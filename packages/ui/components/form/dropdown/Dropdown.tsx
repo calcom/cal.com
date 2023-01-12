@@ -47,7 +47,7 @@ DropdownMenuContent.displayName = "DropdownMenuContent";
 
 type DropdownMenuLabelProps = ComponentProps<typeof DropdownMenuPrimitive["Label"]>;
 export const DropdownMenuLabel = (props: DropdownMenuLabelProps) => (
-  <DropdownMenuPrimitive.Label {...props} className="px-3 py-2 text-neutral-500" />
+  <DropdownMenuPrimitive.Label {...props} className="px-3 py-2 text-gray-500" />
 );
 
 type DropdownMenuItemProps = ComponentProps<typeof DropdownMenuPrimitive["CheckboxItem"]>;

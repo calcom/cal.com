@@ -527,7 +527,7 @@ const EventTypeListHeading = ({
           {profile?.name || ""}
         </Link>
         {membershipCount && teamId && (
-          <span className="relative -top-px text-xs text-neutral-500 ltr:ml-2 ltr:mr-2 rtl:ml-2">
+          <span className="relative -top-px text-xs text-gray-500 ltr:ml-2 ltr:mr-2 rtl:ml-2">
             <Link href={`/settings/teams/${teamId}/members`}>
               <Badge variant="gray">
                 <Icon.FiUsers className="mr-1 -mt-px inline h-3 w-3" />
@@ -537,7 +537,7 @@ const EventTypeListHeading = ({
           </span>
         )}
         {profile?.slug && (
-          <Link href={`${CAL_URL}/${profile.slug}`} className="block text-xs text-neutral-500">
+          <Link href={`${CAL_URL}/${profile.slug}`} className="block text-xs text-gray-500">
             {`${CAL_URL?.replace("https://", "")}/${profile.slug}`}
           </Link>
         )}
