@@ -277,6 +277,7 @@ const BookingPage = ({
     defaultValues: defaultValues(),
     resolver: zodResolver(bookingFormSchema), // Since this isn't set to strict we only validate the fields in the schema
   });
+  console.log("🚀 ~ file: BookingPage.tsx:280 ~ bookingForm", bookingForm.getValues());
   const guestsField = useFieldArray({
     name: "guests",
     control: bookingForm.control,
@@ -909,15 +910,11 @@ const BookingPage = ({
                                   "!focus:ring-red-700 !border-red-700"
                               )}
                               placeholder="guest@example.com"
-                              type="search"
                               disabled={disableInput}
                               label={<></>}
                               addOnSuffix={
                                 <Tooltip content="Remove guest">
-                                  <button
-                                    // className="absolute bottom-0 h-9 text-gray-900 ltr:right-3 rtl:left-3"
-                                    type="button"
-                                    onClick={() => guestsField.remove(index)}>
+                                  <button type="button" onClick={() => guestsField.remove(index)}>
                                     <Icon.FiX className="text-gray-600" />
                                   </button>
                                 </Tooltip>
@@ -1013,7 +1010,6 @@ const BookingPage = ({
                 </div>
 
                 <div className="flex justify-end space-x-2 rtl:space-x-reverse">
-                  {/* {!eventType.disableGuests && !guestToggle && ( */}
                   {!eventType.disableGuests && !guestsField.fields.length && (
                     <Button
                       type="button"
@@ -1022,7 +1018,6 @@ const BookingPage = ({
                       tooltip={t("additional_guests")}
                       StartIcon={Icon.FiUserPlus}
                       onClick={() => {
-                        setGuestToggle(!guestToggle);
                         guestsField.append({ email: "" });
                       }}
                       className="mr-auto"
