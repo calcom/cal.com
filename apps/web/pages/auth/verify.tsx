@@ -6,7 +6,7 @@ import * as React from "react";
 import { useEffect, useState, useRef } from "react";
 import z from "zod";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc/react";
 import { Button, showToast } from "@calcom/ui";
 
@@ -110,7 +110,7 @@ export default function Verify() {
             ? "Your payment failed"
             : sessionId
             ? "Payment successful!"
-            : "Verify your email" + " | Cal.com"}
+            : "Verify your email" + " | " + APP_NAME}
         </title>
       </Head>
       <div className="flex min-h-screen flex-col items-center justify-center px-6">

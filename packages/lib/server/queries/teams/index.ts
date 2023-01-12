@@ -21,6 +21,7 @@ export async function getTeamWithMembers(id?: number, slug?: string, userId?: nu
     logo: true,
     bio: true,
     hideBranding: true,
+    hideBookATeamMember: true,
     theme: true,
     brandColor: true,
     darkBrandColor: true,

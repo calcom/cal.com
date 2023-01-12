@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 
 import { getAppRegistry } from "@calcom/app-store/_appRegistry";
+import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
-import { AppCard, Shell, SkeletonText } from "@calcom/ui";
+import { AppCard, SkeletonText } from "@calcom/ui";
 
 export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticProps>) {
   const { t, isLocaleReady } = useLocale();
@@ -20,10 +21,10 @@ export default function Apps({ apps }: InferGetStaticPropsType<typeof getStaticP
         backPath="/apps"
         heading={
           <>
-            <Link href="/apps">
-              <a className="inline-flex items-center justify-start gap-1 rounded-sm py-2 text-gray-900">
-                {isLocaleReady ? t("app_store") : <SkeletonText className="h-4 w-24" />}{" "}
-              </a>
+            <Link
+              href="/apps"
+              className="inline-flex items-center justify-start gap-1 rounded-sm py-2 text-gray-900">
+              {isLocaleReady ? t("app_store") : <SkeletonText className="h-4 w-24" />}{" "}
             </Link>
             {category && (
               <span className="gap-1 text-gray-600">

@@ -97,7 +97,7 @@ const SetupFormStep1 = (props: { setIsLoading: (val: boolean) => void }) => {
                 <TextField
                   addOnLeading={
                     !longWebsiteUrl && (
-                      <span className="items-centerpx-3 inline-flex rounded-none text-sm text-gray-500">
+                      <span className="inline-flex items-center rounded-none px-3 text-sm text-gray-500">
                         {process.env.NEXT_PUBLIC_WEBSITE_URL}/
                       </span>
                     )

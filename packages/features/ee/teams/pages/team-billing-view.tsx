@@ -2,7 +2,9 @@ import { useRouter } from "next/router";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, getSettingsLayout as getLayout, Icon, Meta } from "@calcom/ui";
+import { Button, Icon, Meta } from "@calcom/ui";
+
+import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
 const BillingView = () => {
   const { t } = useLocale();

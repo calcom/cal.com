@@ -5,21 +5,16 @@ import { Controller, useForm } from "react-hook-form";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  ColorPicker,
-  Form,
-  getSettingsLayout as getLayout,
-  Meta,
-  showToast,
-  Switch,
-} from "@calcom/ui";
+import { Button, ColorPicker, Form, Meta, showToast, Switch } from "@calcom/ui";
+
+import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
 interface TeamAppearanceValues {
   hideBranding: boolean;
   theme: string | null;
   brandColor: string;
   darkBrandColor: string;
+  hideBookATeamMember: boolean;
 }
 
 const ProfileView = () => {
@@ -171,6 +166,31 @@ const ProfileView = () => {
                     defaultChecked={field.value}
                     onCheckedChange={(isChecked) => {
                       form.setValue("hideBranding", isChecked);
+                    }}
+                  />
+                )}
+              />
+            </div>
+          </div>
+
+          <hr className="border-1 my-8 border-neutral-200" />
+          <div className="relative flex items-start">
+            <div className="flex-grow text-sm">
+              <label htmlFor="hide-branding" className="font-medium text-gray-700">
+                {t("hide_book_a_team_member")}
+              </label>
+              <p className="text-gray-500">{t("hide_book_a_team_member_description")}</p>
+            </div>
+            <div className="flex-none">
+              <Controller
+                control={form.control}
+                defaultValue={team?.hideBookATeamMember ?? false}
+                name="hideBookATeamMember"
+                render={({ field }) => (
+                  <Switch
+                    defaultChecked={field.value}
+                    onCheckedChange={(isChecked) => {
+                      form.setValue("hideBookATeamMember", isChecked);
                     }}
                   />
                 )}

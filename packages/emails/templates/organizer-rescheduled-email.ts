@@ -1,3 +1,5 @@
+import { APP_NAME } from "@calcom/lib/constants";
+
 import { renderEmail } from "../";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
@@ -18,11 +20,10 @@ export default class OrganizerRescheduledEmail extends OrganizerScheduledEmail {
         filename: "event.ics",
         content: this.getiCalEventAsString(),
       },
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.calEvent.organizer.language.translate("event_type_has_been_rescheduled_on_time_date", {
-        eventType: this.calEvent.type,
-        name: this.calEvent.attendees[0].name,
+        title: this.calEvent.title,
         date: `${this.getOrganizerStart("h:mma")} - ${this.getOrganizerEnd(
           "h:mma"
         )}, ${this.calEvent.organizer.language.translate(

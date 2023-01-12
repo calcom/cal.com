@@ -192,22 +192,23 @@ model User {
 }
 
 model Team {
-  id             Int          @id @default(autoincrement())
+  id                  Int          @id @default(autoincrement())
   /// @zod.min(1)
-  name           String
+  name                String
   /// @zod.min(1)
-  slug           String?      @unique
-  logo           String?
-  bio            String?
-  hideBranding   Boolean      @default(false)
-  theme          String?
-  brandColor     String       @default("#292929")
-  darkBrandColor String       @default("#fafafa")
-  members        Membership[]
-  eventTypes     EventType[]
-  createdAt      DateTime     @default(now())
+  slug                String?      @unique
+  logo                String?
+  bio                 String?
+  hideBranding        Boolean      @default(false)
+  theme               String?
+  brandColor          String       @default("#292929")
+  darkBrandColor      String       @default("#fafafa")
+  hideBookATeamMember Boolean      @default(false)
+  members             Membership[]
+  eventTypes          EventType[]
+  createdAt           DateTime     @default(now())
   /// @zod.custom(imports.teamMetadataSchema)
-  metadata       Json?
+  metadata            Json?
 }
 
 enum MembershipRole {
@@ -316,6 +317,8 @@ model Schedule {
   name         String
   timeZone     String?
   availability Availability[]
+
+  @@index([userId])
 }
 
 model Availability {
@@ -330,6 +333,9 @@ model Availability {
   date        DateTime?  @db.Date
   Schedule    Schedule?  @relation(fields: [scheduleId], references: [id])
   scheduleId  Int?
+
+  @@index([eventTypeId])
+  @@index([scheduleId])
 }
 
 model SelectedCalendar {
@@ -356,7 +362,7 @@ model EventTypeCustomInput {
   eventType   EventType                @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   label       String
   type        EventTypeCustomInputType
-  // @zod.custom(imports.customInputOptionSchema)
+  /// @zod.custom(imports.customInputOptionSchema)
   options     Json?
   required    Boolean
   placeholder String                   @default("")

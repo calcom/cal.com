@@ -4,7 +4,7 @@ import { getSession } from "next-auth/react";
 import Head from "next/head";
 import { useEffect } from "react";
 
-import { SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
@@ -48,18 +48,18 @@ export default function JoinCall(props: JoinCallPageProps) {
   return (
     <>
       <Head>
-        <title>Cal.com Video</title>
-        <meta name="title" content="Cal.com Video" />
+        <title>{APP_NAME} Video</title>
+        <meta name="title" content={APP_NAME + " Video"} />
         <meta name="description" content={t("quick_video_meeting")} />
         <meta property="og:image" content={SEO_IMG_OGIMG_VIDEO} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={`${WEBSITE_URL}/video`} />
-        <meta property="og:title" content="Cal.com Video" />
+        <meta property="og:title" content={APP_NAME + " Video"} />
         <meta property="og:description" content={t("quick_video_meeting")} />
         <meta property="twitter:image" content={SEO_IMG_OGIMG_VIDEO} />
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content={`${WEBSITE_URL}/video`} />
-        <meta property="twitter:title" content="Cal.com Video" />
+        <meta property="twitter:title" content={APP_NAME + " Video"} />
         <meta property="twitter:description" content={t("quick_video_meeting")} />
       </Head>
       <div style={{ zIndex: 2, position: "relative" }}>

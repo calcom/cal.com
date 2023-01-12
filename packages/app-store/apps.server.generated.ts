@@ -17,6 +17,7 @@ export const apiHandlers = {
   ga4: import("./ga4/api"),
   giphy: import("./giphy/api"),
   googlecalendar: import("./googlecalendar/api"),
+  googlevideo: import("./googlevideo/api"),
   hubspot: import("./hubspot/api"),
   huddle01video: import("./huddle01video/api"),
   jitsivideo: import("./jitsivideo/api"),

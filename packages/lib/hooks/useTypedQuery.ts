@@ -24,7 +24,7 @@ export const queryStringArray = z
   .preprocess((a) => z.string().parse(a).split(","), z.string().array())
   .or(z.string().array());
 
-export function useTypedQuery<T extends z.ZodType>(schema: T) {
+export function useTypedQuery<T extends z.AnyZodObject>(schema: T) {
   type Output = z.infer<typeof schema>;
   type FullOutput = Required<Output>;
   type OutputKeys = Required<keyof FullOutput>;
@@ -65,8 +65,10 @@ export function useTypedQuery<T extends z.ZodType>(schema: T) {
     const existingValue = parsedQuery[key];
     if (Array.isArray(existingValue)) {
       if (existingValue.includes(value)) return; // prevent adding the same value to the array
+      // @ts-expect-error this is too much for TS it seems
       setQuery(key, [...existingValue, value]);
     } else {
+      // @ts-expect-error this is too much for TS it seems
       setQuery(key, [value]);
     }
   }
@@ -74,7 +76,7 @@ export function useTypedQuery<T extends z.ZodType>(schema: T) {
   // Remove item by key and value
   function removeItemByKeyAndValue<J extends ArrayOutputKeys>(key: J, value: ArrayOutput[J][number]) {
     const existingValue = parsedQuery[key];
-    if (Array.isArray(existingValue)) {
+    if (Array.isArray(existingValue) && existingValue.length > 1) {
       // @ts-expect-error this is too much for TS it seems
       const newValue = existingValue.filter((item) => item !== value);
       setQuery(key, newValue);

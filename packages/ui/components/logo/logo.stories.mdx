@@ -1,0 +1,25 @@
+import { Canvas, Meta, Story, ArgsTable } from '@storybook/addon-docs';
+import { Examples, Example, Note, Title,CustomArgsTable,VariantsTable,VariantRow } from '@calcom/storybook/components'
+import Logo from './Logo';
+
+<Meta title="UI/Logo" component={Logo} />
+
+<Title title="Logo" suffix="Brief" subtitle="Version 2.0 — Last Update: 02 Jan 2023"/>
+
+## Definition
+Main Cal.com brand logo
+
+<CustomArgsTable of={Logo} />
+
+<Canvas>
+  <Story name="Logo">
+    <VariantsTable titles={['']} columnMinWidth={150}>
+      <VariantRow variant="Small">
+        <Logo small />
+      </VariantRow>
+      <VariantRow variant="Default">
+        <Logo  />
+      </VariantRow>
+    </VariantsTable>
+  </Story>
+</Canvas>

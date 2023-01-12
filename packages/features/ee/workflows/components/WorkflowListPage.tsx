@@ -84,58 +84,56 @@ export default function WorkflowListPage({ workflows }: Props) {
             {workflows.map((workflow) => (
               <li key={workflow.id}>
                 <div className="first-line:group flex w-full items-center justify-between p-4 hover:bg-neutral-50 sm:px-6">
-                  <Link href={"/workflows/" + workflow.id}>
-                    <a className="flex-grow cursor-pointer">
-                      <div className="rtl:space-x-reverse">
-                        <div
-                          className={classNames(
-                            "max-w-56 truncate text-sm font-medium leading-6 text-gray-900 md:max-w-max",
-                            workflow.name ? "text-gray-900" : "text-neutral-500"
-                          )}>
-                          {workflow.name
-                            ? workflow.name
-                            : "Untitled (" +
-                              `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`
-                                .charAt(0)
-                                .toUpperCase() +
-                              `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.slice(1) +
-                              ")"}
-                        </div>
-                        <ul className="mt-2 flex flex-wrap space-x-1 sm:flex-nowrap ">
-                          <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800 dark:bg-gray-900 dark:text-white">
-                            <div>
-                              {getActionIcon(workflow.steps)}
+                  <Link href={"/workflows/" + workflow.id} className="flex-grow cursor-pointer">
+                    <div className="rtl:space-x-reverse">
+                      <div
+                        className={classNames(
+                          "max-w-56 truncate text-sm font-medium leading-6 text-gray-900 md:max-w-max",
+                          workflow.name ? "text-gray-900" : "text-neutral-500"
+                        )}>
+                        {workflow.name
+                          ? workflow.name
+                          : "Untitled (" +
+                            `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`
+                              .charAt(0)
+                              .toUpperCase() +
+                            `${t(`${workflow.steps[0].action.toLowerCase()}_action`)}`.slice(1) +
+                            ")"}
+                      </div>
+                      <ul className="mt-2 flex flex-wrap space-x-1 sm:flex-nowrap ">
+                        <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800 dark:bg-gray-900 dark:text-white">
+                          <div>
+                            {getActionIcon(workflow.steps)}
 
-                              <span className="mr-1">{t("triggers")}</span>
-                              {workflow.timeUnit && workflow.time && (
-                                <span className="mr-1">
-                                  {t(`${workflow.timeUnit.toLowerCase()}`, { count: workflow.time })}
-                                </span>
-                              )}
-                              <span>{t(`${workflow.trigger.toLowerCase()}_trigger`)}</span>
-                            </div>
-                          </li>
-                          <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800 dark:bg-gray-900 dark:text-white">
-                            {workflow.activeOn && workflow.activeOn.length > 0 ? (
-                              <Tooltip
-                                content={workflow.activeOn.map((activeOn, key) => (
-                                  <p key={key}>{activeOn.eventType.title}</p>
-                                ))}>
-                                <div>
-                                  <Icon.FiLink className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
-                                  {t("active_on_event_types", { count: workflow.activeOn.length })}
-                                </div>
-                              </Tooltip>
-                            ) : (
+                            <span className="mr-1">{t("triggers")}</span>
+                            {workflow.timeUnit && workflow.time && (
+                              <span className="mr-1">
+                                {t(`${workflow.timeUnit.toLowerCase()}`, { count: workflow.time })}
+                              </span>
+                            )}
+                            <span>{t(`${workflow.trigger.toLowerCase()}_trigger`)}</span>
+                          </div>
+                        </li>
+                        <li className="mb-1 flex items-center whitespace-nowrap rounded-sm bg-gray-100 px-1 py-px text-xs text-gray-800 dark:bg-gray-900 dark:text-white">
+                          {workflow.activeOn && workflow.activeOn.length > 0 ? (
+                            <Tooltip
+                              content={workflow.activeOn.map((activeOn, key) => (
+                                <p key={key}>{activeOn.eventType.title}</p>
+                              ))}>
                               <div>
                                 <Icon.FiLink className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
-                                {t("no_active_event_types")}
+                                {t("active_on_event_types", { count: workflow.activeOn.length })}
                               </div>
-                            )}
-                          </li>
-                        </ul>
-                      </div>
-                    </a>
+                            </Tooltip>
+                          ) : (
+                            <div>
+                              <Icon.FiLink className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                              {t("no_active_event_types")}
+                            </div>
+                          )}
+                        </li>
+                      </ul>
+                    </div>
                   </Link>
                   <div className="flex flex-shrink-0">
                     <div className="hidden sm:block">

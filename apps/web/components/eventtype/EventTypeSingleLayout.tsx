@@ -1,9 +1,11 @@
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
-import { useMemo, useState } from "react";
+import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import { useMemo, useState, Suspense } from "react";
 import { UseFormReturn } from "react-hook-form";
+import { TbWebhook } from "react-icons/tb";
 
+import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -22,7 +24,6 @@ import {
   HorizontalTabs,
   Icon,
   Label,
-  Shell,
   showToast,
   Skeleton,
   Switch,
@@ -31,14 +32,13 @@ import {
   VerticalTabs,
 } from "@calcom/ui";
 
-import { ClientSuspense } from "@components/ClientSuspense";
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 
 type Props = {
   children: React.ReactNode;
-  eventType: EventTypeSetupInfered["eventType"];
-  currentUserMembership: EventTypeSetupInfered["currentUserMembership"];
-  team: EventTypeSetupInfered["team"];
+  eventType: EventTypeSetupProps["eventType"];
+  currentUserMembership: EventTypeSetupProps["currentUserMembership"];
+  team: EventTypeSetupProps["team"];
   disableBorder?: boolean;
   enabledAppsNumber: number;
   installedAppsNumber: number;
@@ -159,7 +159,7 @@ function EventTypeSingleLayout({
       navigation.push({
         name: "webhooks",
         href: `/event-types/${eventType.id}?tabName=webhooks`,
-        icon: Icon.FiLink,
+        icon: TbWebhook,
         info: `${eventType.webhooks.filter((webhook) => webhook.active).length} ${t("active")}`,
       });
     }
@@ -300,7 +300,7 @@ function EventTypeSingleLayout({
           </Button>
         </div>
       }>
-      <ClientSuspense fallback={<Icon.FiLoader />}>
+      <Suspense fallback={<Icon.FiLoader />}>
         <div className="-mt-2 flex flex-col xl:flex-row xl:space-x-8">
           <div className="hidden xl:block">
             <VerticalTabs
@@ -323,7 +323,7 @@ function EventTypeSingleLayout({
             </div>
           </div>
         </div>
-      </ClientSuspense>
+      </Suspense>
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <ConfirmationDialogContent
           isLoading={deleteMutation.isLoading}

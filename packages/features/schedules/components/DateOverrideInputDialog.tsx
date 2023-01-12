@@ -13,11 +13,11 @@ import {
   DialogHeader,
   DialogClose,
   Switch,
-  DatePicker,
   Form,
   Button,
 } from "@calcom/ui";
 
+import DatePicker from "../../calendars/DatePicker";
 import { DayRanges, TimeRange } from "./Schedule";
 
 const ALL_DAY_RANGE = {
@@ -182,7 +182,7 @@ const DateOverrideInputDialog = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
-      <DialogContent size="md">
+      <DialogContent allowScroll={true} size="md">
         <DateOverrideForm
           excludedDates={excludedDates}
           {...passThroughProps}

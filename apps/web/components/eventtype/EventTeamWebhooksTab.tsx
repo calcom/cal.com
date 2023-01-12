@@ -1,5 +1,6 @@
-import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
+import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useState } from "react";
+import { TbWebhook } from "react-icons/tb";
 
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
@@ -13,7 +14,7 @@ import { Button, Dialog, DialogContent, EmptyScreen, Icon, showToast } from "@ca
 export const EventTeamWebhooksTab = ({
   eventType,
   team,
-}: Pick<EventTypeSetupInfered, "eventType" | "team">) => {
+}: Pick<EventTypeSetupProps, "eventType" | "team">) => {
   const { t } = useLocale();
 
   const utils = trpc.useContext();
@@ -117,7 +118,7 @@ export const EventTeamWebhooksTab = ({
                   </>
                 ) : (
                   <EmptyScreen
-                    Icon={Icon.FiLink}
+                    Icon={TbWebhook}
                     headline={t("create_your_first_webhook")}
                     description={t("create_your_first_team_webhook_description", { appName: APP_NAME })}
                     buttonRaw={<NewWebhookButton />}

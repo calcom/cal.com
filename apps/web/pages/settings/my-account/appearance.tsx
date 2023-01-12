@@ -2,6 +2,7 @@ import { GetServerSidePropsContext } from "next";
 import { useSession } from "next-auth/react";
 import { Controller, useForm } from "react-hook-form";
 
+import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -10,7 +11,6 @@ import {
   Button,
   ColorPicker,
   Form,
-  getSettingsLayout as getLayout,
   Meta,
   showToast,
   SkeletonButton,
@@ -177,7 +177,9 @@ const AppearanceView = () => {
             <div className="flex w-full text-sm">
               <div className="mr-1 flex-grow">
                 <div className="flex items-center">
-                  <p className="mr-2 font-semibold">{t("disable_cal_branding", { appName: APP_NAME })}</p>
+                  <p className="font-semibold ltr:mr-2 rtl:ml-2">
+                    {t("disable_cal_branding", { appName: APP_NAME })}
+                  </p>
                   <Badge variant="gray">{t("pro")}</Badge>
                 </div>
                 <p className="mt-0.5  text-gray-600">{t("removes_cal_branding", { appName: APP_NAME })}</p>
