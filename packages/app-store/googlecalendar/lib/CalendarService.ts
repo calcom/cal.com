@@ -214,7 +214,7 @@ export default class GoogleCalendarService implements Calendar {
           auth: myGoogleAuth,
           calendarId: selectedCalendar,
           eventId: uid,
-          sendNotifications: true,
+          sendNotifications: false,
           sendUpdates: "all",
           requestBody: payload,
           conferenceDataVersion: 1,
