@@ -202,7 +202,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         eventType.minimumBookingNotice
       ),
       metadata,
-      hosts: eventType.hosts
+      hosts: !!eventType.hosts?.length
         ? eventType.hosts.filter((host) => !host.isFixed)
         : eventType.users.map((user) => ({ userId: user.id })),
       hostsFixed: eventType.hosts.filter((host) => host.isFixed),
