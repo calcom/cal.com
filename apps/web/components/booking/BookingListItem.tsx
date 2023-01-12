@@ -356,7 +356,7 @@ function BookingListItem(booking: BookingItemProps) {
             <div
               title={booking.title}
               className={classNames(
-                "max-w-10/12 sm:max-w-56 text-sm font-medium leading-6 text-neutral-900 md:max-w-full",
+                "max-w-10/12 sm:max-w-56 text-sm font-medium leading-6 text-gray-900 md:max-w-full",
                 isCancelled ? "line-through" : ""
               )}>
               {booking.title}
