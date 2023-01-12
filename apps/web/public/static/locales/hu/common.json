@@ -217,5 +217,6 @@
   "additional_notes_workflow": "Egyéb jegyzetek",
   "organizer_name_info": "Neved",
   "theme_light": "Világos",
-  "theme_dark": "Sötét"
+  "theme_dark": "Sötét",
+  "team_theme_applies_note": "This only applies to this teams public booking pages"
 }
