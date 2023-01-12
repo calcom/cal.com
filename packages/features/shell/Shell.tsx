@@ -534,11 +534,11 @@ const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMor
 
 const Navigation = () => {
   return (
-    <nav className="mt-2 flex-1 space-y-0.5 md:px-2 lg:mt-6 lg:px-0">
+    <nav className="mt-2 flex-1 md:px-2 lg:mt-6 lg:px-0">
       {desktopNavigationItems.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}
-      <div className="text-gray-500 lg:hidden">
+      <div className="mt-0.5 text-gray-500 lg:hidden">
         <KBarTrigger />
       </div>
     </nav>
@@ -562,6 +562,7 @@ const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, rout
 };
 
 const NavigationItem: React.FC<{
+  index?: number;
   item: NavigationItemType;
   isChild?: boolean;
 }> = (props) => {
@@ -582,8 +583,10 @@ const NavigationItem: React.FC<{
         className={classNames(
           "group flex items-center rounded-md py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
           isChild
-            ? "[&[aria-current='page']]:text-brand-900 hidden pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent"
-            : "[&[aria-current='page']]:text-brand-900 "
+            ? `[&[aria-current='page']]:text-brand-900 hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
+                props.index === 0 ? "mt-0" : "mt-px"
+              }`
+            : "[&[aria-current='page']]:text-brand-900 mt-0.5 text-sm"
         )}
         aria-current={current ? "page" : undefined}>
         {item.icon && (
@@ -604,7 +607,7 @@ const NavigationItem: React.FC<{
       </Link>
       {item.child &&
         isCurrent({ router, isChild, item }) &&
-        item.child.map((item) => <NavigationItem key={item.name} item={item} isChild />)}
+        item.child.map((item, index) => <NavigationItem index={index} key={item.name} item={item} isChild />)}
     </Fragment>
   );
 };
