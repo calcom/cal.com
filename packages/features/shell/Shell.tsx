@@ -306,7 +306,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   {user.away ? t("set_as_free") : t("set_as_away")}
                 </button>
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="h-px bg-gray-200" />
+              <DropdownMenuSeparator />
               {user.username && (
                 <>
                   <DropdownMenuItem>
@@ -336,7 +336,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   </DropdownMenuItem>
                 </>
               )}
-              <DropdownMenuSeparator className="h-px bg-gray-200" />
+              <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <a
                   href={JOIN_SLACK}
@@ -382,7 +382,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                 </a>
               </DropdownMenuItem>
 
-              <DropdownMenuSeparator className="h-px bg-gray-200" />
+              <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <a
                   onClick={() => signOut({ callbackUrl: "/auth/logout" })}

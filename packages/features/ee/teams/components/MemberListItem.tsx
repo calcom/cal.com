@@ -179,7 +179,7 @@ export default function MemberListItem(props: Props) {
                             {t("impersonate")}
                           </Button>
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator className="h-px bg-gray-200" />
+                        <DropdownMenuSeparator />
                       </>
                     )}
                     <DropdownMenuItem>

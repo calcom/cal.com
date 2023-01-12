@@ -144,7 +144,7 @@ export default function RoutingForms({
                                     {t("Copy Typeform Redirect Url")}
                                   </FormAction>
                                 ) : null}
-                                <DropdownMenuSeparator className="h-px bg-gray-200" />
+                                <DropdownMenuSeparator />
                                 <FormAction
                                   action="_delete"
                                   routingForm={form}

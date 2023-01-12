@@ -186,7 +186,7 @@ export default function TeamListItem(props: Props) {
                         </DropdownItem>
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuSeparator className="h-px bg-gray-200" />
+                    <DropdownMenuSeparator />
                     {isOwner && (
                       <DropdownMenuItem>
                         <Dialog open={hideDropdown} onOpenChange={setHideDropdown}>

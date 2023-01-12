@@ -304,7 +304,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
             <DropdownMenuLabel>
               <div className="max-w-48">{t("new_event_subtitle")}</div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator className="h-px bg-gray-200" />
+            <DropdownMenuSeparator />
             {props.options.map((option) => (
               <DropdownMenuItem
                 key={option.slug}
@@ -359,7 +359,7 @@ export function CreateEventTypeTrigger(props: CreateEventTypeTrigger) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>{t("new_event_subtitle")}</DropdownMenuLabel>
-            <DropdownMenuSeparator className="h-px bg-gray-200" />
+            <DropdownMenuSeparator />
             {props.options.map((option) => (
               <CreateEventTeamsItem
                 key={option.slug}

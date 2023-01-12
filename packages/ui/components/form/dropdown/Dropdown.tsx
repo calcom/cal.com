@@ -36,7 +36,7 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuConten
         align={align}
         {...props}
         sideOffset={sideOffset}
-        className="shadow-dropdown w-50 relative z-10 origin-top-right rounded-md border border-gray-200 bg-white text-sm"
+        className="shadow-dropdown w-50 relative z-10 origin-top-right rounded-md border-2 border-gray-200 bg-white text-sm"
         ref={forwardedRef}>
         {children}
       </DropdownMenuPrimitive.Content>
@@ -134,14 +134,26 @@ export const DropdownItem = (props: DropdownItemProps) => {
         props.color === "destructive" ? "hover:bg-red-100 hover:text-red-700" : " hover:bg-gray-100"
       )}>
       <>
-        {StartIcon && <StartIcon />}
-        <div className="mx-2">{props.children}</div>
-        {EndIcon && <EndIcon />}
+        {StartIcon && <StartIcon className="h-4 w-4" />}
+        <div className="mx-2 text-sm font-medium leading-5">{props.children}</div>
+        {EndIcon && <EndIcon className="h-4 w-4" />}
       </>
     </ButtonOrLink>
   );
 };
 
-export const DropdownMenuSeparator = DropdownMenuPrimitive.Separator;
+type DropdownMenuSeparatorProps = ComponentProps<typeof DropdownMenuPrimitive["Separator"]>;
+export const DropdownMenuSeparator = forwardRef<HTMLDivElement, DropdownMenuSeparatorProps>(
+  ({ className = "", ...props }, forwardedRef) => {
+    return (
+      <DropdownMenuPrimitive.Separator
+        className={classNames("h-0.5 bg-gray-200", className)}
+        {...props}
+        ref={forwardedRef}
+      />
+    );
+  }
+);
+DropdownMenuSeparator.displayName = "DropdownMenuSeparator";
 
 export default Dropdown;
