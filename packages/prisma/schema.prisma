@@ -36,7 +36,7 @@ model Host {
   userId      Int
   eventType   EventType @relation(fields: [eventTypeId], references: [id])
   eventTypeId Int
-  isFixed     Boolean   @default(true) // true on COLLECTIVE
+  isFixed     Boolean   @default(false)
 }
 
 model EventType {

@@ -3,7 +3,7 @@ CREATE TABLE "Host" (
     "id" SERIAL NOT NULL,
     "userId" INTEGER NOT NULL,
     "eventTypeId" INTEGER NOT NULL,
-    "isFixed" BOOLEAN NOT NULL DEFAULT true,
+    "isFixed" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "Host_pkey" PRIMARY KEY ("id")
 );
