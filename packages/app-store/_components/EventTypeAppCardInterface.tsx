@@ -1,10 +1,9 @@
-import { EventTypeAppCardComponentProps } from "types";
-
 import EventTypeAppContext, { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppContext";
 import { EventTypeAddonMap } from "@calcom/app-store/apps.browser.generated";
 import { RouterOutputs } from "@calcom/trpc/react";
 import { ErrorBoundary } from "@calcom/ui";
 
+import { EventTypeAppCardComponentProps } from "../types";
 import { DynamicComponent } from "./DynamicComponent";
 
 export const EventTypeAppCard = (props: {

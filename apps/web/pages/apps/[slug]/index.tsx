@@ -98,7 +98,7 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
 
   const { content, data } = matter(source);
   if (data.items) {
-    data.items = data.items.map((item) => {
+    data.items = data.items.map((item: string) => {
       if (!item.includes("/")) {
         return `/api/app-store/${appDirname}/${item}`;
       }

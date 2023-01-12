@@ -66,7 +66,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
   {
     default: true,
     type: DefaultEventLocationTypeEnum.AttendeeInPerson,
-    label: "in_person_attendee_address",
+    label: "attendeeInPerson",
     variable: "address",
     organizerInputType: null,
     messageForOrganizer: "Cal will ask your invitee to enter an address before scheduling.",
@@ -79,7 +79,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
   {
     default: true,
     type: DefaultEventLocationTypeEnum.InPerson,
-    label: "In Person (Organizer Address)",
+    label: "inPerson",
     organizerInputType: "text",
     messageForOrganizer: "Provide an Address or Place",
     // HACK:
@@ -145,9 +145,9 @@ for (const [appName, meta] of Object.entries(appStoreMetadata)) {
     // TODO: This template variable replacement should happen once during app-store:build.
     for (const [key, value] of Object.entries(location)) {
       if (typeof value === "string") {
-        location[key as keyof typeof location] = value
-          .replace(/{SLUG}/g, meta.slug)
-          .replace(/{TITLE}/g, meta.name);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        location[key] = value.replace(/{SLUG}/g, meta.slug).replace(/{TITLE}/g, meta.name);
       }
     }
     const newLocation = {

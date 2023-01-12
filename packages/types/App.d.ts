@@ -110,13 +110,13 @@ export interface App {
   /** Optional documentation website URL */
   docsUrl?: string;
   /** Wether if the app is verified by Cal.com or not */
-  verified: boolean;
+  verified?: boolean;
   /** Wether the app should appear in the trending section of the app store */
-  trending: boolean;
+  trending?: boolean;
   /** Rating from 0 to 5, harcoded for now. Should be fetched later on. */
-  rating: number;
+  rating?: number;
   /** Number of reviews, harcoded for now. Should be fetched later on. */
-  reviews: number;
+  reviews?: number;
   /**
    *  Wheter if the app is installed globally or needs user intervention.
    * Used to show Connect/Disconnect buttons in App Store

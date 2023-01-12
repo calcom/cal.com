@@ -316,7 +316,7 @@ export default function App(props: {
   licenseRequired: AppType["licenseRequired"];
   isProOnly: AppType["isProOnly"];
   images?: string[];
-  isTemplate: boolean;
+  isTemplate?: boolean;
 }) {
   const { t } = useLocale();
 

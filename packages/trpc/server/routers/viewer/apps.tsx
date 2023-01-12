@@ -22,6 +22,7 @@ interface FilteredApp {
   dirName: string;
   keys: Prisma.JsonObject | null;
   enabled: boolean;
+  isTemplate?: boolean;
 }
 
 export const appsRouter = router({
