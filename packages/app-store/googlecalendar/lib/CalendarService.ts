@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { calendar_v3, google } from "googleapis";
 
+import { MeetLocationType } from "@calcom/app-store/locations";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";
 import CalendarService from "@calcom/lib/CalendarService";
 import logger from "@calcom/lib/logger";
@@ -105,7 +106,7 @@ export default class GoogleCalendarService implements Calendar {
         payload["location"] = getLocation(calEventRaw);
       }
 
-      if (calEventRaw.conferenceData && calEventRaw.location === "integrations:google:meet") {
+      if (calEventRaw.conferenceData && calEventRaw.location === MeetLocationType) {
         payload["conferenceData"] = calEventRaw.conferenceData;
       }
       const calendar = google.calendar({
@@ -195,7 +196,7 @@ export default class GoogleCalendarService implements Calendar {
         payload["location"] = getLocation(event);
       }
 
-      if (event.conferenceData && event.location === "integrations:google:meet") {
+      if (event.conferenceData && event.location === MeetLocationType) {
         payload["conferenceData"] = event.conferenceData;
       }
 
@@ -225,7 +226,7 @@ export default class GoogleCalendarService implements Calendar {
             return reject(err);
           }
 
-          if (evt && evt.data.id && evt.data.hangoutLink && event.location === "integrations:google:meet") {
+          if (evt && evt.data.id && evt.data.hangoutLink && event.location === MeetLocationType) {
             calendar.events.patch({
               // Update the same event but this time we know the hangout link
               calendarId: selectedCalendar,

@@ -248,6 +248,8 @@
     "$STRIPE_CLIENT_ID",
     "$STRIPE_PRIVATE_KEY",
     "$STRIPE_WEBHOOK_SECRET",
+    "$PAYMENT_FEE_FIXED",
+    "$PAYMENT_FEE_PERCENTAGE",
     "$TELEMETRY_DEBUG",
     "$VERCEL_ENV",
     "$VERCEL_URL",
@@ -258,6 +260,7 @@
     "$ZAPIER_INVITE_LINK",
     "$ALCHEMY_API_KEY",
     "$INFURA_API_KEY",
+    "$GITHUB_API_REPO_TOKEN",
     "yarn.lock"
   ]
 }

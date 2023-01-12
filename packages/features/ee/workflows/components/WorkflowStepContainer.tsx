@@ -36,8 +36,10 @@ import {
   TextField,
   Editor,
   AddVariablesDropdown,
+  Tooltip,
 } from "@calcom/ui";
 
+import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
 import { translateVariablesToEnglish } from "../lib/variableTranslations";
 import type { FormValues } from "../pages/workflow";
@@ -50,21 +52,10 @@ type WorkflowStepProps = {
   setReload?: Dispatch<SetStateAction<boolean>>;
 };
 
-const dynamicTextVariables = [
-  "event_name",
-  "event_date",
-  "event_time",
-  "location",
-  "organizer_name",
-  "attendee_name",
-  "attendee_email",
-  "additional_notes",
-  "meeting_url",
-];
-
 export default function WorkflowStepContainer(props: WorkflowStepProps) {
   const { t, i18n } = useLocale();
   const utils = trpc.useContext();
+
   const { step, form, reload, setReload } = props;
   const { data: _verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery();
   const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber);
@@ -175,7 +166,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     },
   });
 
-  const testActionMutation = trpc.viewer.workflows.testAction.useMutation({
+  /* const testActionMutation = trpc.viewer.workflows.testAction.useMutation({
     onSuccess: async () => {
       showToast(t("notification_sent"), "success");
     },
@@ -193,7 +184,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       }
       showToast(message, "error");
     },
-  });
+  }); */
 
   //trigger
   if (!step) {
@@ -275,7 +266,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     const selectedAction = {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: step.action,
-      disabled: false,
+      needsUpgrade: false,
     };
 
     const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
@@ -393,8 +384,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         isOptionDisabled={(option: {
                           label: string;
                           value: WorkflowActions;
-                          disabled: boolean;
-                        }) => option.disabled}
+                          needsUpgrade: boolean;
+                        }) => option.needsUpgrade}
                       />
                     );
                   }}
@@ -557,7 +548,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <div className="flex-grow text-right">
                           <AddVariablesDropdown
                             addVariable={addVariableEmailSubject}
-                            variables={dynamicTextVariables}
+                            variables={DYNAMIC_TEXT_VARIABLES}
                           />
                         </div>
                       </div>
@@ -596,7 +587,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
                           props.form.clearErrors();
                         }}
-                        variables={dynamicTextVariables}
+                        variables={DYNAMIC_TEXT_VARIABLES}
                       />
                     </>
                   ) : (
@@ -608,7 +599,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         <div className="flex-grow text-right">
                           <AddVariablesDropdown
                             addVariable={addVariableBody}
-                            variables={dynamicTextVariables}
+                            variables={DYNAMIC_TEXT_VARIABLES}
                           />
                         </div>
                       </div>
@@ -639,10 +630,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   </div>
                 </div>
               )}
-              {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
+              {/* {form.getValues(`steps.${step.stepNumber - 1}.action`) !== WorkflowActions.SMS_ATTENDEE && (
                 <Button
                   type="button"
-                  className="mt-7 w-full"
+                  className="w-full mt-7"
                   onClick={() => {
                     let isEmpty = false;
 
@@ -712,11 +703,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   color="secondary">
                   <div className="w-full">{t("test_action")}</div>
                 </Button>
-              )}
+              )*/}
             </div>
           </div>
         </div>
-        <Dialog open={confirmationDialogOpen} onOpenChange={setConfirmationDialogOpen}>
+        {/* <Dialog open={confirmationDialogOpen} onOpenChange={setConfirmationDialogOpen}>
           <ConfirmationDialogContent
             variety="warning"
             title={t("test_workflow_action")}
@@ -737,7 +728,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
             }}>
             {t("send_sms_to_number", { number: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) })}
           </ConfirmationDialogContent>
-        </Dialog>
+        </Dialog> */}
         <Dialog open={isAdditionalInputsDialogOpen} onOpenChange={setIsAdditionalInputsDialogOpen}>
           <DialogContent type="creation" className="sm:max-w-[610px] md:h-[570px]">
             <div className="-m-3 h-[430px] overflow-x-hidden overflow-y-scroll sm:m-0">

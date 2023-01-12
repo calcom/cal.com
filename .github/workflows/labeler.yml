@@ -14,3 +14,5 @@ jobs:
       - uses: actions/labeler@v4
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          # https://github.com/actions/labeler/issues/442#issuecomment-1297359481
+          sync-labels: ""

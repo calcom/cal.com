@@ -19,3 +19,15 @@ export const WORKFLOW_ACTIONS = [
 export const TIME_UNIT = [TimeUnit.DAY, TimeUnit.HOUR, TimeUnit.MINUTE] as const;
 
 export const WORKFLOW_TEMPLATES = [WorkflowTemplates.CUSTOM, WorkflowTemplates.REMINDER] as const;
+
+export const DYNAMIC_TEXT_VARIABLES = [
+  "event_name",
+  "event_date",
+  "event_time",
+  "location",
+  "organizer_name",
+  "attendee_name",
+  "attendee_email",
+  "additional_notes",
+  "meeting_url",
+];

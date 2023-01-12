@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { DateOverrideInputDialog, DateOverrideList } from "@calcom/features/schedules";
 import Schedule from "@calcom/features/schedules/components/Schedule";
+import Shell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -16,7 +17,6 @@ import {
   Form,
   Icon,
   Label,
-  Shell,
   showToast,
   Skeleton,
   SkeletonText,
@@ -60,7 +60,7 @@ const DateOverride = ({ workingHours }: { workingHours: WorkingHours[] }) => {
           </span>
         </Tooltip>
       </h3>
-      <p className="mb-4 text-sm text-neutral-500 ltr:mr-4 rtl:ml-4">{t("date_overrides_subtitle")}</p>
+      <p className="mb-4 text-sm text-gray-500 ltr:mr-4 rtl:ml-4">{t("date_overrides_subtitle")}</p>
       <div className="mt-1 space-y-2">
         <DateOverrideList
           excludedDates={fields.map((field) => yyyymmdd(field.ranges[0].start))}
