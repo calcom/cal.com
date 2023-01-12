@@ -50,7 +50,7 @@ export const CheckedSelect = ({
           {option.label}
           <Icon.FiX
             onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
-            className="float-right mt-0.5 h-5 w-5 cursor-pointer text-neutral-500"
+            className="float-right mt-0.5 h-5 w-5 cursor-pointer text-gray-500"
           />
         </div>
       ))}
