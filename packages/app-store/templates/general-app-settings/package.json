@@ -4,7 +4,6 @@
   "name": "@calcom/template-general-app-settings",
   "version": "0.0.0",
   "main": "./index.ts",
-  "description": "It is a template showing how an App can have settings in installed section that configured the app globally",
   "dependencies": {
     "@calcom/lib": "*"
   },

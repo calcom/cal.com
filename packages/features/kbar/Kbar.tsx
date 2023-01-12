@@ -11,7 +11,7 @@ import {
 import { useRouter } from "next/router";
 import { useMemo } from "react";
 
-import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";

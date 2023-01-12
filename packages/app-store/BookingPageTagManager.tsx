@@ -1,9 +1,9 @@
-import { appDataSchemas } from "apps.schemas.generated";
 import Script from "next/script";
 
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 
-import { appStoreMetadata } from "./apps.metadata.generated";
+import { appDataSchemas } from "./apps.schemas.generated";
 
 export default function BookingPageTagManager({
   eventType,

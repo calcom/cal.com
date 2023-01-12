@@ -5,7 +5,6 @@
 import amie_config_json from "./amie/config.json";
 import { metadata as applecalendar__metadata_ts } from "./applecalendar/_metadata";
 import around_config_json from "./around/config.json";
-import bookingtag_t1_config_json from "./bookingtag-t1/config.json";
 import { metadata as caldavcalendar__metadata_ts } from "./caldavcalendar/_metadata";
 import campfire_config_json from "./campfire/config.json";
 import closecom_config_json from "./closecom/config.json";
@@ -16,7 +15,6 @@ import { metadata as exchange2016calendar__metadata_ts } from "./exchange2016cal
 import exchangecalendar_config_json from "./exchangecalendar/config.json";
 import fathom_config_json from "./fathom/config.json";
 import ga4_config_json from "./ga4/config.json";
-import general_t1_config_json from "./general-t1/config.json";
 import { metadata as giphy__metadata_ts } from "./giphy/_metadata";
 import { metadata as googlecalendar__metadata_ts } from "./googlecalendar/_metadata";
 import { metadata as googlevideo__metadata_ts } from "./googlevideo/_metadata";
@@ -24,7 +22,6 @@ import { metadata as hubspot__metadata_ts } from "./hubspot/_metadata";
 import { metadata as huddle01video__metadata_ts } from "./huddle01video/_metadata";
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
 import { metadata as larkcalendar__metadata_ts } from "./larkcalendar/_metadata";
-import my_app_config_json from "./my-app/config.json";
 import n8n_config_json from "./n8n/config.json";
 import { metadata as office365calendar__metadata_ts } from "./office365calendar/_metadata";
 import office365video_config_json from "./office365video/config.json";
@@ -42,6 +39,7 @@ import sirius_video_config_json from "./sirius_video/config.json";
 import { metadata as stripepayment__metadata_ts } from "./stripepayment/_metadata";
 import { metadata as tandemvideo__metadata_ts } from "./tandemvideo/_metadata";
 import telegram_config_json from "./telegram/config.json";
+import basic_config_json from "./templates/basic/config.json";
 import booking_pages_tag_config_json from "./templates/booking-pages-tag/config.json";
 import event_type_app_card_config_json from "./templates/event-type-app-card/config.json";
 import event_type_location_video_static_config_json from "./templates/event-type-location-video-static/config.json";
@@ -62,7 +60,6 @@ export const appStoreMetadata = {
   amie: amie_config_json,
   applecalendar: applecalendar__metadata_ts,
   around: around_config_json,
-  "bookingtag-t1": bookingtag_t1_config_json,
   caldavcalendar: caldavcalendar__metadata_ts,
   campfire: campfire_config_json,
   closecom: closecom_config_json,
@@ -73,7 +70,6 @@ export const appStoreMetadata = {
   exchangecalendar: exchangecalendar_config_json,
   fathom: fathom_config_json,
   ga4: ga4_config_json,
-  "general-t1": general_t1_config_json,
   giphy: giphy__metadata_ts,
   googlecalendar: googlecalendar__metadata_ts,
   googlevideo: googlevideo__metadata_ts,
@@ -81,7 +77,6 @@ export const appStoreMetadata = {
   huddle01video: huddle01video__metadata_ts,
   jitsivideo: jitsivideo__metadata_ts,
   larkcalendar: larkcalendar__metadata_ts,
-  "my-app": my_app_config_json,
   n8n: n8n_config_json,
   office365calendar: office365calendar__metadata_ts,
   office365video: office365video_config_json,
@@ -99,6 +94,7 @@ export const appStoreMetadata = {
   stripepayment: stripepayment__metadata_ts,
   tandemvideo: tandemvideo__metadata_ts,
   telegram: telegram_config_json,
+  basic: basic_config_json,
   "booking-pages-tag": booking_pages_tag_config_json,
   "event-type-app-card": event_type_app_card_config_json,
   "event-type-location-video-static": event_type_location_video_static_config_json,

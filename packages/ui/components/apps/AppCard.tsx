@@ -144,9 +144,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
           </span>
         )}
         {app.isTemplate && (
-          <span className="rounded-md bg-red-100 px-2 py-1 text-sm font-normal text-red-800">
-            Template - Dev Env
-          </span>
+          <span className="rounded-md bg-red-100 px-2 py-1 text-sm font-normal text-red-800">Template</span>
         )}
 
         {app.isGlobal && (

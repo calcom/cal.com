@@ -35,7 +35,7 @@ export type EventLocationTypeFromAppMeta = StaticLinkBasedEventLocation | Dynami
 type AppData = {
   location?: EventLocationTypeFromAppMeta;
   tag?: Tag;
-};
+} | null;
 
 /**
  * This is the definition for an app store's app metadata.
@@ -137,6 +137,7 @@ export interface App {
   appData?: AppData;
   dirName?: string;
   isTemplate?: boolean;
+  __template?: string;
 }
 
 export type AppFrontendPayload = Omit<App, "key"> & {

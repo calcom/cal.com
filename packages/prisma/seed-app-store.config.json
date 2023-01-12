@@ -252,5 +252,14 @@
     "slug": "link-as-an-app",
     "type": "link-as-an-app_other",
     "isTemplate": true
+  },
+  {
+    "dirName": "basic",
+    "categories": [
+      "other"
+    ],
+    "slug": "basic",
+    "type": "basic_other",
+    "isTemplate": true
   }
 ]

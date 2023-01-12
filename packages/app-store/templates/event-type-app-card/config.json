@@ -1,5 +1,5 @@
 {
-  "name": "EventType AppCard Template",
+  "name": "EventType AppCard",
   "slug": "event-type-app-card",
   "type": "event-type-app-card_other",
   "imageSrc": "icon.svg",
@@ -9,7 +9,7 @@
   "categories": ["other"],
   "publisher": "Cal.com, Inc.",
   "email": "support@cal.com",
-  "description": "It is a demo app to showcase EventType AppCard",
+  "description": "A template showcasing how an app with EventType AppCard can be built e.g. Giphy, QR Code",
   "extendsFeature": "EventType",
   "isTemplate":true,
   "__createdUsingCli": true

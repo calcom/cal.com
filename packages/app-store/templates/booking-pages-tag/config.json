@@ -1,5 +1,5 @@
 {
-  "name": "EventType Analytics",
+  "name": "Booking Pages Tag",
   "slug": "booking-pages-tag",
   "type": "booking-pages-tag_analytics",
   "imageSrc": "icon.svg",
@@ -9,7 +9,7 @@
   "categories": ["analytics"],
   "publisher": "Cal.com, Inc.",
   "email": "support@cal.com",
-  "description": "It is a template demoing a Booking Pages tracking app like GA4, Fathom and Plausible",
+  "description": "It is a template demoing a Booking Pages tracking app like GA4, Fathom and Plausible.",
   "extendsFeature": "EventType",
   "appData": {
     "tag": {

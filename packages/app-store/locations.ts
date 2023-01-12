@@ -1,11 +1,11 @@
 import { BookingStatus } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import logger from "@calcom/lib/logger";
 import { Ensure, Optional } from "@calcom/types/utils";
 
 import type { EventLocationTypeFromAppMeta } from "../types/App";
-import { appStoreMetadata } from "./apps.metadata.generated";
 
 export type DefaultEventLocationType = {
   default: true;
@@ -145,7 +145,9 @@ for (const [appName, meta] of Object.entries(appStoreMetadata)) {
     // TODO: This template variable replacement should happen once during app-store:build.
     for (const [key, value] of Object.entries(location)) {
       if (typeof value === "string") {
-        location[key] = value.replace(/{SLUG}/g, meta.slug).replace(/{TITLE}/g, meta.name);
+        location[key as keyof typeof location] = value
+          .replace(/{SLUG}/g, meta.slug)
+          .replace(/{TITLE}/g, meta.name);
       }
     }
     const newLocation = {

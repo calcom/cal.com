@@ -1,8 +1,7 @@
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
 import { AppFrontendPayload as App } from "@calcom/types/App";
 import { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
-
-import { appStoreMetadata } from "./apps.metadata.generated";
 
 //FIXME: Import metadata.generated.ts instead of this hit and try of looking for an app's metadata
 export async function getAppWithMetadata(app: { dirName: string }) {

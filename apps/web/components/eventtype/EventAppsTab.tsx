@@ -1,6 +1,7 @@
 import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
 import { useFormContext } from "react-hook-form";
 
+import { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppContext";
 import { EventTypeAppCard } from "@calcom/app-store/_components/EventTypeAppCardInterface";
 import { EventTypeAppCardComponentProps } from "@calcom/app-store/types";
 import { EventTypeAppsList } from "@calcom/app-store/utils";
@@ -8,7 +9,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, EmptyScreen, Icon } from "@calcom/ui";
 
-type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
+export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
   EventTypeAppCardComponentProps["eventType"];
 
 export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {

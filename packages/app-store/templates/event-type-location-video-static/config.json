@@ -19,7 +19,7 @@
       "urlRegExp": "^http(s)?:\\/\\/(www\\.)?video.app\\/[a-zA-Z0-9]*"
     }
   },
-  "description": "It is a template showing how to add a static URL EventType location",
+  "description": "It is a template showing how to add a static URL EventType location e.g. Around, Whereby",
   "isTemplate":true,
   "__createdUsingCli": true
 }
