@@ -10,7 +10,7 @@ const RadioArea = React.forwardRef<HTMLInputElement, RadioAreaProps>(
       <label className={classNames("relative flex", className)}>
         <input
           ref={ref}
-          className="peer absolute top-[0.9rem] left-3 align-baseline text-neutral-900 focus:ring-neutral-500"
+          className="peer absolute top-[0.9rem] left-3 align-baseline text-gray-900 focus:ring-neutral-500"
           type="radio"
           {...props}
         />

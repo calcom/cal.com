@@ -115,7 +115,7 @@ export const SearchDialog = (props: ISearchDialog) => {
         <h3 className="leading-16 font-cal text-xl text-gray-900" id="modal-title">
           {t("add_gif_to_confirmation")}
         </h3>
-        <p className="mb-3 text-sm font-light text-neutral-500">{t("find_gif_spice_confirmation")}</p>
+        <p className="mb-3 text-sm font-light text-gray-500">{t("find_gif_spice_confirmation")}</p>
         <div className="flex items-center border-b border-solid">
           {renderTab(SearchIcon, t("search_giphy"), MODE_SEARCH)}
           {renderTab(LinkIcon, t("add_link_from_giphy"), MODE_URL)}
@@ -176,7 +176,7 @@ export const SearchDialog = (props: ISearchDialog) => {
         {errorMessage && <Alert severity="error" title={errorMessage} className="my-4" />}
         {gifImage && selectedMode === MODE_SEARCH && (
           <div className="mt-4 flex items-center justify-between space-x-2 rtl:space-x-reverse">
-            <div className="text-sm font-light text-neutral-500">Not the perfect GIF?</div>
+            <div className="text-sm font-light text-gray-500">Not the perfect GIF?</div>
             <Button
               size="sm"
               color="secondary"

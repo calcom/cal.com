@@ -21,6 +21,7 @@ jobs:
         with:
           upload_translations: true
           download_translations: true
+          pull_request_labels: '♻️ autoupdate, automerge'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
