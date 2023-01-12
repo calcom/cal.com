@@ -72,7 +72,7 @@ export default function TeamListItem(props: Props) {
         className="min-h-9 min-w-9 h-9 w-9 rounded-full"
       />
       <div className="inline-block ltr:ml-3 rtl:mr-3">
-        <span className="text-sm font-bold text-neutral-700">{team.name}</span>
+        <span className="text-sm font-bold text-gray-700">{team.name}</span>
         <span className="block text-xs text-gray-400">
           {team.slug ? `${process.env.NEXT_PUBLIC_WEBSITE_URL}/team/${team.slug}` : "Unpublished team"}
         </span>

@@ -22,7 +22,7 @@ const RainbowInstallForm: React.FC<RainbowInstallFormProps> = ({
     <>
       <div className="mt-4 block items-center sm:flex">
         <div className="min-w-48 mb-4 sm:mb-0">
-          <label htmlFor="blockchainId" className="flex text-sm font-medium text-neutral-700">
+          <label htmlFor="blockchainId" className="flex text-sm font-medium text-gray-700">
             {t("Blockchain")}
           </label>
         </div>
@@ -38,7 +38,7 @@ const RainbowInstallForm: React.FC<RainbowInstallFormProps> = ({
       </div>
       <div className="block items-center sm:flex">
         <div className="min-w-48 mb-4 sm:mb-0">
-          <label htmlFor="smartContractAddress" className="flex text-sm font-medium text-neutral-700">
+          <label htmlFor="smartContractAddress" className="flex text-sm font-medium text-gray-700">
             {t("token_address")}
           </label>
         </div>
