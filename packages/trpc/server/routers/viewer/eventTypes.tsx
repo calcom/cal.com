@@ -195,6 +195,13 @@ export const eventTypesRouter = router({
       users: {
         select: baseUserSelect,
       },
+      hosts: {
+        select: {
+          user: {
+            select: baseUserSelect,
+          },
+        },
+      },
       ...baseEventTypeSelect,
     });
 
@@ -263,6 +270,7 @@ export const eventTypesRouter = router({
 
     const mapEventType = (eventType: typeof user.eventTypes[number]) => ({
       ...eventType,
+      users: !!eventType.hosts?.length ? eventType.hosts.map((host) => host.user) : eventType.users,
       // @FIXME: cc @hariombalhara This is failing with production data
       // metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
     });
