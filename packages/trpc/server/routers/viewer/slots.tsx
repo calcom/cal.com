@@ -371,7 +371,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
       r[time.format("YYYY-MM-DD")].push({
         ...passThroughProps,
         time: time.toISOString(),
-        users: [...eventType.users, ...eventType.hosts.map((host) => host.user)].map(
+        users: (eventType.hosts ? eventType.hosts.map((host) => host.user) : eventType.users).map(
           (user) => user.username || ""
         ),
         // Conditionally add the attendees and booking id to slots object if there is already a booking during that time
