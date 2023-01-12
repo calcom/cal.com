@@ -400,6 +400,11 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
 
+  users = users.map((user) => ({
+    ...user,
+    isFixed: user.isFixed === false ? false : eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
+  }));
+
   if (eventType && eventType.hasOwnProperty("bookingLimits") && eventType?.bookingLimits) {
     const startAsDate = dayjs(reqBody.start).toDate();
     await checkBookingLimits(eventType.bookingLimits, startAsDate, eventType.id);
@@ -409,10 +414,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     const availableUsers = await ensureAvailableUsers(
       {
         ...eventType,
-        users: users.map((user) => ({
-          ...user,
-          isFixed: !!user.isFixed,
-        })),
+        users: users as IsFixedAwareUser[],
         ...(eventType.recurringEvent && {
           recurringEvent: {
             ...eventType.recurringEvent,
