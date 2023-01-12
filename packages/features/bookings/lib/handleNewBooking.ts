@@ -368,7 +368,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
           },
           ...userSelect,
         })
-      : eventType.hosts
+      : !!eventType.hosts?.length
       ? eventType.hosts.map(({ user, isFixed }) => ({
           ...user,
           isFixed,
@@ -411,7 +411,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
         ...eventType,
         users: users.map((user) => ({
           ...user,
-          isFixed: user.isFixed === false ? false : true,
+          isFixed: !!user.isFixed,
         })),
         ...(eventType.recurringEvent && {
           recurringEvent: {
