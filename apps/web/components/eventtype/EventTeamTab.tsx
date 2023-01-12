@@ -76,35 +76,13 @@ const FixedHosts = ({
   );
 };
 
-export const EventTeamTab = ({
-  eventType,
-  team,
-  teamMembers,
-}: Pick<EventTypeSetupProps, "eventType" | "teamMembers" | "team">) => {
+export const EventTeamTab = ({ team, teamMembers }: Pick<EventTypeSetupProps, "teamMembers" | "team">) => {
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
 
   const schedulingType = useWatch({
     control: formMethods.control,
     name: "schedulingType",
-  });
-
-  const hosts = useWatch({
-    control: formMethods.control,
-    name: "hosts",
-  });
-
-  const hostsFixed = useWatch({
-    control: formMethods.control,
-    name: "hostsFixed",
-  });
-
-  const teamMemberOptions = teamMembers.map(mapUserToValue).filter((member) => {
-    return (
-      !hostsFixed.find((host) => host.userId.toString() === member.value) &&
-      (schedulingType === SchedulingType.COLLECTIVE ||
-        !hosts.find((host) => host.userId.toString() === member.value))
-    );
   });
 
   const schedulingTypeOptions: {
