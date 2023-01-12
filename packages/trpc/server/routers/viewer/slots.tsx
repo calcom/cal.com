@@ -236,11 +236,11 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   let currentSeats: CurrentSeats | undefined = undefined;
 
   let users = eventType.users.map((user) => ({
-    isFixed: true,
+    isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
     ...user,
   }));
   // overwrite if it is a team event & hosts is set, otherwise keep using users.
-  if (eventType.schedulingType && eventType.hosts) {
+  if (eventType.schedulingType && !!eventType.hosts.length) {
     users = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
   }
   /* We get all users working hours and busy slots */
@@ -320,10 +320,11 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   }
 
   let availableTimeSlots: typeof timeSlots = [];
-  availableTimeSlots = timeSlots.filter((slot) =>
-    userAvailability
-      .filter((availability) => availability.user.isFixed)
-      .every((schedule) => {
+  availableTimeSlots = timeSlots.filter((slot) => {
+    const fixedHosts = userAvailability.filter((availability) => availability.user.isFixed);
+    return (
+      !!fixedHosts.length &&
+      fixedHosts.every((schedule) => {
         const startCheckForAvailability = performance.now();
         const isAvailable = checkIfIsAvailable({
           time: slot.time,
@@ -335,7 +336,8 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
         checkForAvailabilityTime += endCheckForAvailability - startCheckForAvailability;
         return isAvailable;
       })
-  );
+    );
+  });
   // what else are you going to call it?
   const looseHostAvailability = userAvailability.filter(({ user: { isFixed } }) => !isFixed);
   if (looseHostAvailability.length > 0) {
