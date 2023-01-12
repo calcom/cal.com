@@ -32,7 +32,7 @@ export const EventTypeDescription = ({ eventType, className }: EventTypeDescript
 
   return (
     <>
-      <div className={classNames("dark:text-darkgray-800 text-neutral-500", className)}>
+      <div className={classNames("dark:text-darkgray-800 text-gray-500", className)}>
         {eventType.description && (
           <p className="dark:text-darkgray-800 max-w-[280px] break-words py-1 text-sm text-gray-500 sm:max-w-[500px]">
             {eventType.description.substring(0, 300)}
