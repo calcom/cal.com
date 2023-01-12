@@ -408,7 +408,7 @@ export default function Success(props: SuccessProps) {
                 </div>
                 <div className="mt-6 mb-8 text-center last:mb-0">
                   <h3
-                    className="text-2xl font-semibold leading-6 text-neutral-900 dark:text-white"
+                    className="text-2xl font-semibold leading-6 text-gray-900 dark:text-white"
                     data-testid={isCancelled ? "cancelled-headline" : ""}
                     id="modal-headline">
                     {needsConfirmation && !isCancelled
@@ -422,7 +422,7 @@ export default function Success(props: SuccessProps) {
                       : t("meeting_is_scheduled")}
                   </h3>
                   <div className="mt-3">
-                    <p className="text-neutral-600 dark:text-gray-300">{getTitle()}</p>
+                    <p className="text-gray-600 dark:text-gray-300">{getTitle()}</p>
                   </div>
                   <div className="border-bookinglightest text-bookingdark dark:border-darkgray-300 mt-8 grid grid-cols-3 border-t pt-8 text-left dark:text-gray-300">
                     {(isCancelled || reschedule) && cancellationReason && (
