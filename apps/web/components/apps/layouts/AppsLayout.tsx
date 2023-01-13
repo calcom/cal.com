@@ -34,7 +34,7 @@ export default function AppsLayout({ children, actions, emptyStore, ...rest }: A
     <Shell {...rest} actions={actions?.("hidden sm:block")}>
       <div className="flex flex-col xl:flex-row">
         <div className="block lg:hidden">
-          <HorizontalTabs tabs={tabs} actions={actions?.("ml-6 mr-4 mt-3 block sm:hidden")} />
+          <HorizontalTabs tabs={tabs} actions={actions?.("md:ml-6 md:mr-4 mt-3 block sm:hidden")} />
         </div>
         <main className="w-full">
           {emptyStore ? (
