@@ -747,9 +747,7 @@ function SideBar() {
         </div>
 
         <div>
-          <LicenseRequired toHide>
-            <Tips />
-          </LicenseRequired>
+          <Tips />
           <div data-testid="user-dropdown-trigger">
             <span className="hidden lg:inline">
               <UserDropdown />
