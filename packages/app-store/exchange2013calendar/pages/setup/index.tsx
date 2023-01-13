@@ -30,7 +30,7 @@ export default function Exchange2013CalendarSetup() {
           />
         </div>
         <div className="flex w-10/12 flex-col">
-          <h1 className="text-gray-600">{t("add_exchange2013")}</h1>
+          <h1>{t("add_exchange2013")}</h1>
           <div className="mt-1 text-sm">{t("credentials_stored_encrypted")}</div>
           <div className="my-2 mt-3">
             <Form

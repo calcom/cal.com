@@ -61,9 +61,7 @@ export default function ApiKeyDialogForm({
       {successfulNewApiKeyModal ? (
         <>
           <div className="mb-10">
-            <h2 className="font-semi-bold font-cal mb-2 text-xl tracking-wide text-gray-900">
-              {t("success_api_key_created")}
-            </h2>
+            <h2 className="mb-2 tracking-wide">{t("success_api_key_created")}</h2>
             <div className="text-sm text-gray-900">
               <span className="font-semibold">{t("success_api_key_created_bold_tagline")}</span>{" "}
               {t("you_will_only_view_it_once")}
@@ -117,9 +115,7 @@ export default function ApiKeyDialogForm({
           }}
           className="space-y-4">
           <div className="mt-1 mb-10">
-            <h2 className="font-semi-bold font-cal text-xl tracking-wide text-gray-900">
-              {defaultValues ? t("edit_api_key") : t("create_api_key")}
-            </h2>
+            <h2 className="tracking-wide">{defaultValues ? t("edit_api_key") : t("create_api_key")}</h2>
             <p className="mt-1 mb-5 text-sm text-gray-500">{t("api_key_modal_subtitle")}</p>
           </div>
           <div>

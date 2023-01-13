@@ -124,7 +124,7 @@ const MobileNotSupported = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <div className="flex h-full flex-col items-center justify-center sm:hidden">
-        <h1 className="text-2xl font-bold">Mobile not supported yet </h1>
+        <h1>Mobile not supported yet </h1>
         <p className="text-gray-500">Please use a desktop browser to view this page</p>
       </div>
       <div className="hidden sm:block">{children}</div>

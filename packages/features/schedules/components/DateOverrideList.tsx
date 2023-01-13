@@ -42,7 +42,7 @@ const DateOverrideList = ({
       {items.map((item, index) => (
         <li key={item.id} className="flex justify-between border-b px-5 py-4 last:border-b-0">
           <div>
-            <h3 className="text-sm text-gray-900">
+            <h3>
               {new Intl.DateTimeFormat("en-GB", {
                 weekday: "short",
                 month: "long",

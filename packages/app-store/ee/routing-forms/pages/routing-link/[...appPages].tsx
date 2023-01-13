@@ -108,9 +108,7 @@ function RoutingForm({ form, profile, ...restProps }: inferSSRProps<typeof getSe
 
                   <form onSubmit={handleOnSubmit}>
                     <div className="mb-8">
-                      <h1 className="font-cal mb-1 text-xl font-bold tracking-wide text-gray-900 dark:text-white">
-                        {form.name}
-                      </h1>
+                      <h1 className="mb-1 tracking-wide">{form.name}</h1>
                       {form.description ? (
                         <p className="min-h-10 text-sm text-gray-500 ltr:mr-4 rtl:ml-4 dark:text-white">
                           {form.description}

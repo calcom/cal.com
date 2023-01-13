@@ -116,7 +116,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
                         className="flex w-full items-center justify-between rounded-md border py-2 px-4"
                         key={recording.id}>
                         <div className="flex flex-col">
-                          <h1 className="text-sm font-semibold">
+                          <h1>
                             {t("recording")} {index + 1}
                           </h1>
                           <p className="text-sm font-normal text-gray-500">
@@ -148,7 +148,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
               {!isLoading &&
                 (!recordings ||
                   (recordings && "total_count" in recordings && recordings?.total_count === 0)) && (
-                  <h1 className="font-semibold">No Recordings Found</h1>
+                  <h1>No Recordings Found</h1>
                 )}
             </>
           )}

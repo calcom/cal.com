@@ -54,7 +54,7 @@ export default function ExchangeSetup() {
               />
             </div>
             <div className="grow">
-              <h1 className="text-gray-600">{t("exchange_add")}</h1>
+              <h1>{t("exchange_add")}</h1>
               <div className="text-sm">{t("credentials_stored_encrypted")}</div>
               <div className="my-2 mt-5">
                 <Form

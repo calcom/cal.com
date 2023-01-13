@@ -57,7 +57,7 @@ export function Alert(props: AlertProps) {
           )}
         </div>
         <div className="ml-3 flex-grow">
-          <h3 className="text-sm font-medium">{props.title}</h3>
+          <h3>{props.title}</h3>
           <div className="text-sm">{props.message}</div>
         </div>
         {/* @TODO: Shouldn't be absolute. This makes it harder to give margin etc. */}

@@ -45,7 +45,7 @@ export function TeamsListing() {
       {!!errorMessage && <Alert severity="error" title={errorMessage} />}
       {invites.length > 0 && (
         <div className="mb-4">
-          <h1 className="mb-2 text-lg font-medium">{t("open_invitations")}</h1>
+          <h1 className="mb-2 ">{t("open_invitations")}</h1>
           <TeamList teams={invites} />
         </div>
       )}
@@ -62,7 +62,7 @@ export function TeamsListing() {
                   backgroundRepeat: "no-repeat",
                 }}>
                 <div className="mt-3 px-14">
-                  <h1 className="font-cal text-3xl">{t("calcom_is_better_with_team")}</h1>
+                  <h1>{t("calcom_is_better_with_team")}</h1>
                   <p className="my-4 max-w-sm text-gray-600">{t("add_your_team_members")}</p>
                   <div className="space-y-2 rtl:space-x-reverse sm:space-x-2">
                     <Button color="primary" href={`${WEBAPP_URL}/settings/teams/new`}>
@@ -78,7 +78,7 @@ export function TeamsListing() {
                 {features.map((feature) => (
                   <div key={feature.title} className="mb-6 min-h-[180px] w-full rounded-md bg-gray-50 p-8">
                     {feature.icon}
-                    <h2 className="font-cal mt-4 text-lg">{feature.title}</h2>
+                    <h2 className="mt-4">{feature.title}</h2>
                     <p className="text-gray-700">{feature.description}</p>
                   </div>
                 ))}

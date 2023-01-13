@@ -47,9 +47,7 @@ export default function ConfigDialogForm({
           });
         }}>
         <div className="mb-10 mt-1">
-          <h2 className="font-semi-bold font-cal text-xl tracking-wide text-gray-900">
-            {t("saml_configuration")}
-          </h2>
+          <h2 className="tracking-wide">{t("saml_configuration")}</h2>
           <p className="mt-1 mb-5 text-sm text-gray-500">{t("saml_configuration_description")}</p>
         </div>
         <Controller

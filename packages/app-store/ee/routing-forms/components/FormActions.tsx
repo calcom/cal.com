@@ -89,7 +89,7 @@ function NewFormDialog({ appUrl }: { appUrl: string }) {
     <Dialog name="new-form" clearQueryParamsOnClose={["target", "action"]}>
       <DialogContent className="overflow-y-auto">
         <div className="mb-4">
-          <h3 className="text-lg font-bold leading-6 text-gray-900" id="modal-title">
+          <h3 className="leading-6" id="modal-title">
             {t("add_new_form")}
           </h3>
           <div>

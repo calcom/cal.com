@@ -71,7 +71,7 @@ export default function MemberChangeRoleModal(props: {
         <>
           <div className="mb-4 sm:flex sm:items-start">
             <div className="text-center sm:text-left">
-              <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+              <h3 className="leading-6" id="modal-title">
                 {t("change_member_role")}
               </h3>
             </div>

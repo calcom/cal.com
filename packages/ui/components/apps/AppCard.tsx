@@ -44,7 +44,7 @@ export function AppCard({ app, credentials, searchText }: AppCardProps) {
         <img src={app.logo} alt={app.name + " Logo"} className="mb-4 h-12 w-12 rounded-sm" />
       </div>
       <div className="flex items-center">
-        <h3 className="font-medium">
+        <h3>
           {searchTextIndex != undefined && searchText ? (
             <>
               {app.name.substring(0, searchTextIndex)}

@@ -13,7 +13,7 @@ export default function UpgradeRecordingBanner() {
       <Icon.FiUsers className="dark:bg-gray-90 inline-block h-5 w-5" />
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold">{t("upgrade_to_access_recordings_title")}</h2>
+          <h2>{t("upgrade_to_access_recordings_title")}</h2>
           <p className="text-sm font-normal">{t("upgrade_to_access_recordings_description")}</p>
         </div>
         <div>

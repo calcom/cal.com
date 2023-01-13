@@ -32,7 +32,7 @@ export default function AppleCalendarSetup() {
             />
           </div>
           <div>
-            <h1 className="text-gray-600">{t("connect_apple_server")}</h1>
+            <h1>{t("connect_apple_server")}</h1>
 
             <div className="mt-1 text-sm">
               {t("apple_server_generate_password", { appName: APP_NAME })}{" "}
