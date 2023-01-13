@@ -1,4 +1,4 @@
 export { Badge } from "./Badge";
-export { UpgradeTeamBadge } from "./UpgradeTeamBadge";
+export { UpgradeTeamsBadge } from "./UpgradeTeamsBadge";
 
 export type { BadgeProps } from "./Badge";

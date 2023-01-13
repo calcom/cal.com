@@ -1,6 +1,6 @@
 export { Avatar, AvatarGroup } from "./avatar";
 export type { AvatarProps, AvatarGroupProps } from "./avatar";
-export { Badge, UpgradeTeamBadge } from "./badge";
+export { Badge, UpgradeTeamsBadge } from "./badge";
 export type { BadgeProps } from "./badge";
 export { Breadcrumb, BreadcrumbContainer, BreadcrumbItem } from "./breadcrumb";
 export { Button, LinkIconButton } from "./button";

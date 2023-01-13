@@ -1,4 +1,3 @@
-import { useRouter } from "next/router";
 import {
   components as reactSelectComponents,
   ControlProps,
@@ -13,10 +12,9 @@ import {
 } from "react-select";
 
 import { classNames } from "@calcom/lib";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Icon } from "../../../components/icon";
-import { UpgradeTeamBadge } from "../../badge";
+import { UpgradeTeamsBadge } from "../../badge";
 
 export const InputComponent = <
   Option,
@@ -63,7 +61,7 @@ export const OptionComponent = <
       )}>
       <>
         <span className="mr-auto">{props.label}</span>
-        {(props.data as unknown as ExtendedOption).needsUpgrade && <UpgradeTeamBadge />}
+        {(props.data as unknown as ExtendedOption).needsUpgrade && <UpgradeTeamsBadge />}
         {props.isSelected && <Icon.FiCheck className="ml-2 h-4 w-4" />}
       </>
     </reactSelectComponents.Option>

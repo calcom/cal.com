@@ -1509,5 +1509,6 @@
   "using_meet_requires_calendar": "Using Google Meet requires a connected Google Calendar",
   "continue_to_install_google_calendar": "Continue to install Google Calendar",
   "install_google_meet": "Install Google Meet",
-  "install_google_calendar": "Install Google Calendar"
+  "install_google_calendar": "Install Google Calendar",
+  "no_recordings_found": "No recordings found"
 }
