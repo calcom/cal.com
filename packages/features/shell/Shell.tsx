@@ -26,18 +26,18 @@ import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { SVGComponent } from "@calcom/types/SVGComponent";
 import {
   Button,
+  Credits,
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuPortal,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  showToast,
-  Logo,
   ErrorBoundary,
-  Credits,
   HeadSeo,
   Icon,
+  Logo,
+  showToast,
   SkeletonText,
 } from "@calcom/ui";
 
@@ -173,22 +173,28 @@ const CustomBrandingContainer = () => {
   return <CustomBranding lightVal={user?.brandColor} darkVal={user?.darkBrandColor} />;
 };
 
+const KBarWrapper = ({ children, withKBar = false }: { withKBar: boolean; children: React.ReactNode }) =>
+  withKBar ? (
+    <KBarRoot>
+      {children}
+      <KBarContent />
+    </KBarRoot>
+  ) : (
+    <>{children}</>
+  );
+
 export default function Shell(props: LayoutProps) {
+  const { status } = useSession();
+  // if a page is unauthed and isPublic is true, the redirect does not happen.
   useRedirectToLoginIfUnauthenticated(props.isPublic);
   useRedirectToOnboardingIfNeeded();
   useTheme("light");
-  // don't load KBar when unauthed
-  return props.isPublic ? (
-    <>
+
+  return (
+    <KBarWrapper withKBar={status === "authenticated"}>
       <CustomBrandingContainer />
       <Layout {...props} />
-    </>
-  ) : (
-    <KBarRoot>
-      <CustomBrandingContainer />
-      <Layout {...props} />
-      <KBarContent />
-    </KBarRoot>
+    </KBarWrapper>
   );
 }
 
@@ -363,7 +369,7 @@ function UserDropdown({ small }: { small?: boolean }) {
                   className="flex w-full items-center px-4 py-2 text-sm text-gray-700 ltr:flex-row rtl:flex-row-reverse">
                   <Icon.FiHelpCircle
                     className={classNames(
-                      "text-gray-500 group-hover:text-neutral-500",
+                      "text-gray-500 group-hover:text-gray-500",
                       "h-4 w-4 flex-shrink-0 ltr:mr-2 rtl:ml-2"
                     )}
                     aria-hidden="true"
@@ -535,11 +541,11 @@ const { desktopNavigationItems, mobileNavigationBottomItems, mobileNavigationMor
 
 const Navigation = () => {
   return (
-    <nav className="mt-2 flex-1 space-y-0.5 md:px-2 lg:mt-6 lg:px-0">
+    <nav className="mt-2 flex-1 md:px-2 lg:mt-6 lg:px-0">
       {desktopNavigationItems.map((item) => (
         <NavigationItem key={item.name} item={item} />
       ))}
-      <div className="text-gray-500 lg:hidden">
+      <div className="mt-0.5 text-gray-500 lg:hidden">
         <KBarTrigger />
       </div>
     </nav>
@@ -563,6 +569,7 @@ const defaultIsCurrent: NavigationItemType["isCurrent"] = ({ isChild, item, rout
 };
 
 const NavigationItem: React.FC<{
+  index?: number;
   item: NavigationItemType;
   isChild?: boolean;
 }> = (props) => {
@@ -581,10 +588,12 @@ const NavigationItem: React.FC<{
         href={item.href}
         aria-label={t(item.name)}
         className={classNames(
-          "group flex items-center rounded-md py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-neutral-900",
+          "group flex items-center rounded-md py-2 px-3 text-sm font-medium text-gray-600 hover:bg-gray-100 [&[aria-current='page']]:bg-gray-200 [&[aria-current='page']]:hover:text-gray-900",
           isChild
-            ? "[&[aria-current='page']]:text-brand-900 hidden pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent"
-            : "[&[aria-current='page']]:text-brand-900 "
+            ? `[&[aria-current='page']]:text-brand-900 hidden h-8 pl-16 lg:flex lg:pl-11 [&[aria-current='page']]:bg-transparent ${
+                props.index === 0 ? "mt-0" : "mt-px"
+              }`
+            : "[&[aria-current='page']]:text-brand-900 mt-0.5 text-sm"
         )}
         aria-current={current ? "page" : undefined}>
         {item.icon && (
@@ -605,7 +614,7 @@ const NavigationItem: React.FC<{
       </Link>
       {item.child &&
         isCurrent({ router, isChild, item }) &&
-        item.child.map((item) => <NavigationItem key={item.name} item={item} isChild />)}
+        item.child.map((item, index) => <NavigationItem index={index} key={item.name} item={item} isChild />)}
     </Fragment>
   );
 };
@@ -652,7 +661,7 @@ const MobileNavigationItem: React.FC<{
     <Link
       key={item.name}
       href={item.href}
-      className="relative my-2 min-w-0 flex-1 overflow-hidden rounded-md py-2 px-1 text-center text-xs font-medium text-neutral-400 hover:bg-gray-200 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
+      className="relative my-2 min-w-0 flex-1 overflow-hidden rounded-md py-2 px-1 text-center text-xs font-medium text-gray-400 hover:bg-gray-200 hover:text-gray-700 focus:z-10 sm:text-sm [&[aria-current='page']]:text-gray-900"
       aria-current={current ? "page" : undefined}>
       {item.badge && <div className="absolute right-1 top-1">{item.badge}</div>}
       {item.icon && (
@@ -715,14 +724,14 @@ function SideBar() {
               <button
                 color="minimal"
                 onClick={() => window.history.back()}
-                className="desktop-only group flex text-sm font-medium text-neutral-500 hover:text-neutral-900">
-                <Icon.FiArrowLeft className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
+                className="desktop-only group flex text-sm font-medium text-gray-500 hover:text-gray-900">
+                <Icon.FiArrowLeft className="h-4 w-4 flex-shrink-0 text-gray-500 group-hover:text-gray-900" />
               </button>
               <button
                 color="minimal"
                 onClick={() => window.history.forward()}
-                className="desktop-only group flex text-sm font-medium text-neutral-500 hover:text-neutral-900">
-                <Icon.FiArrowRight className="h-4 w-4 flex-shrink-0 text-neutral-500 group-hover:text-neutral-900" />
+                className="desktop-only group flex text-sm font-medium text-gray-500 hover:text-gray-900">
+                <Icon.FiArrowRight className="h-4 w-4 flex-shrink-0 text-gray-500 group-hover:text-gray-900" />
               </button>
               <KBarTrigger />
             </div>
@@ -786,6 +795,7 @@ export function ShellMain(props: LayoutProps) {
               )}
               {props.subtitle && (
                 <p className="hidden text-sm font-normal text-neutral-500 sm:block">
+                <p className="hidden text-sm text-gray-500 sm:block">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.subtitle}
                 </p>
               )}
@@ -848,7 +858,7 @@ function TopNav() {
           <Logo />
         </Link>
         <div className="flex items-center gap-2 self-center">
-          <span className="group flex items-center rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-neutral-900 lg:hidden">
+          <span className="group flex items-center rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 lg:hidden">
             <KBarTrigger />
           </span>
           <button className="rounded-full p-1 text-gray-400 hover:bg-gray-50 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2">

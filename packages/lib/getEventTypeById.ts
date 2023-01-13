@@ -125,6 +125,12 @@ export default async function getEventTypeById({
           id: true,
         },
       },
+      hosts: {
+        select: {
+          isFixed: true,
+          userId: true,
+        },
+      },
       userId: true,
       price: true,
       destinationCalendar: true,
