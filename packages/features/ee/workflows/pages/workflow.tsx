@@ -69,6 +69,11 @@ const formSchema = z.object({
         .refine((val) => onlyLettersNumbersSpaces(val))
         .optional()
         .nullable(),
+      senderName: z
+        .string()
+        // .refine((val) => onlyLettersNumbersSpaces(val))
+        .optional()
+        .nullable(),
     })
     .array(),
 });

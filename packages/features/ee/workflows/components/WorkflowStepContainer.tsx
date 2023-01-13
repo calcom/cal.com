@@ -37,7 +37,7 @@ import {
   TextField,
   Editor,
   AddVariablesDropdown,
-  Tooltip,
+  Input,
 } from "@calcom/ui";
 
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
@@ -355,6 +355,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setNumberVerified(false);
                               if (!wasSMSAction) {
                                 form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
+                                form.setValue(`steps.${step.stepNumber - 1}.sender`, SENDER_ID);
                               }
                             } else {
                               setIsPhoneNumberNeeded(false);
@@ -363,6 +364,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
                               if (wasSMSAction) {
                                 form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
+                                form.setValue(`steps.${step.stepNumber - 1}.senderName`, SENDER_NAME);
                               }
                             }
 
@@ -475,8 +477,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 {isSenderIdNeeded ? (
                   <>
                     <div className="pt-4">
-                      <TextField
-                        label={t("sender_id")}
+                      <Label>{t("sender_id")}</Label>
+                      <Input
                         type="text"
                         placeholder={SENDER_ID}
                         maxLength={11}
@@ -491,11 +493,10 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                 ) : (
                   <>
                     <div className="pt-4">
-                      <TextField
-                        label={t("sender_name")}
+                      <Label>{t("sender_name")}</Label>
+                      <Input
                         type="text"
                         placeholder={SENDER_NAME}
-                        maxLength={11} //todo
                         {...form.register(`steps.${step.stepNumber - 1}.senderName`)}
                       />
                     </div>
