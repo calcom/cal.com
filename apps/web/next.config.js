@@ -138,7 +138,7 @@ const nextConfig = {
     return config;
   },
   async rewrites() {
-    return [
+    const rewrites = [
       {
         source: "/:user/avatar.png",
         destination: "/api/user/avatar?username=:user",
@@ -175,6 +175,14 @@ const nextConfig = {
         destination: process.env.NEXT_PUBLIC_EMBED_LIB_URL?,
       }, */
     ];
+    // So that we can opt-in to use an external auth server
+    if (process.env.NEXTAUTH_URL !== process.env.NEXT_PUBLIC_WEBAPP_URL) {
+      rewrites.push({
+        source: "/api/auth/:rest*",
+        destination: process.env.NEXTAUTH_URL + "/api/auth/:rest*",
+      });
+    }
+    return rewrites;
   },
   async redirects() {
     const redirects = [

@@ -27,6 +27,7 @@
     "dev:console": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/console\"",
     "dev:swagger": "turbo run dev --scope=\"@calcom/api\" --scope=\"@calcom/swagger\"",
     "dev:website": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/website\"",
+    "dev:auth": "turbo run dev --scope=\"@calcom/web\" --scope=\"@calcom/auth\"",
     "dev": "turbo run dev --scope=\"@calcom/web\"",
     "docs-build": "turbo run build --scope=\"@calcom/docs\" --include-dependencies",
     "docs-dev": "turbo run dev --scope=\"@calcom/docs\"",
