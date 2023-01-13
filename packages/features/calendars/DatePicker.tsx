@@ -5,6 +5,7 @@ import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
 import classNames from "@calcom/lib/classNames";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { Button, Icon, SkeletonText } from "@calcom/ui";
 
@@ -135,6 +136,9 @@ const Days = ({
     const date = browsingDate.set("date", day);
     days.push(date);
   }
+
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
   return (
     <>
       {days.map((day, idx) => (
@@ -153,12 +157,13 @@ const Days = ({
               date={day}
               onClick={() => {
                 props.onChange(day);
-                setTimeout(() => {
-                  window.scrollTo({
-                    top: 360,
-                    behavior: "smooth",
-                  });
-                }, 500);
+                isMobile &&
+                  setTimeout(() => {
+                    window.scrollTo({
+                      top: 360,
+                      behavior: "smooth",
+                    });
+                  }, 500);
               }}
               disabled={
                 (includedDates && !includedDates.includes(yyyymmdd(day))) ||
