@@ -324,7 +324,13 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
         description={`${rescheduleUid ? t("reschedule") : ""} ${eventType.title}`}
         meeting={{
           title: eventType.title,
-          profile: { name: `${profile.name}`, image: profile.image },
+          profile: {
+            name: `${profile.name}`,
+            image:
+              profile.image && profile.image.startsWith("http")
+                ? profile.image
+                : `/team/${profile.slug}/avatar.png`,
+          },
           users: [
             ...(eventType.users || []).map((user) => ({
               name: `${user.name}`,

@@ -81,7 +81,10 @@ function TeamPage({ team }: TeamPageProps) {
         description={teamName}
         meeting={{
           title: team?.bio || "",
-          profile: { name: `${team.name}`, image: getPlaceholderAvatar(team.logo, team.name) },
+          profile: {
+            name: `${team.name}`,
+            image: team.logo ? `/team/${team.slug}/avatar.png` : getPlaceholderAvatar(team.logo, team.name),
+          },
         }}
       />
       <main className="dark:bg-darkgray-50 mx-auto max-w-3xl rounded-md bg-gray-100 px-4 pt-12 pb-12">
