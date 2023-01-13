@@ -18,6 +18,7 @@ import {
   TIME_UNIT,
 } from "@calcom/features/ee/workflows/lib/constants";
 import { getWorkflowActionOptions } from "@calcom/features/ee/workflows/lib/getOptions";
+import { isSMSAction } from "@calcom/features/ee/workflows/lib/isSMSAction";
 import {
   deleteScheduledEmailReminder,
   scheduleEmailReminder,
@@ -41,10 +42,6 @@ import { TRPCError } from "@trpc/server";
 
 import { router, authedProcedure, authedRateLimitedProcedure } from "../../trpc";
 import { viewerTeamsRouter } from "./teams";
-
-function isSMSAction(action: WorkflowActions) {
-  return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.SMS_NUMBER;
-}
 
 function getSender(
   step: Pick<WorkflowStep, "action" | "sender"> & { senderName: string | null | undefined }

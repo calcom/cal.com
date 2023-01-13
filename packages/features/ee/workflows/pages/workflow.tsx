@@ -26,6 +26,7 @@ import { Alert, Button, Form, showToast } from "@calcom/ui";
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
 import WorkflowDetailsPage from "../components/WorkflowDetailsPage";
+import { isSMSAction } from "../lib/isSMSAction";
 import { getTranslatedText, translateVariablesToEnglish } from "../lib/variableTranslations";
 
 export type FormValues = {
@@ -177,10 +178,6 @@ function WorkflowPage() {
       }
     },
   });
-
-  const isSMSAction = (action: WorkflowActions) => {
-    return action === WorkflowActions.SMS_ATTENDEE || action === WorkflowActions.SMS_NUMBER;
-  };
 
   return session.data ? (
     <Form

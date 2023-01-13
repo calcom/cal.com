@@ -18,10 +18,10 @@ import {
   DialogFooter,
   EmailField,
   Form,
+  Input,
   Label,
   PhoneInput,
   Select,
-  TextField,
 } from "@calcom/ui";
 
 import { WORKFLOW_ACTIONS } from "../lib/constants";
@@ -71,10 +71,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
       .string()
       .refine((val) => onlyLettersNumbersSpaces(val))
       .nullable(),
-    senderName: z
-      .string()
-      // .refine((val) => onlyLettersNumbersSpaces(val))
-      .nullable(),
+    senderName: z.string().nullable(),
   });
 
   const form = useForm<AddActionFormValues>({
@@ -124,7 +121,13 @@ export const AddActionDialog = (props: IAddActionDialog) => {
             <Form
               form={form}
               handleSubmit={(values) => {
-                addAction(values.action, values.sendTo, values.numberRequired, values.senderId);
+                addAction(
+                  values.action,
+                  values.sendTo,
+                  values.numberRequired,
+                  values.senderId,
+                  values.senderName
+                );
                 form.unregister("sendTo");
                 form.unregister("action");
                 form.unregister("numberRequired");
@@ -182,15 +185,25 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                   <EmailField required label={t("email_address")} {...form.register("sendTo")} />
                 </div>
               )}
-              {isSenderIdNeeded && (
+              {isSenderIdNeeded ? (
+                <>
+                  <div className="mt-5">
+                    <Label>{t("sender_id")}</Label>
+                    <Input
+                      type="text"
+                      placeholder={SENDER_ID}
+                      maxLength={11}
+                      {...form.register(`senderId`)}
+                    />
+                  </div>
+                  {form.formState.errors && form.formState?.errors?.senderId && (
+                    <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
+                  )}
+                </>
+              ) : (
                 <div className="mt-5">
-                  <TextField
-                    label={t("sender_id")}
-                    type="text"
-                    placeholder={SENDER_ID}
-                    maxLength={11}
-                    {...form.register(`senderId`)}
-                  />
+                  <Label>{t("sender_name")}</Label>
+                  <Input type="text" placeholder={SENDER_NAME} {...form.register(`senderName`)} />
                 </div>
               )}
               {form.getValues("action") === WorkflowActions.SMS_ATTENDEE && (

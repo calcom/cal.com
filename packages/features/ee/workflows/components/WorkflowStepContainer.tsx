@@ -42,7 +42,7 @@ import {
 
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
 import { getWorkflowTemplateOptions, getWorkflowTriggerOptions } from "../lib/getOptions";
-import { translateVariablesToEnglish } from "../lib/variableTranslations";
+import { isSMSAction } from "../lib/isSMSAction";
 import type { FormValues } from "../pages/workflow";
 import { TimeTimeUnitInput } from "./TimeTimeUnitInput";
 
@@ -341,19 +341,13 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         onChange={(val) => {
                           if (val) {
                             const oldValue = form.getValues(`steps.${step.stepNumber - 1}.action`);
-                            const wasSMSAction =
-                              oldValue === WorkflowActions.SMS_ATTENDEE ||
-                              oldValue === WorkflowActions.SMS_NUMBER;
-                            const isSMSAction =
-                              val.value === WorkflowActions.SMS_ATTENDEE ||
-                              val.value === WorkflowActions.SMS_NUMBER;
 
-                            if (isSMSAction) {
+                            if (isSMSAction(val.value)) {
                               setIsSenderIdNeeded(true);
                               setIsEmailAddressNeeded(false);
                               setIsPhoneNumberNeeded(val.value === WorkflowActions.SMS_NUMBER);
                               setNumberVerified(false);
-                              if (!wasSMSAction) {
+                              if (!isSMSAction(oldValue)) {
                                 form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
                                 form.setValue(`steps.${step.stepNumber - 1}.sender`, SENDER_ID);
                               }
@@ -362,7 +356,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setIsSenderIdNeeded(false);
                               setIsEmailAddressNeeded(val.value === WorkflowActions.EMAIL_ADDRESS);
 
-                              if (wasSMSAction) {
+                              if (isSMSAction(oldValue)) {
                                 form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, "");
                                 form.setValue(`steps.${step.stepNumber - 1}.senderName`, SENDER_NAME);
                               }
@@ -500,10 +494,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                         {...form.register(`steps.${step.stepNumber - 1}.senderName`)}
                       />
                     </div>
-                    {form.formState.errors.steps &&
-                      form.formState?.errors?.steps[step.stepNumber - 1]?.senderName && (
-                        <p className="mt-1 text-xs text-red-500">{t("sender_id_error_message")}</p>
-                      )}
                   </>
                 )}
               </div>
