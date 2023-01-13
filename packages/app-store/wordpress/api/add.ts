@@ -4,7 +4,6 @@ import { createDefaultInstallation } from "../../_utils/installation";
 import appConfig from "../config.json";
 
 const handler: AppDeclarativeHandler = {
-
   appType: appConfig.type,
   variant: appConfig.variant,
   slug: appConfig.slug,

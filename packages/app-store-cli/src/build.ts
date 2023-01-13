@@ -4,6 +4,8 @@ import { debounce } from "lodash";
 import path from "path";
 import prettier from "prettier";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-ignore
 import prettierConfig from "@calcom/config/prettier-preset";
 import { AppMeta } from "@calcom/types/App";
 
@@ -86,8 +88,16 @@ function generateFiles() {
     }
   }
 
-  function getModuleName(name: string) {
-    return name.replace(/\/index\.ts|\/index\.tsx/, "").replace(/\.tsx$|\.ts$/, "");
+  /**
+   * Windows has paths with backslashes, so we need to replace them with forward slashes
+   * .ts and .tsx files are imported without extensions
+   * If a file has index.ts or index.tsx, it can be imported after removing the index.ts* part
+   */
+  function getModulePath(path: string, moduleName: string) {
+    return (
+      `./${path.replace(/\\/g, "/")}/` +
+      moduleName.replace(/\/index\.ts|\/index\.tsx/, "").replace(/\.tsx$|\.ts$/, "")
+    );
   }
 
   type ImportConfig =
@@ -109,7 +119,7 @@ function generateFiles() {
   /**
    * If importConfig is an array, only 2 items are allowed. First one is the main one and second one is the fallback
    */
-  function getObjectExporter(
+  function getExportedObject(
     objectName: string,
     {
       lazyImport = false,
@@ -121,8 +131,81 @@ function generateFiles() {
       entryObjectKeyGetter?: (arg: App, importName?: string) => string;
     }
   ) {
-    const output = [];
-    function getChosenConfig(importConfig: ImportConfig, app: { path: string }) {
+    const output: string[] = [];
+
+    const getLocalImportName = (
+      app: { name: string },
+      chosenConfig: ReturnType<typeof getChosenImportConfig>
+    ) => `${getVariableName(app.name)}_${getVariableName(chosenConfig.fileToBeImported)}`;
+
+    const fileToBeImportedExists = (
+      app: { path: string },
+      chosenConfig: ReturnType<typeof getChosenImportConfig>
+    ) => fs.existsSync(path.join(APP_STORE_PATH, app.path, chosenConfig.fileToBeImported));
+
+    addImportStatements();
+    createExportObject();
+
+    return output;
+
+    function addImportStatements() {
+      forEachAppDir((app) => {
+        const chosenConfig = getChosenImportConfig(importConfig, app);
+        if (fileToBeImportedExists(app, chosenConfig) && chosenConfig.importName) {
+          const importName = chosenConfig.importName;
+          if (!lazyImport) {
+            if (importName !== "default") {
+              // Import with local alias that will be used by createExportObject
+              output.push(
+                `import { ${importName} as ${getLocalImportName(app, chosenConfig)} } from "${getModulePath(
+                  app.path,
+                  chosenConfig.fileToBeImported
+                )}"`
+              );
+            } else {
+              // Default Import
+              output.push(
+                `import ${getLocalImportName(app, chosenConfig)} from "${getModulePath(
+                  app.path,
+                  chosenConfig.fileToBeImported
+                )}"`
+              );
+            }
+          }
+        }
+      });
+    }
+
+    function createExportObject() {
+      output.push(`export const ${objectName} = {`);
+
+      forEachAppDir((app) => {
+        const chosenConfig = getChosenImportConfig(importConfig, app);
+
+        if (fileToBeImportedExists(app, chosenConfig)) {
+          if (!lazyImport) {
+            const key = entryObjectKeyGetter(app);
+            output.push(`"${key}": ${getLocalImportName(app, chosenConfig)},`);
+          } else {
+            const key = entryObjectKeyGetter(app);
+            if (chosenConfig.fileToBeImported.endsWith(".tsx")) {
+              output.push(
+                `"${key}": dynamic(() => import("${getModulePath(
+                  app.path,
+                  chosenConfig.fileToBeImported
+                )}")),`
+              );
+            } else {
+              output.push(`"${key}": import("${getModulePath(app.path, chosenConfig.fileToBeImported)}"),`);
+            }
+          }
+        }
+      });
+
+      output.push(`};`);
+    }
+
+    function getChosenImportConfig(importConfig: ImportConfig, app: { path: string }) {
       let chosenConfig;
 
       if (!(importConfig instanceof Array)) {
@@ -136,70 +219,10 @@ function generateFiles() {
       }
       return chosenConfig;
     }
-
-    const getLocalImportName = (app: { name: string }, chosenConfig) =>
-      `${getVariableName(app.name)}_${getVariableName(chosenConfig.fileToBeImported)}`;
-
-    forEachAppDir((app) => {
-      const chosenConfig = getChosenConfig(importConfig, app);
-      if (
-        fs.existsSync(path.join(APP_STORE_PATH, app.path, chosenConfig.fileToBeImported)) &&
-        chosenConfig.importName
-      ) {
-        const importName = chosenConfig.importName;
-        if (!lazyImport) {
-          if (importName !== "default")
-            output.push(
-              `import { ${importName} as ${getLocalImportName(app, chosenConfig)}} from "./${app.path.replace(
-                /\\/g,
-                "/"
-              )}/${getModuleName(chosenConfig.fileToBeImported)}"`
-            );
-          else
-            output.push(
-              `import ${getLocalImportName(app, chosenConfig)} from "./${app.path.replace(
-                /\\/g,
-                "/"
-              )}/${getModuleName(chosenConfig.fileToBeImported)}"`
-            );
-        }
-      }
-    });
-
-    output.push(`export const ${objectName} = {`);
-
-    forEachAppDir((app) => {
-      const chosenConfig = getChosenConfig(importConfig, app);
-
-      if (fs.existsSync(path.join(APP_STORE_PATH, app.path, chosenConfig.fileToBeImported))) {
-        if (!lazyImport) {
-          const key = entryObjectKeyGetter(app);
-          output.push(`"${key}": ${getLocalImportName(app, chosenConfig)},`);
-        } else {
-          const key = entryObjectKeyGetter(app);
-          if (chosenConfig.fileToBeImported.endsWith(".tsx")) {
-            output.push(
-              `"${key}": dynamic(() => import("./${app.path.replace(/\\/g, "/")}/${getModuleName(
-                chosenConfig.fileToBeImported
-              )}")),`
-            );
-          } else {
-            output.push(
-              `"${key}": import("./${app.path.replace(/\\/g, "/")}/${getModuleName(
-                chosenConfig.fileToBeImported
-              )}"),`
-            );
-          }
-        }
-      }
-    });
-
-    output.push(`};`);
-    return output;
   }
 
   serverOutput.push(
-    ...getObjectExporter("apiHandlers", {
+    ...getExportedObject("apiHandlers", {
       importConfig: {
         fileToBeImported: "api/index.ts",
       },
@@ -208,7 +231,8 @@ function generateFiles() {
   );
 
   metadataOutput.push(
-    ...getObjectExporter("appStoreMetadata", {
+    ...getExportedObject("appStoreMetadata", {
+      // Try looking for config.json and if it's not found use _metadata.ts to generate appStoreMetadata
       importConfig: [
         {
           fileToBeImported: "config.json",
@@ -223,7 +247,7 @@ function generateFiles() {
   );
 
   schemasOutput.push(
-    ...getObjectExporter("appDataSchemas", {
+    ...getExportedObject("appDataSchemas", {
       // Import path must have / even for windows and not \
       importConfig: {
         fileToBeImported: "zod.ts",
@@ -236,7 +260,7 @@ function generateFiles() {
   );
 
   appKeysSchemasOutput.push(
-    ...getObjectExporter("appKeysSchemas", {
+    ...getExportedObject("appKeysSchemas", {
       importConfig: {
         fileToBeImported: "zod.ts",
         importName: "appKeysSchema",
@@ -248,7 +272,7 @@ function generateFiles() {
   );
 
   browserOutput.push(
-    ...getObjectExporter("InstallAppButtonMap", {
+    ...getExportedObject("InstallAppButtonMap", {
       importConfig: {
         fileToBeImported: "components/InstallAppButton.tsx",
       },
@@ -259,7 +283,7 @@ function generateFiles() {
   // TODO: Make a component map creator that accepts ComponentName and does the rest.
   // TODO: dailyvideo has a slug of daily-video, so that mapping needs to be taken care of. But it is an old app, so it doesn't need AppSettings
   browserOutput.push(
-    ...getObjectExporter("AppSettingsComponentsMap", {
+    ...getExportedObject("AppSettingsComponentsMap", {
       importConfig: {
         fileToBeImported: "components/AppSettingsInterface.tsx",
       },
@@ -268,7 +292,7 @@ function generateFiles() {
   );
 
   browserOutput.push(
-    ...getObjectExporter("EventTypeAddonMap", {
+    ...getExportedObject("EventTypeAddonMap", {
       importConfig: {
         fileToBeImported: path.join("components", "EventTypeAppCardInterface.tsx"),
       },
