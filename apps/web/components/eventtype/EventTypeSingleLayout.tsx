@@ -16,10 +16,11 @@ import {
   ButtonGroup,
   ConfirmationDialogContent,
   Dialog,
-  Divider,
+  DropdownMenuSeparator,
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownItem,
   DropdownMenuTrigger,
   HorizontalTabs,
   Icon,
@@ -246,32 +247,36 @@ function EventTypeSingleLayout({
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem className="focus:ring-gray-100">
-                <Button
-                  color="minimal"
-                  StartIcon={Icon.FiExternalLink}
+                <DropdownItem
                   target="_blank"
+                  type="button"
+                  StartIcon={Icon.FiExternalLink}
                   href={permalink}
-                  rel="noreferrer"
-                  className="min-w-full">
+                  rel="noreferrer">
                   {t("preview")}
-                </Button>
+                </DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuItem className="focus:ring-gray-100">
-                <Button color="minimal" StartIcon={Icon.FiLink}>
+                <DropdownItem
+                  type="button"
+                  StartIcon={Icon.FiLink}
+                  onClick={() => {
+                    navigator.clipboard.writeText(permalink);
+                    showToast("Link copied!", "success");
+                  }}>
                   {t("copy_link")}
-                </Button>
+                </DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuItem className="focus:ring-gray-100">
-                <Button
-                  color="minimal"
+                <DropdownItem
+                  type="button"
                   StartIcon={Icon.FiTrash}
                   disabled={!hasPermsToDelete}
-                  onClick={() => setDeleteDialogOpen(true)}
-                  className="min-w-full">
+                  onClick={() => setDeleteDialogOpen(true)}>
                   {t("delete")}
-                </Button>
+                </DropdownItem>
               </DropdownMenuItem>
-              <Divider />
+              <DropdownMenuSeparator className="block sm:hidden" />
               <div className="flex items-center rounded-md py-1.5 px-4 sm:hidden sm:hover:bg-gray-100">
                 <Skeleton
                   as={Label}

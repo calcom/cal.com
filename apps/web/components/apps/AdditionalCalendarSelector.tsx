@@ -86,7 +86,7 @@ const AdditionalCalendarSelector = ({ isLoading }: AdditionalCalendarSelectorPro
                 ...defaultStyles,
                 padding: "0",
                 border: "0",
-                borderRadius: "6px",
+                borderRadius: "0px",
                 minHeight: "auto",
               }),
               dropdownIndicator: (defaultStyles) => ({

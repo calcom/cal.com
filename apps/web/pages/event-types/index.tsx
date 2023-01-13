@@ -375,6 +375,7 @@ export const EventTypeList = ({ group, groupIndex, readOnly, types }: EventTypeL
                               {(group.metadata?.readOnly === false || group.metadata.readOnly === null) && (
                                 <DropdownMenuItem>
                                   <DropdownItem
+                                    color="destructive"
                                     onClick={() => {
                                       setDeleteDialogOpen(true);
                                       setDeleteDialogTypeId(type.id);
