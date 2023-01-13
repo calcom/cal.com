@@ -306,15 +306,16 @@ async function handler(req: NextApiRequest & { userId?: number }) {
         ) {
           bookingToDelete.user.credentials
             .filter((credential) => credential.type.endsWith("_calendar"))
-            .forEach((credential) => {
+            .forEach(async (credential) => {
               const calendar = getCalendar(credential);
-              updatedBookings.forEach((updBooking) => {
+              for (const updBooking of updatedBookings) {
                 const bookingRef = updBooking.references.find((ref) => ref.type.includes("_calendar"));
                 if (bookingRef) {
                   const { uid, externalCalendarId } = bookingRef;
-                  apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId) as Promise<unknown>);
+                  const deletedEvent = await calendar?.deleteEvent(uid, evt, externalCalendarId);
+                  apiDeletes.push(deletedEvent);
                 }
-              });
+              }
             });
         } else {
           apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId) as Promise<unknown>);

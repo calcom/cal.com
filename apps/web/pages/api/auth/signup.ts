@@ -1,10 +1,10 @@
 import { IdentityProvider } from "@prisma/client";
 import { NextApiRequest, NextApiResponse } from "next";
 
+import { hashPassword } from "@calcom/lib/auth";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import prisma from "@calcom/prisma";
 
-import { hashPassword } from "@lib/auth";
 import slugify from "@lib/slugify";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
