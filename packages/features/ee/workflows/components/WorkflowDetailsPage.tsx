@@ -53,7 +53,7 @@ export default function WorkflowDetailsPage(props: Props) {
     sendTo?: string,
     numberRequired?: boolean,
     sender?: string,
-    senderName: string
+    senderName?: string
   ) => {
     const steps = form.getValues("steps");
     const id =
