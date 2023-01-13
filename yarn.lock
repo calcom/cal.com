@@ -8789,6 +8789,11 @@
   resolved "https://registry.yarnpkg.com/@vanilla-extract/sprinkles/-/sprinkles-1.4.1.tgz#8c8703ddedaac355c1187db909119816c0fc771c"
   integrity sha512-aW6CfMMToX4a+baLuVxwcT0FSACjX3xrNt8wdi/3LLRlLAfhyue8OK7kJxhcYNZfydBeWTP59aRy8p5FUTIeew==
 
+"@vercel/analytics@^0.1.6":
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/@vercel/analytics/-/analytics-0.1.7.tgz#ee6670ca3196bfd4a7e0d0da4cd4f6c72d30c0a4"
+  integrity sha512-vaHVFggK1lPBbm73NRONI/D6oBM/Ot1zIXI9IpjxgUsvQMZrO4JpPEIDvGihgnAWbzH7LfpjOOJccxRoaDRtDA==
+
 "@vercel/edge-functions-ui@^0.2.1":
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/@vercel/edge-functions-ui/-/edge-functions-ui-0.2.1.tgz#8af0a5d8d4d544364fa79c4d075564e3a5bd972e"
@@ -14591,6 +14596,11 @@ fastq@^1.6.0:
   dependencies:
     reusify "^1.0.4"
 
+fathom-client@^3.5.0:
+  version "3.5.0"
+  resolved "https://registry.yarnpkg.com/fathom-client/-/fathom-client-3.5.0.tgz#47bf3e67fa789ec415fe6efdc0ec02b9187b4b0d"
+  integrity sha512-BiRDS9Q9a8Zma0H717FWC5cvf545K/CsxBpxKT22TcSl1EbRhhlHWIJgrdeiQUfdorBK2ppy09TwMOhRsbos/A==
+
 fault@^1.0.0:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/fault/-/fault-1.0.4.tgz#eafcfc0a6d214fc94601e170df29954a4f842f13"
@@ -20277,11 +20287,6 @@ next-i18next@^11.3.0:
     i18next-fs-backend "^1.1.4"
     react-i18next "^11.18.0"
 
-next-plausible@^2.1.2:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/next-plausible/-/next-plausible-2.2.0.tgz#f825842f97bce0062bdaf897328c4908d7ce0a78"
-  integrity sha512-pIhs5MikL6ZMJvB7sxkM49xN06W1A6d6RYta5vrqwQmF2/oXoCG+IPoaPzyODZ/vo7f2/NMAOaUm5QM0dKqMdA==
-
 next-seo@^4.26.0:
   version "4.29.0"
   resolved "https://registry.yarnpkg.com/next-seo/-/next-seo-4.29.0.tgz#d281e95ba47914117cc99e9e468599f0547d9b9b"
@@ -20402,16 +20407,6 @@ no-case@^3.0.4:
   dependencies:
     lower-case "^2.0.2"
     tslib "^2.0.3"
-
-nock@^13.2.8:
-  version "13.2.9"
-  resolved "https://registry.yarnpkg.com/nock/-/nock-13.2.9.tgz#4faf6c28175d36044da4cfa68e33e5a15086ad4c"
-  integrity sha512-1+XfJNYF1cjGB+TKMWi29eZ0b82QOvQs2YoLNzbpWGqFMtRQHTa57osqdGj4FrFPgkO4D4AZinzUJR9VvW3QUA==
-  dependencies:
-    debug "^4.1.0"
-    json-stringify-safe "^5.0.1"
-    lodash "^4.17.21"
-    propagate "^2.0.0"
 
 node-abort-controller@^3.0.1:
   version "3.0.1"
@@ -22093,11 +22088,6 @@ prop-types@^15.0.0, prop-types@^15.5.8, prop-types@^15.6.0, prop-types@^15.6.2, 
     loose-envify "^1.4.0"
     object-assign "^4.1.1"
     react-is "^16.13.1"
-
-propagate@^2.0.0:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/propagate/-/propagate-2.0.1.tgz#40cdedab18085c792334e64f0ac17256d38f9a45"
-  integrity sha512-vGrhOavPSTz4QVNuBNdcNXePNdNMaO1xj9yBeH1ScQPjk/rhg9sSlCXPhMkFuaNNW/syTvYqsnbIJxMBfRbbag==
 
 property-expr@^2.0.4:
   version "2.0.5"

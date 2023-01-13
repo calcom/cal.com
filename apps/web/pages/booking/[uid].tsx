@@ -32,7 +32,7 @@ import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { getIs24hClockFromLocalStorage, isBrowserLocale24h } from "@calcom/lib/timeFormat";
 import { localStorage } from "@calcom/lib/webstorage";
-import prisma, { baseUserSelect } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Button, EmailInput, Icon, HeadSeo } from "@calcom/ui";
@@ -322,7 +322,7 @@ export default function Success(props: SuccessProps) {
     }
     return t("emailed_you_and_attendees" + titleSuffix);
   }
-  const userIsOwner = !!(session?.user?.id && eventType.users.find((user) => (user.id = session.user.id)));
+  const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
   useTheme(isSuccessBookingPage ? props.profile.theme : "light");
   const title = t(
     `booking_${needsConfirmation ? "submitted" : "confirmed"}${props.recurringBookings ? "_recurring" : ""}`
@@ -408,7 +408,7 @@ export default function Success(props: SuccessProps) {
                 </div>
                 <div className="mt-6 mb-8 text-center last:mb-0">
                   <h3
-                    className="text-2xl font-semibold leading-6 text-neutral-900 dark:text-white"
+                    className="text-2xl font-semibold leading-6 text-gray-900 dark:text-white"
                     data-testid={isCancelled ? "cancelled-headline" : ""}
                     id="modal-headline">
                     {needsConfirmation && !isCancelled
@@ -422,7 +422,7 @@ export default function Success(props: SuccessProps) {
                       : t("meeting_is_scheduled")}
                   </h3>
                   <div className="mt-3">
-                    <p className="text-neutral-600 dark:text-gray-300">{getTitle()}</p>
+                    <p className="text-gray-600 dark:text-gray-300">{getTitle()}</p>
                   </div>
                   <div className="border-bookinglightest text-bookingdark dark:border-darkgray-300 mt-8 grid grid-cols-3 border-t pt-8 text-left dark:text-gray-300">
                     {(isCancelled || reschedule) && cancellationReason && (
@@ -499,7 +499,7 @@ export default function Success(props: SuccessProps) {
                       <>
                         <div className="mt-9 font-medium">{t("additional_notes")}</div>
                         <div className="col-span-2 mb-2 mt-9">
-                          <p>{bookingInfo.description}</p>
+                          <p className="break-words">{bookingInfo.description}</p>
                         </div>
                       </>
                     )}
@@ -845,6 +845,17 @@ export function RecurringBookings({
 }
 
 const getEventTypesFromDB = async (id: number) => {
+  const userSelect = {
+    id: true,
+    name: true,
+    username: true,
+    hideBranding: true,
+    theme: true,
+    brandColor: true,
+    darkBrandColor: true,
+    email: true,
+    timeZone: true,
+  };
   const eventType = await prisma.eventType.findUnique({
     where: {
       id,
@@ -863,17 +874,17 @@ const getEventTypesFromDB = async (id: number) => {
       locations: true,
       price: true,
       currency: true,
+      owner: {
+        select: userSelect,
+      },
       users: {
+        select: userSelect,
+      },
+      hosts: {
         select: {
-          id: true,
-          name: true,
-          username: true,
-          hideBranding: true,
-          theme: true,
-          brandColor: true,
-          darkBrandColor: true,
-          email: true,
-          timeZone: true,
+          user: {
+            select: userSelect,
+          },
         },
       },
       team: {
@@ -1013,27 +1024,18 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
-  if (!eventTypeRaw.users.length && eventTypeRaw.userId) {
-    // TODO we should add `user User` relation on `EventType` so this extra query isn't needed
-    const user = await prisma.user.findUnique({
-      where: {
-        id: eventTypeRaw.userId,
-      },
-      select: baseUserSelect,
-    });
-    if (user) {
-      eventTypeRaw.users.push({
-        ...user,
-        avatar: "",
-        allowDynamicBooking: true,
-      });
-    }
-  }
+  eventTypeRaw.users = !!eventTypeRaw.hosts?.length
+    ? eventTypeRaw.hosts.map((host) => host.user)
+    : eventTypeRaw.users;
 
   if (!eventTypeRaw.users.length) {
-    return {
-      notFound: true,
-    };
+    if (!eventTypeRaw.owner)
+      return {
+        notFound: true,
+      };
+    eventTypeRaw.users.push({
+      ...eventTypeRaw.owner,
+    });
   }
 
   const eventType = {
