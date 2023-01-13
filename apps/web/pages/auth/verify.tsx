@@ -124,7 +124,7 @@ export default function Verify() {
               <MailOpenIcon className="h-12 w-12 flex-shrink-0 p-0.5 font-extralight text-white" />
             )}
           </div>
-          <h3 className="font-cal my-6 text-3xl font-normal">
+          <h3 className="my-6">
             {hasPaymentFailed
               ? "Your payment failed"
               : sessionId

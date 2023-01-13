@@ -7,7 +7,7 @@ const TwoFactorModalHeader = ({ title, description }: { title: string; descripti
         <Icon.ShieldCheckIcon className="h-6 w-6 text-white" />
       </div>
       <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-        <h3 className="font-cal text-lg font-medium leading-6 text-gray-900" id="modal-title">
+        <h3 className="leading-6" id="modal-title">
           {title}
         </h3>
         <p className="text-sm text-gray-400">{description}</p>

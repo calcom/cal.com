@@ -74,7 +74,7 @@ function ConnectOrDisconnectIntegrationButton(props: {
   if (isGlobal) {
     return (
       <div className="truncate px-3 py-2">
-        <h3 className="text-sm font-medium text-gray-700">{t("default")}</h3>
+        <h3>{t("default")}</h3>
       </div>
     );
   }

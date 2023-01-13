@@ -28,7 +28,7 @@ export default function Apps({ categories }: InferGetStaticPropsType<typeof getS
               data-testid={`app-store-category-${category.name}`}
               className="relative flex rounded-sm bg-gray-100 px-6 py-4 sm:block">
               <div className="self-center">
-                <h3 className="font-medium capitalize">{category.name}</h3>
+                <h3 className="capitalize">{category.name}</h3>
                 <p className="text-sm text-gray-500">
                   {t("number_apps", { count: category.count })}{" "}
                   <Icon.FiArrowRight className="inline-block h-4 w-4" />

@@ -24,7 +24,7 @@ export default function NoMeetingFound() {
                     <Icon.FiX className="h-6 w-6 text-red-600" />
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
-                    <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-headline">
+                    <h3 className="leading-6" id="modal-headline">
                       {t("no_meeting_found")}
                     </h3>
                   </div>

@@ -219,7 +219,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
           </div>
           <div className="w-full">
             <div className="mt-3 text-center sm:mt-0 sm:text-left">
-              <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+              <h3 className="leading-6" id="modal-title">
                 {t("edit_location")}
               </h3>
               {!booking && (

@@ -408,7 +408,7 @@ export default function Success(props: SuccessProps) {
                 </div>
                 <div className="mt-6 mb-8 text-center last:mb-0">
                   <h3
-                    className="text-2xl font-semibold leading-6 text-gray-900 dark:text-white"
+                    className="leading-6 "
                     data-testid={isCancelled ? "cancelled-headline" : ""}
                     id="modal-headline">
                     {needsConfirmation && !isCancelled

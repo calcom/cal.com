@@ -34,7 +34,7 @@ export default function Logout(props: Props) {
           <Icon.FiCheck className="h-6 w-6 text-green-600" />
         </div>
         <div className="mt-3 text-center sm:mt-5">
-          <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+          <h3 className="leading-6" id="modal-title">
             {t("youve_been_logged_out")}
           </h3>
           <div className="mt-2">

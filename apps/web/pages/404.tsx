@@ -77,7 +77,7 @@ export default function Custom404() {
                         </span>
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h3 className="text-base font-medium text-gray-900">
+                        <h3>
                           <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
                             <span className="focus:outline-none">
                               <span className="absolute inset-0" aria-hidden="true" />
@@ -105,7 +105,7 @@ export default function Custom404() {
                         </span>
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h3 className="text-base font-medium text-gray-900">
+                        <h3>
                           <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
                             <span className="absolute inset-0" aria-hidden="true" />
                             {t("prisma_studio_tip")}
@@ -150,7 +150,7 @@ export default function Custom404() {
                         </span>
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h3 className="text-base font-medium text-gray-900">
+                        <h3>
                           <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
                             <span className="absolute inset-0" aria-hidden="true" />
                             Slack
@@ -218,7 +218,7 @@ export default function Custom404() {
                           </span>
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h3 className="text-base font-medium text-gray-900">
+                          <h3>
                             <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
                               <span className="focus:outline-none">
                                 <span className="absolute inset-0" aria-hidden="true" />
@@ -248,7 +248,7 @@ export default function Custom404() {
                           </span>
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h3 className="text-base font-medium text-gray-900">
+                          <h3>
                             <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
                               <span className="absolute inset-0" aria-hidden="true" />
                               {link.title}
@@ -294,7 +294,7 @@ export default function Custom404() {
                         </span>
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h3 className="text-base font-medium text-gray-900">
+                        <h3>
                           <span className="rounded-sm focus-within:ring-2 focus-within:ring-gray-500 focus-within:ring-offset-2">
                             <span className="absolute inset-0" aria-hidden="true" />
                             Slack
