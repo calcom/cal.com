@@ -69,7 +69,7 @@ export function TeamsListing() {
       {!teams.length && !isLoading && (
         <>
           {!isCalcom ? (
-            <div className="-mx-8 -mt-10 max-w-[1118px] sm:mx-0 sm:mt-0">
+            <div className="-mt-6 max-w-[1118px] sm:mt-0">
               <div
                 className="flex w-full justify-between overflow-hidden rounded-lg pt-4 pb-10 md:min-h-[295px] md:pt-10"
                 style={{
