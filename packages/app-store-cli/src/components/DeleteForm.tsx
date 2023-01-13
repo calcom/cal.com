@@ -87,7 +87,9 @@ export default function DeleteForm({ slug, action }: { slug: string; action: "de
     return (
       <Message
         message={{
-          text: `${isTemplate ? "Template" : "App"} with slug "${slug}" has been deleted`,
+          text: `${
+            isTemplate ? "Template" : "App"
+          } with slug "${slug}" has been deleted. You might need to restart your dev environment`,
           type: "success",
         }}
       />

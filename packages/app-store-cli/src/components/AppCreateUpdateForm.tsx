@@ -62,7 +62,7 @@ export const AppForm = ({
       name: "description",
       type: "text",
       explainer:
-        "A detailed description of your app. You can later modify README.mdx to add markdown as well",
+        "A detailed description of your app. You can later modify DESCRIPTION.mdx to add markdown as well",
       optional: false,
       defaultValue: "",
     },
@@ -219,7 +219,7 @@ export const AppForm = ({
                 <Text>{slug}</Text>
               </Box>
               <Box flexDirection="row">
-                <Text color="green">App URL: </Text>
+                <Text color="green">{isTemplate ? "Template" : "App"} URL: </Text>
                 <Text>{`http://localhost:3000/apps/${slug}`}</Text>
               </Box>
               <Box flexDirection="row">
