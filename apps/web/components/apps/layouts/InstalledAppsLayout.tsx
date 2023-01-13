@@ -44,13 +44,15 @@ export default function InstalledAppsLayout({
   children,
   ...rest
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
+  const variant: typeof InstalledAppVariants[number] = "payment";
+
   const query = trpc.viewer.integrations.useQuery({
-    variant: InstalledAppVariants.payment,
+    variant,
     onlyInstalled: true,
   });
   let actualTabs = tabs;
   if (query.data?.items.length === 0) {
-    actualTabs = tabs.filter((tab) => tab.name !== InstalledAppVariants.payment);
+    actualTabs = tabs.filter((tab) => tab.name !== variant);
   }
 
   return (
