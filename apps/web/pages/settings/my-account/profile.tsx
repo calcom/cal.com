@@ -33,6 +33,7 @@ import {
   SkeletonContainer,
   SkeletonText,
   TextField,
+  Editor,
 } from "@calcom/ui";
 
 import TwoFactor from "@components/auth/TwoFactor";
@@ -46,8 +47,8 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
       <Meta title={title} description={description} />
       <div className="mt-6 mb-8 space-y-6 divide-y">
         <div className="flex items-center">
-          <SkeletonAvatar className=" h-12 w-12 px-4" />
-          <SkeletonButton className=" h-6 w-32 rounded-md p-5" />
+          <SkeletonAvatar className="h-12 w-12 px-4 " />
+          <SkeletonButton className="h-6 w-32 rounded-md p-5 " />
         </div>
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -181,9 +182,7 @@ const ProfileView = () => {
   };
 
   if (isLoading || !user || isLoadingAvatar || !avatar)
-    return (
-      <SkeletonLoader title={t("profile")} description={t("profile_description", { appName: APP_NAME })} />
-    );
+    return <SkeletonLoader title={t("profile")} description={t("profile_description")} />;
 
   const defaultValues = {
     username: user.username || "",
@@ -223,13 +222,17 @@ const ProfileView = () => {
         }
       />
 
-      <hr className="my-6  border-neutral-200" />
+      <hr className="my-6 border-neutral-200" />
 
       <Label>{t("danger_zone")}</Label>
       {/* Delete account Dialog */}
       <Dialog open={deleteAccountOpen} onOpenChange={setDeleteAccountOpen}>
         <DialogTrigger asChild>
-          <Button data-testid="delete-account" color="destructive" className="mt-1" StartIcon={Icon.FiTrash2}>
+          <Button
+            data-testid="delete-account"
+            color="destructive"
+            className="mt-1 border-2"
+            StartIcon={Icon.FiTrash2}>
             {t("delete_account")}
           </Button>
         </DialogTrigger>
@@ -361,9 +364,11 @@ const ProfileForm = ({
         <TextField label={t("email")} hint={t("change_email_hint")} {...formMethods.register("email")} />
       </div>
       <div className="mt-8">
-        <TextField label={t("about")} hint={t("bio_hint")} {...formMethods.register("bio")} />
+        <Editor
+          getText={() => formMethods.getValues("bio")}
+          setText={(value: string) => formMethods.setValue("bio", value)}
+        />
       </div>
-
       <Button disabled={isDisabled} color="primary" className="mt-8" type="submit">
         {t("update")}
       </Button>

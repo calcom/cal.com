@@ -71,6 +71,7 @@
     "googleapis": "^84.0.0",
     "gray-matter": "^4.0.3",
     "handlebars": "^4.7.7",
+    "html-react-parser": "^3.0.7",
     "ical.js": "^1.4.0",
     "ics": "^2.37.0",
     "kbar": "^0.1.0-beta.36",
