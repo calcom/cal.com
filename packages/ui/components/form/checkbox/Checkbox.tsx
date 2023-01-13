@@ -39,7 +39,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
               {
                 className: classNames(
                   "relative flex items-start",
-                  !error && descriptionAsLabel ? "text-gray-900" : "text-neutral-900",
+                  !error && descriptionAsLabel ? "text-gray-900" : "text-gray-900",
                   error && "text-red-800"
                 ),
               },
