@@ -79,12 +79,8 @@ const BookingDescription: FC<Props> = (props) => {
         size="sm"
         truncateAfter={3}
       />
-      <h2 className="mt-2 break-words text-sm font-medium text-gray-600 dark:text-gray-300">
-        {profile.name}
-      </h2>
-      <h1 className="font-cal dark:text-darkgray-900 mb-6 break-words text-2xl font-semibold text-gray-900">
-        {eventType.title}
-      </h1>
+      <h2 className="mt-2 break-words ">{profile.name}</h2>
+      <h1 className="break-words">{eventType.title}</h1>
       <div className="dark:text-darkgray-600 flex flex-col space-y-4 text-sm font-medium text-gray-600">
         {eventType?.description && (
           <div

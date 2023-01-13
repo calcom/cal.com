@@ -46,7 +46,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
     <div className="space-y-6" data-testid="event-types">
       <div className="overflow-hidden rounded-sm border dark:border-gray-900">
         <div className="p-8 text-center text-gray-400 dark:text-white">
-          <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">{" " + t("unavailable")}</h2>
+          <h2 className="mb-2">{" " + t("unavailable")}</h2>
           <p className="mx-auto max-w-md">{t("user_dynamic_booking_disabled") as string}</p>
         </div>
       </div>
@@ -133,7 +133,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
           {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">
               <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername} />
-              <h1 className="font-cal mb-1 text-3xl text-gray-900 dark:text-white">
+              <h1 className="mb-1">
                 {nameOrUsername}
                 {user.verified && (
                   <Icon.BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
@@ -152,9 +152,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
             {user.away ? (
               <div className="overflow-hidden rounded-sm border dark:border-gray-900">
                 <div className="p-8 text-center text-gray-400 dark:text-white">
-                  <h2 className="font-cal mb-2 text-3xl text-gray-600 dark:text-white">
-                    😴{" " + t("user_away")}
-                  </h2>
+                  <h2 className="mb-2">😴{" " + t("user_away")}</h2>
                   <p className="mx-auto max-w-md">{t("user_away_description") as string}</p>
                 </div>
               </div>
@@ -182,9 +180,7 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                     className="block w-full p-5"
                     data-testid="event-type-link">
                     <div className="flex flex-wrap items-center">
-                      <h2 className="dark:text-darkgray-700 pr-2 text-sm font-semibold text-gray-700">
-                        {type.title}
-                      </h2>
+                      <h2 className="pr-2 ">{type.title}</h2>
                     </div>
                     <EventTypeDescription eventType={type} />
                   </Link>

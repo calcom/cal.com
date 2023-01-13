@@ -50,7 +50,7 @@ function TeamPage({ team }: TeamPageProps) {
             data-testid="event-type-link">
             <div className="flex-shrink">
               <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
-                <h2 className="dark:text-darkgray-700 text-sm font-semibold text-gray-700">{type.title}</h2>
+                <h2 className="">{type.title}</h2>
               </div>
               <EventTypeDescription className="text-sm" eventType={type} />
             </div>

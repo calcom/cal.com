@@ -24,7 +24,7 @@ export default function AuthContainer(props: React.PropsWithChildren<Props>) {
       )}
 
       <div className={classNames(props.showLogo ? "text-center" : "", "sm:mx-auto sm:w-full sm:max-w-md")}>
-        {props.heading && <h2 className="font-cal text-center text-3xl text-gray-900">{props.heading}</h2>}
+        {props.heading && <h2 className="text-center">{props.heading}</h2>}
       </div>
       {props.loading && (
         <div className="absolute z-50 flex h-screen w-full items-center bg-gray-50">

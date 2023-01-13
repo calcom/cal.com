@@ -65,9 +65,7 @@ export default function Custom404() {
                 <p className="mt-4">{t("signup_requires_description", { companyName: COMPANY_NAME })}</p>
               </div>
               <div className="mt-12">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-                  {t("next_steps")}
-                </h2>
+                <h2 className=" uppercase tracking-wide ">{t("next_steps")}</h2>
                 <ul role="list" className="mt-4">
                   <li className="border-2 border-green-500 px-4 py-2">
                     <a
@@ -205,9 +203,7 @@ export default function Custom404() {
                 )}
               </div>
               <div className="mt-12">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
-                  {t("popular_pages")}
-                </h2>
+                <h2 className=" uppercase ">{t("popular_pages")}</h2>
                 {!isSubpage && isCalcom && (
                   <ul role="list" className="mt-4">
                     <li className="border-2 border-green-500 px-4 py-2">

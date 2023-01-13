@@ -289,7 +289,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                           />
                         </div>
                         <div className="md:w-6/12">
-                          <h1 className="text-sm font-semibold">{t("create_events_on")}</h1>
+                          <h1>{t("create_events_on")}</h1>
                           <p className="text-sm font-normal">{t("set_calendar")}</p>
                         </div>
                         <div className="justify-end md:w-6/12">

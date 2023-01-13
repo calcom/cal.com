@@ -96,9 +96,9 @@ const Component = ({
           <header>
             <div className="mb-4 flex items-center">
               <img className="min-h-16 min-w-16 h-16 w-16" src={logo} alt={name} />
-              <h1 className="font-cal ml-4 text-3xl text-gray-900">{name}</h1>
+              <h1 className="ml-4">{name}</h1>
             </div>
-            <h2 className="text-sm font-medium text-gray-600">
+            <h2 className="">
               <Link
                 href={`categories/${categories[0]}`}
                 className="rounded-md bg-gray-100 p-1 text-xs capitalize text-gray-800">

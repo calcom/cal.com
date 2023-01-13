@@ -108,9 +108,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
         </div>
       </div>
       <div>
-        {!isLoading && notInstalledApps?.length ? (
-          <h2 className="mt-0 mb-2 text-lg font-semibold text-gray-900">Available Apps</h2>
-        ) : null}
+        {!isLoading && notInstalledApps?.length ? <h2 className="mt-0 mb-2 ">Available Apps</h2> : null}
         <div className="before:border-0">
           {notInstalledApps?.map((app) => (
             <AppCardWrapper

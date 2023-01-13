@@ -17,7 +17,7 @@ export default function Error500() {
       </Head>
       <div className="rtl: m-auto rounded-md bg-white p-10 text-right ltr:text-left">
         <h1 className="font-cal text-6xl text-black">500</h1>
-        <h2 className="mt-6 text-2xl font-medium text-black">It&apos;s not you, it&apos;s us.</h2>
+        <h2 className="mt-6 ">It&apos;s not you, it&apos;s us.</h2>
         <p className="mt-4 mb-6 max-w-2xl text-sm text-gray-600">
           Something went wrong on our end. Get in touch with our support team, and we’ll get it fixed right
           away for you.

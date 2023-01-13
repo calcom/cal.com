@@ -21,7 +21,7 @@ const StepDone = () => {
           <Icon.FiCheck className="inline-block h-10 w-10 text-white dark:bg-white dark:text-gray-600" />
         </div>
         <div className="max-w-[420px] text-center">
-          <h2 className="mt-6 mb-1 text-lg font-medium dark:text-gray-300">{t("all_done")}</h2>
+          <h2 className="mt-6 mb-1 ">{t("all_done")}</h2>
         </div>
       </div>
     </form>

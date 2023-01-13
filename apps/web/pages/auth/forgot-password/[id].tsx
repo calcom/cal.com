@@ -60,9 +60,7 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
       <>
         <div className="space-y-6">
           <div>
-            <h2 className="font-cal mt-6 text-center text-3xl font-extrabold text-gray-900">
-              {t("password_updated")}
-            </h2>
+            <h2 className="mt-6 text-center">{t("password_updated")}</h2>
           </div>
           <Button href="/auth/login" className="w-full justify-center">
             {t("login")}
@@ -77,8 +75,8 @@ export default function Page({ resetPasswordRequest, csrfToken }: Props) {
       <>
         <div className="space-y-6">
           <div>
-            <h2 className="font-cal mt-6 text-center text-3xl font-extrabold text-gray-900">{t("whoops")}</h2>
-            <h2 className="text-center text-3xl font-extrabold text-gray-900">{t("request_is_expired")}</h2>
+            <h2 className="mt-6 text-center ">{t("whoops")}</h2>
+            <h3 className="text-center ">{t("request_is_expired")}</h3>
           </div>
           <p>{t("request_is_expired_instructions")}</p>
           <Link href="/auth/forgot-password" passHref legacyBehavior>

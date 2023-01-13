@@ -77,9 +77,7 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
         aria-modal="true">
         <HeadSeo title={t("sign_up")} description={t("sign_up")} />
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
-          <h2 className="font-cal text-center text-3xl font-extrabold text-gray-900">
-            {t("create_your_account")}
-          </h2>
+          <h2 className="text-center">{t("create_your_account")}</h2>
         </div>
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="mx-2 bg-white px-4 py-8 shadow sm:rounded-lg sm:px-10">

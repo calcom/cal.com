@@ -24,7 +24,7 @@ const CtaRow = ({ title, description, className, children }: CtaRowProps) => {
     <>
       <section className={classNames("flex flex-col sm:flex-row", className)}>
         <div>
-          <h2 className="font-medium">{title}</h2>
+          <h2>{title}</h2>
           <p>{description}</p>
         </div>
         <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pt-0 sm:pl-3">{children}</div>

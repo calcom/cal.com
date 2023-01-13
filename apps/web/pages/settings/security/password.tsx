@@ -52,7 +52,7 @@ const PasswordView = () => {
       {user && user.identityProvider !== IdentityProvider.CAL ? (
         <div>
           <div className="mt-6">
-            <h2 className="font-cal text-lg font-medium leading-6 text-gray-900">
+            <h2 className="text-lg leading-6">
               {t("account_managed_by_identity_provider", {
                 provider: identityProviderNameMap[user.identityProvider],
               })}

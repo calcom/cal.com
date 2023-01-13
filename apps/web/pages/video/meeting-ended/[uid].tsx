@@ -36,9 +36,7 @@ export default function MeetingUnavailable(props: inferSSRProps<typeof getServer
                     </h3>
                   </div>
                   <div className="mt-4 border-t border-b py-4">
-                    <h2 className="font-cal mb-2 text-center text-lg font-medium text-gray-600">
-                      {props.booking.title}
-                    </h2>
+                    <h2 className="mb-2 text-center">{props.booking.title}</h2>
                     <p className="text-center text-gray-500">
                       <Icon.FiCalendar className="mr-1 -mt-1 inline-block h-4 w-4" />
                       {dayjs(props.booking.startTime).format(detectBrowserTimeFormat + ", dddd DD MMMM YYYY")}
