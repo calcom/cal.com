@@ -208,6 +208,7 @@ module.exports = {
       addVariant("windows", ".windows &");
       addVariant("ios", ".ios &");
     }),
+    require("./tailwind-bases.js"),
   ],
   variants: {
     scrollbar: ["rounded", "dark"],
