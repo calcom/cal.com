@@ -38,7 +38,7 @@ const DateOverrideList = ({
   };
 
   return (
-    <ul className="rounded border border-gray-200">
+    <ul className="rounded border border-gray-200" data-testid="date-overrides-list">
       {items.map((item, index) => (
         <li key={item.id} className="flex justify-between border-b px-5 py-4 last:border-b-0">
           <div>
@@ -50,16 +50,16 @@ const DateOverrideList = ({
               }).format(item.ranges[0].start)}
             </h3>
             {item.ranges[0].end.getUTCHours() === 0 && item.ranges[0].end.getUTCMinutes() === 0 ? (
-              <p className="text-xs text-neutral-500">{t("unavailable")}</p>
+              <p className="text-xs text-gray-500">{t("unavailable")}</p>
             ) : (
               item.ranges.map((range, i) => (
-                <p key={i} className="text-xs text-neutral-500">
+                <p key={i} className="text-xs text-gray-500">
                   {timeSpan(range)}
                 </p>
               ))
             )}
           </div>
-          <div className="space-x-2">
+          <div className="space-x-2 rtl:space-x-reverse">
             <DateOverrideInputDialog
               excludedDates={excludedDates}
               workingHours={workingHours}

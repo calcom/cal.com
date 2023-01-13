@@ -39,7 +39,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
               {
                 className: classNames(
                   "relative flex items-start",
-                  !error && descriptionAsLabel ? "text-gray-900" : "text-neutral-900",
+                  !error && descriptionAsLabel ? "text-gray-900" : "text-gray-900",
                   error && "text-red-800"
                 ),
               },
@@ -49,8 +49,9 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                     {...rest}
                     ref={ref}
                     type="checkbox"
+                    disabled={disabled}
                     className={classNames(
-                      "text-primary-600 focus:ring-primary-500 mr-2 h-4 w-4 rounded border-gray-300 ",
+                      "text-primary-600 focus:ring-primary-500 h-4 w-4 rounded border-gray-300 ltr:mr-2 rtl:ml-2 ",
                       !error && disabled
                         ? "bg-gray-300 checked:bg-gray-300"
                         : "checked:bg-gray-800 hover:bg-gray-100",
@@ -59,7 +60,7 @@ const CheckboxField = forwardRef<HTMLInputElement, Props>(
                     )}
                   />
                 </div>
-                <span className="text-sm ltr:ml-3 rtl:mr-3">{description}</span>
+                <span className="text-sm">{description}</span>
               </>
             )}
             {/* {informationIconText && <InfoBadge content={informationIconText}></InfoBadge>} */}

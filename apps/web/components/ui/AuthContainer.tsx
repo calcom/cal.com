@@ -1,10 +1,9 @@
 import classNames from "classnames";
-import React from "react";
 
 import { APP_NAME, LOGO } from "@calcom/lib/constants";
+import { Credits, HeadSeo } from "@calcom/ui";
 
 import Loader from "@components/Loader";
-import { HeadSeo } from "@components/seo/head-seo";
 
 interface Props {
   title: string;
@@ -23,8 +22,9 @@ export default function AuthContainer(props: React.PropsWithChildren<Props>) {
         // eslint-disable-next-line @next/next/no-img-element
         <img className="mb-auto h-4" src={LOGO} alt={`${APP_NAME} Logo`} />
       )}
+
       <div className={classNames(props.showLogo ? "text-center" : "", "sm:mx-auto sm:w-full sm:max-w-md")}>
-        {props.heading && <h2 className="font-cal text-center text-3xl text-neutral-900">{props.heading}</h2>}
+        {props.heading && <h2 className="font-cal text-center text-3xl text-gray-900">{props.heading}</h2>}
       </div>
       {props.loading && (
         <div className="absolute z-50 flex h-screen w-full items-center bg-gray-50">
@@ -35,7 +35,10 @@ export default function AuthContainer(props: React.PropsWithChildren<Props>) {
         <div className="border-1 mx-2 rounded-md border-gray-200 bg-white px-4 py-10 sm:px-10">
           {props.children}
         </div>
-        <div className="mt-8 text-center text-sm text-neutral-600">{props.footerText}</div>
+        <div className="mt-8 text-center text-sm text-gray-600">
+          {props.footerText}
+          <Credits />
+        </div>
       </div>
     </div>
   );

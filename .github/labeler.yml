@@ -1,5 +1,6 @@
-"♻️ autoupdate":
-  - apps/web/public/static/locales/**/*.json
+"❗️ migrations":
+  - packages/prisma/migrations/**/migration.sql
 
-automerge:
-  - apps/web/public/static/locales/**/*.json
+"❗️ .env changes":
+  - .env.example
+  - .env.appStore.example

@@ -38,7 +38,7 @@ async function leastRecentlyBookedUser<T extends Pick<User, "id">>({
 
   const userIdAndAtCreatedPair = usersWithLastCreated.reduce(
     (keyValuePair: { [key: number]: Date }, user) => {
-      keyValuePair[user.id] = user.bookings[0]?.createdAt;
+      keyValuePair[user.id] = user.bookings[0]?.createdAt || new Date(0);
       return keyValuePair;
     },
     {}

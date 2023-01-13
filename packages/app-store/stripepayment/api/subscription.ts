@@ -3,6 +3,7 @@ import Stripe from "stripe";
 
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
 import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 
@@ -36,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return;
     }
 
-    const return_url = `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/integrations/stripepayment/paymentCallback?checkoutSessionId={CHECKOUT_SESSION_ID}&callbackUrl=${callbackUrl}`;
+    const return_url = `${WEBAPP_URL}/api/integrations/stripepayment/paymentCallback?checkoutSessionId={CHECKOUT_SESSION_ID}&callbackUrl=${callbackUrl}`;
     const createSessionParams: Stripe.Checkout.SessionCreateParams = {
       mode: "subscription",
       payment_method_types: ["card"],

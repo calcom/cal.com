@@ -1,18 +1,10 @@
 import { GetServerSidePropsContext } from "next";
 import { useForm } from "react-hook-form";
 
+import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import {
-  Button,
-  Form,
-  getSettingsLayout as getLayout,
-  Label,
-  Meta,
-  showToast,
-  Skeleton,
-  Switch,
-} from "@calcom/ui";
+import { Button, Form, Label, Meta, showToast, Skeleton, Switch } from "@calcom/ui";
 
 import { ssrInit } from "@server/lib/ssr";
 
@@ -23,8 +15,24 @@ const ProfileImpersonationView = () => {
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: () => {
       showToast(t("profile_updated_successfully"), "success");
+      reset(getValues());
     },
-    onError: (error) => {
+    onSettled: () => {
+      utils.viewer.me.invalidate();
+    },
+    onMutate: async ({ disableImpersonation }) => {
+      await utils.viewer.me.cancel();
+      const previousValue = utils.viewer.me.getData();
+
+      if (previousValue && disableImpersonation) {
+        utils.viewer.me.setData(undefined, { ...previousValue, disableImpersonation });
+      }
+      return { previousValue };
+    },
+    onError: (error, variables, context) => {
+      if (context?.previousValue) {
+        utils.viewer.me.setData(undefined, context.previousValue);
+      }
       showToast(`${t("error")}, ${error.message}`, "error");
     },
   });
@@ -36,10 +44,13 @@ const ProfileImpersonationView = () => {
   });
 
   const {
-    formState: { isSubmitting },
+    formState: { isSubmitting, isDirty },
     setValue,
+    reset,
+    getValues,
   } = formMethods;
 
+  const isDisabled = isSubmitting || !isDirty;
   return (
     <>
       <Meta title={t("impersonation")} description={t("impersonation_description")} />
@@ -47,14 +58,12 @@ const ProfileImpersonationView = () => {
         form={formMethods}
         handleSubmit={({ disableImpersonation }) => {
           mutation.mutate({ disableImpersonation });
-          utils.viewer.me.invalidate();
         }}>
         <div className="flex space-x-3">
           <Switch
-            {...formMethods.register("disableImpersonation")}
             defaultChecked={!user?.disableImpersonation}
             onCheckedChange={(e) => {
-              setValue("disableImpersonation", !e);
+              setValue("disableImpersonation", !e, { shouldDirty: true });
             }}
             fitToHeight={true}
           />
@@ -67,7 +76,7 @@ const ProfileImpersonationView = () => {
             </Skeleton>
           </div>
         </div>
-        <Button color="primary" className="mt-8" type="submit" disabled={isSubmitting || mutation.isLoading}>
+        <Button color="primary" className="mt-8" type="submit" disabled={isDisabled}>
           {t("update")}
         </Button>
       </Form>
@@ -79,7 +88,7 @@ ProfileImpersonationView.getLayout = getLayout;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const ssr = await ssrInit(context);
-
+  await ssr.viewer.me.prefetch();
   return {
     props: {
       trpcState: ssr.dehydrate(),

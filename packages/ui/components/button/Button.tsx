@@ -1,11 +1,12 @@
 import { cva, VariantProps } from "class-variance-authority";
 import Link, { LinkProps } from "next/link";
 import React, { forwardRef } from "react";
-import { Icon } from "react-feather";
 
 import classNames from "@calcom/lib/classNames";
 import { applyStyleToMultipleVariants } from "@calcom/lib/cva";
+import { SVGComponent } from "@calcom/types/SVGComponent";
 import { Tooltip } from "@calcom/ui";
+import { Icon } from "@calcom/ui";
 
 type InferredVariantProps = VariantProps<typeof buttonClasses>;
 
@@ -13,9 +14,9 @@ export type ButtonBaseProps = {
   /** Action that happens when the button is clicked */
   onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   /**Left aligned icon*/
-  StartIcon?: Icon | React.ElementType;
+  StartIcon?: SVGComponent | React.ElementType;
   /**Right aligned icon */
-  EndIcon?: Icon;
+  EndIcon?: SVGComponent;
   shallow?: boolean;
   /**Tool tip used when icon size is set to small */
   tooltip?: string;
@@ -45,6 +46,9 @@ const buttonClasses = cva(
         base: "h-9 px-4 py-2.5 ",
         lg: "h-[36px] px-4 py-2.5 ",
         icon: "flex justify-center min-h-[36px] min-w-[36px] ",
+        // fab = floating action button, used for the main action in a page.
+        // it uses the same primary classNames for desktop size
+        fab: "h-14 w-14 sm:h-9 sm:w-auto rounded-full justify-center sm:rounded-md sm:px-4 sm:py-2.5 radix-state-open:rotate-45 sm:radix-state-open:rotate-0 transition-transform radix-state-open:shadown-none radix-state-open:ring-0 !shadow-none",
       },
       loading: {
         true: "cursor-wait",
@@ -76,7 +80,7 @@ const buttonClasses = cva(
         disabled: true,
         color: "secondary",
         className:
-          "border border-gray-200 bg-opacity-30 text-gray-900/30 bg-white dark:bg-darkgray-100 dark:text-darkgray-900/30 dark:border-darkgray-200",
+          "border border-gray-200 bg-opacity-30 text-gray-900/30 dark:text-darkgray-900/30 dark:border-darkgray-200",
       },
       {
         loading: true,
@@ -88,7 +92,7 @@ const buttonClasses = cva(
         disabled: [undefined, false],
         color: "secondary",
         className:
-          "border border-gray-300 dark:border-darkgray-300 hover:bg-gray-50 hover:border-gray-400 focus:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus:bg-darkgray-200 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-gray-900 dark:focus:ring-white",
+          "border border-gray-300 dark:border-darkgray-300 bg-white dark:bg-darkgray-100 hover:bg-gray-50 hover:border-gray-400 focus:bg-gray-100 dark:hover:bg-darkgray-200 dark:focus:bg-darkgray-200 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-gray-900 dark:focus:ring-white",
       }),
       // Minimal variants
       {
@@ -176,11 +180,23 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
     },
     <>
       {StartIcon && (
-        <StartIcon
-          className={classNames("inline-flex", size === "icon" ? "h-4 w-4 " : "mr-2 h-4 w-4 stroke-[1.5px]")}
-        />
+        <>
+          {size === "fab" ? (
+            <>
+              <StartIcon className="hidden h-4 w-4 stroke-[1.5px] ltr:mr-2 rtl:ml-2 sm:inline-flex" />
+              <Icon.FiPlus className="inline h-6 w-6 sm:hidden" />
+            </>
+          ) : (
+            <StartIcon
+              className={classNames(
+                "inline-flex",
+                size === "icon" ? "h-4 w-4 " : "h-4 w-4 stroke-[1.5px] ltr:mr-2 rtl:ml-2"
+              )}
+            />
+          )}
+        </>
       )}
-      {props.children}
+      {size === "fab" ? <span className="hidden sm:inline">{props.children}</span> : props.children}
       {loading && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform">
           <svg
@@ -197,12 +213,23 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
           </svg>
         </div>
       )}
-      {EndIcon && <EndIcon className="-mr-1 inline h-5 w-5 ltr:ml-2 rtl:mr-2" />}
+      {EndIcon && (
+        <>
+          {size === "fab" ? (
+            <>
+              <EndIcon className="-mr-1 hidden h-5 w-5 ltr:ml-2 rtl:-ml-1 rtl:mr-2 sm:inline" />
+              <Icon.FiPlus className="inline h-6 w-6 sm:hidden" />
+            </>
+          ) : (
+            <EndIcon className="inline h-5 w-5 ltr:-mr-1 ltr:ml-2 rtl:mr-2" />
+          )}
+        </>
+      )}
     </>
   );
 
   return props.href ? (
-    <Link passHref href={props.href} shallow={shallow && shallow}>
+    <Link passHref href={props.href} shallow={shallow && shallow} legacyBehavior>
       {element}
     </Link>
   ) : (

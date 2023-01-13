@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { trpc } from "@calcom/trpc/react";
@@ -9,17 +10,19 @@ import { Avatar, Button, Form, Icon, ImageUploader, TextField } from "@calcom/ui
 
 import { NewTeamFormValues } from "../lib/types";
 
-const querySchema = z.optional(z.string());
+const querySchema = z.object({
+  returnTo: z.string(),
+});
 
 export const CreateANewTeamForm = () => {
   const { t } = useLocale();
   const router = useRouter();
-  const {
-    query: { returnTo },
-  } = router;
-  const returnToParsed = querySchema.safeParse(returnTo);
 
-  const returnToParam = returnToParsed.success ? returnToParsed.data : "/settings/teams";
+  const returnToParsed = querySchema.safeParse(router.query);
+
+  const returnToParam =
+    (returnToParsed.success ? getSafeRedirectUrl(returnToParsed.data.returnTo) : "/settings/teams") ||
+    "/settings/teams";
 
   const newTeamFormMethods = useForm<NewTeamFormValues>();
 
@@ -90,7 +93,7 @@ export const CreateANewTeamForm = () => {
                 addOnLeading={`${process.env.NEXT_PUBLIC_WEBSITE_URL?.replace("https://", "")?.replace(
                   "http://",
                   ""
-                )}/`}
+                )}/team/`}
                 defaultValue={value}
                 onChange={(e) => {
                   newTeamFormMethods.setValue("slug", slugify(e?.target.value), {
@@ -109,7 +112,7 @@ export const CreateANewTeamForm = () => {
             render={({ field: { value } }) => (
               <div className="flex items-center">
                 <Avatar alt="" imageSrc={value || null} gravatarFallbackMd5="newTeam" size="lg" />
-                <div className="ml-4">
+                <div className="ltr:ml-4 rtl:mr-4">
                   <ImageUploader
                     target="avatar"
                     id="avatar-upload"
@@ -125,7 +128,7 @@ export const CreateANewTeamForm = () => {
           />
         </div>
 
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 rtl:space-x-reverse">
           <Button
             disabled={createTeamMutation.isLoading}
             color="secondary"

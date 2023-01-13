@@ -1,10 +1,11 @@
 import { TFunction } from "next-i18next";
 import { useRouter } from "next/router";
-import { EventTypeSetupInfered, FormValues } from "pages/event-types/[type]";
-import { useMemo, useState } from "react";
-import { Loader } from "react-feather";
+import { EventTypeSetupProps, FormValues } from "pages/event-types/[type]";
+import { useMemo, useState, Suspense } from "react";
 import { UseFormReturn } from "react-hook-form";
+import { TbWebhook } from "react-icons/tb";
 
+import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { CAL_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -23,7 +24,6 @@ import {
   HorizontalTabs,
   Icon,
   Label,
-  Shell,
   showToast,
   Skeleton,
   Switch,
@@ -32,14 +32,13 @@ import {
   VerticalTabs,
 } from "@calcom/ui";
 
-import { ClientSuspense } from "@components/ClientSuspense";
 import { EmbedButton, EmbedDialog } from "@components/Embed";
 
 type Props = {
   children: React.ReactNode;
-  eventType: EventTypeSetupInfered["eventType"];
-  currentUserMembership: EventTypeSetupInfered["currentUserMembership"];
-  team: EventTypeSetupInfered["team"];
+  eventType: EventTypeSetupProps["eventType"];
+  currentUserMembership: EventTypeSetupProps["currentUserMembership"];
+  team: EventTypeSetupProps["team"];
   disableBorder?: boolean;
   enabledAppsNumber: number;
   installedAppsNumber: number;
@@ -150,13 +149,20 @@ function EventTypeSingleLayout({
       enabledWorkflowsNumber,
     });
     // If there is a team put this navigation item within the tabs
-    if (team)
+    if (team) {
       navigation.splice(2, 0, {
-        name: "scheduling_type",
+        name: "assignment",
         href: `/event-types/${eventType.id}?tabName=team`,
         icon: Icon.FiUsers,
         info: eventType.schedulingType === "COLLECTIVE" ? "collective" : "round_robin",
       });
+      navigation.push({
+        name: "webhooks",
+        href: `/event-types/${eventType.id}?tabName=webhooks`,
+        icon: TbWebhook,
+        info: `${eventType.webhooks.filter((webhook) => webhook.active).length} ${t("active")}`,
+      });
+    }
     return navigation;
   }, [t, eventType, installedAppsNumber, enabledAppsNumber, enabledWorkflowsNumber, team]);
 
@@ -294,7 +300,7 @@ function EventTypeSingleLayout({
           </Button>
         </div>
       }>
-      <ClientSuspense fallback={<Loader />}>
+      <Suspense fallback={<Icon.FiLoader />}>
         <div className="-mt-2 flex flex-col xl:flex-row xl:space-x-8">
           <div className="hidden xl:block">
             <VerticalTabs
@@ -317,7 +323,7 @@ function EventTypeSingleLayout({
             </div>
           </div>
         </div>
-      </ClientSuspense>
+      </Suspense>
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <ConfirmationDialogContent
           isLoading={deleteMutation.isLoading}

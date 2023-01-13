@@ -51,11 +51,11 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
   const watchDayRange = watch(name);
 
   return (
-    <div className="mb-1 flex w-full flex-col py-1 sm:flex-row">
+    <div className="mb-1 flex w-full flex-col px-5 py-1 sm:flex-row sm:px-0">
       {/* Label & switch container */}
       <div className="flex h-11 items-center justify-between sm:w-32">
         <div>
-          <label className="flex flex-row items-center space-x-2">
+          <label className="flex flex-row items-center space-x-2 rtl:space-x-reverse">
             <div>
               <Switch
                 disabled={!watchDayRange}
@@ -83,7 +83,6 @@ const ScheduleDay = <TFieldValues extends FieldValues>({
           <SkeletonText className="mt-2.5 ml-1 h-6 w-48" />
         )}
       </>
-      <div className="my-2 h-[1px] w-full bg-gray-200 sm:hidden" />
     </div>
   );
 };
@@ -140,7 +139,7 @@ const Schedule = <
   const { i18n } = useLocale();
 
   return (
-    <>
+    <div className="divide-y sm:divide-none">
       {/* First iterate for each day */}
       {weekdayNames(i18n.language, weekStart, "long").map((weekday, num) => {
         const weekdayIndex = (num + weekStart) % 7;
@@ -155,7 +154,7 @@ const Schedule = <
           />
         );
       })}
-    </>
+    </div>
   );
 };
 
@@ -182,7 +181,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
             {index === 0 && (
               <Button
                 tooltip={t("add_time_availability")}
-                className=" text-neutral-400"
+                className=" text-gray-400"
                 type="button"
                 color="minimal"
                 size="icon"
@@ -301,18 +300,26 @@ const useOptions = () => {
 
   const options = useMemo(() => {
     const end = dayjs().utc().endOf("day");
-    let t: Dayjs = dayjs().utc().startOf("day");
-
     const options: IOption[] = [];
-    while (t.isBefore(end)) {
+    for (
+      let t = dayjs().utc().startOf("day");
+      t.isBefore(end);
+      t = t.add(INCREMENT + (!t.add(INCREMENT).isSame(t, "day") ? -1 : 0), "minutes")
+    ) {
       options.push({
         value: t.toDate().valueOf(),
         label: dayjs(t)
           .utc()
           .format(timeFormat === 12 ? "h:mma" : "HH:mm"),
       });
-      t = t.add(INCREMENT, "minutes");
     }
+    // allow 23:59
+    options.push({
+      value: end.toDate().valueOf(),
+      label: dayjs(end)
+        .utc()
+        .format(timeFormat === 12 ? "h:mma" : "HH:mm"),
+    });
     return options;
   }, [timeFormat]);
 
@@ -364,7 +371,7 @@ const CopyTimes = ({
   return (
     <div className="space-y-2 py-2">
       <div className="p-2">
-        <p className="h6 pb-3 pl-1 text-xs font-medium uppercase text-neutral-400">{t("copy_times_to")}</p>
+        <p className="h6 pb-3 pl-1 text-xs font-medium uppercase text-gray-400">{t("copy_times_to")}</p>
         <ol className="space-y-2">
           {weekdayNames(i18n.language, weekStart).map((weekday, num) => {
             const weekdayIndex = (num + weekStart) % 7;
@@ -384,7 +391,7 @@ const CopyTimes = ({
                       }
                     }}
                     type="checkbox"
-                    className="inline-block rounded-[4px] border-gray-300 text-neutral-900 focus:ring-neutral-500 disabled:text-neutral-400"
+                    className="inline-block rounded-[4px] border-gray-300 text-gray-900 focus:ring-neutral-500 disabled:text-gray-400"
                   />
                 </label>
               </li>
@@ -393,7 +400,7 @@ const CopyTimes = ({
         </ol>
       </div>
       <hr />
-      <div className="space-x-2 px-2">
+      <div className="space-x-2 px-2 rtl:space-x-reverse">
         <Button color="minimal" onClick={() => onCancel()}>
           {t("cancel")}
         </Button>

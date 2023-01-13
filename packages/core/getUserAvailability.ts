@@ -164,7 +164,7 @@ export async function getUserAvailability(
     let startDate = dayjs(dateFrom);
     const endDate = dayjs(dateTo);
     while (startDate.isBefore(endDate)) {
-      dates.push(startDate.add(1, "day"));
+      dates.push(startDate);
       startDate = startDate.add(1, "day");
     }
 
@@ -173,7 +173,6 @@ export async function getUserAvailability(
     );
 
     // Apply booking limit filter against our bookings
-
     for (const [key, limit] of Object.entries(bookingLimits)) {
       const limitKey = key as keyof BookingLimit;
 
@@ -192,35 +191,50 @@ export async function getUserAvailability(
         });
         break;
       }
-
       // Take PER_DAY and turn it into day and PER_WEEK into week etc.
-      const filter = limitKey.split("_")[1].toLocaleLowerCase() as "day" | "week" | "month" | "year";
-
-      let total = 0;
-
-      // Get all bookings that are within the filter period
-      ourBookings.forEach((booking) => {
-        const startDate = dayjs(booking.start).startOf(filter);
+      const filter = limitKey.split("_")[1].toLowerCase() as "day" | "week" | "month" | "year";
+      // loop through all dates and check if we have reached the limit
+      for (const date of dates) {
+        let total = 0;
+        const startDate = date.startOf(filter);
         // this is parsed above with parseBookingLimit so we know it's safe.
-        const endDate = dayjs(startDate).endOf(filter);
-        const bookingEventTypeId = booking.source?.split("-")[1];
-        if (dayjs(booking.start).isBetween(startDate, endDate)) total++;
-        // Only check OUR booking that matches the current eventTypeId
-        // we don't care about another event type in this case as we dont need to know their booking limits
-        if (total >= limit && bookingEventTypeId === eventType?.id?.toString()) {
-          bufferedBusyTimes.push({ start: startDate.toISOString(), end: endDate.toISOString() });
+        const endDate = date.endOf(filter);
+        for (const booking of ourBookings) {
+          const bookingEventTypeId = parseInt(booking.source?.split("-")[1] as string, 10);
+          if (
+            // Only check OUR booking that matches the current eventTypeId
+            // we don't care about another event type in this case as we dont need to know their booking limits
+            !(bookingEventTypeId == eventType?.id && dayjs(booking.start).isBetween(startDate, endDate))
+          ) {
+            continue;
+          }
+          // increment total and check against the limit, adding a busy time if condition is met.
+          total++;
+          if (total >= limit) {
+            bufferedBusyTimes.push({
+              start: startDate.toISOString(),
+              end: endDate.toISOString(),
+            });
+            break;
+          }
         }
-      });
+      }
     }
   }
+
+  const userSchedule = currentUser.schedules.filter(
+    (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
+  )[0];
 
   const schedule =
     !eventType?.metadata?.config?.useHostSchedulesForTeamEvent && eventType?.schedule
       ? { ...eventType?.schedule }
       : {
-          ...currentUser.schedules.filter(
-            (schedule) => !currentUser.defaultScheduleId || schedule.id === currentUser.defaultScheduleId
-          )[0],
+          ...userSchedule,
+          availability: userSchedule.availability.map((a) => ({
+            ...a,
+            userId: currentUser.id,
+          })),
         };
 
   const startGetWorkingHours = performance.now();

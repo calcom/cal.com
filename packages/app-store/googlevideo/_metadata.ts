@@ -9,6 +9,7 @@ export const metadata = {
   installed: !!(process.env.GOOGLE_API_CREDENTIALS && validJson(process.env.GOOGLE_API_CREDENTIALS)),
   slug: "google-meet",
   category: "video",
+  categories: ["video"],
   type: "google_video",
   title: "Google Meet",
   imageSrc: "/api/app-store/googlevideo/logo.webp",
@@ -20,7 +21,7 @@ export const metadata = {
   trending: false,
   url: "https://cal.com/",
   verified: true,
-  isGlobal: true,
+  isGlobal: false,
   email: "help@cal.com",
   appData: {
     location: {

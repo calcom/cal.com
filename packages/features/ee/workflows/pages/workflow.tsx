@@ -13,13 +13,14 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
-import { Alert, Button, Form, Shell, showToast } from "@calcom/ui";
+import { Alert, Button, Form, showToast } from "@calcom/ui";
 
 import LicenseRequired from "../../common/components/v2/LicenseRequired";
 import SkeletonLoader from "../components/SkeletonLoaderEdit";
@@ -104,6 +105,8 @@ function WorkflowPage() {
     }
   );
 
+  const { data: verifiedNumbers } = trpc.viewer.workflows.getVerifiedNumbers.useQuery();
+
   useEffect(() => {
     if (workflow && !isLoading) {
       setSelectedEventTypes(
@@ -175,6 +178,7 @@ function WorkflowPage() {
       handleSubmit={async (values) => {
         let activeOnEventTypeIds: number[] = [];
         let isEmpty = false;
+        let isVerified = true;
 
         values.steps.forEach((step) => {
           const isSMSAction =
@@ -199,9 +203,22 @@ function WorkflowPage() {
             step.emailSubject = translateVariablesToEnglish(step.emailSubject, { locale: i18n.language, t });
           }
           isEmpty = !isEmpty ? isBodyEmpty : isEmpty;
+
+          //check if phone number is verified
+          if (
+            step.action === WorkflowActions.SMS_NUMBER &&
+            !verifiedNumbers?.find((verifiedNumber) => verifiedNumber.phoneNumber === step.sendTo)
+          ) {
+            isVerified = false;
+
+            form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
+              type: "custom",
+              message: t("not_verified"),
+            });
+          }
         });
 
-        if (!isEmpty) {
+        if (!isEmpty && isVerified) {
           if (values.activeOn) {
             activeOnEventTypeIds = values.activeOn.map((option) => {
               return parseInt(option.value, 10);
@@ -216,6 +233,7 @@ function WorkflowPage() {
             time: values.time || null,
             timeUnit: values.timeUnit || null,
           });
+          utils.viewer.workflows.getVerifiedNumbers.invalidate();
         }
       }}>
       <Shell

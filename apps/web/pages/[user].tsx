@@ -1,6 +1,5 @@
 import classNames from "classnames";
 import { GetServerSidePropsContext } from "next";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
@@ -12,6 +11,7 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import CustomBranding from "@calcom/lib/CustomBranding";
 import defaultEvents, {
@@ -26,17 +26,15 @@ import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calco
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
-import { BadgeCheckIcon, EventTypeDescriptionLazy as EventTypeDescription, Icon } from "@calcom/ui";
+import { Icon, HeadSeo, AvatarGroup } from "@calcom/ui";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EmbedProps } from "@lib/withEmbedSsr";
 
-import AvatarGroup from "@components/ui/AvatarGroup";
 import { AvatarSSR } from "@components/ui/AvatarSSR";
 
 import { ssrInit } from "@server/lib/ssr";
 
-const HeadSeo = dynamic(() => import("@components/seo/head-seo"));
 export default function User(props: inferSSRProps<typeof getServerSideProps> & EmbedProps) {
   const { users, profile, eventTypes, isDynamicGroup, dynamicNames, dynamicUsernames, isSingleUser } = props;
   const [user] = users; //To be used when we only have a single user, not dynamic group
@@ -58,27 +56,27 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
       {eventTypes.map((type, index) => (
         <li
           key={index}
-          className="dark:bg-darkgray-100 dark:border-darkgray-200 group relative rounded-sm border border-neutral-200 bg-white dark:hover:border-neutral-600">
+          className="dark:bg-darkgray-100 group relative border-b border-neutral-200 bg-white  first:rounded-t-md last:rounded-b-md last:border-b-0 hover:bg-gray-50 dark:border-neutral-700 dark:hover:border-neutral-600">
           <Icon.FiArrowRight className="absolute right-3 top-3 h-4 w-4 text-black opacity-0 transition-opacity group-hover:opacity-100 dark:text-white" />
-          <Link href={getUsernameSlugLink({ users: props.users, slug: type.slug })}>
-            <a className="flex justify-between px-6 py-4" data-testid="event-type-link">
-              <div className="flex-shrink">
-                <p className="dark:text-darkgray-700 text-sm font-semibold text-neutral-900">{type.title}</p>
-                <EventTypeDescription className="text-sm" eventType={type} />
-              </div>
-              <div className="mt-1 self-center">
-                <AvatarGroup
-                  border="border-2 border-white"
-                  truncateAfter={4}
-                  className="flex flex-shrink-0"
-                  size={10}
-                  items={props.users.map((user) => ({
-                    alt: user.name || "",
-                    image: user.avatar || "",
-                  }))}
-                />
-              </div>
-            </a>
+          <Link
+            href={getUsernameSlugLink({ users: props.users, slug: type.slug })}
+            className="flex justify-between px-6 py-4"
+            data-testid="event-type-link">
+            <div className="flex-shrink">
+              <p className="dark:text-darkgray-700 text-sm font-semibold text-gray-900">{type.title}</p>
+              <EventTypeDescription className="text-sm" eventType={type} />
+            </div>
+            <div className="mt-1 self-center">
+              <AvatarGroup
+                truncateAfter={4}
+                className="flex flex-shrink-0"
+                size="sm"
+                items={props.users.map((user) => ({
+                  alt: user.name || "",
+                  image: user.avatar || "",
+                }))}
+              />
+            </div>
           </Link>
         </li>
       ))}
@@ -135,13 +133,13 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
           {isSingleUser && ( // When we deal with a single user, not dynamic group
             <div className="mb-8 text-center">
               <AvatarSSR user={user} className="mx-auto mb-4 h-24 w-24" alt={nameOrUsername} />
-              <h1 className="font-cal mb-1 text-3xl text-neutral-900 dark:text-white">
+              <h1 className="font-cal mb-1 text-3xl text-gray-900 dark:text-white">
                 {nameOrUsername}
                 {user.verified && (
-                  <BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
+                  <Icon.BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
                 )}
               </h1>
-              <p className="dark:text-darkgray-600 text-s text-neutral-500">{user.bio}</p>
+              <p className="dark:text-darkgray-600 text-s text-gray-500">{user.bio}</p>
             </div>
           )}
           <div
@@ -175,22 +173,20 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                     href={{
                       pathname: `/${user.username}/${type.slug}`,
                       query,
-                    }}>
-                    <a
-                      onClick={async () => {
-                        sdkActionManager?.fire("eventTypeSelected", {
-                          eventType: type,
-                        });
-                      }}
-                      className="block w-full p-5"
-                      data-testid="event-type-link">
-                      <div className="flex flex-wrap items-center">
-                        <h2 className="dark:text-darkgray-700 pr-2 text-sm font-semibold text-gray-700">
-                          {type.title}
-                        </h2>
-                      </div>
-                      <EventTypeDescription eventType={type} />
-                    </a>
+                    }}
+                    onClick={async () => {
+                      sdkActionManager?.fire("eventTypeSelected", {
+                        eventType: type,
+                      });
+                    }}
+                    className="block w-full p-5"
+                    data-testid="event-type-link">
+                    <div className="flex flex-wrap items-center">
+                      <h2 className="dark:text-darkgray-700 pr-2 text-sm font-semibold text-gray-700">
+                        {type.title}
+                      </h2>
+                    </div>
+                    <EventTypeDescription eventType={type} />
                   </Link>
                 </div>
               ))

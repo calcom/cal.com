@@ -1,5 +1,7 @@
 import { PerformanceObserver } from "perf_hooks";
 
+import logger from "../logger";
+
 declare global {
   // eslint-disable-next-line no-var
   var perfObserver: PerformanceObserver | undefined;
@@ -9,8 +11,7 @@ export const perfObserver =
   new PerformanceObserver((items) => {
     items.getEntries().forEach((entry) => {
       // Log entry duration in seconds with four decimal places.
-      if (!!process.env.NEXT_PUBLIC_DEBUG)
-        console.log(entry.name.replace("$1", `${(entry.duration / 1000.0).toFixed(4)}s`));
+      logger.debug(entry.name.replace("$1", `${(entry.duration / 1000.0).toFixed(4)}s`));
     });
   });
 

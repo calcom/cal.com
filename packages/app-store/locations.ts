@@ -40,6 +40,8 @@ export type EventLocationType = DefaultEventLocationType | EventLocationTypeFrom
 
 export const DailyLocationType = "integrations:daily";
 
+export const MeetLocationType = "integrations:google:meet";
+
 export enum DefaultEventLocationTypeEnum {
   /**
    * Booker Address
@@ -64,12 +66,12 @@ export const defaultLocations: DefaultEventLocationType[] = [
   {
     default: true,
     type: DefaultEventLocationTypeEnum.AttendeeInPerson,
-    label: "In Person (Attendee Address)",
+    label: "attendeeInPerson",
     variable: "address",
     organizerInputType: null,
     messageForOrganizer: "Cal will ask your invitee to enter an address before scheduling.",
     attendeeInputType: "attendeeAddress",
-    attendeeInputPlaceholder: `Enter Address`,
+    attendeeInputPlaceholder: "enter_address",
     defaultValueVariable: "attendeeAddress",
     iconUrl: "/map-pin.svg",
     category: "in person",
@@ -77,7 +79,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
   {
     default: true,
     type: DefaultEventLocationTypeEnum.InPerson,
-    label: "In Person (Organizer Address)",
+    label: "inPerson",
     organizerInputType: "text",
     messageForOrganizer: "Provide an Address or Place",
     // HACK:

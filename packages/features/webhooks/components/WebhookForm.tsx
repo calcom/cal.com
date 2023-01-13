@@ -42,6 +42,7 @@ const WebhookForm = (props: {
   webhook?: WebhookFormData;
   apps?: (keyof typeof WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2)[];
   onSubmit: (event: WebhookFormSubmitData) => void;
+  onCancel?: () => void;
 }) => {
   const { apps = [] } = props;
   const { t } = useLocale();
@@ -153,7 +154,7 @@ const WebhookForm = (props: {
                 <>
                   <Label className="font-sm font-medium text-gray-900">Secret</Label>
                   <div className="space-y-0 rounded-md border-0 border-neutral-200 bg-white sm:mx-0 md:border">
-                    <div className="rounded-sm border-b p-2 text-sm text-neutral-900">
+                    <div className="rounded-sm border-b p-2 text-sm text-gray-900">
                       {t("forgotten_secret_description")}
                     </div>
                     <div className="p-2">
@@ -252,7 +253,11 @@ const WebhookForm = (props: {
         </div>
 
         <div className="mt-12 flex place-content-end space-x-4">
-          <Button type="button" color="minimal" href={`${WEBAPP_URL}/settings/developer/webhooks`}>
+          <Button
+            type="button"
+            color="minimal"
+            onClick={props.onCancel}
+            {...(!props.onCancel ? { href: `${WEBAPP_URL}/settings/developer/webhooks` } : {})}>
             {t("cancel")}
           </Button>
           <Button type="submit" loading={formMethods.formState.isSubmitting}>

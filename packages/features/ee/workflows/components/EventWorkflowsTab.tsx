@@ -72,13 +72,13 @@ const WorkflowListItem = (props: ItemProps) => {
   workflow.steps.forEach((step) => {
     switch (step.action) {
       case WorkflowActions.EMAIL_HOST:
-        sendTo.add(t("organizer_name_workflow"));
+        sendTo.add(t("organizer_name_variable"));
         break;
       case WorkflowActions.EMAIL_ATTENDEE:
-        sendTo.add(t("attendee_name_workflow"));
+        sendTo.add(t("attendee_name_variable"));
         break;
       case WorkflowActions.SMS_ATTENDEE:
-        sendTo.add(t("attendee_name_workflow"));
+        sendTo.add(t("attendee_name_variable"));
         break;
       case WorkflowActions.SMS_NUMBER:
         sendTo.add(step.sendTo || "");
@@ -101,7 +101,7 @@ const WorkflowListItem = (props: ItemProps) => {
         <div
           className={classNames(
             "mb-1 w-full truncate text-base font-medium leading-4 text-gray-900 md:max-w-max",
-            workflow.name && isActive ? "text-gray-900" : "text-neutral-500"
+            workflow.name && isActive ? "text-gray-900" : "text-gray-500"
           )}>
           {workflow.name
             ? workflow.name
@@ -122,17 +122,15 @@ const WorkflowListItem = (props: ItemProps) => {
         </div>
       </div>
       <div className="flex-none">
-        <Link href={`/workflows/${workflow.id}`} passHref={true}>
-          <a target="_blank">
-            <Button type="button" color="minimal" className="mr-4">
-              <div className="mr-2 hidden sm:block">{t("edit")}</div>
-              <Icon.FiExternalLink className="-mt-[2px] h-4 w-4 stroke-2 text-gray-600" />
-            </Button>
-          </a>
+        <Link href={`/workflows/${workflow.id}`} passHref={true} target="_blank">
+          <Button type="button" color="minimal" className="mr-4">
+            <div className="hidden ltr:mr-2 rtl:ml-2 sm:block">{t("edit")}</div>
+            <Icon.FiExternalLink className="-mt-[2px] h-4 w-4 stroke-2 text-gray-600" />
+          </Button>
         </Link>
       </div>
       <Tooltip content={t("turn_off") as string}>
-        <div className="mr-2">
+        <div className="ltr:mr-2 rtl:ml-2">
           <Switch
             checked={isActive}
             onCheckedChange={() => {

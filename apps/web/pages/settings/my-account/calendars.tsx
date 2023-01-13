@@ -6,6 +6,7 @@ import { Fragment } from "react";
 
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
+import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -13,7 +14,6 @@ import {
   Badge,
   Button,
   EmptyScreen,
-  getSettingsLayout as getLayout,
   Icon,
   List,
   ListItem,
@@ -156,7 +156,7 @@ const CalendarsView = () => {
                             )
                           }
                           <div className="flex-grow truncate pl-2">
-                            <ListItemTitle component="h3" className="mb-1 space-x-2">
+                            <ListItemTitle component="h3" className="mb-1 space-x-2 rtl:space-x-reverse">
                               <Link href={"/apps/" + item.integration.slug}>
                                 {item.integration.name || item.integration.title}
                               </Link>
@@ -175,9 +175,7 @@ const CalendarsView = () => {
                           </div>
                         </div>
                         <div className="w-full border-t border-gray-200">
-                          <p className="px-2 pt-4 text-sm text-neutral-500">
-                            {t("toggle_calendars_conflict")}
-                          </p>
+                          <p className="px-2 pt-4 text-sm text-gray-500">{t("toggle_calendars_conflict")}</p>
                           <ul className="space-y-2 p-4">
                             {item.calendars.map((cal) => (
                               <CalendarSwitch

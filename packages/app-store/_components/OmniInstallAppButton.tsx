@@ -11,12 +11,21 @@ import { InstallAppButton } from "../components";
  * Use this component to allow installing an app from anywhere on the app.
  * Use of this component requires you to remove custom InstallAppButtonComponent so that it can manage the redirection itself
  */
-export default function OmniInstallAppButton({ appId, className }: { appId: string; className: string }) {
+export default function OmniInstallAppButton({
+  appId,
+  className,
+  returnTo,
+}: {
+  appId: string;
+  className: string;
+  returnTo?: string;
+}) {
   const { t } = useLocale();
   const { data: app } = useApp(appId);
   const utils = trpc.useContext();
 
   const mutation = useAddAppMutation(null, {
+    returnTo,
     onSuccess: (data) => {
       //TODO: viewer.appById might be replaced with viewer.apps so that a single query needs to be invalidated.
       utils.viewer.appById.invalidate({ appId });

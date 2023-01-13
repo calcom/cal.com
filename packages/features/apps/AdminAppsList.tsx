@@ -76,7 +76,7 @@ const IntegrationContainer = ({
           <div className="flex w-full flex-1 items-center justify-between space-x-3 p-4 rtl:space-x-reverse md:max-w-3xl">
             {app.logo && <img className="h-10 w-10" src={app.logo} alt={app.title} />}
             <div className="flex-grow truncate pl-2">
-              <h3 className="truncate text-sm font-medium text-neutral-900">
+              <h3 className="truncate text-sm font-medium text-gray-900">
                 <p>{app.name || app.title}</p>
               </h3>
               <p className="truncate text-sm text-gray-500">{app.description}</p>
@@ -174,14 +174,35 @@ const querySchema = z.object({
     .default(AppCategories.calendar),
 });
 
-const AdminAppsList = ({ baseURL, className }: { baseURL: string; className?: string }) => (
-  <AppCategoryNavigation
-    baseURL={baseURL}
-    containerClassname="w-full xl:mx-5 xl:w-2/3 xl:pr-5"
-    className={className}>
-    <AdminAppsListContainer />
-  </AppCategoryNavigation>
-);
+const AdminAppsList = ({
+  baseURL,
+  className,
+  useQueryParam = false,
+}: {
+  baseURL: string;
+  className?: string;
+  useQueryParam?: boolean;
+}) => {
+  const router = useRouter();
+  return (
+    <form
+      id="wizard-step-2"
+      name="wizard-step-2"
+      onSubmit={(e) => {
+        e.preventDefault();
+        router.replace("/");
+      }}>
+      <AppCategoryNavigation
+        baseURL={baseURL}
+        fromAdmin
+        useQueryParam={useQueryParam}
+        containerClassname="w-full xl:mx-5 xl:w-2/3 xl:pr-5"
+        className={className}>
+        <AdminAppsListContainer />
+      </AppCategoryNavigation>
+    </form>
+  );
+};
 
 const AdminAppsListContainer = () => {
   const { t } = useLocale();
@@ -222,7 +243,7 @@ export default AdminAppsList;
 
 const SkeletonLoader = () => {
   return (
-    <SkeletonContainer>
+    <SkeletonContainer className="w-[30rem] pr-10">
       <div className="mt-6 mb-8 space-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
