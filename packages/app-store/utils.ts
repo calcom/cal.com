@@ -31,14 +31,15 @@ const credentialData = Prisma.validator<Prisma.CredentialArgs>()({
 
 export type CredentialData = Prisma.CredentialGetPayload<typeof credentialData>;
 
-export enum InstalledAppVariants {
-  "conferencing" = "conferencing",
-  "calendar" = "calendar",
-  "payment" = "payment",
-  "analytics" = "analytics",
-  "automation" = "automation",
-  "other" = "other",
-}
+export const InstalledAppVariants = [
+  "conferencing",
+  "calendar",
+  "payment",
+  "analytics",
+  "automation",
+  "other",
+  "web3",
+] as const;
 
 export const ALL_APPS = Object.values(ALL_APPS_MAP);
 
