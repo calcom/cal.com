@@ -92,7 +92,11 @@ export default function Signup({ prepopulateFormValues }: inferSSRProps<typeof g
                     {...register("username")}
                     required
                   />
-                  <EmailField {...register("email")} />
+                  <EmailField
+                    {...register("email")}
+                    disabled={prepopulateFormValues?.email}
+                    className="disabled:bg-gray-200 disabled:hover:cursor-not-allowed"
+                  />
                   <PasswordField
                     labelProps={{
                       className: "block text-sm font-medium text-gray-700",
