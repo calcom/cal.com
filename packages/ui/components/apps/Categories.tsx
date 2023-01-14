@@ -15,9 +15,8 @@ export function AppStoreCategories({
 }) {
   const { t, isLocaleReady } = useLocale();
   return (
-    <div className="mb-16">
+    <div>
       <Slider
-        className="mt-8 mb-16"
         title={t("featured_categories")}
         items={categories}
         itemKey={(category) => category.name}
@@ -38,11 +37,11 @@ export function AppStoreCategories({
             style={{ background: "radial-gradient(farthest-side at top right, #a2abbe 0%, #E3E3E3 100%)" }}>
             <div className="w-full self-center bg-[url('/noise.svg')] bg-cover bg-center bg-no-repeat px-6 py-4">
               {isLocaleReady ? (
-                <h3 className="font-medium capitalize">{category.name}</h3>
+                <h3 className="text-sm font-semibold capitalize">{category.name}</h3>
               ) : (
                 <SkeletonText invisible />
               )}
-              <p className="text-sm text-gray-500">
+              <p className="pt-2 text-sm font-medium text-gray-500">
                 {isLocaleReady ? t("number_apps", { count: category.count }) : <SkeletonText invisible />}{" "}
                 <Icon.FiArrowRight className="inline-block h-4 w-4" />
               </p>
