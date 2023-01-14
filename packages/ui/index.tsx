@@ -2,6 +2,7 @@ export {
   Avatar,
   AvatarGroup,
   Badge,
+  UpgradeTeamsBadge,
   Breadcrumb,
   BreadcrumbContainer,
   BreadcrumbItem,
