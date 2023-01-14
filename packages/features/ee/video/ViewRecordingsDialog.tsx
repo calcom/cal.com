@@ -3,7 +3,6 @@ import { useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseRequired";
-import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RecordingItemSchema } from "@calcom/prisma/zod-utils";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
@@ -73,7 +72,7 @@ export const ViewRecordingsDialog = (props: IViewRecordingsDialog) => {
   const handleDownloadClick = async (recordingId: string) => {
     try {
       setRecordingId(recordingId);
-      const res = await fetch(`${WEBSITE_URL}/api/download-cal-video-recording?recordingId=${recordingId}`, {
+      const res = await fetch(`/api/download-cal-video-recording?recordingId=${recordingId}`, {
         headers: {
           "Content-Type": "application/json",
         },
