@@ -1,3 +1,5 @@
+import { PLAUSIBLE_URL } from "@calcom/web/lib/config/constants";
+
 import { AppScript } from "./BookingPageTagManager";
 import { appDataSchemas } from "./apps.schemas.generated";
 
@@ -24,7 +26,7 @@ export const trackingApps: Partial<
   plausible: {
     scripts: [
       {
-        src: "https://plausible.io/js/script.js",
+        src: `${PLAUSIBLE_URL}`,
         content: undefined,
         attrs: {
           "data-domain": "{TRACKED_DOMAIN}",
