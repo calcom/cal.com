@@ -15,9 +15,8 @@ export function AppStoreCategories({
 }) {
   const { t, isLocaleReady } = useLocale();
   return (
-    <div className="mb-16">
+    <div>
       <Slider
-        className="mt-8 mb-16"
         title={t("featured_categories")}
         items={categories}
         itemKey={(category) => category.name}
