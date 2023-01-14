@@ -55,7 +55,7 @@ export default function CancelBooking(props: Props) {
             placeholder={t("cancellation_reason_placeholder")}
             value={cancellationReason}
             onChange={(e) => setCancellationReason(e.target.value)}
-            className="mt-2 mb-4 w-full dark:border-gray-900 dark:bg-gray-700 dark:text-white "
+            className="dark:bg-darkgray-100 dark:border-darkgray-400 mt-2 mb-4 w-full dark:text-white "
             rows={3}
           />
           <div className="flex flex-col-reverse rtl:space-x-reverse ">
