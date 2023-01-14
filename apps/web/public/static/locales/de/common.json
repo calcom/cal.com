@@ -67,7 +67,7 @@
   "event_still_awaiting_approval": "Ein Termin wartet noch auf Ihre Bestätigung",
   "booking_submitted_subject": "Buchung eingereicht: {{eventType}} mit {{name}} am {{date}}",
   "your_meeting_has_been_booked": "Dein Termin wurde gebucht",
-  "event_type_has_been_rescheduled_on_time_date": "Ihr {{eventType}} mit {{name}} wurde auf {{time}} ({{timeZone}}) am {{date}} verschoben.",
+  "event_type_has_been_rescheduled_on_time_date": "Ihr {{title}} wurde auf den {{date}} verschoben.",
   "event_has_been_rescheduled": "Ihr Termin wurde verschoben.",
   "request_reschedule_title_attendee": "Anfrage zur Neuplanung Ihrer Buchung",
   "request_reschedule_subtitle": "{{organizer}} hat die Buchung storniert und Sie gebeten, eine andere Zeit auszuwählen.",
