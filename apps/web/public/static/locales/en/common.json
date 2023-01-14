@@ -1501,7 +1501,7 @@
   "round_robin_hosts": "Round-Robin Hosts",
   "minimum_round_robin_hosts_count": "Number of hosts required to attend",
   "hosts": "Hosts",
-  "upgrade_to_enable_feature": "You need to upgrade to enable this feature. Click to upgrade.",
+  "upgrade_to_enable_feature": "You need to create a team to enable this feature. Click to create a team.",
   "new_attendee": "New Attendee",
   "awaiting_approval": "Awaiting Approval",
   "requires_google_calendar": "This app requires a Google Calendar connection",
