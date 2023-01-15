@@ -132,7 +132,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
   });
 
   return (
-    <div>
+    <div className="space-y-8">
       <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
         <div className="w-full">
           <Label htmlFor="beforeBufferTime">{t("before_event")} </Label>
@@ -199,7 +199,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           />
         </div>
       </div>
-      <div className="flex flex-col space-y-4 pt-4 lg:flex-row lg:space-y-0 lg:space-x-4">
+      <div className="flex flex-col lg:flex-row lg:space-y-0 lg:space-x-4">
         <div className="w-full">
           <Label htmlFor="minimumBookingNotice">{t("minimum_booking_notice")} </Label>
           <MinimumBookingNoticeInput {...formMethods.register("minimumBookingNotice")} />
@@ -237,9 +237,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           />
         </div>
       </div>
-
-      <hr className="my-8" />
-
+      <hr />
       <Controller
         name="bookingLimits"
         control={formMethods.control}
@@ -261,8 +259,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           </SettingsToggle>
         )}
       />
-
-      <hr className="my-8" />
+      <hr />
       <Controller
         name="periodType"
         control={formMethods.control}
