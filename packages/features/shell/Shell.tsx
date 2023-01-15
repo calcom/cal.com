@@ -768,7 +768,7 @@ export function ShellMain(props: LayoutProps) {
   const { isLocaleReady } = useLocale();
   return (
     <>
-      <div className="flex items-baseline sm:mt-0">
+      <div className="mb-4 flex sm:mt-0 lg:mb-10 ">
         {!!props.backPath && (
           <Button
             size="icon"
@@ -782,12 +782,11 @@ export function ShellMain(props: LayoutProps) {
           />
         )}
         {props.heading && (
-          <header
-            className={classNames(props.large && "py-8", "mb-4 flex w-full max-w-full pt-4 md:p-0 lg:mb-10")}>
+          <header className={classNames(props.large && "py-8", "flex w-full max-w-full pt-4 md:p-0")}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className="w-full ltr:mr-4 rtl:ml-4 sm:block">
               {props.heading && (
-                <h1 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 mb-1 hidden truncate text-xl font-bold tracking-wide text-black sm:block xl:max-w-full">
+                <h1 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 mt-1 hidden truncate text-xl font-bold tracking-wide text-black sm:block xl:max-w-full">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
               )}
