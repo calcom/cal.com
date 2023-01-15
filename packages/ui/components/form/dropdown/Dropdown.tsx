@@ -5,6 +5,7 @@ import { ComponentProps, forwardRef } from "react";
 
 import { classNames } from "@calcom/lib";
 import { SVGComponent } from "@calcom/types/SVGComponent";
+import { ButtonProps } from "@calcom/ui";
 
 export const Dropdown = DropdownMenuPrimitive.Root;
 
@@ -36,7 +37,10 @@ export const DropdownMenuContent = forwardRef<HTMLDivElement, DropdownMenuConten
         align={align}
         {...props}
         sideOffset={sideOffset}
-        className="shadow-dropdown w-50 relative z-10 origin-top-right rounded-md border border-gray-200 bg-white text-sm"
+        className={classNames(
+          "shadow-dropdown w-50 relative z-10 origin-top-right rounded-md border border-gray-200 bg-white text-sm",
+          "[&>*:first-child]:mt-1 [&>*:last-child]:mb-1"
+        )}
         ref={forwardedRef}>
         {children}
       </DropdownMenuPrimitive.Content>
@@ -98,7 +102,7 @@ DropdownMenuRadioItem.displayName = "DropdownMenuRadioItem";
 
 type DropdownItemProps = {
   children: React.ReactNode;
-  color?: "destructive";
+  color?: ButtonProps["color"];
   StartIcon?: SVGComponent;
   EndIcon?: SVGComponent;
   href?: string;
@@ -131,17 +135,29 @@ export const DropdownItem = (props: DropdownItemProps) => {
       {...props}
       className={classNames(
         "inline-flex w-full items-center px-3 py-2 text-gray-700 hover:text-gray-900",
-        props.color === "destructive" ? "hover:bg-red-100 hover:text-red-700" : " hover:bg-gray-100"
+        props.color === "destructive" ? "hover:bg-red-100 hover:text-red-700" : "hover:bg-gray-100"
       )}>
       <>
-        {StartIcon && <StartIcon />}
-        <div className="mx-2">{props.children}</div>
-        {EndIcon && <EndIcon />}
+        {StartIcon && <StartIcon className="h-4 w-4" />}
+        <div className="mx-3 text-sm font-medium leading-5">{props.children}</div>
+        {EndIcon && <EndIcon className="h-4 w-4" />}
       </>
     </ButtonOrLink>
   );
 };
 
-export const DropdownMenuSeparator = DropdownMenuPrimitive.Separator;
+type DropdownMenuSeparatorProps = ComponentProps<typeof DropdownMenuPrimitive["Separator"]>;
+export const DropdownMenuSeparator = forwardRef<HTMLDivElement, DropdownMenuSeparatorProps>(
+  ({ className = "", ...props }, forwardedRef) => {
+    return (
+      <DropdownMenuPrimitive.Separator
+        className={classNames("my-1 h-px bg-gray-200", className)}
+        {...props}
+        ref={forwardedRef}
+      />
+    );
+  }
+);
+DropdownMenuSeparator.displayName = "DropdownMenuSeparator";
 
 export default Dropdown;
