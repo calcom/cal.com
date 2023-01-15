@@ -783,10 +783,7 @@ export function ShellMain(props: LayoutProps) {
         )}
         {props.heading && (
           <header
-            className={classNames(
-              props.large && "py-8",
-              "mb-4 flex w-full max-w-full items-center pt-4 md:p-0 lg:mb-10"
-            )}>
+            className={classNames(props.large && "py-8", "mb-4 flex w-full max-w-full pt-4 md:p-0 lg:mb-10")}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className="w-full ltr:mr-4 rtl:ml-4 sm:block">
               {props.heading && (
@@ -803,7 +800,9 @@ export function ShellMain(props: LayoutProps) {
             {props.CTA && (
               <div
                 className={classNames(
-                  props.backPath ? "relative" : " fixed bottom-[88px] z-40 ltr:right-4 rtl:left-4 sm:z-auto",
+                  props.backPath
+                    ? "relative"
+                    : "fixed bottom-[88px] z-40 ltr:right-4 rtl:left-4 sm:z-auto md:ltr:right-0 md:rtl:left-0",
                   "flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto"
                 )}>
                 {props.CTA}
