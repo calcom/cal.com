@@ -60,7 +60,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
   }, [minimumBookingNoticeDisplayValues, setValue, passThroughProps.name]);
 
   return (
-    <>
+    <div className="flex items-end justify-end">
       <div className="w-1/2 md:w-full">
         <InputField
           required
@@ -94,7 +94,7 @@ const MinimumBookingNoticeInput = React.forwardRef<
         }}
         options={durationTypeOptions}
       />
-    </>
+    </div>
   );
 });
 
@@ -200,7 +200,8 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
         </div>
       </div>
       <div className="flex flex-col space-y-4 pt-4 lg:flex-row lg:space-y-0 lg:space-x-4">
-        <div className="flex w-full items-end justify-end">
+        <div className="w-full">
+          <Label htmlFor="minimumBookingNotice">{t("minimum_booking_notice")} </Label>
           <MinimumBookingNoticeInput {...formMethods.register("minimumBookingNotice")} />
         </div>
         <div className="w-full">
