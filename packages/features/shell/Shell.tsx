@@ -731,9 +731,7 @@ function SideBar() {
         </div>
 
         <div>
-          <LicenseRequired toHide>
-            <Tips />
-          </LicenseRequired>
+          <Tips />
           <div data-testid="user-dropdown-trigger">
             <span className="hidden lg:inline">
               <UserDropdown />
@@ -754,7 +752,7 @@ export function ShellMain(props: LayoutProps) {
   const { isLocaleReady } = useLocale();
   return (
     <>
-      <div className="flex items-baseline sm:mt-0">
+      <div className="mb-6 flex sm:mt-0 lg:mb-10">
         {!!props.backPath && (
           <Button
             size="icon"
@@ -768,11 +766,11 @@ export function ShellMain(props: LayoutProps) {
           />
         )}
         {props.heading && (
-          <header className={classNames(props.large && "py-8", " flex w-full max-w-full items-center")}>
+          <header className={classNames(props.large && "py-8", "flex w-full max-w-full")}>
             {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
             <div className={classNames("w-full ltr:mr-4 rtl:ml-4 sm:block", props.headerClassName)}>
               {props.heading && (
-                <h1 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 mb-1 hidden truncate text-2xl font-semibold tracking-wide text-black sm:block xl:max-w-full">
+                <h1 className="font-cal max-w-28 sm:max-w-72 md:max-w-80 mt-1 hidden truncate text-2xl font-semibold tracking-wide text-black sm:block xl:max-w-full">
                   {!isLocaleReady ? <SkeletonText invisible /> : props.heading}
                 </h1>
               )}
@@ -785,7 +783,9 @@ export function ShellMain(props: LayoutProps) {
             {props.CTA && (
               <div
                 className={classNames(
-                  props.backPath ? "relative" : " fixed bottom-[88px] z-40 ltr:right-4 rtl:left-4 sm:z-auto",
+                  props.backPath
+                    ? "relative"
+                    : "fixed bottom-[88px] z-40 ltr:right-4 rtl:left-4 sm:z-auto md:ltr:right-0 md:rtl:left-0",
                   "flex-shrink-0 sm:relative sm:bottom-auto sm:right-auto"
                 )}>
                 {props.CTA}
@@ -795,7 +795,7 @@ export function ShellMain(props: LayoutProps) {
           </header>
         )}
       </div>
-      <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col ", "pt-10")}>
+      <div className={classNames(props.flexChildrenContainer && "flex flex-1 flex-col")}>
         {props.children}
       </div>
     </>
