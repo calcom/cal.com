@@ -241,7 +241,7 @@ function UserDropdown({ small }: { small?: boolean }) {
           <button className="group mx-0 flex w-full cursor-pointer appearance-none items-center rounded-full p-2 text-left outline-none hover:bg-gray-200 focus:outline-none focus:ring-0 sm:mx-2.5 sm:pl-3 md:rounded-none lg:rounded lg:pl-2">
             <span
               className={classNames(
-                small ? " h-6 w-6 md:ml-3" : "h-8 w-8 ltr:mr-2 rtl:ml-2",
+                small ? "h-6 w-6 md:ml-3" : "h-8 w-8 ltr:mr-2 rtl:ml-2",
                 "relative flex-shrink-0 rounded-full bg-gray-300 "
               )}>
               {
