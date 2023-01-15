@@ -95,6 +95,7 @@ export function ScheduleListItem({
                 <DropdownItem
                   type="button"
                   color="destructive"
+                  StartIcon={Icon.FiTrash}
                   onClick={() => {
                     deleteFunction({
                       scheduleId: schedule.id,
