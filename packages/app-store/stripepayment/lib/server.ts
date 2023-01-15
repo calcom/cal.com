@@ -69,8 +69,10 @@ export async function handlePayment(
 
   const params: Stripe.PaymentIntentCreateParams = {
     amount: stripeAppData.price,
+    automatic_payment_methods: {
+      enabled: true,
+    },
     currency: stripeAppData.currency,
-    payment_method_types: ["card"],
     application_fee_amount: paymentFee,
   };
 
