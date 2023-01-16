@@ -68,7 +68,7 @@
   "event_still_awaiting_approval": "Een gebeurtenis wacht nog op uw goedkeuring",
   "booking_submitted_subject": "Boeking verzonden: {{eventType}} met {{name}} om {{date}}",
   "your_meeting_has_been_booked": "Uw afspraak is geboekt",
-  "event_type_has_been_rescheduled_on_time_date": "Uw {{eventType}} met {{name}} is verplaatst naar {{date}}.",
+  "event_type_has_been_rescheduled_on_time_date": "Uw {{title}} is verplaatst naar {{date}}.",
   "event_has_been_rescheduled": "Bijgewerkt - Uw gebeurtenis is verplaatst",
   "request_reschedule_title_attendee": "Vezoek om uw boeking te verplaatsen",
   "request_reschedule_subtitle": "{{organizer}} heeft de boeking geannuleerd en u verzocht een andere tijd te kiezen.",
