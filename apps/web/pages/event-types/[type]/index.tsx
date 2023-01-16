@@ -196,11 +196,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       periodCountCalendarDays: eventType.periodCountCalendarDays ? "1" : "0",
       schedulingType: eventType.schedulingType,
       minimumBookingNotice: eventType.minimumBookingNotice,
-      minimumBookingNoticeInDurationType: convertToNewDurationType(
-        "minutes",
-        findDurationType(eventType.minimumBookingNotice),
-        eventType.minimumBookingNotice
-      ),
       metadata,
       hosts: !!eventType.hosts?.length
         ? eventType.hosts.filter((host) => !host.isFixed)
