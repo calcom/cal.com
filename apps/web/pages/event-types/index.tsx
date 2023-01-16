@@ -60,6 +60,18 @@ interface EventTypeListProps {
   types: EventType[];
 }
 
+const MobileTeamsTab = () => {
+  const query = trpc.viewer.eventTypes.getByViewer.useQuery();
+
+  const hasTeams = !!query?.data?.profiles.find((option) => option.teamId);
+
+  if (!hasTeams) {
+    return null;
+  }
+
+  return <div className="pb-4 sm:hidden">hello world</div>;
+};
+
 const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGroup; readOnly: boolean }) => {
   const { t } = useLocale();
 
@@ -579,6 +591,7 @@ const EventTypesPage = () => {
           customLoader={<SkeletonLoader />}
           success={({ data }) => (
             <>
+              <MobileTeamsTab />
               {data.eventTypeGroups.map((group, index) => (
                 <Fragment key={group.profile.slug}>
                   {/* hide list heading when there is only one (current user) */}
