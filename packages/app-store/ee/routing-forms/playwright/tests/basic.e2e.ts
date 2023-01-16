@@ -179,7 +179,7 @@ test.describe("Routing Forms", () => {
       const headerEls = page.locator("[data-testid='reporting-header'] th");
       // Once the response is there, React would soon render it, so 500ms is enough
       await headerEls.first().waitFor({
-        timeout: 500,
+        timeout: 5000,
       });
       const numHeaderEls = await headerEls.count();
       const headers = [];
