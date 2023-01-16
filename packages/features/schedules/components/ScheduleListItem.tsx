@@ -2,18 +2,16 @@ import Link from "next/link";
 import { Fragment } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Availability } from "@calcom/prisma/client";
 import { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Schedule } from "@calcom/types/schedule";
 import {
   Badge,
   Button,
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownItem,
   DropdownMenuTrigger,
   Icon,
 } from "@calcom/ui";
@@ -81,11 +79,8 @@ export function ScheduleListItem({
             <DropdownMenuContent>
               <DropdownMenuItem className="min-w-40 focus:ring-gray-100">
                 {!schedule.isDefault && (
-                  <Button
+                  <DropdownItem
                     type="button"
-                    color="minimal"
-                    className="w-full rounded-b-none border-none font-normal"
-                    disabled={schedule.isDefault}
                     onClick={() => {
                       updateDefault({
                         scheduleId: schedule.id,
@@ -93,24 +88,20 @@ export function ScheduleListItem({
                       });
                     }}>
                     {t("set_as_default")}
-                  </Button>
+                  </DropdownItem>
                 )}
               </DropdownMenuItem>
               <DropdownMenuItem className="min-w-40 focus:ring-gray-100">
-                <Button
+                <DropdownItem
+                  type="button"
+                  color="destructive"
                   onClick={() => {
                     deleteFunction({
                       scheduleId: schedule.id,
                     });
-                  }}
-                  type="button"
-                  color="destructive"
-                  className={classNames(
-                    "w-full border-none font-normal",
-                    !schedule.isDefault && "rounded-t-none"
-                  )}>
+                  }}>
                   {t("delete")}
-                </Button>
+                </DropdownItem>
               </DropdownMenuItem>
             </DropdownMenuContent>
           )}

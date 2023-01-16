@@ -1,4 +1,3 @@
-// lets refactor and move this into packages/lib/hooks/
 import { useState, useEffect } from "react";
 
 const useMediaQuery = (query: string) => {

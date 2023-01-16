@@ -24,6 +24,7 @@ import {
   Dropdown,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -304,19 +305,22 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
             <DropdownMenuLabel>
               <div className="max-w-48">{t("new_event_subtitle")}</div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator className="h-px bg-gray-200" />
+            <DropdownMenuSeparator />
             {props.options.map((option) => (
-              <DropdownMenuItem
-                key={option.slug}
-                className="flex cursor-pointer items-center px-3 py-2 hover:bg-neutral-100 focus:outline-none"
-                onSelect={() => openModal(option)}>
-                <Avatar
-                  alt={option.name || ""}
-                  imageSrc={option.image || `${WEBAPP_URL}/${option.slug}/avatar.png`} // if no image, use default avatar
-                  size="sm"
-                  className="inline ltr:mr-4 rtl:ml-4"
-                />
-                <span className="px-4">{option.name ? option.name : option.slug}</span>
+              <DropdownMenuItem key={option.slug}>
+                <DropdownItem
+                  type="button"
+                  StartIcon={(props: any) => (
+                    <Avatar
+                      alt={option.name || ""}
+                      imageSrc={option.image || `${WEBAPP_URL}/${option.slug}/avatar.png`} // if no image, use default avatar
+                      size="sm"
+                      {...props}
+                    />
+                  )}
+                  onClick={() => openModal(option)}>
+                  <span>{option.name ? option.name : option.slug}</span>
+                </DropdownItem>
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -359,7 +363,7 @@ export function CreateEventTypeTrigger(props: CreateEventTypeTrigger) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>{t("new_event_subtitle")}</DropdownMenuLabel>
-            <DropdownMenuSeparator className="h-px bg-gray-200" />
+            <DropdownMenuSeparator />
             {props.options.map((option) => (
               <CreateEventTeamsItem
                 key={option.slug}
