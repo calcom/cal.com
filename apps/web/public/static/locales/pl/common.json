@@ -68,7 +68,7 @@
   "event_still_awaiting_approval": "Wydarzenie nadal oczekuje na Twoje zatwierdzenie",
   "booking_submitted_subject": "Rezerwacja potwierdzona: {{eventType}} z {{name}} w {{date}}",
   "your_meeting_has_been_booked": "Twoje spotkanie zostało zarezerwowane",
-  "event_type_has_been_rescheduled_on_time_date": "Wydarzenie {{eventType}} z {{name}} przełożono na {{date}}.",
+  "event_type_has_been_rescheduled_on_time_date": "Twój {{title}} został przełożony na {{date}}.",
   "event_has_been_rescheduled": "Zaktualizowano - Twoje wydarzenie zostało przełożone",
   "request_reschedule_title_attendee": "Poproś o przełożenie rezerwacji",
   "request_reschedule_subtitle": "{{organizer}} anulował(a) rezerwację i prosi Cię o wybranie innego terminu.",
