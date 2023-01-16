@@ -68,7 +68,7 @@
   "event_still_awaiting_approval": "이벤트가 아직 승인을 기다리고 있습니다.",
   "booking_submitted_subject": "예약 제출됨: {{date}}에 {{name}}에 의한 {{eventType}}",
   "your_meeting_has_been_booked": "회의가 예약되었습니다.",
-  "event_type_has_been_rescheduled_on_time_date": "{{name}}의 {{eventType}} 일정이 {{date}}(으)로 변경되었습니다.",
+  "event_type_has_been_rescheduled_on_time_date": "귀하의 {{title}} 일정이 {{date}}로 변경되었습니다.",
   "event_has_been_rescheduled": "업데이트 - 이벤트 일정이 변경되었습니다.",
   "request_reschedule_title_attendee": "예약 일정 변경 요청",
   "request_reschedule_subtitle": "{{organizer}}에서 예약을 취소했고 다른 시간을 선택할 것을 요청했습니다.",
