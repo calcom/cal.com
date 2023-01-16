@@ -284,7 +284,7 @@ enum BookingStatus {
 model Booking {
   id                    Int                  @id @default(autoincrement())
   uid                   String               @unique
-  user                  User?                @relation(fields: [userId], references: [id])
+  user                  User[]
   userId                Int?
   references            BookingReference[]
   eventType             EventType?           @relation(fields: [eventTypeId], references: [id])
