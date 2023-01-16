@@ -22,15 +22,20 @@ to create our template. Thus the headings in the story are not the correct style
 
 <Canvas>
   <Story name="Heading Stlyes">
-    <Example title="Heading One">
-      <h1>Heading One text</h1>
-    </Example>
-    <Example title="Heading Two">
-      <h2>Heading Two text</h2>
-    </Example>
-    <Example title="Heading Three">
-      <h3>Heading Three text</h3>
-    </Example>
+    <div className="flex flex-col space-y-5">
+      <div>
+        <h1>Heading One text</h1>
+        <p className="title-1">Paragraph has heading One applied by `title-1`</p>
+      </div>
+      <div>
+        <h2>Heading Two text</h2>
+        <p className="title-2">Paragraph has heading Two applied by `title-2`</p>
+      </div>
+      <div>
+        <h3>Heading Three text</h3>
+        <p className="title-3">Paragraph has heading Three applied by `title-3`</p>
+      </div>
+    </div>
   </Story>
   <Story name="Text Stlyes">
     <Example title="Paragraph">
