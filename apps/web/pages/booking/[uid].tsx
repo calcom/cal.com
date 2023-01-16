@@ -929,6 +929,7 @@ const schema = z.object({
   uid: z.string(),
   email: z.string().optional(),
   eventTypeSlug: z.string().optional(),
+  cancel: stringToBoolean,
 });
 
 const handleSeatsEventTypeOnBooking = (
@@ -962,7 +963,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const ssr = await ssrInit(context);
   const parsedQuery = schema.safeParse(context.query);
   if (!parsedQuery.success) return { notFound: true };
-  const { uid, email, eventTypeSlug } = parsedQuery.data;
+  const { uid, email, eventTypeSlug, cancel } = parsedQuery.data;
 
   const bookingInfo = await prisma.booking.findFirst({
     where: {
@@ -1048,7 +1049,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     customInputs: customInputSchema.array().parse(eventTypeRaw.customInputs),
   };
 
-  if (eventType.metadata?.disableSuccessPage && eventType.successRedirectUrl) {
+  if (eventType.metadata?.disableSuccessPage && eventType.successRedirectUrl && !cancel) {
     return {
       redirect: {
         destination: eventType.successRedirectUrl,
