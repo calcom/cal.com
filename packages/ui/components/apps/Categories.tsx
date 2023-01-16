@@ -15,9 +15,8 @@ export function AppStoreCategories({
 }) {
   const { t, isLocaleReady } = useLocale();
   return (
-    <div className="mb-16">
+    <div>
       <Slider
-        className="mt-8 mb-16"
         title={t("featured_categories")}
         items={categories}
         itemKey={(category) => category.name}
@@ -42,7 +41,7 @@ export function AppStoreCategories({
               ) : (
                 <SkeletonText invisible />
               )}
-              <p className="text-sm text-gray-500">
+              <p className="pt-2 text-sm font-medium text-gray-500">
                 {isLocaleReady ? t("number_apps", { count: category.count }) : <SkeletonText invisible />}{" "}
                 <Icon.FiArrowRight className="inline-block h-4 w-4" />
               </p>

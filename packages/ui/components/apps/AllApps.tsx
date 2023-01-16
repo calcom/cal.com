@@ -158,7 +158,7 @@ export function AllApps({ apps, searchText, categories }: AllAppsPropsType) {
     .filter((app) => (searchText ? app.name.toLowerCase().includes(searchText.toLowerCase()) : true));
 
   return (
-    <div className="mb-16">
+    <div>
       <CategoryTab selectedCategory={selectedCategory} searchText={searchText} categories={categories} />
       {filteredApps.length ? (
         <div
