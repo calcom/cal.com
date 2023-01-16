@@ -337,7 +337,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     getSlotsCount++;
 
     const userIsAvailable = (user: typeof eventType.users[number], time: Dayjs) => {
-      const schedule = usersWorkingHoursAndBusySlots.find((s) => s.user.id === user.id);
+      const schedule = userAvailability.find((s) => s.user.id === user.id);
       if (!schedule) return false;
       const start = performance.now();
       const available = checkIfIsAvailable({
