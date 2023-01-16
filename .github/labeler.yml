@@ -1,5 +1,0 @@
-"♻️ autoupdate":
-  - apps/web/public/static/locales/**/*.json
-
-automerge:
-  - apps/web/public/static/locales/**/*.json
