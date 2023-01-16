@@ -1,3 +1,4 @@
+import "@tremor/react/dist/esm/tremor.css";
 import { DefaultSeo } from "next-seo";
 import Head from "next/head";
 import Script from "next/script";
