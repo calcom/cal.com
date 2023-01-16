@@ -648,10 +648,14 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   if (eventType.schedulingType === SchedulingType.COLLECTIVE) {
     evt.team = {
-      members: users.map((user) => user.name || user.username || "Nameless"),
+      members: users.map((user) => {
+        return { name: user.name || user.username || "Nameless", email: user.email, id: user.id };
+      }),
       name: eventType.team?.name || "Nameless",
     }; // used for invitee emails
   }
+
+  // TODO: Add evt.team for round robin event types
 
   if (reqBody.recurringEventId && eventType.recurringEvent) {
     // Overriding the recurring event configuration count to be the actual number of events booked for
@@ -750,9 +754,14 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       dynamicEventSlugRef,
       dynamicGroupSlugRef,
       user: {
-        connect: {
-          id: organizerUser.id,
-        },
+        connect: [
+          { id: organizerUser.id },
+          ...(evt.team
+            ? evt.team?.members.map((member) => {
+                return { id: member.id };
+              })
+            : []),
+        ],
       },
       destinationCalendar: evt.destinationCalendar
         ? {

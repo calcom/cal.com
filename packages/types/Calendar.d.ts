@@ -137,7 +137,7 @@ export interface CalendarEvent {
   description?: string | null;
   team?: {
     name: string;
-    members: string[];
+    members: { id: number; name: string; email: string }[];
   };
   location?: string | null;
   conferenceData?: ConferenceData;
