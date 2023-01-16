@@ -138,7 +138,6 @@ const CreateEventTypeDialog = () => {
       ]}>
       <DialogContent
         type="creation"
-        className="overflow-y-auto"
         title={teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
         description={t("new_event_type_to_book_description")}>
         <Form
