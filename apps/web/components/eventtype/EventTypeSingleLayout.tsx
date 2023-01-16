@@ -56,12 +56,15 @@ function getNavigation(props: {
   installedAppsNumber: number;
 }) {
   const { eventType, t, enabledAppsNumber, installedAppsNumber, enabledWorkflowsNumber } = props;
+  const duration =
+    eventType.metadata?.multipleDuration?.map((duration) => ` ${duration}`) || eventType.length;
+
   return [
     {
       name: "event_setup_tab_title",
       href: `/event-types/${eventType.id}?tabName=setup`,
       icon: Icon.FiLink,
-      info: `${eventType.length} Mins`, // TODO: Get this from props
+      info: `${duration} ${t("minute_timeUnit")}`, // TODO: Get this from props
     },
     {
       name: "availability",
