@@ -373,7 +373,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
       <div>
         <main
           className={classNames(
-            "flex flex-col md:mx-4",
+            "flex-col md:mx-4 md:flex",
             shouldAlignCentrally ? "items-center" : "items-start",
             !isEmbed && classNames("mx-auto my-0 ease-in-out md:my-24")
           )}>
