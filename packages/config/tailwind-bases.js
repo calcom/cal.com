@@ -70,5 +70,19 @@ module.exports = plugin(function ({ addBase, theme, addComponents, addUtilities 
     ".title-1": { ...h1Base },
     ".title-2": { ...h2Base },
     ".title-3": { ...h3Base },
+    ".multiline-normal": {
+      fontFamily: theme("fontFamily.sans"),
+      color: theme("colors.black"),
+      fontSize: theme("fontSize.sm"),
+      fontWeight: theme("fontWeight.normal"),
+      lineHeight: theme("leading.normal"),
+    },
+    ".multiline-medium": {
+      fontFamily: theme("fontFamily.sans"),
+      color: theme("colors.black"),
+      fontSize: theme("fontSize.sm"),
+      fontWeight: theme("fontWeight.medium"),
+      lineHeight: "20px",
+    },
   });
 });
