@@ -87,7 +87,7 @@ export const DialogContent = React.forwardRef<HTMLDivElement, DialogContentProps
               : props.size == "md"
               ? "p-8 sm:max-w-[48rem]"
               : "p-8 sm:max-w-[35rem]",
-            "max-h-[95vh]",
+            "max-h-[95vh] overflow-auto",
             `${props.className || ""}`
           )}
           ref={forwardedRef}>
