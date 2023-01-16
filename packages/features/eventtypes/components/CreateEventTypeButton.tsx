@@ -139,8 +139,7 @@ const CreateEventTypeDialog = () => {
       <DialogContent
         type="creation"
         title={teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
-        description={t("new_event_type_to_book_description")}
-        allowScroll>
+        description={t("new_event_type_to_book_description")}>
         <Form
           form={form}
           handleSubmit={(values) => {
