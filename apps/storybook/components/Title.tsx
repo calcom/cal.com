@@ -11,7 +11,7 @@ export const Title = ({
 }) => {
   return (
     <div className={`story-title ${offset && "offset"}`}>
-      <h1>
+      <h1 className="story-heading-1">
         {title}
         {suffix && <span>{suffix}</span>}
       </h1>

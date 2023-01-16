@@ -41,7 +41,7 @@ function WizardForm<T extends DefaultStep>(props: {
           props.containerClassname
         )}>
         <div className="px-4 py-5 sm:px-6">
-          <h1 className="font-cal text-2xl text-gray-900">{currentStep.title}</h1>
+          <h1>{currentStep.title}</h1>
           <p className="text-sm text-gray-500">{currentStep.description}</p>
         </div>
 

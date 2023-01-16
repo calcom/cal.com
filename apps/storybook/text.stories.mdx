@@ -1,0 +1,43 @@
+import { Meta } from "@storybook/addon-docs";
+
+import {
+  Examples,
+  Example,
+  Note,
+  Title,
+  VariantsTable,
+  VariantColumn,
+  RowTitles,
+  CustomArgsTable,
+} from "@calcom/storybook/components";
+
+<Meta title="Typography" />
+
+<Title title="Typography" suffix="Brief" subtitle="Version 2.0 — Last Update: 22 Aug 2022" />
+
+## Definition
+
+Typography style guide for Cal.com applications. Please view the STORY of this to see correct styles. We override storybook headings in doc mode
+to create our template. Thus the headings in the story are not the correct styles while viewing in DOCS.
+
+<Canvas>
+  <Story name="Heading Stlyes">
+    <Example title="Heading One">
+      <h1>Heading One text</h1>
+    </Example>
+    <Example title="Heading Two">
+      <h2>Heading Two text</h2>
+    </Example>
+    <Example title="Heading Three">
+      <h3>Heading Three text</h3>
+    </Example>
+  </Story>
+  <Story name="Text Stlyes">
+    <Example title="Paragraph">
+      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam malesuada finibus nulla nec commodo. Cras vel sem ac tortor vestibulum placerat. Maecenas et lectus quis purus gravida mollis vel et dolor. In pellentesque sapien tellus, ut semper risus maximus eu. Suspendisse at vehicula lectus, eu efficitur metus. Praesent aliquet dictum sem ac lacinia. Nulla facilisi. Vestibulum ut suscipit tortor. Fusce interdum vitae dui ut maximus.</p>
+    </Example>
+    <Example title="Small">
+      <small>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam malesuada finibus nulla nec commodo. Cras vel sem ac tortor vestibulum placerat. Maecenas et lectus quis purus gravida mollis vel et dolor. In pellentesque sapien tellus, ut semper risus maximus eu. Suspendisse at vehicula lectus, eu efficitur metus. Praesent aliquet dictum sem ac lacinia. Nulla facilisi. Vestibulum ut suscipit tortor. Fusce interdum vitae dui ut maximus.</small>
+    </Example>
+  </Story>
+</Canvas>
