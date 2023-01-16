@@ -68,7 +68,7 @@
   "event_still_awaiting_approval": "Bir etkinlik hâlâ onayınızı bekliyor",
   "booking_submitted_subject": "Rezervasyon Gönderildi: {{date}} tarihinde {{name}} ile {{eventType}}",
   "your_meeting_has_been_booked": "Toplantı rezervasyonunuz yapıldı",
-  "event_type_has_been_rescheduled_on_time_date": "{{name}} ile yapacağınız {{eventType}} etkinliğiniz {{date}} olarak yeniden planlandı.",
+  "event_type_has_been_rescheduled_on_time_date": "{{title}}, {{date}} olarak yeniden planlandı.",
   "event_has_been_rescheduled": "Güncellendi - Etkinliğiniz yeniden planlandı",
   "request_reschedule_title_attendee": "Rezervasyonunuz için yeniden planlama isteğinde bulunun",
   "request_reschedule_subtitle": "{{organizer}} rezervasyonu iptal etti ve sizden başka bir saat seçmenizi istiyor.",
