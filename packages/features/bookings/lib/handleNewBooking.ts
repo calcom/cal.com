@@ -596,7 +596,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
       const payment = await handlePayment(evt, eventType, firstStripeCredential, booking);
 
       req.statusCode = 201;
-      return { ...booking, message: "Payment required", paymentUid: payment.uid };
+      return { ...booking, message: "Payment required", paymentUid: payment?.uid };
     }
 
     req.statusCode = 201;

@@ -1,16 +1,14 @@
 import { PaymentType, Prisma } from "@prisma/client";
 import Stripe from "stripe";
-import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import { sendAwaitingPaymentEmail, sendOrganizerPaymentRefundFailedEmail } from "@calcom/emails";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
-import getStripeAppData from "@calcom/lib/getStripeAppData";
 import prisma from "@calcom/prisma";
 import { EventTypeModel } from "@calcom/prisma/zod";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import appStore from "../../index";
 import { createPaymentLink } from "./client";
 
 export type PaymentData = Stripe.Response<Stripe.PaymentIntent> & {
@@ -40,20 +38,20 @@ const stripe = new Stripe(stripePrivateKey, {
   apiVersion: "2020-08-27",
 });
 
-const stripeKeysSchema = z.object({
-  payment_fee_fixed: z.number(),
-  payment_fee_percentage: z.number(),
-});
+// const stripeKeysSchema = z.object({
+//   payment_fee_fixed: z.number(),
+//   payment_fee_percentage: z.number(),
+// });
 
-const stripeCredentialSchema = z.object({
-  stripe_user_id: z.string(),
-  stripe_publishable_key: z.string(),
-});
+// const stripeCredentialSchema = z.object({
+//   stripe_user_id: z.string(),
+//   stripe_publishable_key: z.string(),
+// });
 
 export async function handlePayment(
   evt: CalendarEvent,
   selectedEventType: Pick<z.infer<typeof EventTypeModel>, "price" | "currency" | "metadata">,
-  stripeCredential: { key: Prisma.JsonValue },
+  paymentAppCredentials: { key: Prisma.JsonValue },
   booking: {
     user: { email: string | null; name: string | null; timeZone: string } | null;
     id: number;
@@ -61,48 +59,33 @@ export async function handlePayment(
     uid: string;
   }
 ) {
-  const appKeys = await getAppKeysFromSlug("stripe");
-  const { payment_fee_fixed, payment_fee_percentage } = stripeKeysSchema.parse(appKeys);
-  const stripeAppData = getStripeAppData(selectedEventType);
-  const paymentFee = Math.round(stripeAppData.price * payment_fee_percentage + payment_fee_fixed);
-  const { stripe_user_id, stripe_publishable_key } = stripeCredentialSchema.parse(stripeCredential.key);
+  const paymentType = selectedEventType.metadata?.paymentApp;
+  const paymentApp = appStore[paymentType as keyof typeof appStore];
 
-  const params: Stripe.PaymentIntentCreateParams = {
-    amount: stripeAppData.price,
-    currency: stripeAppData.currency,
-    payment_method_types: ["card"],
-    application_fee_amount: paymentFee,
-  };
-
-  const paymentIntent = await stripe.paymentIntents.create(params, { stripeAccount: stripe_user_id });
-
-  const payment = await prisma.payment.create({
-    data: {
-      type: PaymentType.STRIPE,
-      uid: uuidv4(),
-      booking: {
-        connect: {
-          id: booking.id,
-        },
-      },
-      amount: stripeAppData.price,
-      fee: paymentFee,
-      currency: stripeAppData.currency,
-      success: false,
-      refunded: false,
-      data: Object.assign({}, paymentIntent, {
-        stripe_publishable_key,
-        stripeAccount: stripe_user_id,
-      }) /* We should treat this */ as PaymentData /* but Prisma doesn't know how to handle it, so it we treat it */ as unknown /* and then */ as Prisma.InputJsonValue,
-      externalId: paymentIntent.id,
+  if (!(paymentApp && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
+    console.warn(`payment App service of type ${paymentApp} is not implemented`);
+    return null;
+  }
+  const PaymentService = paymentApp.lib.PaymentService;
+  const paymentInstance = new PaymentService(paymentAppCredentials);
+  const paymentData = await paymentInstance.create(
+    {
+      amount: selectedEventType.price,
+      currency: selectedEventType.currency,
     },
-  });
+    booking.id
+  );
+  console.log({ paymentData });
+  if (!paymentData) {
+    console.error("Payment data is null");
+    throw new Error("Payment data is null");
+  }
 
   await sendAwaitingPaymentEmail({
     ...evt,
     paymentInfo: {
       link: createPaymentLink({
-        paymentUid: payment.uid,
+        paymentUid: paymentData.uid,
         name: booking.user?.name,
         email: booking.user?.email,
         date: booking.startTime.toISOString(),
@@ -110,7 +93,7 @@ export async function handlePayment(
     },
   });
 
-  return payment;
+  return paymentData;
 }
 
 export async function refund(
