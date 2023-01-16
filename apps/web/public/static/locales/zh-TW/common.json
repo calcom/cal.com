@@ -68,7 +68,7 @@
   "event_still_awaiting_approval": "活動還在等待核准",
   "booking_submitted_subject": "已提出預約：{{date}} 與 {{name}} 的 {{eventType}}",
   "your_meeting_has_been_booked": "會議已經預定",
-  "event_type_has_been_rescheduled_on_time_date": "您和 {{name}} 的 {{eventType}} 的預定時間已改為 {{date}}。",
+  "event_type_has_been_rescheduled_on_time_date": "您的 {{title}} 已改期至 {{date}}。",
   "event_has_been_rescheduled": "已更新 - 已經重新預定活動時間",
   "request_reschedule_title_attendee": "要求重新安排您的預約",
   "request_reschedule_subtitle": "{{organizer}} 已取消預約，並要求您選擇其他時間。",
