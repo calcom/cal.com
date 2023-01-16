@@ -184,18 +184,29 @@ const KBarWrapper = ({ children, withKBar = false }: { withKBar: boolean; childr
     <>{children}</>
   );
 
-export default function Shell(props: LayoutProps) {
+const PublicShell = (props: LayoutProps) => {
   const { status } = useSession();
-  // if a page is unauthed and isPublic is true, the redirect does not happen.
-  useRedirectToLoginIfUnauthenticated(props.isPublic);
-  useRedirectToOnboardingIfNeeded();
-  useTheme("light");
-
   return (
     <KBarWrapper withKBar={status === "authenticated"}>
       <CustomBrandingContainer />
       <Layout {...props} />
     </KBarWrapper>
+  );
+};
+
+export default function Shell(props: LayoutProps) {
+  // if a page is unauthed and isPublic is true, the redirect does not happen.
+  useRedirectToLoginIfUnauthenticated(props.isPublic);
+  useRedirectToOnboardingIfNeeded();
+  useTheme("light");
+
+  return !props.isPublic ? (
+    <KBarWrapper withKBar>
+      <CustomBrandingContainer />
+      <Layout {...props} />
+    </KBarWrapper>
+  ) : (
+    <PublicShell {...props} />
   );
 }
 
