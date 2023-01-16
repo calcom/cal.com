@@ -59,7 +59,7 @@ module.exports = plugin(function ({ addBase, theme, addComponents, addUtilities 
 
     //** Dark mode styles */
     ".dark": {
-      "h1, h2, h3, h4,p , small": {
+      "h1, h2, h3, h4, p, small": {
         color: theme("colors.darkgray.900"),
       },
     },

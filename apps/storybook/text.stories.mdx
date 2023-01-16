@@ -22,7 +22,21 @@ to create our template. Thus the headings in the story are not the correct style
 
 <Canvas>
   <Story name="Heading Stlyes">
-    <div className="flex flex-col space-y-5">
+    <div className="flex flex-col space-y-5 p-4">
+      <div>
+        <h1>Heading One text</h1>
+        <p className="title-1">Paragraph has heading One applied by `title-1`</p>
+      </div>
+      <div>
+        <h2>Heading Two text</h2>
+        <p className="title-2">Paragraph has heading Two applied by `title-2`</p>
+      </div>
+      <div>
+        <h3>Heading Three text</h3>
+        <p className="title-3">Paragraph has heading Three applied by `title-3`</p>
+      </div>
+    </div>
+    <div className="dark flex flex-col space-y-5 bg-darkgray-50 p-4">
       <div>
         <h1>Heading One text</h1>
         <p className="title-1">Paragraph has heading One applied by `title-1`</p>
@@ -38,11 +52,21 @@ to create our template. Thus the headings in the story are not the correct style
     </div>
   </Story>
   <Story name="Text Stlyes">
-    <Example title="Paragraph">
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam malesuada finibus nulla nec commodo. Cras vel sem ac tortor vestibulum placerat. Maecenas et lectus quis purus gravida mollis vel et dolor. In pellentesque sapien tellus, ut semper risus maximus eu. Suspendisse at vehicula lectus, eu efficitur metus. Praesent aliquet dictum sem ac lacinia. Nulla facilisi. Vestibulum ut suscipit tortor. Fusce interdum vitae dui ut maximus.</p>
-    </Example>
-    <Example title="Small">
-      <small>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam malesuada finibus nulla nec commodo. Cras vel sem ac tortor vestibulum placerat. Maecenas et lectus quis purus gravida mollis vel et dolor. In pellentesque sapien tellus, ut semper risus maximus eu. Suspendisse at vehicula lectus, eu efficitur metus. Praesent aliquet dictum sem ac lacinia. Nulla facilisi. Vestibulum ut suscipit tortor. Fusce interdum vitae dui ut maximus.</small>
-    </Example>
+    <div>
+      <Example title="Paragraph">
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam malesuada finibus nulla nec commodo. Cras vel sem ac tortor vestibulum placerat. Maecenas et lectus quis purus gravida mollis vel et dolor. In pellentesque sapien tellus, ut semper risus maximus eu. Suspendisse at vehicula lectus, eu efficitur metus. Praesent aliquet dictum sem ac lacinia. Nulla facilisi. Vestibulum ut suscipit tortor. Fusce interdum vitae dui ut maximus.</p>
+      </Example>
+      <Example title="Small">
+        <small>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam malesuada finibus nulla nec commodo. Cras vel sem ac tortor vestibulum placerat. Maecenas et lectus quis purus gravida mollis vel et dolor. In pellentesque sapien tellus, ut semper risus maximus eu. Suspendisse at vehicula lectus, eu efficitur metus. Praesent aliquet dictum sem ac lacinia. Nulla facilisi. Vestibulum ut suscipit tortor. Fusce interdum vitae dui ut maximus.</small>
+      </Example>
+    </div>
+    <div className="dark bg-darkgray-50">
+      <Example title="Paragraph">
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam malesuada finibus nulla nec commodo. Cras vel sem ac tortor vestibulum placerat. Maecenas et lectus quis purus gravida mollis vel et dolor. In pellentesque sapien tellus, ut semper risus maximus eu. Suspendisse at vehicula lectus, eu efficitur metus. Praesent aliquet dictum sem ac lacinia. Nulla facilisi. Vestibulum ut suscipit tortor. Fusce interdum vitae dui ut maximus.</p>
+      </Example>
+      <Example title="Small">
+        <small>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam malesuada finibus nulla nec commodo. Cras vel sem ac tortor vestibulum placerat. Maecenas et lectus quis purus gravida mollis vel et dolor. In pellentesque sapien tellus, ut semper risus maximus eu. Suspendisse at vehicula lectus, eu efficitur metus. Praesent aliquet dictum sem ac lacinia. Nulla facilisi. Vestibulum ut suscipit tortor. Fusce interdum vitae dui ut maximus.</small>
+      </Example>
+    </div>
   </Story>
 </Canvas>
