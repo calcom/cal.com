@@ -499,6 +499,11 @@ const navigation: NavigationItemType[] = [
     icon: Icon.FiZap,
   },
   {
+    name: "Analytics",
+    href: "/analytics",
+    icon: Icon.FiBarChart,
+  },
+  {
     name: "settings",
     href: "/settings/my-account/profile",
     icon: Icon.FiSettings,
