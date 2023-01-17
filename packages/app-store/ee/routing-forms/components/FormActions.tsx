@@ -447,7 +447,10 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
   }
   return (
     <DropdownMenuItem>
-      <Component ref={forwardedRef} {...actionProps}>
+      <Component
+        ref={forwardedRef}
+        {...actionProps}
+        className={classNames(props.className, "transition-none")}>
         {children}
       </Component>
     </DropdownMenuItem>
