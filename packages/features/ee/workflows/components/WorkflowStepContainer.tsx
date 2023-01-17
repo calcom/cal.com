@@ -588,7 +588,7 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           props.form.clearErrors();
                         }}
                         variables={DYNAMIC_TEXT_VARIABLES}
-                        height="300px"
+                        height="h-48"
                       />
                     </>
                   ) : (

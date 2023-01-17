@@ -36,10 +36,11 @@
   border-bottom-right-radius: 6px;
   overflow: scroll;
   resize: vertical;
+  height: auto;
 }
 
 .editor-input {
-  min-height: 150px;
+  max-height: 150px;
   font-size: 14px;
   position: relative;
   tab-size: 1;
