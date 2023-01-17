@@ -350,8 +350,8 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
             <div
               style={availabilityDatePickerEmbedStyles}
               className={classNames(
-                isBackgroundTransparent ? "" : " bg-white pb-4 md:pb-0",
-                "border-bookinglightest relative overflow-hidden rounded-md will-change-transform md:border dark:md:border-none dark:md:p-[1px]",
+                isBackgroundTransparent ? "" : " bg-white",
+                "border-bookinglightest relative overflow-hidden rounded-md will-change-transform md:border-none md:p-[1px]",
                 isEmbed && "mx-auto"
               )}>
               <span
