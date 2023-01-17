@@ -11,6 +11,7 @@ module.exports = {
     "@storybook/addon-links",
     "@storybook/addon-essentials",
     "@storybook/addon-interactions",
+    "storybook-addon-rtl-direction",
     "storybook-react-i18next",
     {
       name: "storybook-addon-next",

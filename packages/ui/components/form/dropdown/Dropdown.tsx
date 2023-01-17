@@ -5,7 +5,7 @@ import { ComponentProps, forwardRef } from "react";
 
 import { classNames } from "@calcom/lib";
 import { SVGComponent } from "@calcom/types/SVGComponent";
-import { ButtonProps } from "@calcom/ui";
+import { ButtonColor } from "@calcom/ui";
 
 export const Dropdown = DropdownMenuPrimitive.Root;
 
@@ -102,7 +102,7 @@ DropdownMenuRadioItem.displayName = "DropdownMenuRadioItem";
 
 type DropdownItemProps = {
   children: React.ReactNode;
-  color?: ButtonProps["color"];
+  color?: ButtonColor;
   StartIcon?: SVGComponent;
   EndIcon?: SVGComponent;
   href?: string;
