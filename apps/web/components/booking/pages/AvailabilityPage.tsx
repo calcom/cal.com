@@ -167,7 +167,7 @@ const SlotPicker = ({
       <DatePicker
         isLoading={isLoading}
         className={classNames(
-          "relative mt-8 px-4 pb-4 sm:mt-0 md:min-w-[300px] md:px-5 lg:min-w-[455px]",
+          "mt-8 px-4 pb-4 sm:mt-0 md:min-w-[300px] md:px-5 lg:min-w-[455px]",
           selectedDate ? "sm:dark:border-darkgray-200 border-gray-200 sm:border-r sm:p-4 sm:pr-6" : "sm:p-4"
         )}
         includedDates={Object.keys(slots).filter((k) => slots[k].length > 0)}
@@ -350,20 +350,18 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
             <div
               style={availabilityDatePickerEmbedStyles}
               className={classNames(
-                isBackgroundTransparent ? "" : " bg-white",
-                "border-bookinglightest relative overflow-hidden rounded-md will-change-transform md:border-none md:p-[1px]",
+                isBackgroundTransparent
+                  ? ""
+                  : "dark:bg-darkgray-100 sm:dark:border-darkgray-300 bg-white pb-4 md:pb-0",
+                "border-bookinglightest overflow-hidden md:rounded-md md:border",
                 isEmbed && "mx-auto"
               )}>
-              <span
-                aria-hidden
-                className="before:animate-disco before:bg-gradient-conic absolute inset-0 scale-x-[5.0] blur before:absolute before:inset-0 before:top-1/2 before:z-0 before:aspect-square before:from-purple-700 before:via-red-500 before:to-amber-400"
-              />
-              <div className="dark:bg-darkgray-100 relative overflow-hidden bg-white md:flex md:rounded-md">
+              <div className="overflow-hidden md:flex">
                 {showEventTypeDetails && (
                   <div
                     className={classNames(
                       "sm:dark:border-darkgray-200 flex flex-col border-gray-200 p-5 sm:border-r",
-                      "relative min-w-full md:w-[230px] md:min-w-[230px]",
+                      "min-w-full md:w-[230px] md:min-w-[230px]",
                       recurringEventCount && "xl:w-[380px] xl:min-w-[380px]"
                     )}>
                     <BookingDescription profile={profile} eventType={eventType} rescheduleUid={rescheduleUid}>
