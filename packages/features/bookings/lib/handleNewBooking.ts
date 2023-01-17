@@ -655,7 +655,27 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
     }; // used for invitee emails
   }
 
-  // TODO: Add evt.team for round robin event types
+  if (eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+    const teamMembers = [] as { id: number; email: string; name: string }[];
+    const filteredAttendees = evt.attendees;
+    evt.attendees.forEach((attendee) => {
+      const bookingAttendee = evt.attendees.find(
+        (bookingAttendee) => bookingAttendee.email === attendee.email
+      );
+      if (bookingAttendee) {
+        const member = users.find((teamMember) => teamMember.email === bookingAttendee.email);
+        if (member) {
+          teamMembers.push({ id: member.id, email: member.email, name: member.name || "Nameless" });
+          filteredAttendees.filter((filteredAttendee) => filteredAttendee.email !== member.email);
+        }
+      }
+    });
+    evt.attendees = filteredAttendees;
+    evt.team = {
+      members: teamMembers,
+      name: eventType.team?.name || "Nameless",
+    };
+  }
 
   if (reqBody.recurringEventId && eventType.recurringEvent) {
     // Overriding the recurring event configuration count to be the actual number of events booked for
