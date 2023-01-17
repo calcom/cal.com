@@ -450,7 +450,11 @@ export const FormAction = forwardRef(function FormAction<T extends typeof Button
       <Component
         ref={forwardedRef}
         {...actionProps}
-        className={classNames(props.className, "transition-none")}>
+        className={classNames(
+          props.className,
+          "w-full transition-none",
+          props.color === "destructive" && "border-0"
+        )}>
         {children}
       </Component>
     </DropdownMenuItem>
