@@ -358,7 +358,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                 aria-hidden
                 className="before:animate-disco before:bg-gradient-conic absolute inset-0 scale-x-[5.0] blur before:absolute before:inset-0 before:top-1/2 before:z-0 before:aspect-square before:from-purple-700 before:via-red-500 before:to-amber-400"
               />
-              <div className="dark:bg-darkgray-100 relative overflow-hidden md:flex md:rounded-md">
+              <div className="dark:bg-darkgray-100 relative overflow-hidden bg-white md:flex md:rounded-md">
                 {showEventTypeDetails && (
                   <div
                     className={classNames(
