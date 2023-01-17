@@ -722,126 +722,124 @@ const BookingPage = ({
                     )}
                   </div>
                 )}
-                {eventType.customInputs
-                  .sort((a, b) => a.id - b.id)
-                  .map((input) => (
-                    <div className="mb-4" key={input.id}>
-                      {input.type !== EventTypeCustomInputType.BOOL && (
-                        <label
-                          htmlFor={"custom_" + input.id}
-                          className={classNames(
-                            "mb-1 block text-sm font-medium text-gray-700 transition-colors dark:text-white",
-                            bookingForm.formState.errors.customInputs?.[input.id] && "!text-red-700"
-                          )}>
-                          {input.label} {input.required && <span className="text-red-700">*</span>}
-                        </label>
-                      )}
-                      {input.type === EventTypeCustomInputType.TEXTLONG && (
-                        <textarea
-                          {...bookingForm.register(`customInputs.${input.id}`, {
-                            required: input.required,
-                          })}
-                          required={input.required}
-                          id={"custom_" + input.id}
-                          rows={3}
-                          className={inputClassName}
-                          placeholder={input.placeholder}
-                          disabled={disabledExceptForOwner}
-                        />
-                      )}
-                      {input.type === EventTypeCustomInputType.TEXT && (
-                        <input
-                          type="text"
-                          {...bookingForm.register(`customInputs.${input.id}`, {
-                            required: input.required,
-                          })}
-                          required={input.required}
-                          id={"custom_" + input.id}
-                          className={inputClassName}
-                          placeholder={input.placeholder}
-                          disabled={disabledExceptForOwner}
-                        />
-                      )}
-                      {input.type === EventTypeCustomInputType.NUMBER && (
-                        <input
-                          type="number"
-                          {...bookingForm.register(`customInputs.${input.id}`, {
-                            required: input.required,
-                          })}
-                          required={input.required}
-                          id={"custom_" + input.id}
-                          className={inputClassName}
-                          placeholder=""
-                          disabled={disabledExceptForOwner}
-                        />
-                      )}
-                      {input.type === EventTypeCustomInputType.BOOL && (
-                        <div className="my-6">
-                          <div className="flex">
-                            <input
-                              type="checkbox"
-                              {...bookingForm.register(`customInputs.${input.id}`, {
-                                required: input.required,
-                              })}
-                              required={input.required}
-                              id={"custom_" + input.id}
-                              className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black disabled:bg-gray-200 ltr:mr-2 rtl:ml-2 disabled:dark:text-gray-500"
-                              placeholder=""
-                              disabled={disabledExceptForOwner}
-                            />
-                            <label
-                              htmlFor={"custom_" + input.id}
-                              className="-mt-px block text-sm font-medium text-gray-700 dark:text-white">
-                              {input.label}
-                            </label>
-                          </div>
-                        </div>
-                      )}
-                      {input.options && input.type === EventTypeCustomInputType.RADIO && (
+                {eventType.customInputs.map((input) => (
+                  <div className="mb-4" key={input.id}>
+                    {input.type !== EventTypeCustomInputType.BOOL && (
+                      <label
+                        htmlFor={"custom_" + input.id}
+                        className={classNames(
+                          "mb-1 block text-sm font-medium text-gray-700 transition-colors dark:text-white",
+                          bookingForm.formState.errors.customInputs?.[input.id] && "!text-red-700"
+                        )}>
+                        {input.label} {input.required && <span className="text-red-700">*</span>}
+                      </label>
+                    )}
+                    {input.type === EventTypeCustomInputType.TEXTLONG && (
+                      <textarea
+                        {...bookingForm.register(`customInputs.${input.id}`, {
+                          required: input.required,
+                        })}
+                        required={input.required}
+                        id={"custom_" + input.id}
+                        rows={3}
+                        className={inputClassName}
+                        placeholder={input.placeholder}
+                        disabled={disabledExceptForOwner}
+                      />
+                    )}
+                    {input.type === EventTypeCustomInputType.TEXT && (
+                      <input
+                        type="text"
+                        {...bookingForm.register(`customInputs.${input.id}`, {
+                          required: input.required,
+                        })}
+                        required={input.required}
+                        id={"custom_" + input.id}
+                        className={inputClassName}
+                        placeholder={input.placeholder}
+                        disabled={disabledExceptForOwner}
+                      />
+                    )}
+                    {input.type === EventTypeCustomInputType.NUMBER && (
+                      <input
+                        type="number"
+                        {...bookingForm.register(`customInputs.${input.id}`, {
+                          required: input.required,
+                        })}
+                        required={input.required}
+                        id={"custom_" + input.id}
+                        className={inputClassName}
+                        placeholder=""
+                        disabled={disabledExceptForOwner}
+                      />
+                    )}
+                    {input.type === EventTypeCustomInputType.BOOL && (
+                      <div className="my-6">
                         <div className="flex">
-                          <Group
-                            name={`customInputs.${input.id}`}
+                          <input
+                            type="checkbox"
+                            {...bookingForm.register(`customInputs.${input.id}`, {
+                              required: input.required,
+                            })}
                             required={input.required}
-                            onValueChange={(e) => {
-                              bookingForm.setValue(`customInputs.${input.id}`, e);
-                            }}>
-                            <>
-                              {input.options.map((option, i) => (
-                                <RadioField
-                                  label={option.label}
-                                  key={`option.${input.id}.${i}.radio`}
-                                  value={option.label}
-                                  id={`option.${input.id}.${i}.radio`}
-                                />
-                              ))}
-                            </>
-                            {bookingForm.formState.errors.customInputs?.[input.id] && (
-                              <div className="mt-px flex items-center text-xs text-red-700 ">
-                                <p>{t("required")}</p>
-                              </div>
-                            )}
-                          </Group>
-                        </div>
-                      )}
-                      {input.type === EventTypeCustomInputType.PHONE && (
-                        <div>
-                          <PhoneInput<BookingFormValues>
-                            name={`customInputs.${input.id}`}
-                            control={bookingForm.control}
-                            placeholder={t("enter_phone_number")}
-                            id={`customInputs.${input.id}`}
-                            required={input.required}
+                            id={"custom_" + input.id}
+                            className="h-4 w-4 rounded border-gray-300 text-black focus:ring-black disabled:bg-gray-200 ltr:mr-2 rtl:ml-2 disabled:dark:text-gray-500"
+                            placeholder=""
+                            disabled={disabledExceptForOwner}
                           />
-                          {bookingForm.formState.errors?.customInputs?.[input.id] && (
-                            <div className="mt-2 flex items-center text-sm text-red-700 ">
-                              <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                              <p>{t("invalid_number")}</p>
+                          <label
+                            htmlFor={"custom_" + input.id}
+                            className="-mt-px block text-sm font-medium text-gray-700 dark:text-white">
+                            {input.label}
+                          </label>
+                        </div>
+                      </div>
+                    )}
+                    {input.options && input.type === EventTypeCustomInputType.RADIO && (
+                      <div className="flex">
+                        <Group
+                          name={`customInputs.${input.id}`}
+                          required={input.required}
+                          onValueChange={(e) => {
+                            bookingForm.setValue(`customInputs.${input.id}`, e);
+                          }}>
+                          <>
+                            {input.options.map((option, i) => (
+                              <RadioField
+                                label={option.label}
+                                key={`option.${input.id}.${i}.radio`}
+                                value={option.label}
+                                id={`option.${input.id}.${i}.radio`}
+                              />
+                            ))}
+                          </>
+                          {bookingForm.formState.errors.customInputs?.[input.id] && (
+                            <div className="mt-px flex items-center text-xs text-red-700 ">
+                              <p>{t("required")}</p>
                             </div>
                           )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                        </Group>
+                      </div>
+                    )}
+                    {input.type === EventTypeCustomInputType.PHONE && (
+                      <div>
+                        <PhoneInput<BookingFormValues>
+                          name={`customInputs.${input.id}`}
+                          control={bookingForm.control}
+                          placeholder={t("enter_phone_number")}
+                          id={`customInputs.${input.id}`}
+                          required={input.required}
+                        />
+                        {bookingForm.formState.errors?.customInputs?.[input.id] && (
+                          <div className="mt-2 flex items-center text-sm text-red-700 ">
+                            <Icon.FiInfo className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                            <p>{t("invalid_number")}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
                 {!eventType.disableGuests && guestToggle && (
                   <div className="mb-4">
                     <div>
