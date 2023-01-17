@@ -73,7 +73,7 @@ const buttonClasses = cva(
         disabled: [undefined, false],
         color: "primary",
         className:
-          "bg-brand-500 hover:bg-brand-400 focus:border focus:border-white focus:outline-none focus:ring-2 focus:ring-offset focus:ring-brand-500 dark:hover:bg-darkgray-600 dark:bg-darkgray-900",
+          "bg-brand-500 hover:bg-brand-400 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-brand-500 dark:hover:bg-darkgray-600 dark:bg-darkgray-900",
       }),
       // Secondary variants
       {

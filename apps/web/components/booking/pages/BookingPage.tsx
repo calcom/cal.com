@@ -961,12 +961,7 @@ const BookingPage = ({
                       className="mr-auto"
                     />
                   )}
-                  <Button
-                    color="minimal"
-                    type="button"
-                    onClick={() => router.back()}
-                    // We override this for this component only for now - as we don't support darkmode everywhere in the app
-                    className="dark:hover:bg-darkgray-200 dark:border-none dark:text-white">
+                  <Button color="minimal" type="button" onClick={() => router.back()}>
                     {t("cancel")}
                   </Button>
                   <Button
