@@ -180,7 +180,7 @@ const DateOverrideInputDialog = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
-      <DialogContent allowScroll={true} size="md">
+      <DialogContent size="md">
         <DateOverrideForm
           excludedDates={excludedDates}
           {...passThroughProps}
