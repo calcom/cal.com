@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, ImageUploader, showToast, TextArea } from "@calcom/ui";
+import { Button, Editor, ImageUploader, Label, showToast } from "@calcom/ui";
 import { Avatar } from "@calcom/ui";
 
 import type { IOnboardingPageProps } from "../../../pages/getting-started/[[...step]]";
@@ -21,13 +21,13 @@ const UserProfile = (props: IUserProfileProps) => {
   const { user } = props;
   const { t } = useLocale();
   const avatarRef = useRef<HTMLInputElement>(null!);
-  const bioRef = useRef<HTMLTextAreaElement>(null);
   const {
-    register,
     setValue,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = useForm<FormData>({ defaultValues: { bio: user?.bio || "" } });
+
   const { data: eventTypes } = trpc.viewer.eventTypes.list.useQuery();
   const [imageSrc, setImageSrc] = useState<string>(user?.avatar || "");
   const utils = trpc.useContext();
@@ -138,19 +138,11 @@ const UserProfile = (props: IUserProfileProps) => {
         </div>
       </div>
       <fieldset className="mt-8">
-        <label htmlFor="bio" className="mb-2 block text-sm font-medium text-gray-700">
-          {t("about")}
-        </label>
-        <TextArea
-          {...register("bio", { required: true })}
-          ref={bioRef}
-          name="bio"
-          id="bio"
-          className="mt-1 block h-[60px] w-full rounded-sm border border-gray-300 px-3 py-2 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-          defaultValue={user?.bio || undefined}
-          onChange={(event) => {
-            setValue("bio", event.target.value);
-          }}
+        <Label className="mb-2 block text-sm font-medium text-gray-700">{t("about")}</Label>
+        <Editor
+          getText={() => getValues("bio") || user?.bio || ""}
+          setText={(value: string) => setValue("bio", value)}
+          excludedToolbarItems={["blockType"]}
         />
         {errors.bio && (
           <p data-testid="required" className="py-2 text-xs text-red-500">
