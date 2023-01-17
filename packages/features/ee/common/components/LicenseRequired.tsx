@@ -42,7 +42,7 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(
                   t("enterprise_license_description", {
-                    consoleUrl: `<a href="https://go.cal.com/console" target="_blank" rel="noopener noreferrer" class="underline">
+                    consoleUrl: `<a href="https://go.cal.com/console" target="_blank" class="underline">
                 ${APP_NAME}
               </a>`,
                     supportMail: `<a href="mailto:sales@cal.com" class="underline">
