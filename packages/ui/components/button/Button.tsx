@@ -46,7 +46,7 @@ const buttonClasses = cva(
         base: "h-9 px-4 py-2.5 ",
         lg: "h-[36px] px-4 py-2.5 ",
         icon: "flex justify-center min-h-[36px] min-w-[36px] ",
-        iconsm: "flex justify-center p-[4px]",
+        "icon-sm": "flex justify-center p-[4px]",
         // fab = floating action button, used for the main action in a page.
         // it uses the same primary classNames for desktop size
         fab: "h-14 w-14 sm:h-9 sm:w-auto rounded-full justify-center sm:rounded-md sm:px-4 sm:py-2.5 radix-state-open:rotate-45 sm:radix-state-open:rotate-0 transition-transform radix-state-open:shadown-none radix-state-open:ring-0 !shadow-none",
@@ -193,7 +193,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
                 "inline-flex",
                 size === "icon"
                   ? "h-4 w-4 "
-                  : size === "iconsm"
+                  : size === "icon-sm"
                   ? "h-3 w-3"
                   : "h-4 w-4 stroke-[1.5px] ltr:mr-2 rtl:ml-2"
               )}
@@ -231,7 +231,7 @@ export const Button = forwardRef<HTMLAnchorElement | HTMLButtonElement, ButtonPr
                 "inline-flex",
                 size === "icon"
                   ? "h-4 w-4 "
-                  : size === "iconsm"
+                  : size === "icon-sm"
                   ? "h-3 w-3"
                   : "h-4 w-4 stroke-[1.5px] ltr:mr-2 rtl:ml-2"
               )}
