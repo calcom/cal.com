@@ -45,8 +45,8 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
                     consoleUrl: `<a href="https://go.cal.com/console" target="_blank" rel="noopener noreferrer" class="underline">
                 ${APP_NAME}
               </a>`,
-                    supportMail: `<a href="mailto:${SUPPORT_MAIL_ADDRESS}" class="underline">
-                ${SUPPORT_MAIL_ADDRESS}
+                    supportMail: `<a href="mailto:sales@cal.com" class="underline">
+                sales@cal.com
               </a>`,
                   })
                 ),
