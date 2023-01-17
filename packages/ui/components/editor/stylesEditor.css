@@ -34,7 +34,6 @@
   position: relative;
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
-  height: 200px;
   overflow: scroll;
   resize: vertical;
 }
@@ -45,7 +44,7 @@
   position: relative;
   tab-size: 1;
   outline: 0;
-  padding: 15px 10px;
+  padding: 10px 10px;
   outline: none
 }
 

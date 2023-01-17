@@ -12,6 +12,8 @@ import { RichTextPlugin } from "@lexical/react/LexicalRichTextPlugin";
 import { HeadingNode, QuoteNode } from "@lexical/rich-text";
 import { TableCellNode, TableNode, TableRowNode } from "@lexical/table";
 
+import { classNames } from "@calcom/lib";
+
 import ExampleTheme from "./ExampleTheme";
 import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
 import ToolbarPlugin from "./plugins/ToolbarPlugin";
@@ -29,6 +31,7 @@ export type TextEditorProps = {
   setText: (text: string) => void;
   excludedToolbarItems?: string[];
   variables?: string[];
+  height?: string;
 };
 
 const editorConfig = {
@@ -63,7 +66,7 @@ export const Editor = (props: TextEditorProps) => {
             excludedToolbarItems={props.excludedToolbarItems}
             variables={props.variables}
           />
-          <div className="editor-inner">
+          <div className={classNames(props.height ? props.height : "h-10", "editor-inner")}>
             <RichTextPlugin contentEditable={<ContentEditable className="editor-input" />} placeholder="" />
             <AutoFocusPlugin />
             <ListPlugin />
