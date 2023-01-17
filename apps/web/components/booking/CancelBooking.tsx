@@ -42,7 +42,7 @@ export default function CancelBooking(props: Props) {
             <Icon.FiX className="h-6 w-6 text-red-600" />
           </div>
           <div className="mt-3 text-center sm:mt-5">
-            <h3 className="text-lg font-medium leading-6 text-gray-900" id="modal-title">
+            <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white" id="modal-title">
               {error}
             </h3>
           </div>
