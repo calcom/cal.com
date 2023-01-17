@@ -1,3 +1,5 @@
+require("dotenv").config({ path: "../../.env" });
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -19,6 +21,14 @@ const nextConfig = {
     "@calcom/tsconfig",
     "@calcom/ui",
   ],
+  rewrites() {
+    return [
+      {
+        source: "/auth/:rest*",
+        destination: process.env.NEXT_PUBLIC_WEBAPP_URL + "/auth/:rest*",
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
