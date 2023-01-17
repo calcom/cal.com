@@ -16,6 +16,7 @@ import getEventTypeById from "@calcom/lib/getEventTypeById";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
+import { ssrInit } from "@calcom/lib/server/ssr";
 import prisma from "@calcom/prisma";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc, RouterOutputs } from "@calcom/trpc/react";
@@ -37,8 +38,6 @@ import { EventTeamTab } from "@components/eventtype/EventTeamTab";
 import { EventTeamWebhooksTab } from "@components/eventtype/EventTeamWebhooksTab";
 import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
 import EventWorkflowsTab from "@components/eventtype/EventWorkfowsTab";
-
-import { ssrInit } from "@server/lib/ssr";
 
 export type FormValues = {
   title: string;

@@ -3,6 +3,7 @@ import { useState } from "react";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { ssrInit } from "@calcom/lib/server/ssr";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
@@ -25,8 +26,6 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (

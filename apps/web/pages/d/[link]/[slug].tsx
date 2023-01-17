@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { privacyFilteredLocations, LocationObject } from "@calcom/core/location";
 import { parseRecurringEvent } from "@calcom/lib";
+import { ssrInit } from "@calcom/lib/server/ssr";
 import { availiblityPageEventTypeSelect } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -13,8 +14,6 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EmbedProps } from "@lib/withEmbedSsr";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
-
-import { ssrInit } from "@server/lib/ssr";
 
 export type DynamicAvailabilityPageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 

@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { ssrInit } from "@calcom/lib/server/ssr";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import {
   Button,
@@ -21,8 +22,6 @@ import {
 
 import { withQuery } from "@lib/QueryCell";
 import { nameOfDay } from "@lib/core/i18n/weekday";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (

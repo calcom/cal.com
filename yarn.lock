@@ -24590,6 +24590,11 @@ storybook-addon-next@^1.6.9:
     tsconfig-paths "^4.0.0"
     tsconfig-paths-webpack-plugin "^4.0.0"
 
+storybook-addon-rtl-direction@^0.0.19:
+  version "0.0.19"
+  resolved "https://registry.yarnpkg.com/storybook-addon-rtl-direction/-/storybook-addon-rtl-direction-0.0.19.tgz#b369bbb6f75fd87a9e6fad26e59616d6c7085277"
+  integrity sha512-0WPyRF0p+zlSqUj9f3HrTzTprSdmNvAmIaKeuH41B/lXP1zezMtxPa23pDepKe0y3+gV4PfsVo4wy07z0odGug==
+
 storybook-i18n@^1.1.2:
   version "1.1.4"
   resolved "https://registry.yarnpkg.com/storybook-i18n/-/storybook-i18n-1.1.4.tgz#f463287fa7d8c79c8283c4e7157c8557ebaf408f"

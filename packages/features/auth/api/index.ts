@@ -1,0 +1,15 @@
+export const authApiHandlers = {
+  default: import("./auth/next-auth"),
+  changepw: import("./auth/changepw"),
+  "forgot-password": import("./auth/forgot-password"),
+  "reset-password": import("./auth/reset-password"),
+  setup: import("./auth/setup"),
+  signup: import("./auth/signup"),
+  "two-factor/totp/disable": import("./auth/two-factor/totp/disable"),
+  "two-factor/totp/enable": import("./auth/two-factor/totp/enable"),
+  "two-factor/totp/setup": import("./auth/two-factor/totp/setup"),
+  "saml/authorize": import("./auth/saml/authorize"),
+  "saml/callback": import("./auth/saml/callback"),
+  "saml/token": import("./auth/saml/token"),
+  "saml/userinfo": import("./auth/saml/userinfo"),
+};

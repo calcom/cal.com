@@ -3,7 +3,7 @@ import { ChangeEventHandler, useState } from "react";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
 import { classNames } from "@calcom/lib";
-import { getSession } from "@calcom/lib/auth";
+import { getSession } from "@calcom/features/auth/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/client";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";

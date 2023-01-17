@@ -1,3 +1,4 @@
+export { AddToHomescreen } from "./components/add-to-homescreen";
 export { Avatar, AvatarGroup } from "./components/avatar";
 export type { AvatarProps, AvatarGroupProps } from "./components/avatar";
 export { Badge, UpgradeTeamsBadge } from "./components/badge";

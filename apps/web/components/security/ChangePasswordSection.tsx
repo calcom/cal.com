@@ -1,6 +1,6 @@
 import { SyntheticEvent, useState } from "react";
 
-import { ErrorCode } from "@calcom/lib/auth";
+import { ErrorCode } from "@calcom/features/auth/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, showToast } from "@calcom/ui";
 

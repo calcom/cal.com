@@ -3,13 +3,12 @@ import { useState } from "react";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { ssrInit } from "@calcom/lib/server/ssr";
 import { trpc } from "@calcom/trpc/react";
 import { Badge, Meta, Switch, SkeletonButton, SkeletonContainer, SkeletonText } from "@calcom/ui";
 
 import DisableTwoFactorModal from "@components/settings/DisableTwoFactorModal";
 import EnableTwoFactorModal from "@components/settings/EnableTwoFactorModal";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const SkeletonLoader = () => {
   return (

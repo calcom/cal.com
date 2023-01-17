@@ -5,10 +5,11 @@ import { signOut } from "next-auth/react";
 import { BaseSyntheticEvent, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { ErrorCode } from "@calcom/features/auth/lib";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
-import { ErrorCode } from "@calcom/lib/auth";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { ssrInit } from "@calcom/lib/server/ssr";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
@@ -37,8 +38,6 @@ import {
 
 import TwoFactor from "@components/auth/TwoFactor";
 import { UsernameAvailabilityField } from "@components/ui/UsernameAvailability";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (

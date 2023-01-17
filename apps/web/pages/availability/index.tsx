@@ -4,6 +4,7 @@ import { GetServerSidePropsContext } from "next";
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { ssrInit } from "@calcom/lib/server/ssr";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
 import { EmptyScreen, Icon, showToast } from "@calcom/ui";
 
@@ -11,8 +12,6 @@ import { withQuery } from "@lib/QueryCell";
 import { HttpError } from "@lib/core/http/error";
 
 import SkeletonLoader from "@components/availability/SkeletonLoader";
-
-import { ssrInit } from "@server/lib/ssr";
 
 export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availability"]["list"]) {
   const { t } = useLocale();

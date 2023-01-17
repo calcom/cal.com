@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { ssrInit } from "@calcom/lib/server/ssr";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
@@ -18,8 +19,6 @@ import {
   Switch,
   UpgradeTeamsBadge,
 } from "@calcom/ui";
-
-import { ssrInit } from "@server/lib/ssr";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (

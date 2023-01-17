@@ -2,7 +2,7 @@ import type { GetServerSidePropsContext } from "next";
 import type { Session } from "next-auth";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-import { getSession } from "@calcom/lib/auth";
+import { getSession } from "@calcom/features/auth/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getLocaleFromHeaders } from "@calcom/lib/i18n";
 import { defaultAvatarSrc } from "@calcom/lib/profile";

@@ -13,7 +13,7 @@ import { asStringOrNull } from "@calcom/web/lib/asStringOrNull";
 import { WEBAPP_URL } from "@calcom/web/lib/config/constants";
 import prisma from "@calcom/web/lib/prisma";
 import { IS_GOOGLE_LOGIN_ENABLED } from "@calcom/web/server/lib/constants";
-import { ssrInit } from "@calcom/web/server/lib/ssr";
+import { ssrInit } from "@calcom/lib/server/ssr";
 
 type FormValues = {
   username: string;

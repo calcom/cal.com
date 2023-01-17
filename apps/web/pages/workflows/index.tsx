@@ -1,6 +1,6 @@
 import { GetServerSidePropsContext } from "next";
 
-import { ssrInit } from "@server/lib/ssr";
+import { ssrInit } from "@calcom/lib/server/ssr";
 
 export { default } from "@calcom/features/ee/workflows/pages/index";
 

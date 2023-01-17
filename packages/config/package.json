@@ -6,6 +6,7 @@
   "license": "MIT",
   "files": [
     "eslint-preset.js",
+    "next-i18next.config.js",
     "prettier-preset.js"
   ],
   "dependencies": {

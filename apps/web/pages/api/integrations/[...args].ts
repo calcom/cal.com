@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import type { Session } from "next-auth";
 
 import getInstalledAppPath from "@calcom/app-store/_utils/getInstalledAppPath";
-import { getSession } from "@calcom/lib/auth";
+import { getSession } from "@calcom/features/auth/lib";
 import { deriveAppDictKeyFromType } from "@calcom/lib/deriveAppDictKeyFromType";
 import prisma from "@calcom/prisma";
 import type { AppDeclarativeHandler, AppHandler } from "@calcom/types/AppHandler";

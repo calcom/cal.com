@@ -2,6 +2,7 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { parseRecurringEvent } from "@calcom/lib";
+import { ssrInit } from "@calcom/lib/server/ssr";
 import prisma from "@calcom/prisma";
 import { bookEventTypeSelect } from "@calcom/prisma/selects";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -10,8 +11,6 @@ import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import BookingPage from "@components/booking/pages/BookingPage";
-
-import { ssrInit } from "@server/lib/ssr";
 
 export type HashLinkPageProps = inferSSRProps<typeof getServerSideProps>;
 

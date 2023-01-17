@@ -7,10 +7,9 @@ import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { ssrInit } from "@calcom/lib/server/ssr";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Icon, Meta } from "@calcom/ui";
-
-import { ssrInit } from "@server/lib/ssr";
 
 interface CtaRowProps {
   title: string;

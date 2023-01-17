@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
 import { fetcher } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
-import { getSession } from "@calcom/lib/auth";
+import { getSession } from "@calcom/features/auth/lib";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 
 const getAccessLinkSchema = z.union([

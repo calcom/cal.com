@@ -43,7 +43,7 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 import CancelBooking from "@components/booking/CancelBooking";
 import EventReservationSchema from "@components/schemas/EventReservationSchema";
 
-import { ssrInit } from "@server/lib/ssr";
+import { ssrInit } from "@calcom/lib/server/ssr";
 
 function redirectToExternalUrl(url: string) {
   window.parent.location.href = url;

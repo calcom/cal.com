@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
-import { getSession } from "@calcom/lib/auth";
+import { getSession } from "@calcom/features/auth/lib";
 import { defaultResponder } from "@calcom/lib/server";
 
 async function handler(req: NextApiRequest & { userId?: number }) {
