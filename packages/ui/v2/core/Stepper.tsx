@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+
 type DefaultStep = {
   title: string;
 };
@@ -10,13 +12,14 @@ function Stepper<T extends DefaultStep>(props: {
   steps: T[];
   disableSteps?: boolean;
 }) {
+  const { t } = useLocale();
   const { href, steps } = props;
   return (
     <>
       {steps.length > 1 && (
         <nav className="flex items-center justify-center" aria-label="Progress">
           <p className="text-sm font-medium">
-            Step {props.step} of {steps.length}
+            {t("current_step_of_total", { currentStep: props.step, maxSteps: steps.length })}
           </p>
           <ol role="list" className="ml-8 flex items-center space-x-5">
             {steps.map((mapStep, index) => (

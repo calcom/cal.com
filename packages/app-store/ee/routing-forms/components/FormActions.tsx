@@ -135,7 +135,7 @@ export const FormActionsDropdown = ({ form, children }: { form: RoutingForm; chi
   return (
     <dropdownCtx.Provider value={{ dropdown: true }}>
       <Dropdown>
-        <DropdownMenuTrigger asChild>
+        <DropdownMenuTrigger data-testid="form-dropdown" asChild>
           <Button
             type="button"
             size="icon"

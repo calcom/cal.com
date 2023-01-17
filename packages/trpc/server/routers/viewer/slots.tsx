@@ -135,6 +135,7 @@ async function getEventType(ctx: { prisma: typeof prisma }, input: z.infer<typeo
       },
       availability: {
         select: {
+          date: true,
           startTime: true,
           endTime: true,
           days: true,
@@ -282,7 +283,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
   }
 
   /* We get all users working hours and busy slots */
-  const usersWorkingHoursAndBusySlots = await Promise.all(
+  const userAvailability = await Promise.all(
     eventType.users.map(async (currentUser) => {
       const busy = await getBufferedBusyTimes({
         credentials: currentUser.credentials,
@@ -336,7 +337,7 @@ export async function getSchedule(input: z.infer<typeof getScheduleSchema>, ctx:
     getSlotsCount++;
 
     const userIsAvailable = (user: typeof eventType.users[number], time: Dayjs) => {
-      const schedule = usersWorkingHoursAndBusySlots.find((s) => s.user.id === user.id);
+      const schedule = userAvailability.find((s) => s.user.id === user.id);
       if (!schedule) return false;
       const start = performance.now();
       const available = checkIfIsAvailable({

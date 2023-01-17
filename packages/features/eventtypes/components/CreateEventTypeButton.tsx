@@ -34,6 +34,8 @@ import {
   TextField,
 } from "@calcom/ui";
 
+import { DuplicateDialog } from "./DuplicateDialog";
+
 // this describes the uniform data needed to create a new event type on Profile or Team
 export interface EventTypeParent {
   teamId: number | null | undefined; // if undefined, then it's a profile
@@ -149,18 +151,7 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
   };
 
   return (
-    <Dialog
-      name="new-eventtype"
-      clearQueryParamsOnClose={[
-        "eventPage",
-        "teamId",
-        "type",
-        "description",
-        "title",
-        "length",
-        "slug",
-        "locations",
-      ]}>
+    <>
       {!hasTeams || props.isIndividualTeam ? (
         <Button
           onClick={() => openModal(props.options[0])}
@@ -200,124 +191,140 @@ export default function CreateEventTypeButton(props: CreateEventTypeBtnProps) {
           </DropdownMenuContent>
         </Dropdown>
       )}
-
-      <DialogContent
-        type="creation"
-        className="overflow-y-auto"
-        title={teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
-        description={t("new_event_type_to_book_description")}>
-        <Form
-          form={form}
-          handleSubmit={(values) => {
-            createMutation.mutate(values);
-          }}>
-          <div className="mt-3 space-y-6">
-            {teamId && (
-              <TextField
-                type="hidden"
-                labelProps={{ style: { display: "none" } }}
-                {...register("teamId", { valueAsNumber: true })}
-                value={teamId}
-              />
-            )}
-            <TextField
-              label={t("title")}
-              placeholder={t("quick_chat")}
-              {...register("title")}
-              onChange={(e) => {
-                form.setValue("title", e?.target.value);
-                if (form.formState.touchedFields["slug"] === undefined) {
-                  form.setValue("slug", slugify(e?.target.value));
-                }
-              }}
-            />
-
-            {process.env.NEXT_PUBLIC_WEBSITE_URL !== undefined &&
-            process.env.NEXT_PUBLIC_WEBSITE_URL?.length >= 21 ? (
-              <TextField
-                label={`${t("url")}: ${process.env.NEXT_PUBLIC_WEBSITE_URL}`}
-                required
-                addOnLeading={<>/{pageSlug}/</>}
-                {...register("slug")}
-                onChange={(e) => {
-                  form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
-                }}
-              />
-            ) : (
-              <TextField
-                label={t("url")}
-                required
-                addOnLeading={
-                  <>
-                    {process.env.NEXT_PUBLIC_WEBSITE_URL}/{pageSlug}/
-                  </>
-                }
-                {...register("slug")}
-              />
-            )}
-
-            <TextAreaField
-              label={t("description")}
-              placeholder={t("quick_video_meeting")}
-              {...register("description")}
-            />
-
-            <div className="relative">
-              <TextField
-                type="number"
-                required
-                min="10"
-                placeholder="15"
-                label={t("length")}
-                className="pr-20"
-                {...register("length", { valueAsNumber: true })}
-                addOnSuffix={t("minutes")}
-              />
-            </div>
-
-            {teamId && (
-              <div className="mb-4">
-                <label htmlFor="schedulingType" className="block text-sm font-bold text-gray-700">
-                  {t("scheduling_type")}
-                </label>
-                {form.formState.errors.schedulingType && (
-                  <Alert
-                    className="mt-1"
-                    severity="error"
-                    message={form.formState.errors.schedulingType.message}
+      {/* Dialog for duplicate event type */}
+      {router.query.dialog === "duplicate-event-type" && <DuplicateDialog />}
+      {router.query.dialog === "new-eventtype" && (
+        <Dialog
+          name="new-eventtype"
+          clearQueryParamsOnClose={[
+            "eventPage",
+            "teamId",
+            "type",
+            "description",
+            "title",
+            "length",
+            "slug",
+            "locations",
+          ]}>
+          <DialogContent
+            type="creation"
+            className="overflow-y-auto"
+            title={teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
+            description={t("new_event_type_to_book_description")}>
+            <Form
+              form={form}
+              handleSubmit={(values) => {
+                createMutation.mutate(values);
+              }}>
+              <div className="mt-3 space-y-6">
+                {teamId && (
+                  <TextField
+                    type="hidden"
+                    labelProps={{ style: { display: "none" } }}
+                    {...register("teamId", { valueAsNumber: true })}
+                    value={teamId}
                   />
                 )}
-                <RadioArea.Group
-                  {...register("schedulingType")}
-                  onChange={(val) => form.setValue("schedulingType", val as SchedulingType)}
-                  className="relative mt-1 flex space-x-6 rounded-sm rtl:space-x-reverse">
-                  <RadioArea.Item
-                    value={SchedulingType.COLLECTIVE}
-                    defaultChecked={type === SchedulingType.COLLECTIVE}
-                    className="w-1/2 text-sm">
-                    <strong className="mb-1 block">{t("collective")}</strong>
-                    <p>{t("collective_description")}</p>
-                  </RadioArea.Item>
-                  <RadioArea.Item
-                    value={SchedulingType.ROUND_ROBIN}
-                    defaultChecked={type === SchedulingType.ROUND_ROBIN}
-                    className="w-1/2 text-sm">
-                    <strong className="mb-1 block">{t("round_robin")}</strong>
-                    <p>{t("round_robin_description")}</p>
-                  </RadioArea.Item>
-                </RadioArea.Group>
+                <TextField
+                  label={t("title")}
+                  placeholder={t("quick_chat")}
+                  {...register("title")}
+                  onChange={(e) => {
+                    form.setValue("title", e?.target.value);
+                    if (form.formState.touchedFields["slug"] === undefined) {
+                      form.setValue("slug", slugify(e?.target.value));
+                    }
+                  }}
+                />
+
+                {process.env.NEXT_PUBLIC_WEBSITE_URL !== undefined &&
+                process.env.NEXT_PUBLIC_WEBSITE_URL?.length >= 21 ? (
+                  <TextField
+                    label={`${t("url")}: ${process.env.NEXT_PUBLIC_WEBSITE_URL}`}
+                    required
+                    addOnLeading={<>/{pageSlug}/</>}
+                    {...register("slug")}
+                    onChange={(e) => {
+                      form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
+                    }}
+                  />
+                ) : (
+                  <TextField
+                    label={t("url")}
+                    required
+                    addOnLeading={
+                      <>
+                        {process.env.NEXT_PUBLIC_WEBSITE_URL}/{pageSlug}/
+                      </>
+                    }
+                    {...register("slug")}
+                  />
+                )}
+
+                <TextAreaField
+                  label={t("description")}
+                  placeholder={t("quick_video_meeting")}
+                  {...register("description")}
+                />
+
+                <div className="relative">
+                  <TextField
+                    type="number"
+                    required
+                    min="10"
+                    placeholder="15"
+                    label={t("length")}
+                    className="pr-20"
+                    {...register("length", { valueAsNumber: true })}
+                    addOnSuffix={t("minutes")}
+                  />
+                </div>
+
+                {teamId && (
+                  <div className="mb-4">
+                    <label htmlFor="schedulingType" className="block text-sm font-bold text-gray-700">
+                      {t("scheduling_type")}
+                    </label>
+                    {form.formState.errors.schedulingType && (
+                      <Alert
+                        className="mt-1"
+                        severity="error"
+                        message={form.formState.errors.schedulingType.message}
+                      />
+                    )}
+                    <RadioArea.Group
+                      {...register("schedulingType")}
+                      onChange={(val) => form.setValue("schedulingType", val as SchedulingType)}
+                      className="relative mt-1 flex space-x-6 rounded-sm rtl:space-x-reverse">
+                      <RadioArea.Item
+                        value={SchedulingType.COLLECTIVE}
+                        defaultChecked={type === SchedulingType.COLLECTIVE}
+                        className="w-1/2 text-sm">
+                        <strong className="mb-1 block">{t("collective")}</strong>
+                        <p>{t("collective_description")}</p>
+                      </RadioArea.Item>
+                      <RadioArea.Item
+                        value={SchedulingType.ROUND_ROBIN}
+                        defaultChecked={type === SchedulingType.ROUND_ROBIN}
+                        className="w-1/2 text-sm">
+                        <strong className="mb-1 block">{t("round_robin")}</strong>
+                        <p>{t("round_robin_description")}</p>
+                      </RadioArea.Item>
+                    </RadioArea.Group>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          <div className="mt-8 flex flex-row-reverse gap-x-2">
-            <Button type="submit" loading={createMutation.isLoading}>
-              {t("continue")}
-            </Button>
-            <DialogClose />
-          </div>
-        </Form>
-      </DialogContent>
-    </Dialog>
+              <div className="mt-8 flex flex-row-reverse gap-x-2">
+                <Button type="submit" loading={createMutation.isLoading}>
+                  {t("continue")}
+                </Button>
+                <DialogClose />
+              </div>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      )}
+    </>
   );
 }
 

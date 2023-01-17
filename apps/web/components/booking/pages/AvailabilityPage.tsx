@@ -14,6 +14,7 @@ import dayjs, { Dayjs } from "@calcom/dayjs";
 import {
   useEmbedNonStylesConfig,
   useEmbedStyles,
+  useEmbedUiConfig,
   useIsBackgroundTransparent,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
@@ -286,6 +287,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   useTheme(profile.theme);
   const { t } = useLocale();
   const availabilityDatePickerEmbedStyles = useEmbedStyles("availabilityDatePicker");
+  //TODO: Plan to remove shouldAlignCentrallyInEmbed config
   const shouldAlignCentrallyInEmbed = useEmbedNonStylesConfig("align") !== "left";
   const shouldAlignCentrally = !isEmbed || shouldAlignCentrallyInEmbed;
   const isBackgroundTransparent = useIsBackgroundTransparent();
@@ -323,7 +325,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
       );
     }
   }, [telemetry]);
-
+  const embedUiConfig = useEmbedUiConfig();
   // get dynamic user list here
   const userList = eventType.users ? eventType.users.map((user) => user.username).filter(notEmpty) : [];
 
@@ -335,6 +337,8 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
   const rainbowAppData = getEventTypeAppData(eventType, "rainbow") || {};
   const rawSlug = profile.slug ? profile.slug.split("/") : [];
   if (rawSlug.length > 1) rawSlug.pop(); //team events have team name as slug, but user events have [user]/[type] as slug.
+
+  const showEventTypeDetails = (isEmbed && !embedUiConfig.hideEventTypeDetails) || !isEmbed;
 
   // Define conditional gates here
   const gates = [
@@ -369,7 +373,7 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
       <div>
         <main
           className={classNames(
-            "flex-col md:mx-4 lg:flex",
+            "flex-col md:mx-4 md:flex",
             shouldAlignCentrally ? "items-center" : "items-start",
             !isEmbed && classNames("mx-auto my-0 ease-in-out md:my-24")
           )}>
@@ -384,54 +388,55 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                 isEmbed && "mx-auto"
               )}>
               <div className="overflow-hidden md:flex">
-                <div
-                  className={classNames(
-                    "sm:dark:border-darkgray-200 flex flex-col border-gray-200 p-5 sm:border-r",
-                    "min-w-full md:w-[230px] md:min-w-[230px]",
-                    recurringEventCount && "xl:w-[380px] xl:min-w-[380px]"
-                  )}>
-                  <BookingDescription profile={profile} eventType={eventType} rescheduleUid={rescheduleUid}>
-                    {!rescheduleUid && eventType.recurringEvent && (
-                      <div className="flex items-start text-sm font-medium">
-                        <Icon.FiRefreshCcw className="float-left mr-[10px] mt-[7px] ml-[2px] inline-block h-4 w-4 " />
-                        <div>
-                          <p className="mb-1 -ml-2 inline px-2 py-1">
-                            {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
-                          </p>
-                          <input
-                            type="number"
-                            min="1"
-                            max={eventType.recurringEvent.count}
-                            className="w-15 dark:bg-darkgray-200 h-7 rounded-sm border-gray-300 bg-white text-sm font-medium [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500"
-                            defaultValue={eventType.recurringEvent.count}
-                            onChange={(event) => {
-                              setRecurringEventCount(parseInt(event?.target.value));
-                            }}
-                          />
-                          <p className="inline">
-                            {t("occurrence", {
-                              count: recurringEventCount,
-                            })}
-                          </p>
+                {showEventTypeDetails && (
+                  <div
+                    className={classNames(
+                      "sm:dark:border-darkgray-200 flex flex-col border-gray-200 p-5 sm:border-r",
+                      "min-w-full md:w-[230px] md:min-w-[230px]",
+                      recurringEventCount && "xl:w-[380px] xl:min-w-[380px]"
+                    )}>
+                    <BookingDescription profile={profile} eventType={eventType} rescheduleUid={rescheduleUid}>
+                      {!rescheduleUid && eventType.recurringEvent && (
+                        <div className="flex items-start text-sm font-medium">
+                          <Icon.FiRefreshCcw className="float-left mr-[10px] mt-[7px] ml-[2px] inline-block h-4 w-4 " />
+                          <div>
+                            <p className="mb-1 -ml-2 inline px-2 py-1">
+                              {getRecurringFreq({ t, recurringEvent: eventType.recurringEvent })}
+                            </p>
+                            <input
+                              type="number"
+                              min="1"
+                              max={eventType.recurringEvent.count}
+                              className="w-15 dark:bg-darkgray-200 h-7 rounded-sm border-gray-300 bg-white text-sm font-medium [appearance:textfield] ltr:mr-2 rtl:ml-2 dark:border-gray-500"
+                              defaultValue={eventType.recurringEvent.count}
+                              onChange={(event) => {
+                                setRecurringEventCount(parseInt(event?.target.value));
+                              }}
+                            />
+                            <p className="inline">
+                              {t("occurrence", {
+                                count: recurringEventCount,
+                              })}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    {stripeAppData.price > 0 && (
-                      <p className="-ml-2 px-2 text-sm font-medium">
-                        <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
-                        <IntlProvider locale="en">
-                          <FormattedNumber
-                            value={stripeAppData.price / 100.0}
-                            style="currency"
-                            currency={stripeAppData.currency.toUpperCase()}
-                          />
-                        </IntlProvider>
-                      </p>
-                    )}
-                    {timezoneDropdown}
-                  </BookingDescription>
+                      )}
+                      {stripeAppData.price > 0 && (
+                        <p className="-ml-2 px-2 text-sm font-medium">
+                          <Icon.FiCreditCard className="mr-[10px] ml-[2px] -mt-1 inline-block h-4 w-4" />
+                          <IntlProvider locale="en">
+                            <FormattedNumber
+                              value={stripeAppData.price / 100.0}
+                              style="currency"
+                              currency={stripeAppData.currency.toUpperCase()}
+                            />
+                          </IntlProvider>
+                        </p>
+                      )}
+                      {timezoneDropdown}
+                    </BookingDescription>
 
-                  {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
+                    {/* Temporarily disabled - booking?.startTime && rescheduleUid && (
                     <div>
                       <p
                         className="mt-4 mb-3 text-gray-600 dark:text-darkgray-600"
@@ -444,7 +449,8 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                       </p>
                     </div>
                   )*/}
-                </div>
+                  </div>
+                )}
                 <SlotPicker
                   weekStart={weekStart}
                   eventType={eventType}
@@ -458,7 +464,8 @@ const AvailabilityPage = ({ profile, eventType, ...restProps }: Props) => {
                 />
               </div>
             </div>
-            {(!restProps.isBrandingHidden || isEmbed) && <PoweredByCal />}
+            {/* FIXME: We don't show branding in Embed yet because we need to place branding on top of the main content. Keeping it outside the main content would have visibility issues because outside main content background is transparent */}
+            {!restProps.isBrandingHidden && !isEmbed && <PoweredByCal />}
           </div>
         </main>
       </div>
