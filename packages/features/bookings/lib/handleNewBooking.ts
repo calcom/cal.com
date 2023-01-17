@@ -508,7 +508,7 @@ async function handler(req: NextApiRequest & { userId?: number | undefined }) {
 
   const teamMembers = await Promise.all(teamMemberPromises);
 
-  const attendeesList = [...invitee, ...guests, ...teamMembers];
+  const attendeesList = [...invitee, ...guests];
 
   const eventNameObject = {
     attendeeName: reqBody.name || "Nameless",

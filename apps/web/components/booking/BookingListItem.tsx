@@ -45,6 +45,7 @@ function BookingListItem(booking: BookingItemProps) {
   // Get user so we can determine 12/24 hour format preferences
   const query = useMeQuery();
   const user = query.data;
+  console.log("🚀 ~ file: BookingListItem.tsx:48 ~ BookingListItem ~ user", user);
   const { t } = useLocale();
   const utils = trpc.useContext();
   const router = useRouter();
@@ -377,8 +378,15 @@ function BookingListItem(booking: BookingItemProps) {
             )}
             {booking.attendees.length !== 0 && (
               <DisplayAttendees
-                attendees={booking.attendees}
-                user={booking.user}
+                attendees={[
+                  ...booking.attendees,
+                  ...booking.user.reduce((memberArray, userEntry) => {
+                    if (userEntry.email !== user?.email)
+                      memberArray.push({ name: userEntry.name || "Nameless", email: userEntry.email });
+                    return memberArray;
+                  }, [] as AttendeeProps[]),
+                ]}
+                user={booking.user.find((userEntry) => userEntry.email === user?.email) || booking.user[0]}
                 currentEmail={user?.email}
               />
             )}
