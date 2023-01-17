@@ -367,6 +367,7 @@ const ProfileForm = ({
         <Editor
           getText={() => formMethods.getValues("bio")}
           setText={(value: string) => formMethods.setValue("bio", value)}
+          excludedToolbarItems={["blockType"]}
         />
       </div>
       <Button disabled={isDisabled} color="primary" className="mt-8" type="submit">
