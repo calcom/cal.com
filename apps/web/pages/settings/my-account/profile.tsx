@@ -366,7 +366,7 @@ const ProfileForm = ({
       <div className="mt-8">
         <Editor
           getText={() => formMethods.getValues("bio")}
-          setText={(value: string) => formMethods.setValue("bio", value)}
+          setText={(value: string) => formMethods.setValue("bio", value, { shouldDirty: true })}
           excludedToolbarItems={["blockType"]}
         />
       </div>
