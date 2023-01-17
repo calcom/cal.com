@@ -10,6 +10,7 @@ import { Icon } from "@calcom/ui";
 
 type InferredVariantProps = VariantProps<typeof buttonClasses>;
 
+export type ButtonColor = NonNullable<InferredVariantProps["color"]>;
 export type ButtonBaseProps = {
   /** Action that happens when the button is clicked */
   onClick?: (event: React.MouseEvent<HTMLElement, MouseEvent>) => void;
@@ -22,7 +23,7 @@ export type ButtonBaseProps = {
   tooltip?: string;
   flex?: boolean;
 } & Omit<InferredVariantProps, "color"> & {
-    color?: NonNullable<InferredVariantProps["color"]>;
+    color?: ButtonColor;
   };
 
 export type ButtonProps = ButtonBaseProps &
