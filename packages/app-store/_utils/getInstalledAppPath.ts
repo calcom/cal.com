@@ -1,6 +1,14 @@
 import z from "zod";
 
-import { InstalledAppVariants } from "../utils";
+const InstalledAppVariants = [
+  "conferencing",
+  "calendar",
+  "payment",
+  "analytics",
+  "automation",
+  "other",
+  "web3",
+] as const;
 
 const variantSchema = z.enum(InstalledAppVariants);
 
