@@ -50,8 +50,6 @@ const buttonClasses = cva(
         sm: "px-3 py-2 leading-4 rounded-sm" /** For backwards compatibility */,
         base: "h-9 px-4 py-2.5 ",
         lg: "h-[36px] px-4 py-2.5 ",
-        // fab = floating action button, used for the main action in a page.
-        // it uses the same primary classNames for desktop size
       },
       loading: {
         true: "cursor-wait",
@@ -135,6 +133,7 @@ const buttonClasses = cva(
         className:
           "border dark:text-white text-gray-900 hover:text-red-700 focus:text-red-700 dark:hover:text-red-700 dark:focus:text-red-700 hover:border-red-100 focus:border-red-100 hover:bg-red-100  focus:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset focus:ring-red-700",
       }),
+      // https://github.com/joe-bell/cva/issues/95 created an issue about using !p-2 on the icon variants as i would expect this to take priority
       {
         variant: "icon",
         size: "base",
@@ -143,7 +142,7 @@ const buttonClasses = cva(
       {
         variant: "icon",
         size: "sm",
-        className: "h-6 w-6 !p-2",
+        className: "h-6 w-6 !p-1",
       },
     ],
     defaultVariants: {
