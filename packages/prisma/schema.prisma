@@ -111,6 +111,7 @@ model Credential {
   appId                String?
   destinationCalendars DestinationCalendar[]
   invalid              Boolean?              @default(false)
+  bookingReferences    BookingReference[]
 }
 
 enum IdentityProvider {
@@ -249,7 +250,7 @@ model VerificationToken {
 }
 
 model BookingReference {
-  id                 Int      @id @default(autoincrement())
+  id                 Int         @id @default(autoincrement())
   /// @zod.min(1)
   type               String
   /// @zod.min(1)
@@ -257,11 +258,12 @@ model BookingReference {
   meetingId          String?
   meetingPassword    String?
   meetingUrl         String?
-  booking            Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  booking            Booking?    @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   bookingId          Int?
   externalCalendarId String?
   deleted            Boolean?
   credentialId       Int?
+  credential         Credential? @relation(fields: [credentialId], references: [id])
 }
 
 model Attendee {
