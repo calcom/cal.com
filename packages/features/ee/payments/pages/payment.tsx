@@ -4,9 +4,8 @@ import { z } from "zod";
 import { PaymentData } from "@calcom/app-store/stripepayment/lib/server";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { ssrInit } from "@calcom/trpc/server/ssr";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-
-import { ssrInit } from "@calcom/lib/server/ssr";
 
 export type PaymentPageProps = inferSSRProps<typeof getServerSideProps>;
 

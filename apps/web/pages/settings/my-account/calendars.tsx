@@ -8,8 +8,8 @@ import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIn
 import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ssrInit } from "@calcom/lib/server/ssr";
 import { trpc } from "@calcom/trpc/react";
+import { ssrInit } from "@calcom/trpc/server/ssr";
 import {
   Alert,
   Badge,

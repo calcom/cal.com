@@ -13,15 +13,13 @@ import { isSAMLLoginEnabled, samlProductID, samlTenantID } from "@calcom/feature
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ssrInit } from "@calcom/lib/server/ssr";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
+import { ssrInit } from "@calcom/trpc/server/ssr";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { Alert, Button, EmailField, Icon, PasswordField } from "@calcom/ui";
+import { AddToHomescreen, Alert, Button, EmailField, Icon, PasswordField } from "@calcom/ui";
 // TODO: Fix this import
 import { IS_GOOGLE_LOGIN_ENABLED } from "@calcom/web/server/lib/constants";
-
-import AddToHomescreen from "@components/AddToHomescreen";
 
 import AuthContainer from "../components/AuthContainer";
 import TwoFactor from "../components/TwoFactor";

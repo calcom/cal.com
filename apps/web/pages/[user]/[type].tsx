@@ -62,7 +62,7 @@ Type.isThemeSupported = true;
 
 async function getUserPageProps(context: GetStaticPropsContext) {
   const { type: slug, user: username } = paramsSchema.parse(context.params);
-  const { ssgInit } = await import("@server/lib/ssg");
+  const { ssgInit } = await import("@calcom/trpc/server/ssg");
   const ssg = await ssgInit(context);
   const user = await prisma.user.findUnique({
     where: {
@@ -186,7 +186,7 @@ async function getUserPageProps(context: GetStaticPropsContext) {
 }
 
 async function getDynamicGroupPageProps(context: GetStaticPropsContext) {
-  const { ssgInit } = await import("@server/lib/ssg");
+  const { ssgInit } = await import("@calcom/trpc/server/ssg");
   const ssg = await ssgInit(context);
   const { type: typeParam, user: userParam } = paramsSchema.parse(context.params);
   const usernameList = getUsernameList(userParam);

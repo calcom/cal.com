@@ -22,11 +22,11 @@ import defaultEvents, {
 } from "@calcom/lib/defaultEvents";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import { ssrInit } from "@calcom/lib/server/ssr";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import prisma from "@calcom/prisma";
 import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { ssrInit } from "@calcom/trpc/server/ssr";
 import { Icon, HeadSeo, AvatarGroup } from "@calcom/ui";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";

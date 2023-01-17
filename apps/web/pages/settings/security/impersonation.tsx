@@ -3,8 +3,8 @@ import { useForm } from "react-hook-form";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ssrInit } from "@calcom/lib/server/ssr";
 import { trpc } from "@calcom/trpc/react";
+import { ssrInit } from "@calcom/trpc/server/ssr";
 import { Button, Form, Label, Meta, showToast, Skeleton, Switch } from "@calcom/ui";
 
 const ProfileImpersonationView = () => {

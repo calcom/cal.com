@@ -3,7 +3,7 @@ import { signIn } from "next-auth/react";
 import { useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ssrInit } from "@calcom/lib/server/ssr";
+import { ssrInit } from "@calcom/trpc/server/ssr";
 import { Button, Meta, TextField } from "@calcom/ui";
 
 import { getLayout } from "@components/auth/layouts/AdminLayout";

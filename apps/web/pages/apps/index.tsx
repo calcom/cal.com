@@ -2,10 +2,11 @@ import { GetServerSidePropsContext } from "next";
 import { ChangeEventHandler, useState } from "react";
 
 import { getAppRegistry, getAppRegistryWithCredentials } from "@calcom/app-store/_appRegistry";
-import { classNames } from "@calcom/lib";
 import { getSession } from "@calcom/features/auth/lib";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/client";
+import { ssgInit } from "@calcom/trpc/server/ssg";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import {
   AllApps,
@@ -18,8 +19,6 @@ import {
 } from "@calcom/ui";
 
 import AppsLayout from "@components/apps/layouts/AppsLayout";
-
-import { ssgInit } from "@server/lib/ssg";
 
 const tabs: HorizontalTabItemProps[] = [
   {

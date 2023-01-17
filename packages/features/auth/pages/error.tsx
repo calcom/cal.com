@@ -4,9 +4,8 @@ import { useRouter } from "next/router";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { ssgInit } from "@calcom/trpc/server/ssg";
 import { Button, Icon, SkeletonText } from "@calcom/ui";
-
-import { ssgInit } from "@server/lib/ssg";
 
 import AuthContainer from "../components/AuthContainer";
 

@@ -3,8 +3,8 @@ import { useRouter } from "next/router";
 
 import RoutingFormsRoutingConfig from "@calcom/app-store/ee/routing-forms/pages/app-routing.config";
 import TypeformRoutingConfig from "@calcom/app-store/typeform/pages/app-routing.config";
-import { ssrInit } from "@calcom/lib/server/ssr";
 import prisma from "@calcom/prisma";
+import { ssrInit } from "@calcom/trpc/server/ssr";
 import { AppGetServerSideProps } from "@calcom/types/AppGetServerSideProps";
 
 import { AppProps } from "@lib/app-providers";

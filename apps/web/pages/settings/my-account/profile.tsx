@@ -9,10 +9,10 @@ import { ErrorCode } from "@calcom/features/auth/lib";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ssrInit } from "@calcom/lib/server/ssr";
 import { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import { AppRouter } from "@calcom/trpc/server/routers/_app";
+import { ssrInit } from "@calcom/trpc/server/ssr";
 import {
   Alert,
   Avatar,

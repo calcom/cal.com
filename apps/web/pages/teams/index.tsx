@@ -4,7 +4,7 @@ import { TeamsListing } from "@calcom/features/ee/teams/components";
 import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ssrInit } from "@calcom/lib/server/ssr";
+import { ssrInit } from "@calcom/trpc/server/ssr";
 import { Button, Icon } from "@calcom/ui";
 
 function Teams() {

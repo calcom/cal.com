@@ -1,6 +1,6 @@
 import { GetServerSidePropsContext } from "next";
 
-import { ssrInit } from "@calcom/lib/server/ssr";
+import { ssrInit } from "@calcom/trpc/server/ssr";
 
 export { default } from "@calcom/features/ee/sso/page/user-sso-view";
 

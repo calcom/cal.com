@@ -3,7 +3,7 @@ import Head from "next/head";
 
 import { CreateANewTeamForm } from "@calcom/features/ee/teams/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ssrInit } from "@calcom/lib/server/ssr";
+import { ssrInit } from "@calcom/trpc/server/ssr";
 
 import { getLayout } from "@components/layouts/WizardLayout";
 

@@ -5,11 +5,10 @@ import { useEffect } from "react";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { ssrInit } from "@calcom/trpc/server/ssr";
 import { Button, Icon } from "@calcom/ui";
 
 import { inferSSRProps } from "@lib/types/inferSSRProps";
-
-import { ssrInit } from "@calcom/lib/server/ssr";
 
 import AuthContainer from "../components/AuthContainer";
 

@@ -4,11 +4,10 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 import { COMPANY_NAME, DEVELOPER_DOCS, DOCS_URL, JOIN_SLACK, WEBSITE_URL } from "@calcom/lib/constants";
+import { ssgInit } from "@calcom/trpc/server/ssg";
 import { Icon, HeadSeo } from "@calcom/ui";
 
 import { useLocale } from "@lib/hooks/useLocale";
-
-import { ssgInit } from "@server/lib/ssg";
 
 export default function Custom404() {
   const { t } = useLocale();

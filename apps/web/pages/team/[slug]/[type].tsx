@@ -4,6 +4,7 @@ import { privacyFilteredLocations, LocationObject } from "@calcom/core/location"
 import { parseRecurringEvent } from "@calcom/lib";
 import prisma from "@calcom/prisma";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { ssgInit } from "@calcom/trpc/server/ssg";
 
 import { asStringOrNull } from "@lib/asStringOrNull";
 import { getWorkingHours } from "@lib/availability";
@@ -12,8 +13,6 @@ import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EmbedProps } from "@lib/withEmbedSsr";
 
 import AvailabilityPage from "@components/booking/pages/AvailabilityPage";
-
-import { ssgInit } from "@server/lib/ssg";
 
 export type AvailabilityTeamPageProps = inferSSRProps<typeof getServerSideProps> & EmbedProps;
 

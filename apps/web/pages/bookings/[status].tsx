@@ -9,14 +9,13 @@ import BookingLayout from "@calcom/features/bookings/layout/BookingLayout";
 import { filterQuerySchema, useFilterQuery } from "@calcom/features/bookings/lib/useFilterQuery";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { RouterOutputs, trpc } from "@calcom/trpc/react";
+import { ssgInit } from "@calcom/trpc/server/ssg";
 import { Alert, Button, EmptyScreen, Icon } from "@calcom/ui";
 
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
 import BookingListItem from "@components/booking/BookingListItem";
 import SkeletonLoader from "@components/booking/SkeletonLoader";
-
-import { ssgInit } from "@server/lib/ssg";
 
 type BookingListingStatus = z.infer<typeof filterQuerySchema>["status"];
 type BookingOutput = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][0];

@@ -15,9 +15,9 @@ import {
 } from "@calcom/features/ee/sso/lib/saml";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import prisma from "@calcom/prisma";
-import { inferSSRProps } from "@calcom/types/inferSSRProps";
 // TODO: Fix this import
-import { ssrInit } from "@calcom/lib/server/ssr";
+import { ssrInit } from "@calcom/trpc/server/ssr";
+import { inferSSRProps } from "@calcom/types/inferSSRProps";
 
 import { getSession } from "../../lib";
 

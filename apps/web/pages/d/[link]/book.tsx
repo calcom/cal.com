@@ -2,10 +2,10 @@ import { GetServerSidePropsContext } from "next";
 import { JSONObject } from "superjson/dist/types";
 
 import { parseRecurringEvent } from "@calcom/lib";
-import { ssrInit } from "@calcom/lib/server/ssr";
 import prisma from "@calcom/prisma";
 import { bookEventTypeSelect } from "@calcom/prisma/selects";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { ssrInit } from "@calcom/trpc/server/ssr";
 
 import { asStringOrNull, asStringOrThrow } from "@lib/asStringOrNull";
 import { inferSSRProps } from "@lib/types/inferSSRProps";

@@ -8,8 +8,8 @@ import ApiKeyListItem from "@calcom/features/ee/api-keys/components/ApiKeyListIt
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ssrInit } from "@calcom/lib/server/ssr";
 import { trpc } from "@calcom/trpc/react";
+import { ssrInit } from "@calcom/trpc/server/ssr";
 import {
   Button,
   Dialog,

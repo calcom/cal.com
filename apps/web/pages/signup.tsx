@@ -7,13 +7,13 @@ import LicenseRequired from "@calcom/features/ee/common/components/v2/LicenseReq
 import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { ssrInit } from "@calcom/trpc/server/ssr";
 import { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Alert, Button, EmailField, PasswordField, TextField, HeadSeo } from "@calcom/ui";
 import { asStringOrNull } from "@calcom/web/lib/asStringOrNull";
 import { WEBAPP_URL } from "@calcom/web/lib/config/constants";
 import prisma from "@calcom/web/lib/prisma";
 import { IS_GOOGLE_LOGIN_ENABLED } from "@calcom/web/server/lib/constants";
-import { ssrInit } from "@calcom/lib/server/ssr";
 
 type FormValues = {
   username: string;

@@ -2,7 +2,7 @@ import { GetServerSidePropsContext } from "next";
 
 import AdminAppsList from "@calcom/features/apps/AdminAppsList";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ssrInit } from "@calcom/lib/server/ssr";
+import { ssrInit } from "@calcom/trpc/server/ssr";
 import { Meta } from "@calcom/ui";
 
 import { getLayout } from "@components/auth/layouts/AdminLayout";

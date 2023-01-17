@@ -10,11 +10,11 @@ import nodemailer, { TransportOptions } from "nodemailer";
 import { authenticator } from "otplib";
 import path from "path";
 
+import { ErrorCode, isPasswordValid, verifyPassword } from "@calcom/features/auth/lib";
+import CalComAdapter from "@calcom/features/auth/lib/next-auth-custom-adapter";
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
-import { ErrorCode, isPasswordValid, verifyPassword } from "@calcom/features/auth/lib";
-import CalComAdapter from "@calcom/features/auth/lib/next-auth-custom-adapter";
 import { APP_NAME, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";

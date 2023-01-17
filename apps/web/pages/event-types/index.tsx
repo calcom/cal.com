@@ -11,8 +11,8 @@ import {
 import Shell from "@calcom/features/shell/Shell";
 import { APP_NAME, CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ssrInit } from "@calcom/lib/server/ssr";
 import { RouterOutputs, trpc, TRPCClientError } from "@calcom/trpc/react";
+import { ssrInit } from "@calcom/trpc/server/ssr";
 import {
   Badge,
   Button,
