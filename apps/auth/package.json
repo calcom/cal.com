@@ -11,6 +11,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@calcom/features": "*",
     "@auth/core": "^0.1.4",
     "@types/node": "18.11.15",
     "@types/react": "18.0.26",
