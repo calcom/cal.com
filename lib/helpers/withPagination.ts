@@ -16,7 +16,7 @@ const withPage = z.object({
 
 export const withPagination: NextMiddleware = async (req, _, next) => {
   const { page, take } = withPage.parse(req.query);
-  const skip = page * take || 0;
+  const skip = (page - 1) * take;
   req.pagination = {
     take,
     skip,
