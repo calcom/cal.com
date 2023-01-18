@@ -61,7 +61,7 @@ export const getStaticProps = async (ctx: GetStaticPropsContext) => {
   if (typeof ctx.params?.slug !== "string") return { notFound: true };
 
   const app = await prisma.app.findUnique({
-    where: { slug: ctx.params.slug },
+    where: { slug: ctx.params.slug.toLowerCase() },
   });
 
   if (!app) return { notFound: true };
