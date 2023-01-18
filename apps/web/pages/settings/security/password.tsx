@@ -88,13 +88,6 @@ const PasswordView = () => {
     value: mins,
   }));
 
-  console.log({
-    isSubmitting: formMethods.formState.isSubmitting,
-    isDirty: formMethods.formState.isDirty,
-    sessionLoading: sessionMutation.isLoading,
-    passwordLoading: passwordMutation.isLoading,
-  });
-
   const isDisabled = formMethods.formState.isSubmitting || !formMethods.formState.isDirty;
 
   return (
