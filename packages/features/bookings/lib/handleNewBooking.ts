@@ -105,7 +105,7 @@ const isWithinAvailableHours = (
   const timeSlotEnd = dayjs(timeSlot.end).utc();
 
   const dayDateOverrides = dateOverrides.filter((override) =>
-    dayjs(override.start).isSame(timeSlotStart, "day")
+    dayjs.utc(override.start).isSame(timeSlotStart, "day")
   );
   if (!!dayDateOverrides.length) {
     for (const override of dayDateOverrides) {
