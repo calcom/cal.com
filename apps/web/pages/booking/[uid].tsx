@@ -195,7 +195,7 @@ export default function Success(props: SuccessProps) {
     console.error(`No location found `);
   }
 
-  const email = props.bookingInfo?.user?.email;
+  const email = props.bookingInfo?.user[0]?.email;
   const status = props.bookingInfo?.status;
   const reschedule = props.bookingInfo.status === BookingStatus.ACCEPTED;
   const cancellationReason = props.bookingInfo.cancellationReason;
@@ -344,7 +344,7 @@ export default function Success(props: SuccessProps) {
           eventName={eventName}
           startTime={bookingInfo.startTime}
           endTime={bookingInfo.endTime}
-          organizer={bookingInfo.user}
+          organizer={bookingInfo.user[0]}
           attendees={bookingInfo.attendees}
           location={locationToDisplay}
           description={bookingInfo.description}
@@ -468,8 +468,8 @@ export default function Success(props: SuccessProps) {
                           <>
                             {bookingInfo?.user && (
                               <div className="mb-3">
-                                <p>{bookingInfo.user.name}</p>
-                                <p className="text-bookinglight">{bookingInfo.user.email}</p>
+                                <p>{bookingInfo.user[0].name}</p>
+                                <p className="text-bookinglight">{bookingInfo.user[0].email}</p>
                               </div>
                             )}
                             {bookingInfo?.attendees.map((attendee) => (
@@ -478,6 +478,16 @@ export default function Success(props: SuccessProps) {
                                 <p className="text-bookinglight">{attendee.email}</p>
                               </div>
                             ))}
+                            {bookingInfo?.user.map((user, index) => {
+                              if (index !== 0) {
+                                return (
+                                  <div className="mb-3" key={user.id}>
+                                    <p>{user.name}</p>
+                                    <p className="text-bookinglight">{user.email}</p>
+                                  </div>
+                                );
+                              }
+                            })}
                           </>
                         </div>
                       </>
