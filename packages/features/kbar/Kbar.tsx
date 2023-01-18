@@ -209,14 +209,6 @@ export const KBarRoot = ({ children }: { children: React.ReactNode }) => {
       perform: () => router.push("/settings/security/impersonation"),
     },
     {
-      id: "session",
-      name: "session_description",
-      section: "security",
-      shortcut: ["u", "s"],
-      keywords: "session",
-      perform: () => router.push("/settings/security/session"),
-    },
-    {
       id: "webhooks",
       name: "Webhooks",
       section: "developer",
