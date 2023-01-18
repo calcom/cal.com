@@ -165,9 +165,9 @@ ${getLocation(calEvent)}
 Coaching time is valuable. Please send your coach a message letting them know you're late. Your coach will wait for up to 10 minutes for you to arrive before considering it a <a href="${cancelationPolicyURL}" target="_blank">missed session</a>.
 
 <b>Can't make it?</b>
-📆 <a href="${getCancelLink(
+📆 <a href="${getRescheduleLink(calEvent)}" target="_blank">Reschedule</a> or <a href="${getCancelLink(
     calEvent
-  )}" target="_blank">Reschedule or cancel this session</a> you can reschedule or cancel your session up to 48 hours before the session time. If you need to cancel within 24hrs or missed a session, please read our <a href="${cancelationPolicyURL}" target="_blank">cancelation policy</a>.
+  )}" target="_blank">cancel</a> this session up to 48 hours before the session time. If you need to cancel within 24hrs or missed a session, please read our <a href="${cancelationPolicyURL}" target="_blank">cancelation policy</a>.
 
 <a href="${appUrl}/coaching" target="_blank">See and manage my Coaching Sessions</a> - <a href="${appUrl}" target="_blank">Go to my Mento dashboard</a>
 

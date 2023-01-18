@@ -255,13 +255,14 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     for (const booking of allUpdatedBookings) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
-      const evt: CalendarEvent = {
+      const deleteEvt: CalendarEvent = {
+        ...evt,
         uid: booking?.uid,
       };
 
       const promises = webhooks.map((webhook) =>
         sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
-          ...evt,
+          ...deleteEvt,
           ...eventTypeInfo,
           status: "CANCELLED",
         }).catch((e) => {
