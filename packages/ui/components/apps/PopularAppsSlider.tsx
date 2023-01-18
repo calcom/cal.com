@@ -4,12 +4,12 @@ import { AppFrontendPayload as App } from "@calcom/types/App";
 import { AppCard } from "./AppCard";
 import { Slider } from "./Slider";
 
-export const TrendingAppsSlider = <T extends App>({ items }: { items: T[] }) => {
+export const PopularAppsSlider = <T extends App>({ items }: { items: T[] }) => {
   const { t } = useLocale();
 
   return (
     <Slider<T>
-      title={t("trending_apps")}
+      title={t("most_popular")}
       items={items.filter((app) => !!app.trending)}
       itemKey={(app) => app.name}
       options={{
