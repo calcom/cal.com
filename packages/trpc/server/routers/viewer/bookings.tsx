@@ -34,7 +34,7 @@ import sendPayload, { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPa
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
-import { bookingMinimalSelect } from "@calcom/prisma";
+import { bookingMinimalSelect, userSelect } from "@calcom/prisma";
 import { bookingConfirmPatchBodySchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -687,7 +687,6 @@ export const bookingsRouter = router({
   confirm: bookingsProcedure.input(bookingConfirmPatchBodySchema).mutation(async ({ ctx, input }) => {
     const { user, prisma } = ctx;
     const { bookingId, recurringEventId, reason: rejectionReason, confirmed } = input;
-    console.log("🚀 ~ file: bookings.tsx:692 ~ confirm:bookingsProcedure.input ~ bookingId", bookingId);
 
     const tOrganizer = await getTranslation(user.locale ?? "en", "common");
 
@@ -738,7 +737,6 @@ export const bookingsRouter = router({
         scheduledJobs: true,
       },
     });
-    console.log("🚀 ~ file: bookings.tsx:743 ~ confirm:bookingsProcedure.input ~ booking", booking.user);
     const authorized = async () => {
       // if the organizer
       if (booking.user.some((bookingUser) => bookingUser.id === user.id)) {
@@ -818,6 +816,14 @@ export const bookingsRouter = router({
       destinationCalendar: booking?.destinationCalendar || user.destinationCalendar,
       requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
       eventTypeId: booking.eventType?.id,
+      ...(booking.user.length > 1 && {
+        team: {
+          members: booking.user.reduce((teamArray, user, index) => {
+            if (index !== 0) teamArray.push({ id: user.id, name: user.name || "", email: user.email });
+            return teamArray;
+          }, [] as { id: number; name: string; email: string }[]),
+        },
+      }),
     };
 
     const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);

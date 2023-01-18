@@ -136,7 +136,7 @@ export interface CalendarEvent {
   customInputs?: Prisma.JsonObject | null;
   description?: string | null;
   team?: {
-    name: string;
+    name?: string;
     members: { id: number; name: string; email: string }[];
   };
   location?: string | null;
