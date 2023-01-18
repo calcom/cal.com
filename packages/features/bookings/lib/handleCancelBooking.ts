@@ -59,6 +59,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
           type: true,
           externalCalendarId: true,
           credentialId: true,
+          credential: true,
         },
       },
       payment: true,
@@ -96,17 +97,17 @@ async function handler(req: NextApiRequest & { userId?: number }) {
     throw new HttpError({ statusCode: 400, message: "Booking not found" });
   }
 
-  if (userId !== bookingToDelete.user?.id && bookingToDelete.startTime < new Date()) {
+  if (!bookingToDelete.user.some((user) => user.id === userId) && bookingToDelete.startTime < new Date()) {
     throw new HttpError({ statusCode: 400, message: "Cannot cancel past events" });
   }
 
-  if (!bookingToDelete.userId) {
+  if (!bookingToDelete.user.some((user) => user.id === userId)) {
     throw new HttpError({ statusCode: 400, message: "User not found" });
   }
 
   const organizer = await prisma.user.findFirstOrThrow({
     where: {
-      id: bookingToDelete.userId,
+      id: userId,
     },
     select: {
       name: true,
@@ -151,7 +152,7 @@ async function handler(req: NextApiRequest & { userId?: number }) {
       ? parseRecurringEvent(bookingToDelete.eventType?.recurringEvent)
       : undefined,
     location: bookingToDelete?.location,
-    destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user.destinationCalendar,
+    destinationCalendar: bookingToDelete?.destinationCalendar || bookingToDelete?.user[0].destinationCalendar,
     cancellationReason: cancellationReason,
   };
   // Hook up the webhook logic here
@@ -280,82 +281,40 @@ async function handler(req: NextApiRequest & { userId?: number }) {
 
   /** TODO: Remove this without breaking functionality */
   if (bookingToDelete.location === DailyLocationType) {
-    bookingToDelete.user.credentials.push(FAKE_DAILY_CREDENTIAL);
+    bookingToDelete.user[0].credentials.push(FAKE_DAILY_CREDENTIAL);
   }
 
   const apiDeletes = [];
 
-  const bookingCalendarReference = bookingToDelete.references.find((reference) =>
-    reference.type.includes("_calendar")
-  );
-
-  if (bookingCalendarReference) {
-    const { credentialId, uid, externalCalendarId } = bookingCalendarReference;
-    // If the booking calendar reference contains a credentialId
-    if (credentialId) {
-      // Find the correct calendar credential under user credentials
-      const calendarCredential = bookingToDelete.user.credentials.find(
-        (credential) => credential.id === credentialId
-      );
-      if (calendarCredential) {
-        const calendar = getCalendar(calendarCredential);
+  // Loop through booking references
+  bookingToDelete.references.forEach(async (reference) => {
+    if (reference.type.includes("_calendar")) {
+      if (reference.credential) {
+        const calendar = getCalendar(reference.credential);
+        const { uid, externalCalendarId } = reference;
         if (
           bookingToDelete.eventType?.recurringEvent &&
           bookingToDelete.recurringEventId &&
           allRemainingBookings
         ) {
-          bookingToDelete.user.credentials
-            .filter((credential) => credential.type.endsWith("_calendar"))
-            .forEach(async (credential) => {
-              const calendar = getCalendar(credential);
-              for (const updBooking of updatedBookings) {
-                const bookingRef = updBooking.references.find((ref) => ref.type.includes("_calendar"));
-                if (bookingRef) {
-                  const { uid, externalCalendarId } = bookingRef;
-                  const deletedEvent = await calendar?.deleteEvent(uid, evt, externalCalendarId);
-                  apiDeletes.push(deletedEvent);
-                }
-              }
-            });
+          for (const updBooking of updatedBookings) {
+            const bookingRef = updBooking.references.find((ref) => ref.type.includes("_calendar"));
+            if (bookingRef) {
+              const deletedEvent = await calendar?.deleteEvent(uid, evt, externalCalendarId);
+              apiDeletes.push(deletedEvent);
+            }
+          }
         } else {
           apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId) as Promise<unknown>);
         }
       }
-    } else {
-      // For bookings made before the refactor we go through the old behaviour of running through each calendar credential
-      bookingToDelete.user.credentials
-        .filter((credential) => credential.type.endsWith("_calendar"))
-        .forEach((credential) => {
-          const calendar = getCalendar(credential);
-          apiDeletes.push(calendar?.deleteEvent(uid, evt, externalCalendarId) as Promise<unknown>);
-        });
     }
-  }
-
-  const bookingVideoReference = bookingToDelete.references.find((reference) =>
-    reference.type.includes("_video")
-  );
-
-  // If the video reference has a credentialId find the specific credential
-  if (bookingVideoReference && bookingVideoReference.credentialId) {
-    const { credentialId, uid } = bookingVideoReference;
-    if (credentialId) {
-      const videoCredential = bookingToDelete.user.credentials.find(
-        (credential) => credential.id === credentialId
-      );
-
-      if (videoCredential) {
-        apiDeletes.push(deleteMeeting(videoCredential, uid));
+    if (reference.type.includes("_video")) {
+      if (reference.credential) {
+        apiDeletes.push(deleteMeeting(reference.credential, reference.uid));
       }
     }
-    // For bookings made before this refactor we go through the old behaviour of running through each video credential
-  } else {
-    bookingToDelete.user.credentials
-      .filter((credential) => credential.type.endsWith("_video"))
-      .forEach((credential) => {
-        apiDeletes.push(deleteMeeting(credential, bookingToDelete.uid));
-      });
-  }
+  });
 
   // Avoiding taking care of recurrence for now as Payments are not supported with Recurring Events at the moment
   if (bookingToDelete && bookingToDelete.paid) {
