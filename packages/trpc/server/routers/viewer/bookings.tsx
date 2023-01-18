@@ -65,14 +65,11 @@ const bookingsProcedure = authedProcedure.input(commonBookingSchema).use(async (
           OR: [
             /* If user is organizer */
             { userId: ctx.user.id },
-            /* Or part of a collective booking */
+            /* Or part of a team booking */
             {
-              eventType: {
-                schedulingType: SchedulingType.COLLECTIVE,
-                users: {
-                  some: {
-                    id: ctx.user.id,
-                  },
+              user: {
+                some: {
+                  id: ctx.user.id,
                 },
               },
             },
@@ -93,6 +90,7 @@ const bookingsProcedure = authedProcedure.input(commonBookingSchema).use(async (
       },
     },
   });
+  console.log("🚀 ~ file: bookings.tsx:98 ~ bookingsProcedure ~ booking", booking);
 
   if (!booking) throw new TRPCError({ code: "UNAUTHORIZED" });
 
@@ -689,6 +687,7 @@ export const bookingsRouter = router({
   confirm: bookingsProcedure.input(bookingConfirmPatchBodySchema).mutation(async ({ ctx, input }) => {
     const { user, prisma } = ctx;
     const { bookingId, recurringEventId, reason: rejectionReason, confirmed } = input;
+    console.log("🚀 ~ file: bookings.tsx:692 ~ confirm:bookingsProcedure.input ~ bookingId", bookingId);
 
     const tOrganizer = await getTranslation(user.locale ?? "en", "common");
 
@@ -704,6 +703,7 @@ export const bookingsRouter = router({
         endTime: true,
         attendees: true,
         eventTypeId: true,
+        user: true,
         eventType: {
           select: {
             id: true,
@@ -738,9 +738,10 @@ export const bookingsRouter = router({
         scheduledJobs: true,
       },
     });
+    console.log("🚀 ~ file: bookings.tsx:743 ~ confirm:bookingsProcedure.input ~ booking", booking.user);
     const authorized = async () => {
       // if the organizer
-      if (booking.userId === user.id) {
+      if (booking.user.some((bookingUser) => bookingUser.id === user.id)) {
         return true;
       }
       const eventType = await prisma.eventType.findUnique({
@@ -761,6 +762,8 @@ export const bookingsRouter = router({
       }
       return false;
     };
+
+    console.log("🚀 ~ file: bookings.tsx:743 ~ authorized ~ authorized", authorized);
 
     if (!(await authorized())) throw new TRPCError({ code: "UNAUTHORIZED", message: "UNAUTHORIZED" });
 
