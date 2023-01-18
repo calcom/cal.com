@@ -29,6 +29,7 @@ import { baseEventTypeSelect } from "@calcom/prisma/selects";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { Icon, HeadSeo, AvatarGroup } from "@calcom/ui";
 
+import { getNodeText } from "@lib/getNodeText";
 import { inferSSRProps } from "@lib/types/inferSSRProps";
 import { EmbedProps } from "@lib/withEmbedSsr";
 
@@ -140,7 +141,9 @@ export default function User(props: inferSSRProps<typeof getServerSideProps> & E
                   <Icon.BadgeCheckIcon className="mx-1 -mt-1 inline h-6 w-6 text-blue-500 dark:text-white" />
                 )}
               </h1>
-              <p className="dark:text-darkgray-600 text-s text-gray-500">{parse(user.bio || "")}</p>
+              {!!getNodeText(parse(user.bio || "")).length && (
+                <p className="dark:text-darkgray-600 text-s text-gray-500">{parse(user.bio || "")}</p>
+              )}
             </div>
           )}
           <div
