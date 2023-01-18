@@ -144,7 +144,6 @@ const providers: Provider[] = [
           username: user.username,
           email: user.email,
           name: user.name,
-          sessionTimeout: metadata?.sessionTimeout,
           role: "INACTIVE_ADMIN",
           belongsToActiveTeam: hasActiveTeams,
         };
@@ -155,7 +154,6 @@ const providers: Provider[] = [
         username: user.username,
         email: user.email,
         name: user.name,
-        sessionTimeout: metadata?.sessionTimeout,
         role: user.role,
         belongsToActiveTeam: hasActiveTeams,
       };
@@ -198,7 +196,6 @@ if (isSAMLLoginEnabled) {
         id: profile.id || "",
         firstName: profile.firstName || "",
         lastName: profile.lastName || "",
-        sessionTimeout: profile.sessionTimeout,
         email: profile.email || "",
         name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
         email_verified: true,
@@ -255,7 +252,13 @@ export default NextAuth({
   },
   jwt: {
     encode: async ({ secret, token }) => {
+      if (!token || token.sub === undefined) throw new Error("Not valid token");
+      const user = await prisma.user.findFirst({
+        where: { id: Number(token.sub) },
+        select: { metadata: true },
+      });
       const encryptionSecret = await getDerivedEncryptionKey(secret);
+      const metadata = userMetadata.parse(user?.metadata);
       return await new jose.EncryptJWT({
         sub: token?.sub,
         name: token?.name,
@@ -266,7 +269,7 @@ export default NextAuth({
           enc: "A256GCM",
         })
         .setIssuedAt()
-        .setExpirationTime(token && token.sessionTimeout ? `${token.sessionTimeout}m` : "30d")
+        .setExpirationTime(metadata?.sessionTimeout ? `${metadata.sessionTimeout}m` : "30d")
         .setJti(uuidv4())
         .encrypt(new Uint8Array(encryptionSecret));
     },
@@ -290,7 +293,7 @@ export default NextAuth({
   callbacks: {
     async jwt({ token, user, account }) {
       const autoMergeIdentities = async () => {
-        const existingUserRaw = await prisma.user.findFirst({
+        const existingUser = await prisma.user.findFirst({
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           where: { email: token.email! },
           select: {
@@ -299,20 +302,15 @@ export default NextAuth({
             name: true,
             email: true,
             role: true,
-            metadata: true,
           },
         });
 
-        if (!existingUserRaw) {
+        if (!existingUser) {
           return token;
         }
 
-        const { metadata, ...existingUser } = existingUserRaw;
-        const parsedMetadata = userMetadata.parse(metadata);
-
         return {
           ...existingUser,
-          sessionTimeout: parsedMetadata?.sessionTimeout,
           ...token,
         };
       };
@@ -329,7 +327,6 @@ export default NextAuth({
           username: user.username,
           email: user.email,
           role: user.role,
-          sessionTimeout: user?.sessionTimeout,
           impersonatedByUID: user?.impersonatedByUID,
           belongsToActiveTeam: user?.belongsToActiveTeam,
         };
@@ -359,8 +356,6 @@ export default NextAuth({
           return await autoMergeIdentities();
         }
 
-        const metadata = userMetadata.parse(existingUser.metadata);
-
         return {
           ...token,
           id: existingUser.id,
@@ -368,7 +363,6 @@ export default NextAuth({
           username: existingUser.username,
           email: existingUser.email,
           role: existingUser.role,
-          sessionTimeout: metadata?.sessionTimeout,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
         };
@@ -387,7 +381,6 @@ export default NextAuth({
           name: token.name,
           username: token.username as string,
           role: token.role as UserPermissionRole,
-          sessionTimeout: session.user?.sessionTimeout as number,
           impersonatedByUID: token.impersonatedByUID as number,
           belongsToActiveTeam: token?.belongsToActiveTeam as boolean,
         },

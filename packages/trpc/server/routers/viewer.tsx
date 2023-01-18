@@ -173,7 +173,7 @@ const loggedInViewerRouter = router({
       weekStart: user.weekStart,
       theme: user.theme,
       hideBranding: user.hideBranding,
-      metadata: userMetadata.parse(user.metadata),
+      metadata: user.metadata,
     };
   }),
   avatar: authedProcedure.query(({ ctx }) => ({

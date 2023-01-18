@@ -13,7 +13,6 @@ declare module "next-auth" {
     id: PrismaUser["id"];
     emailVerified?: PrismaUser["emailVerified"];
     email_verified?: boolean;
-    sessionTimeout?: number;
     impersonatedByUID?: number;
     belongsToActiveTeam?: boolean;
     username?: PrismaUser["username"];
