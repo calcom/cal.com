@@ -168,7 +168,7 @@ export const AvailabilityTab = ({ isTeamEvent }: { isTeamEvent: boolean }) => {
               {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
             </span>
             <Button
-              href={`/availability/${schedule?.schedule.id}`}
+              href={`/availability/${schedule?.id}`}
               color="minimal"
               EndIcon={Icon.FiExternalLink}
               target="_blank"
@@ -186,7 +186,7 @@ export const AvailabilityTab = ({ isTeamEvent }: { isTeamEvent: boolean }) => {
   const { isLoading, data: schedule } = trpc.viewer.availability.schedule.get.useQuery({ scheduleId });
 
   const filterDays = (dayNum: number) =>
-    schedule?.schedule.availability.filter((item) => item.days.includes((dayNum + 1) % 7)) || [];
+    schedule?.schedule.filter((item) => item.days.includes((dayNum + 1) % 7)) || [];
 
   if (!isTeamEvent) {
     return <EventTypeSchedule />;

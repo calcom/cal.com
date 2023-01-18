@@ -88,6 +88,7 @@ export const availabilityRouter = router({
           });
         }
         return {
+          id: schedule.id,
           name: schedule.name,
           workingHours: getWorkingHours(
             { timeZone: schedule.timeZone || undefined },
